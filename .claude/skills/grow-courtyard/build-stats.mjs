@@ -32,8 +32,32 @@ const all = readJsonl(join(HERE, 'RUNLOG.jsonl'));
 const rows = all.filter(r => r.kind !== 'manager');
 const managers = all.filter(r => r.kind === 'manager');
 
+/* No runs yet. Write a real placeholder rather than exiting — exiting would leave
+ * whatever stats.html happened to be on disk, and this page is published. */
 if (!rows.length && !managers.length) {
-  console.log('build-stats: RUNLOG.jsonl is empty — nothing to build yet.');
+  writeFileSync(OUT, `<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Courtyard — the loop's field log</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+  :root{color-scheme:light;--bg:#f9f9f7;--fg:#0b0b0b;--fg2:#52514e;--link:#2a78d6}
+  @media(prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#0d0d0d;--fg:#fff;--fg2:#c3c2b7;--link:#3987e5}}
+  body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--fg);
+    font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;padding:24px}
+  .b{max-width:44ch}h1{font-size:26px;margin:0 0 12px;letter-spacing:-.02em}
+  p{color:var(--fg2);margin:0 0 14px}a{color:var(--link)}
+</style></head><body><div class="b">
+<h1>The loop hasn't run yet.</h1>
+<p>This page is the field log of an autonomous loop that grows The Courtyard: a worker
+Claude builds one briefed change at a time and proves it, and a manager Claude reads the
+accumulated results and decides what should be built next.</p>
+<p>Cost, runtime, outcomes, the town's measured growth and the manager's decisions will
+appear here after the first iteration lands.</p>
+<p><a href="./">&larr; open the living town</a></p>
+</div></body></html>
+`);
+  console.log('build-stats: no runs logged yet — wrote the placeholder page.');
   process.exit(0);
 }
 
@@ -95,6 +119,9 @@ const kinds = tally('changeKind');
  * two y-scales — which is the single most common charting mistake. Indexing to a
  * common base of 100 keeps one axis and makes the shapes comparable. */
 const GROWTH_KEYS = ['planted', 'blooming', 'creatures', 'structures'];
+/* Friendly names, used identically in the legend and the direct labels — a chart
+ * whose key and label disagree makes the reader do a lookup for no reason. */
+const GROWTH_LABELS = ['plants growing', 'in bloom', 'creatures', 'built things'];
 const growth = [];
 for (const r of rows) if (r.census && r.census.scalars) growth.push({ i: r.iter, s: r.census.scalars });
 const growthBase = growth.length ? growth[0].s : null;
@@ -137,7 +164,7 @@ const data = {
   rows: rows.map(r => ({ i: r.iter, v: chartVerdict(r.verdict), vRaw: r.verdict, self: r.selfVerdict || null,
     s: r.secs, c: r.costUsd, d: r.domain, k: r.changeKind, L: (r.evidence || {}).srcLines || 0, b: r.brief })),
   managers: managers.map(r => ({ i: r.iter, s: r.secs, c: r.costUsd })),
-  growth: growthSeries, growthKeys: GROWTH_KEYS,
+  growth: growthSeries, growthKeys: GROWTH_LABELS,
   ctx, decisions, domains, kinds, maxIter,
 };
 
@@ -479,25 +506,43 @@ function drawGrowth(){
   if(!D.growth.length||!D.growth[0].pts.length){
     const t=el('text',{x:W/2,y:H/2,'text-anchor':'middle',class:'axis'});
     t.textContent='no census readings yet — the first iteration writes one';s.appendChild(t);return;}
+  /* Direct labels sit in a reserved gutter on the right, never over the plot. */
+  const GUT=86, RX=W-GUT;
   const vals=D.growth.flatMap(g=>g.pts.map(p=>p.v));
   const max=Math.max(120,...vals),min=Math.min(80,...vals);
   const yOf=v=>H-PAD.b-(H-PAD.t-PAD.b)*((v-min)/(max-min||1));
+  const xg=i=>PAD.l+(RX-PAD.l)*(i/MAXI);
   for(let k=0;k<=4;k++){const v=min+(max-min)*k/4,y=yOf(v);
-    s.appendChild(el('line',{x1:PAD.l,x2:W-PAD.r,y1:y,y2:y,class:'gridline'}));
+    s.appendChild(el('line',{x1:PAD.l,x2:RX,y1:y,y2:y,class:'gridline'}));
     const t=el('text',{x:PAD.l-7,y:y+3.5,'text-anchor':'end',class:'axis'});t.textContent=v.toFixed(0);s.appendChild(t);}
   D.growth.forEach((g,gi)=>{
-    const d=g.pts.map((p,i)=>(i?'L':'M')+xOf(p.i,W)+' '+yOf(p.v)).join('');
+    const d=g.pts.map((p,i)=>(i?'L':'M')+xg(p.i)+' '+yOf(p.v)).join('');
     s.appendChild(el('path',{d,fill:'none',stroke:css(SER[gi]),'stroke-width':2,'stroke-linejoin':'round'}));
-    const last=g.pts[g.pts.length-1];
-    if(last){const t=el('text',{x:Math.min(W-PAD.r,xOf(last.i,W)+6),y:yOf(last.v)+3.5,class:'axis',fill:css(SER[gi])});
-      t.textContent=D.growthKeys[gi];s.appendChild(t);}
-    g.pts.forEach(p=>{const c=el('circle',{cx:xOf(p.i,W),cy:yOf(p.v),r:5,fill:'transparent'});
+    g.pts.forEach(p=>{const c=el('circle',{cx:xg(p.i),cy:yOf(p.v),r:5,fill:'transparent'});
       c.addEventListener('mousemove',e=>showTip('<b>#'+p.i+'</b> '+D.growthKeys[gi]+'<br>'+
         p.v.toFixed(1)+' vs 100 at the start<br>'+p.raw+' counted',e));
       c.addEventListener('mouseleave',hideTip);s.appendChild(c);});
   });
-  s.appendChild(el('line',{x1:PAD.l,x2:W-PAD.r,y1:H-PAD.b,y2:H-PAD.b,class:'baseline'}));
-  xTicks(s,W,H,MAXI);
+  /* Series whose endpoints land within a few pixels of each other would print one
+   * unreadable blob, so nudge them apart before drawing — the leader line keeps
+   * each label tied to its own series. */
+  const labels=D.growth.map((g,gi)=>({gi,y:yOf(g.pts[g.pts.length-1].v),
+    y0:yOf(g.pts[g.pts.length-1].v),x:xg(g.pts[g.pts.length-1].i)}))
+    .filter(l=>Number.isFinite(l.y)).sort((a,b)=>a.y-b.y);
+  for(let i=1;i<labels.length;i++) if(labels[i].y-labels[i-1].y<13) labels[i].y=labels[i-1].y+13;
+  const over=labels.length?labels[labels.length-1].y-(H-PAD.b):0;
+  if(over>0) labels.forEach(l=>l.y-=over);
+  for(const l of labels){
+    if(Math.abs(l.y-l.y0)>2)
+      s.appendChild(el('path',{d:'M'+l.x+' '+l.y0+'L'+(RX+5)+' '+l.y,fill:'none',
+        stroke:css(SER[l.gi]),'stroke-width':1,opacity:.5}));
+    const t=el('text',{x:RX+9,y:l.y+3.5,class:'axis',fill:css(SER[l.gi])});
+    t.textContent=D.growthKeys[l.gi];s.appendChild(t);
+  }
+  s.appendChild(el('line',{x1:PAD.l,x2:RX,y1:H-PAD.b,y2:H-PAD.b,class:'baseline'}));
+  {const step=MAXI<=10?1:MAXI<=40?5:MAXI<=120?20:50;
+   for(let i=step;i<=MAXI;i+=step){const t=el('text',{x:xg(i),y:H-8,'text-anchor':'middle',class:'axis'});
+     t.textContent='#'+i;s.appendChild(t);}}
 }
 
 /* ---- categorical counts: one hue, the axis carries identity ---- */
@@ -590,8 +635,11 @@ drawAll();
 addEventListener('resize',()=>{hideTip();drawAll();});
 
 const btn=document.getElementById('themeBtn');
-const stored=localStorage.getItem('courtyard-theme');
+/* ?theme=dark|light pins the theme — how the loop screenshots both modes. */
+const q=new URLSearchParams(location.search).get('theme');
+const stored=q||localStorage.getItem('courtyard-theme');
 if(stored)document.documentElement.setAttribute('data-theme',stored);
+if(q)drawAll();
 btn.addEventListener('click',()=>{
   const cur=document.documentElement.getAttribute('data-theme')
     ||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');

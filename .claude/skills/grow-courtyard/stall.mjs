@@ -104,7 +104,7 @@ if (report) {
   if (!rows.length) { console.log('  (no runs yet — plan the opening batch)'); }
   else {
     const l = rows[rows.length - 1];
-    console.log(`  last: #${l.iter} ${l.domain || '—'} x ${l.kind || '—'} -> ${l.verdict} (self: ${l.selfVerdict || '—'}) ${Math.round((l.secs || 0) / 60)}m $${(l.costUsd || 0).toFixed(2)}`);
+    console.log(`  last: #${l.iter} ${l.domain || '—'} x ${l.changeKind || '—'} -> ${l.verdict} (self: ${l.selfVerdict || '—'}) ${Math.round((l.secs || 0) / 60)}m $${(l.costUsd || 0).toFixed(2)}`);
     console.log(`  last 20 verdicts: ${Object.entries(verdictCounts).map(([k, v]) => `${k}=${v}`).join('  ') || '—'}`);
     const l10 = last(10);
     console.log(`  last 10: avg ${Math.round(mean(l10.map(r => r.secs || 0)) / 60)}m  $${mean(l10.map(r => r.costUsd || 0)).toFixed(2)}/iter  src moved ${l10.filter(r => r.evidence && r.evidence.srcChanged).length}/${l10.length}`);

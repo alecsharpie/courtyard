@@ -4,8 +4,12 @@
 shots/
 .claude/skills/*/shots/
 
-# Per-run scratch the loop writes and re-writes.
+# Per-run scratch the loop writes and re-writes. The BASELINES are pinned fresh
+# before every edit, so tracking them would mean a 15 KB churn commit per
+# iteration for data that is superseded twenty minutes later. The durable record
+# is census-history.jsonl, which is append-only and tracked.
 .claude/skills/grow-courtyard/census-latest.json
+.claude/skills/grow-courtyard/census-baseline.json
 .claude/skills/grow-courtyard/STOP
 .claude/skills/grow-courtyard/.manager-due
 
