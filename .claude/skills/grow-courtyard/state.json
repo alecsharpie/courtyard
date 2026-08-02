@@ -1,0 +1,59 @@
+{
+  "updated": "2026-08-02",
+  "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
+  "phase": "expanding",
+  "lastIteration": 0,
+
+  "menu": {
+    "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
+    "domains": [
+      { "id": "courtyard", "name": "Courtyard & garden", "seams": ["gR", "bedIn", "bedOut", "EDGE_BEDS", "caTick", "SPECIES", "RING", "BENCH_SPOTS"] },
+      { "id": "lane", "name": "Lane & market", "seams": ["LANE_N_Y", "KIOSK", "CAFE_TABLES", "MARKET_STALLS", "marketActive", "spawnLaneAgent"] },
+      { "id": "street", "name": "Cross street & allotments", "seams": ["XS_W0", "XS_WALK_W", "ALT_X0", "inAllotment", "ALLEY_Y"] },
+      { "id": "plaza", "name": "Plaza & quay", "seams": ["PLAZA_X0", "FOUNTAIN", "PLAZA_PITS", "QUAY_X0", "QUAY_BENCHES"] },
+      { "id": "river", "name": "River & far bank", "seams": ["RIVER_X0", "TOW_X0", "CHURCH", "BANDSTAND", "ORCHARD", "JETTY", "updateBoat"] },
+      { "id": "sky", "name": "Sky, light & weather", "seams": ["skyCols", "sunVec", "drawSky", "drawBackdrop", "raining", "isWindy", "nightF"] },
+      { "id": "life", "name": "People & animals", "seams": ["spawnAgent", "stepAgent", "updateWildlife", "updateDucks", "updateSwans", "agents"] }
+    ],
+    "kinds": [
+      { "id": "new-element", "name": "New element", "what": "a thing the town did not contain" },
+      { "id": "new-ca", "name": "New CA rule", "what": "a new per-cell rule that makes the grid evolve" },
+      { "id": "deepen", "name": "Deepen", "what": "make an existing system richer, or wire two together" },
+      { "id": "connect", "name": "Connect", "what": "link two places or systems that ignore each other" },
+      { "id": "polish", "name": "Polish", "what": "make what is there read better; add nothing" },
+      { "id": "interaction", "name": "Interaction/UX", "what": "how you read, poke or navigate the diorama" },
+      { "id": "scale", "name": "Scale/World", "what": "change the size, span or time of the world itself" }
+    ]
+  },
+
+  "coverage": {
+    "note": "domain -> kind -> iteration numbers. Pre-loop work (CHANGELOG iterations 1-31, hand-driven) is recorded as `pre` so the manager knows the ground it stands on.",
+    "courtyard": { "polish": ["pre1", "pre28"], "deepen": ["pre21"], "new-ca": ["pre"] },
+    "lane": { "new-element": ["pre6", "pre12", "pre16"], "deepen": ["pre13"], "polish": ["pre17"] },
+    "street": { "new-element": ["pre2", "pre4"], "polish": ["pre3", "pre5"], "connect": ["pre7"] },
+    "plaza": { "new-element": ["pre22"] },
+    "river": { "new-element": ["pre22", "pre30"], "polish": ["pre31"] },
+    "sky": { "new-element": ["pre10", "pre14", "pre18"], "polish": ["pre11", "pre19", "pre24", "pre29"] },
+    "life": { "new-element": ["pre4", "pre8"], "deepen": ["pre13"], "polish": ["pre9"] }
+  },
+
+  "saturation": {},
+
+  "inventory": {
+    "note": "What the town ALREADY CONTAINS, in the words a brief would use. Read by every worker before it builds. This list is the direct antidote to the previous loop's terminal failure mode: nine consecutive iterations that each surveyed the world, found everything already existed, and exited.",
+    "courtyard": ["walled garden with an organic bed ring", "four arch entrances (two TUNNEL, two SLOT)", "planting CA with 11 species and bloom stages", "daisies in the lawn", "desire paths from foot wear", "benches", "a sweeper", "ivy on the south wall"],
+    "lane": ["kiosk", "pavement café with tables", "awnings", "washing lines strung over the lane", "market day every 4th day with three stalls", "planters", "street lamps", "lane benches"],
+    "street": ["cross street with two footways, roadway, curbs", "street lamps", "street trees in pits", "allotment block with 21 plots, timber fence, gates, shed", "an alley cut through the block"],
+    "plaza": ["plaza with a fountain", "four planting pits", "benches", "quay along the river with benches"],
+    "river": ["river with a boat", "three-arch bridge", "towpath", "church with tower and nave", "bandstand", "orchard", "jetty", "park gate"],
+    "sky": ["day/night cycle (55 s day)", "sun and moon arc", "backdrop hills", "rain with puddle sheen", "wind days", "night window lighting", "chimney smoke", "a balloon"],
+    "life": ["walkers with itineraries, courtyard and street", "ducks", "swans", "butterflies", "fireflies", "birds", "falling leaves", "a clock that strikes and a church bell that answers", "an ambient ticker"]
+  },
+
+  "openCues": [],
+
+  "watch": [
+    { "note": "courtyard.html is ~3,000 lines. Workers must grep the seam, never read the file whole.", "since": 0 },
+    { "note": "The census cannot see draw-only work. Expect +0 on polish vectors and reach for a probe instead of declaring failure.", "since": 0 }
+  ]
+}

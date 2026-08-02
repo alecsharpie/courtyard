@@ -1,0 +1,850 @@
+{
+ "when": "2026-08-02T13:27:29.221Z",
+ "pageerrors": 0,
+ "errors": [],
+ "scalars": {
+  "developed": 61740,
+  "green": 27270,
+  "water": 9252,
+  "passages": 1071,
+  "people": 111,
+  "planted": 5564,
+  "blooming": 4332,
+  "creatures": 75,
+  "structures": 2916,
+  "tileKinds": 108,
+  "speciesKinds": 99
+ },
+ "tiles": {
+  "WALL": 11979,
+  "TUNNEL": 603,
+  "SIDE": 12519,
+  "ROAD": 13608,
+  "WATER": 9252,
+  "BED": 5940,
+  "PATH": 23634,
+  "GRASS": 20565,
+  "CBED": 711,
+  "SLOT": 468,
+  "TRUNK": 54,
+  "VOID": 9963
+ },
+ "life": {
+  "people": 111,
+  "inCourtyard": 67,
+  "onStreet": 44,
+  "ducks": 18,
+  "swans": 18,
+  "birds": 2,
+  "butterflies": 16,
+  "fireflies": 21,
+  "leaves": 35,
+  "raindrops": 110
+ },
+ "structure": {
+  "chimneys": 180,
+  "ringNodes": 648,
+  "edgeBeds": 1836,
+  "benches": 90,
+  "cafeTables": 27,
+  "marketStalls": 27,
+  "treePits": 36,
+  "orchard": 36,
+  "plazaPits": 36
+ },
+ "species": {
+  "marigolds": 994,
+  "lavender": 635,
+  "ferns": 923,
+  "poppies": 907,
+  "beans": 165,
+  "carrots": 230,
+  "cabbages": 192,
+  "daylilies": 476,
+  "salvia": 437,
+  "roses": 482,
+  "pumpkins": 123
+ },
+ "cells": {
+  "7@day1": {
+   "world": {
+    "GW": 138,
+    "WH": 88,
+    "cells": 12144
+   },
+   "clock": {
+    "simT": 90,
+    "day": 1,
+    "hour": 21.273,
+    "marketDay": false,
+    "windy": false,
+    "raining": false,
+    "maturity": 0.2045,
+    "richness": 0.0625
+   },
+   "tiles": {
+    "WALL": 1331,
+    "TUNNEL": 67,
+    "SIDE": 1391,
+    "ROAD": 1512,
+    "WATER": 1028,
+    "BED": 660,
+    "PATH": 2626,
+    "GRASS": 2285,
+    "CBED": 79,
+    "SLOT": 52,
+    "TRUNK": 6,
+    "VOID": 1107
+   },
+   "life": {
+    "people": 4,
+    "inCourtyard": 2,
+    "onStreet": 2,
+    "ducks": 0,
+    "swans": 2,
+    "birds": 0,
+    "butterflies": 0,
+    "fireflies": 0,
+    "leaves": 0,
+    "raindrops": 0
+   },
+   "structure": {
+    "chimneys": 20,
+    "ringNodes": 72,
+    "edgeBeds": 204,
+    "benches": 10,
+    "cafeTables": 3,
+    "marketStalls": 3,
+    "treePits": 4,
+    "orchard": 4,
+    "plazaPits": 4
+   },
+   "planting": {
+    "planted": 521,
+    "blooming": 323,
+    "daisies": 12,
+    "matureTrees": 6,
+    "worn": 0,
+    "species": 11,
+    "bySpecies": {
+     "marigolds": 173,
+     "lavender": 44,
+     "ferns": 136,
+     "poppies": 117,
+     "beans": 13,
+     "carrots": 18,
+     "cabbages": 20
+    }
+   },
+   "scalars": {
+    "developed": 6860,
+    "green": 3030,
+    "water": 1028,
+    "passages": 119,
+    "people": 4,
+    "planted": 521,
+    "blooming": 323,
+    "creatures": 2,
+    "structures": 324,
+    "tileKinds": 12,
+    "speciesKinds": 11
+   }
+  },
+  "7@day6": {
+   "world": {
+    "GW": 138,
+    "WH": 88,
+    "cells": 12144
+   },
+   "clock": {
+    "simT": 330,
+    "day": 6,
+    "hour": 6,
+    "marketDay": true,
+    "windy": false,
+    "raining": false,
+    "maturity": 0.75,
+    "richness": 0.375
+   },
+   "tiles": {
+    "WALL": 1331,
+    "TUNNEL": 67,
+    "SIDE": 1391,
+    "ROAD": 1512,
+    "WATER": 1028,
+    "BED": 660,
+    "PATH": 2626,
+    "GRASS": 2285,
+    "CBED": 79,
+    "SLOT": 52,
+    "TRUNK": 6,
+    "VOID": 1107
+   },
+   "life": {
+    "people": 12,
+    "inCourtyard": 7,
+    "onStreet": 5,
+    "ducks": 3,
+    "swans": 2,
+    "birds": 0,
+    "butterflies": 0,
+    "fireflies": 7,
+    "leaves": 8,
+    "raindrops": 0
+   },
+   "structure": {
+    "chimneys": 20,
+    "ringNodes": 72,
+    "edgeBeds": 204,
+    "benches": 10,
+    "cafeTables": 3,
+    "marketStalls": 3,
+    "treePits": 4,
+    "orchard": 4,
+    "plazaPits": 4
+   },
+   "planting": {
+    "planted": 660,
+    "blooming": 537,
+    "daisies": 42,
+    "matureTrees": 6,
+    "worn": 0,
+    "species": 11,
+    "bySpecies": {
+     "poppies": 86,
+     "daylilies": 83,
+     "marigolds": 88,
+     "salvia": 55,
+     "ferns": 108,
+     "roses": 91,
+     "lavender": 59,
+     "cabbages": 18,
+     "carrots": 25,
+     "beans": 35,
+     "pumpkins": 12
+    }
+   },
+   "scalars": {
+    "developed": 6860,
+    "green": 3030,
+    "water": 1028,
+    "passages": 119,
+    "people": 12,
+    "planted": 660,
+    "blooming": 537,
+    "creatures": 12,
+    "structures": 324,
+    "tileKinds": 12,
+    "speciesKinds": 11
+   }
+  },
+  "7@day16": {
+   "world": {
+    "GW": 138,
+    "WH": 88,
+    "cells": 12144
+   },
+   "clock": {
+    "simT": 900,
+    "day": 16,
+    "hour": 14.727,
+    "marketDay": false,
+    "windy": false,
+    "raining": true,
+    "maturity": 1,
+    "richness": 1
+   },
+   "tiles": {
+    "WALL": 1331,
+    "TUNNEL": 67,
+    "SIDE": 1391,
+    "ROAD": 1512,
+    "WATER": 1028,
+    "BED": 660,
+    "PATH": 2626,
+    "GRASS": 2285,
+    "CBED": 79,
+    "SLOT": 52,
+    "TRUNK": 6,
+    "VOID": 1107
+   },
+   "life": {
+    "people": 14,
+    "inCourtyard": 7,
+    "onStreet": 7,
+    "ducks": 3,
+    "swans": 2,
+    "birds": 0,
+    "butterflies": 0,
+    "fireflies": 0,
+    "leaves": 0,
+    "raindrops": 110
+   },
+   "structure": {
+    "chimneys": 20,
+    "ringNodes": 72,
+    "edgeBeds": 204,
+    "benches": 10,
+    "cafeTables": 3,
+    "marketStalls": 3,
+    "treePits": 4,
+    "orchard": 4,
+    "plazaPits": 4
+   },
+   "planting": {
+    "planted": 713,
+    "blooming": 653,
+    "daisies": 79,
+    "matureTrees": 6,
+    "worn": 0,
+    "species": 11,
+    "bySpecies": {
+     "ferns": 69,
+     "marigolds": 130,
+     "daylilies": 92,
+     "poppies": 69,
+     "lavender": 79,
+     "salvia": 69,
+     "roses": 107,
+     "pumpkins": 26,
+     "cabbages": 18,
+     "beans": 26,
+     "carrots": 28
+    }
+   },
+   "scalars": {
+    "developed": 6860,
+    "green": 3030,
+    "water": 1028,
+    "passages": 119,
+    "people": 14,
+    "planted": 713,
+    "blooming": 653,
+    "creatures": 5,
+    "structures": 324,
+    "tileKinds": 12,
+    "speciesKinds": 11
+   }
+  },
+  "42@day1": {
+   "world": {
+    "GW": 138,
+    "WH": 88,
+    "cells": 12144
+   },
+   "clock": {
+    "simT": 90,
+    "day": 1,
+    "hour": 21.273,
+    "marketDay": false,
+    "windy": false,
+    "raining": false,
+    "maturity": 0.2045,
+    "richness": 0.0625
+   },
+   "tiles": {
+    "WALL": 1331,
+    "TUNNEL": 67,
+    "SIDE": 1391,
+    "ROAD": 1512,
+    "WATER": 1028,
+    "BED": 660,
+    "PATH": 2626,
+    "GRASS": 2285,
+    "CBED": 79,
+    "SLOT": 52,
+    "TRUNK": 6,
+    "VOID": 1107
+   },
+   "life": {
+    "people": 6,
+    "inCourtyard": 4,
+    "onStreet": 2,
+    "ducks": 0,
+    "swans": 2,
+    "birds": 0,
+    "butterflies": 0,
+    "fireflies": 0,
+    "leaves": 0,
+    "raindrops": 0
+   },
+   "structure": {
+    "chimneys": 20,
+    "ringNodes": 72,
+    "edgeBeds": 204,
+    "benches": 10,
+    "cafeTables": 3,
+    "marketStalls": 3,
+    "treePits": 4,
+    "orchard": 4,
+    "plazaPits": 4
+   },
+   "planting": {
+    "planted": 509,
+    "blooming": 316,
+    "daisies": 19,
+    "matureTrees": 6,
+    "worn": 0,
+    "species": 11,
+    "bySpecies": {
+     "ferns": 135,
+     "lavender": 41,
+     "poppies": 149,
+     "marigolds": 121,
+     "cabbages": 19,
+     "beans": 4,
+     "carrots": 40
+    }
+   },
+   "scalars": {
+    "developed": 6860,
+    "green": 3030,
+    "water": 1028,
+    "passages": 119,
+    "people": 6,
+    "planted": 509,
+    "blooming": 316,
+    "creatures": 2,
+    "structures": 324,
+    "tileKinds": 12,
+    "speciesKinds": 11
+   }
+  },
+  "42@day6": {
+   "world": {
+    "GW": 138,
+    "WH": 88,
+    "cells": 12144
+   },
+   "clock": {
+    "simT": 330,
+    "day": 6,
+    "hour": 6,
+    "marketDay": true,
+    "windy": false,
+    "raining": false,
+    "maturity": 0.75,
+    "richness": 0.375
+   },
+   "tiles": {
+    "WALL": 1331,
+    "TUNNEL": 67,
+    "SIDE": 1391,
+    "ROAD": 1512,
+    "WATER": 1028,
+    "BED": 660,
+    "PATH": 2626,
+    "GRASS": 2285,
+    "CBED": 79,
+    "SLOT": 52,
+    "TRUNK": 6,
+    "VOID": 1107
+   },
+   "life": {
+    "people": 13,
+    "inCourtyard": 7,
+    "onStreet": 6,
+    "ducks": 3,
+    "swans": 2,
+    "birds": 0,
+    "butterflies": 0,
+    "fireflies": 7,
+    "leaves": 11,
+    "raindrops": 0
+   },
+   "structure": {
+    "chimneys": 20,
+    "ringNodes": 72,
+    "edgeBeds": 204,
+    "benches": 10,
+    "cafeTables": 3,
+    "marketStalls": 3,
+    "treePits": 4,
+    "orchard": 4,
+    "plazaPits": 4
+   },
+   "planting": {
+    "planted": 660,
+    "blooming": 516,
+    "daisies": 47,
+    "matureTrees": 6,
+    "worn": 0,
+    "species": 11,
+    "bySpecies": {
+     "salvia": 62,
+     "lavender": 62,
+     "marigolds": 97,
+     "daylilies": 65,
+     "ferns": 101,
+     "poppies": 106,
+     "roses": 80,
+     "carrots": 31,
+     "pumpkins": 16,
+     "cabbages": 25,
+     "beans": 15
+    }
+   },
+   "scalars": {
+    "developed": 6860,
+    "green": 3030,
+    "water": 1028,
+    "passages": 119,
+    "people": 13,
+    "planted": 660,
+    "blooming": 516,
+    "creatures": 12,
+    "structures": 324,
+    "tileKinds": 12,
+    "speciesKinds": 11
+   }
+  },
+  "42@day16": {
+   "world": {
+    "GW": 138,
+    "WH": 88,
+    "cells": 12144
+   },
+   "clock": {
+    "simT": 900,
+    "day": 16,
+    "hour": 14.727,
+    "marketDay": false,
+    "windy": false,
+    "raining": false,
+    "maturity": 1,
+    "richness": 1
+   },
+   "tiles": {
+    "WALL": 1331,
+    "TUNNEL": 67,
+    "SIDE": 1391,
+    "ROAD": 1512,
+    "WATER": 1028,
+    "BED": 660,
+    "PATH": 2626,
+    "GRASS": 2285,
+    "CBED": 79,
+    "SLOT": 52,
+    "TRUNK": 6,
+    "VOID": 1107
+   },
+   "life": {
+    "people": 22,
+    "inCourtyard": 13,
+    "onStreet": 9,
+    "ducks": 3,
+    "swans": 2,
+    "birds": 1,
+    "butterflies": 8,
+    "fireflies": 0,
+    "leaves": 1,
+    "raindrops": 0
+   },
+   "structure": {
+    "chimneys": 20,
+    "ringNodes": 72,
+    "edgeBeds": 204,
+    "benches": 10,
+    "cafeTables": 3,
+    "marketStalls": 3,
+    "treePits": 4,
+    "orchard": 4,
+    "plazaPits": 4
+   },
+   "planting": {
+    "planted": 671,
+    "blooming": 563,
+    "daisies": 77,
+    "matureTrees": 6,
+    "worn": 0,
+    "species": 11,
+    "bySpecies": {
+     "salvia": 90,
+     "lavender": 115,
+     "poppies": 58,
+     "daylilies": 103,
+     "marigolds": 52,
+     "roses": 62,
+     "ferns": 100,
+     "carrots": 21,
+     "cabbages": 23,
+     "pumpkins": 29,
+     "beans": 18
+    }
+   },
+   "scalars": {
+    "developed": 6860,
+    "green": 3030,
+    "water": 1028,
+    "passages": 119,
+    "people": 22,
+    "planted": 671,
+    "blooming": 563,
+    "creatures": 14,
+    "structures": 324,
+    "tileKinds": 12,
+    "speciesKinds": 11
+   }
+  },
+  "1234@day1": {
+   "world": {
+    "GW": 138,
+    "WH": 88,
+    "cells": 12144
+   },
+   "clock": {
+    "simT": 90,
+    "day": 1,
+    "hour": 21.273,
+    "marketDay": false,
+    "windy": false,
+    "raining": false,
+    "maturity": 0.2045,
+    "richness": 0.0625
+   },
+   "tiles": {
+    "WALL": 1331,
+    "TUNNEL": 67,
+    "SIDE": 1391,
+    "ROAD": 1512,
+    "WATER": 1028,
+    "BED": 660,
+    "PATH": 2626,
+    "GRASS": 2285,
+    "CBED": 79,
+    "SLOT": 52,
+    "TRUNK": 6,
+    "VOID": 1107
+   },
+   "life": {
+    "people": 5,
+    "inCourtyard": 4,
+    "onStreet": 1,
+    "ducks": 0,
+    "swans": 2,
+    "birds": 0,
+    "butterflies": 0,
+    "fireflies": 0,
+    "leaves": 0,
+    "raindrops": 0
+   },
+   "structure": {
+    "chimneys": 20,
+    "ringNodes": 72,
+    "edgeBeds": 204,
+    "benches": 10,
+    "cafeTables": 3,
+    "marketStalls": 3,
+    "treePits": 4,
+    "orchard": 4,
+    "plazaPits": 4
+   },
+   "planting": {
+    "planted": 477,
+    "blooming": 308,
+    "daisies": 11,
+    "matureTrees": 6,
+    "worn": 0,
+    "species": 11,
+    "bySpecies": {
+     "poppies": 135,
+     "lavender": 53,
+     "marigolds": 134,
+     "ferns": 107,
+     "carrots": 17,
+     "cabbages": 26,
+     "beans": 5
+    }
+   },
+   "scalars": {
+    "developed": 6860,
+    "green": 3030,
+    "water": 1028,
+    "passages": 119,
+    "people": 5,
+    "planted": 477,
+    "blooming": 308,
+    "creatures": 2,
+    "structures": 324,
+    "tileKinds": 12,
+    "speciesKinds": 11
+   }
+  },
+  "1234@day6": {
+   "world": {
+    "GW": 138,
+    "WH": 88,
+    "cells": 12144
+   },
+   "clock": {
+    "simT": 330,
+    "day": 6,
+    "hour": 6,
+    "marketDay": true,
+    "windy": false,
+    "raining": false,
+    "maturity": 0.75,
+    "richness": 0.375
+   },
+   "tiles": {
+    "WALL": 1331,
+    "TUNNEL": 67,
+    "SIDE": 1391,
+    "ROAD": 1512,
+    "WATER": 1028,
+    "BED": 660,
+    "PATH": 2626,
+    "GRASS": 2285,
+    "CBED": 79,
+    "SLOT": 52,
+    "TRUNK": 6,
+    "VOID": 1107
+   },
+   "life": {
+    "people": 11,
+    "inCourtyard": 8,
+    "onStreet": 3,
+    "ducks": 3,
+    "swans": 2,
+    "birds": 0,
+    "butterflies": 0,
+    "fireflies": 7,
+    "leaves": 12,
+    "raindrops": 0
+   },
+   "structure": {
+    "chimneys": 20,
+    "ringNodes": 72,
+    "edgeBeds": 204,
+    "benches": 10,
+    "cafeTables": 3,
+    "marketStalls": 3,
+    "treePits": 4,
+    "orchard": 4,
+    "plazaPits": 4
+   },
+   "planting": {
+    "planted": 677,
+    "blooming": 556,
+    "daisies": 58,
+    "matureTrees": 6,
+    "worn": 0,
+    "species": 11,
+    "bySpecies": {
+     "roses": 64,
+     "ferns": 80,
+     "poppies": 73,
+     "daylilies": 67,
+     "marigolds": 115,
+     "salvia": 87,
+     "lavender": 100,
+     "cabbages": 21,
+     "carrots": 15,
+     "pumpkins": 22,
+     "beans": 33
+    }
+   },
+   "scalars": {
+    "developed": 6860,
+    "green": 3030,
+    "water": 1028,
+    "passages": 119,
+    "people": 11,
+    "planted": 677,
+    "blooming": 556,
+    "creatures": 12,
+    "structures": 324,
+    "tileKinds": 12,
+    "speciesKinds": 11
+   }
+  },
+  "1234@day16": {
+   "world": {
+    "GW": 138,
+    "WH": 88,
+    "cells": 12144
+   },
+   "clock": {
+    "simT": 900,
+    "day": 16,
+    "hour": 14.727,
+    "marketDay": false,
+    "windy": false,
+    "raining": false,
+    "maturity": 1,
+    "richness": 1
+   },
+   "tiles": {
+    "WALL": 1331,
+    "TUNNEL": 67,
+    "SIDE": 1391,
+    "ROAD": 1512,
+    "WATER": 1028,
+    "BED": 660,
+    "PATH": 2626,
+    "GRASS": 2285,
+    "CBED": 79,
+    "SLOT": 52,
+    "TRUNK": 6,
+    "VOID": 1107
+   },
+   "life": {
+    "people": 24,
+    "inCourtyard": 15,
+    "onStreet": 9,
+    "ducks": 3,
+    "swans": 2,
+    "birds": 1,
+    "butterflies": 8,
+    "fireflies": 0,
+    "leaves": 3,
+    "raindrops": 0
+   },
+   "structure": {
+    "chimneys": 20,
+    "ringNodes": 72,
+    "edgeBeds": 204,
+    "benches": 10,
+    "cafeTables": 3,
+    "marketStalls": 3,
+    "treePits": 4,
+    "orchard": 4,
+    "plazaPits": 4
+   },
+   "planting": {
+    "planted": 676,
+    "blooming": 560,
+    "daisies": 81,
+    "matureTrees": 6,
+    "worn": 0,
+    "species": 11,
+    "bySpecies": {
+     "ferns": 87,
+     "marigolds": 84,
+     "salvia": 74,
+     "poppies": 114,
+     "lavender": 82,
+     "roses": 78,
+     "daylilies": 66,
+     "carrots": 35,
+     "pumpkins": 18,
+     "cabbages": 22,
+     "beans": 16
+    }
+   },
+   "scalars": {
+    "developed": 6860,
+    "green": 3030,
+    "water": 1028,
+    "passages": 119,
+    "people": 24,
+    "planted": 676,
+    "blooming": 560,
+    "creatures": 14,
+    "structures": 324,
+    "tileKinds": 12,
+    "speciesKinds": 11
+   }
+  }
+ }
+}

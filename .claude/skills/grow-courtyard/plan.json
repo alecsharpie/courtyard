@@ -1,0 +1,10 @@
+{
+  "generated": null,
+  "byIteration": null,
+  "rung": null,
+  "diagnosis": null,
+  "rationale": "No plan yet. The runner will see an empty queue and invoke /courtyard-manager before the first worker iteration — which is exactly the intended cold start: the manager reads the town and decides where to begin, rather than a worker guessing.",
+  "queue": [],
+  "consumed": [],
+  "recommendStop": null
+}

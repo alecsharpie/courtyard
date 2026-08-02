@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node .claude/skills/grow-courtyard/*)",
+      "Bash(node probe-*.mjs*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git mv:*)",
+      "Bash(git checkout -- :*)",
+      "Bash(git hash-object:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(wc:*)",
+      "Bash(ls:*)",
+      "Bash(cat .claude/skills/grow-courtyard/*)",
+      "Read(//Users/alec/me/courtyard/**)",
+      "Edit(//Users/alec/me/courtyard/**)",
+      "Write(//Users/alec/me/courtyard/**)"
+    ],
+    "deny": [
+      "Bash(git push:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(rm -rf:*)"
+    ]
+  }
+}

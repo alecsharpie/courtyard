@@ -1,0 +1,609 @@
+#!/usr/bin/env node
+/* build-stats.mjs — regenerate stats.html, the loop's public field log.
+ *
+ *   node .claude/skills/grow-courtyard/build-stats.mjs
+ *
+ * Runs as a POST-iteration step in run-loop.sh — plain node, in bash, NEVER inside
+ * the `claude -p` agent. If an iteration regenerated its own scoreboard, that work
+ * would inflate the very cost and time this page reports.
+ *
+ * Single source of truth: RUNLOG.jsonl. One JSON object per iteration, written by
+ * runlog.mjs from EVIDENCE. The previous loop parsed its dashboard out of a
+ * markdown table with three different regexes in three different scripts, and rows
+ * silently fell out of the charts; a schema does not do that.
+ *
+ * Colours follow the dataviz reference palette. Verdicts are a STATUS encoding
+ * (never colour alone — every legend entry and table row is labelled); the growth
+ * and context series are categorical slots 1-4 / 1-3, validated in both modes.
+ */
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const REPO = resolve(HERE, '../../..');
+const OUT = join(REPO, 'stats.html');
+
+const readJsonl = f => (existsSync(f) ? readFileSync(f, 'utf8').trim().split('\n').filter(Boolean)
+  .map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean) : []);
+
+const all = readJsonl(join(HERE, 'RUNLOG.jsonl'));
+const rows = all.filter(r => r.kind !== 'manager');
+const managers = all.filter(r => r.kind === 'manager');
+
+if (!rows.length && !managers.length) {
+  console.log('build-stats: RUNLOG.jsonl is empty — nothing to build yet.');
+  process.exit(0);
+}
+
+const sum = (a, f) => a.reduce((x, r) => x + (f(r) || 0), 0);
+const mean = a => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0);
+const fmt$ = n => '$' + n.toFixed(n < 100 ? 2 : 0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+const maxIter = rows.length ? Math.max(...rows.map(r => r.iter)) : 0;
+const totalCost = sum(all, r => r.costUsd);
+const totalHours = sum(all, r => r.secs) / 3600;
+const managerCost = sum(managers, r => r.costUsd);
+const last20 = rows.slice(-20);
+
+/* ---- verdict axis --------------------------------------------------------
+ * A rejected brief IS a no-ship: nothing was built. It keeps its own table row,
+ * because WHY nothing was built is the interesting part, but it folds into the
+ * no-ship colour on the charts rather than taking a fifth status hue that no
+ * reader could reliably separate from the fourth. */
+const VERDICTS = [
+  { id: 'no-ship', label: 'nothing landed', cls: 'v-none' },
+  { id: 'shipped', label: 'shipped', cls: 'v-ship' },
+  { id: 'reverted', label: 'reverted', cls: 'v-rev' },
+  { id: 'failed', label: 'failed', cls: 'v-fail' },
+];
+const chartVerdict = v => (v === 'rejected-brief' ? 'no-ship' : v);
+
+const byVerdict = {};
+for (const r of rows) byVerdict[r.verdict] = (byVerdict[r.verdict] || 0) + 1;
+const resultRows = [...VERDICTS.map(v => v.id), 'rejected-brief']
+  .filter(v => rows.some(r => r.verdict === v))
+  .map(v => {
+    const rs = rows.filter(r => r.verdict === v);
+    const label = v === 'rejected-brief' ? 'brief already built' : (VERDICTS.find(x => x.id === v) || {}).label || v;
+    const cls = v === 'rejected-brief' ? 'v-none' : (VERDICTS.find(x => x.id === v) || {}).cls;
+    return `<tr><td><span class="vb ${cls}"></span>${label}</td><td class="num">${rs.length}</td>` +
+      `<td class="num">${(mean(rs.map(r => r.secs)) / 60).toFixed(0)} min</td>` +
+      `<td class="num">${fmt$(mean(rs.map(r => r.costUsd)))}</td>` +
+      `<td class="num">${fmt$(sum(rs, r => r.costUsd))}</td></tr>`;
+  }).join('');
+
+/* ---- the honesty gap ------------------------------------------------------ */
+const norm = s => String(s || '').toLowerCase().replace(/[^a-z]/g, '');
+const claimed = rows.filter(r => r.selfVerdict);
+const overclaimed = claimed.filter(r => norm(r.selfVerdict) !== norm(r.verdict));
+
+/* ---- what it worked on ---------------------------------------------------- */
+const tally = key => {
+  const m = {};
+  for (const r of rows) if (r[key]) m[r[key]] = (m[r[key]] || 0) + 1;
+  return Object.entries(m).map(([t, n]) => ({ t, n, cost: sum(rows.filter(r => r[key] === t), r => r.costUsd) }))
+    .sort((a, b) => b.n - a.n);
+};
+const domains = tally('domain');
+const kinds = tally('changeKind');
+
+/* ---- the town actually growing -------------------------------------------
+ * Four census aggregates, INDEXED to their first reading. Their raw magnitudes
+ * differ by two orders of magnitude, and putting those on one chart would mean
+ * two y-scales — which is the single most common charting mistake. Indexing to a
+ * common base of 100 keeps one axis and makes the shapes comparable. */
+const GROWTH_KEYS = ['planted', 'blooming', 'creatures', 'structures'];
+const growth = [];
+for (const r of rows) if (r.census && r.census.scalars) growth.push({ i: r.iter, s: r.census.scalars });
+const growthBase = growth.length ? growth[0].s : null;
+const growthSeries = growthBase ? GROWTH_KEYS.map(k => ({
+  k, pts: growth.map(g => ({ i: g.i, v: growthBase[k] ? (g.s[k] / growthBase[k]) * 100 : 100, raw: g.s[k] })),
+})) : [];
+
+/* ---- what the loop pays to remember --------------------------------------
+ * Every iteration is a fresh process that re-reads its memory before doing any
+ * work. Recover the byte size of each memory file at each iteration's commit —
+ * cheap, and every past commit's sizes are immutable, so this is a faithful
+ * history rather than a reconstruction. */
+const MEM = {
+  laws: '.claude/skills/grow-courtyard/LAWS.md',
+  ledger: '.claude/skills/grow-courtyard/LEDGER.md',
+  skill: '.claude/skills/grow-courtyard/SKILL.md',
+};
+const ctx = [];
+for (const r of rows) {
+  const sha = r.evidence && r.evidence.sha;
+  if (!sha) continue;
+  try {
+    const out = execFileSync('git', ['-C', REPO, 'ls-tree', '-l', '-r', sha, '--', ...Object.values(MEM)], { encoding: 'utf8' });
+    const map = {};
+    for (const line of out.split('\n')) { const tab = line.split('\t'); if (tab[1]) map[tab[1]] = +tab[0].trim().split(/\s+/)[3] || 0; }
+    ctx.push({ i: r.iter, laws: (map[MEM.laws] || 0) / 1024, ledger: (map[MEM.ledger] || 0) / 1024, skill: (map[MEM.skill] || 0) / 1024 });
+  } catch { /* commit not reachable — skip */ }
+}
+
+/* ---- manager decisions ---------------------------------------------------- */
+const decisions = [];
+if (existsSync(join(HERE, 'MANAGER-LOG.md'))) {
+  for (const l of readFileSync(join(HERE, 'MANAGER-LOG.md'), 'utf8').split('\n')) {
+    const m = l.match(/^-\s*(\d{4}-\d{2}-\d{2}).*?#(\d+).*?rung\s*(\d+)\s*[—–-]\s*(.*)$/i);
+    if (m) decisions.push({ date: m[1], at: +m[2], rung: +m[3], why: m[4].trim() });
+  }
+}
+
+const data = {
+  rows: rows.map(r => ({ i: r.iter, v: chartVerdict(r.verdict), vRaw: r.verdict, self: r.selfVerdict || null,
+    s: r.secs, c: r.costUsd, d: r.domain, k: r.changeKind, L: (r.evidence || {}).srcLines || 0, b: r.brief })),
+  managers: managers.map(r => ({ i: r.iter, s: r.secs, c: r.costUsd })),
+  growth: growthSeries, growthKeys: GROWTH_KEYS,
+  ctx, decisions, domains, kinds, maxIter,
+};
+
+const asOf = new Date().toISOString().slice(0, 10);
+const shipped = rows.filter(r => r.verdict === 'shipped').length;
+const townGrowth = growth.length > 1 && growthBase
+  ? Math.round(((growth[growth.length - 1].s.planted + growth[growth.length - 1].s.structures) /
+      Math.max(1, growthBase.planted + growthBase.structures) - 1) * 100)
+  : null;
+
+const CUBE = 'data:image/svg+xml,' + encodeURIComponent(
+  `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='10' fill='#c9a978'/>` +
+  `<path d='M14 56V28a18 18 0 0 1 36 0v28Z' fill='#8d6a44'/><path d='M20 56V29a12 12 0 0 1 24 0v27Z' fill='#2c231b'/>` +
+  `<rect x='20' y='45' width='24' height='11' fill='#5c7a44'/></svg>`);
+
+const html = `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Courtyard — the loop's field log</title>
+<meta name="description" content="Cost, time and outcomes of an autonomous Claude Code loop growing a cellular-automata town, with a manager layer deciding what gets built next.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+:root{
+  color-scheme: light;
+  --surface-1:#fcfcfb; --plane:#f9f9f7;
+  --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --hair:rgba(11,11,11,.10);
+  /* status — verdicts. Never colour alone: every use is labelled. */
+  --v-none:#898781; --v-ship:#0ca30c; --v-rev:#fab219; --v-fail:#d03b3b;
+  /* categorical slots 1-4 (validated, light) */
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
+}
+@media (prefers-color-scheme: dark){ :root:where(:not([data-theme="light"])){
+  color-scheme: dark;
+  --surface-1:#1a1a19; --plane:#0d0d0d;
+  --ink:#fff; --ink-2:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --axis:#383835; --hair:rgba(255,255,255,.10);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
+}}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --surface-1:#1a1a19; --plane:#0d0d0d;
+  --ink:#fff; --ink-2:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --axis:#383835; --hair:rgba(255,255,255,.10);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--plane);color:var(--ink);
+  font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 20px 72px}
+.themebtn{position:fixed;top:14px;right:14px;z-index:5;width:38px;height:38px;border-radius:50%;
+  border:1px solid var(--hair);background:var(--surface-1);color:var(--ink-2);font-size:17px;cursor:pointer}
+header.hero{padding:26px 0 8px}
+.specimen{display:flex;align-items:center;gap:11px;margin-bottom:20px}
+.specimen img{display:block;border-radius:8px}
+.specimen b{display:block;font-size:13px;letter-spacing:.06em}
+.specimen span{display:block;font-size:12px;color:var(--muted)}
+.eyebrow{font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+h1{font-size:clamp(28px,4.4vw,42px);line-height:1.15;margin:0 0 14px;letter-spacing:-.02em;max-width:19ch}
+.lede{color:var(--ink-2);max-width:64ch;margin:0 0 22px}
+.herofig{display:flex;flex-wrap:wrap;gap:34px;margin:26px 0 10px}
+.herofig .big{display:block;font-size:clamp(30px,4.6vw,44px);line-height:1;letter-spacing:-.02em}
+.herofig .sm{font-size:.55em}
+.herofig .unit{display:block;font-size:12.5px;color:var(--muted);margin-top:7px;max-width:22ch}
+.back{display:inline-block;margin-top:18px;color:var(--s1);text-decoration:none;font-weight:600;font-size:14.5px}
+.back:hover{text-decoration:underline}
+section{background:var(--surface-1);border:1px solid var(--hair);border-radius:12px;padding:22px;margin:16px 0}
+section.note{background:transparent}
+h2{font-size:19px;margin:0 0 8px;letter-spacing:-.01em}
+.sub{color:var(--ink-2);font-size:14px;margin:0 0 16px;max-width:74ch}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--hair);
+  border:1px solid var(--hair);border-radius:9px;overflow:hidden;margin-bottom:18px}
+.tile{background:var(--surface-1);padding:13px 15px}
+.tv{font-size:25px;line-height:1.1;letter-spacing:-.02em}
+.tvu{font-size:13px;color:var(--muted);margin-left:3px}
+.tl{font-size:12.5px;margin-top:5px}
+.td{font-size:11.5px;color:var(--muted)}
+.svgbox{width:100%;overflow-x:auto}
+.key{display:inline-block;width:10px;height:10px;border-radius:2.5px;margin:0 5px 0 9px;vertical-align:-1px}
+.key:first-child{margin-left:0}
+.k-none{background:var(--v-none)} .k-ship{background:var(--v-ship)} .k-rev{background:var(--v-rev)} .k-fail{background:var(--v-fail)}
+.k1{background:var(--s1)} .k2{background:var(--s2)} .k3{background:var(--s3)} .k4{background:var(--s4)}
+.legend{font-size:13px;color:var(--ink-2);margin:0 0 12px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--grid)}
+th{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.num,th.num{text-align:right}
+.vb{display:inline-block;width:10px;height:10px;border-radius:2.5px;margin-right:8px;vertical-align:-1px}
+.v-none{background:var(--v-none)} .v-ship{background:var(--v-ship)} .v-rev{background:var(--v-rev)} .v-fail{background:var(--v-fail)}
+.tip{position:fixed;z-index:9;pointer-events:none;background:var(--surface-1);color:var(--ink);
+  border:1px solid var(--hair);border-radius:8px;padding:8px 10px;font-size:12.5px;line-height:1.45;
+  box-shadow:0 6px 22px rgba(0,0,0,.16);max-width:270px}
+.tip b{font-weight:600}
+footer{color:var(--muted);font-size:13px;margin-top:34px}
+footer a{color:var(--s1)}
+.axis{fill:var(--muted);font-size:10.5px}
+.gridline{stroke:var(--grid);stroke-width:1}
+.baseline{stroke:var(--axis);stroke-width:1}
+@media(max-width:640px){ .wrap{padding:18px 14px 56px} section{padding:16px} .herofig{gap:22px} }
+</style>
+</head>
+<body>
+<button id="themeBtn" class="themebtn" aria-label="Toggle light and dark theme" title="Toggle theme">◐</button>
+<div class="wrap">
+
+<header class="hero">
+  <div class="specimen"><img src="${CUBE}" alt="" width="40" height="40"><div><b>SPECIMEN #${maxIter}</b><span>iterations logged</span></div></div>
+  <div class="eyebrow">The Courtyard · the loop's field log</div>
+  <h1>A town that grows itself, and a manager that decides how.</h1>
+  <p class="lede">The Courtyard is a cellular-automata diorama seen from an upstairs window. It grows
+  through a headless loop of two Claudes. A <strong>worker</strong> is a fresh <code>claude&nbsp;-p</code>
+  process with an empty context: it takes one brief, builds it, proves it against a numeric census, a
+  motion gate and screenshots, commits, and exits. A <strong>manager</strong> steps back — it reads
+  everything below, decides what should be built next, and curates what the workers are allowed to
+  remember. No human in the loop. This page is the receipts.</p>
+  <div class="herofig">
+    <div><span class="big">${maxIter}</span><span class="unit">worker iterations</span></div>
+    <div><span class="big">${managers.length}</span><span class="unit">manager passes</span></div>
+    <div><span class="big">${totalHours.toFixed(0)}<span class="sm">h</span></span><span class="unit">of autonomous compute</span></div>
+    <div><span class="big">${fmt$(totalCost)}</span><span class="unit">would-be API cost</span></div>
+    ${townGrowth != null ? `<div><span class="big">+${townGrowth}<span class="sm">%</span></span><span class="unit">more in the town than when the loop started</span></div>` : ''}
+  </div>
+  <a class="back" href="./">&larr; open the living town</a>
+</header>
+
+<section class="note">
+  <strong>About the dollar figures.</strong> These are <em>would-be</em> API list prices — what the tokens
+  each iteration used would cost at metered rates. <strong>No money was spent per iteration:</strong> the
+  loop runs on a flat-rate subscription, and when it hits a usage limit it waits for the reset and carries
+  on. Read the costs as <em>&ldquo;what this much autonomy would cost on the API&rdquo;</em>, not a bill.
+</section>
+
+<section>
+  <h2>What each iteration produced</h2>
+  <div class="tiles">
+    <div class="tile"><div class="tv">${shipped}</div><div class="tl">Shipped</div><div class="td">of ${rows.length} iterations</div></div>
+    <div class="tile"><div class="tv">${(mean(last20.map(r => r.secs)) / 60).toFixed(0)}<span class="tvu">min</span></div><div class="tl">Recent pace</div><div class="td">last ${last20.length} runs</div></div>
+    <div class="tile"><div class="tv">${fmt$(mean(last20.map(r => r.costUsd)))}</div><div class="tl">Recent cost</div><div class="td">per iteration</div></div>
+    <div class="tile"><div class="tv">${rows.length ? Math.round(sum(rows, r => (r.evidence || {}).srcLines || 0) / 1000) : 0}<span class="tvu">k</span></div><div class="tl">Lines of the town</div><div class="td">added or changed</div></div>
+  </div>
+  <p class="legend">Runtime per iteration, coloured by what the <em>diff</em> shows happened —
+  <span class="key k-ship"></span>shipped, <span class="key k-rev"></span>reverted,
+  <span class="key k-none"></span>nothing landed, <span class="key k-fail"></span>failed. Hover any bar.</p>
+  <div id="timeChart" class="svgbox"></div>
+</section>
+
+<section>
+  <h2>Cumulative would-be cost</h2>
+  <p class="sub">Stacked by outcome, so the price of the dead ends is visible beside the price of the work
+  that landed. A revert is not free — a dead end still burns compute before the loop backs out.</p>
+  <p class="legend"><span class="key k-ship"></span>shipped <span class="key k-rev"></span>reverted
+  <span class="key k-none"></span>nothing landed <span class="key k-fail"></span>failed</p>
+  <div id="cumChart" class="svgbox"></div>
+  <div class="tablewrap" style="margin-top:18px">
+    <table><thead><tr><th>Outcome</th><th class="num">Count</th><th class="num">Avg time</th><th class="num">Avg would-be $</th><th class="num">Total</th></tr></thead>
+    <tbody>${resultRows}</tbody></table>
+  </div>
+</section>
+
+<section>
+  <h2>What the loop claimed, and what the diff showed</h2>
+  <p class="sub">Each worker writes down what it thinks it did. Nothing believes it: the verdict on this
+  page is derived from evidence — did <code>courtyard.html</code>'s hash change, did the commit land, did
+  the census move. The worker's own label is kept beside it, and the gap between the two is tracked.</p>
+  <p class="sub">This exists because of a specific failure. The previous version of this loop parsed its
+  verdicts out of prose the worker had written about its own iteration. Its final nine runs are logged
+  <em>SHIPPED</em> while their own ledger entries say <em>NO SHIP</em> in the title. Nobody lied; the
+  parser simply believed the author — and twenty-five iterations of nothing looked like twenty-five
+  iterations of shipping, in the very log built to catch that.</p>
+  <div class="tiles">
+    <div class="tile"><div class="tv">${claimed.length ? Math.round((overclaimed.length / claimed.length) * 100) : 0}<span class="tvu">%</span></div><div class="tl">Claim ≠ evidence</div><div class="td">across ${claimed.length} labelled runs</div></div>
+    <div class="tile"><div class="tv">${rows.filter(r => r.verdict === 'rejected-brief').length}</div><div class="tl">Briefs already built</div><div class="td">worker checked before building</div></div>
+    <div class="tile"><div class="tv">${rows.filter(r => (r.evidence || {}).srcChanged).length}</div><div class="tl">Iterations that moved the town</div><div class="td">of ${rows.length}</div></div>
+  </div>
+</section>
+
+<section>
+  <h2>The town actually growing</h2>
+  <p class="sub">Four census aggregates, measured across a fixed 3&nbsp;seeds &times; 3&nbsp;ages matrix after
+  every iteration, each <strong>indexed to 100 at the first reading</strong> — their raw magnitudes differ
+  by two orders of magnitude, and one chart gets one axis.</p>
+  <p class="legend"><span class="key k1"></span>plants growing <span class="key k2"></span>in bloom
+  <span class="key k3"></span>creatures <span class="key k4"></span>built things</p>
+  <div id="growthChart" class="svgbox"></div>
+</section>
+
+<section>
+  <h2>Where the work went</h2>
+  <p class="sub">Every iteration is a brief the manager wrote, tagged with the part of town it touched and
+  the kind of change it made. Balance across the top chart is one of the two things the manager exists
+  for; the bottom one is how it changed the town rather than where.</p>
+  <div id="domainChart" class="svgbox"></div>
+  <div id="kindChart" class="svgbox" style="margin-top:20px"></div>
+</section>
+
+<section>
+  <h2>What the loop pays to remember</h2>
+  <p class="sub">Every iteration is a fresh process, so everything a worker must read before it can do any
+  work is paid for again, every time. The previous loop let that grow without a cap: its laws list reached
+  <strong>62% of a 3,900-line skill file</strong> and was read in full on every one of hundreds of runs,
+  while cost per iteration went <strong>$5.45 &rarr; $13.72</strong> with no gain in output. Capping the
+  prose ledger alone did not help — it pushed the growth into the file read <em>more</em> often.</p>
+  <p class="sub">So here the memory is budgeted and the manager owns the budget: laws are capped at 60 and
+  distilled rather than appended, ledger entries rotate into an archive only the manager reads, and
+  <code>context-budget.mjs</code> fails the pass if the total drifts up. <strong>A flat line below is the
+  loop working.</strong></p>
+  <p class="legend"><span class="key k1"></span>LAWS.md <span class="key k2"></span>LEDGER.md
+  <span class="key k3"></span>SKILL.md</p>
+  <div id="ctxChart" class="svgbox"></div>
+</section>
+
+<section>
+  <h2>The manager's decisions</h2>
+  <p class="sub">When work lands cleanly the manager stays low on its escalation ladder — rotate a domain,
+  deepen a system. When a stall signal fires (reverts stacking up, the source not moving, the same corner
+  of town three times running, cost climbing without output) it is required to climb: widen its own menu,
+  change the world, change the observer, or retire and rebuild something. <strong>It may never respond by
+  writing an empty queue.</strong> Saturation is a reason to climb, not to stop — the previous loop had no
+  rung above &ldquo;pick from the menu&rdquo;, so when the menu ran out it spent thirty iterations proving
+  it had run out.</p>
+  <div id="rungChart" class="svgbox"></div>
+  <div class="tablewrap" style="margin-top:18px">
+    <table id="decisions"><thead><tr><th class="num">At</th><th class="num">Rung</th><th>Why this batch</th></tr></thead><tbody></tbody></table>
+  </div>
+</section>
+
+<section>
+  <h2>The build log</h2>
+  <p class="sub">Most recent first. Where and how it changed the town, what the diff proved, what the
+  worker claimed, its runtime and its would-be cost.</p>
+  <div class="tablewrap"><table id="ledger"><thead><tr><th class="num">#</th><th>Where</th><th>How</th>
+    <th>Outcome</th><th>Claimed</th><th class="num">Lines</th><th class="num">Time</th><th class="num">$</th></tr></thead><tbody></tbody></table></div>
+</section>
+
+<footer>
+  <p>Snapshot at iteration ${maxIter} &middot; ${asOf}, regenerated after every landed iteration.
+  ${fmt$(managerCost)} of the total was spent on manager passes. The loop keeps running, so the town keeps changing.</p>
+  <p><a href="./">&larr; the living town</a> &middot; <a href="https://github.com/alecsharpie/courtyard">source on GitHub</a></p>
+</footer>
+</div>
+<div id="tip" class="tip" hidden></div>
+
+<script>
+const D = ${JSON.stringify(data)};
+const NS='http://www.w3.org/2000/svg';
+const el=(t,a={})=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const VCOL={'shipped':'--v-ship','reverted':'--v-rev','no-ship':'--v-none','failed':'--v-fail'};
+const SER=['--s1','--s2','--s3','--s4'];
+const tip=document.getElementById('tip');
+function showTip(html,ev){tip.innerHTML=html;tip.hidden=false;
+  const r=tip.getBoundingClientRect();
+  let x=ev.clientX+14,y=ev.clientY+14;
+  if(x+r.width>innerWidth-8)x=ev.clientX-r.width-14;
+  if(y+r.height>innerHeight-8)y=ev.clientY-r.height-14;
+  tip.style.left=x+'px';tip.style.top=y+'px';}
+function hideTip(){tip.hidden=true;}
+function svgIn(id,w,h){const box=document.getElementById(id);if(!box)return null;
+  const s=el('svg',{viewBox:'0 0 '+w+' '+h,width:'100%',preserveAspectRatio:'xMidYMid meet',role:'img'});
+  box.innerHTML='';box.appendChild(s);return s;}
+const PAD={l:44,r:14,t:12,b:26};
+function yGrid(s,W,H,max,fmt){
+  for(let k=0;k<=4;k++){const v=max*k/4,y=H-PAD.b-(H-PAD.t-PAD.b)*(k/4);
+    s.appendChild(el('line',{x1:PAD.l,x2:W-PAD.r,y1:y,y2:y,class:'gridline'}));
+    const t=el('text',{x:PAD.l-7,y:y+3.5,'text-anchor':'end',class:'axis'});t.textContent=fmt(v);s.appendChild(t);}
+}
+function xTicks(s,W,H,maxI){
+  const step=maxI<=10?1:maxI<=40?5:maxI<=120?20:50;
+  for(let i=step;i<=maxI;i+=step){const x=PAD.l+(W-PAD.l-PAD.r)*(i/maxI);
+    const t=el('text',{x,y:H-8,'text-anchor':'middle',class:'axis'});t.textContent='#'+i;s.appendChild(t);}
+}
+const MAXI=Math.max(1,D.maxIter);
+const xOf=(i,W)=>PAD.l+(W-PAD.l-PAD.r)*(i/MAXI);
+
+/* ---- runtime per iteration ---- */
+function drawTime(){
+  const W=980,H=250,s=svgIn('timeChart',W,H);if(!s)return;
+  const max=Math.max(60,...D.rows.map(r=>r.s))/60;
+  yGrid(s,W,H,max,v=>v.toFixed(0)+'m');
+  const bw=Math.max(1.5,(W-PAD.l-PAD.r)/Math.max(D.rows.length,1)-1.5);
+  for(const r of D.rows){
+    const h=(H-PAD.t-PAD.b)*((r.s/60)/max),x=xOf(r.i,W)-bw/2,y=H-PAD.b-h;
+    const b=el('rect',{x,y,width:bw,height:Math.max(1,h),rx:Math.min(2,bw/2),fill:css(VCOL[r.v])});
+    b.addEventListener('mousemove',e=>showTip('<b>#'+r.i+'</b> '+(r.d||'—')+' × '+(r.k||'—')+'<br>'+
+      r.vRaw+(r.self&&r.self!==r.v?' <span style="opacity:.7">(claimed '+r.self+')</span>':'')+
+      '<br>'+(r.s/60).toFixed(0)+' min · $'+r.c.toFixed(2)+' · '+r.L+' lines',e));
+    b.addEventListener('mouseleave',hideTip);
+    s.appendChild(b);
+  }
+  s.appendChild(el('line',{x1:PAD.l,x2:W-PAD.r,y1:H-PAD.b,y2:H-PAD.b,class:'baseline'}));
+  xTicks(s,W,H,MAXI);
+}
+
+/* ---- cumulative cost, stacked by outcome ---- */
+function drawCum(){
+  const W=980,H=250,s=svgIn('cumChart',W,H);if(!s)return;
+  const order=['shipped','reverted','no-ship','failed'];
+  const run={};order.forEach(k=>run[k]=0);
+  const pts=[];let total=0;
+  for(const r of D.rows){run[r.v]+=r.c;total+=r.c;pts.push({i:r.i,run:{...run},total});}
+  const max=Math.max(1,total);
+  yGrid(s,W,H,max,v=>'$'+Math.round(v));
+  let below=order.map(()=>0);
+  order.forEach((k,ki)=>{
+    let d='';
+    pts.forEach((p,pi)=>{
+      const base=order.slice(0,ki).reduce((a,kk)=>a+p.run[kk],0);
+      const y=H-PAD.b-(H-PAD.t-PAD.b)*((base+p.run[k])/max);
+      d+=(pi?'L':'M')+xOf(p.i,W)+' '+y;
+    });
+    for(let pi=pts.length-1;pi>=0;pi--){
+      const p=pts[pi],base=order.slice(0,ki).reduce((a,kk)=>a+p.run[kk],0);
+      d+='L'+xOf(p.i,W)+' '+(H-PAD.b-(H-PAD.t-PAD.b)*(base/max));
+    }
+    s.appendChild(el('path',{d:d+'Z',fill:css(VCOL[k]),stroke:css('--surface-1'),'stroke-width':2}));
+  });
+  const hit=el('rect',{x:PAD.l,y:PAD.t,width:W-PAD.l-PAD.r,height:H-PAD.t-PAD.b,fill:'transparent'});
+  hit.addEventListener('mousemove',e=>{
+    const bb=s.getBoundingClientRect(),fx=(e.clientX-bb.left)/bb.width*W;
+    const i=Math.round((fx-PAD.l)/(W-PAD.l-PAD.r)*MAXI);
+    const p=pts.reduce((a,b)=>Math.abs(b.i-i)<Math.abs(a.i-i)?b:a,pts[0]);
+    if(!p)return;
+    showTip('<b>through #'+p.i+'</b><br>'+order.filter(k=>p.run[k]>0)
+      .map(k=>k+' $'+p.run[k].toFixed(0)).join('<br>')+'<br><b>total $'+p.total.toFixed(0)+'</b>',e);
+  });
+  hit.addEventListener('mouseleave',hideTip);
+  s.appendChild(hit);
+  s.appendChild(el('line',{x1:PAD.l,x2:W-PAD.r,y1:H-PAD.b,y2:H-PAD.b,class:'baseline'}));
+  xTicks(s,W,H,MAXI);
+}
+
+/* ---- the town growing (indexed to 100) ---- */
+function drawGrowth(){
+  const W=980,H=250,s=svgIn('growthChart',W,H);if(!s)return;
+  if(!D.growth.length||!D.growth[0].pts.length){
+    const t=el('text',{x:W/2,y:H/2,'text-anchor':'middle',class:'axis'});
+    t.textContent='no census readings yet — the first iteration writes one';s.appendChild(t);return;}
+  const vals=D.growth.flatMap(g=>g.pts.map(p=>p.v));
+  const max=Math.max(120,...vals),min=Math.min(80,...vals);
+  const yOf=v=>H-PAD.b-(H-PAD.t-PAD.b)*((v-min)/(max-min||1));
+  for(let k=0;k<=4;k++){const v=min+(max-min)*k/4,y=yOf(v);
+    s.appendChild(el('line',{x1:PAD.l,x2:W-PAD.r,y1:y,y2:y,class:'gridline'}));
+    const t=el('text',{x:PAD.l-7,y:y+3.5,'text-anchor':'end',class:'axis'});t.textContent=v.toFixed(0);s.appendChild(t);}
+  D.growth.forEach((g,gi)=>{
+    const d=g.pts.map((p,i)=>(i?'L':'M')+xOf(p.i,W)+' '+yOf(p.v)).join('');
+    s.appendChild(el('path',{d,fill:'none',stroke:css(SER[gi]),'stroke-width':2,'stroke-linejoin':'round'}));
+    const last=g.pts[g.pts.length-1];
+    if(last){const t=el('text',{x:Math.min(W-PAD.r,xOf(last.i,W)+6),y:yOf(last.v)+3.5,class:'axis',fill:css(SER[gi])});
+      t.textContent=D.growthKeys[gi];s.appendChild(t);}
+    g.pts.forEach(p=>{const c=el('circle',{cx:xOf(p.i,W),cy:yOf(p.v),r:5,fill:'transparent'});
+      c.addEventListener('mousemove',e=>showTip('<b>#'+p.i+'</b> '+D.growthKeys[gi]+'<br>'+
+        p.v.toFixed(1)+' vs 100 at the start<br>'+p.raw+' counted',e));
+      c.addEventListener('mouseleave',hideTip);s.appendChild(c);});
+  });
+  s.appendChild(el('line',{x1:PAD.l,x2:W-PAD.r,y1:H-PAD.b,y2:H-PAD.b,class:'baseline'}));
+  xTicks(s,W,H,MAXI);
+}
+
+/* ---- categorical counts: one hue, the axis carries identity ---- */
+function drawBars(id,items,title){
+  const rowH=26,W=980,H=Math.max(60,items.length*rowH+30),s=svgIn(id,W,H);if(!s)return;
+  if(!items.length){const t=el('text',{x:W/2,y:H/2,'text-anchor':'middle',class:'axis'});
+    t.textContent='nothing tagged yet';s.appendChild(t);return;}
+  const max=Math.max(...items.map(d=>d.n));
+  const L=190;
+  const cap=el('text',{x:0,y:12,class:'axis'});cap.textContent=title;s.appendChild(cap);
+  items.forEach((d,i)=>{
+    const y=26+i*rowH;
+    const t=el('text',{x:L-8,y:y+13,'text-anchor':'end',class:'axis',fill:css('--ink-2')});
+    t.textContent=d.t;s.appendChild(t);
+    const w=(W-L-60)*(d.n/max);
+    const b=el('rect',{x:L,y:y+3,width:Math.max(2,w),height:15,rx:4,fill:css('--s1')});
+    b.addEventListener('mousemove',e=>showTip('<b>'+d.t+'</b><br>'+d.n+' iterations · $'+d.cost.toFixed(0)+' would-be',e));
+    b.addEventListener('mouseleave',hideTip);s.appendChild(b);
+    const n=el('text',{x:L+w+8,y:y+15,class:'axis',fill:css('--ink-2')});n.textContent=d.n;s.appendChild(n);
+  });
+}
+
+/* ---- memory the worker re-reads every run ---- */
+function drawCtx(){
+  const W=980,H=220,s=svgIn('ctxChart',W,H);if(!s)return;
+  if(!D.ctx.length){const t=el('text',{x:W/2,y:H/2,'text-anchor':'middle',class:'axis'});
+    t.textContent='no committed iterations yet';s.appendChild(t);return;}
+  const keys=['laws','ledger','skill'];
+  const max=Math.max(...D.ctx.map(c=>keys.reduce((a,k)=>a+c[k],0)))*1.15||1;
+  yGrid(s,W,H,max,v=>v.toFixed(0)+'KB');
+  keys.forEach((k,ki)=>{
+    let d='';
+    D.ctx.forEach((c,i)=>{const base=keys.slice(0,ki).reduce((a,kk)=>a+c[kk],0);
+      d+=(i?'L':'M')+xOf(c.i,W)+' '+(H-PAD.b-(H-PAD.t-PAD.b)*((base+c[k])/max));});
+    for(let i=D.ctx.length-1;i>=0;i--){const c=D.ctx[i],base=keys.slice(0,ki).reduce((a,kk)=>a+c[kk],0);
+      d+='L'+xOf(c.i,W)+' '+(H-PAD.b-(H-PAD.t-PAD.b)*(base/max));}
+    s.appendChild(el('path',{d:d+'Z',fill:css(SER[ki]),stroke:css('--surface-1'),'stroke-width':2}));
+  });
+  const hit=el('rect',{x:PAD.l,y:PAD.t,width:W-PAD.l-PAD.r,height:H-PAD.t-PAD.b,fill:'transparent'});
+  hit.addEventListener('mousemove',e=>{
+    const bb=s.getBoundingClientRect(),fx=(e.clientX-bb.left)/bb.width*W;
+    const i=Math.round((fx-PAD.l)/(W-PAD.l-PAD.r)*MAXI);
+    const c=D.ctx.reduce((a,b)=>Math.abs(b.i-i)<Math.abs(a.i-i)?b:a,D.ctx[0]);
+    showTip('<b>at #'+c.i+'</b><br>LAWS.md '+c.laws.toFixed(1)+'KB<br>LEDGER.md '+c.ledger.toFixed(1)+
+      'KB<br>SKILL.md '+c.skill.toFixed(1)+'KB<br><b>'+(c.laws+c.ledger+c.skill).toFixed(1)+'KB re-read</b>',e);});
+  hit.addEventListener('mouseleave',hideTip);s.appendChild(hit);
+  s.appendChild(el('line',{x1:PAD.l,x2:W-PAD.r,y1:H-PAD.b,y2:H-PAD.b,class:'baseline'}));
+  xTicks(s,W,H,MAXI);
+}
+
+/* ---- the escalation ladder over time ---- */
+function drawRung(){
+  const W=980,H=190,s=svgIn('rungChart',W,H);if(!s)return;
+  if(!D.decisions.length){const t=el('text',{x:W/2,y:H/2,'text-anchor':'middle',class:'axis'});
+    t.textContent='no manager passes logged yet';s.appendChild(t);return;}
+  const LAD=['','rotate','deepen','widen menu','change world','change observer','rebuild'];
+  const yOf=r=>PAD.t+(H-PAD.t-PAD.b)*(1-(r-1)/5);
+  for(let r=1;r<=6;r++){const y=yOf(r);
+    s.appendChild(el('line',{x1:PAD.l+64,x2:W-PAD.r,y1:y,y2:y,class:'gridline'}));
+    const t=el('text',{x:PAD.l+56,y:y+3.5,'text-anchor':'end',class:'axis'});t.textContent=LAD[r];s.appendChild(t);}
+  const pts=D.decisions.map(d=>({x:PAD.l+64+(W-PAD.l-64-PAD.r)*(d.at/MAXI),y:yOf(d.rung),d}));
+  s.appendChild(el('path',{d:pts.map((p,i)=>(i?'L':'M')+p.x+' '+p.y).join(''),fill:'none',
+    stroke:css('--s1'),'stroke-width':2,'stroke-linejoin':'round'}));
+  pts.forEach(p=>{const c=el('circle',{cx:p.x,cy:p.y,r:5,fill:css('--s1'),stroke:css('--surface-1'),'stroke-width':2});
+    c.addEventListener('mousemove',e=>showTip('<b>planned at #'+p.d.at+'</b> · rung '+p.d.rung+'<br>'+p.d.why,e));
+    c.addEventListener('mouseleave',hideTip);s.appendChild(c);});
+}
+
+function fillTables(){
+  const tb=document.querySelector('#ledger tbody');
+  if(tb) tb.innerHTML=[...D.rows].reverse().map(r=>{
+    const cls={'shipped':'v-ship','reverted':'v-rev','no-ship':'v-none','failed':'v-fail'}[r.v];
+    return '<tr><td class="num">'+r.i+'</td><td>'+(r.d||'—')+'</td><td>'+(r.k||'—')+'</td>'+
+      '<td><span class="vb '+cls+'"></span>'+r.vRaw+'</td><td>'+(r.self||'—')+'</td>'+
+      '<td class="num">'+(r.L||'—')+'</td><td class="num">'+Math.round(r.s/60)+'m</td>'+
+      '<td class="num">$'+r.c.toFixed(2)+'</td></tr>';}).join('');
+  const dt=document.querySelector('#decisions tbody');
+  if(dt) dt.innerHTML=[...D.decisions].reverse().map(d=>
+    '<tr><td class="num">#'+d.at+'</td><td class="num">'+d.rung+'</td><td>'+d.why+'</td></tr>').join('')
+    ||'<tr><td colspan="3" style="color:var(--muted)">no manager passes logged yet</td></tr>';
+}
+
+function drawAll(){
+  drawTime();drawCum();drawGrowth();
+  drawBars('domainChart',D.domains,'Part of the town');
+  drawBars('kindChart',D.kinds,'Kind of change');
+  drawCtx();drawRung();fillTables();
+}
+drawAll();
+addEventListener('resize',()=>{hideTip();drawAll();});
+
+const btn=document.getElementById('themeBtn');
+const stored=localStorage.getItem('courtyard-theme');
+if(stored)document.documentElement.setAttribute('data-theme',stored);
+btn.addEventListener('click',()=>{
+  const cur=document.documentElement.getAttribute('data-theme')
+    ||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+  const next=cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('courtyard-theme',next);
+  drawAll();
+});
+</script>
+</body>
+</html>
+`;
+
+writeFileSync(OUT, html);
+console.log(`stats.html regenerated — ${(Buffer.byteLength(html) / 1024).toFixed(0)} KB | through #${maxIter} | ${all.length} runs | ${fmt$(totalCost)} | ${totalHours.toFixed(1)}h`);

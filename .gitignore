@@ -1,0 +1,23 @@
+.DS_Store
+
+# Screenshots are regenerated on demand and are large — never tracked.
+shots/
+.claude/skills/*/shots/
+
+# Per-run scratch the loop writes and re-writes.
+.claude/skills/grow-courtyard/census-latest.json
+.claude/skills/grow-courtyard/STOP
+.claude/skills/grow-courtyard/.manager-due
+
+# Iteration scratch: the backup taken before a big swing, and the ad-hoc probe /
+# shot scripts an iteration writes to verify itself.
+#
+# ANCHORED TO THE REPO ROOT ON PURPOSE. Unanchored (`probe-*.mjs`) these match at
+# every depth, so a probe that earns its keep can only be committed with `git add
+# -f` — solvista spent ~20 iterations citing probes the repo did not contain.
+# Scratch is born at the root and ignored; a probe graduates by moving into
+# `.claude/skills/grow-courtyard/probes/`, which is tracked like any other source.
+/before.html
+/probe-*.mjs
+/shot-*.mjs
+.claude/skills/grow-courtyard/motion-baseline.json

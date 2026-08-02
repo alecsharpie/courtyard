@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- The archway you look through: warm wall, dark tunnel, a strip of garden beyond. -->
+  <rect width="64" height="64" rx="10" fill="#c9a978"/>
+  <path d="M14 56V28a18 18 0 0 1 36 0v28Z" fill="#8d6a44"/>
+  <path d="M20 56V29a12 12 0 0 1 24 0v27Z" fill="#2c231b"/>
+  <rect x="20" y="45" width="24" height="11" fill="#5c7a44"/>
+  <circle cx="26" cy="47.5" r="2.2" fill="#e6c355"/>
+  <circle cx="38" cy="49.5" r="2.2" fill="#d8607a"/>
+  <rect x="10" y="56" width="44" height="4" fill="#7a6047"/>
+</svg>

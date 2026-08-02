@@ -1,0 +1,11 @@
+{
+  "wait": 2600,
+  "shots": [
+    { "name": "wide", "w": 1600, "h": 950, "scroll": 0 },
+    { "name": "courtyard", "w": 1600, "h": 950, "scroll": 0, "clip": { "x": 180, "y": 300, "width": 700, "height": 560 } },
+    { "name": "lane", "w": 1600, "h": 950, "scroll": 0, "clip": { "x": 140, "y": 600, "width": 940, "height": 340 } },
+    { "name": "east", "w": 1600, "h": 950, "scroll": 0, "clip": { "x": 850, "y": 250, "width": 740, "height": 640 } },
+    { "name": "river", "w": 1600, "h": 950, "scroll": 0, "clip": { "x": 1080, "y": 220, "width": 520, "height": 680 } },
+    { "name": "mobile", "w": 390, "h": 844, "scroll": 0 }
+  ]
+}
