@@ -570,6 +570,64 @@ function richness(){ return clamp(day / 16, 0, 1); }
 function growF(){ return lerp(0.30, 1.70, warmth); }
 function dieF(){ return lerp(1.80, 0.20, warmth); }
 function bloomCap(){ return warmth > 0.42 ? 3 : warmth > 0.20 ? 2 : 1; }
+/* Reader four: the canopy. Thirteen trees — the courtyard linden, four street trees,
+ * four in the plaza and four in the orchard — were sized on maturity() and filled from
+ * hard-coded summer greens, so deep winter had turned earth below, an 18.30 sunset
+ * above, and full leaf between the two. These terms are the year in the crowns.
+ *
+ * They read seasonPhase, not warmth alone, because warmth 0.5 happens TWICE and a
+ * RISING 0.5 (bud burst) and a FALLING 0.5 (the turn) are the two most different-
+ * looking days of the year. Phase 0 is midwinter, 0.25 spring, 0.5 midsummer, 0.75
+ * autumn; every window below is closed on both sides so each term is zero for most
+ * of the year and only one or two are ever live at once.
+ *
+ * SIZE is deliberately not among them. maturity() sizes a tree, and a tree that grew
+ * and shrank every 24 real minutes would read as a bug, not as a year. What moves is
+ * how much canopy there is, what colour it is, and what is hanging in it.
+ *
+ * Each is written so that at SEASON_START (0.25) it is EXACTLY the constant it
+ * replaced — leafOut 1, all three tint terms 0, leafFallF 1 — so day one is provably
+ * the town as it was and any gate failure is about the new range, not the new algebra.
+ * fruitF is the one deliberate exception: apples in April were the bug, not the
+ * baseline, so the orchard is bare-branched at the anchor and that is the point. */
+function leafOut(){ const p = seasonPhase;      // how much canopy exists, 0..1
+  // fills over late winter, full from 0.25 through the autumn equinox, shed by 0.95;
+  // both terms are <=0 either side of the wrap, so midwinter is continuously bare
+  return clamp(Math.min((p - 0.10) / 0.15, (0.95 - p) / 0.22), 0, 1); }
+function leafFresh(){ const p = seasonPhase;    // the spring flush — light, yellow, thin
+  return clamp((0.25 - p) / 0.10, 0, 1) * clamp((p - 0.08) / 0.06, 0, 1); }
+function leafDeep(){ return clamp((warmth - 0.5) / 0.5, 0, 1); }   // high summer, dark
+function leafTurn(){ const p = seasonPhase;     // the colour going over
+  return clamp((p - 0.66) / 0.16, 0, 1) * clamp((0.98 - p) / 0.10, 0, 1); }
+function leafShed(){ const p = seasonPhase;     // how hard it is actually dropping
+  return clamp((p - 0.70) / 0.10, 0, 1) * clamp((0.97 - p) / 0.10, 0, 1); }
+function blossomF(){ const p = seasonPhase;     // orchard, out ahead of its own leaves
+  return clamp((0.25 - p) / 0.07, 0, 1) * clamp((p - 0.13) / 0.05, 0, 1); }
+function fruitF(){ const p = seasonPhase;       // set in late summer, hangs into the turn
+  return clamp((p - 0.46) / 0.18, 0, 1) * clamp((0.86 - p) / 0.10, 0, 1); }
+/* The fall rate the `leaves` spawner scales on. It used richness(), a ramp that pinned
+ * at day 16, so leaves came off those permanently green trees at one rate in July and
+ * January. Three regimes on one curve: a low steady drift while the canopy is out, a
+ * deep lull through high summer, and the shed — which is where nearly all of it is. */
+function leafFallF(){ const p = seasonPhase;
+  const lull = 1 - 0.86 * clamp(Math.sin(Math.PI * clamp((p - 0.30) / 0.36, 0, 1)), 0, 1);
+  return leafOut() * lull + 4.2 * leafShed();
+}
+/* ONE canopy colour rule for all thirteen trees, so no two can disagree about the time
+ * of year. Each tree keeps its own base greens — the linden is not the orchard — and
+ * the season moves all of them the same way. `k` is the blob index, so a turning tree
+ * goes patchy rather than uniformly orange, which is what keeps four trees in a row
+ * reading as four trees. Bases are [r,g,b] rather than hex so this costs no parsing. */
+const LEAF_FLUSH = [150, 188, 96], LEAF_DEEPC = [42, 88, 50];
+const LEAF_TURNC = [[196,140,52],[172,102,44],[206,166,68],[156,92,44],[188,126,48],[210,152,58]];
+function leafCol(base, k){
+  const fr = leafFresh(), dp = leafDeep(), tn = leafTurn(), tc = LEAF_TURNC[k % 6];
+  let r = base[0], g = base[1], b = base[2];
+  r = lerp(r, LEAF_FLUSH[0], 0.62*fr); g = lerp(g, LEAF_FLUSH[1], 0.62*fr); b = lerp(b, LEAF_FLUSH[2], 0.62*fr);
+  r = lerp(r, LEAF_DEEPC[0], 0.45*dp); g = lerp(g, LEAF_DEEPC[1], 0.45*dp); b = lerp(b, LEAF_DEEPC[2], 0.45*dp);
+  r = lerp(r, tc[0], 0.90*tn);         g = lerp(g, tc[1], 0.90*tn);         b = lerp(b, tc[2], 0.90*tn);
+  return 'rgb(' + (r|0) + ',' + (g|0) + ',' + (b|0) + ')';
+}
 // hung off sunUp/sunDown, or the label reads Morning in the winter dark. Every
 // offset below is chosen so that at warmth 0.5 this is the constant table it replaced.
 function timeLabel(){
@@ -1582,15 +1640,22 @@ function updateWildlife(dt){
       if (b.z > 22) birds.splice(i,1);
     } else { b.z += dt*7; b.x += dt*4; b.y -= dt*2; if (b.z>10) birds.splice(i,1); }
   }
-  const gusty = isWindy();
-  if ((day>=4 || gusty) && !raining && R()<dt*(gusty?1.1:0.25*rich) && leaves.length<(gusty?40:24) && !RM){
+  const gusty = isWindy(), ff = leafFallF();
+  /* The rate and the ceiling both ride the season now, and the gust multiplies it
+   * rather than overriding it — a January gale off bare branches sheds nothing.
+   * Draw counts are UNCHANGED (one rate roll, one src, then six per leaf, pick()
+   * included), because adding an R() here would reshuffle the whole seeded world. */
+  const cap = gusty ? 40 : Math.round(24 * clamp(ff, 0.20, 1.70));
+  if ((day>=4 || gusty) && !raining && R()<dt*(gusty?1.1:0.25*rich)*ff && leaves.length<cap && !RM){
     const src = R();
-    if (src < 0.5){          // from the courtyard linden
+    // in spring what is in the air is petals off the beds, not leaves off the trees
+    const petalCut = 0.75 - 0.30 * Math.max(leafFresh(), blossomF());
+    if (src < petalCut*(2/3)){          // from the courtyard linden
       leaves.push({x:CX+(R()-0.5)*6, y:CY+(R()-0.5)*6, z:5.5+R()*2, vx:0.6+R()*0.8+(gusty?1.2:0), ph:R()*9,
-        col:pick(['#a8853c','#8a9a44','#b06f38'])});
-    } else if (src < 0.75){  // from a street tree
+        col:leafCol(pick([[168,133,60],[138,154,68],[176,111,56]]), 0)});
+    } else if (src < petalCut){  // from a street tree
       leaves.push({x:pick(TREE_PITS)+0.5, y:66.9, z:3.5+R(), vx:0.8+R()+(gusty?1.2:0), ph:R()*9,
-        col:pick(['#8a9a44','#a8853c'])});
+        col:leafCol(pick([[138,154,68],[168,133,60]]), 1)});
     } else {                 // a petal snatched off a bed
       leaves.push({x:6+R()*52, y:5+R()*3, z:1+R(), vx:1+R()+(gusty?1.4:0), ph:R()*9,
         col:pick(['#e8a0b0','#f3b04e','#c9a0e2','#e8dfc8'])});
@@ -2916,6 +2981,31 @@ function drawPlant(it, t){
     }
   }
 }
+/* A bare tree has to read as a CROWN, not as an asterisk. The first cut drew each bough
+ * as one uniform stroke from a single point and the winter linden looked like a spider.
+ * So: a tapered quad with a slight curve, forking two twigs at 62% of its length, which
+ * gives the silhouette a thick-to-thin gradient and a ragged edge. Deterministic — no
+ * R() — so a bare tree is the same bare tree on every frame. Caller sets fill/stroke. */
+function drawBoughs(x0, y0, tips, w){
+  for (const [x1, y1] of tips){
+    const dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy) || 1;
+    const nx = -dy / L * w, ny = dx / L * w;
+    const mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
+    ctx.beginPath();
+    ctx.moveTo(x0 + nx, y0 + ny);
+    ctx.quadraticCurveTo(mx + nx * 0.45, my + ny * 0.45, x1, y1);
+    ctx.quadraticCurveTo(mx - nx * 0.45, my - ny * 0.45, x0 - nx, y0 - ny);
+    ctx.closePath(); ctx.fill();
+    const fx = x0 + dx * 0.62, fy = y0 + dy * 0.62;
+    ctx.lineWidth = Math.max(0.7, w * 0.62); ctx.lineCap = 'round';
+    for (const a of [0.6, -0.6]){
+      const c = Math.cos(a), s = Math.sin(a);
+      ctx.beginPath(); ctx.moveTo(fx, fy);
+      ctx.lineTo(fx + (dx * c - dy * s) * 0.36, fy + (dx * s + dy * c) * 0.36);
+      ctx.stroke();
+    }
+  }
+}
 function drawTree(it, t){
   const [bx, by] = project(CX, CY + 0.5, 0);
   const {sway, treeR, treeH} = it;
@@ -2927,18 +3017,39 @@ function drawTree(it, t){
   ctx.lineTo(tx2 + tw*0.55, ty2); ctx.quadraticCurveTo(bx + tw*0.5, (by+ty2)/2, bx + tw, by);
   ctx.closePath(); ctx.fill();
   const blobs = [[0,0,1],[-0.55,-0.15,0.72],[0.55,-0.1,0.75],[-0.25,-0.45,0.6],[0.3,-0.4,0.62],[0,0.28,0.7]];
-  const cols = ['#4c7a3e','#5c8a4a','#547f42','#679552','#5c8a4a','#456f38'];
+  const cols = [[76,122,62],[92,138,74],[84,127,66],[103,149,82],[92,138,74],[69,111,56]];
+  // The canopy is six clamps on ONE 0..1 progress, exactly as the market stalls are:
+  // the mass comes in first and the outermost blobs last, and running leafOut backwards
+  // through autumn sheds them in reverse for free. Each blob's radius grows from zero
+  // at its own threshold, so nothing ever appears at a size.
+  const out = leafOut(), LTH = [0, 0.20, 0.26, 0.52, 0.58, 0.38];
+  // The boughs. Under a full crown they are covered, so they are faded out entirely at
+  // leafOut 1 and the summer tree is untouched; in winter they ARE the linden.
+  if (out < 0.92){
+    ctx.save();
+    ctx.globalAlpha = clamp((0.92 - out) / 0.55, 0, 1);
+    ctx.fillStyle = '#584030'; ctx.strokeStyle = '#584030';
+    const tips = [];
+    for (let k=1;k<blobs.length;k++){
+      const [ox, oy] = blobs[k];
+      tips.push(project(CX + ox*treeR*0.78 + sway*(1+oy), CY + 0.5 + ox*0.2, treeH + oy*treeR*0.8));
+    }
+    drawBoughs(tx2, ty2, tips, Math.max(1.2, cellW*0.075));
+    ctx.restore();
+  }
   for (let k=0;k<blobs.length;k++){
+    const pk = clamp((out - LTH[k]) / (1 - LTH[k]), 0, 1);
+    if (pk <= 0) continue;
     const [ox, oy, s] = blobs[k];
     const [cx2, cy2] = project(CX + ox*treeR + sway*(1+oy), CY + 0.5 + ox*0.2, treeH + oy*treeR*0.9);
-    const rr = treeR * s * cellW * 0.55;
-    ctx.fillStyle = cols[k];
+    const rr = treeR * s * cellW * 0.55 * pk;
+    ctx.fillStyle = leafCol(cols[k], k);
     ctx.beginPath(); ctx.ellipse(cx2, cy2, rr, rr*0.78, 0, 0, 7); ctx.fill();
   }
-  if (daylight > 0.2){
-    ctx.fillStyle = 'rgba(190,220,140,' + 0.18*daylight + ')';
+  if (daylight > 0.2 && out > 0){
+    ctx.fillStyle = 'rgba(190,220,140,' + 0.18*daylight*out + ')';
     const [hx, hy] = project(CX - treeR*0.3 + sway, CY, treeH + treeR*0.5);
-    ctx.beginPath(); ctx.ellipse(hx, hy, treeR*cellW*0.34, treeR*cellH*0.4, 0, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(hx, hy, treeR*cellW*0.34*out, treeR*cellH*0.4*out, 0, 0, 7); ctx.fill();
   }
 }
 function drawLaneTree(it){
@@ -2959,7 +3070,9 @@ function drawLaneTree(it){
       ctx.stroke();
     }
   }
-  ctx.fillStyle = 'rgba(25,32,18,' + 0.22 * daylight + ')';
+  const out = leafOut();
+  // a bare tree throws a thinner shadow; at leafOut 1 this is the old constant exactly
+  ctx.fillStyle = 'rgba(25,32,18,' + 0.22 * daylight * (0.40 + 0.60 * out) + ')';
   const shx = -SUN[0] / SUN[2] * h * cellW * 0.55;
   ctx.beginPath(); ctx.ellipse(bx + shx, by - h * cellH * 0.28, r * cellW * 0.8, r * cellH * 0.55, 0, 0, 7); ctx.fill();
   // trunk with a root flare, tapering as it rises
@@ -2971,24 +3084,59 @@ function drawLaneTree(it){
   ctx.lineTo(tx2 + tw * 0.6, ty2); ctx.quadraticCurveTo(bx + tw * 0.8, (by + ty2) / 2, bx + tw * 1.9, by);
   ctx.closePath(); ctx.fill();
   const swx = RM ? 0 : Math.sin(windT * 1.4 + px) * 0.12;
-  const cols = it.fruit ? ['#5f8a48', '#6e9a52', '#547f42'] : ['#54804a', '#618f52', '#4a7440'];
+  const cols = it.fruit ? [[95,138,72], [110,154,82], [84,127,66]] : [[84,128,74], [97,143,82], [74,116,64]];
   const blobs = [[0, 0, 1], [-0.5, -0.3, 0.7], [0.5, -0.25, 0.72], [0, 0.45, 0.62]];
+  const LTH = [0, 0.24, 0.30, 0.50];
+  if (out < 0.92){                                      // boughs, covered under a full crown
+    ctx.save();
+    ctx.globalAlpha = clamp((0.92 - out) / 0.55, 0, 1);
+    ctx.fillStyle = '#573f2f'; ctx.strokeStyle = '#573f2f';
+    const tips = blobs.slice(1).map(([ox, oz]) => project(px + ox * r * 0.78 + swx, py, h + oz * r * 0.7));
+    drawBoughs(tx2, ty2, tips, Math.max(1, cellW * 0.062));
+    ctx.restore();
+  }
+  /* Blossom is a MASS, not a speckle: an orchard in flower is a white crown, and drawn
+   * as dots at cellW*0.10 it measured 68 px across all four trees — invisible. So it
+   * rides the same blobs the leaves do. It also fills the crown AHEAD of leafOut, which
+   * is the whole point of blossom, hence the floor on pk. At bl 0 both terms vanish and
+   * this is exactly the leaf canopy again. */
+  const bl = it.fruit ? blossomF() : 0;
   for (let k = 0; k < blobs.length; k++){
+    const pk = Math.max(clamp((out - LTH[k]) / (1 - LTH[k]), 0, 1), 0.66 * bl);
+    if (pk <= 0) continue;
     const [ox, oz, s] = blobs[k];
     const [cx2, cy2] = project(px + ox * r + swx, py, h + oz * r * 0.8);
-    ctx.fillStyle = cols[k % 3];
-    ctx.beginPath(); ctx.ellipse(cx2, cy2, r * s * cellW * 0.5, r * s * cellW * 0.4, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = leafCol(cols[k % 3], it.fruit ? k + 2 : k);
+    ctx.beginPath(); ctx.ellipse(cx2, cy2, r * s * cellW * 0.5 * pk, r * s * cellW * 0.4 * pk, 0, 0, 7); ctx.fill();
+    if (bl > 0.02){                                     // the flower over the twig
+      ctx.fillStyle = 'rgba(247,235,239,' + (0.86 * bl) + ')';
+      ctx.beginPath(); ctx.ellipse(cx2, cy2 - cellH * 0.12, r * s * cellW * 0.46 * pk, r * s * cellW * 0.34 * pk, 0, 0, 7); ctx.fill();
+    }
   }
-  if (daylight > 0.2){                                  // a sunlit crown
+  if (daylight > 0.2 && out > 0){                       // a sunlit crown
     const [hx, hy] = project(px - r * 0.35 + swx, py, h + r * 0.45);
-    ctx.fillStyle = 'rgba(198,224,150,' + 0.2 * daylight + ')';
-    ctx.beginPath(); ctx.ellipse(hx, hy, r * cellW * 0.3, r * cellH * 0.34, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(198,224,150,' + 0.2 * daylight * out + ')';
+    ctx.beginPath(); ctx.ellipse(hx, hy, r * cellW * 0.3 * out, r * cellH * 0.34 * out, 0, 0, 7); ctx.fill();
   }
-  if (it.fruit && day >= 3){                            // apples on the orchard trees
-    ctx.fillStyle = '#c2483a';
-    for (let k = 0; k < 5; k++){
-      const [fx, fy] = project(px + (hash(k, px | 0) - 0.5) * r * 1.5 + swx, py, h + (hash(px | 0, k) - 0.4) * r * 0.9);
-      ctx.beginPath(); ctx.arc(fx, fy, Math.max(1.2, cellW * 0.11), 0, 7); ctx.fill();
+  if (it.fruit){
+    // The orchard's year, hung on the flag that was already there. Blossom comes out
+    // AHEAD of the leaves — phase 0.13..0.25, while leafOut is still climbing — which
+    // is why four bare-ish trees in white read as spring and not as a rendering fault.
+    const fr = fruitF();
+    if (bl > 0.02){                                     // a few sprays outside the mass
+      ctx.fillStyle = 'rgba(252,244,246,' + (0.55 + 0.40 * bl) + ')';
+      for (let k = 0; k < 7; k++){
+        const [fx, fy] = project(px + (hash(k, px | 0) - 0.5) * r * 1.9 + swx, py, h + (hash(px | 0, k) - 0.3) * r * 1.15);
+        ctx.beginPath(); ctx.arc(fx, fy, Math.max(1.5, cellW * 0.15) * bl, 0, 7); ctx.fill();
+      }
+    }
+    if (fr > 0.02 && day >= 3){                         // apples: green when set, red by the turn
+      const ripe = clamp((seasonPhase - 0.50) / 0.16, 0, 1);
+      ctx.fillStyle = 'rgb(' + Math.round(lerp(120, 194, ripe)) + ',' + Math.round(lerp(148, 72, ripe)) + ',' + Math.round(lerp(66, 58, ripe)) + ')';
+      for (let k = 0; k < 5; k++){
+        const [fx, fy] = project(px + (hash(k, px | 0) - 0.5) * r * 1.5 + swx, py, h + (hash(px | 0, k) - 0.4) * r * 0.9);
+        ctx.beginPath(); ctx.arc(fx, fy, Math.max(1.2, cellW * 0.11) * fr, 0, 7); ctx.fill();
+      }
     }
   }
 }

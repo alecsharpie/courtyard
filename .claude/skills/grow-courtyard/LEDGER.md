@@ -730,3 +730,97 @@ between #15 and #16 with no town change behind it.
 **Note:** `context-budget.mjs` read **OVER** at 46.7 KB against the 46 KB cap when this
 iteration started, and still does (LEDGER.md 14.5 KB, state.json 8.4 KB, laws 27/60).
 Third iteration running over.
+
+## Iteration 17 — thirteen trees learn the year (2026-08-03) [Cross street & allotments × Deepen]
+
+**Brief:** b16 — the town has a year and thirteen trees that have never heard of it.
+Make the canopies read `warmth`; put the leaf fall on the season.
+
+**Did:** Eight terms next to `growF`/`dieF`/`bloomCap`, and one colour rule. They read
+`seasonPhase`, **not `warmth` alone**, because warmth 0.5 happens twice and a rising 0.5
+(bud burst) and a falling 0.5 (the turn) are the two most different-looking days of the
+year — `warmth` cannot tell them apart and every seasonal reader after this one will hit
+the same wall. `leafOut` is canopy coverage; `leafFresh`/`leafDeep`/`leafTurn` are the
+tints; `leafShed` drives `leafFallF`; `blossomF`/`fruitF` are the orchard. `leafCol(base,
+k)` is the one colour rule all thirteen trees go through, keyed per blob so a turning
+tree is patchy rather than uniformly orange.
+
+The canopy is **six clamps on one 0..1 progress**, exactly as the market stalls are — the
+mass fills first, the outermost blobs last, and running `leafOut` backwards through
+autumn sheds them in reverse for free. Each blob's radius grows from *zero* at its own
+threshold, so nothing appears at a size. `drawBoughs()` draws what is left: tapered,
+slightly curved boughs forking two twigs at 62%, faded out entirely at `leafOut` 1 so the
+summer tree is untouched.
+
+The `leaves` spawner keeps its exact `R()` draw count (one rate roll, one `src`, six per
+leaf) — only the thresholds moved, so nothing was added to the stream on purpose. The
+gust now *multiplies* the seasonal rate instead of overriding it, so a January gale off
+bare branches sheds nothing. Falling leaves take their colour from `leafCol` too, so a
+leaf is the colour of the tree it fell off.
+
+Every term is written so that at `SEASON_START` (phase 0.25) it is **exactly** the
+constant it replaced — `leafOut` 1, all three tints 0, `leafFallF` 1, and `leafCol`
+returning the literal old hexes. `fruitF` is the one deliberate exception: apples in
+April were the bug, not the baseline.
+
+**Gates:** census **PASS** (`planted` −0.6%, `blooming` −0.8% — PRNG reshuffle, no
+collapse) · visual PASS · motion **FAIL**, attributable (below) · filmstrip PASS (no POP,
+no FROZEN) · perf **PASS** (+0.0% vs interleaved control) · `probes/canopy-year.mjs`
+PASS 5/5
+
+The motion failure is `market/raindrop jumps 0 -> 1`, a system I did not touch. Tallied
+across all four scenes the shower budget is **exactly conserved** — jumps 4 → 4, drop
+spawns 440 → 440; one shower moved out of `dusk` and into `market` because the changed
+leaf-spawn count shifted the PRNG stream. `leaf`, the kind I actually changed, is clean
+everywhere: 0 jumps, 0 nan, 0 oob, 0 flicker. I did not touch the gate.
+
+`probes/canopy-year.mjs` measures what the census cannot: winter canopy is **0 px across
+all thirteen trees** against summer's 9674; autumn amber 2306 vs summer 49; the orchard
+carries 723 px of blossom in spring; airborne leaves run autumn 7.83 / spring 3.14 /
+summer 0.27 / winter 0. `probes/year-strip.mjs` is the region-cropped year the brief
+asked for — 26 crops of the linden, one per day, same hour.
+
+**Surprise:** three, all from measuring.
+
+A tree-cropped *box* cannot see this at all. The linden stands against lawn and the
+orchard against the allotments, so the box floors at ~2500 green px of ground in every
+season and reported winter as **57% as green as summer** — a clean-looking number that
+was entirely the grass behind the tree. Rendering the frame twice, once with
+`leafOut`/`blossomF`/`fruitF` monkeypatched to 0, and counting the pixels that *differ*
+gives the canopy exactly, whatever is behind it. `?pause` sets `dt = 0`, which freezes
+`windT` and the sway, so the two renders differ in nothing else.
+
+Then that measurement blamed my own change on the wrong thing. It scored the orchard at
+1070 px of "green canopy" in peak autumn — four trees that were fully turned. Two causes,
+both mine: the loose classifier `r>g+8 && r>b+30 && r>95` scores the **stone tree pit**
+(107,90,68) as autumn colour, and the pit is inside the diff because I had made the
+ground shadow scale with `leafOut`. Cutting the box at the trunk top took it 1070 → 228
+with amber unchanged at 306. Both were probe defects; neither was visible in any
+screenshot.
+
+And the first bare linden looked like a spider — five uniform strokes from one point.
+A bare tree is most of the winter frame and it has to read as a *crown*: taper, curve,
+and fork it and the same five boughs read as a tree.
+
+**Law:** A cyclic world scalar is not enough to hang a seasonal look on — you need the
+**phase**, because a cosine visits every value twice and the two visits are the two
+things you most need to tell apart (bud burst vs. the turn). Write each term as a window
+closed on *both* sides of the phase so only one or two are ever live at once, anchor them
+so the start phase reduces exactly to the constant being replaced, and state the one
+term you deliberately left un-neutral and why.
+
+**Law:** To measure a draw-only feature, do not crop a box around it — render the frame
+twice with the feature suppressed and count the pixels that changed. A box measures the
+background, and the background is the thing that looks most like what you are counting.
+`?pause` gives dt=0, so the two renders are otherwise identical. Then check what *else*
+your change made season-dependent: my ground shadow put itself in the diff.
+
+**Cue:** `maturity()` still sizes all thirteen trees off a ramp that pins at day 8, so a
+tree is the same size in its first winter as in its fifth. Deliberately untouched — the
+brief said a tree that grows and shrinks every 24 real minutes reads as a bug — but if a
+slow multi-year growth term is ever wanted, `leafOut` is now the seam that proves a size
+change is seasonal rather than a glitch.
+
+**Cue:** the context budget printed **OVER** at the start of this iteration — 48.8 KB
+against a 46 KB cap (LEDGER 15.9, SKILL 11.8, LAWS 9.4, state 9.4). This entry makes it
+worse. The manager should distil this pass.

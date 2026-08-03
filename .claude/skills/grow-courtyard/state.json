@@ -2,7 +2,7 @@
   "updated": "2026-08-03",
   "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
   "phase": "expanding",
-  "lastIteration": 16,
+  "lastIteration": 17,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -182,6 +182,9 @@
       ],
       "new-ca": [
         7
+      ],
+      "deepen": [
+        17
       ]
     },
     "plaza": {
@@ -258,7 +261,8 @@
       "planting CA — 11 species, bloom stages, seeds spreading from mature neighbours, crowding and age dieback; rain accelerates every growth term",
       "daisies in the lawn, desire paths from foot wear, benches, a sweeper (05.00-06.30), ivy on the gatehouse",
       "one big courtyard linden (drawTree, CX/CY), sized on maturity(), hard-coded summer green",
-      "the beds read the YEAR — growF()/dieF()/bloomCap() off warmth, plus lawn health in groundCol and the ivy. bloomCap is a CEILING, not a kill term; per-cell hardiness holds ~1/7 of cells at the full ceiling, so winter is a scatter of blooms in turned earth rather than an empty grid. probes/beds-year.mjs"
+      "the beds read the YEAR — growF()/dieF()/bloomCap() off warmth, plus lawn health in groundCol and the ivy. bloomCap is a CEILING, not a kill term; per-cell hardiness holds ~1/7 of cells at the full ceiling, so winter is a scatter of blooms in turned earth rather than an empty grid. probes/beds-year.mjs",
+      "Seasonal leaf fall: leafFallF() replaces richness() in the leaves spawner; gust multiplies rather than overrides it; falling leaves take leafCol() so a leaf matches the tree it fell from. R() draw count unchanged."
     ],
     "lane": [
       "kiosk (07.30-18.30), pavement cafe with tables, awnings, washing lines, planters, street lamps, benches",
@@ -271,7 +275,9 @@
       "allotment block of 17 plots (buildGrid excludes the pond corner), timber fence, gates, shed, and an alley cut through the block",
       "harvest cycle — harvestPlot() lifts a mature 3x2 bed whole, bAge doubles as a 12-20 s fallow clock, then it is re-sown as a row under plotCrop()",
       "spawnAllotAgent() — the allotments' own arrival source, rate on ripePlots(); ~1.1 gardeners/day, ~1 plot cleared/day; they work 1-3 rows and walk out carrying a basket (a.crop)",
-      "census planting.harvested"
+      "census planting.harvested",
+      "Seasonal canopy on all 13 trees (drawTree + drawLaneTree): leafOut/leafFresh/leafDeep/leafTurn/leafShed + leafCol(base,k) — coverage staged as per-blob clamps on one 0..1 progress, bare in winter behind drawBoughs() tapered boughs, thin+light in spring, dark in summer, patchy amber in autumn. All read seasonPhase, not warmth.",
+      "Orchard year on the existing fruit:1 flag: blossomF() (white crown, out ahead of the leaves) and fruitF() (apples green->red, gone before the tree is bare)"
     ],
     "plaza": [
       "plaza with a fountain and a paved roundel, four tree pits, benches",
@@ -290,7 +296,8 @@
       "cloudCover() — one slow rate-capped scalar; fronts build over ~half a day and break after rain, rain is gated on it so it never rains from a clear sky, sun and moon veiled, stars put out, drifting banks",
       "weatherComing() — one ramped rain-is-coming predicate off cloudCover(), damped by daylight so overcast nights read 0; three readers at their own trigger points",
       "season() — the YEAR: a cyclic scalar over SEASON_LEN 26 days (~24 real min), phase 0 = midwinter, anchored at 0.25 where warmth = 0.5 and every seasoned term equals the constant it replaced. Rate-capped, continuous through the wrap. TWO sky readers only — day length (dayHours 11.5..17.5 about SOLAR_NOON 12.75; sunUp/sunDown/sunArc/timeLabel) and light (sunVec, the disc's arc and colour, skyCols, roof key). Population breathes only ~15%, floor 7 people. census clock.season",
-      "rainFall — a 0..1 shower intensity beside the raining boolean; drops, the overcast tint, pond rings, water sparkle and chimney smoke all read it, so a shower thins out over ~3 s (RAIN_TAIL 2.2 s plus one fall time) instead of cutting"
+      "rainFall — a 0..1 shower intensity beside the raining boolean; drops, the overcast tint, pond rings, water sparkle and chimney smoke all read it, so a shower thins out over ~3 s (RAIN_TAIL 2.2 s plus one fall time) instead of cutting",
+      "probes/canopy-year.mjs (anchor neutrality, year curve, canopy pixel footprint by suppress-and-diff) and probes/year-strip.mjs (26-day cropped year contact sheet)"
     ],
     "life": [
       "walkers with itineraries, courtyard and street; eastern itineraries: plaza bench, fountain gaze, quay rail, quay bench, towpath, church green, allotment plot, bridge parapet",
@@ -362,6 +369,18 @@
     {
       "id": "c36",
       "note": "#16's census ladder change is a step in the published growth curve: planted 4782 -> 6109 between #15 and #16 with no town change behind it. census-history.jsonl now carries a 'ladder' field; stats.html plots RUNLOG census scalars and knows nothing about it.",
+      "raisedBy": 16,
+      "seenBy": 0
+    },
+    {
+      "id": "c37",
+      "note": "maturity() still sizes all 13 trees off a ramp pinned at day 8 — a tree is the same size in its first winter as its fifth. Left alone on purpose (b16 forbade seasonal size); leafOut is now the seam that would make a slow multi-year growth term read as growth rather than glitch.",
+      "raisedBy": 16,
+      "seenBy": 0
+    },
+    {
+      "id": "c38",
+      "note": "context-budget printed OVER at the start of #17 (48.8 KB vs 46 KB cap: LEDGER 15.9, SKILL 11.8, LAWS 9.4, state 9.4) and #17's ledger entry makes it worse. Distil this pass.",
       "raisedBy": 16,
       "seenBy": 0
     }
