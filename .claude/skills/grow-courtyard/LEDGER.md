@@ -676,3 +676,86 @@ weather is now the only slow system left that still has a one-way ramp in it. `s
 sitting right there.
 **Cue:** `context-budget.mjs` reported **OVER (48.4 KB / 46 KB cap)** at the start of this
 iteration, before I read anything. LAWS.md is at 28/60 laws and I am proposing four more.
+
+## Iteration 13 — the picture now admits it answers a touch (2026-08-03) [Courtyard & garden × Interaction/UX]
+
+**Brief:** b13 — the diorama has been clickable since before the loop began and nothing on
+screen said so. Make the touch discoverable without spoiling it: a cursor that tells you the
+cell under the pointer will answer, and a first-time viewer invited exactly once.
+
+**Did:** Two hints and no third.
+*The cursor.* One predicate, `answersTouch(x,y)`, is now the single definition of "this cell
+answers": the six tile types the click handler branches on. `mousemove` reads it and swaps
+`cv.style.cursor` between `pointer` and `default` — on transitions only, not per event — and
+the click handler now *guards* on the same call instead of doing its own bounds check, so the
+hint cannot promise a response the click does not give. Both go through a new `cellAt(ev)`.
+The canvas base cursor was `crosshair`, which said "aim" everywhere and so said nothing; it is
+now the plain arrow, and the pointer is the only special cursor in the frame. 46% of the frame
+is live, so a hand crossing the picture finds it.
+*The invitation.* One line, once, then never again: `offerInvite(now)` off the real frame
+clock (not sim time — `?fast` must not hurry a reading speed). It refuses to compete for the
+ticker: it waits for `tickerFree()` and takes the surface directly rather than queueing, where
+the drop policy would either lose it behind the news or hand it over long after the viewer had
+moved on. Clicking first cancels it — `touched = true` in the click handler — and a `?pause`
+page is the harness, not a viewer, so `DRIVEN` stands it down and every gate still measures the
+town rather than the advertisement.
+*Two small seam changes it needed.* `tickerFree()` is factored out of `announce()` (announce,
+`tickTicker` and the invitation now route on one definition), and a line may buy its own dwell
+via `lineDwell` — the invitation takes 5.5 s because it asks the viewer to *do* something and
+2.5 s is a fair read of a remark, not of an instruction. It is the only caller that does.
+*The narrow sill.* `@media (max-width:640px)` hides the ticker, so a phone had neither of the
+two hints. `#sill.inviting` lends the invitation the plate's and the clock's place for 7 s and
+then gives them back, with a shorter line ("Touch the picture — it answers.") that fits 390 px
+untruncated.
+
+**Gates:** census **PASS — literally `unchanged` in all five sections**, which is the point:
+the change consumes no `R()` and writes no town state, so the world is byte-identical and the
+whole diff is affordance · motion **PASS** (nothing new jumped, NaN'd, flickered or churned) ·
+visual **PASS** (wide/courtyard/east/lane unchanged — `shoot.mjs` fires at 2.6 s wall, before
+`INVITE_AT`, so the idle diorama it photographs is exactly as busy as yesterday's; plus the
+sill during and after the invitation at 1280 and at 390×844) · filmstrip **skipped** — no draw
+code was touched and no per-frame pass added (the frame gained one boolean test) · perf
+**skipped**, same reason · probe `probes/touch-hint.mjs`: 345 real mouse positions, cursor and
+click handler agree on **345/345**, live share **46.1%**; a pointer cell answers a click and a
+default cell does not; the invitation appears **exactly once** at ~9.2 s and holds the surface
+**5.4–5.6 s**; **0** appearances to a viewer who clicked at 3 s; at 390×844 it is visible,
+**unclipped**, and the plate is back by ~15 s.
+
+**Verdict:** shipped   ← my view; runlog.mjs decides from the diff
+
+**Surprise:** Two, and both were the probe overruling me.
+(1) **The first cursor run reported 14 disagreements out of 345 and there was no bug.**
+Chromium rounds the coordinates it puts on a synthesised mouse event, so my fractional sample
+point made the page floor one cell and the probe floor its neighbour — and because a whole
+sampled row shared a `y`, the phantoms clustered on the rows nearest a terrain edge, which is
+exactly what a real off-by-one draw fault would look like. Rounding the points to integers took
+it to 0/345. A probe that drives real input has to *be* pixel-honest, not approximately so.
+(2) **The invitation was being swapped out at 2.5 s and I would have shipped that.** The queue
+guarantees every line `TICK_DWELL`, and the ambient remarks are frequent enough that the one
+line asking the viewer to act got the same 2.5 s as "Sparrows bicker somewhere in the linden."
+The still frames looked perfect; only the time series caught it. Hence per-line dwell.
+Also worth recording: I checked the cursor by hand at a point I had labelled "wall", got
+`pointer`, and briefly believed I had a bug. The cell was the cross-street ROAD, which does
+answer. The probe had already been right about that point; my label was wrong.
+
+**Law:** An affordance is a claim, and the claim and the response must be the SAME predicate,
+read by both — a hint derived separately from the handler it advertises will drift into either
+a lie or a silence. Verify it by agreement over many real input positions, not by looking.
+
+**Law:** A probe that drives real mouse or touch input must use integer screen coordinates.
+The browser rounds what it puts on the event, so a fractional point makes the page and the
+probe disagree about which cell was hit, and the phantoms cluster along edges — indistinguishable
+from a genuine off-by-one.
+
+**Cue:** `context-budget.mjs` reports **OVER: 51.5 KB against the 46 KB cap** (LEDGER.md at
+18.6 KB is the bulk, laws 28/60). It was already over when this iteration started.
+
+**Cue:** The cursor now advertises the whole cross street and every footway in town, but a
+`SIDE`/`ROAD` click anywhere announces the *lane* crumb line and clamps the birds it spawns into
+the lane rows — so a click at the north end of the cross street reads as a promise kept in the
+wrong place. Pre-existing; out of scope here (the brief forbade new click responses), but the
+hint is what makes it visible.
+
+**Cue:** `INVITE_WIDE` is one fixed string, deliberately not a `pick()`, so the page consumes no
+`R()` for it and the census stays byte-identical. Anything later that wants to vary the line
+must accept that it reshuffles the whole seeded world.

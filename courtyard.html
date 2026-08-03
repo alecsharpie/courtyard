@@ -37,7 +37,10 @@
     box-shadow: inset 0 0 60px rgba(0,0,0,.55), 0 18px 50px rgba(0,0,0,.35);
     background:#0d1410; overflow:hidden;
   }
-  #cv{ position:absolute; inset:0; width:100%; height:100%; display:block; cursor:crosshair; }
+  /* The default cursor is the ARROW, not a crosshair: the canvas swaps it for a
+     pointer over exactly the cells the click handler will answer, and a crosshair
+     everywhere would spend that contrast before it is used. See answersTouch(). */
+  #cv{ position:absolute; inset:0; width:100%; height:100%; display:block; cursor:default; }
   #glass{
     position:absolute; inset:0; pointer-events:none;
     background:
@@ -64,7 +67,17 @@
   }
   #ctrl button:hover{ border-color:var(--accent); color:var(--accent); }
   #ctrl button:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
-  @media (max-width:640px){ #ticker,#stats{ display:none; } #plate small{display:none;} }
+  @media (max-width:640px){
+    #ticker,#stats{ display:none; }
+    #plate small{ display:none; }
+    /* A narrow sill has no room for the ticker, so a phone has neither a cursor
+       nor a text surface — the two hints that the picture answers a touch. The
+       one-time invitation therefore BORROWS the sill for its few seconds: the
+       plate and the clock step aside, then come back. Nothing else is allowed
+       through this door — see inviteHold. */
+    #sill.inviting #ticker{ display:block; }
+    #sill.inviting #plate, #sill.inviting #daytime{ display:none; }
+  }
 </style>
 
 <div id="room">
@@ -629,7 +642,12 @@ let tickerTimer = 0, ambientAcc = 0;
 const TICK_DWELL = 2.5, TICK_LIFE = 9, TICK_STALE = 6, TICK_QMAX = 2;
 const tickerQ = [];
 let tickerAge = TICK_LIFE;   // real seconds the line on screen has been up
+/* Nearly every line is a remark and 2.5 s is a fair read of one. A line that asks
+ * the viewer to DO something needs longer than one that only asks to be read, so a
+ * line may buy its own dwell — the only caller that does is the invitation. */
+let lineDwell = TICK_DWELL;
 function showLine(e){
+  lineDwell = e.dwell || TICK_DWELL;
   tickerEl.textContent = e.txt;
   tickerEl.classList.remove('fade');
   tickerTimer = TICK_LIFE;
@@ -648,8 +666,11 @@ function showLine(e){
     while (tickerQ.length > TICK_QMAX) tickerQ.pop();
   }
 }
-function announce(txt, then){
-  if (tickerTimer < 0 || tickerAge >= TICK_DWELL){ showLine({ txt, then }); return; }
+/* Is the surface anybody's to take right now? One definition: announce() routes on
+ * it, and the invitation waits on it rather than queueing behind the news. */
+function tickerFree(){ return tickerTimer < 0 || tickerAge >= lineDwell; }
+function announce(txt, then, dwell){
+  if (tickerFree()){ showLine({ txt, then, dwell }); return; }
   if (txt === tickerEl.textContent) return;
   if (tickerQ.some(q => q.txt === txt)) return;
   tickerQ.push({ txt, then, age: 0 });
@@ -664,7 +685,7 @@ function tickTicker(){
     tickerQ[i].age += 0.5;
     if (tickerQ[i].age > TICK_STALE) tickerQ.splice(i, 1);
   }
-  if (tickerQ.length && tickerAge >= TICK_DWELL) showLine(tickerQ.shift());
+  if (tickerQ.length && tickerFree()) showLine(tickerQ.shift());
 }
 function ambientLine(){
   if (raining) return pick(['Gutters murmur along the whole block.',
@@ -3487,11 +3508,38 @@ function applyLight(t){
 }
 
 /* ============ interaction ============ */
-cv.addEventListener('click', ev => {
+/* Six cells answer a touch, and for most of this town's life nothing on screen said
+ * so. The two hints below are the whole of the advertisement, and both are meant to
+ * be missable: the cursor, which costs no pixels and only speaks while a hand is
+ * already on the picture, and ONE line on the ticker, once, ever.
+ *
+ * ONE predicate decides which cells answer. The cursor reads it on every mouse move
+ * and the click handler guards on it, so the hint can never promise a response the
+ * click does not give, or stay silent over one it does. */
+function answersTouch(x, y){
+  if (x < 0 || y < 0 || x >= GW || y >= WH) return false;
+  const g = grid[y * GW + x];
+  return g === BED || g === CBED || g === GRASS || g === WATER || g === SIDE || g === ROAD;
+}
+function cellAt(ev){
   const r = cv.getBoundingClientRect();
   const [wx, wy] = unproject(ev.clientX - r.left, ev.clientY - r.top);
-  const x = Math.floor(wx), y = Math.floor(wy);
-  if (x < 0 || y < 0 || x >= GW || y >= WH) return;
+  return [Math.floor(wx), Math.floor(wy)];
+}
+/* Only the transitions touch the DOM: mousemove fires at pointer rate, and setting
+ * cv.style.cursor on every one of them is a style write per event for no change. */
+let hoverLive = false;
+cv.addEventListener('mousemove', ev => {
+  const [x, y] = cellAt(ev);
+  const live = answersTouch(x, y);
+  if (live !== hoverLive){ hoverLive = live; cv.style.cursor = live ? 'pointer' : 'default'; }
+});
+cv.addEventListener('mouseleave', () => { hoverLive = false; cv.style.cursor = 'default'; });
+
+cv.addEventListener('click', ev => {
+  const [x, y] = cellAt(ev);
+  if (!answersTouch(x, y)) return;
+  touched = true;              // they found it themselves; the invitation stands down
   const j = y * GW + x;
   if (grid[j] === BED || grid[j] === CBED){
     let n = 0;
@@ -3521,6 +3569,42 @@ cv.addEventListener('click', ev => {
     }
   }
 });
+/* The invitation: one line, once, and then never again in this page's life.
+ *
+ * It is TIMELESS — no bell is ringing in it — so it refuses to compete for the
+ * surface. It waits for a moment when the ticker is nobody's and takes it directly
+ * rather than queueing, where the drop policy (2.5 s dwell, cap 2, 6 s staleness)
+ * would either lose it behind the news or, worse, hand it over long after the
+ * viewer had moved on. Losing a few seconds to a bell strike costs nothing; being
+ * shown late is the failure. If the viewer finds the picture answers before we say
+ * so, we never say so.
+ *
+ * Real seconds off the frame clock, not sim seconds: this is a reading speed, and
+ * ?fast must not hurry it. A ?pause page is the harness driving, not somebody
+ * watching — nobody is there to invite, and the gates should measure the town. */
+const INVITE_AT = 8;      // real seconds of watching before it is offered at all
+const INVITE_DWELL = 5.5; // it asks for an action, so it outstays a remark (2.5 s)
+const INVITE_HOLD = 7;    // real seconds a narrow sill lends it the plate's place
+const INVITE_WIDE = 'Reach out of the window if you like — the beds, the pond, the lane all answer.';
+const INVITE_NARROW = 'Touch the picture — it answers.';
+const sillEl = document.getElementById('sill');
+const DRIVEN = location.search.indexOf('pause') >= 0;   // the harness, not a viewer
+let touched = DRIVEN, invited = false, inviteHold = 0;
+function offerInvite(now){
+  if (invited || touched || now < INVITE_AT || !tickerFree()) return;
+  invited = true;
+  if (innerWidth > 640){ announce(INVITE_WIDE, null, INVITE_DWELL); return; }
+  announce(INVITE_NARROW, null, INVITE_DWELL);
+  sillEl.classList.add('inviting');
+  inviteHold = now + INVITE_HOLD;
+}
+// the borrowed sill goes back the moment the hold runs out or the news moves on
+function endInvite(now){
+  if (now < inviteHold && tickerEl.textContent === INVITE_NARROW) return;
+  inviteHold = 0;
+  sillEl.classList.remove('inviting');
+}
+
 document.getElementById('pause').addEventListener('click', e => {
   paused = !paused; e.target.textContent = paused ? 'Resume' : 'Pause';
 });
@@ -3679,6 +3763,7 @@ function frame(ts){
   if (paused) dt = 0;
   simStep(dt * speed, dt);
   drawScene(now, dt * speed);
+  if (!invited) offerInvite(now); else if (inviteHold) endInvite(now);
 }
 
 /* ============ test hooks (grow-courtyard) ============

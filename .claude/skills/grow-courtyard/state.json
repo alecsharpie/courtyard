@@ -2,7 +2,7 @@
   "updated": "2026-08-03",
   "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
   "phase": "expanding",
-  "lastIteration": 10,
+  "lastIteration": 13,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -143,6 +143,9 @@
       ],
       "new-ca": [
         "pre"
+      ],
+      "interaction": [
+        13
       ]
     },
     "lane": {
@@ -326,7 +329,9 @@
       "umbrellas up over weatherComing() 0.62..1.17, so ~30% get caught out",
       "THE DIORAMA IS ALREADY CLICKABLE and nothing on screen says so — cv click + unproject(): a bed takes a handful of a real species, the lawn takes a daisy, the pond takes crumbs and the ducks converge like a small navy, the fountain takes a coin, the river takes a pebble, the lane takes crumbs and birds land. Built pre-loop, never advertised, and the coverage grid reads interaction=0 which is about the LOOP, not the town",
       "__entities() carries role, act and watch per person — the seam a behaviour probe reads instead of a bespoke hook",
-      "the ticker is an ordered queue, not an overwrite — TICK_DWELL 2.5 real seconds per line, cap 2, 6 s staleness cut, and a follow-on line is enqueued only when its antecedent is DISPLAYED"
+      "the ticker is an ordered queue, not an overwrite — TICK_DWELL 2.5 real seconds per line, cap 2, 6 s staleness cut, and a follow-on line is enqueued only when its antecedent is DISPLAYED",
+      "the click is now ADVERTISED — answersTouch(x,y) is the ONE predicate for 'this cell answers' (BED/CBED/GRASS/WATER/SIDE/ROAD): the cursor swaps to pointer on it (46% of the frame) and the click handler guards on it; plus ONE ticker invitation, once ever, offered at 8 REAL seconds when tickerFree(), cancelled if the viewer clicks first (touched) and stood down on a ?pause page (DRIVEN). A narrow sill lends it the plate's and clock's place for 7 s (#sill.inviting) with a shorter line. probes/touch-hint.mjs",
+      "a ticker line may buy its own dwell — lineDwell + tickerFree(); the invitation takes 5.5 s where a remark gets TICK_DWELL 2.5 s"
     ]
   },
   "openCues": [
@@ -411,6 +416,18 @@
     {
       "id": "c26",
       "note": "shoot.mjs runs ?fast with a fixed 2600ms wall wait, so its sim instant jitters ~15s and its --t comment is wrong; it shot 'Day 4 Night' twice while aiming at day-3 mid-morning. Fine as a smoke test, cannot compare two builds. probes/year-shots.mjs pins with ?pause+__warp.",
+      "raisedBy": 10,
+      "seenBy": 0
+    },
+    {
+      "id": "c27",
+      "note": "A SIDE/ROAD click ANYWHERE in town announces the LANE crumb line and clamps the birds it spawns into the lane rows, so a cross-street or east-quarter click keeps its promise in the wrong place. Pre-existing, but the new pointer cursor is what makes it visible.",
+      "raisedBy": 10,
+      "seenBy": 0
+    },
+    {
+      "id": "c28",
+      "note": "context-budget.mjs read OVER at 51.5 KB against the 46 KB cap when iteration 13 started; LEDGER.md at 18.6 KB is the bulk, laws 28/60.",
       "raisedBy": 10,
       "seenBy": 0
     }

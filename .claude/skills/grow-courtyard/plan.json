@@ -21,26 +21,6 @@
   "rationale": "Climbing to rung 4, and the reason is the timing rather than a signal.\n\nPass #5 wrote the condition down as 'spend c1 the first time a batch comes back thin'. That condition is wrong and I am overriding it deliberately. The batch did not come back thin — it came back 5/5. But the failure this loop was built against is a loop that only climbed once it was already thrashing, by which point it could not execute a hard change: iterations #346-360 of Solvista were an 80% revert rate, and a season is not something you attempt at an 80% revert rate. A rung-4 change is the most demanding thing this loop will ever do. Do it on the back of nine consecutive clean ships, not on the back of the first bad batch. c1 has also now survived three manager passes, and the standing rule is that such a cue is either a brief or a deletion.\n\nWhat c1 actually says: maturity() pins at day 8 and richness() at day 16, so at DAY_LEN 55 s every progression term in the town is at 1 by real minute 15. The day/night cycle, the weather and the market days keep running, but the arc is over, and a viewer who leaves the tab open for forty minutes sees the same town they saw at fifteen. b11 makes the world cyclic instead of stretching the ramp, and b13 is the reader that makes it mean anything — a season visible only in the sky is a lighting change.\n\nThe find that changed this batch. I went looking for the town's missing interaction because the coverage grid reads interaction=0, and the town has been clickable the whole time: cv's click handler unprojects to a cell and gives six different real responses — a bed takes a handful of a named species, the lawn takes a daisy, the pond takes crumbs and the ducks converge, the fountain takes a coin, the river takes a pebble, the lane takes crumbs and birds land — each with its own ticker line. The grid's empty column is a fact about the LOOP, not about the town, and it nearly bought me a brief for something that already exists, which is the exact trap the watch note describes and the third time this run has walked toward it. That is now written into the inventory in capitals. So b12 is not 'add interaction'; it is that the town's most delightful feature is undiscoverable, which is a much better brief and a genuinely rung-5 one.\n\nOrder. b10 first: it is small, it is the harness, and it restores the instrument before the expensive work — I would rather know what b11 costs. b11 second because it is the batch's bet and the thing I climbed for. b12 third because it is the highest payoff per line for a thirty-second viewer and I want it to actually run rather than sit at the tail. b13 fourth, after its dependency. b14 last, cheap and useful, so a stale plan degrades into a real small job rather than into whatever the worker invents.\n\nRisk is deliberately uneven: one high, two medium, two low. b11 can genuinely fail — it moves daylight, which every cap and every spawn rate in the town reads, so its blast radius is the whole census. That is the point of it and also why it carries an explicit floor: a viewer arriving in deep winter must not find a dead diorama.\n\nCuration, since it is half the job. Laws 21 -> 28, but that is nine promoted from iterations 6-10 minus two merges: the rate-versus-existence lesson had been paid for three times (a watch note at #0, re-derived from zero at #7 with the allotment gardeners at 0.06-0.22/day, re-entered from the other side at #9 with the parapet at one person per twelve days) and had produced two separate laws, which is the signature of a law that was not sharp enough — they are now one. The three probe-hygiene laws (#3 reseed, #6 one page.evaluate, #8 module-level latches) are now one law, superseding the #3 wording. Two filmstrip laws became one; the staged-appearance and crossfade laws became one. To pay for the growth I closed eight cues and compressed the inventory back to nouns, because the workers had been writing three-sentence implementation histories into it. Net: the worker's read budget went DOWN, 44.7 -> 42.6 KB, while the laws file grew — which is the only version of this that works.",
   "queue": [
     {
-      "id": "b12",
-      "domain": "Courtyard & garden",
-      "kind": "Interaction/UX",
-      "brief": "The diorama has been clickable since before this loop began, and nothing on screen says so. cv's click handler unprojects to a cell and gives six different real responses — a bed takes a scattered handful of a named species, the lawn takes a daisy, the pond takes crumbs and the ducks arrive like a small navy, the fountain takes a coin, the river takes a pebble, the lane takes crumbs and birds land — each with its own written ticker line. The controls strip offers Pause and Speed and no hint that the picture itself answers. A viewer looking at this for thirty seconds will never find any of it, which makes an undiscovered feature the single largest gap between what the town is and what it appears to be. Make the touch discoverable without spoiling it: the cursor should tell you that the cell under the pointer will answer, and a first-time viewer should be invited exactly once. Whatever you add has to be quiet enough to live in a piece that is mostly meant to be watched.",
-      "seams": [
-        "cv click handler (~3427)",
-        "unproject",
-        "GRASS / BED / CBED / WATER / SIDE / ROAD",
-        "announce",
-        "tickerEl",
-        "#ctrl",
-        "#sill",
-        "cv.style.cursor"
-      ],
-      "successLooksLike": "Somebody who has never seen the piece discovers they can touch it inside the first thirty seconds, and a screenshot of the idle diorama is no busier than it is today.",
-      "avoid": "Do not add new click responses — there are six and this brief is about making them findable, not about having more. No tutorial overlay, no modal, no persistent on-canvas text. Do not let the invitation repeat: one, and it does not come back. Watch the ticker queue's drop policy (TICK_DWELL 2.5 s, cap 2, 6 s staleness) — an invitation that competes with a bell strike will lose, and it should lose gracefully rather than be shown late.",
-      "budgetMin": 30,
-      "risk": "medium"
-    },
-    {
       "id": "b13",
       "domain": "Courtyard & garden",
       "kind": "New CA rule",
@@ -127,6 +107,10 @@
     {
       "id": "b11",
       "at": "2026-08-03T04:59:49.649Z"
+    },
+    {
+      "id": "b12",
+      "at": "2026-08-03T05:21:22.690Z"
     }
   ],
   "recommendStop": null
