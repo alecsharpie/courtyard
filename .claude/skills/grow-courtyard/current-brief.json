@@ -16,7 +16,7 @@
   "avoid": "Do not add a second predicate for 'about to rain' — one function, many readers (see the one-predicate law). Do not touch stepClouds' rate cap or the cover>0.66 rain gate: iteration 3 proved both with a probe that still depends on them.",
   "budgetMin": 35,
   "risk": "medium-high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 6,
   "issued": "2026-08-03T02:50:16.580Z",
