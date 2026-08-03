@@ -19,7 +19,7 @@
   "avoid": "Do not stretch marketActive() so far that market day loses its shape — it is nine hours now, and a winter market that runs four is a different feature; set a floor. LAW: when you turn a constant into a variable, grep for everything tuned against the old number — the 17.00 pack-away is also read by the market-closed announcement near line 3745, and marketRaise's down window has to stay inside whatever marketActive() becomes.",
   "budgetMin": 35,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 18,
   "issued": "2026-08-03T22:35:03.210Z",
