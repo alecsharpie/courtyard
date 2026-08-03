@@ -17,7 +17,7 @@
   "avoid": "Do not fix this by raising `laneCap` — that floods the lane in order to populate the far bank. Do not add new far-bank destinations; the ones that exist are under-used, which is the entire point.",
   "budgetMin": 30,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 5,
   "issued": "2026-08-03T02:15:44.500Z",
