@@ -551,6 +551,25 @@ function updateClock(){
 }
 function maturity(){ return clamp((day + (simT % DAY_LEN) / DAY_LEN) / 8, 0.04, 1); }
 function richness(){ return clamp(day / 16, 0, 1); }
+/* Reader three: the planting. maturity() and richness() are ONE-WAY ramps that pin at
+ * day 8 and day 16 — so the courtyard, the thing this piece is named after, fills to a
+ * CA equilibrium in the first quarter hour and then holds it forever. The three terms
+ * below are what set that equilibrium, and seasoning them turns the plateau into a
+ * curve: how fast a bed grows, how HIGH it can grow, and how fast it dies back.
+ *
+ * bloomCap is the load-bearing one, because of how caTick is shaped: the bed that ages
+ * and dies is the bed that is AT its ceiling. So lowering the ceiling does not merely
+ * withhold the flower — it turns the whole bed over, and the beds empty of their own
+ * accord instead of needing a seasonal kill term bolted on beside them. It is a step
+ * on a continuous scalar and that is fine: no bed changes stage when it crosses, only
+ * which branch it takes next tick, so nothing pops.
+ *
+ * All three read `warmth` and nothing else, as do the lawn and the gatehouse ivy below
+ * — one scalar, so no two parts of the garden can disagree about the time of year.
+ * At warmth 0.5 every one is exactly the constant it replaced. */
+function growF(){ return lerp(0.30, 1.70, warmth); }
+function dieF(){ return lerp(1.80, 0.20, warmth); }
+function bloomCap(){ return warmth > 0.42 ? 3 : warmth > 0.20 ? 2 : 1; }
 // hung off sunUp/sunDown, or the label reads Morning in the winter dark. Every
 // offset below is chosen so that at warmth 0.5 this is the constant table it replaced.
 function timeLabel(){
@@ -766,6 +785,7 @@ function harvestPlot(a){
 }
 function caTick(){
   const m = maturity(), boost = raining ? 3 : 1;
+  const vig = growF(), cap = bloomCap(), die = dieF();
   const availF = SPECIES.filter(s => s.minDay <= day && !s.veg);
   const availV = SPECIES.filter(s => s.minDay <= day && s.veg);
   for (let y = 3; y < LN_WALK_S; y++) for (let x = 0; x < GW; x++){
@@ -777,29 +797,35 @@ function caTick(){
           // a plot is sown, not self-seeded: the first drill goes in slowly, then the
           // other five follow it fast and under the same crop, so a row comes up as a row
           const crop = plotCrop(x, y);
-          if (R() < (crop ? 0.30 : 0.055) * (0.25 + m) * boost){
+          if (R() < (crop ? 0.30 : 0.055) * (0.25 + m) * boost * vig){
             bSp[i] = crop || (SPECIES.indexOf(pick(availV)) + 1);
             bSt[i] = 1; bAge[i] = 0;
           }
         } else {
           const [nm, nsp] = neighborsMature(x, y);
-          if (R() < (0.004 + 0.028 * nm) * (0.25 + m) * boost){
+          if (R() < (0.004 + 0.028 * nm) * (0.25 + m) * boost * vig){
             bSp[i] = (nm && R() < 0.7) ? nsp : (SPECIES.indexOf(pick(availF)) + 1);
             bSt[i] = 1; bAge[i] = 0;
           }
         }
-      } else if (bSt[i] < 3){
-        if (R() < 0.10 * (0.3 + m) * boost) bSt[i]++;
+      } else if (bSt[i] < (cap === 3 || hash(x, y + 41) > 0.86 ? 3 : cap)){
+        if (R() < 0.10 * (0.3 + m) * boost * vig) bSt[i]++;
       } else {
+        // the bed AT its ceiling is the bed that ages — so a low winter ceiling turns
+        // the beds over rather than freezing them half-grown. A seventh of the cells are
+        // HARDY and keep the full ceiling anyway (the hash is per-cell, so it is the same
+        // seventh every winter): measured, the cap alone took blooming to exactly 0 for
+        // 11 days of the 26, and a garden with no colour in it at all reads as dead
+        // rather than as wintering.
         bAge[i] += 0.35;
         const [nm] = neighborsMature(x, y);
         const crowd = nm > 5 ? 0.03 : 0;
-        if (R() < 0.0025 + crowd + bAge[i] * 0.0004){ bSp[i] = 0; bSt[i] = 0; bAge[i] = 0; }
+        if (R() < (0.0025 + crowd + bAge[i] * 0.0004) * die){ bSp[i] = 0; bSt[i] = 0; bAge[i] = 0; }
       }
     } else if (t === GRASS){
-      wear[i] = Math.max(0, wear[i] - 0.0035 * boost);
-      if (!daisy[i] && wear[i] < 0.08 && R() < 0.00012 * (0.2 + m)) daisy[i] = 1 + (R() * 3 | 0);
-      if (daisy[i] && (wear[i] > 0.3 || R() < 0.004)) daisy[i] = 0;
+      wear[i] = Math.max(0, wear[i] - 0.0035 * boost * vig);
+      if (!daisy[i] && wear[i] < 0.08 && R() < 0.00012 * (0.2 + m) * vig) daisy[i] = 1 + (R() * 3 | 0);
+      if (daisy[i] && (wear[i] > 0.3 || R() < 0.004 * die)) daisy[i] = 0;
     }
   }
   groundDirty = true;
@@ -2199,10 +2225,16 @@ function drawSouthBand(){
     drawFaceRow(ctx, y); drawRoofRow(ctx, y); drawCrests(ctx, y);
   }
   if (richness() > 0.2){                               // ivy climbing the gatehouse
-    ctx.fillStyle = 'rgba(74,105,54,.7)';
+    // the same warmth again, not a private one. Which vines EXIST stays on richness():
+    // an established vine thins back over winter, it does not blink out of the wall and
+    // return — so the season moves the reach and the colour, and nothing pops.
+    const iv = lerp(0.60, 1.40, warmth);
+    ctx.fillStyle = 'rgba(' + (lerp(90,58,warmth)|0) + ',' + (lerp(90,120,warmth)|0) + ',' + (lerp(55,53,warmth)|0) + ',.7)';
     for (const vx of [10, 24, 51, 92]){
       if (hash(vx, 3) > richness() * 1.4) continue;
-      for (let z = 0; z < 4.6 * Math.min(1, richness() * 1.6); z += 0.42){
+      // ...and it stops at the eaves. The gatehouse eave measures 5.6, and an unclamped
+      // summer reach is 6.44 — ivy climbing off the roofline into the sky.
+      for (let z = 0; z < Math.min(5.2, 4.6 * Math.min(1, richness() * 1.6) * iv); z += 0.42){
         const p = project(vx + Math.sin(z * 2.2) * 0.5, 65, z);
         ctx.beginPath(); ctx.arc(p[0], p[1], cellW * (0.15 + hash(vx, z * 10 | 0) * 0.14), 0, 7); ctx.fill();
       }
@@ -2213,7 +2245,9 @@ function groundCol(x, y, t, hv, m){
   if (t === PATH) return mix('#c3b18c', '#cfbd98', hv);
   if (t === SLOT) return mix('#9d8f73', '#ab9d80', hv);
   if (t === GRASS){
-    const health = clamp(0.35 + m * 0.75 - hv * 0.18, 0, 1);
+    // the lawn reads the SAME warmth the beds do rather than deriving its own idea of
+    // the season — so it cannot green up while the beds are turning over
+    const health = clamp(0.35 + m * 0.75 * lerp(0.62, 1.38, warmth) - hv * 0.18, 0, 1);
     const g1 = x >= FAR_X0 ? mix('#93a86a', '#6f9a4a', health * (0.75 + 0.25 * hash(x >> 1, y >> 1)))
              : x >= XS_E1 ? mix('#a8ad74', '#82a556', health * (0.7 + 0.3 * hash(x >> 1, y >> 1)))
              : mix('#9aa96b', '#74a04c', health);

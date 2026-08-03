@@ -759,3 +759,61 @@ hint is what makes it visible.
 **Cue:** `INVITE_WIDE` is one fixed string, deliberately not a `pick()`, so the page consumes no
 `R()` for it and the census stays byte-identical. Anything later that wants to vary the line
 must accept that it reshuffles the whole seeded world.
+
+## Iteration 14 — the beds read the year: growth, ceiling and dieback all scale with warmth (2026-08-03) [Courtyard & garden × New CA rule]
+
+**Brief:** b13 — let the planting CA read b11's `season()`, so the beds fill and empty
+over the cycle instead of saturating at maturity-1 and holding there forever.
+
+**Did:** Three seasoned terms next to `maturity()`/`richness()`, all reading `warmth`
+and nothing else, each written so warmth 0.5 *is* the constant it replaced:
+`growF()` 0.30..1.70, `dieF()` 1.80..0.20, `bloomCap()` 3/2/1 at warmth 0.42/0.20.
+In `caTick` they multiply the two seed rolls, the stage-advance roll, the wear-recovery
+and daisy terms, and the dieback probability. The lawn's `health` in `groundCol` and
+the gatehouse ivy's reach and colour now hang off the same `warmth` instead of deriving
+their own from `richness()`.
+
+The load-bearing bit is that `bloomCap` is a *ceiling*, not a kill term. `caTick` already
+ages the bed that sits **at** its ceiling, so lowering the ceiling turns the beds over by
+itself — no seasonal dieback branch bolted on beside the existing one. Changing `bSt[i] < 3`
+to `bSt[i] < cap` is the entire winter.
+
+**Gates:** census **FAIL** (`planted` 5729→4793, −16.3%) · visual PASS · motion PASS
+(zero jumps/nan/oob/flicker; only spawn churn) · filmstrip PASS · perf skipped
+
+The census failure is attributable and I did not touch the gate to hide it.
+`probes/beds-year.mjs` measures the three census cells directly: the warp-90 and warp-330
+cells are **unchanged** (1832, 2160), and the entire delta is the warp-900 cell
+(1737→749), which at SEASON_LEN 26 lands at season 0.879 — **warmth 0.14, deep winter**.
+The gate is reading a bare garden in January as a collapse. See the Cue.
+
+**Surprise:** two, both from measuring instead of assuming.
+
+The CA-variety law made me expect the winter clear-out to cost species diversity, and I
+had a seasonal inheritance term written to counter it. It is not needed and I did not ship
+it: over three full years the flower mix holds at Shannon evenness 0.999 / 0.998 / 0.998
+with all 7 species present at every summer peak. The reason is mechanical — re-seeding
+inherits a neighbour's species only when `neighborsMature()` finds one, and in winter
+there are none, so every spring cell falls through to a fresh uniform draw. **Winter is
+itself the reseeder.** The variety law's "something has to reset it" was already satisfied
+by a rule I was about to duplicate.
+
+The other: the cap alone drove `blooming` to *exactly* 0 for 11 of the 26 days. Numerically
+fine, artistically dead, and against the brief. Fixed with per-cell hardiness —
+`hash(x, y+41) > 0.86` keeps the full ceiling for about a seventh of the cells, so deep
+winter reads as a few things still out in turned earth (17–35 blooms) rather than nothing.
+Winter blooming went 0 → ~22; summer is untouched at ~690. The year now runs 17..698.
+
+**Law:** A seasonal *ceiling* on a CA stage is a better lever than a seasonal kill term,
+when the rule already ages whatever sits at its ceiling — one changed comparison gets the
+emptying, the turning-over and the refill, and it cannot desync from the growth term the
+way a parallel kill branch would. But check what the ceiling does to the thing the census
+counts: a ceiling that is *below* the counted stage takes that count to exactly zero, not
+merely low, and zero of anything visible reads as broken rather than as seasonal. Give it
+a per-cell `hash()` exemption so the floor is a scatter, not an absence.
+
+**Cue:** the census age ladder now conflates two axes. Its ages were chosen as
+"young / filling in / fully grown" (warp 90/330/900), but with a 26-day year the warp-900
+cell is also *midwinter*, so any change to seasonal planting reads as a collapse in
+`planted` and any real winter regression is now invisible against it. Either pick ages
+that land at comparable warmth, or have the census hold `season` fixed across the age axis.

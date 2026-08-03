@@ -2,7 +2,7 @@
   "updated": "2026-08-03",
   "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
   "phase": "expanding",
-  "lastIteration": 13,
+  "lastIteration": 14,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -142,7 +142,8 @@
         "pre21"
       ],
       "new-ca": [
-        "pre"
+        "pre",
+        14
       ],
       "interaction": [
         13
@@ -250,7 +251,8 @@
       "desire paths from foot wear",
       "benches",
       "a sweeper",
-      "ivy on the south wall"
+      "ivy on the south wall",
+      "the planting CA reads the YEAR — growF() 0.30..1.70, dieF() 1.80..0.20 and bloomCap() 3/2/1 (thresholds warmth 0.42/0.20), all off b11's warmth and each equal to the constant it replaced at warmth 0.5; they scale both seed rolls, the stage advance, wear recovery, the daisy terms and the dieback probability. bloomCap is a CEILING not a kill term — caTick already ages whatever sits at its ceiling, so lowering it empties the beds by itself. Per-cell hardiness hash(x,y+41)>0.86 keeps ~1/7 of cells at the full ceiling so deep winter is a scatter of blooms (17-35) in turned earth, never zero. blooming traces 17..698 over the 26-day year; the species mix holds at Shannon evenness ~0.998 across three years because winter forces fresh draws (neighborsMature finds nothing to inherit). Lawn health in groundCol and the gatehouse ivy reach+colour read the same warmth instead of deriving from richness(); ivy clamped to 5.2 against a measured 5.6 eave. probes/beds-year.mjs"
     ],
     "lane": [
       "kiosk",
@@ -429,6 +431,24 @@
       "id": "c28",
       "note": "context-budget.mjs read OVER at 51.5 KB against the 46 KB cap when iteration 13 started; LEDGER.md at 18.6 KB is the bulk, laws 28/60.",
       "raisedBy": 10,
+      "seenBy": 0
+    },
+    {
+      "id": "c29",
+      "note": "The census age ladder conflates growth with season: its warp-900 'fully grown' cell lands at season 0.879 / warmth 0.14, i.e. midwinter. Iteration 14's whole -16.3% planted collapse is that one cell (the warp-90 and warp-330 cells were bit-unchanged), and a real winter planting regression is now invisible behind it. Pick ages at comparable warmth, or hold season fixed across the age axis.",
+      "raisedBy": 13,
+      "seenBy": 0
+    },
+    {
+      "id": "c30",
+      "note": "The allotments now inherit bloomCap too (one shared caTick path, no special case), so crops do not ripen in deep winter, harvestPlot stops firing and ripePlots()->0 damps the allotment arrival source for ~a fifth of the year. Intended and seasonally true, but unmeasured over a full year — nobody has checked whether the gardeners come back at the right rate in spring.",
+      "raisedBy": 13,
+      "seenBy": 0
+    },
+    {
+      "id": "c31",
+      "note": "shoot.mjs --tag is a no-op: it forwards --prefix to a screenshot-verify that ignores it, so two tagged runs silently overwrite each other's courtyard.png. Iteration 14 lost a summer shot to a winter one this way before noticing. Either implement the prefix or drop the flag.",
+      "raisedBy": 13,
       "seenBy": 0
     }
   ],
