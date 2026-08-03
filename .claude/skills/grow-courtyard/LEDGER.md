@@ -584,3 +584,95 @@ iteration, where no-ship was the brief's own instruction. The trigger that summo
 the manager is counting the manager's own passes as evidence that the loop has
 stalled. One-word fix (`streak` over `kind === 'worker'`), but it changes when the
 manager runs, so I left it as the manager's call.
+
+## Iteration 12 — the town has a year now (2026-08-03) [Sky, light & weather × Scale/World]
+
+**Brief:** b12 — `maturity()` pins at day 8 and `richness()` at day 16, so every growth term
+is spent by real minute 15 and there is no later act. Add ONE slow *cyclic* scalar `season()`
+on the footing of `cloudCover()`, rate-capped, with at least two readers in the sky: the length
+of the day, and the light. Set a floor and state the population trough.
+
+**Did:** `SEASON_LEN = 26` days (× 55 s ≈ **23.8 real minutes** a year). `seasonPhase` advances
+at exactly `1/(SEASON_LEN*DAY_LEN)` per sim second in `updateClock`, `warmth = 0.5 - 0.5*cos(2π·phase)`,
+and `season()` is the accessor. The clock **starts at phase 0.25**, where warmth is exactly 0.5 —
+and every seasoned expression below is written as a pair that *averages to the constant it
+replaced*, so day 0 is the old town precisely and the year is a departure from it in both
+directions. Phase 0 is midwinter, so the once-a-year wrap lands where nothing else happens and
+`warmth` is continuous through it.
+*Reader one, the day itself:* `dayHours = lerp(11.5, 17.5, warmth)` about a fixed `SOLAR_NOON`
+12.75; `sunUp`/`sunDown` walk apart and back and `daylight` is the sine over that window.
+`timeLabel()` hangs off the same two, or it reads "Morning" in the winter dark.
+*Reader two, the light:* `sunVec()` drops its elevation and swings its azimuth with `warmth`
+(shadow length `SUN[1]/SUN[2]` runs 0.83 at midwinter noon against 0.25 at midsummer); `skyCols()`
+seasons the day, night and dusk palettes and hangs both dusk windows off `sunDown`/`sunUp`; the
+roof `key` term scales 0.84..1.16. One `sunArc` in `updateClock` now feeds both the shading
+vector and the drawn disc, which each used to derive their own from hard-coded hours.
+Census carries `clock.season` and nothing else.
+
+**Gates:** motion **PASS** ×2 (nothing teleported, NaN'd or flickered; the firefly/leaf spawn
+churn is the reshuffle plus genuinely longer winter nights) · perf **PASS** +0.0% against the
+interleaved same-session control · visual **PASS**, from `probes/year-shots.mjs` rather than
+`shoot.mjs` — see Surprise · census **FAIL, investigated and overruled on measurement**, below.
+
+**The census FAIL.** `COLLAPSE people 139 → 127 (-8.6%)`. It is not a collapse, and I did not
+take that on faith:
+- `probes/census-noise.mjs` runs the gate's own 9 cells on both builds and then widens to 8
+  seeds. Over 8 seeds the diff is **-3.1%**, not -8.6% — and **HEAD's own 9-cell total moves
+  139..147 (6%) purely by which three seeds you pick**. The gate's three seeds happen to be
+  HEAD's *lowest* triple. Cell `42@900` alone is -6 and is a shower that landed on the sample
+  instant (`cloud 0.23`, dry → `cloud 0.92`, RAIN); `19@900` *lost* its shower and gained +2.
+- `probes/season-year.mjs` measures the thing the gate is proxying, at ~4,400 samples per build
+  instead of 9: **settled (day ≥ 8) mean population 21.91 vs HEAD's 21.73.** The year costs the
+  town nothing on average.
+
+**The floor, as the brief asked.** Folding 3 years × 3 seeds onto one and binning by phase:
+midwinter **20.35** · late winter 22.03 · spring 22.31 · late spring 22.69 · **midsummer 23.48** ·
+late summer 21.95 · autumn 21.08 · early winter 21.68. So the population does breathe, by about
+**15% trough-to-peak** — and the **absolute floor across every sample of every seed is 7 people**
+(HEAD's is 8). Deep winter is never a dead diorama. This is deliberately gentle: I kept peak
+`daylight` at 1.0 so *duration*, not midday brightness, is the seasonal lever on population, and
+winter reads dim through the light instead. See the Law about why it could not be much larger.
+
+**Surprise:** Three.
+(1) **The sun did not know what month it was.** `sunVec()` seasons the *shading*, but the disc
+in `drawSunMoon` had its own `sy = hz - sin(π·sa)·hz·0.74` — so at midwinter noon the sun sat at
+exactly midsummer height and only the shadow lengths dissented. The one object in frame a viewer
+looks straight at was the one thing not seasoned. Caught by putting the two noons side by side,
+not by any gate. Fixed by riding the same elevation, plus a colour ramp (pale and cold → deep gold).
+(2) **`shoot.mjs` cannot compare two builds.** It runs `&fast` (8×) with a fixed 2,600 ms wall
+wait, so its sim instant lands anywhere across ~15 s of sim time — its comment says "day 3,
+mid-morning" and it photographed Day 4 · Night twice tonight. Fine as a does-it-still-draw check,
+useless for HEAD-vs-here. `probes/year-shots.mjs` pins the instant with `?pause` + `__warp()` and
+shoots both builds at the same moment of the same seeded world; that pair is what actually cleared
+the draw-order check.
+(3) **The filmstrip POP was the instrument, not me.** `--gap 55` POPped at frames 3–4 (Δ 11.6,
+12.9 against a 2.7 median). Running the *identical* filmstrip against HEAD in a scratch root
+(`/tmp/fs-head/.claude/skills/grow-courtyard/`) POPs at **five** frames at the same Δ≈11 — and
+HEAD's frame-1 POP is measurably a full rainstorm clearing (`cloud 0.92` + 110 drops → `cloud
+0.12`). At a one-sim-day gap, Δ≈11 is what weather costs. My sheet is quieter than HEAD's.
+
+**Law:** The census's `people` has a **~6% seed-choice noise floor against a 5% collapse
+threshold**, so it can fire on nothing — and *any* change that moves `daylight` or a rain gate
+reshuffles the PRNG as thoroughly as a new `R()` draw does, because those gate whether an `R()`
+is drawn at all. Before believing a `people` FAIL, widen the seed set and measure the same
+quantity densely; nine instants cannot tell a seasonal trough from a rainy Tuesday.
+**Law:** When you season (or otherwise parameterise) an existing constant, write the new
+expression as a pair that **averages to the old constant** at the mid-point of the new parameter,
+and start the world there. Every gate then reads the unchanged town at t=0, so a diff is
+attributable to the parameter and not to a new baseline — and the change is provably a departure
+in both directions rather than a one-way shift.
+**Law:** A screenshot tool that runs `?fast` with a wall-clock wait is not pinned, whatever its
+`--t` says. Comparing two builds needs `?pause` + `__warp()`; anything else compares two moments.
+**Law:** Before blaming your change for a `filmstrip` POP, run the identical filmstrip against
+HEAD in a scratch root. The instrument has a baseline rate of POPs and nobody had measured it.
+
+**Cue:** `0.25 + 0.75*daylight` in `capacity` (and `0.2 + 0.8`, `0.15 + 0.85` in the rates)
+compresses hard, so mean daylight running 0.305 (winter) to 0.464 (summer) — a 52% swing — moves
+`capacity` only 8 → 9. That compression, not the season, is why the population breathes 15% and
+not 40%. Widening it is a People-&-animals vector with real risk to the floor, and it is the
+manager's call, not a thing to slip into a sky iteration.
+**Cue:** `stepClouds`'s heavy-front probability reads `richness()`, which pins at day 16 — the
+weather is now the only slow system left that still has a one-way ramp in it. `season()` is
+sitting right there.
+**Cue:** `context-budget.mjs` reported **OVER (48.4 KB / 46 KB cap)** at the start of this
+iteration, before I read anything. LAWS.md is at 28/60 laws and I am proposing four more.

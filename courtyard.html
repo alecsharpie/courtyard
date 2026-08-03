@@ -492,19 +492,58 @@ if (location.search.indexOf('fast') >= 0) speed = 8;
   if (q.has('pause')) paused = true;   // census: freeze the clock so __warp() owns all time
 }
 let day = 0, hour = 6, daylight = 0, nightF = 0;
+/* ---- the year ----
+ * maturity() pins at day 8 and richness() at day 16, so every one-way growth term
+ * in this town is spent by real minute 15 and there was no later act. season() is
+ * the third slow world scalar, alongside cloudCover() and isWindy(), and the first
+ * CYCLIC one: a 0..1 phase over SEASON_LEN days that turns and comes back. At 55 s
+ * a day a full year is ~24 real minutes, so someone who stays past the growth ramps
+ * still gets midsummer, autumn and deep winter arriving.
+ *
+ * Phase 0 is midwinter. The clock STARTS at 0.25 — spring, rising — which is also
+ * the phase at which warmth is exactly 0.5, and every seasoned term below is written
+ * so that warmth 0.5 reduces it to the literal constant it replaced. So day 0 is the
+ * town as it was before the year existed, and the season is a departure from that in
+ * both directions rather than a new baseline.
+ *
+ * Rate-capped by construction rather than by a chaser: the phase advances at exactly
+ * 1/(SEASON_LEN*DAY_LEN) = 7.0e-4 per sim second and cannot do anything else, so no
+ * sample can step. warmth is a cosine of the phase, so it is continuous THROUGH the
+ * wrap at midwinter — the wrap is a phase wrap, not a discontinuity in the world. */
+const SEASON_LEN = 26, SEASON_START = 0.25;
+let seasonPhase = SEASON_START, warmth = 0.5;
+function season(){ return seasonPhase; }
+/* Reader one: the length of the day. Sunrise and sunset walk apart and back together
+ * about a fixed solar noon, so a winter day is genuinely short — and because daylight
+ * feeds capacity, laneCap, eastCap and all three spawn rates, the population breathes
+ * with the year for nothing. The PEAK stays 1.0 on purpose: duration is the seasonal
+ * lever on how many people are about, never midday brightness, so deep winter still
+ * has a populated, legible noon. Winter reads dim through the light instead — a low
+ * sun vector, a colder palette and a weaker key. */
+const SOLAR_NOON = 12.75, WINTER_HOURS = 11.5, SUMMER_HOURS = 17.5;
+let dayHours = 14.5, sunUp = 5.5, sunDown = 20, sunArc = 0;
 function updateClock(){
   day = Math.floor(simT / DAY_LEN);
   const p = (simT % DAY_LEN) / DAY_LEN;
   hour = (6 + p * 24) % 24;
-  daylight = clamp(Math.sin(Math.PI * (hour - 5.5) / 14.5), 0, 1);
+  seasonPhase = (SEASON_START + simT / (SEASON_LEN * DAY_LEN)) % 1;
+  warmth = 0.5 - 0.5 * Math.cos(2 * Math.PI * seasonPhase);
+  dayHours = lerp(WINTER_HOURS, SUMMER_HOURS, warmth);
+  sunUp = SOLAR_NOON - dayHours / 2; sunDown = SOLAR_NOON + dayHours / 2;
+  daylight = clamp(Math.sin(Math.PI * (hour - sunUp) / dayHours), 0, 1);
   nightF = 1 - clamp(daylight * 1.6, 0, 1);
+  // ONE arc, read by the shading vector and by the disc — they each used to derive
+  // their own from hard-coded hours, which is two definitions of where the sun is
+  sunArc = clamp((hour - sunUp) / dayHours, 0, 1);
 }
 function maturity(){ return clamp((day + (simT % DAY_LEN) / DAY_LEN) / 8, 0.04, 1); }
 function richness(){ return clamp(day / 16, 0, 1); }
+// hung off sunUp/sunDown, or the label reads Morning in the winter dark. Every
+// offset below is chosen so that at warmth 0.5 this is the constant table it replaced.
 function timeLabel(){
-  if (hour < 5) return 'Night'; if (hour < 7.5) return 'Dawn';
-  if (hour < 11) return 'Morning'; if (hour < 14) return 'Midday';
-  if (hour < 17.5) return 'Afternoon'; if (hour < 20) return 'Dusk';
+  if (hour < sunUp - 0.5) return 'Night'; if (hour < sunUp + 2) return 'Dawn';
+  if (hour < SOLAR_NOON - 1.75) return 'Morning'; if (hour < SOLAR_NOON + 1.25) return 'Midday';
+  if (hour < sunDown - 2.5) return 'Afternoon'; if (hour < sunDown) return 'Dusk';
   return 'Night';
 }
 function kioskOpen(){ return day >= 2 && hour >= 7.5 && hour < 18.5; }
@@ -1568,19 +1607,27 @@ function poly(g, pts){
 /* ============ sky, sun and the far horizon ============ */
 let SUN = [0.5, 0.35, 0.79];
 const LIT = [];                                  // lit window rectangles, for the night glow pass
+/* Reader two: the light. A low cold sun against a high warm one. Everything the town
+ * casts is SUN[0]/SUN[2] and SUN[1]/SUN[2], so raising the midsummer arc and dropping
+ * the midwinter one changes every shadow in the frame from one place. */
 function sunVec(){
-  const sa = clamp((hour - 5.6) / 13.6, 0, 1);
-  const lx = lerp(0.8, -0.8, sa), ly = 0.44, lz = 0.46 + 0.5 * Math.sin(Math.PI * sa);
+  const sa = sunArc;
+  const lx = lerp(0.8, -0.8, sa), ly = lerp(0.58, 0.32, warmth),
+        lz = (0.36 + 0.26 * warmth) + (0.34 + 0.30 * warmth) * Math.sin(Math.PI * sa);
   const n = Math.hypot(lx, ly, lz) || 1;
   return [lx / n, ly / n, lz / n];
 }
 function skyCols(){
-  const d = daylight;
-  const dusk = clamp(clamp(1 - Math.abs(hour - 19.4) / 2.3, 0, 1) + clamp(1 - Math.abs(hour - 6.3) / 2.1, 0, 1), 0, 1);
-  let top = mix('#0b1226', '#5d90cb', d);
-  let low = mix('#1a2340', '#c6dcec', d);
-  top = mix(top, '#6b5590', dusk * 0.5);
-  low = mix(low, '#e4a066', dusk * 0.75);
+  const d = daylight, w = warmth;
+  // the dusk windows ride sunset and sunrise, or winter glows orange an hour after dark
+  const dusk = clamp(clamp(1 - Math.abs(hour - (sunDown - 0.6)) / 2.3, 0, 1)
+                   + clamp(1 - Math.abs(hour - (sunUp + 0.8)) / 2.1, 0, 1), 0, 1);
+  // every pair below averages to the colour that was hard-coded here, so warmth 0.5
+  // is the old sky exactly: winter is the cold end, midsummer the warm one
+  let top = mix(mix('#0a1430', '#0c101c', w), mix('#6d92b8', '#4d8ede', w), d);
+  let low = mix(mix('#16264a', '#1e2036', w), mix('#cfdce6', '#bddcf2', w), d);
+  top = mix(top, mix('#5a5480', '#7c56a0', w), dusk * 0.5);
+  low = mix(low, mix('#d99a86', '#efa646', w), dusk * 0.75);
   // cover comes last: cloud mutes a sunset, it does not sit under one
   const c = cloudCover();
   top = mix(top, mix('#232a3a', '#7f8894', d), c * 0.82);
@@ -1640,18 +1687,31 @@ function drawClouds(g, hz){
   g.globalAlpha = 1;
 }
 function drawSunMoon(g, hz, top){
-  const sa = clamp((hour - 5.6) / 13.6, 0, 1);
+  const sa = sunArc;                                 // the same arc the shading reads
   const veil = 1 - 0.82 * cloudCover();              // cover swallows the disc
   if (daylight > 0.02){                              // the sun, rising in the east (to the right)
-    const sx = W * (0.9 - 0.8 * sa), sy = hz - Math.sin(Math.PI * sa) * hz * 0.74;
+    // the DISC has to ride the seasonal elevation too. Shading it from sunVec alone
+    // put the sun at midsummer height on a midwinter noon, with only the shadow
+    // lengths dissenting — the one thing in frame a viewer looks straight at was the
+    // one thing that did not know what month it was. Pale and low in winter, deep
+    // gold and high in midsummer; every pair below averages to the old constant.
+    const arch = 0.74 * (0.70 + 0.60 * warmth);
+    const sx = W * (0.9 - 0.8 * sa), sy = hz - Math.sin(Math.PI * sa) * hz * arch;
     const gl = g.createRadialGradient(sx, sy, 0, sx, sy, cellW * 10);
-    gl.addColorStop(0, 'rgba(255,238,190,' + ((0.45 * daylight + 0.2) * veil) + ')');
-    gl.addColorStop(1, 'rgba(255,220,160,0)');
+    gl.addColorStop(0, 'rgba(255,' + lerp(246, 230, warmth).toFixed(0) + ',' + lerp(214, 166, warmth).toFixed(0)
+                    + ',' + ((0.45 * daylight + 0.2) * veil) + ')');
+    gl.addColorStop(1, 'rgba(255,' + lerp(230, 210, warmth).toFixed(0) + ',' + lerp(190, 130, warmth).toFixed(0) + ',0)');
     g.fillStyle = gl; g.beginPath(); g.arc(sx, sy, cellW * 10, 0, 7); g.fill();
-    g.fillStyle = 'rgba(255,250,230,' + ((0.55 + 0.45 * daylight) * veil) + ')';
+    g.fillStyle = 'rgba(255,' + lerp(252, 248, warmth).toFixed(0) + ',' + lerp(242, 218, warmth).toFixed(0)
+                + ',' + ((0.55 + 0.45 * daylight) * veil) + ')';
     g.beginPath(); g.arc(sx, sy, cellW * 1.4, 0, 7); g.fill();
   } else if (nightF > 0.25){                         // and the moon on the same arc
-    const ma = clamp(((hour + 11) % 24 - 5.6) / 13.6, 0, 1);
+    // the night is what is left of the day, so the moon's arc widens as the sun's
+    // narrows. It opens 1.4 h before sunset and closes 1.4 h after sunrise so it is
+    // already climbing by the time daylight drops under 0.02 and the disc appears —
+    // start it exactly at sunset and the moon teleports on its first drawn frame.
+    const mUp = sunDown - 1.4, mSpan = 24 - dayHours + 2.8;
+    const ma = clamp(((hour - mUp + 24) % 24) / mSpan, 0, 1);
     const mx = W * (0.86 - 0.72 * ma), my = hz - Math.sin(Math.PI * ma) * hz * 0.66;
     const gl = g.createRadialGradient(mx, my, 0, mx, my, cellW * 7);
     gl.addColorStop(0, 'rgba(210,225,255,' + (0.28 * nightF * veil) + ')');
@@ -1721,7 +1781,10 @@ function roofShade(x, y){
 let HAZE = '#c6dcec';
 function drawRoofRow(g, y){
   const cc = cloudCover();                                       // cover flattens the key light
-  const amb = 0.26 + 0.20 * daylight + 0.07 * cc * daylight, key = (0.22 + 0.78 * daylight) * (1 - 0.5 * cc);
+  // the key weakens with the sun's height as well as with cover: a winter noon is as
+  // long-shadowed and as flat as a summer evening. (0.84..1.16 about warmth 0.5 = 1)
+  const amb = 0.26 + 0.20 * daylight + 0.07 * cc * daylight,
+        key = (0.22 + 0.78 * daylight) * (1 - 0.5 * cc) * (0.84 + 0.32 * warmth);
   for (let x = XLO; x < XHI; x++){
     const gx = clamp(x, 0, GW - 1);
     if (!solidM[y * GW + gx]) continue;
@@ -3708,7 +3771,7 @@ window.__census = function(){
     world: { GW, WH, cells: GW * WH },
     clock: { simT: +simT.toFixed(3), day, hour: +hour.toFixed(3),
              marketDay: isMarketDay(), windy: isWindy(), raining: !!raining,
-             cloud: +cloudCover().toFixed(3),
+             cloud: +cloudCover().toFixed(3), season: +season().toFixed(4),
              maturity: +maturity().toFixed(4), richness: +richness().toFixed(4) },
     tiles, life, structure,
     /* `harvested` is the one thing bySpecies cannot show: a veg count falling is

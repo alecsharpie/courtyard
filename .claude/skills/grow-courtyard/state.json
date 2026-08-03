@@ -303,7 +303,8 @@
       "chimney smoke",
       "a balloon",
       "cloudCover() — one slow rate-capped scalar; fronts build over ~half a day and break after rain, rain is gated on it so it never rains from a clear sky, sun and moon veiled, stars put out, drifting cloud banks",
-      "weatherComing() — one ramped rain-is-coming predicate off cloudCover(), damped by daylight so overcast nights read 0; three readers at their own trigger points"
+      "weatherComing() — one ramped rain-is-coming predicate off cloudCover(), damped by daylight so overcast nights read 0; three readers at their own trigger points",
+      "season() — the town's YEAR: one slow CYCLIC scalar over SEASON_LEN 26 days (~24 real min), phase 0 = midwinter, clock starts at 0.25 where warmth = 0.5 and every seasoned term equals the constant it replaced. Rate-capped by construction (7.0e-4/s), continuous through the wrap. Two sky readers — day length (dayHours 11.5..17.5 about SOLAR_NOON 12.75; sunUp/sunDown/sunArc/timeLabel) and light (sunVec elevation + azimuth, the drawn disc's arc height and colour, skyCols day/night/dusk palettes with both dusk windows hung off sunset/sunrise, the roof key term 0.84..1.16). Population breathes ~15% trough-to-peak, absolute floor 7 people. census clock.season"
     ],
     "life": [
       "walkers with itineraries, courtyard and street",
@@ -392,6 +393,24 @@
     {
       "id": "c23",
       "note": "stall.mjs's streak() runs over ALL rows, so manager passes (always verdict=no-ship, always srcChanged=false) count toward noShipStreak and srcFlat. With MANAGER_GAP=2 a manager row sits next to worker rows regularly, so ONE no-ship worker iteration is enough to fire both signals and summon a manager. Fired exactly that way at #11. Fix is to streak over kind==='worker' rows only — but it changes when the manager is summoned, so it is the manager's call.",
+      "raisedBy": 10,
+      "seenBy": 0
+    },
+    {
+      "id": "c24",
+      "note": "capacity/laneCap/eastCap compress daylight hard (0.25+0.75*d), so a 52% swing in mean daylight moves capacity only 8->9 — that compression, not the season, caps the population breathing at ~15%. Widening it risks the winter floor; People & animals vector, manager's call.",
+      "raisedBy": 10,
+      "seenBy": 0
+    },
+    {
+      "id": "c25",
+      "note": "stepClouds' heavy-front probability reads richness(), which pins at day 16 — weather is now the last slow system still on a one-way ramp. season() is available to it.",
+      "raisedBy": 10,
+      "seenBy": 0
+    },
+    {
+      "id": "c26",
+      "note": "shoot.mjs runs ?fast with a fixed 2600ms wall wait, so its sim instant jitters ~15s and its --t comment is wrong; it shot 'Day 4 Night' twice while aiming at day-3 mid-morning. Fine as a smoke test, cannot compare two builds. probes/year-shots.mjs pins with ?pause+__warp.",
       "raisedBy": 10,
       "seenBy": 0
     }
