@@ -410,3 +410,69 @@ the busiest-looking part of the lane is genuinely still for a second at a time.
 **Cue:** `marketRaise()` is the town's third staged-appearance ramp after the washing and
 the umbrellas, and all three hand-roll their own clamp chain. If a fourth arrives, that
 is the moment for a shared helper.
+
+## Iteration 9 — the boat is watched, and the bridge is stood on (2026-08-03) [River & far bank × Deepen]
+
+**Brief:** b8 — closes c5 and c11. `updateBoat()` runs a boat past a quay nobody looks
+up from, and no waypoint in the town ever stops anyone on the bridge the lane carries
+across the river.
+**Did:** Two halves.
+(1) `boatWatch()`, called from `updateBoat()` while a boat exists. Every agent whose
+`boat.y` draws level (±2.4 cells) *and* who can actually see the water — `byTheWater()`:
+the quay and its rail, the bridge deck, the towpath — rolls once (72%) for
+`a.watch = 1.0 + R()*0.8`. One glance per person per boat, gated on `a.sawBoat === boat.id`,
+because the boat sits level with a quay bench for several seconds. `a.watch` ticks down at
+the *top* of `stepAgent`, above every state branch, so a sitter on a bench runs it out the
+same as a walker; unlike `a.listen` it never returns early, so a watch cannot hold anybody
+anywhere. `drawPerson()` reads the live `boat` and offsets the head by
+`clamp((boat.x - a.x)/5, ±1) * 2.2` with a `min(1, watch*3)` ease-out, so the head genuinely
+*follows* rather than snapping to a stored angle. Standers also turn their body (`a.faceL`);
+walkers keep their line. Two or more heads turning fires one ticker line per boat.
+(2) A `parapet` stop: `PARAPET_Y = LN_WALK_N + 0.45`, x anywhere in the middle of the span.
+Added to both `spawnLaneAgent` (roll 0.58–0.62) and `spawnEastAgent` (roll 0.72–0.85). And
+`PARAPET_Z`: the upstream parapet stood at 1.5, measurably a head taller than anybody
+crossing, so a person on the bridge read as standing at a wall. At 1.0 the head clears the
+coping by 4.0 px against a 9.3 px person.
+**Gates:** census PASS (no collapse; the histogram diff is PRNG churn) · visual PASS
+(wide/courtyard/east/lane at seed 42 and seed 13 midday, plus 10× zooms on the parapet and
+on three heads turning as the boat goes under) · motion PASS (zero jumps/nan/oob/flicker) ·
+filmstrip: one POP at frame 7, **not mine** — see Surprise · probe
+`probes/parapet-and-boat.mjs` over 4 seeds × 12 days: parapet occupied **12.0%** of daylight,
+**2.1 glances per boat**, longest single watch **1.75 s** · perf skipped (one O(agents) pass
+per sim step while a boat exists; three arithmetic terms per person per frame)
+**Verdict:** shipped   ← my view; runlog.mjs decides from the diff
+**Surprise:** Three.
+(1) The first build put the parapet stop only in `spawnLaneAgent`, at 4% of the roll. The
+probe measured **one** person on the bridge in twelve days. A role census over the same span
+showed why: `spawnLaneAgent` fires ~3.3 times a day, so every late roll band is starved —
+cyclist 1, lanesitter 1, browser 2 over twelve days, against quay 27 and green 23 from the
+*east* spawner. That is the exact trap the east quarter was built to escape, re-entered from
+the other side: I had reasoned about band width and never about the budget the band is a
+share of. Moving the stop to `spawnEastAgent` took occupancy from 1.1% to 12%.
+(2) The filmstrip POP at frame 7 (Δ10.99 against a 0.48 median) is not a draw-order fault
+and not mine. HEAD has no POP in that window, which is exactly the misleading shape: my new
+`R()` draws moved the shower, so the rain now *ends* inside the twelve frames, and 110
+raindrops plus the wet-ground sheen go in one frame. A 3×3 region diff showed the jump is
+global (7–15 in every cell), and a clock trace showed `raining true → false` between 6 and 7.
+Reproducing the filmstrip's exact world mattered: it does `?t=0` then `__warp(175)`, and my
+first probe used `?t=175`, which is a different world and showed nothing at all.
+(3) Getting a figure to read as *looking over* the parapet rather than standing at it was a
+2-px problem I could not settle by eye across three zoom levels. Four lines of arithmetic in
+the page — coping screen-y against head-top screen-y — settled it in one run: 0.4 px of
+clearance at the old height, 4.0 px at 1.0. My first attempt, drawn forearms up onto the
+coping, was worse than nothing at 10× zoom: they merged with the head into a raised-arms
+blob. Dropped.
+**Law:** A roll band is a share of a budget, not a rate. Before widening or adding one, count
+what its *spawner* actually fires per day — `spawnLaneAgent` runs ~3.3×/day, so a 4% band is
+one person per twelve days. The town already has three arrival sources with separate budgets;
+put a destination on the one whose front door it is.
+**Law:** When a filmstrip POPs, reproduce its exact world before diagnosing — it seeds with
+`?t=0` then `__warp(t)`, which is not the same world as `?t=<t>`. Then localise before you
+theorise: a region-wise diff separates a global light or weather step from a draw-order fault
+in one run.
+**Cue:** Rain ends in a single frame — `raining = false` drops all ~110 raindrops and the wet
+sheen at once, while the cover behind it eases away over half a day. The arrival is ramped and
+the departure is a cut.
+**Cue:** `byTheWater()` names the three places a person can see the river. Nothing else uses
+it yet, but it is the predicate any future river event (a swan taking off, ice, a barge) would
+want, and it should stay the only definition of that.

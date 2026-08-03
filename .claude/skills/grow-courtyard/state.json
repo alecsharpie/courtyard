@@ -2,7 +2,7 @@
   "updated": "2026-08-03",
   "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
   "phase": "expanding",
-  "lastIteration": 8,
+  "lastIteration": 9,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -193,6 +193,9 @@
       ],
       "connect": [
         2
+      ],
+      "deepen": [
+        9
       ]
     },
     "sky": {
@@ -286,7 +289,9 @@
       "orchard",
       "jetty",
       "park gate",
-      "pigeons that flush off the church belfry when the bell rings, from a finite roost that refills"
+      "pigeons that flush off the church belfry when the bell rings, from a finite roost that refills",
+      "the boat is watched: boatWatch() gives anyone byTheWater() (quay and rail, bridge deck, towpath) one glance per boat as it draws level — a.watch, ~1.4s, ticked at the top of stepAgent so sitters get it too and nothing is ever held. drawPerson reads the live boat so the head tracks it, with an ease-out; standers turn, walkers keep their line. ~2.1 glances per boat",
+      "a parapet stop on the bridge — PARAPET_Y, mid-span, served from spawnEastAgent (roll 0.72-0.85) and thinly from spawnLaneAgent (0.58-0.62). Somebody is stood there ~12% of daylight. PARAPET_Z lowered 1.5 -> 1.0 so a leaner's head clears the coping by 4.0px against a 9.3px person"
     ],
     "sky": [
       "day/night cycle (55 s day)",
@@ -318,7 +323,8 @@
       "agents that notice each other: two who pass within 0.9–1.6 cells may stop, turn and talk a few seconds (greetPass, a.greet, chatCool), then walk on — ~2 conversations a minute",
       "butterflies drift to their flower at a capped 3 cells/s instead of lunging across the courtyard",
       "street sitters who read the sky: new sits refused above weatherComing() 0.42, existing sitters released over 0.55..0.88 off a stable per-agent a.wary (courtyard sitters excluded)",
-      "umbrellas that go up on the approach (weatherComing() 0.62..1.17, so ~30% never open one), put away below 0.42 and cleared when the rain stops"
+      "umbrellas that go up on the approach (weatherComing() 0.62..1.17, so ~30% never open one), put away below 0.42 and cleared when the rain stops",
+      "__entities() now carries role, act and watch on each person alongside position — the seam a behaviour probe reads instead of a bespoke hook per feature"
     ]
   },
   "openCues": [
@@ -331,12 +337,6 @@
     {
       "id": "c4",
       "note": "PROMOTED to brief b9 at manager pass #5. The church-answer branch in strikeClock is UNREACHABLE: (hInt===9||hInt===18) hangs off an else-if under (hInt%3===0), and both 9 and 18 are divisible by 3. Confirmed by reading the function at line 3143. The blocker is announce(), which overwrites tickerEl.textContent outright, so two lines in one frame show only the second — which is why b9 is scoped as fixing announce() first.",
-      "raisedBy": 0,
-      "seenBy": 1
-    },
-    {
-      "id": "c5",
-      "note": "PROMOTED to brief b8 at manager pass #5. updateBoat() runs a boat past a quay full of people who never acknowledge it — the written-but-unread shape bellUntil had. a.listen now exists as a mechanism that fits.",
       "raisedBy": 0,
       "seenBy": 1
     },
@@ -367,12 +367,6 @@
     {
       "id": "c10",
       "note": "East agents retrace their inbound route exactly, so arrivals sharing a gate walk single-file; would queue if eastCap rose much above 7",
-      "raisedBy": 4,
-      "seenBy": 1
-    },
-    {
-      "id": "c11",
-      "note": "CORRECTED at manager pass #5 — the original wording overstated it. People DO cross the bridge: the lane IS the bridge (RIVER_X0 114 to RIVER_X1 127, carried at LANE_N_Y 66.4), and the `green` itinerary routes walkers out to PARK_GATE at x=134, so every far-bank visitor walks over the water. What is actually missing is that nobody ever STOPS on it — no waypoint in the town puts a person at the parapet looking down. Folded into b8.",
       "raisedBy": 4,
       "seenBy": 1
     },
@@ -417,6 +411,18 @@
       "note": "marketRaise is the third hand-rolled staged-appearance clamp chain (washing, umbrellas, stalls); a fourth would justify a shared helper",
       "raisedBy": 7,
       "seenBy": 0
+    },
+    {
+      "id": "c17",
+      "note": "Rain ends in a single frame: raining=false drops all ~110 raindrops and the wet sheen at once, while cover eases away over half a day. The arrival is ramped, the departure is a cut — and it is what a filmstrip POP in a rain window usually is.",
+      "raisedBy": 8,
+      "seenBy": 0
+    },
+    {
+      "id": "c18",
+      "note": "byTheWater() names the three places a person can see the river. Only boatWatch reads it; any future river event (a swan taking off, ice, a barge) should read the same predicate rather than re-deriving it.",
+      "raisedBy": 8,
+      "seenBy": 0
     }
   ],
   "watch": [
@@ -431,6 +437,24 @@
     {
       "note": "cloudCover() (added #3) is a slow world scalar with exactly ONE reader — the rain roll. It hands the town ~27 s of warning that rain is coming and nothing else in the file reads it. Any future weather work should ask whether it can read cover instead of reading `raining`, which is a boolean that flips in a single frame.",
       "since": 5
+    }
+  ],
+  "closedCues": [
+    {
+      "id": "c5",
+      "note": "PROMOTED to brief b8 at manager pass #5. updateBoat() runs a boat past a quay full of people who never acknowledge it — the written-but-unread shape bellUntil had. a.listen now exists as a mechanism that fits.",
+      "raisedBy": 0,
+      "seenBy": 1,
+      "closedBy": 8,
+      "reason": "boatWatch() shipped at #9 — 2.1 glances per boat, measured"
+    },
+    {
+      "id": "c11",
+      "note": "CORRECTED at manager pass #5 — the original wording overstated it. People DO cross the bridge: the lane IS the bridge (RIVER_X0 114 to RIVER_X1 127, carried at LANE_N_Y 66.4), and the `green` itinerary routes walkers out to PARK_GATE at x=134, so every far-bank visitor walks over the water. What is actually missing is that nobody ever STOPS on it — no waypoint in the town puts a person at the parapet looking down. Folded into b8.",
+      "raisedBy": 4,
+      "seenBy": 1,
+      "closedBy": 8,
+      "reason": "the parapet stop shipped at #9 — somebody is on the bridge ~12% of daylight, measured"
     }
   ]
 }

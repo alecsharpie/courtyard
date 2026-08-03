@@ -102,6 +102,12 @@ const WALL_H = 5.6;
 /* the lane */
 const LN_WALK_N = 65, LN_ROAD0 = 68, LN_ROAD1 = 76, LN_WALK_S = 79; // row boundaries
 const LANE_N_Y = 66.4, LANE_S_Y = 77.3;   // walking lines
+/* the bridge's upstream parapet: its height, and the line people lean on it from.
+ * It stood at 1.5 — a full head taller than anybody crossing — so a person on the
+ * bridge read as standing at a wall. At 1.0 it is chest-high and a leaner's head
+ * comes up level with the coping, which is the whole difference between standing
+ * on a bridge and looking over one. */
+const PARAPET_Z = 1.0, PARAPET_Y = LN_WALK_N + 0.45;
 const KIOSK = {x:40.5, y:66.2};
 /* the cross street (a T off the lane, running north along the courtyard's east side) */
 const XS_W0 = 66, XS_R0 = 68, XS_R1 = 74, XS_E1 = 76;   // west footway, road, east footway
@@ -841,6 +847,10 @@ function routeToExit(a){
 }
 function stepAgent(a, dt){
   a.timer -= dt;
+  // a glance at the river never holds anybody — it is only where the head is
+  // pointing — so it ticks down here, above every state branch, and a sitter on
+  // the quay bench runs it out the same as a walker on the bridge.
+  if (a.watch > 0) a.watch -= dt;
   if (a.state === 'sit' || a.state === 'kneel' || a.state === 'lie' || a.state === 'stand'){
     if (a.state === 'kneel' && !a.planted && a.timer < 4){
       a.planted = true;
@@ -1138,12 +1148,22 @@ function spawnLaneAgent(){
       a.wp.push([PARK_GATE, LANE_N_Y], [PARK_GATE, 62], [FAR_WALK, 57], [a.stop.x, a.stop.y],
                 [FAR_WALK, 57], [PARK_GATE, 62], [PARK_GATE, LANE_N_Y], [toX, LANE_N_Y]);
     }
-  } else if (roll < 0.64 && day >= 1){
+  } else if (sun && roll < 0.62){
+    // halfway over and no further: the lane already CARRIES everyone across the
+    // river, but nothing in the town has ever stopped anybody on it. This is the
+    // only waypoint that puts a person at the parapet with the water under them.
+    a.kind = 'parapet'; a.parapet = true;
+    a.stop = {x:RIVER_X0 + 2.6 + R() * (RIVER_X1 - RIVER_X0 - 5.2), y:PARAPET_Y,
+      act:'stand', dur:7 + R() * 7,
+      say: R() < 0.2 ? pick(['Someone stops halfway over the bridge and leans on the parapet.',
+        'Halfway across, somebody stops to watch the water go under.']) : null};
+    a.wp.push([a.stop.x, LANE_N_Y], [a.stop.x, a.stop.y], [toX, LANE_N_Y]);
+  } else if (roll < 0.68 && day >= 1){
     a.kind = 'cyclist'; a.speed = 5.5 + R() * 1.5; a.cycle = true;
     const ry = LN_ROAD0 + 1.5 + R() * (LN_ROAD1 - LN_ROAD0 - 3);
     a.y = ry; a.wp.push([toX, ry + (R() - 0.5) * 2]);
     if (R() < 0.3) announce('A bicycle bell rings twice; walkers drift aside.');
-  } else if (roll < 0.70 && day >= 1 && R() < 0.5){
+  } else if (roll < 0.74 && day >= 1 && R() < 0.5){
     a.dog = { x:a.x, y:a.y, phase:R()*9, col:pick(['#4a3a2c','#c9b18a','#2c2c2c']) };
     a.wp.push([toX, yLine + (R() - 0.5)]);
   } else {
@@ -1200,11 +1220,21 @@ function spawnEastAgent(){
     else a.stop = {x:112.9, y:10 + R() * 32, act:'stand', dur:5 + R() * 6,
       say: R() < 0.12 ? 'Someone leans on the quay rail, watching the river go about its business.' : null};
     gate = EAST_GATE_Q; lead = [[112.9, 7]];
-  } else if (roll < 0.76){                   // down the steps onto the towpath
+  } else if (roll < 0.72){                   // down the steps onto the towpath
     a.kind = 'green';
     a.stop = {x:TOW_WALK, y:22 + R() * 33, act:'stand', dur:6 + R() * 6,
       say: R() < 0.1 ? 'Someone walks the towpath on the far bank, hands behind their back.' : null};
     gate = EAST_GATE_P; lead = [[PARK_GATE, 60.5], [TOW_WALK, 59]];
+  } else if (roll < 0.85){                   // out onto the bridge, to lean on the parapet
+    // the lane branch does this too, but the lane spawner is the wrong budget for
+    // it — measured over twelve days it put ONE person on the bridge. The far side
+    // has had its own arrivals since it stopped losing to laneCap, and the bridge
+    // is the far side's own front door, so it is served from here.
+    a.kind = 'parapet'; a.parapet = true;
+    a.stop = {x:RIVER_X0 + 2.6 + R() * (RIVER_X1 - RIVER_X0 - 5.2), y:PARAPET_Y,
+      act:'stand', dur:8 + R() * 8,
+      say: R() < 0.12 ? 'Somebody is stopped halfway over the bridge, watching the water go under.' : null};
+    gate = EAST_GATE_P; lead = [[PARK_GATE, LANE_N_Y], [a.stop.x, LANE_N_Y]];
   } else {                                   // the church green: a bench, or the bandstand
     a.kind = 'green';
     const b = R() < 0.5 ? pick(FAR_BENCHES) : null;
@@ -2313,12 +2343,12 @@ function drawBridge(g){
   poly(g, [r4, r3, r2, r1]); g.fill();
   // upstream parapet, seen from behind
   const u1 = project(x0, yN, 0), u2 = project(x1, yN, 0);
-  const u3 = project(x1, yN, 1.5), u4 = project(x0, yN, 1.5);
+  const u3 = project(x1, yN, PARAPET_Z), u4 = project(x0, yN, PARAPET_Z);
   g.fillStyle = mix('#3f3b33', '#9a927c', 0.25 + 0.5 * daylight);
   poly(g, [u4, u3, u2, u1]); g.fill();
   g.fillStyle = 'rgba(206,197,175,.85)';
-  const v1 = project(x0, yN, 1.5), v2 = project(x1, yN, 1.5);
-  const v3 = project(x1, yN - 0.3, 1.72), v4 = project(x0, yN - 0.3, 1.72);
+  const v1 = project(x0, yN, PARAPET_Z), v2 = project(x1, yN, PARAPET_Z);
+  const v3 = project(x1, yN - 0.3, PARAPET_Z + 0.22), v4 = project(x0, yN - 0.3, PARAPET_Z + 0.22);
   poly(g, [v4, v3, v2, v1]); g.fill();
   // the bridge lays a shadow on the water downstream
   g.fillStyle = 'rgba(18,24,26,.32)';
@@ -2895,10 +2925,10 @@ function drawFountain(it, t){
     }
   }
 }
-let boat = null, boatUnder = false;
+let boat = null, boatUnder = false, boatSeq = 0;
 function updateBoat(dt){
   if (!boat && day >= 1 && R() < dt * 0.012){
-    boat = {x:116.5 + R() * 5, y:-7, ph:R() * 9};
+    boat = {x:116.5 + R() * 5, y:-7, ph:R() * 9, id:++boatSeq, hailed:false};
   }
   if (boat){
     boat.y += dt * 1.05; boat.ph += dt * 2.6;
@@ -2906,7 +2936,44 @@ function updateBoat(dt){
       boatUnder = true;
       if (R() < 0.7) announce('A rowboat slips under the bridge and out the other side.');
     }
+    boatWatch();
     if (boat.y > 93){ boat = null; boatUnder = false; }
+  }
+}
+/* ============ the boat is watched ============ *
+ * The boat has run the length of the river since the town was built and nothing
+ * has ever looked at it — the written-but-unread shape `bellUntil` had before #2.
+ * The answer is `a.listen`'s shape with one difference: a watch NEVER holds
+ * anybody. It is only where the head is pointing, so a crosser keeps crossing
+ * with their head turned, which is what looking at a boat actually looks like,
+ * and no route can be stalled by it.
+ *
+ * Only people who can see the water are offered it: the quay and its rail, the
+ * bridge deck, the towpath. Everyone else has a building or the width of the town
+ * in the way. One glance per person per boat (`a.sawBoat` vs `boat.id`) — the boat
+ * is level with a quay bench for several seconds and must not re-trigger on every
+ * tick of them.
+ */
+function byTheWater(a){
+  return (a.x > QUAY_X0 - 1.6 && a.x < RIVER_X1 + 0.6)   // quay, its rail, and the bridge deck
+      || (a.x > TOW_X0 && a.x < FAR_X0 + 0.4);           // the towpath on the far bank
+}
+function boatWatch(){
+  let turned = 0;
+  for (const a of agents){
+    if (a.sawBoat === boat.id || a.small || a.state === 'lie') continue;
+    if (boat.y < a.y - 2.4 || boat.y > a.y + 2.4) continue;   // only as it draws level
+    if (!byTheWater(a)) continue;
+    a.sawBoat = boat.id;
+    if (R() > 0.72) continue;                       // not everybody looks up
+    a.watch = 1.0 + R() * 0.8;                      // ~1.4 s: an event, not a state
+    if (a.state !== 'walk') a.faceL = boat.x < a.x; // a stander turns; a walker keeps their line
+    turned++;
+  }
+  if (turned >= 2 && !boat.hailed){
+    boat.hailed = true;
+    if (R() < 0.5) announce(pick(['Heads turn along the water as the rowboat draws level.',
+      'The boat goes by, and everyone at the rail turns to watch it go.']));
   }
 }
 function drawBoat(it){
@@ -3153,8 +3220,13 @@ function drawPerson(it, t){
   // mid-conversation: head turned toward the other one, and nodding along
   const nod = chatting ? Math.sin(a.greet * 4.4) : 0;
   const turn = chatting ? (a.faceL ? -1 : 1) * (1.5 + nod * 0.5) : 0;
-  ctx.beginPath(); ctx.arc(up * (a.faceL ? 1.2 : -1.2) + turn,
-    -hgt*1.05 - 2.2*scale - up*1.2 + Math.abs(nod) * 0.7, 2.9*scale*(cellW/13), 0, 7); ctx.fill();
+  // following the boat: the head tracks it across, and tips down over the water.
+  // Read off the live boat rather than a stored angle so the turn actually FOLLOWS;
+  // the last 0.33 s eases the head back so it never snaps straight.
+  const wch = (a.watch > 0 && boat) ? Math.min(1, a.watch * 3) : 0;
+  const wTurn = wch * Math.max(-1, Math.min(1, (boat ? boat.x - a.x : 0) / 5)) * 2.2;
+  ctx.beginPath(); ctx.arc(up * (a.faceL ? 1.2 : -1.2) + turn + wTurn,
+    -hgt*1.05 - 2.2*scale - up*1.2 + Math.abs(nod) * 0.7 + wch * 1.2, 2.9*scale*(cellW/13), 0, 7); ctx.fill();
   if (a.broom){
     ctx.strokeStyle = '#8a6a42'; ctx.lineWidth = 1.4;
     ctx.beginPath(); ctx.moveTo(bw, -hgt*0.7); ctx.lineTo(bw + 7, 1); ctx.stroke();
@@ -3527,9 +3599,15 @@ window.__setTime = function(t){ simT = t; updateClock(); return { simT, day, hou
 let __eid = 0;
 window.__entities = function(){
   const out = [];
-  const take = (arr, kind) => { for (const e of arr){ if (e.__id === undefined) e.__id = ++__eid;
-    out.push({ id: kind + e.__id, kind, x: e.x, y: e.y, z: e.z === undefined ? 0 : e.z }); } };
-  take(agents.filter(a => a.kind !== 'sweeper'), 'walker');
+  const take = (arr, kind, extra) => { for (const e of arr){ if (e.__id === undefined) e.__id = ++__eid;
+    const o = { id: kind + e.__id, kind, x: e.x, y: e.y, z: e.z === undefined ? 0 : e.z };
+    if (extra) extra(o, e);
+    out.push(o); } };
+  // people carry what they are doing as well as where they are: `act` is the state
+  // machine's own label and `watch` is set while they are following the boat, so a
+  // probe can measure behaviour without a bespoke hook per feature
+  take(agents.filter(a => a.kind !== 'sweeper'), 'walker',
+       (o, a) => { o.act = a.state; o.role = a.kind; o.watch = a.watch > 0 ? 1 : 0; });
   take(agents.filter(a => a.kind === 'sweeper'), 'sweeper');
   take(ducks, 'duck'); take(swans, 'swan');
   take(butterflies, 'butterfly'); take(fireflies, 'firefly');

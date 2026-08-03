@@ -18,24 +18,6 @@
   "rationale": "Rung 2 again, deliberately and for the last time at this width. The rule is that a stall forces me up the ladder; nothing here is stalling, and rungs 1-2 still have obvious unmined ground — three domains the loop has never touched and five of seven kinds unused. Climbing now would be spending the strong moves out of impatience rather than need.\n\nThe diagnosis that shapes the batch: iterations 2-5 each shipped a system and each left it with fewer readers than it deserves, and that is now the town's characteristic shape. bellUntil was written and unread (fixed at #2). cloudCover() was added at #3 and has exactly ONE reader, the rain roll — a probe measured a 27 s median lead between cover crossing 0.5 and the first drop, and the town spends every second of it behaving as though the sky were clear. updateBoat has none. So b5 and b8 are the same move applied twice, at different scales.\n\nI checked four candidate gaps against the source before writing, per the standing watch note, and two died there. 'Nobody shelters from the rain' is wrong: umbrellas go up at line 1297, unumbrella'd walkers speed up 1.5x at 782, sitters get up at 765, and every spawn rate already scales by raining. What is actually missing is not the reaction but its *timing* — everything reacts to `raining`, a boolean that flips in a single frame, and nothing reads the half-day of warning that now exists. 'The allotments have no crop system' is also wrong: SPECIES carries four veg entries and speciesFor() splits the CA on inAllotment. What is missing there is the other half of the cycle — nothing is ever picked. Both survived as briefs, but as much smaller and more accurate ones than the versions I would have written from the cue list. I also corrected c11 outright: people do cross the bridge (the lane IS the bridge, 114 to 127 carried at y 66.4), they just never stop on it.\n\nOrdering. b5 first because it is the frontier and the batch's real bet — it touches the largest system added so far, it has a legibility trap and a pop trap in it, and it is the one that could fail. b6 is the risk-balanced middle. b7 fixes the single largest visual pop in the town and is the safest big-payoff item. b8 and b9 are small, close three cues between them, and are there so a stale plan still has cheap useful work at the end of it rather than the batch degrading into whatever the worker invents.\n\nStill NOT reaching for c1 (the world stops progressing after ~15 real minutes, rung 4). Second pass holding it. The condition for spending it is a batch that comes back thin, and this one has five briefs that each name a real absence I verified in the source. Nor am I briefing Courtyard & garden, which the loop has never touched — I looked, and it is the best-developed part of the town (CA ring, dieback, daisies, desire paths, sweeper, nappers, picnickers, butterflies, fireflies). Its gap is a rung-5 gap: there is no way to *read* the courtyard, only to watch it. That is the same shelf c1 sits on.",
   "queue": [
     {
-      "id": "b8",
-      "domain": "River & far bank",
-      "kind": "Deepen",
-      "brief": "Closes c5 and c11. updateBoat() runs a boat the length of the river, past a quay where people stand at the rail and under a bridge that every far-bank visitor walks over, and not one of them ever looks at it — the same written-but-unread shape bellUntil had, and a.listen (built at #2) is the mechanism that fits. Second, related, and verified: people DO cross the bridge (the lane is carried over the water from RIVER_X0 114 to RIVER_X1 127 at LANE_N_Y 66.4, and the `green` itinerary routes out to PARK_GATE at x=134), but no waypoint in the town ever stops anyone on it. Make the boat's passage something the town answers, and let some crossers stop at the parapet and look down.",
-      "seams": [
-        "updateBoat",
-        "a.listen",
-        "QUAY_BENCHES",
-        "LANE_N_Y",
-        "RIVER_X0",
-        "RIVER_X1"
-      ],
-      "successLooksLike": "When the boat goes by, the people at the quay rail turn and follow it, and on a wide shot you sometimes catch somebody leaning on the bridge watching the water.",
-      "avoid": "strikeClock owns the bell; this is a separate event and must not re-derive bellUntil. Hold nobody long — an answer that runs past ~2 s stops being an event and becomes state.",
-      "budgetMin": 25,
-      "risk": "low"
-    },
-    {
       "id": "b9",
       "domain": "People & animals",
       "kind": "Polish",
@@ -82,6 +64,10 @@
     {
       "id": "b7",
       "at": "2026-08-03T03:41:17.351Z"
+    },
+    {
+      "id": "b8",
+      "at": "2026-08-03T03:56:42.244Z"
     }
   ],
   "recommendStop": null

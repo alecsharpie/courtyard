@@ -1,22 +1,23 @@
 {
-  "id": "b7",
-  "domain": "Lane & market",
+  "id": "b8",
+  "domain": "River & far bank",
   "kind": "Deepen",
-  "brief": "marketActive() is `isMarketDay() && hour >= 8 && hour < 17` and the draw list consults it directly (`if (marketActive()) for (const s of MARKET_STALLS) items.push(...)`, ~line 2328). So at hour 8 three fully-built stalls appear between two frames, and at 17 they vanish the same way. It is the largest single pop in the town and it happens every fourth day. Give market day a beginning and an end: traders arrive and put the stalls up before opening, and pack down after. Mind the compression — hour 8 to 17 is about 20 s of real time, so a setup has roughly 2 s to happen in and still read as an event.",
+  "brief": "Closes c5 and c11. updateBoat() runs a boat the length of the river, past a quay where people stand at the rail and under a bridge that every far-bank visitor walks over, and not one of them ever looks at it — the same written-but-unread shape bellUntil had, and a.listen (built at #2) is the mechanism that fits. Second, related, and verified: people DO cross the bridge (the lane is carried over the water from RIVER_X0 114 to RIVER_X1 127 at LANE_N_Y 66.4, and the `green` itinerary routes out to PARK_GATE at x=134), but no waypoint in the town ever stops anyone on it. Make the boat's passage something the town answers, and let some crossers stop at the parapet and look down.",
   "seams": [
-    "marketActive",
-    "MARKET_STALLS",
-    "isMarketDay",
-    "drawMarketStall",
-    "marketAnnounced"
+    "updateBoat",
+    "a.listen",
+    "QUAY_BENCHES",
+    "LANE_N_Y",
+    "RIVER_X0",
+    "RIVER_X1"
   ],
-  "successLooksLike": "On a market morning you can watch the market being built and in the evening watch it go, and no filmstrip frame shows three stalls arriving at once.",
-  "avoid": "Do not add a fourth stall or a new stall type. Do not move marketActive()'s hours — laneRate multiplies by 1.7 on it at ~3216 and marketAnnounced reads it at ~3190.",
+  "successLooksLike": "When the boat goes by, the people at the quay rail turn and follow it, and on a wide shot you sometimes catch somebody leaning on the bridge watching the water.",
+  "avoid": "strikeClock owns the bell; this is a separate event and must not re-derive bellUntil. Hold nobody long — an answer that runs past ~2 s stops being an event and becomes state.",
   "budgetMin": 25,
-  "risk": "low-medium",
-  "status": "done",
+  "risk": "low",
+  "status": "active",
   "attempts": 1,
-  "nextIter": 8,
-  "issued": "2026-08-03T03:41:17.352Z",
+  "nextIter": 9,
+  "issued": "2026-08-03T03:56:42.245Z",
   "fromPlan": "2026-08-03T12:55:00Z"
 }
