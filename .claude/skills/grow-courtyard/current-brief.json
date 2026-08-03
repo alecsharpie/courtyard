@@ -15,7 +15,7 @@
   "avoid": "strikeClock owns the bell; this is a separate event and must not re-derive bellUntil. Hold nobody long — an answer that runs past ~2 s stops being an event and becomes state.",
   "budgetMin": 25,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 9,
   "issued": "2026-08-03T03:56:42.245Z",
