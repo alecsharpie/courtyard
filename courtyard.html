@@ -748,6 +748,7 @@ function stepAgent(a, dt){
     }
     return;
   }
+  if (a.listen > 0){ a.listen -= dt; return; }   // the bell: a beat of standing still, head back
   const tgt = a.i < a.wp.length ? a.wp[a.i] : null;
   if (!tgt){ a.done = true; return; }
   const dx = tgt[0] - a.x, dy = tgt[1] - a.y;
@@ -940,6 +941,7 @@ function updateSweeper(){
 
 /* ============ wildlife & weather ============ */
 const butterflies = [], fireflies = [], birds = [], leaves = [], raindrops = [];
+let belfryRoost = 7;                 // pigeons currently sat on the church tower
 const ducks = [], swans = [];
 let catA = null, balloon = null;
 function updateBalloon(dt){
@@ -1083,6 +1085,7 @@ function updateWildlife(dt){
     fireflies.push({x:fx+Math.cos(th)*r, y:fy+Math.sin(th)*r, z:0.4+R()*1.2, ph:R()*9}); }
   while (fireflies.length > wantF) fireflies.pop();
   for (const f of fireflies){ f.ph += dt*(RM?0.8:1.6); f.x += Math.sin(f.ph*0.9)*dt*0.8; f.y += Math.cos(f.ph*0.7)*dt*0.6; }
+  belfryRoost = Math.min(7, belfryRoost + dt*0.85);   // flushed pigeons drift back to the tower
   if (!raining && daylight>0.3 && birds.length < 3 && R() < dt*0.06*(0.5+m)){
     const onLane = R() < 0.4;
     const th=R()*Math.PI*2, r=6+R()*10;
@@ -1101,6 +1104,13 @@ function updateWildlife(dt){
       if (Math.sin(b.hop)>0.9){ b.x += (R()-0.5)*0.8; b.y += (R()-0.5)*0.8; }
       const scare = agents.some(a => Math.hypot(a.x-b.x, a.y-b.y) < 4.5);
       if (scare || b.t<=0 || raining) b.state='fly';
+    } else if (b.state==='wheel'){    // put up off the belfry by the bell: one wide turn, then away
+      b.t -= dt; b.ph += dt*b.sp*(RM?0.45:1); b.ph2 += dt*(RM?3:7);
+      b.r = Math.min(7, b.r + dt*(b.t>0 ? 4 : 2.2));
+      b.x = b.cx + Math.cos(b.ph)*b.r;
+      b.y = b.cy + Math.sin(b.ph)*b.r*0.5;
+      b.z += dt*(b.t>0 ? 1.4 : 6);
+      if (b.z > 22) birds.splice(i,1);
     } else { b.z += dt*7; b.x += dt*4; b.y -= dt*2; if (b.z>10) birds.splice(i,1); }
   }
   const gusty = isWindy();
@@ -2730,7 +2740,8 @@ function drawPerson(it, t){
   ctx.quadraticCurveTo(bw, -hgt*0.95, bw, -hgt*0.4);
   ctx.closePath(); ctx.fill();
   ctx.fillStyle = a.skin;
-  ctx.beginPath(); ctx.arc(0, -hgt*1.05 - 2.2*scale, 2.9*scale*(cellW/13), 0, 7); ctx.fill();
+  const up = a.listen > 0 ? 1 : 0;               // listening to the bell: head tipped back
+  ctx.beginPath(); ctx.arc(up * (a.faceL ? 1.2 : -1.2), -hgt*1.05 - 2.2*scale - up*1.2, 2.9*scale*(cellW/13), 0, 7); ctx.fill();
   if (a.broom){
     ctx.strokeStyle = '#8a6a42'; ctx.lineWidth = 1.4;
     ctx.beginPath(); ctx.moveTo(bw, -hgt*0.7); ctx.lineTo(bw + 7, 1); ctx.stroke();
@@ -2776,9 +2787,9 @@ function drawBird(it){
     ctx.beginPath(); ctx.arc(x + 2, y - 3.6, 1.2, 0, 7); ctx.fill();
     ctx.fillStyle = '#c9903a'; ctx.fillRect(x + 3, y - 3.8, 1.6, 0.8);
   } else {
-    const f = Math.sin(b.z * 3);
-    ctx.beginPath(); ctx.moveTo(x - 4, y - 2 - f*2); ctx.quadraticCurveTo(x, y, x + 4, y - 2 - f*2);
-    ctx.quadraticCurveTo(x, y + 1, x - 4, y - 2 - f*2); ctx.fill();
+    const f = Math.sin(b.ph2 != null ? b.ph2 : b.z * 3), s = b.sz || 1;
+    ctx.beginPath(); ctx.moveTo(x - 4*s, y - 2 - f*2*s); ctx.quadraticCurveTo(x, y, x + 4*s, y - 2 - f*2*s);
+    ctx.quadraticCurveTo(x, y + 1, x - 4*s, y - 2 - f*2*s); ctx.fill();
   }
 }
 function drawCat(){
@@ -2931,7 +2942,7 @@ document.getElementById('speed').addEventListener('click', e => {
 
 /* ============ main loop ============ */
 let last = 0, caAcc = 0, spawnAcc = 0, statAcc = 0, lightBucket = -1;
-let lastStruck = -1, marketAnnounced = -1, windAnnounced = -1, bellUntil = -1;
+let lastStruck = -1, marketAnnounced = -1, windAnnounced = -1, bellUntil = -1, bellSeen = -1;
 const HOUR_WORDS = ['twelve','one','two','three','four','five','six','seven','eight','nine','ten','eleven'];
 function strikeClock(){
   const hInt = Math.floor(hour);
@@ -2947,6 +2958,30 @@ function strikeClock(){
     }
   }
 }
+/* strikeClock() decides WHEN the bell rings and writes bellUntil; nothing else may
+ * re-derive that. This reads it on the rising edge and lets the town answer for the
+ * couple of seconds it is ringing: pigeons off the belfry, and a few walkers who
+ * stop mid-stride with their heads back. */
+function bellStartle(){
+  // off the parapet and into open air in FRONT of the tower — spawned on the belfry
+  // louvre itself they are grey-on-near-black and read as dust, not as pigeons
+  const cx = (CHURCH.tx0 + CHURCH.tx1) / 2, cy = CHURCH.ty1 + 0.3;
+  // Only what is actually roosting goes up. The clock strikes every third hour —
+  // every ~7 s at this compression — so a fixed-size flock would be permanently
+  // airborne and stop reading as an answer to anything. belfryRoost refills at
+  // ~0.35/s in updateWildlife, so the first strike flushes the tower and the next
+  // few put up the two or three that have made it back.
+  const n = Math.min(Math.floor(belfryRoost), 4 + Math.round(R() * 3));
+  belfryRoost -= n;
+  for (let k = 0; k < n; k++){
+    // dark, not pigeon-pale: the whole flight is spent against open sky, so the
+    // birds read by contrast with it
+    birds.push({x:cx, y:cy, z:12.6 + R()*1.4, state:'wheel', hop:0, t:0.9 + R()*0.5, sz:1.5,
+      cx, cy, r:0.5 + R()*0.6, ph:R()*Math.PI*2, sp:1.9 + R()*1.3, ph2:R()*9,
+      col:pick(['#3a3733','#4e4a44','#5a5650','#6e6a60'])});
+  }
+  for (const a of agents) if (a.state === 'walk' && R() < 0.45) a.listen = 1 + R()*1.1;
+}
 /* One simulation step. Split out of frame() so `__warp()` can advance the town
  * with a FIXED dt and no drawing — that is what makes a seeded run reproducible:
  * state becomes a pure function of (seed, warped seconds) instead of depending on
@@ -2955,6 +2990,7 @@ function simStep(sdt, dt){
   simT += sdt;
   updateClock();
   strikeClock();
+  if (bellUntil > simT && bellUntil !== bellSeen){ bellSeen = bellUntil; bellStartle(); }
   if (marketActive() && marketAnnounced !== day){
     marketAnnounced = day;
     announce('Market morning — canvas snaps open along the lane.');

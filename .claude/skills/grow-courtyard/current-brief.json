@@ -1,0 +1,22 @@
+{
+  "id": "b1",
+  "domain": "River & far bank",
+  "kind": "Connect",
+  "brief": "`strikeClock()` (~line 2936) sets `bellUntil = simT + 2.2` on every third hour, and `+ 2.6` when the church answers across the river at nine and eighteen — and nothing in the town ever reads `bellUntil`. It is written and dead. Make the bell land in the frame: for the ~2.5 seconds it is ringing, the world should visibly answer. The obvious answers are pigeons lifting off the church tower, walkers breaking stride to look up, ducks scattering off the pond. Pick one or two and make them read from the wide shot. Why now: it is the cheapest legible connection in the town, and it is the first pass through the harness, so a small honest diff is worth more than a big one.",
+  "seams": [
+    "bellUntil",
+    "strikeClock",
+    "updateWildlife",
+    "stepAgent",
+    "CHURCH"
+  ],
+  "successLooksLike": "On the strike at nine, birds lift off the church tower and a couple of walkers break stride; two seconds later the town is back to normal. A filmstrip across the strike shows it; a still frame either side of it does not.",
+  "avoid": "Do not add a second bell predicate and do not add another `announce` line — `strikeClock` already owns when the bell rings and already announces it. Read `bellUntil`; do not re-derive it. Do not add a census field for this.",
+  "budgetMin": 20,
+  "risk": "low",
+  "status": "active",
+  "attempts": 1,
+  "nextIter": 2,
+  "issued": "2026-08-03T01:25:59.097Z",
+  "fromPlan": "2026-08-03T01:23:34Z"
+}
