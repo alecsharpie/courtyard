@@ -397,6 +397,12 @@
       "note": "ripePlots() rescans 102 cells every spawn tick (1/s) to set an arrival rate — the first place a spawn rate reads the CA. Free at this size; cache it on the CA tick if anything else wants the pattern.",
       "raisedBy": 6,
       "seenBy": 0
+    },
+    {
+      "id": "c14",
+      "note": "runlog.mjs derives srcChanged from --pre-blob, which only run-loop.sh supplies. A hand-invoked /grow-courtyard iteration therefore logs verdict 'no-ship' however much it shipped — iter 7 did exactly this and had to be re-derived with 'git rev-parse HEAD~1:courtyard.html'. HARNESS: runlog could fall back to HEAD~1's blob when --pre-blob is empty.",
+      "raisedBy": 7,
+      "seenBy": 0
     }
   ],
   "watch": [
