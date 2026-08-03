@@ -17,7 +17,7 @@
   "avoid": "Do not touch courtyard.html — if you find a town bug while you are in here, raise it as a cue and leave it. Do not add new gates or new metrics; repair the ones that exist. LAW: don't add a census field per feature.",
   "budgetMin": 25,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 16,
   "issued": "2026-08-03T06:50:34.787Z",
