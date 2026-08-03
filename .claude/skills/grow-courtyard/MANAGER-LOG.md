@@ -13,3 +13,5 @@ Format (parsed by `build-stats.mjs`, so keep the shape):
 ```
 
 ---
+
+- 2026-08-03 planned from #0, rung 2 — cold start, no runlog, laws 16/60, budget 19.6/46 KB OK; the town has 31 iterations of nouns and one `connect` in its whole history, so the opening batch wires existing systems together (dead `bellUntil`, no clouds at all, no agent-to-agent code at all, east half starved of spawn budget) rather than adding an eighth kind of thing, led by a small brief to shake out the gates before the risky one.

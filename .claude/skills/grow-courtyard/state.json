@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-02",
+  "updated": "2026-08-03",
   "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
   "phase": "expanding",
   "lastIteration": 0,
@@ -41,22 +41,23 @@
 
   "inventory": {
     "note": "What the town ALREADY CONTAINS, in the words a brief would use. Read by every worker before it builds. This list is the direct antidote to the previous loop's terminal failure mode: nine consecutive iterations that each surveyed the world, found everything already existed, and exited.",
-    "courtyard": ["walled garden with an organic bed ring", "four arch entrances (two TUNNEL, two SLOT)", "planting CA with 11 species and bloom stages", "daisies in the lawn", "desire paths from foot wear", "benches", "a sweeper", "ivy on the south wall"],
+    "courtyard": ["walled garden with an organic bed ring", "four arch entrances (two TUNNEL, two SLOT)", "planting CA with 11 species and bloom stages", "seeds that spread from mature neighbours, and beds that crowd out and die back with age", "rain that accelerates every growth term", "daisies in the lawn", "desire paths from foot wear", "benches", "a sweeper", "ivy on the south wall"],
     "lane": ["kiosk", "pavement café with tables", "awnings", "washing lines strung over the lane", "market day every 4th day with three stalls", "planters", "street lamps", "lane benches"],
-    "street": ["cross street with two footways, roadway, curbs", "street lamps", "street trees in pits", "allotment block with 21 plots, timber fence, gates, shed", "an alley cut through the block"],
+    "street": ["cross street with two footways, roadway, curbs", "street lamps", "street trees in pits", "allotment block with 21 plots, timber fence, gates, shed", "gardeners who walk in through the gate to a real bed cell and kneel to plant it", "an alley cut through the block"],
     "plaza": ["plaza with a fountain", "four planting pits", "benches", "quay along the river with benches"],
     "river": ["river with a boat", "three-arch bridge", "towpath", "church with tower and nave", "bandstand", "orchard", "jetty", "park gate"],
     "sky": ["day/night cycle (55 s day)", "sun and moon arc", "backdrop hills", "rain with puddle sheen", "wind days", "night window lighting", "chimney smoke", "a balloon"],
-    "life": ["walkers with itineraries, courtyard and street", "ducks", "swans", "butterflies", "fireflies", "birds", "falling leaves", "a clock that strikes and a church bell that answers", "an ambient ticker"]
+    "life": ["walkers with itineraries, courtyard and street", "eastern itineraries that already exist: plaza bench, fountain gaze, quay rail, quay bench, towpath, church green, allotment plot", "café sitters who claim and release a table", "market browsers and kiosk browsers", "ducks", "swans", "butterflies", "fireflies", "birds", "one night cat", "falling leaves", "a clock that strikes and a church bell that answers", "an ambient ticker"]
   },
 
   "openCues": [
-    { "id": "c1", "note": "The town stops changing after ~15 real minutes. maturity() caps at day 8 and richness() at day 16; at a 55 s day that is 14.7 minutes, after which every progression term is pinned at 1. There is no season and no later act. This is the rung-4 lever to reach for when rotating and deepening are spent — it would reopen the whole board.", "raisedBy": 0, "seenBy": 0 },
-    { "id": "c2", "note": "Rain arrives out of a cloudless blue sky: skyCols() reads only hour and daylight, and the scheduler flips `raining` in a single frame. The largest surface in the frame carries the least legible system in the town.", "raisedBy": 0, "seenBy": 0 },
-    { "id": "c3", "note": "The east third is furniture. strikeClock() rings a church bell at 9 and 18 and nothing in the world responds; updateBoat() runs a boat past a quay people already stand on and they never meet. Every eastern destination is fed by one spawnLaneAgent roll under one laneCap, so few walkers ever cross the bridge.", "raisedBy": 0, "seenBy": 0 }
+    { "id": "c1", "note": "The town stops changing after ~15 real minutes. maturity() caps at day 8 and richness() at day 16; at a 55 s day that is 14.7 minutes, after which every progression term is pinned at 1. There is no season and no later act. This is the rung-4 lever to reach for when rotating and deepening are spent — it would reopen the whole board. HELD DELIBERATELY: it is the strongest move available and the highest rung reached for so far is 2; spending it before the loop has actually stalled would leave nothing above it.", "raisedBy": 0, "seenBy": 1 },
+    { "id": "c2", "note": "PROMOTED to brief b2 at manager pass #0. Confirmed by grep: the string 'cloud' does not appear anywhere in courtyard.html. Rain arrives out of a cloudless blue sky — skyCols() reads only hour and daylight, and the scheduler flips `raining` in a single frame on an R() roll. The largest surface in the frame carries the least legible system in the town.", "raisedBy": 0, "seenBy": 1 },
+    { "id": "c3", "note": "CORRECTED at manager pass #0 — the original wording was wrong in a way that would have wasted an iteration. The east is NOT missing itineraries: spawnLaneAgent already routes people to the plaza bench, the fountain, the quay rail, the quay benches, the towpath, the church green and the allotments. What it is missing is budget — those destinations sit in narrow bands of one roll cascade (quay 0.48-0.53, green 0.53-0.58) under one laneCap that peaks at 9. Partly promoted to b4 (budget) and b1 (bellUntil is written by strikeClock and read by nothing). Still open and unpromoted: updateBoat() runs a boat past a quay where people already stand, and the two never acknowledge each other.", "raisedBy": 0, "seenBy": 1 }
   ],
 
   "watch": [
-    { "note": "The whole east half is fed by a single spawnLaneAgent roll under one laneCap. Anything you add out there competes for that one budget — check whether your feature needs its own before you conclude nobody uses it.", "since": 0 }
+    { "note": "The whole east half is fed by a single spawnLaneAgent roll under one laneCap. Anything you add out there competes for that one budget — check whether your feature needs its own before you conclude nobody uses it. The bands, measured: cross-street diversion 0.30 of all spawns, then market 0.24, kiosk 0.18, café 0.26, allotment to 0.48, plaza to 0.48, quay 0.48-0.53, green 0.53-0.58. laneCap peaks at 9 in full daylight.", "since": 0 },
+    { "note": "An empty-looking place is a budget question before it is a content question. Twice at pass #0 a plausible 'the town lacks X' turned out to be 'the town has X and you rarely see it' — the allotment gardeners and every eastern destination both exist. Grep for the feature before briefing it, and if it exists, ask how often it fires.", "since": 0 }
   ]
 }
