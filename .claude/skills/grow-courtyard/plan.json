@@ -1,26 +1,134 @@
 {
-  "generated": "2026-08-03T07:20:00Z",
-  "byIteration": 15,
+  "generated": "2026-08-03T23:26:05Z",
+  "byIteration": 20,
   "rung": 2,
   "diagnosis": {
-    "health": "Healthy, and for the first time the claim is measured rather than asserted. b10 landed at #11 and every worker row since carries real numbers: #11 1835 s / $5.27, #12 1289 s / $6.36, #13 1046 s / $3.84, #14 909 s / $4.59, #15 726 s / $2.95. Both series fall monotonically after #12 — the opposite of the signature that killed Solvista ($5.45 -> $13.72 with flat output), and exactly what the loop was built to be able to see. 13 of 14 worker briefs shipped; the one no-ship is #11, which was briefed as a harness job and correctly logged as changing zero source lines. Zero reverts, zero briefs rejected, no stall signal. The one thing I am watching: srcLines runs 103, 101, 56, 41 across the last four, and #15 took two attempts. Falling cost with a falling diff is not yet a problem, but 'cheap iterations that change less each time' is how a loop drifts into comfortable polish, so this batch deliberately spends more than the last one did — one high-risk brief, two mediums, and a budgetMin floor on every brief.",
+    "health": "Healthy, and measurably so. 19 worker iterations, 17 shipped, 0 reverts, 0 briefs rejected; the two no-ships (#11, #16) were both briefed harness jobs and correctly logged as changing zero source lines. The cost series is the thing to watch and it is flat, not climbing: $3.84 / $4.59 / $2.95 / $7.19 / $8.47 / $4.27 / $4.70 / $4.21 across #13-#20, with the two spikes being the two biggest jobs in the run (#16's five-instrument harness rebuild and #17's thirteen trees, 198 source lines). srcLines has recovered from the 103/101/56/41 slide I flagged last pass: 198/58/73/66. #17's 55,199 s is wall-clock across an overnight pause, not work, and the stall report's 'avg 108m' is that one row — real durations are 12-24 minutes. Nothing here looks like Solvista. The one genuine fault is mine, not the workers': context-budget printed OVER at the start of #17 (48.8 KB), #19 (53.6) and #20 (53.7), three consecutive workers each independently reported it, and each of the last two manager passes left it. That is the Solvista pattern in miniature — a signal re-derived by successive agents with nobody whose job was to act on it — and it is fixed this pass, structurally rather than by trimming.",
     "signals": [
-      "iterations=17 (14 worker, 3 manager)",
-      "shipped=13/14 workers, the 14th a briefed no-ship",
+      "iterations=24 (19 worker, 5 manager)",
+      "shipped=17/19 workers, both no-ships briefed as harness",
       "revertStreak=0",
       "briefsRejected=0",
-      "secs=1835/1289/1046/909/726 (falling)",
-      "costUsd=5.27/6.36/3.84/4.59/2.95 (falling)",
-      "srcLines=103/101/56/41 (falling — watch)",
-      "attempts=2 at #15",
-      "openCues=20 -> 7",
-      "laws=28 -> 27 (4 promoted from #12-#15, 5 merged, 2 cut)",
-      "contextBudget=50.8 KB OVER -> 45.7 KB OK"
+      "no stall signal",
+      "costUsd=7.19/8.47/4.27/4.70/4.21 (flat; spikes are the two largest jobs)",
+      "srcLines=198/58/73/66 (recovered from the #15 slide)",
+      "contextBudget=52.0 KB OVER -> 43.3 KB OK",
+      "ledger rotated: 13 entries -> 8; last-3 read 15.3 KB -> 9.1 KB",
+      "openCues=19 -> 5",
+      "laws=27 -> 27 (4 promoted by merge, 1 new, 3 compressed, 1 cut)",
+      "coverage grid was missing #11 and #18 — both recorded"
     ],
-    "balance": "Two domains have eaten the loop and five have starved. Sky took 3 of the last 5 (#11, #12, #15) and Courtyard 2 of the last 3 (#13, #14). Against that: Plaza & quay has had nothing since #5 — ten iterations — Cross street & allotments nothing since #7, Lane & market since #8, River since #9, People & animals since #10. The whole east half of the town, everything spawnEastAgent was built to serve at #5, has been untouched for ten iterations while the loop worked the sky and the walled garden. This batch gives one brief each to street, lane, life and plaza, and gives sky nothing but the harness job. I also found the grid lying in two places and fixed both: coverage had never recorded #12 (sky x scale) or #15 (sky x polish), and harness iterations were being filed under whichever domain they nominally sat in — hence the new `harness` kind in the menu, which explicitly does not count toward a domain's balance."
+    "balance": "River & far bank is the starved domain: one iteration in the last twelve (#9, eleven ago). Sky looks over-served at 4 of the last 12, but two of those (#11, #16) were harness jobs that the menu explicitly excludes from domain balance, so sky's real town-work is 2 of 12 — it is not over-served and c25 is not blocked by balance. Courtyard is 6 back (#14), lane 2 back (#18), life 1 back (#19), plaza 0 back (#20), street 3 back (#17). This batch gives river its first work since #9, gives sky the two weather briefs its strongest open cue has been waiting on since #2 and #4, and reaches the courtyard sideways through b23, which touches the courtyard path ring as well as the plaza. Lane and life get nothing and are the two most recently served."
   },
-  "rationale": "Rung 2, and the reason is that pass #10 climbed to rung 4 and the climb is only half done.\n\nThe year shipped at #12 and it is the largest thing this town has ever been given. It currently has three readers: day length, light, and the courtyard beds. That is all. Everything else in the diorama still runs on a constant or on a one-way ramp. The ladder says rung 2 — deepen and interconnect what already exists — is usually the highest-yield move, and it is plainly right here: you do not climb again on top of an unread system. A season visible only in the sky and the flower beds is a lighting change with a garden attached.\n\nSo the batch has one spine — make the year have readers — and I picked the three a viewer would notice, in that order.\n\nThe find that set the batch. I went looking for what is most wrong to somebody watching for thirty seconds, and it is not subtle: this town has thirteen trees and not one of them knows what month it is. drawTree draws the courtyard linden; drawLaneTree draws four street trees, four plaza trees and four orchard trees. Every one is sized on maturity(), which pinned at day 8, and filled from a hard-coded array of summer greens. So in deep winter the beds are correctly turned earth, the sun correctly sets at 18.30, and thirteen trees stand in full leaf above it all. The falling-leaf spawner makes it worse: gated on `day>=4 || gusty` and scaled on richness(), another dead ramp, so leaves fall out of those permanently green trees at the same rate in July and in January. That is b16, it is the batch's bet, and it carries the risk because it is the biggest thing in the wide shot and it is pure draw — the census cannot guard a single pixel of it.\n\nThe second find is quieter and I think it is the more interesting one. When b11 turned a constant into a variable it moved sunrise and sunset — sunUp/sunDown now swing from 7.00/18.50 to 4.00/21.50 — and nothing that anybody in the town DOES followed. kioskOpen is still 7.5-18.5. marketActive is still 8-17. marketRaise still starts putting stalls up at 6.90 and the sweeper still works at 5.00. In midwinter that means the traders build three stalls and the sweeper sweeps the courtyard in the dark, an hour before dawn; in midsummer the kiosk shuts with three hours of daylight left. The town's sun has a year and the town's working day does not. The fix already has a model in the file — timeLabel() was hung off sunUp/sunDown at #12 with a comment saying otherwise 'the label reads Morning in the winter dark' — and nobody carried the idea past the label. That is b17, and the general lesson is now a law: when you turn a constant into a variable, hunt everything tuned against its old value.\n\nb18 spends c24, the third reader and the one I am least sure of. The population is supposed to breathe with the year and it breathes 15%, because capacity/laneCap/eastCap compress daylight to 0.25+0.75*d and a 52% daylight swing therefore moves the courtyard cap from 8 to 9. It is a real gap and it is the People & animals vector, untouched since #10. It carries an explicit floor because the failure mode is a dead diorama in January, which is worse than no season at all.\n\nb19 is the tail: cheap, real and user-visible. c27, found at pass #10 and unspent since. Now that the cursor advertises the click, the SIDE/ROAD branch is caught promising the wrong place — the paving of the entire town answers 'You scatter crumbs onto the lane' and lands its birds in the lane rows however far east you clicked. Put it last so that a stale plan degrades into a genuine small job rather than into whatever the worker invents.\n\nWhy b15 is first, and why it is not a town brief. Five of the loop's own instruments cannot see the year, and two have already cost real work: c31 lost iteration 14 a summer screenshot to a winter one, and c29 made iteration 14's whole -16.3% planted reading unreadable, because the census age ladder picks its 'fully grown' cell at a warp that lands in midwinter — a growth axis silently measuring the season. b16's evidence is four seasonal shots of the same instant, and that evidence cannot be produced at all until shoot.mjs can pin an instant. The instrument goes before the work that depends on it, exactly as b10 went before b11. I folded c21, c23, c26, c29, c31 and c32 into it. On c23 I made the ruling myself, since the skill says it is my call: streak over kind==='worker' rows only. A manager row is no-ship and src-flat by construction, so counting it is counting my own footprints as evidence of a stall — which is precisely what summoned a manager at #11 off a single no-ship worker.\n\nCuration, which was the harder half this pass. context-budget.mjs read OVER at 50.8 KB against a 46 KB cap, and it had been over since iteration 13 (c28) — three workers have already run at ~10% above the budget the loop sets itself. It is now 45.7 KB, and getting there took real cuts rather than deferrals. Cues 20 -> 7: six promoted into briefs, four closed as hypothetical, never-bitten or refactor-for-its-own-sake, one closed by doing it. The inventory went back to nouns; the workers had been writing implementation histories into it again, and the courtyard and sky entries alone were 1.7 KB of prose about how a thing was built rather than what the town contains. Two of the three `watch` notes were deleted outright because both had become prose restatements of laws that are now sharper in LAWS.md — a watch note that duplicates a law is charged to every worker twice.\n\nAnd LAWS.md is the decision I want on the record. I promoted four laws from #12-#15 (the cyclic-scalar law, merged into the rate-cap law; the anchor rule; ceiling-is-not-a-kill-term; and #15's split-the-flag rule) plus the constant-to-variable law that b17 exists to pay for — and the file went 8.8 -> 11.8 KB, straight to its own 12 KB ceiling, and became the reason the total was still over. The COUNT was fine, 32 of 60. The bytes were not. So the cap that binds this file is bytes, not laws, and that is now written into its header. I distilled it back to 9.4 KB: merged the two judge laws, folded two census-hygiene laws into the regression-guard law, merged the two renderer traps, merged the promote/cap pair, and cut 'a killed iteration is often finished work' outright — it addresses whoever inspects a dead run, not the worker who reads it thirty times. Net across the pass: four new laws, 27 total, and the worker's read budget down 5.1 KB.",
-  "queue": [],
+  "rationale": "Rung 2, and this is the batch that closes a spine the loop has been building since #12.\n\nThe diagnosis first, because the important finding this pass is about the loop and not the town. Three consecutive workers — #17, #19, #20 — each opened with context-budget printing OVER, each wrote a cue saying so, and each made it worse. c38, c42 and #20's closing cue are the same cue reported three times. Individually every one of those workers was right and did the correct thing; collectively they produced three identical observations and no fix, because the file they were reporting on is mine and none of them could touch it. That is precisely the shape that killed Solvista — nine iterations independently concluding the same true thing — arriving eighteen iterations earlier and in a smaller register. So curation came before planning this pass, and it was done structurally.\n\nThe budget was 52.0 KB against a 46 KB cap and is now 43.3. The ledger had never been rotated: 13 entries, 75 KB. But rotation alone would not have helped, because a worker reads the last THREE entries and those three had grown to 15.3 KB by themselves — #19's entry alone is 6.5 KB. Entry length is charged three times over, and nothing capped it. So: rotated to 8, then appended the full text of #18-#20 verbatim to LEDGER-archive.md and condensed what stays in LEDGER.md (15.3 -> 9.1 KB, nothing lost), and put a ~3.5 KB per-entry cap into the ledger's own template with the reason written next to it, so the next worker is told where the excess belongs — a law goes to LAWS.md, a loose end goes to state.json, and neither belongs in a longer entry. state.json's inventory had drifted back into implementation histories for the third time (the `life` entry was 2.9 KB of prose about how yearBusy was built) and is back to nouns; cues went 19 -> 5. LAWS.md I let reach 11.4/12 KB while promoting from #18-#20 and then cut back to 11.0, because the rule is that at the cap you cut to add: I dropped the ticker-queue law outright, since its content is now carried exactly by the inventory line describing the ticker, and compressed two anecdotes out of the probe laws. Four of the five promotions were merges into laws that already existed rather than new entries — #19's cap-floor lesson extends the time-compression law that already said caps set inflow, #18's discontinuity lesson extends the constant-to-variable law, #20's scatter lesson extends the 0.9-cells law. Only #19's flat-peak law is genuinely new. Net: 27 laws in, 27 out, sharper.\n\nNow the town. The spine since pass #10 has been: the world got a year at #12, and a year nothing reads is a lighting change. Pass #15 counted three readers. There are now six — day length, light, the courtyard beds, all thirteen trees, the working day, the population caps — and exactly two systems are left running on a constant or a dead ramp. Those two are this batch's first and third briefs, and when they land the question 'should this read the year?' will have been asked everywhere it pays.\n\nb20 is the batch's bet and it is the oldest debt on the board. `stepClouds()` decides every front in this town with `R() < 0.3 + 0.24 * richness()`, and the rain roll under it scales on `(0.6 + rich)`. `richness()` is `clamp(day/16, 0, 1)`: it pinned at 1 in real minute fifteen and has been a constant ever since. So the weather is not merely year-blind, it is driven by a variable that stopped varying — the same defect `maturity()` had, found at pass #10, spent everywhere except here. c25 has been the top cue since #10 and I have now declined it twice. It goes first. Folded into it: c8, because a rain roll gated on `daylight > 0.15` means a front peaking overnight builds full cover and can never rain, which in an 11.5-hour winter day would make the season b20 has just made cloudiest the season least able to rain — the bug and the feature are the same seam and splitting them would ship a contradiction. Also c35, because rain is this brief's own feature and `motion.mjs` cannot see a raindrop: they are screen-space and absent from `__entities()`. A brief whose gate cannot cover the thing it changed is a brief that ships on a screenshot.\n\nb21 exists because b20 makes it matter. c7 has been open since #2 and has looked like polish every time I read it: the sun's disc is veiled by cloud but the ground was never told, so under 0.95 cover the sky is a grey lid and the lane below it is full of crisp midday shadows. It has been cheap-and-cosmetic for eighteen iterations. The moment b20 lands, heavy overcast stops being a rare event and becomes most of a winter, and the defect is on screen for a large share of the year. Ordering it second is the whole point of it.\n\nb22 is the starved domain and the other half of the spine. River has had one iteration in twelve. It is also, I think, the most defensible 'this is the same in February and August' left in the town: `updateBoat` spawns at a flat `R() < dt*0.012`, always at y=-7 heading south at speed 1.05, and the water's flow is twelve anonymous streaks drawn inline in the frame loop at one speed and one colour — no function, no name. I have put that in the inventory so the worker has something to reach for. The explicit constraint is that winter must not be boatless: the boat is the town's only long-travelling object and `boatWatch()`, the domain's best behaviour, dies with it.\n\nb23 is the one brief that is not about the year, and it is deliberate seed for the next pass. #20's closing cue found that `answersTouch()` answers everything except PATH — so the plaza roundel around the fountain and the entire courtyard path ring are dead to the cursor and the click, and `PAVING.plaza` has only ever fired on 24 cells of the world's 2,903 paved ones. The town advertised its clickability at #13 and then declined to answer on the surface an eye goes to first. It is also the reason I am not climbing this pass despite the spine closing: rung 5, change the observer, is where this loop should go next, and I would rather arrive there having just done one observer-side brief than from a cold start. If b20 through b24 land, pass #25 climbs to 5.\n\nb24 is the tail and it is a measurement I am prepared to have come back empty. c30: the allotments inherit `bloomCap` through the shared `caTick` path, so nothing ripens in deep winter, `ripePlots()` goes to zero and the arrival source that reads it damps away for about a fifth of the year. That is seasonally correct and entirely unmeasured — nobody has checked the gardeners come back at the right rate in spring, or that seventeen plots of bare earth read as resting rather than as a system that has died. The brief says measure first and decide from the numbers, and says explicitly that 'measured, it is correct, here are the numbers' is an acceptable shipped outcome. I would rather buy that answer once than carry the cue for another ten passes.\n\nRisk: one high, three medium, one low, and the low one is sequenced so it is not the comfortable option — it is the cleanup that the high-risk brief creates the need for.",
+  "queue": [
+    {
+      "id": "b20",
+      "domain": "Sky, light & weather",
+      "kind": "Deepen",
+      "brief": "The weather is the last system in this town still driven by a variable that stopped varying. `stepClouds()` decides every front with `const heavy = day >= 1 && R() < 0.3 + 0.24 * richness()`, the rain roll beneath it scales on `(0.6 + rich)`, and `richness()` is `clamp(day/16, 0, 1)` — pinned at 1 since real minute fifteen. Six other systems now read `season()`; this one reads a dead ramp. Put the fronts on the year: a winter of overcast that arrives more often, sits lower and lasts longer, against summer skies mostly clear and breaking into rarer, heavier showers. `frontLeft = 24 + R()*36` is the front cadence and is flat too. Anchor at `SEASON_START` exactly as #14, #17, #18 and #19 did, so day one is provably the town as it was.",
+      "seams": [
+        "stepClouds",
+        "richness",
+        "cloudTgt",
+        "frontLeft",
+        "cloudCover",
+        "raining",
+        "weatherComing",
+        "season",
+        "seasonPhase",
+        "daySpan",
+        "__entities"
+      ],
+      "successLooksLike": "A pinned January afternoon and a pinned July afternoon on the same seed are obviously different skies — one a low grey lid, one blue with a bank standing off — and a folded multi-year probe reports more overcast hours in winter and fewer but heavier showers in summer, with the annual rain total within reach of HEAD's.",
+      "avoid": "Do not add snow, fog, or a new precipitation type: this is the year arriving in a system that already exists, not a new system. Do not raise the total amount of rain — a diorama that is wet more of the time is worse to look at and the census cannot see the difference. Two things are folded in and both are part of the same seam, not extras. (1) c8: the rain roll is gated on `daylight > 0.15`, so a front peaking overnight builds full cover and can never rain — in an 11.5-hour winter day that is most of the clock, and it would make the season you have just made cloudiest the one least able to rain. `weatherComing()` also damps on daylight, for a different and still-correct reason (the town must not stand under umbrellas at midnight); do not conflate them. The question here is whether rain may START in the dark, not whether people anticipate it. (2) c35: rain is this brief's own feature and `motion.mjs` cannot see a raindrop — drops are screen-space and absent from `__entities()`. One line there plus a screen-space exemption from the world-bounds test buys you a gate that actually covers what you changed.",
+      "budgetMin": 35,
+      "risk": "high"
+    },
+    {
+      "id": "b21",
+      "domain": "Sky, light & weather",
+      "kind": "Polish",
+      "brief": "`cloudCover()` veils the sun's disc, but nothing on the ground was ever told. Every cast shadow in the town — walls and eaves, trees, people, the tile-level shadows — is thrown at a fixed alpha off `SUN[0]/SUN[2]`, so under 0.95 cover the sky is a grey lid and the lane beneath it is still full of crisp midday shadows. Under real overcast a shadow does not merely fade, it spreads, because the source stops being a point. Fade and soften the shadow sites together off ONE term read by all of them, neutral at low cover so a fair day is byte-identical. Why now: b20 turns heavy overcast from a rare event into most of a winter, so this goes from a cosmetic nit to a defect on screen for a large share of the year.",
+      "seams": [
+        "SUN",
+        "cloudCover",
+        "drawSunMoon",
+        "sunVec",
+        "project"
+      ],
+      "successLooksLike": "Pinned at one instant with cover forced to 0.1 and then to 0.95, the wide shot goes from hard-edged shadows to none worth the name, gradually rather than as a switch, and nothing else in the frame moves.",
+      "avoid": "Do not touch `sunVec` or the lit-side shading on roofs and ground — that is already veiled through the sky colours, and moving both is how you end up with a flat grey world instead of an overcast one. This brief is only the CAST shadows. One definition read by every site, not six separate tunings: there are roughly six call sites and they will drift apart within two iterations if you tune them individually.",
+      "budgetMin": 20,
+      "risk": "low"
+    },
+    {
+      "id": "b22",
+      "domain": "River & far bank",
+      "kind": "Deepen",
+      "brief": "The river has had one iteration in the last twelve and is the quarter of the town most identical in February and August. `updateBoat` spawns at a flat `R() < dt * 0.012`, always at `y = -7` heading south, always at speed 1.05; the water's flow is twelve anonymous streaks drawn inline in the frame loop at one speed and one colour, with no function and no name. Give the river its year: a rowboat is a fair-weather thing, so arrivals should thin in winter and be a common sight in high summer, and the water should run higher, faster and greyer in winter, slower and greener in summer. Name the flow so the next iteration has a symbol to reach for. Anchor at `SEASON_START` like every seasoned term before it.",
+      "seams": [
+        "updateBoat",
+        "byTheWater",
+        "boatWatch",
+        "boatSeq",
+        "RIVER_X0",
+        "RIVER_X1",
+        "TOW_X0",
+        "QUAY_X0",
+        "season",
+        "daySpan",
+        "warmth"
+      ],
+      "successLooksLike": "A folded multi-year probe reports boats per day with a clear summer:winter ratio that never reaches zero for a whole season, and pinned winter and summer shots of the same stretch of river show visibly different water.",
+      "avoid": "Do not add ice, a barge, or a second boat type — c18 says any new river event must read `byTheWater()` rather than re-deriving who can see the water, and this brief is not where that budget goes. Do NOT make winter boatless: the boat is the town's only long-travelling object and `boatWatch()`, the best behaviour this domain has, dies with it. Thin it, do not switch it off. If a seasonal rate would give a boatless January, floor the rate rather than accepting the gap.",
+      "budgetMin": 30,
+      "risk": "medium"
+    },
+    {
+      "id": "b23",
+      "domain": "Plaza & quay",
+      "kind": "Interaction/UX",
+      "brief": "`answersTouch()` answers BED, CBED, GRASS, WATER, SIDE and ROAD — and not PATH. So the plaza's roundel around the fountain and the whole courtyard path ring are dead to both the cursor and the click, and #20 found that `PAVING.plaza` has only ever fired on the plaza's 6x4 mouth onto the lane: 24 cells out of the world's 2,903 paved ones. The town advertised its clickability at #13 and then declined to answer on the surface a visitor's eye goes to first. Extend the answering surface to PATH and give those cells their entries in `PAVING`/`pavingAt`, so the words and the birds still cannot disagree about where you pointed.",
+      "seams": [
+        "answersTouch",
+        "PAVING",
+        "pavingAt",
+        "crumbSpot",
+        "PATH",
+        "SLOT",
+        "FOUNTAIN",
+        "RING",
+        "probes/touch-hint.mjs"
+      ],
+      "successLooksLike": "Clicking the roundel around the fountain says something true about the plaza and puts its birds on the plaza rather than in the lane; the cursor turns to a pointer over the courtyard path ring; `probes/touch-hint.mjs` reports the new share of the frame that answers, and the entry states the number.",
+      "avoid": "This moves the pointer's share of the frame, measured at 46% at #13 — re-measure it with `probes/touch-hint.mjs` and say the new number in the entry; do not ship this one on a screenshot. Do not add a seventh KIND of response: the roundel and the courtyard ring are paving, and paving takes crumbs. Watch that the courtyard path ring is a different shape from anything in `PAVING` — narrow and curved — so the three-birds-at-thirds staggering from #20 needs checking against it rather than assuming, since that is exactly the case the 0.9-cell law bites on.",
+      "budgetMin": 25,
+      "risk": "medium"
+    },
+    {
+      "id": "b24",
+      "domain": "Cross street & allotments",
+      "kind": "Deepen",
+      "brief": "The allotments inherit `bloomCap` through the shared `caTick` path, so crops do not ripen in deep winter: `harvestPlot()` stops, `ripePlots()` falls to zero, and `spawnAllotAgent`, whose rate reads it, damps away for roughly a fifth of the year. That is seasonally correct and completely unmeasured. MEASURE IT FIRST: fold `ripePlots()`, `spawnAllotAgent` fires and gardeners present across a multi-year run, and find out whether the gardeners come back at the right rate in spring and whether seventeen plots of bare earth read as resting or as a system that has died. Then decide from the numbers, and if a change is warranted make it the smallest true thing — a winter crop that stands, cloches, dug-over beds waiting.",
+      "seams": [
+        "harvestPlot",
+        "ripePlots",
+        "spawnAllotAgent",
+        "plotCrop",
+        "inAllotment",
+        "bloomCap",
+        "caTick",
+        "bAge",
+        "warmth",
+        "probes/beds-year.mjs"
+      ],
+      "successLooksLike": "A probe reports the allotments' whole year — ripe plots, arrival fires, gardeners present, by season — and EITHER the spring return is shown to be on time and correctly damped, OR a small change makes it so.",
+      "avoid": "Do not make the allotments productive in January to fix a number. Winter should be quiet; the question is whether it is quiet or broken. This brief is explicitly allowed to come back as 'measured, it is correct, here are the numbers' with no source change and a shipped probe — that is a genuine result and it will be logged as a no-ship, which is fine and expected. Do not spend the budget building a winter feature to avoid that outcome.",
+      "budgetMin": 25,
+      "risk": "medium"
+    }
+  ],
   "consumed": [
     {
       "id": "b1",

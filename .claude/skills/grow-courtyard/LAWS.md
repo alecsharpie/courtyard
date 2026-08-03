@@ -19,11 +19,10 @@ never read again. Format: `- **Short name.** One or two sentences. (learned at #
 - **The ledger is not the inventory.** The town predates the loop. Check
   `state.json`'s inventory *and* grep the source before adding anything — the
   previous loop nearly shipped beach towels onto a beach that already had them.
-- **Locate and probe before you judge.** When something looks wrong, find *where*
-  it is drawn first — half of "this looks bad" is "this is drawn in the wrong
-  pass" — then measure it. For a draw-only change a twenty-line probe beats a
-  confident visual opinion: three agents once looked at one bug and all three named
-  the wrong cause; a probe found it on the first run.
+- **Locate and probe before you judge.** When something looks wrong, find *where* it
+  is drawn first — half of "this looks bad" is "this is drawn in the wrong pass" —
+  then measure it. Three agents once looked at one bug and all three named the wrong
+  cause; a twenty-line probe found it on the first run.
 - **A screenshot cannot see motion.** Teleports, pop-in, flicker and draw-order
   strobing survive any number of stills. Use `motion.mjs` and `filmstrip.mjs` when
   your change touches anything that moves or is drawn per frame.
@@ -58,26 +57,49 @@ never read again. Format: `- **Short name.** One or two sentences. (learned at #
 - **Time-compress everything you build.** A day is 55 s, so "every third hour" is
   every ~7 s: an effect over ~2 s becomes state instead of an event, and a round
   trip over ~40 s leaves its walker permanently present whatever cap spawned it.
-  Caps set inflow, trip length sets the standing population. Measure duration
-  against the *day*. (#2, #5)
+  Measure duration against the *day*. Caps set inflow and trip length sets the
+  standing population — so **a cap floor is not a population floor**: a budget cut
+  anywhere in the day resurfaces hours later through walkers still finishing trips,
+  in a term nobody edited. Floor the arrival *rate* and let the untouched cap decide
+  where it settles. (#2, #5, #19)
 - **A slow world scalar wants a cap, a cycle and an anchor.** Rate-cap it, so "it
   never steps" is one measurable number. Prefer a cosine of a phase to a ramp — a
   ramp is an act that ends (`maturity()` and `richness()` had the whole town pinned
   at 1 by real minute 15) while a cycle is continuous through its own wrap. And
   write every term it replaces so that at the start phase it reduces *exactly* to
   the old constant, so day one is provably neutral and every gate failure is about
-  the new range, not the new algebra. (#3, #12, #14)
-- **When you turn a constant into a variable, hunt what was tuned against it.** The
-  rest of the file does not know it moved — it keeps reading its own hard-coded
-  number, and the two now disagree in a way nothing errors on. (#12)
+  the new range, not the new algebra. Neutrality is a claim about an **instant**, so
+  assert it at the instant — evaluate the terms at the anchor phase, never by
+  scanning a day that sits on it: a day is 1/26 of this year, enough drift to fail a
+  tolerance and send you looking at correct code. (#3, #12, #14, #18)
+- **When you turn a constant into a variable, hunt what was tuned against it — and
+  find the discontinuity it now has to live inside.** The rest of the file keeps
+  reading its own hard-coded number and the two disagree in a way nothing errors on.
+  Worse, the old constant was also *clear of* something: this world's day rolls at
+  `hour 6.00`, so any window a variable now drags across that seam evaluates against
+  the previous day and its `day`-derived predicates go false mid-window. The failure
+  is not an error, it is a pop. Grep for what the constant was clear of, not only for
+  what read it. (#12, #18)
+- **A deliberately flat peak bounds the swing you can get out of a scalar.** Daylight
+  is 1.0 at noon in every season on purpose, so the range available from it is the
+  *duration* ratio (17.5/11.5 = 1.52), and whatever fixed share each consumer carries
+  eats into that. Put the year on the varying term as a multiplier and leave the fixed
+  term alone: the fixed term is then the floor by construction, and the anchor stays
+  provably neutral. (#19)
 - **A ceiling is not a kill term.** If a system already ages out whatever sits at
   its ceiling, lowering the ceiling empties it by itself; a removal term on top
   double-counts and reads as a cull. Give any global scalar that can approach zero
   per-cell variance (`hash(x, y+k) > c`) or the effect reads as a switch — ~1/7 of
   beds held at the full ceiling is what makes winter a scatter of blooms in turned
   earth instead of an empty grid. (#14)
-- **Two figures nearer than ~0.9 cells render as one shape.** A queue, a bench, a
-  haggle, a conversation — all have to hold people apart to read at all. (#4)
+- **Two figures nearer than ~0.9 cells render as one shape**, so a queue, a bench, a
+  haggle, a conversation all have to hold people apart to read at all — and **fit a
+  scatter by moving its centre, not by clamping its members.** Clamping N placements
+  into a box independently is what collapses a deliberate spread back into a heap at
+  the box's edge, exactly where the code looks most careful; it put 2 of 3 birds
+  inside 0.9 cells in half of all cases, including code that had shipped. Fit the
+  pattern's centre first, then place relative to it, and the spread is guaranteed
+  instead of hoped for. (#4, #20)
 - **A feature that exists may exist at a rate of zero — count before you build on
   it.** A spawn band is a *share of a budget*, not a rate: `spawnLaneAgent` fires
   ~3.3×/day, so a 4% band is one person per twelve days. If it fires rarely, give
@@ -115,7 +137,10 @@ never read again. Format: `- **Short name.** One or two sentences. (learned at #
   sleeping in wall time lands somewhere else — a fixed wait jitters by many sim
   minutes, which is how two "same" shots came back a day apart. Drive with
   `?pause` + `__warp(t)`. And an instant is now a *phase as well as an hour*: hold
-  season fixed across any axis you vary, or the axis measures the season. (#9, #14)
+  **both** fixed across any axis you vary, or the axis measures the season — the
+  census ladder holds season but still varies the hour, so day-gated systems sample
+  unevenly; pinning both needs `t = 0` or `27.5` (mod 55) and those are the only two
+  hours that exist. A known, priced trade — do not re-derive it. (#9, #14, #16)
 - **`filmstrip.mjs`'s Δ is a whole-frame mean** — blind under ~2% of the canvas,
   loud about anything global. Crop to your feature (`probes/market-raise.mjs`).
   When it POPs, reproduce its exact world first (it seeds `?t=0` then `__warp(t)`,
@@ -123,13 +148,8 @@ never read again. Format: `- **Short name.** One or two sentences. (learned at #
   cell is weather or light, not your draw order. (#8, #9)
 - **Read `probes/` before writing a probe.** It is part of the seam and not in the
   read budget, so every iteration is one `ls` from re-solving a solved measurement.
-  Leave yours *inside the skill*, at `.claude/skills/grow-courtyard/probes/` — #9
-  wrote to a second `probes/` at the repo root and the ledger cited a file the repo
-  did not have. (#7, #9)
+  Leave yours at `.claude/skills/grow-courtyard/probes/`, inside the skill. (#7, #9)
 - **A CA rule that makes a region coherent makes it monotonous.** Check what
   neighbourhood inheritance does to *variety* over many cycles, not just the cycle
   in front of you — plot-coherent re-sowing was right and quietly lost two of the
   four vegetables. Something has to reset it. (#7)
-- **A queued line that depends on another is not an independent entry.** Bind it as
-  a follow-on enqueued at the *display* time of its antecedent, or a drop-oldest
-  queue will eventually show the reply without the remark. (#10)

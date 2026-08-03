@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-03",
+  "updated": "2026-08-04",
   "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
   "phase": "expanding",
   "lastIteration": 20,
@@ -166,6 +166,9 @@
       ],
       "polish": [
         "pre17"
+      ],
+      "connect": [
+        18
       ]
     },
     "street": {
@@ -236,7 +239,8 @@
         12
       ],
       "harness": [
-        16
+        16,
+        11
       ]
     },
     "life": {
@@ -261,165 +265,92 @@
   "inventory": {
     "note": "What the town ALREADY CONTAINS, in the words a brief would use. Read before you build. The antidote to the previous loop's terminal failure: nine consecutive iterations that each surveyed the world, found everything already existed, and exited.",
     "courtyard": [
-      "walled garden with an organic bed ring; four arch entrances (two TUNNEL, two SLOT)",
-      "planting CA — 11 species, bloom stages, seeds spreading from mature neighbours, crowding and age dieback; rain accelerates every growth term",
-      "daisies in the lawn, desire paths from foot wear, benches, a sweeper (05.00-06.30), ivy on the gatehouse",
-      "one big courtyard linden (drawTree, CX/CY), sized on maturity(), hard-coded summer green",
-      "the beds read the YEAR — growF()/dieF()/bloomCap() off warmth, plus lawn health in groundCol and the ivy. bloomCap is a CEILING, not a kill term; per-cell hardiness holds ~1/7 of cells at the full ceiling, so winter is a scatter of blooms in turned earth rather than an empty grid. probes/beds-year.mjs",
-      "Seasonal leaf fall: leafFallF() replaces richness() in the leaves spawner; gust multiplies rather than overrides it; falling leaves take leafCol() so a leaf matches the tree it fell from. R() draw count unchanged."
+      "walled garden, organic bed ring, four arch entrances (two TUNNEL, two SLOT), benches, desire paths from foot wear, daisies in the lawn, ivy on the gatehouse, a sweeper before dawn",
+      "planting CA — 11 species, bloom stages, seeding from mature neighbours, crowding and age dieback; rain accelerates every growth term",
+      "the beds read the YEAR — growF()/dieF()/bloomCap() off warmth, lawn health in groundCol; bloomCap is a CEILING not a kill term, and per-cell hardiness holds ~1/7 of cells at it, so winter is blooms scattered in turned earth. probes/beds-year.mjs",
+      "one courtyard linden (drawTree, CX/CY); its canopy and leaf fall are seasonal — see street"
     ],
     "lane": [
-      "kiosk (07.30-18.30), pavement cafe with tables, awnings, washing lines, planters, street lamps, benches",
-      "market day every 4th day, three stalls, marketActive() 08.00-17.00",
-      "washing comes in before the rain — per-garment thresholds, ~1.6 s fades on weatherComing(), plus a dusk ramp; never all in one frame",
-      "market put up and packed away — marketRaise(i), a per-stall staggered 0..1 progress (06.90-08.00 up, 17.00-18.10 down) staging trader/trestle/frame/canvas/goods as clamps on it",
-      "working day hung off the sun: kioskOpen/marketActive/marketRaise/sweeper/wind announcement are offsets from sunUp/sunDown, neutral at SEASON_START. marketOpen()/marketClose() are the one definition of the market's ends; MK_MIN_SPAN floors winter at 7h, MK_EARLIEST keeps the summer stall-raise inside its own sim day"
+      "kiosk, pavement café with claimable tables, awnings, washing lines, planters, street lamps, benches",
+      "market day every 4th day, three stalls; marketRaise(i) stages each stall up and down as clamps on one 0..1 progress",
+      "washing comes in before the rain — per-garment thresholds on weatherComing(), plus a dusk ramp; never all in one frame",
+      "the working day hangs off the SUN — kioskOpen/marketOpen/marketClose/marketRaise/sweeper/wind announcement are offsets from sunUp/sunDown, neutral at SEASON_START. MK_MIN_SPAN floors winter at 7h; MK_EARLIEST keeps the summer stall-raise inside its own sim day. probes/working-day.mjs"
     ],
     "street": [
-      "cross street with two footways, roadway, curbs; street lamps; four street trees in stone pits (TREE_PITS, drawLaneTree)",
-      "allotment block of 17 plots (buildGrid excludes the pond corner), timber fence, gates, shed, and an alley cut through the block",
-      "harvest cycle — harvestPlot() lifts a mature 3x2 bed whole, bAge doubles as a 12-20 s fallow clock, then it is re-sown as a row under plotCrop()",
-      "spawnAllotAgent() — the allotments' own arrival source, rate on ripePlots(); ~1.1 gardeners/day, ~1 plot cleared/day; they work 1-3 rows and walk out carrying a basket (a.crop)",
-      "census planting.harvested",
-      "Seasonal canopy on all 13 trees (drawTree + drawLaneTree): leafOut/leafFresh/leafDeep/leafTurn/leafShed + leafCol(base,k) — coverage staged as per-blob clamps on one 0..1 progress, bare in winter behind drawBoughs() tapered boughs, thin+light in spring, dark in summer, patchy amber in autumn. All read seasonPhase, not warmth.",
-      "Orchard year on the existing fruit:1 flag: blossomF() (white crown, out ahead of the leaves) and fruitF() (apples green->red, gone before the tree is bare)"
+      "cross street with two footways, roadway, curbs, street lamps, four street trees in stone pits (TREE_PITS, drawLaneTree)",
+      "allotment block of 17 plots, timber fence, gates, shed, an alley cut through the block",
+      "harvest cycle — harvestPlot() lifts a mature 3x2 bed whole, bAge doubles as a 12-20 s fallow clock, then re-sown as a row under plotCrop(). census planting.harvested",
+      "spawnAllotAgent() — the allotments' own arrival source, rate on ripePlots(); ~1.1 gardeners/day, ~1 plot cleared/day, out again carrying a basket (a.crop)",
+      "seasonal canopy on all 13 trees — leafOut/leafFresh/leafDeep/leafTurn/leafShed + leafCol(base,k), bare in winter behind drawBoughs()' tapered boughs, patchy amber in autumn; reads seasonPhase, not warmth. leafFallF() drives the falling leaves. probes/canopy-year.mjs, probes/year-strip.mjs",
+      "orchard year on the existing fruit:1 flag — blossomF() (white crown, out ahead of the leaves) and fruitF() (green->red, gone before the tree is bare)"
     ],
     "plaza": [
-      "plaza with a fountain and a paved roundel, four tree pits, benches",
-      "quay along the river with benches",
-      "spawnEastAgent() — the east quarter's own arrival source (eastCap/eastRate, a.east, excluded from laneCount, eastOpen() on daylight>0.16); enters by the alley, the quay head or the park gate, visits one stop, leaves the way it came",
-      "census life.inEast"
+      "plaza with a fountain and a paved roundel (the roundel is PATH), four tree pits, benches; quay with benches along the river",
+      "spawnEastAgent() — the east quarter's own arrival source (eastCap/eastRate, a.east, excluded from laneCount, eastOpen() on daylight>0.16); enters by the alley, the quay head or the park gate, visits one stop, leaves the way it came. census life.inEast",
+      "PAVING + pavingAt(x,y) — the ONE predicate naming which paving a SIDE/ROAD cell is: lane, bridge deck, cross street, plaza mouth, quay, towpath. Each carries its own crumbs line AND the box its birds land in. crumbSpot() staggers three birds along the long axis, never under 3 cells. probes/paving-places.mjs"
     ],
     "river": [
-      "river with a boat, three-arch bridge, towpath, church with tower and nave, bandstand, four orchard trees (drawLaneTree fruit:1), jetty, park gate",
+      "river, a rowboat, three-arch bridge, towpath, church with tower and nave, bandstand, four orchard trees, jetty, park gate",
       "pigeons that flush off the belfry when the bell rings, from a finite roost that refills",
       "boatWatch() — anyone byTheWater() (quay and rail, bridge deck, towpath) gets one glance per passing boat (a.watch ~1.4 s, ticked at the top of stepAgent so it never holds anybody); ~2.1 glances per boat",
-      "a parapet stop mid-span (PARAPET_Y, PARAPET_Z 1.0), served mainly from spawnEastAgent; somebody is on the bridge ~12% of daylight"
+      "a parapet stop mid-span (PARAPET_Y, PARAPET_Z 1.0), served mainly from spawnEastAgent; somebody is on the bridge ~12% of daylight",
+      "the water's flow — 12 drifting streaks drawn INLINE in the frame loop, no function and no name, one speed and one colour all year; updateBoat spawns one boat at a flat R() < dt*0.012, always north to south, always speed 1.05"
     ],
     "sky": [
-      "day/night cycle (55 s day), sun and moon arc, backdrop hills, wind days, night window lighting, chimney smoke, a balloon",
-      "cloudCover() — one slow rate-capped scalar; fronts build over ~half a day and break after rain, rain is gated on it so it never rains from a clear sky, sun and moon veiled, stars put out, drifting banks",
+      "day/night cycle (55 s day), sun and moon arc, backdrop hills, wind days (isWindy), night window lighting, chimney smoke, a balloon",
+      "cloudCover() — one slow rate-capped scalar; fronts build over ~half a day and break after rain; rain is gated on it so it never rains from a clear sky; sun and moon veiled, stars put out, drifting banks",
       "weatherComing() — one ramped rain-is-coming predicate off cloudCover(), damped by daylight so overcast nights read 0; three readers at their own trigger points",
-      "season() — the YEAR: a cyclic scalar over SEASON_LEN 26 days (~24 real min), phase 0 = midwinter, anchored at 0.25 where warmth = 0.5 and every seasoned term equals the constant it replaced. Rate-capped, continuous through the wrap. TWO sky readers only — day length (dayHours 11.5..17.5 about SOLAR_NOON 12.75; sunUp/sunDown/sunArc/timeLabel) and light (sunVec, the disc's arc and colour, skyCols, roof key). Population breathes only ~15%, floor 7 people. census clock.season",
-      "rainFall — a 0..1 shower intensity beside the raining boolean; drops, the overcast tint, pond rings, water sparkle and chimney smoke all read it, so a shower thins out over ~3 s (RAIN_TAIL 2.2 s plus one fall time) instead of cutting",
-      "probes/canopy-year.mjs (anchor neutrality, year curve, canopy pixel footprint by suppress-and-diff) and probes/year-strip.mjs (26-day cropped year contact sheet)"
+      "rainFall — a 0..1 shower intensity beside the raining boolean; drops, the overcast tint, pond rings, water sparkle and chimney smoke all read it, so a shower thins out over ~3 s instead of cutting",
+      "season() — the YEAR. A cyclic scalar over SEASON_LEN 26 days (~24 real min), phase 0 = midwinter, anchored at 0.25 where every seasoned term equals the constant it replaced; rate-capped, continuous through its wrap. READERS: day length, light, the courtyard beds, all 13 trees, the working day, the population caps. NOT YET: the weather fronts (stepClouds still on richness()) and the river. census clock.season"
     ],
     "life": [
-      "walkers with itineraries, courtyard and street; eastern itineraries: plaza bench, fountain gaze, quay rail, quay bench, towpath, church green, allotment plot, bridge parapet",
-      "cafe sitters who claim and release a table; market and kiosk browsers",
-      "ducks, swans, butterflies, fireflies, birds, one night cat, falling leaves (gated on day>=4 or gusty, and on richness() — not on the season)",
+      "walkers with itineraries, courtyard and street; eastern itineraries — plaza bench, fountain gaze, quay rail, quay bench, towpath, church green, allotment plot, bridge parapet",
+      "café sitters who claim and release a table; market and kiosk browsers",
+      "ducks, swans, butterflies, fireflies, birds, one night cat, falling leaves",
       "a clock that strikes and a church bell that answers it at nine and eighteen from day 2; walkers break stride and look up while it rings (a.listen)",
       "greetPass — two passing within 0.9-1.6 cells may stop, turn and talk (a.greet, chatCool); ~2 conversations a minute",
-      "street sitters read the sky (refuse above weatherComing() 0.42, released over 0.55..0.88 off a per-agent a.wary); courtyard sitters excluded. Umbrellas up over 0.62..1.17, so ~30% get caught out",
-      "THE DIORAMA IS CLICKABLE and has been since before the loop — a bed takes seeds of a real species, the lawn a daisy, the pond crumbs (ducks converge), the fountain a coin, the river a pebble, paving crumbs (birds land). answersTouch(x,y) is the ONE predicate for 'this cell answers': cursor swaps to pointer on it (46% of the frame), handler guards on it. ONE ticker invitation, once ever, at 8 REAL seconds, cancelled if the viewer clicks first, stood down on ?pause. probes/touch-hint.mjs",
-      "the ticker is an ordered queue, not an overwrite — TICK_DWELL 2.5 real s, cap 2, 6 s staleness cut; a follow-on line enqueues only when its antecedent is DISPLAYED, and a line may buy its own dwell (lineDwell)",
-      "__entities() carries role, act and watch per person — the seam a behaviour probe reads instead of a bespoke hook",
-      "the year is felt in how busy the town is — yearBusy(ex) multiplies the DAYLIGHT term of capacity/laneCap/eastCap only, never their fixed share, so the anchor and every night are provably unchanged; read off daySpan() (day length 0..1), not warmth. Exposure differs by source: EX_COURT 0.5 (walled), EX_LANE 1.0, EX_EAST 1.25. eastCap keeps Math.min(7,…) for c10 — summer reaches the ceiling earlier, never raises it. Folded 2-year summer:winter ratio 1.09 -> 1.56 total (courtyard 1.26, lane 1.94, east 2.10), settled mean unchanged at ~21.5. POP_FLOOR 8 + scarcity: a lift on the three arrival RATES only, never the caps, holding the absolute floor at 8 people. probes/season-year.mjs now reports population per arrival source",
-      "PAVING + pavingAt(x,y) — the ONE predicate naming which paving a SIDE/ROAD cell is: lane, bridge deck, cross street, plaza mouth, quay, towpath. Each entry carries its own crumbs line AND the box its birds land in, so the words and the birds cannot disagree. crumbSpot() staggers the three birds at thirds of the place's long axis (never under 3 cells) and fits the scatter by moving its CENTRE, so a two-cell quay still reads as three. probes/paving-places.mjs (--shot for the eye check)"
+      "street sitters read the sky — refuse above weatherComing() 0.42, released over 0.55..0.88 off a per-agent a.wary; COURTYARD sitters do not (c11). Umbrellas up over 0.62..1.17, so ~30% get caught out",
+      "THE DIORAMA IS CLICKABLE and has been since before the loop — a bed takes seeds of a real species, the lawn a daisy, the pond crumbs (ducks converge), the fountain a coin, the river a pebble, paving crumbs (birds land). answersTouch(x,y) is the ONE predicate for 'this cell answers': BED/CBED/GRASS/WATER/SIDE/ROAD — NOT PATH. Cursor swaps to pointer on it (46% of the frame), handler guards on it. ONE ticker invitation, once ever, at 8 REAL seconds, cancelled if the viewer clicks first. probes/touch-hint.mjs",
+      "the ticker is an ordered queue, not an overwrite — TICK_DWELL 2.5 real s, cap 2, 6 s staleness cut; a follow-on enqueues only when its antecedent is DISPLAYED (lineDwell)",
+      "__entities() carries role, act and watch per person — the seam a behaviour probe reads instead of a bespoke hook. It does NOT carry raindrops, which are screen-space (c35)",
+      "the year is felt in how busy the town is — yearBusy(ex) multiplies the DAYLIGHT term of capacity/laneCap/eastCap only, never their fixed share, read off daySpan(). EX_COURT 0.5, EX_LANE 1.0, EX_EAST 1.25; eastCap keeps Math.min(7,…) for c10. POP_FLOOR 8 + scarcity lifts the three arrival RATES only, never the caps. Folded summer:winter 1.09 -> 1.56. probes/season-year.mjs"
     ]
   },
   "openCues": [
     {
-      "id": "c7",
-      "note": "The town still casts hard sun shadows under full overcast — drawSunMoon veils the disc, but the ~6 SUN[0]/SUN[2] shadow call sites use fixed alphas.",
-      "raisedBy": 2,
-      "seenBy": 3
-    },
-    {
-      "id": "c8",
-      "note": "Rain requires daylight>0.15, so a heavy front peaking overnight builds full cover, never rains, and breaks by morning — overcast nights are commoner than rain.",
-      "raisedBy": 2,
-      "seenBy": 3
-    },
-    {
       "id": "c10",
-      "note": "East agents retrace their inbound route exactly, so arrivals sharing a gate walk single-file; would queue if eastCap rose much above 7",
+      "note": "East agents retrace their inbound route exactly, so arrivals sharing a gate walk single-file and would read as a queue if eastCap rose much above 7. #19 did not raise the ceiling but does hold it for materially more of a summer day, so the defect is no worse per instant and is exposed for longer. UNWATCHED: nobody has looked at a summer afternoon at the park gate.",
       "raisedBy": 4,
-      "seenBy": 3
+      "seenBy": 3,
+      "seenByManager": 1
     },
     {
       "id": "c11",
       "note": "Courtyard sitters (picnic, sitter) do not read the sky — only a.street agents do. Their sit is assigned at a waypoint with no route left, so refusing it would despawn them mid-lawn; extending it inland needs routeToExit() on refusal.",
       "raisedBy": 5,
-      "seenBy": 2
+      "seenBy": 2,
+      "seenByManager": 1
     },
     {
       "id": "c18",
       "note": "byTheWater() names the three places a person can see the river, and only boatWatch reads it. Any future river event (a swan taking off, ice, a barge) should read that predicate, not re-derive it.",
       "raisedBy": 8,
-      "seenBy": 2
-    },
-    {
-      "id": "c25",
-      "note": "stepClouds' heavy-front probability reads richness(), which pins at day 16 — WEATHER IS THE LAST SLOW SYSTEM STILL ON A ONE-WAY RAMP. season() is available to it. Strongest cue on the board; next batch unless something displaces it.",
-      "raisedBy": 10,
-      "seenBy": 1
-    },
-    {
-      "id": "c30",
-      "note": "The allotments inherit bloomCap through the shared caTick path, so crops do not ripen in deep winter, harvestPlot stops and ripePlots()->0 damps their arrival source for ~a fifth of the year. Seasonally true and UNMEASURED — nobody has checked the gardeners come back at the right rate in spring.",
-      "raisedBy": 13,
-      "seenBy": 1
-    },
-    {
-      "id": "c34",
-      "note": "The census ladder holds season fixed but still varies the HOUR (21.27/14.73/21.27), so day-gated systems sample unevenly. Fixing hour AND season needs t = 0 or 27.5 (mod 55) — exactly two hours exist, 06.00 and 18.00, both awkward (dawn is empty; 18.00 is inside market pack-down and the bell). A real trade, derived at #16 — do not re-derive.",
-      "raisedBy": 16,
-      "seenBy": 0
-    },
-    {
-      "id": "c35",
-      "note": "motion.mjs watches rain as a POPULATION (census life.raindrops), not per drop: raindrops are screen-space and absent from __entities(). A drop that goes NaN or strobes is still invisible; needs one line in __entities() plus a screen-space exemption from motion.mjs's world-bounds test.",
-      "raisedBy": 16,
-      "seenBy": 0
-    },
-    {
-      "id": "c36",
-      "note": "#16's census ladder change is a step in the published growth curve: planted 4782 -> 6109 between #15 and #16 with no town change behind it. census-history.jsonl now carries a 'ladder' field; stats.html plots RUNLOG census scalars and knows nothing about it.",
-      "raisedBy": 16,
-      "seenBy": 0
+      "seenBy": 2,
+      "seenByManager": 1
     },
     {
       "id": "c37",
       "note": "maturity() still sizes all 13 trees off a ramp pinned at day 8 — a tree is the same size in its first winter as its fifth. Left alone on purpose (b16 forbade seasonal size); leafOut is now the seam that would make a slow multi-year growth term read as growth rather than glitch.",
       "raisedBy": 16,
-      "seenBy": 0
-    },
-    {
-      "id": "c38",
-      "note": "context-budget printed OVER at the start of #17 (48.8 KB vs 46 KB cap: LEDGER 15.9, SKILL 11.8, LAWS 9.4, state 9.4) and #17's ledger entry makes it worse. Distil this pass.",
-      "raisedBy": 16,
-      "seenBy": 0
-    },
-    {
-      "id": "c39",
-      "note": "the sim day rolls at hour 6.00, so any window a seasonal variable drags below 6.00 evaluates against the PREVIOUS day and its day-derived predicates go false mid-window; MK_EARLIEST clamps the market for exactly this reason and nothing else is currently near the seam",
-      "raisedBy": 17,
-      "seenBy": 0
-    },
-    {
-      "id": "c40",
-      "note": "eastCap now sits at its 7-person ceiling for materially more of a summer day; the ceiling is unchanged so c10 is no worse per instant, but it is exposed for longer and nobody has watched a summer afternoon at the park gate for the single-file retrace reading as a queue",
-      "raisedBy": 17,
-      "seenBy": 0
+      "seenBy": 0,
+      "seenByManager": 1
     },
     {
       "id": "c41",
       "note": "scarcity (POP_FLOOR rail) also fires in the first sim minute when the town is legitimately empty, so the opening fill is hurried vs HEAD (day 4 mid-morning 13 -> 18 people). maturity() still bounds it, but minute one is now a servo rather than a ramp",
       "raisedBy": 17,
-      "seenBy": 0
-    },
-    {
-      "id": "c42",
-      "note": "context-budget printed OVER at 53.6 KB against a 46 KB cap at the start of #19 (worse than c38's 48.8): LEDGER 18.9, SKILL 11.8, state 11.4, LAWS 9.4. Rotation is overdue.",
-      "raisedBy": 19,
-      "seenBy": 0
-    },
-    {
-      "id": "c43",
-      "note": "answersTouch() does not answer PATH, so the plaza roundel around the fountain and the whole courtyard path ring are dead to cursor and click. PAVING.plaza only fires on the plaza's 6x4 MOUTH onto the lane — 24 of the world's 2903 paved cells. Extending the surface to PATH is a real vector but moves the cursor's 46% share and needs touch-hint.mjs re-measured.",
-      "raisedBy": 19,
-      "seenBy": 0
+      "seenBy": 0,
+      "seenByManager": 1
     }
   ],
   "watch": [
@@ -428,8 +359,8 @@
       "since": 0
     },
     {
-      "note": "The year (#12) has TWO readers in the sky and one in the courtyard beds. Everything else — the trees, the working hours, the population caps, the weather fronts, the river — still runs on a constant or a one-way ramp. Before briefing anything, ask whether it should read warmth. Same question for cloudCover(), which still has one reader through weatherComing().",
-      "since": 15
+      "note": "The year (#12) now has SIX readers — day length, light, the courtyard beds, all 13 trees, the working day, the population caps. Exactly two systems still run on a constant or a one-way ramp: the WEATHER (stepClouds’ front probability and the rain roll both scale on richness(), which pins at day 16) and the RIVER (boat rate, boat speed, flow streaks, all flat). b20 and b22 spend both. When they land, delete this note — the question \"should this read the year?\" will have been asked everywhere it pays.",
+      "since": 20
     }
   ],
   "closedCues": [
@@ -640,6 +571,78 @@
       "seenBy": 0,
       "closedBy": 15,
       "reason": "CLOSED at pass #15 — folded into the sky inventory line, which now says ~3 s rather than repeating RAIN_TAIL. The general lesson went into the #15 law."
+    },
+    {
+      "id": "c7",
+      "closedAt": 20,
+      "why": "promoted to b21 at pass #20 — hard shadows under full overcast",
+      "was": "The town still casts hard sun shadows under full overcast — drawSunMoon veils the disc, but the ~6 SUN[0]/SUN[2] shadow call sites use fixed alphas."
+    },
+    {
+      "id": "c8",
+      "closedAt": 20,
+      "why": "folded into b20 at pass #20 — the overnight-front rain gate is part of putting weather on the year",
+      "was": "Rain requires daylight>0.15, so a heavy front peaking overnight builds full cover, never rains, and breaks by morning — overcast nights are commoner than rain."
+    },
+    {
+      "id": "c25",
+      "closedAt": 20,
+      "why": "promoted to b20 at pass #20 — the last one-way ramp",
+      "was": "stepClouds' heavy-front probability reads richness(), which pins at day 16 — WEATHER IS THE LAST SLOW SYSTEM STILL ON A ONE-WAY RAMP. season() is available to it. Strongest cue on the board; next batch unless something displaces it."
+    },
+    {
+      "id": "c30",
+      "closedAt": 20,
+      "why": "promoted to b24 at pass #20 — the allotments in deep winter, measured",
+      "was": "The allotments inherit bloomCap through the shared caTick path, so crops do not ripen in deep winter, harvestPlot stops and ripePlots()->0 damps their arrival source for ~a fifth of the year. Seasonally true and UNMEASURED — nobody has checked the gardeners come back at the right rate in spring."
+    },
+    {
+      "id": "c34",
+      "closedAt": 20,
+      "why": "closed at pass #20: the trade is real and is now recorded in the pin-the-instant law (hold season AND hour). Kept as an open cue it was re-charging every worker for a decision already made",
+      "was": "The census ladder holds season fixed but still varies the HOUR (21.27/14.73/21.27), so day-gated systems sample unevenly. Fixing hour AND season needs t = 0 or 27.5 (mod 55) — exactly two hours exist, 06.00 and 18.00, both awkward (dawn is empty; 18.00 is inside market pack-down and the bell). A real trade, derived at #16 — do not re-derive."
+    },
+    {
+      "id": "c35",
+      "closedAt": 20,
+      "why": "folded into b20 at pass #20 — rain is that brief’s own feature, so it is that brief that must be able to see it",
+      "was": "motion.mjs watches rain as a POPULATION (census life.raindrops), not per drop: raindrops are screen-space and absent from __entities(). A drop that goes NaN or strobes is still invisible; needs one line in __entities() plus a screen-space exemption from motion.mjs's world-bounds test."
+    },
+    {
+      "id": "c36",
+      "closedAt": 20,
+      "why": "closed at pass #20: nothing is wrong. census-history carries the ladder field for later analysis; stats.html plots RUNLOG scalars and does not need it. Not worth a brief",
+      "was": "#16's census ladder change is a step in the published growth curve: planted 4782 -> 6109 between #15 and #16 with no town change behind it. census-history.jsonl now carries a 'ladder' field; stats.html plots RUNLOG census scalars and knows nothing about it."
+    },
+    {
+      "id": "c38",
+      "closedAt": 20,
+      "why": "closed at pass #20 by DOING it — ledger rotated, #18-20 condensed into the archive, inventory back to nouns, cues 19 -> 5",
+      "was": "context-budget printed OVER at the start of #17 (48.8 KB vs 46 KB cap: LEDGER 15.9, SKILL 11.8, LAWS 9.4, state 9.4) and #17's ledger entry makes it worse. Distil this pass."
+    },
+    {
+      "id": "c39",
+      "closedAt": 20,
+      "why": "closed at pass #20: promoted into the discontinuity law in LAWS.md",
+      "was": "the sim day rolls at hour 6.00, so any window a seasonal variable drags below 6.00 evaluates against the PREVIOUS day and its day-derived predicates go false mid-window; MK_EARLIEST clamps the market for exactly this reason and nothing else is currently near the seam"
+    },
+    {
+      "id": "c40",
+      "closedAt": 20,
+      "why": "merged into c10 at pass #20 — same defect, later observation",
+      "was": "eastCap now sits at its 7-person ceiling for materially more of a summer day; the ceiling is unchanged so c10 is no worse per instant, but it is exposed for longer and nobody has watched a summer afternoon at the park gate for the single-file retrace reading as a queue"
+    },
+    {
+      "id": "c42",
+      "closedAt": 20,
+      "why": "closed at pass #20 with c38 — same cue, third report",
+      "was": "context-budget printed OVER at 53.6 KB against a 46 KB cap at the start of #19 (worse than c38's 48.8): LEDGER 18.9, SKILL 11.8, state 11.4, LAWS 9.4. Rotation is overdue."
+    },
+    {
+      "id": "c43",
+      "closedAt": 20,
+      "why": "promoted to b23 at pass #20 — the answering surface reaches PATH",
+      "was": "answersTouch() does not answer PATH, so the plaza roundel around the fountain and the whole courtyard path ring are dead to cursor and click. PAVING.plaza only fires on the plaza's 6x4 MOUTH onto the lane — 24 of the world's 2903 paved cells. Extending the surface to PATH is a real vector but moves the cursor's 46% share and needs touch-hint.mjs re-measured."
     }
   ]
 }
