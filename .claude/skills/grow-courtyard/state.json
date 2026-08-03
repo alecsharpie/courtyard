@@ -251,35 +251,34 @@
     ],
     "lane": [
       "kiosk",
-      "pavement café with tables",
+      "pavement cafe with tables",
       "awnings",
       "washing lines strung over the lane",
       "market day every 4th day with three stalls",
       "planters",
       "street lamps",
       "lane benches",
-      "washing that comes in before the rain: the rope stays strung and garments leave one at a time on per-garment thresholds and ~1.6s fades, driven by weatherComing() and a dusk ramp — never all in one frame",
-      "market stalls that are put up and packed away: marketRaise(i) is a 0..1 progress staggered per stall (6.90-8.00 up, 17.00-18.10 down) and drawMarketStall stages trader, trestle, frame, canvas and goods as clamps on it, so running it backwards packs down in reverse. marketActive() still owns the open hours for laneRate and the browser roll. The ticker brackets the day at the first trestle and at the first stall coming down"
+      "washing that comes in before the rain — per-garment thresholds and ~1.6s fades on weatherComing() plus a dusk ramp, never all in one frame",
+      "market stalls put up and packed away — marketRaise(i), a per-stall staggered 0..1 progress (6.90-8.00 up, 17.00-18.10 down) staging trader/trestle/frame/canvas/goods as clamps on it; marketActive() still owns the open hours; the ticker brackets the day"
     ],
     "street": [
       "cross street with two footways, roadway, curbs",
       "street lamps",
       "street trees in pits",
-      "allotment block with 21 plots, timber fence, gates, shed",
-      "gardeners who walk in through the gate to a real bed cell and kneel to plant it",
+      "allotment block of 17 plots (buildGrid excludes the pond corner), timber fence, gates, shed",
       "an alley cut through the block",
-      "allotment harvest cycle — a mature 3x2 plot is lifted whole by the kneeling 'allot' gardener (harvestPlot), rests fallow 12-20s on bAge (which doubles as the fallow clock on an empty bed; dieback now zeroes it), then is re-sown as a row: first drill at 0.055, the other five at 0.30 under plotCrop(), so it comes back under one crop and usually a different one",
-      "spawnAllotAgent() — the allotments' own arrival source, rate 0.01 + 0.16*ripePlots()/17, gated daylight>0.3 and day>=1, cap 3. The crop calls its own picker: ~1.1 gardeners/day and ~1 plot cleared/day, against 0.06-0.22/day when they only came out of spawnLaneAgent's 0.36-0.42 roll band",
-      "gardeners work 1-3 rows a visit (a.rows, 0.55 to continue) and walk out carrying a basket of the crop (a.crop, drawn in drawPerson)",
-      "census planting.harvested — cumulative cells picked; the only field separating a picked plot from a died-back one"
+      "allotment harvest cycle — harvestPlot() lifts a mature 3x2 bed whole, bAge doubles as a 12-20s fallow clock, then it is re-sown as a row under plotCrop()",
+      "spawnAllotAgent() — the allotments own arrival source, rate scaling on ripePlots(); ~1.1 gardeners/day, ~1 plot cleared/day",
+      "gardeners work 1-3 rows a visit and walk out carrying a basket of the crop (a.crop)",
+      "census planting.harvested"
     ],
     "plaza": [
       "plaza with a fountain",
       "four planting pits",
       "benches",
       "quay along the river with benches",
-      "an arrival source of its own: spawnEastAgent() with eastCap/eastRate, agents flagged a.east and excluded from laneCount — they enter by the alley cut (plaza), the north end of the quay (quay) or the park gate arch (towpath, church green), visit one existing stop and leave the way they came; eastOpen() (daylight > 0.16) stops new arrivals, gets sitters up, and sends the walk home at 1.55x",
-      "census life.inEast — walkers east of the allotments, a partition of onStreet"
+      "spawnEastAgent() — the east quarter own arrival source (eastCap/eastRate, a.east, excluded from laneCount); enters by the alley, the quay head or the park gate, visits one stop, leaves the way it came; eastOpen() on daylight>0.16",
+      "census life.inEast"
     ],
     "river": [
       "river with a boat",
@@ -290,9 +289,9 @@
       "orchard",
       "jetty",
       "park gate",
-      "pigeons that flush off the church belfry when the bell rings, from a finite roost that refills",
-      "the boat is watched: boatWatch() gives anyone byTheWater() (quay and rail, bridge deck, towpath) one glance per boat as it draws level — a.watch, ~1.4s, ticked at the top of stepAgent so sitters get it too and nothing is ever held. drawPerson reads the live boat so the head tracks it, with an ease-out; standers turn, walkers keep their line. ~2.1 glances per boat",
-      "a parapet stop on the bridge — PARAPET_Y, mid-span, served from spawnEastAgent (roll 0.72-0.85) and thinly from spawnLaneAgent (0.58-0.62). Somebody is stood there ~12% of daylight. PARAPET_Z lowered 1.5 -> 1.0 so a leaner's head clears the coping by 4.0px against a 9.3px person"
+      "pigeons that flush off the belfry when the bell rings, from a finite roost that refills",
+      "the boat is watched — boatWatch() gives anyone byTheWater() (quay and rail, bridge deck, towpath) one glance per boat (a.watch, ~1.4s, ticked at the top of stepAgent so it never holds anybody); drawPerson tracks the live boat and standers turn. ~2.1 glances per boat",
+      "a parapet stop mid-span (PARAPET_Y, PARAPET_Z 1.0), served mainly from spawnEastAgent; somebody is on the bridge ~12% of daylight"
     ],
     "sky": [
       "day/night cycle (55 s day)",
@@ -303,135 +302,80 @@
       "night window lighting",
       "chimney smoke",
       "a balloon",
-      "cloud cover as one slow rate-capped scalar (cloudCover()) — fronts build over ~half a day and break up after rain · drifting cloud banks that fade in as cover thickens · rain gated on cover, so it never rains from a clear sky · sun and moon veiled · stars put out · roof key light flattened · overcast ticker lines",
-      "weatherComing(): one ramped predicate for 'rain is coming', off cloudCover() and damped by daylight so overcast nights (which cannot rain) read 0. Three readers at their own trigger points on the same scalar"
+      "cloudCover() — one slow rate-capped scalar; fronts build over ~half a day and break after rain, rain is gated on it so it never rains from a clear sky, sun and moon veiled, stars put out, drifting cloud banks",
+      "weatherComing() — one ramped rain-is-coming predicate off cloudCover(), damped by daylight so overcast nights read 0; three readers at their own trigger points"
     ],
     "life": [
       "walkers with itineraries, courtyard and street",
-      "eastern itineraries that already exist: plaza bench, fountain gaze, quay rail, quay bench, towpath, church green, allotment plot",
-      "café sitters who claim and release a table",
-      "market browsers and kiosk browsers",
+      "eastern itineraries: plaza bench, fountain gaze, quay rail, quay bench, towpath, church green, allotment plot, bridge parapet",
+      "cafe sitters who claim and release a table",
+      "market and kiosk browsers",
       "ducks",
       "swans",
-      "butterflies",
+      "butterflies (capped drift, 3 cells/s)",
       "fireflies",
       "birds",
       "one night cat",
       "falling leaves",
-      "a clock that strikes and a church bell that answers",
+      "a clock that strikes and a church bell that answers it at nine and eighteen from day 2",
       "an ambient ticker",
-      "walkers who break stride and look up while the bell is ringing (a.listen)",
-      "agents that notice each other: two who pass within 0.9–1.6 cells may stop, turn and talk a few seconds (greetPass, a.greet, chatCool), then walk on — ~2 conversations a minute",
-      "butterflies drift to their flower at a capped 3 cells/s instead of lunging across the courtyard",
-      "street sitters who read the sky: new sits refused above weatherComing() 0.42, existing sitters released over 0.55..0.88 off a stable per-agent a.wary (courtyard sitters excluded)",
-      "umbrellas that go up on the approach (weatherComing() 0.62..1.17, so ~30% never open one), put away below 0.42 and cleared when the rain stops",
-      "__entities() now carries role, act and watch on each person alongside position — the seam a behaviour probe reads instead of a bespoke hook per feature",
-      "the ticker is an ordered queue, not an overwrite: announce(txt, then) queues rather than clobbering, every line gets TICK_DWELL 2.5 real seconds of its own before the next takes the surface, and the queue is capped at 2 with a 6 s staleness cut so an unshowable line is dropped oldest-first rather than shown late. A follow-on line (the 'then' arg) is enqueued only when its antecedent is DISPLAYED, so a reply can never outlive the remark",
-      "the church bell answers the clock at nine and eighteen from day 2 — the branch was unreachable dead code (both hours are divisible by three, and it hung off an else-if under hInt%3===0); it is now nested inside the strike and rides as its follow-on ticker line, with one bellUntil write of simT+2.6 so an answered strike is a single longer flush"
+      "walkers who break stride and look up while the bell rings (a.listen)",
+      "agents that notice each other — two passing within 0.9-1.6 cells may stop, turn and talk (greetPass, a.greet, chatCool); ~2 conversations a minute",
+      "street sitters who read the sky (refuse above weatherComing() 0.42, released over 0.55..0.88 off a per-agent a.wary); courtyard sitters excluded",
+      "umbrellas up over weatherComing() 0.62..1.17, so ~30% get caught out",
+      "THE DIORAMA IS ALREADY CLICKABLE and nothing on screen says so — cv click + unproject(): a bed takes a handful of a real species, the lawn takes a daisy, the pond takes crumbs and the ducks converge like a small navy, the fountain takes a coin, the river takes a pebble, the lane takes crumbs and birds land. Built pre-loop, never advertised, and the coverage grid reads interaction=0 which is about the LOOP, not the town",
+      "__entities() carries role, act and watch per person — the seam a behaviour probe reads instead of a bespoke hook",
+      "the ticker is an ordered queue, not an overwrite — TICK_DWELL 2.5 real seconds per line, cap 2, 6 s staleness cut, and a follow-on line is enqueued only when its antecedent is DISPLAYED"
     ]
   },
   "openCues": [
     {
-      "id": "c1",
-      "note": "The town stops changing after ~15 real minutes. maturity() caps at day 8 and richness() at day 16; at a 55 s day that is 14.7 minutes, after which every progression term is pinned at 1. There is no season and no later act. This is the rung-4 lever that would reopen the whole board. STILL HELD at manager pass #5: four iterations have shipped cleanly, no stall signal has fired, and rungs 1-2 still have unmined ground (three domains untouched by the loop, four of seven kinds unused). Spend this the first time a batch comes back thin.",
-      "raisedBy": 0,
-      "seenBy": 2
-    },
-    {
-      "id": "c6",
-      "note": "state.mjs rewrites state.json with JSON.stringify(...,2), which explodes every inline array onto its own lines — the first write after a hand-edited file produced a 353-line diff for two inventory entries. HARNESS, not town: no worker brief can fix it. Now benign in practice because the file is already fully exploded, so every subsequent write is a clean diff. Downgraded from noise-risk to a cosmetic note; close it if it has not bitten by pass #12.",
-      "raisedBy": 2,
-      "seenBy": 1
-    },
-    {
       "id": "c7",
       "note": "The town still casts hard sun shadows under full overcast — drawSunMoon veils the disc, but the ~6 SUN[0]/SUN[2] shadow call sites use fixed alphas.",
       "raisedBy": 2,
-      "seenBy": 1
+      "seenBy": 2
     },
     {
       "id": "c8",
       "note": "Rain requires daylight>0.15, so a heavy front peaking overnight builds full cover, never rains, and breaks by morning — overcast nights are commoner than rain.",
       "raisedBy": 2,
-      "seenBy": 1
+      "seenBy": 2
     },
     {
       "id": "c9",
       "note": "chatCool is decremented only inside greetPass(); an early-out there would freeze the cooldown",
       "raisedBy": 3,
-      "seenBy": 1
+      "seenBy": 2
     },
     {
       "id": "c10",
       "note": "East agents retrace their inbound route exactly, so arrivals sharing a gate walk single-file; would queue if eastCap rose much above 7",
       "raisedBy": 4,
-      "seenBy": 1
-    },
-    {
-      "id": "c12",
-      "note": "RUNLOG.jsonl records secs=0, costUsd=0, turns=0, tokens=null on every worker row (iters 2-5); only the manager row carries real numbers. The exact metric that killed the previous loop — cost per iteration climbing while output stays flat — is therefore unmeasurable for the workers, and stall.mjs is averaging $0.28/iter off the one manager row that has data. HARNESS, not town: needs run-loop.sh or runlog.mjs to capture the worker session cost. Flagged to the human at pass #5.",
-      "raisedBy": 5,
-      "seenBy": 0
+      "seenBy": 2
     },
     {
       "id": "c11",
       "note": "Courtyard sitters (picnic, sitter kinds) do not read the sky — only a.street agents do. Their sit is assigned at a waypoint with no route left, so refusing it would despawn them mid-lawn; extending the effect inland needs routeToExit() on refusal.",
       "raisedBy": 5,
-      "seenBy": 0
-    },
-    {
-      "id": "c12",
-      "note": "The allotment block is 17 plots, not 21: buildGrid excludes x>=84 && y>=42 for the pond corner. Brief b6 and the inventory both said 21.",
-      "raisedBy": 6,
-      "seenBy": 0
+      "seenBy": 1
     },
     {
       "id": "c13",
       "note": "ripePlots() rescans 102 cells every spawn tick (1/s) to set an arrival rate — the first place a spawn rate reads the CA. Free at this size; cache it on the CA tick if anything else wants the pattern.",
       "raisedBy": 6,
-      "seenBy": 0
-    },
-    {
-      "id": "c14",
-      "note": "runlog.mjs derives srcChanged from --pre-blob, which only run-loop.sh supplies. A hand-invoked /grow-courtyard iteration therefore logs verdict 'no-ship' however much it shipped — iter 7 did exactly this and had to be re-derived with 'git rev-parse HEAD~1:courtyard.html'. HARNESS: runlog could fall back to HEAD~1's blob when --pre-blob is empty.",
-      "raisedBy": 7,
-      "seenBy": 0
-    },
-    {
-      "id": "c15",
-      "note": "filmstrip.mjs's whole-frame mean is blind to a change under ~2% of the canvas — it could not tell HEAD from the three-stalls-in-one-frame fix at all; crop to the feature (probes/market-raise.mjs)",
-      "raisedBy": 7,
-      "seenBy": 0
+      "seenBy": 1
     },
     {
       "id": "c16",
       "note": "marketRaise is the third hand-rolled staged-appearance clamp chain (washing, umbrellas, stalls); a fourth would justify a shared helper",
       "raisedBy": 7,
-      "seenBy": 0
-    },
-    {
-      "id": "c17",
-      "note": "Rain ends in a single frame: raining=false drops all ~110 raindrops and the wet sheen at once, while cover eases away over half a day. The arrival is ramped, the departure is a cut — and it is what a filmstrip POP in a rain window usually is.",
-      "raisedBy": 8,
-      "seenBy": 0
+      "seenBy": 1
     },
     {
       "id": "c18",
       "note": "byTheWater() names the three places a person can see the river. Only boatWatch reads it; any future river event (a swan taking off, ice, a barge) should read the same predicate rather than re-deriving it.",
       "raisedBy": 8,
-      "seenBy": 0
-    },
-    {
-      "id": "c19",
-      "note": "iteration 9's probes/parapet-and-boat.mjs sits at the repo root matched by an UNANCHORED .gitignore line, so it is cited in the ledger and absent from the repo — the exact failure the anchored /probe-*.mjs comment warns about. Move it into the skill's probes/ and drop the gitignore line, or delete it.",
-      "raisedBy": 9,
-      "seenBy": 0
-    },
-    {
-      "id": "c20",
-      "note": "runlog.mjs:72 runs 'git diff --numstat <blobA> <blobB> -- courtyard.html', which git rejects (a pathspec is illegal with a two-blob diff) — it prints git usage noise and returns nothing, so srcLines ALWAYS comes from the HEAD~1 fallback at :76, the very path the comment at :63-65 says was unreliable. Drop the '-- courtyard.html' pathspec. Separately: runlog.mjs needs --pre-blob from run-loop.sh, so a hand-invoked /grow-courtyard scores itself no-ship regardless of evidence (hit at iter 10; row rewritten by hand). HARNESS, not town.",
-      "raisedBy": 10,
-      "seenBy": 0
+      "seenBy": 1
     }
   ],
   "watch": [
@@ -472,6 +416,78 @@
       "seenBy": 1,
       "closedBy": 9,
       "reason": "fixed at iteration 10: announce() is an ordered queue and the church-answer branch is nested inside the strike as its follow-on line"
+    },
+    {
+      "id": "c1",
+      "note": "The town stops changing after ~15 real minutes. maturity() caps at day 8 and richness() at day 16; at a 55 s day that is 14.7 minutes, after which every progression term is pinned at 1. There is no season and no later act. This is the rung-",
+      "raisedBy": 0,
+      "seenBy": 2,
+      "closedBy": 6,
+      "reason": "PROMOTED to brief b11 at pass #6 (rung 4). Held for three passes; spent while the loop is healthy rather than waiting for it to go thin."
+    },
+    {
+      "id": "c6",
+      "note": "state.mjs rewrites state.json with JSON.stringify(...,2), which explodes every inline array onto its own lines — the first write after a hand-edited file produced a 353-line diff for two inventory entries. HARNESS, not town: no worker brief",
+      "raisedBy": 2,
+      "seenBy": 1,
+      "closedBy": 6,
+      "reason": "CLOSED as cosmetic at pass #6. state.mjs re-explodes arrays, but the file is already fully exploded so every write is a clean diff. It never bit. Not worth a worker read on every iteration."
+    },
+    {
+      "id": "c12",
+      "note": "RUNLOG.jsonl records secs=0, costUsd=0, turns=0, tokens=null on every worker row (iters 2-5); only the manager row carries real numbers. The exact metric that killed the previous loop — cost per iteration climbing while output stays flat — ",
+      "raisedBy": 5,
+      "seenBy": 0,
+      "closedBy": 6,
+      "reason": "PROMOTED to brief b10 at pass #6 — and the cause is now known and is worse than written. The worker runs runlog.mjs ITSELF and commits its own row; the runner then calls runlog.mjs with --elapsed/--raw/--pre-blob and gets \"already recorded — nothing to append\", so the authoritative row is discarded every iteration. Real durations exist in ~/Library/Logs/courtyard-grow.log (1143/1022/809/1642/1816/1237/921/1653/558 s) and reach RUNLOG.jsonl as secs=0."
+    },
+    {
+      "id": "c12",
+      "note": "The allotment block is 17 plots, not 21: buildGrid excludes x>=84 && y>=42 for the pond corner. Brief b6 and the inventory both said 21.",
+      "raisedBy": 6,
+      "seenBy": 0,
+      "closedBy": 6,
+      "reason": "PROMOTED to brief b10 at pass #6 — and the cause is now known and is worse than written. The worker runs runlog.mjs ITSELF and commits its own row; the runner then calls runlog.mjs with --elapsed/--raw/--pre-blob and gets \"already recorded — nothing to append\", so the authoritative row is discarded every iteration. Real durations exist in ~/Library/Logs/courtyard-grow.log (1143/1022/809/1642/1816/1237/921/1653/558 s) and reach RUNLOG.jsonl as secs=0."
+    },
+    {
+      "id": "c14",
+      "note": "runlog.mjs derives srcChanged from --pre-blob, which only run-loop.sh supplies. A hand-invoked /grow-courtyard iteration therefore logs verdict 'no-ship' however much it shipped — iter 7 did exactly this and had to be re-derived with 'git r",
+      "raisedBy": 7,
+      "seenBy": 0,
+      "closedBy": 6,
+      "reason": "FOLDED into b10 at pass #6 — same root cause as c12, not a separate --pre-blob bug."
+    },
+    {
+      "id": "c15",
+      "note": "filmstrip.mjs's whole-frame mean is blind to a change under ~2% of the canvas — it could not tell HEAD from the three-stalls-in-one-frame fix at all; crop to the feature (probes/market-raise.mjs)",
+      "raisedBy": 7,
+      "seenBy": 0,
+      "closedBy": 6,
+      "reason": "PROMOTED to LAWS.md at pass #6 (filmstrip whole-frame mean, blind under ~2% of canvas)."
+    },
+    {
+      "id": "c17",
+      "note": "Rain ends in a single frame: raining=false drops all ~110 raindrops and the wet sheen at once, while cover eases away over half a day. The arrival is ramped, the departure is a cut — and it is what a filmstrip POP in a rain window usually i",
+      "raisedBy": 8,
+      "seenBy": 0,
+      "closedBy": 6,
+      "reason": "PROMOTED to brief b14 at pass #6. Also the source of the false POP that cost iteration 9 a diagnosis."
+    },
+    {
+      "id": "c19",
+      "note": "iteration 9's probes/parapet-and-boat.mjs sits at the repo root matched by an UNANCHORED .gitignore line, so it is cited in the ledger and absent from the repo — the exact failure the anchored /probe-*.mjs comment warns about. Move it into ",
+      "raisedBy": 9,
+      "seenBy": 0,
+      "closedBy": 6,
+      "reason": "FOLDED into b10 at pass #6 (one file move plus a .gitignore line); the general lesson is now a law."
+    },
+    {
+      "id": "c20",
+      "note": "runlog.mjs:72 runs 'git diff --numstat <blobA> <blobB> -- courtyard.html', which git rejects (a pathspec is illegal with a two-blob diff) — it prints git usage noise and returns nothing, so srcLines ALWAYS comes from the HEAD~1 fallback at ",
+      "raisedBy": 10,
+      "seenBy": 0,
+      "closedBy": 6,
+      "reason": "FOLDED into b10 at pass #6 — the illegal two-blob pathspec is real, but it only ever mattered because the runner row was being dropped."
     }
   ]
 }

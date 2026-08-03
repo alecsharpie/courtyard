@@ -1,59 +1,91 @@
 {
-  "generated": "2026-08-03T12:55:00Z",
-  "byIteration": 5,
-  "rung": 2,
+  "generated": "2026-08-03T14:45:00Z",
+  "byIteration": 10,
+  "rung": 4,
   "diagnosis": {
-    "health": "Healthy, and the first four worker iterations are better than I expected. 4/4 shipped, zero reverts, zero briefs rejected, evidence verdict agrees with self-verdict every time, and the diffs are substantial rather than token: 46, 88, 86, 80 source lines. No stall signal has fired. Every iteration ran its gates in anger and three of the four caught something the gates alone would have let through. The one real defect is in the harness, not the town: RUNLOG.jsonl records secs=0, costUsd=0, turns=0, tokens=null on every worker row — only the manager row carries numbers — so the exact failure the loop was built to catch (cost per iteration climbing while output stays flat) is currently unmeasurable, and stall.mjs's $0.28/iter is an artefact of averaging one manager row across five. Raised as c12 and flagged to the human; it needs run-loop.sh, not a worker brief.",
+    "health": "Output is excellent and cost is unmeasured — and the second half of that sentence is the finding of this pass. 9/9 worker iterations shipped, zero reverts, zero briefs rejected, self-verdict agrees with the evidence verdict every single time, and the diffs are real: 46, 88, 86, 80, 86, 177, 108, 104, 68 source lines. No stall signal fires. But every worker row in RUNLOG.jsonl still reads secs=0 costUsd=0 turns=0 tokens=null, and I found the cause this pass rather than re-flagging it: the worker runs runlog.mjs ITSELF and commits its own row, so when run-loop.sh afterwards calls runlog.mjs with --elapsed, --raw and --pre-blob it hits the 'already recorded — nothing to append' guard at runlog.mjs:55 and discards the authoritative row. The real numbers exist and are simply thrown away: ~/Library/Logs/courtyard-grow.log has the last nine iterations at 1143, 1022, 809, 1642, 1816, 1237, 921, 1653 and 558 s. That series is flat-to-noisy rather than climbing, so the loop is probably fine — but 'probably' is exactly the word the previous loop could have used at iteration 300, and stall.mjs is currently averaging $0.21/iter off two manager rows and seven zeroes. c12, c14 and c20 were three symptoms of this one bug; they are now one brief at the head of the queue.",
     "signals": [
-      "iterations=5",
-      "shipped=4/4 workers",
+      "iterations=10",
+      "shipped=9/9 workers",
       "revertStreak=0",
-      "srcLines=46/88/86/80",
-      "laws=21/60",
-      "contextBudget=OK",
-      "workerCostUnrecorded=1"
+      "briefsRejected=0",
+      "srcLines=46/88/86/80/86/177/108/104/68",
+      "workerCostUnrecorded=9 (cause found: runlog.mjs:55)",
+      "laws=21->28 / 60",
+      "contextBudget=44.7 -> 42.6 KB",
+      "openCues=16 -> 8",
+      "courtyardDomainUntouched=9 iterations"
     ],
-    "balance": "By loop-work the grid is almost flat and almost empty: river, sky, life and plaza have one iteration each; Courtyard & garden, Lane & market and Cross street & allotments have had none at all. Cross street is the longest untouched of anything (pre7). By kind it is starker — the loop has used exactly two of seven: connect x2, deepen x2. new-element, new-ca, polish, interaction and scale are all at zero for the loop, and interaction and scale are at zero for the town's entire history including the 31 hand-driven iterations. This batch touches five different domains and four different kinds on purpose."
+    "balance": "Two things are out of true. First, Courtyard & garden — the thing the piece is named after — has had zero of the loop's nine iterations, and it is the most static part of the town precisely because it is the best built: every growth term saturates at maturity 1 and then holds. Second, by kind the loop has now used connect x2, deepen x4, new-ca x1, polish x2, and has never used new-element, Interaction/UX or Scale/World. This batch spends both of the unused kinds and puts two of its five briefs on the courtyard. Sky is the most-worked domain in the town's whole history and takes two here, which I accept because one of them is the world-scale brief that only lives in the sky by accident of where daylight is computed."
   },
-  "rationale": "Rung 2 again, deliberately and for the last time at this width. The rule is that a stall forces me up the ladder; nothing here is stalling, and rungs 1-2 still have obvious unmined ground — three domains the loop has never touched and five of seven kinds unused. Climbing now would be spending the strong moves out of impatience rather than need.\n\nThe diagnosis that shapes the batch: iterations 2-5 each shipped a system and each left it with fewer readers than it deserves, and that is now the town's characteristic shape. bellUntil was written and unread (fixed at #2). cloudCover() was added at #3 and has exactly ONE reader, the rain roll — a probe measured a 27 s median lead between cover crossing 0.5 and the first drop, and the town spends every second of it behaving as though the sky were clear. updateBoat has none. So b5 and b8 are the same move applied twice, at different scales.\n\nI checked four candidate gaps against the source before writing, per the standing watch note, and two died there. 'Nobody shelters from the rain' is wrong: umbrellas go up at line 1297, unumbrella'd walkers speed up 1.5x at 782, sitters get up at 765, and every spawn rate already scales by raining. What is actually missing is not the reaction but its *timing* — everything reacts to `raining`, a boolean that flips in a single frame, and nothing reads the half-day of warning that now exists. 'The allotments have no crop system' is also wrong: SPECIES carries four veg entries and speciesFor() splits the CA on inAllotment. What is missing there is the other half of the cycle — nothing is ever picked. Both survived as briefs, but as much smaller and more accurate ones than the versions I would have written from the cue list. I also corrected c11 outright: people do cross the bridge (the lane IS the bridge, 114 to 127 carried at y 66.4), they just never stop on it.\n\nOrdering. b5 first because it is the frontier and the batch's real bet — it touches the largest system added so far, it has a legibility trap and a pop trap in it, and it is the one that could fail. b6 is the risk-balanced middle. b7 fixes the single largest visual pop in the town and is the safest big-payoff item. b8 and b9 are small, close three cues between them, and are there so a stale plan still has cheap useful work at the end of it rather than the batch degrading into whatever the worker invents.\n\nStill NOT reaching for c1 (the world stops progressing after ~15 real minutes, rung 4). Second pass holding it. The condition for spending it is a batch that comes back thin, and this one has five briefs that each name a real absence I verified in the source. Nor am I briefing Courtyard & garden, which the loop has never touched — I looked, and it is the best-developed part of the town (CA ring, dieback, daisies, desire paths, sweeper, nappers, picnickers, butterflies, fireflies). Its gap is a rung-5 gap: there is no way to *read* the courtyard, only to watch it. That is the same shelf c1 sits on.",
-  "queue": [],
-  "consumed": [
+  "rationale": "Climbing to rung 4, and the reason is the timing rather than a signal.\n\nPass #5 wrote the condition down as 'spend c1 the first time a batch comes back thin'. That condition is wrong and I am overriding it deliberately. The batch did not come back thin — it came back 5/5. But the failure this loop was built against is a loop that only climbed once it was already thrashing, by which point it could not execute a hard change: iterations #346-360 of Solvista were an 80% revert rate, and a season is not something you attempt at an 80% revert rate. A rung-4 change is the most demanding thing this loop will ever do. Do it on the back of nine consecutive clean ships, not on the back of the first bad batch. c1 has also now survived three manager passes, and the standing rule is that such a cue is either a brief or a deletion.\n\nWhat c1 actually says: maturity() pins at day 8 and richness() at day 16, so at DAY_LEN 55 s every progression term in the town is at 1 by real minute 15. The day/night cycle, the weather and the market days keep running, but the arc is over, and a viewer who leaves the tab open for forty minutes sees the same town they saw at fifteen. b11 makes the world cyclic instead of stretching the ramp, and b13 is the reader that makes it mean anything — a season visible only in the sky is a lighting change.\n\nThe find that changed this batch. I went looking for the town's missing interaction because the coverage grid reads interaction=0, and the town has been clickable the whole time: cv's click handler unprojects to a cell and gives six different real responses — a bed takes a handful of a named species, the lawn takes a daisy, the pond takes crumbs and the ducks converge, the fountain takes a coin, the river takes a pebble, the lane takes crumbs and birds land — each with its own ticker line. The grid's empty column is a fact about the LOOP, not about the town, and it nearly bought me a brief for something that already exists, which is the exact trap the watch note describes and the third time this run has walked toward it. That is now written into the inventory in capitals. So b12 is not 'add interaction'; it is that the town's most delightful feature is undiscoverable, which is a much better brief and a genuinely rung-5 one.\n\nOrder. b10 first: it is small, it is the harness, and it restores the instrument before the expensive work — I would rather know what b11 costs. b11 second because it is the batch's bet and the thing I climbed for. b12 third because it is the highest payoff per line for a thirty-second viewer and I want it to actually run rather than sit at the tail. b13 fourth, after its dependency. b14 last, cheap and useful, so a stale plan degrades into a real small job rather than into whatever the worker invents.\n\nRisk is deliberately uneven: one high, two medium, two low. b11 can genuinely fail — it moves daylight, which every cap and every spawn rate in the town reads, so its blast radius is the whole census. That is the point of it and also why it carries an explicit floor: a viewer arriving in deep winter must not find a dead diorama.\n\nCuration, since it is half the job. Laws 21 -> 28, but that is nine promoted from iterations 6-10 minus two merges: the rate-versus-existence lesson had been paid for three times (a watch note at #0, re-derived from zero at #7 with the allotment gardeners at 0.06-0.22/day, re-entered from the other side at #9 with the parapet at one person per twelve days) and had produced two separate laws, which is the signature of a law that was not sharp enough — they are now one. The three probe-hygiene laws (#3 reseed, #6 one page.evaluate, #8 module-level latches) are now one law, superseding the #3 wording. Two filmstrip laws became one; the staged-appearance and crossfade laws became one. To pay for the growth I closed eight cues and compressed the inventory back to nouns, because the workers had been writing three-sentence implementation histories into it. Net: the worker's read budget went DOWN, 44.7 -> 42.6 KB, while the laws file grew — which is the only version of this that works.",
+  "queue": [
     {
-      "id": "b1",
-      "at": "2026-08-03T01:25:59.097Z"
+      "id": "b10",
+      "domain": "Sky, light & weather",
+      "kind": "Polish",
+      "brief": "This one is the harness, not the town. Every worker row in RUNLOG.jsonl reads secs=0, costUsd=0, turns=0, tokens=null, so the one metric this loop exists to catch — cost per iteration climbing while output stays flat — cannot be read at all. The cause is mechanical: the worker runs runlog.mjs itself and commits the row, so when run-loop.sh afterwards calls runlog.mjs with --elapsed, --raw and --pre-blob, it hits the 'already recorded — nothing to append' guard at runlog.mjs:55 and exits, throwing the only row that has real numbers away. Make the runner's call win — a later call carrying real metrics should MERGE into the existing row for that iter+kind rather than refuse, and a row must never be duplicated. While you are in the file: drop the illegal '-- courtyard.html' pathspec from the two-blob diff at runlog.mjs:72 (git rejects a pathspec on a blob-to-blob diff, so srcLines has always silently come from the HEAD~1 fallback that the comment above it calls unreliable), and fall back to HEAD~1's blob when --pre-blob is empty so a hand-invoked iteration stops scoring itself no-ship regardless of what it shipped. Last, iteration 9 left probes/parapet-and-boat.mjs at the repo root where an unanchored .gitignore line swallowed it — it is cited in the ledger and absent from the repo. Move it into the skill's probes/ and drop that gitignore line, or delete it.",
+      "seams": ["runlog.mjs:55 already-recorded guard", "runlog.mjs:72 two-blob numstat", "runlog.mjs --pre-blob", "run-loop.sh run_claude", ".gitignore"],
+      "successLooksLike": "stall.mjs --report shows real minutes and real dollars for worker rows. Prove it on this iteration's own row: a second runlog.mjs call carrying --elapsed and --raw updates the row in place instead of refusing, and the file gains no duplicate.",
+      "avoid": "Do not touch courtyard.html — which means the evidence verdict will read no-ship for this iteration, correctly, and you should NOT touch the source to game that; say so in the ledger and move on. Do not rewrite the nine historical zero-cost rows: they are honest records of a broken instrument. Back-filling them from ~/Library/Logs/courtyard-grow.log is optional and clearly marked if you do it. Do not add a new log file.",
+      "budgetMin": 20,
+      "risk": "low"
     },
     {
-      "id": "b2",
-      "at": "2026-08-03T01:45:06.014Z"
+      "id": "b11",
+      "domain": "Sky, light & weather",
+      "kind": "Scale/World",
+      "brief": "The town stops progressing. maturity() pins at day 8 and richness() at day 16, so at DAY_LEN 55 s every growth term is at 1 by real minute 15 and there is no later act — the weather and the market days keep turning over, but a viewer who leaves this open for forty minutes sees the same town they saw at fifteen. Give the world ONE slow cyclic scalar, season(), on the same footing as cloudCover() and isWindy(): a 0..1 phase over a multi-day cycle, with the cycle length chosen so a full turn is legible in roughly 20-30 real minutes, and rate-capped so no sample ever steps. Then give it at least two readers in the sky in this same iteration. The first is the length of the day itself: daylight is currently a fixed sin over hour in updateClock, so let the season move that window and a winter day is genuinely short. The second is the light — skyCols, sunVec, the dawn and dusk palette — a low cold sun against a high warm one. Because daylight feeds capacity, laneCap, eastCap and all three spawn rates, the town's population will breathe with the year for free. That is the whole reason to do it here, and it is also the risk.",
+      "seams": ["maturity", "richness", "updateClock", "daylight", "nightF", "DAY_LEN", "skyCols", "sunVec", "cloudCover", "stepClouds", "__census().clock"],
+      "successLooksLike": "A filmstrip sampled one frame per sim-day across a full cycle shows the light turning and coming back with no step between frames, and __census().clock carries season so any probe can pin a point in the year. Two wide shots half a cycle apart are obviously two different times of year.",
+      "avoid": "Do NOT simply raise the day-8 and day-16 caps in maturity()/richness(). That stretches the same one-way ramp and the town still stops, just later — the season must be cyclic. Do not make it a boolean or a four-way enum; this town's idiom is ramps, and the rate-cap law is what makes continuity provable by probe. Do not add a census field per reader — one `season` on the clock is enough. And set a floor: the shortest day must still leave the town populated and legible, because someone arriving in deep winter must not find a dead diorama. Measure population across a full cycle and state the trough.",
+      "budgetMin": 40,
+      "risk": "high"
     },
     {
-      "id": "b3",
-      "at": "2026-08-03T02:02:12.408Z"
+      "id": "b12",
+      "domain": "Courtyard & garden",
+      "kind": "Interaction/UX",
+      "brief": "The diorama has been clickable since before this loop began, and nothing on screen says so. cv's click handler unprojects to a cell and gives six different real responses — a bed takes a scattered handful of a named species, the lawn takes a daisy, the pond takes crumbs and the ducks arrive like a small navy, the fountain takes a coin, the river takes a pebble, the lane takes crumbs and birds land — each with its own written ticker line. The controls strip offers Pause and Speed and no hint that the picture itself answers. A viewer looking at this for thirty seconds will never find any of it, which makes an undiscovered feature the single largest gap between what the town is and what it appears to be. Make the touch discoverable without spoiling it: the cursor should tell you that the cell under the pointer will answer, and a first-time viewer should be invited exactly once. Whatever you add has to be quiet enough to live in a piece that is mostly meant to be watched.",
+      "seams": ["cv click handler (~3427)", "unproject", "GRASS / BED / CBED / WATER / SIDE / ROAD", "announce", "tickerEl", "#ctrl", "#sill", "cv.style.cursor"],
+      "successLooksLike": "Somebody who has never seen the piece discovers they can touch it inside the first thirty seconds, and a screenshot of the idle diorama is no busier than it is today.",
+      "avoid": "Do not add new click responses — there are six and this brief is about making them findable, not about having more. No tutorial overlay, no modal, no persistent on-canvas text. Do not let the invitation repeat: one, and it does not come back. Watch the ticker queue's drop policy (TICK_DWELL 2.5 s, cap 2, 6 s staleness) — an invitation that competes with a bell strike will lose, and it should lose gracefully rather than be shown late.",
+      "budgetMin": 30,
+      "risk": "medium"
     },
     {
-      "id": "b4",
-      "at": "2026-08-03T02:15:44.499Z"
+      "id": "b13",
+      "domain": "Courtyard & garden",
+      "kind": "New CA rule",
+      "brief": "Depends on b11's season(). The courtyard is what this piece is named after, the loop has not touched it in nine iterations, and it is the most static part of the town precisely because it is the best built: the CA ring, dieback, daisies, desire paths and ivy all arrive at their maturity-1 state and then hold there forever. Let the planting CA read the season — growth rate, the bloom stage a bed is able to reach, and the dieback term all scale with it, so the beds fill and empty over the cycle instead of saturating and stopping. The lawn colour and the gatehouse ivy should follow the same scalar rather than deriving their own. This is the reader that makes b11 worth having: a season you can only see in the sky is a lighting change.",
+      "seams": ["caTick", "SPECIES", "speciesFor", "bSt", "bAge", "RING", "EDGE_BEDS", "groundCol", "maturity", "richness", "season"],
+      "successLooksLike": "Two screenshots of the same courtyard half a cycle apart are obviously two different pictures — one in full bloom, one bare and turned over — and a per-day sample of the census's blooming count traces a curve instead of a plateau.",
+      "avoid": "If b11 did not land, do NOT invent a second seasonal scalar to work around it — log this brief as blocked and take the next one. Do not add a species. Do not special-case the ring; roofs are emergent and so is the bed ring. Heed the CA-variety law: a rule that empties the beds coherently will also make them monotonous over several cycles unless something reseeds the mix, so measure variety across cycles and not just within one. And the courtyard must never read as dead — a bare bed still has structure.",
+      "budgetMin": 35,
+      "risk": "medium"
     },
     {
-      "id": "b5",
-      "at": "2026-08-03T02:50:16.579Z"
-    },
-    {
-      "id": "b6",
-      "at": "2026-08-03T03:20:36.118Z"
-    },
-    {
-      "id": "b7",
-      "at": "2026-08-03T03:41:17.351Z"
-    },
-    {
-      "id": "b8",
-      "at": "2026-08-03T03:56:42.244Z"
-    },
-    {
-      "id": "b9",
-      "at": "2026-08-03T04:24:19.920Z"
+      "id": "b14",
+      "domain": "Sky, light & weather",
+      "kind": "Polish",
+      "brief": "Rain arrives over half a day and leaves in a single frame. When rainLeft hits zero the code sets raining = false and does raindrops.length = 0, dropping all ~110 drops between two frames, while the wet sheen behind it eases out over 18 s and the cloud cover eases over half a day. The arrival is ramped and the departure is a cut, and it is the town's largest remaining pop. This is not theoretical: it is the POP at frame 7 that cost iteration 9 a whole diagnosis, and it will keep firing on filmstrips run by iterations that did not cause it. Let the shower thin out instead — the drop count should fall away over a couple of seconds, so the last few drops are still falling as the light comes back.",
+      "seams": ["raining", "rainLeft", "raindrops", "wet", "cloudCover", "courtyard.html:1526-1537", "courtyard.html:2722-2725"],
+      "successLooksLike": "A filmstrip across a rain-ending window shows no POP where HEAD gives a 10.99 delta against a 0.48 median, and the largest single-frame change through the ending sits inside the noise floor of that same window on HEAD.",
+      "avoid": "Do not touch the arrival — it is already ramped and correct. Do not change how long the shower lasts; rainLeft owns that, and this brief only changes how it ends. Time-compress: a day is 55 s, so a fade longer than ~2-3 s stops being an ending and becomes drizzle.",
+      "budgetMin": 20,
+      "risk": "low"
     }
+  ],
+  "consumed": [
+    { "id": "b1", "at": "2026-08-03T01:25:59.097Z" },
+    { "id": "b2", "at": "2026-08-03T01:45:06.014Z" },
+    { "id": "b3", "at": "2026-08-03T02:02:12.408Z" },
+    { "id": "b4", "at": "2026-08-03T02:15:44.499Z" },
+    { "id": "b5", "at": "2026-08-03T02:50:16.579Z" },
+    { "id": "b6", "at": "2026-08-03T03:20:36.118Z" },
+    { "id": "b7", "at": "2026-08-03T03:41:17.351Z" },
+    { "id": "b8", "at": "2026-08-03T03:56:42.244Z" },
+    { "id": "b9", "at": "2026-08-03T04:24:19.920Z" }
   ],
   "recommendStop": null
 }
