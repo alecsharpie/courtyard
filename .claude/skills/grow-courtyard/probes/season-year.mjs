@@ -41,7 +41,10 @@ for (const seed of SEEDS) {
       window.__warp(step);
       const c = window.__census();
       out.push([c.clock.simT, c.clock.season ?? -1, c.clock.hour,
-                c.life.people, c.clock.raining ? 1 : 0]);
+                c.life.people, c.clock.raining ? 1 : 0,
+                // the three arrival sources have separate budgets, so they are
+                // allowed to breathe by different amounts — report them apart
+                c.life.inCourtyard, c.life.onStreet - c.life.inEast, c.life.inEast]);
     }
     return out;
   }, { step: STEP, n: Math.round(YEAR_DAYS * DAY / STEP) });
@@ -103,22 +106,34 @@ if (process.env.PERDAY) {
    onto one and bin by phase. Only then is the seasonal term separable from the noise. */
 const BINS = 8, bins = Array.from({ length: BINS }, () => []);
 for (const { series } of runs) {
-  for (const [t, s, , people] of series) {
+  for (const [t, s, , people, , court, lane, east] of series) {
     if (t < 8 * DAY || s < 0) continue;
-    bins[Math.min(BINS - 1, Math.floor(s * BINS))].push(people);
+    bins[Math.min(BINS - 1, Math.floor(s * BINS))].push([people, court, lane, east]);
   }
 }
+const col = (b, k) => b.reduce((a, c) => a + c[k], 0) / b.length;
 if (bins.some(b => b.length)) {
   const NAME = ['midwinter', 'late winter', 'spring', 'late spring',
                 'midsummer', 'late summer', 'autumn', 'early winter'];
   console.log(`\nfolded onto one year, ${BINS} bins by season phase (day>=8 only):`);
-  console.log(` phase        season        n   mean pop`);
+  console.log(` phase        season        n   mean pop   court   lane   east`);
   for (let i = 0; i < BINS; i++) {
     const b = bins[i];
     if (!b.length) continue;
-    const m = b.reduce((a, c) => a + c, 0) / b.length;
+    const m = col(b, 0);
     console.log(`  ${(i / BINS).toFixed(3)}-${((i + 1) / BINS).toFixed(3)}  ${NAME[i].padEnd(12)} ${String(b.length).padStart(4)}` +
-                `   ${m.toFixed(2).padStart(6)}  ${'#'.repeat(Math.round(m * 2))}`);
+                `   ${m.toFixed(2).padStart(6)}  ${col(b, 1).toFixed(2).padStart(6)} ${col(b, 2).toFixed(2).padStart(6)} ` +
+                `${col(b, 3).toFixed(2).padStart(6)}  ${'#'.repeat(Math.round(m * 2))}`);
+  }
+  /* The headline the brief is judged on. Midwinter and midsummer are the two bins
+     centred on the extremes of the year; everything between them is a phase lag. */
+  const w = bins[0], s = bins[4];
+  if (w.length && s.length) {
+    console.log(`\nsummer:winter ratio (bin 4 / bin 0)`);
+    for (const [k, name] of [[0, 'total'], [1, 'courtyard'], [2, 'lane'], [3, 'east']]) {
+      const a = col(w, k), b = col(s, k);
+      console.log(`  ${name.padEnd(10)} ${a.toFixed(2).padStart(6)} -> ${b.toFixed(2).padStart(6)}   x${(b / (a || 1)).toFixed(2)}`);
+    }
   }
 }
 console.log(`\nsettled (day>=8): mean ${mean.toFixed(2)}`);

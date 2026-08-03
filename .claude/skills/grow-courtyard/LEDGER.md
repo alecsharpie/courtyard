@@ -901,3 +901,103 @@ seam for anyone who later wants civil twilight as a real quantity rather than a 
 **Cue:** `context-budget.mjs` printed **OVER** at the start of this iteration — 52.1 KB against a
 46 KB cap (LEDGER 18.1, SKILL 11.8, state 10.8, LAWS 9.4). Two passes over now. This entry makes
 it worse again. The state inventory has grown past the ledger's own share and is the softest target.
+
+## Iteration 19 — the year is felt in how busy the town is (2026-08-04) [People & animals × Deepen]
+
+**Brief:** b18 — a 52% swing in mean daylight was coming out as a ~15% swing in
+people. Widen the breathing, let the three arrival sources breathe by different
+amounts, and hold an absolute floor.
+
+**Did:** Two changes, one measurement between them.
+
+*The compression.* `capacity`, `laneCap` and `eastCap` were each `k + span*(f +
+(1-f)*d)`. Multiplied out, `k + span*f` is the share the sun never touches — 5 of the
+courtyard's 14, 3 of the lane's 9 — and averaged over a whole day that fixed share is
+most of the budget. Peak daylight is also 1.0 in *every* season by design (duration is
+the seasonal lever, never midday brightness), so the honest swing available from
+daylight alone is at most the ratio of the day lengths, 17.5/11.5 = 1.52, before the
+fixed share eats into it. So the year went onto the *varying* term as a multiplier and
+the fixed term was left exactly alone. `yearBusy(ex)` is read off `daySpan()` — the
+length of the day normalised 0..1 — rather than off `warmth`: the same number, honest
+provenance, since what makes a July evening busy is that it is still light. `ex` is
+exposure: `EX_COURT` 0.5 (walled and sheltered), `EX_LANE` 1.0 (open), `EX_EAST` 1.25
+(you go out to it, across a bridge). `YEAR_SWING` 0.40. The caps are now `2 +
+round(mat*(3 + 9*d*yearBusy(EX_COURT)))` and so on — algebraically identical to what
+they replaced at the anchor, and identical at `daylight` 0 in every season.
+`eastCap` keeps `Math.min(7, …)`: cue c10 says east agents retrace their inbound route
+and would queue above seven, so summer spends its lift on reaching the ceiling *earlier
+in the day*, not on raising it.
+
+*The rail.* `POP_FLOOR` 8 with `scarcity = 1 + 0.8 * clamp(POP_FLOOR - agents.length, 0,
+6)`, multiplying the three arrival rates only — never the caps. Nobody pops into being;
+the town refills by people walking in, sooner after one another, and the (unchanged)
+night caps still decide where it settles.
+
+**Gates:** census PASS (people 167→190, inCourtyard +7, onStreet +16, inEast +6; the
+species churn and the +110 raindrops are the seeded stream reshuffling under a
+different number of spawns, not new draws — no `R()` call was added) · visual PASS
+(`probes/year-shots.mjs`, five pinned instants on HEAD and here: summer noon 23→28
+people, winter noon 25→21, winter dusk 27→17; winter night still legible — lit lane,
+25 blooms, 17 people — plus the standard wide/courtyard/east/lane framings clean) ·
+motion FAIL-then-explained: the only kind that moved is `raindrop`, `day` 0→1 jumps
+and `dusk` 1→0 — the shower changed scene under the reshuffle. HEAD's own baseline
+records `raindrop jumps 1 / spawns 110` in whichever scene it rains in, so that is
+rain's own distribution, not a new defect. **`walker`, the kind this iteration
+actually moved, is 0 jumps / 0 nan / 0 oob / 0 flicker in all four scenes.** ·
+filmstrip day clean, no POP, no FROZEN, median Δ 0.410 · perf skipped (no new
+per-frame pass — two extra multiplies in a block that already ran) · anchor assertion:
+`yearBusy` is **exactly 1.0000** for all three exposures at `SEASON_START` and again
+one full year on, so day one is provably the town as it was.
+
+**Probe:** `probes/season-year.mjs` extended — it now carries `inCourtyard`,
+`onStreet - inEast` and `inEast` through the fold and prints a summer:winter ratio per
+source. Three seeds × 60 sim days (~2.3 years), folded onto one year:
+
+| | midwinter | midsummer | ratio |
+| --- | --- | --- | --- |
+| total | 20.55 → **16.73** | 22.49 → **26.07** | 1.09 → **1.56** |
+| courtyard | 10.83 → 9.85 | 11.35 → 12.38 | 1.05 → **1.26** |
+| lane | 6.90 → 4.84 | 7.19 → 9.39 | 1.04 → **1.94** |
+| east | 2.82 → 2.04 | 3.95 → 4.29 | 1.40 → **2.10** |
+
+Settled mean is 21.65 → 21.48 — the year *redistributes* the town rather than
+inflating it. Absolute floor across all 3,600 samples: 8 → **8**, equal to HEAD.
+
+**Verdict:** shipped   ← my view; runlog.mjs decides from the diff
+
+**Surprise:** Holding every night-time cap identical did not hold the night. The first
+build left `capacity` and `laneCap` at `daylight` 0 byte-identical to HEAD in every
+season — and the worst sample still fell from 8 people to 5. Most of a 03.00
+population is not spawned at 03.00; it is daytime walkers still finishing forty-second
+trips. An emptier winter afternoon therefore arrives at midnight as an emptier town,
+several sim hours later, through a term nobody edited. The cap was never the floor.
+That is also why the rail had to be a lift on the *rate* rather than on the cap: the
+caps at night already permitted 5 + 3 = 8, and what was missing was arrivals to fill
+them. The first rail (`1 + 2*(floor-n)/floor`, ~1.25× at seven people) was too gentle
+and only reached 7; per-person and steeper (`1 + 0.8*(floor-n)`, 1.8× at seven) reached
+8 with no visible change anywhere above the floor.
+
+**Law:** Caps set the inflow and trip length sets the standing population — so a cap
+floor is not a population floor. A budget cut anywhere in the day resurfaces hours
+later through walkers still finishing trips, in a term nobody edited. Floor the
+arrival *rate* and let the untouched cap decide where it settles.
+
+**Law:** When a slow world scalar has a deliberately flat peak (daylight is 1.0 at
+noon in every season, on purpose), the swing it can deliver is bounded by its
+*duration* ratio, and whatever fixed share each consumer carries eats into that. Put
+the year on the varying term as a multiplier and leave the fixed term alone: the fixed
+term is then the floor by construction, and the anchor stays provably neutral.
+
+**Cue:** `eastCap` now sits at its 7-person ceiling for materially more of a summer day
+than it did. The ceiling itself is unchanged, so c10's queueing risk is no worse per
+instant — but it is exposed for longer, and nobody has yet watched a summer afternoon
+at the park gate to see whether the single-file retrace reads as a queue.
+
+**Cue:** `scarcity` also fires in the first sim minute, when the town is legitimately
+empty, so the opening fill is slightly hurried compared with HEAD (day 4 mid-morning:
+13 → 18 people). The maturity() ramp still bounds it, but the very first minute is now
+a servo rather than a ramp.
+
+**Cue:** `context-budget.mjs` printed **OVER — 53.6 KB against a 46 KB cap** at the
+start of this iteration (c38's 48.8 KB, worse). LEDGER is 18.9 KB of it and this entry
+adds to that. Rotation is overdue.

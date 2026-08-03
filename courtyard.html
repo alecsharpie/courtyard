@@ -628,6 +628,49 @@ function leafCol(base, k){
   r = lerp(r, tc[0], 0.90*tn);         g = lerp(g, tc[1], 0.90*tn);         b = lerp(b, tc[2], 0.90*tn);
   return 'rgb(' + (r|0) + ',' + (g|0) + ',' + (b|0) + ')';
 }
+/* Reader five: how busy the town is. daylight already fed capacity, laneCap, eastCap
+ * and all three spawn rates, and the year was supposed to be felt through it — but a
+ * folded two-year probe measured midwinter 20.6 people against midsummer 22.5, a
+ * swing of 9%. Two things ate it.
+ *
+ * The first is that peak daylight is 1.0 in EVERY season on purpose (duration is the
+ * seasonal lever, never midday brightness), so noon is identical in January and July
+ * and only the shoulders of the day can differ. That caps the honest daylight swing
+ * at the ratio of the day lengths, 17.5/11.5 = 1.52, before anything else happens.
+ *
+ * The second is the compression. Each budget was written `k + span*(f + (1-f)*d)`,
+ * and the `k + span*f` part is what the sun never touches: 5 of the courtyard's 14,
+ * 3 of the lane's 9. Averaged over a whole day that fixed share is most of the
+ * budget, which is how a 52% swing in MEAN daylight came out as 9% of people.
+ *
+ * So the fixed share is left exactly alone — it is the floor, and the failure mode
+ * here is a viewer arriving in deep winter to a dead diorama — and the year is put
+ * on the part the sun already moves. `yearBusy(ex)` multiplies the daylight term
+ * only, so at daylight 0 every cap is the constant it has always been and a winter
+ * night is untouched, while a summer noon lifts and a winter noon drops.
+ *
+ * It is read off the LENGTH of the day rather than off warmth: the same number, but
+ * honest provenance — what makes a July evening busy is that it is still light, not
+ * that it is warm. daySpan() is 0 at midwinter, 1 at midsummer and exactly 0.5 at
+ * SEASON_START, so yearBusy is exactly 1 at the anchor for every exposure and day
+ * one is provably the town as it was.
+ *
+ * `ex` is EXPOSURE — how much of the year an arrival source feels. The courtyard is
+ * walled and sheltered and keeps most of its winter; the lane is open; the east
+ * quarter is a place you go out to, across a bridge, and empties hardest. That
+ * difference is itself the thing worth seeing. */
+const YEAR_SWING = 0.40;                          // midsummer's lift at exposure 1
+const EX_COURT = 0.5, EX_LANE = 1.0, EX_EAST = 1.25;
+/* The safety rail, and the reason the year can be this wide. Holding the caps' fixed
+ * share turned out NOT to hold the night: most of a 03.00 population is daytime
+ * walkers still finishing their trips, so an emptier winter afternoon arrives at
+ * midnight as an emptier town — the first measurement of this change kept every
+ * night-time cap identical and still dropped the worst sample from 8 people to 5.
+ * A viewer who happens to load the page on a January night must find a town and not
+ * an empty set. See scarcity(). */
+const POP_FLOOR = 8;
+function daySpan(){ return (dayHours - WINTER_HOURS) / (SUMMER_HOURS - WINTER_HOURS); }
+function yearBusy(ex){ return 1 + ex * YEAR_SWING * 2 * (daySpan() - 0.5); }
 // hung off sunUp/sunDown, or the label reads Morning in the winter dark. Every
 // offset below is chosen so that at warmth 0.5 this is the constant table it replaced.
 function timeLabel(){
@@ -3945,13 +3988,29 @@ function simStep(sdt, dt){
   const courtyardCount = agents.filter(a => !a.street).length;
   const eastCount = agents.filter(a => a.east).length;
   const laneCount = agents.length - courtyardCount - eastCount;
-  const capacity = 2 + Math.round(maturity() * 12 * (0.25 + 0.75 * daylight));
-  const laneCap = 1 + Math.round(maturity() * 8 * (0.2 + 0.8 * daylight));
-  // the far side arrives on its own budget, so it no longer loses to the lane
-  const eastCap = 1 + Math.round(maturity() * 6 * daylight);
-  const rate = (0.05 + maturity() * 0.42) * (0.12 + daylight) * (raining ? 0.25 : 1);
-  const laneRate = (0.08 + maturity() * 0.5) * (0.15 + daylight) * (raining ? 0.3 : 1) * (marketActive() ? 1.7 : 1);
-  const eastRate = (0.15 + maturity() * 0.6) * (0.1 + daylight) * (raining ? 0.25 : 1);
+  /* Each cap is its old expression with the multiply-out done, so the fixed share is
+   * visible as a number and the year rides the daylight term alone (see yearBusy).
+   * At the anchor, warmth 0.5, all three are algebraically identical to what they
+   * replaced — 5..14, 3..9, 1..7 — and at daylight 0 they are identical in EVERY
+   * season, which is what holds the night floor. */
+  const capacity = 2 + Math.round(maturity() * (3 + 9 * daylight * yearBusy(EX_COURT)));
+  const laneCap = 1 + Math.round(maturity() * (1.6 + 6.4 * daylight * yearBusy(EX_LANE)));
+  // the far side arrives on its own budget, so it no longer loses to the lane. It is
+  // the most exposed of the three and breathes hardest — but its ceiling does NOT
+  // move: east agents retrace their inbound route, so arrivals sharing a gate walk
+  // single-file and more than seven of them would queue (cue c10). Summer spends its
+  // lift on reaching the ceiling EARLIER in the day, not on raising it.
+  const eastCap = Math.min(7, 1 + Math.round(maturity() * 6 * daylight * yearBusy(EX_EAST)));
+  /* POP_FLOOR's mechanism: a lift on the arrival RATES, never on the caps. Nobody
+   * pops into being — the town refills by people walking in, just sooner after one
+   * another — and the caps still decide where it settles, so a rainy January night
+   * converges on the 5 + 3 the two night budgets have always allowed instead of
+   * drifting below it. Exactly 1 at POP_FLOOR people and above, so a normal day
+   * never sees this term at all. */
+  const scarcity = 1 + 0.8 * clamp(POP_FLOOR - agents.length, 0, 6);
+  const rate = (0.05 + maturity() * 0.42) * (0.12 + daylight) * (raining ? 0.25 : 1) * scarcity;
+  const laneRate = (0.08 + maturity() * 0.5) * (0.15 + daylight) * (raining ? 0.3 : 1) * (marketActive() ? 1.7 : 1) * scarcity;
+  const eastRate = (0.15 + maturity() * 0.6) * (0.1 + daylight) * (raining ? 0.25 : 1) * scarcity;
   // the allotments arrive on the crop's budget, not the lane's: 0.42 of the lane's
   // roll chain put one gardener in every 5-15 days against 17 plots, which is why
   // the block sat permanently full. Ripeness is the rate.
