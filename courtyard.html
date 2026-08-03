@@ -730,7 +730,14 @@ function ambientLine(){
 }
 
 /* ============ CA: gardens, grass, daisies ============ */
-let raining = false, rainLeft = 0;
+/* `raining` is the boolean the town's *behaviour* reads — umbrellas up, nobody
+ * lingers, spawn rates damped — and it is right for it to be a switch. `rainFall`
+ * is the same shower's 0..1 intensity, and it is what everything *drawn* reads, so
+ * the shower can thin out over its last seconds instead of being switched off in a
+ * single frame. RAIN_TAIL is against a 55 s day: much longer and the ending stops
+ * being an ending and becomes drizzle. */
+const RAIN_TAIL = 2.2;
+let raining = false, rainLeft = 0, rainFall = 0;
 function neighborsMature(x, y){
   let n = 0, sp = 0;
   for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++){
@@ -1611,10 +1618,22 @@ function updateWildlife(dt){
   }
   if (raining){
     rainLeft -= dt;
-    const want = RM ? 40 : 110;
+    /* A shower ends by running out of drops, not by being switched off. Over the last
+     * RAIN_TAIL seconds the number of drops the sky *wants* falls to zero, and a drop
+     * that reaches the bottom is simply not sent round again — so the last few are
+     * still falling while the sheen comes up and the grey lifts off the frame. */
+    rainFall = clamp(rainLeft / RAIN_TAIL, 0, 1);
+    const want = Math.round((RM ? 40 : 110) * rainFall);
     while (raindrops.length < want) raindrops.push({x:R()*W, y:R()*H, v:520+R()*260});
-    for (const r of raindrops){ r.y += r.v*dt; r.x -= r.v*dt*0.12; if (r.y>H){ r.y=-12; r.x=R()*(W*1.15); } }
-    if (rainLeft <= 0){ raining=false; raindrops.length=0; wet = 18;
+    let k = 0;
+    for (const r of raindrops){
+      r.y += r.v*dt; r.x -= r.v*dt*0.12;
+      if (r.y>H){ if (k >= want) continue; r.y=-12; r.x=R()*(W*1.15); }
+      raindrops[k++] = r;
+    }
+    raindrops.length = k;
+    wet = Math.max(wet, 6 * (1 - rainFall));   // the street is already shining before the last drop lands
+    if (rainLeft <= 0 && !raindrops.length){ raining=false; rainFall=0; wet = 18;
       cloudTgt = 0.1 + R() * 0.28; frontLeft = 26 + R() * 26;   // and the cover breaks up behind it
       for (const a of agents) a.umbrella = false;               // down they come, all at once
       announce('The rain moves on. Everything smells green, and the lane shines.'); groundDirty=true; }
@@ -2724,8 +2743,8 @@ function drawScene(t, dt){
   }
 
   // water sparkle (warm by day, cold moon-glints by night) and rain rings on the pond
-  if (!raining){
-    const glow = Math.max(daylight, nightF * 0.5);
+  if (rainFall < 1){
+    const glow = Math.max(daylight, nightF * 0.5) * (1 - rainFall);
     for (let k = 0; k < 7; k++){
       const gx2 = POND.x + (hash(k, 7) - 0.5) * POND.rx * 1.5;
       const gy2 = POND.y + (hash(k, 13) - 0.5) * POND.ry * 1.5;
@@ -2739,12 +2758,12 @@ function drawScene(t, dt){
       ctx.beginPath(); ctx.moveTo(sx - 2.5, sy); ctx.lineTo(sx + 2.5, sy); ctx.stroke();
     }
   }
-  if (raining){
+  if (rainFall > 0){
     for (let k = 0; k < 4; k++){
       const ph2 = (t * 1.1 + k * 0.31) % 1;
       const [sx, sy] = project(POND.x + (hash(k, 3) - 0.5) * POND.rx * 1.4,
                                POND.y + (hash(k, 5) - 0.5) * POND.ry * 1.4, 0);
-      ctx.strokeStyle = 'rgba(220,232,235,' + (0.35 * (1 - ph2)) + ')'; ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(220,232,235,' + (0.35 * (1 - ph2) * rainFall) + ')'; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.ellipse(sx, sy, ph2 * 7, ph2 * 3.2, 0, 0, 7); ctx.stroke();
     }
   }
@@ -2846,7 +2865,7 @@ function drawScene(t, dt){
 }
 function drawSmoke(t){
   // fires get lit on chilly mornings, damp afternoons and after dark
-  const cold = clamp(1 - Math.abs(hour - 7) / 3.5, 0, 1) + (raining ? 0.7 : 0) +
+  const cold = clamp(1 - Math.abs(hour - 7) / 3.5, 0, 1) + rainFall * 0.7 +
                clamp((hour - 18.5) / 2, 0, 1) * 0.8;
   if (cold <= 0.05 || RM) return;
   const drift = isWindy() ? 2.6 : 1;
@@ -3535,8 +3554,8 @@ function applyLight(t){
     }
     ctx.globalCompositeOperation = 'source-over';
   }
-  if (raining){
-    ctx.fillStyle = 'rgba(90,105,125,.16)';
+  if (rainFall > 0){
+    ctx.fillStyle = 'rgba(90,105,125,' + (0.16 * rainFall) + ')';
     ctx.fillRect(0, 0, W, H);
   }
 }

@@ -817,3 +817,76 @@ a per-cell `hash()` exemption so the floor is a scatter, not an absence.
 cell is also *midwinter*, so any change to seasonal planting reads as a collapse in
 `planted` and any real winter regression is now invisible against it. Either pick ages
 that land at comparable warmth, or have the census hold `season` fixed across the age axis.
+
+## Iteration 15 — the shower runs out of drops instead of being switched off (2026-08-03) [Sky, light & weather × Polish]
+
+**Brief:** b14 — rain ended in one frame: `raining=false`, `raindrops.length=0`, all
+~110 drops gone between two frames while the sheen behind it eased out over 18 s.
+
+**Did:** Split the shower in two. `raining` stays the boolean the town's *behaviour*
+reads — umbrellas, "nobody lingers in the wet", the three damped spawn rates — and it
+is right for that to be a switch. `rainFall` is the same shower's 0..1 intensity, and
+it is what everything *drawn* reads: the drop count, the whole-screen `rgba(90,105,125)`
+tint, the pond rings, the water sparkle it crossfades with, and `drawSmoke`'s `cold`.
+`RAIN_TAIL = 2.2` s against a 55 s day.
+
+The load-bearing bit is that the drops are not deleted, they are **not sent round
+again**. The tick already recycled a drop that passed `y > H` back to the top; now it
+recycles only while the kept count is under `want`, and `want` is `110 * rainFall`. So
+the shower ends the way a shower ends — nothing new arrives, and what is in the air
+finishes falling. No drop ever vanishes mid-screen, which is why the motion gate stays
+clean. `raining` flips when `rainLeft <= 0 && !raindrops.length`, so the last drop
+lands before the announcement. `wet` is ramped to 6 (its own full-sheen clamp) across
+the tail, so the street is already shining before the last drop lands, and the existing
+`wet = 18` at the end is now a no-op step rather than a jump from nothing.
+
+At `rainFall === 1` every one of those expressions is the constant it replaced, so full
+rain is unchanged.
+
+**Gates:** census PASS · motion PASS (0 jumps/nan/oob/flicker) · visual PASS · filmstrip
+PASS · perf skipped (same per-frame loop, one extra write per drop)
+
+**Measured, not argued** — `probes/rain-out.mjs` finds each build's *own* rain end (the
+PRNG reshuffles, so the shower does not land twice at the same instant) and replays the
+6 s around it at a 0.1 s gap:
+
+| seed | HEAD max Δ | new max Δ | where the max is now |
+| --- | --- | --- | --- |
+| 42 | 7.689 (×7.9 med) **at the end** | 1.849 (×1.7 med) | 1.3 s *before* the end |
+| 7 | 10.855 (×62.4 med) **at the end** | 1.053 (×8.8 med) | 2.3 s *before* the end |
+| 19 | 8.195 (×8.2 med) **at the end** | 1.567 (×1.5 med) | 0.7 s *before* the end |
+
+On HEAD the largest frame in the window *is* the ending, on all three seeds. After the
+change the ending is not the largest frame on any of them. Seed 7's Δ at the instant
+`raining` goes false is **0.074**, against a window median of 0.120 — the flip is now
+below the noise. And the same filmstrip that flagged it: HEAD `--scene 230 --seed 7`
+POPs at Δ 11.054 against a 0.421 median; here `--scene 231.4` has no POP, a 1.918 max,
+and a monotonic decay 1.9 → 0.17 across the ending. Drop count runs 104 → 0 over ~3 s.
+
+**Surprise:** the drops were the smaller half of it. A 0.16-alpha fill over the *whole*
+canvas is worth more mean-pixel Δ than 110 two-pixel lines, so cutting only the drop
+count would have left most of the pop. The brief named the drops; the instrument named
+the tint. The ~3 s taper also overruns `RAIN_TAIL` by ~0.8 s, because `want` falling to
+zero only removes a drop when that drop reaches the bottom — the count lags the ramp by
+one fall time (~1.4 s at 520–780 px/s). Physically right, and worth knowing before
+anyone tunes the constant expecting it to be the duration.
+
+**Law:** When a state flag gates both behaviour and drawing, splitting it into the
+boolean and a 0..1 intensity is cheaper than easing the flag: behaviour keeps its clean
+edge, and every draw site becomes a multiply by the same scalar. Fade the *largest* thing
+the flag draws first — a full-canvas tint outweighs any number of small sprites in a
+whole-frame Δ, so ask what fraction of the frame each gated draw covers before deciding
+which one is the pop.
+
+**Law:** An entity population is better wound down by **withholding its supply** than by
+truncating its array. Stop recycling and let each thing finish its own life and the
+count decays for free, with no mid-screen despawn for the motion gate to catch —
+`raindrops.length = 0` is one line and one pop; "recycle only while under `want`" is one
+line and an ending.
+
+**Cue:** `motion.mjs` has no `raindrop` kind, so the gate that exists to catch things
+popping in and out of existence is blind to the town's largest such population. It
+passed this iteration without being able to see it.
+
+**Note:** `context-budget.mjs` read **OVER** at 52.8 KB against the 46 KB cap when this
+iteration started (LEDGER.md 17.1 KB, state.json 13.4 KB, laws 28/60).
