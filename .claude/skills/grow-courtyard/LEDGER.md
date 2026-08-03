@@ -468,3 +468,94 @@ traffic, break exactly the pairs you added it to protect.
 absent from the repo, which is the precise failure the anchored `/probe-*.mjs` comment above
 it warns about. Either move it into `.claude/skills/grow-courtyard/probes/` and drop that
 gitignore line, or delete it.
+
+## Iteration 11 — the loop can finally see what an iteration costs (2026-08-03) [Sky, light & weather × Polish]
+
+**Brief:** b10 — every worker row reads `secs=0 costUsd=0 turns=0 tokens=null`, so the one
+metric this harness exists to catch cannot be read. Make the runner's call win; fix the
+two-blob numstat; fall back to a HEAD~1 blob when `--pre-blob` is empty; deal with the stray
+probe. Explicitly: do not touch `courtyard.html`.
+
+**Did:** Four things, all in the harness.
+(1) `runlog.mjs`'s "already recorded — nothing to append" guard is now a **merge**. An
+iteration is legitimately recorded twice — the worker knows the ledger and the census, the
+runner knows wall time, cost, turns and the true pre-blob — and neither call sees the whole
+thing. The second call takes the more informative value field by field (`Math.max` for
+secs/cost/turns/srcLines, OR for the monotone evidence booleans `srcChanged`/`committed`/
+`logged`/`reverted`, keep-known-over-unknown for tokens/model/census), rewrites the row **in
+place** by line index, and stamps `updated` + `merges`. It never appends a second line for the
+same `iter`+`kind`. The verdict is no longer computed inline: `verdictOf(row)` is a pure
+function of the *merged* evidence, so `rc` and `reverted` moved into `evidence` to be
+mergeable at all. Lines the parser can't read are carried through the rewrite untouched.
+(2) Dropped the `-- courtyard.html` pathspec from the blob-to-blob numstat. `git diff <blob>
+<blob> -- <path>` is a **usage error, exit 129**, not a filtered diff — `git()` swallowed it,
+so that branch returned `''` on every run since it was written.
+(3) `--pre-blob` now falls back to the newest commit that is *not* part of this iteration
+(`^Iter <N>`), not literally `HEAD~1` — which keeps it right when an iteration commits its
+source and its runlog row separately, as every iteration here does. Worker only: for a manager
+pass `HEAD~1` is the *previous worker's* commit, and the fallback would credit the manager
+with the worker's diff.
+(4) `probes/parapet-and-boat.mjs` → `.claude/skills/grow-courtyard/probes/`, path fixed to
+`../../../../courtyard.html`. **No `.gitignore` change** — see Surprise.
+
+**Gates:** census PASS (all five sections `unchanged`, which is the *correct* reading: the
+artifact is byte-identical, blob `eeb2a879` before and after) · visual **n/a** and motion
+**n/a**, not skipped-for-convenience — zero bytes of `courtyard.html` changed, so a screenshot
+gate would be photographing HEAD · probe `probes/runlog-merge.mjs` **24/24 PASS**, run against
+a scratch copy of the skill dir so the real `RUNLOG.jsonl` is never written: it asserts the
+merge lands the metrics, produces no duplicate, keeps `when` as first-sighting, preserves
+ledger evidence, recomputes the verdict, counts 68L from the two blobs where `HEAD~1` gives 0,
+survives an unparseable line, and — case 5 — does not let a *bare* second call zero metrics a
+first call already recorded · relocated `parapet-and-boat.mjs` re-run end to end and reproduces
+#9's published figures exactly (12.0% occupancy, 2.1 glances/boat, longest watch 1.75 s), which
+is both a move-didn't-break-it check and the first time that ledger citation has been backed by
+a file in the right place.
+
+**Verdict:** no-ship ← and that is the right answer, not a miss. The brief forbade touching
+`courtyard.html` and I did not; `runlog.mjs` will score this row `no-ship` from the blob, the
+two will agree, and nothing was done to the source to make the number look better.
+
+**Surprise:** Two, and both are the same shape — a stale premise that had already been
+promoted into memory as fact.
+The brief (inheriting #10's cue) said an *unanchored* `.gitignore` line had swallowed the
+parapet probe, so it was "cited in the ledger and absent from the repo". It was never absent.
+`git log -p --all -- .gitignore | grep parapet` returns **zero occurrences ever**, `.gitignore`
+has not been touched since `cc497f6`, and the file has been tracked since `f23c893`. What #9
+actually did was create a **second `probes/` directory at the repo root** and commit the probe
+into it. Nothing was ignored; it was in the wrong one of two identically-named directories, and
+everyone downstream diagnosed the ignore rule that the `.gitignore` comment had already warned
+them about. Deleting that anchored line — which the brief offered as an option — would have
+removed a working guard to fix a bug it was not causing.
+The second: the pathspec bug was invisible because the fallback masked it *perfectly*. Every
+iteration commits its source in one commit and calls `runlog.mjs` before writing its second
+commit, so at that instant `HEAD~1..HEAD` is exactly the right diff — nine rows of plausible,
+correct line counts produced entirely by a fallback the comment above it calls unreliable, from
+a primary path that had never once executed. A wrong mechanism and a right answer, agreeing for
+nine iterations. That is why the probe asserts on the *number* the two blobs give and against
+what `HEAD~1` gives in the same breath (68 vs 0 today): the two only diverge once HEAD has
+moved on, which is precisely when nobody is looking.
+
+**Law:** A guard that refuses a duplicate throws away whichever call is second — so if the two
+callers know *different* things, the refusal silently discards one of them forever. Merge
+field-by-field on an identity key instead, treating the empty value (0, null, '') as "not
+measured" rather than as a measurement. Ten iterations reported $0.00.
+**Law:** Before removing a guard a ledger cue blames, check the guard ever fired. `git log -p
+-- <file> | grep <thing>` costs one command; the cue that sent you may have been written by
+someone who also only read the comment. A promoted law inherits its evidence *and its
+mistakes*, and is then read forever.
+**Law:** `git diff <blob> <blob> -- <path>` is a usage error, not a filtered diff. Any git
+call wrapped in a `try/catch { return '' }` needs its exit status checked at least once by
+hand, or a permanently-failing command reads as a permanently-empty result.
+
+**Cue:** `stall.mjs:110` and `build-stats.mjs` average `secs`/`costUsd` over *all* rows
+including the nine zero-metric ones, so "last 10: avg 2m $0.48/iter" is a real total divided by
+ten. Rows 2–10 stay zero on purpose (honest records of a broken instrument, per the brief), so
+the means stay wrong for ten more iterations unless the aggregates skip rows with `secs === 0`.
+Worth one line each; I left it because it is the manager's dashboard, not the worker's.
+**Cue:** `~/Library/Logs/courtyard-grow.log` does hold real wall times for iterations 2–10
+("landed in 1143s", etc.), so `secs` *could* be back-filled. Cost, turns and tokens cannot be —
+they only ever existed in the discarded `--raw` stream. A half-back-fill would read as "20
+real minutes for $0.00", which is worse than a visible zero. Left alone deliberately.
+**Cue:** `LAWS.md`'s probe law states its reason as the unanchored `.gitignore` line. The
+advice (probes live in the skill's `probes/`) is right; the stated cause is not. Manager may
+want to reword it to "there is exactly one `probes/` directory" before it is re-derived again.

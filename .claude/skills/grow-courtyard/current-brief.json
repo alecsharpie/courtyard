@@ -1,23 +1,22 @@
 {
-  "id": "b9",
-  "domain": "People & animals",
+  "id": "b10",
+  "domain": "Sky, light & weather",
   "kind": "Polish",
-  "brief": "announce() assigns tickerEl.textContent outright (~line 534), so two events in the same frame show only the second — the town's one text surface silently drops lines and has done since it was built. That is also what blocks c4: the church-answer branch in strikeClock (~line 3143) is unreachable dead code, because `(hInt === 9 || hInt === 18)` hangs off an else-if under `(hInt % 3 === 0)` and both 9 and 18 are divisible by three; it cannot simply be un-nested while a second announce in the same frame would erase the first. Fix the cause, then the symptom: make announce() a small ordered queue with a minimum dwell per line, and then let the church actually answer the clock at nine and eighteen.",
+  "brief": "This one is the harness, not the town. Every worker row in RUNLOG.jsonl reads secs=0, costUsd=0, turns=0, tokens=null, so the one metric this loop exists to catch — cost per iteration climbing while output stays flat — cannot be read at all. The cause is mechanical: the worker runs runlog.mjs itself and commits the row, so when run-loop.sh afterwards calls runlog.mjs with --elapsed, --raw and --pre-blob, it hits the 'already recorded — nothing to append' guard at runlog.mjs:55 and exits, throwing the only row that has real numbers away. Make the runner's call win — a later call carrying real metrics should MERGE into the existing row for that iter+kind rather than refuse, and a row must never be duplicated. While you are in the file: drop the illegal '-- courtyard.html' pathspec from the two-blob diff at runlog.mjs:72 (git rejects a pathspec on a blob-to-blob diff, so srcLines has always silently come from the HEAD~1 fallback that the comment above it calls unreliable), and fall back to HEAD~1's blob when --pre-blob is empty so a hand-invoked iteration stops scoring itself no-ship regardless of what it shipped. Last, iteration 9 left probes/parapet-and-boat.mjs at the repo root where an unanchored .gitignore line swallowed it — it is cited in the ledger and absent from the repo. Move it into the skill's probes/ and drop that gitignore line, or delete it.",
   "seams": [
-    "announce",
-    "tickerEl",
-    "tickerTimer",
-    "strikeClock",
-    "HOUR_WORDS",
-    "ambientLine"
+    "runlog.mjs:55 already-recorded guard",
+    "runlog.mjs:72 two-blob numstat",
+    "runlog.mjs --pre-blob",
+    "run-loop.sh run_claude",
+    ".gitignore"
   ],
-  "successLooksLike": "At nine o'clock on day 2 or later you read the clock line and then the church line, in that order, both legible; no line is ever cut off mid-word by another.",
-  "avoid": "Do not grow the ticker into a log or a second UI element — it is one line and should stay one line. Do not let the queue back up; drop stale entries rather than showing an old line late.",
+  "successLooksLike": "stall.mjs --report shows real minutes and real dollars for worker rows. Prove it on this iteration's own row: a second runlog.mjs call carrying --elapsed and --raw updates the row in place instead of refusing, and the file gains no duplicate.",
+  "avoid": "Do not touch courtyard.html — which means the evidence verdict will read no-ship for this iteration, correctly, and you should NOT touch the source to game that; say so in the ledger and move on. Do not rewrite the nine historical zero-cost rows: they are honest records of a broken instrument. Back-filling them from ~/Library/Logs/courtyard-grow.log is optional and clearly marked if you do it. Do not add a new log file.",
   "budgetMin": 20,
   "risk": "low",
-  "status": "done",
+  "status": "active",
   "attempts": 1,
-  "nextIter": 10,
-  "issued": "2026-08-03T04:24:19.921Z",
-  "fromPlan": "2026-08-03T12:55:00Z"
+  "nextIter": 11,
+  "issued": "2026-08-03T04:43:28.315Z",
+  "fromPlan": "2026-08-03T14:45:00Z"
 }

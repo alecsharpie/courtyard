@@ -376,6 +376,18 @@
       "note": "byTheWater() names the three places a person can see the river. Only boatWatch reads it; any future river event (a swan taking off, ice, a barge) should read the same predicate rather than re-deriving it.",
       "raisedBy": 8,
       "seenBy": 1
+    },
+    {
+      "id": "c21",
+      "note": "stall.mjs:110 and build-stats.mjs average secs/costUsd across all rows including the nine zero-metric ones, so the per-iteration means read low until rows with secs===0 are excluded from the aggregates",
+      "raisedBy": 10,
+      "seenBy": 0
+    },
+    {
+      "id": "c22",
+      "note": "LAWS.md's probe law blames an unanchored .gitignore line that has never existed; the real #9 fault was a second probes/ directory at the repo root. Advice right, stated cause wrong — reword before it is re-derived.",
+      "raisedBy": 10,
+      "seenBy": 0
     }
   ],
   "watch": [

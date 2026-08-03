@@ -19,7 +19,7 @@ import { pathToFileURL } from 'node:url';
 const PW = join(homedir(), '.claude/skills/screenshot-verify/node_modules/playwright/index.js');
 const { chromium } = (await import(pathToFileURL(PW).href)).default;
 
-const html = readFileSync(new URL('../courtyard.html', import.meta.url));
+const html = readFileSync(new URL('../../../../courtyard.html', import.meta.url));
 const srv = createServer((_, res) => { res.writeHead(200, {'Content-Type':'text/html'}); res.end(html); }).listen(0);
 const port = srv.address().port;
 
