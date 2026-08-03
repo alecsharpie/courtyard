@@ -162,3 +162,56 @@ random — the fix is to move the system off the threshold, not to move the thre
 puts two people in the same spot (a queue, a bench, a haggle) has to hold them apart to read.
 **Cue:** `chatCool` is decremented only inside `greetPass()`, so it is wall-clock-correct only
 while that pass runs every 0.5 s. Fine today; a future early-out in the pass would freeze it.
+
+## Iteration 5 — the far side gets its own arrivals (2026-08-03) [Plaza & quay × Deepen]
+
+**Brief:** b4 — the east was not missing itineraries, it was missing budget: the plaza,
+quay, towpath and church green all hung off two narrow roll bands of one `laneCap`.
+**Did:** New `spawnEastAgent()` with its own `eastCap` (`1 + round(maturity*6*daylight)`)
+and `eastRate`, and `laneCount` now subtracts `eastCount` so the lane's budget is
+untouched. East agents carry `a.east` and enter by one of three gates already in the
+town's geometry, each picked to be *near* what it serves: the alley cut through the
+terrace (plaza), the north end of the quay (quay), the park gate arch (towpath, church
+green). Route is `gate → lead → stop → reverse(lead) → gate`, so they leave the way they
+came and despawn off-map or inside a passage. One predicate `eastOpen()` (`daylight >
+0.16`) has three readers — no new arrivals, anyone still sitting gets up, and the walk
+home runs at 1.55×. Census gains `inEast`, a geographic partition of the existing
+`onStreet`, not a new axis. No new destinations: everything visited already existed.
+**Gates:** census PASS (`people` +33, `inEast` +24 from zero; rest is PRNG churn) · visual
+PASS (wide/courtyard/east/lane, plus controlled midday and night pairs and both new gates
+caught with someone in them) · motion PASS (0 jumps / 0 nan / 0 oob / 0 flicker in all
+four scenes; walker spawns +24) · filmstrip day POP at frame 7 — **explained, not mine**
+(see Surprise) · night filmstrip clean · perf PASS (interleaved vs HEAD, both at the
+16.7 ms vsync cap) · probe `probes/east-arrivals.mjs` over 4 seeds × 21 days: at midday
+the quay went 0.10 → 1.75 mean walkers and the church green 0.62 → 2.24, quay-and-green
+occupied *together* in 5% → 76% of samples, while the lane held at 5.36 → 5.30.
+**Verdict:** shipped   ← my view; runlog.mjs decides from the diff
+**Surprise:** The first build worked and was still wrong, for a reason no gate reports:
+the round trips outlived the day. A day is 55 s and daylight is ~33 s of it, but a walk
+from the north end of the quay to a plaza bench and back is ~92 cells ≈ 50 s. So the east
+population was a rolling average that never cleared — 5.17 at midday and 4.21 at
+midnight, a town where nobody goes home. `eastCap` going to zero at dusk does nothing
+about it, because a cap only blocks arrivals. What fixed it was geometry, not tuning:
+move the plaza's gate to the alley (9 cells out instead of 46) and the far bank's to the
+arch instead of the lane's east edge. Midnight went 4.21 → 1.37 and 04h → 0.38.
+Second: the day filmstrip showed a Δ 11.15 POP that HEAD does not have. It was not mine.
+`probes/pop-where.mjs` showed the change was uniform across *every* region including the
+courtyard, which my east-side change cannot touch; a per-frame dump of the ticker and
+`clock.raining` showed a shower ending on exactly that frame. My change shifts the seeded
+PRNG stream, so seed 42 now rains at t=175 where HEAD does not. Three wrong causes were
+plausible first (cloud-cover rounding, a light-bucket step, a layout reflow) and I
+measured each rather than picking one.
+**Law:** A round trip must be short against the *day*, not merely plausible on the map.
+This town crosses 138 cells at ~1.8/s while a day lasts 55 s, so anything whose journey
+exceeds ~40 s is permanently present regardless of the cap that spawned it. Caps set the
+inflow; trip length sets the standing population and its phase.
+**Law:** When a global gate fires on something you did not touch, dump the *page's own
+state* per frame — ticker text, `__census().clock` — before theorising. The pixel-diff
+says a frame changed; the clock says what changed. (Generalises the iteration-4 law from
+one kind's distribution to any whole-frame event.)
+**Cue:** East agents retrace their inbound route exactly, so two who arrive together walk
+the same line single-file. It reads fine at current density but would queue if `eastCap`
+ever rose much above 7.
+**Cue:** Nobody ever crosses the bridge on foot between the plaza side and the far bank —
+lane walkers do, east agents never do, because their gates are on one side or the other.
+The bridge is the town's only link across the river and no itinerary uses it as a link.

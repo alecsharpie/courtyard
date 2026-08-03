@@ -13,28 +13,7 @@
     "balance": "All coverage is pre-loop (hand-driven #1-31), so the grid records ground held, not work done. Thinnest by far: Plaza & quay (1 entry, new-element only) and River & far bank (3, all new-element/polish) — the whole east half was built and never revisited. By kind the gaps are starker: `connect` has 1 entry in the entire town, `interaction` and `scale` have 0, `new-ca` has 1. The town has been extended repeatedly and wired together almost never, which is exactly the shape that makes rung 2 the right opening rung."
   },
   "rationale": "Rung 2 (deepen/interconnect), not rung 1. Thirty-one hand-driven iterations already put the nouns in — eleven flower species, a church, a bandstand, an orchard, a market, swans, a balloon — so rotating in another noun is the low-yield move, and the coverage grid agrees: `connect` has been used once in the town's whole history. The frontier for somebody looking at the diorama for thirty seconds is not a missing object, it is that the objects do not know about each other.\n\nI checked four candidate gaps against the source rather than against the cue list, and two of them were already built: the allotments do have gardeners who walk to a real BED cell and kneel (`tendPlot`, ~line 860), and the planting CA already does neighbour-seeded spread, crowding and ageing (`caTick`, `neighborsMature`). Briefing either would have been the previous loop's failure mode with extra steps. The two that survived are real absences, verified by grep returning nothing: there is no cloud anywhere in the file, and there is no agent-to-agent code anywhere in the file. Those are b2 and b3.\n\nOn ordering: b1 (the bell) is the shakedown — `bellUntil` is written by `strikeClock()` and read by nothing, so it is a genuinely dead variable, the diff is small, and it exercises the full gate chain including the motion gate that a still frame cannot substitute for. b2 (clouds) is the frontier and the brief that could fail: it touches the largest surface in the frame, the cached backdrop layer and the per-frame sky, so it is the one with a real perf and caching trap in it. b3 and b4 are the two halves of 'the town is not populated the way it looks like it should be' — b3 gives people awareness of each other, b4 gives the east half a spawn budget of its own.\n\nI am deliberately NOT reaching for c1 (the world stops progressing after ~15 real minutes). It is the strongest lever on the board and it is rung 4; spending it now would leave nothing above it for the first time the loop actually stalls. It stays a cue, and it is what I climb to.",
-  "queue": [
-    {
-      "id": "b4",
-      "domain": "Plaza & quay",
-      "kind": "Deepen",
-      "brief": "The east half is not missing itineraries — `spawnLaneAgent` already routes people to the plaza, the quay, the church green, the towpath and the allotments. It is missing budget. All of those hang off one `roll` cascade in one function under one `laneCap` (~2976) that peaks at 9 in full daylight, and the bands are narrow: the quay takes roll 0.48–0.53 and the green 0.53–0.58, so roughly a tenth of a small budget reaches everything east of the plaza. That is why the quay benches, the bandstand and the orchard are almost always empty. Give the far side its own arrival source with its own cap, so the east reads as populated at midday without starving the lane.",
-      "seams": [
-        "spawnLaneAgent",
-        "laneCap",
-        "laneRate",
-        "simStep",
-        "QUAY_BENCHES",
-        "FAR_BENCHES",
-        "BANDSTAND",
-        "TOW_X0"
-      ],
-      "successLooksLike": "A midday wide shot has people on the quay and on the church green at the same time as the lane is busy; a night shot is still quiet. Census `people` rises at midday and comes back down at night.",
-      "avoid": "Do not fix this by raising `laneCap` — that floods the lane in order to populate the far bank. Do not add new far-bank destinations; the ones that exist are under-used, which is the entire point.",
-      "budgetMin": 30,
-      "risk": "medium"
-    }
-  ],
+  "queue": [],
   "consumed": [
     {
       "id": "b1",
@@ -47,6 +26,10 @@
     {
       "id": "b3",
       "at": "2026-08-03T02:02:12.408Z"
+    },
+    {
+      "id": "b4",
+      "at": "2026-08-03T02:15:44.499Z"
     }
   ],
   "recommendStop": null

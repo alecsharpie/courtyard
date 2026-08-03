@@ -760,7 +760,9 @@ function stepAgent(a, dt){
       if (planted) announce('Fresh ' + SPECIES[sp-1].name + ' go into the bed, patted down gently.');
       groundDirty = true;
     }
-    if (a.timer <= 0 || (raining && a.state !== 'lie')){
+    // the far side goes home when the light does: a visit that outlasts the daylight
+    // that authorised it is what leaves the quay occupied at midnight
+    if (a.timer <= 0 || (raining && a.state !== 'lie') || (a.east && !eastOpen())){
       if (a.blanket){ a.blanket = false; }
       if (a.tableRef){ a.tableRef.taken = 0; a.tableRef = null; a.cup = false; }
       if (a.resume && a.i < a.wp.length){ a.state = 'walk'; a.resume = false; }
@@ -777,7 +779,8 @@ function stepAgent(a, dt){
   if (!tgt){ a.done = true; return; }
   const dx = tgt[0] - a.x, dy = tgt[1] - a.y;
   const d = Math.hypot(dx, dy);
-  const sp = a.speed * (raining && !a.umbrella ? 1.5 : 1) * (a.kind === 'napper' ? 0.8 : 1);
+  const sp = a.speed * (raining && !a.umbrella ? 1.5 : 1) * (a.kind === 'napper' ? 0.8 : 1)
+                     * (a.east && !eastOpen() ? 1.55 : 1);   // home before dark
   if (d < 0.25){
     a.i++;
     if (a.i >= a.wp.length){
@@ -996,6 +999,69 @@ function spawnLaneAgent(){
       a.wp.push([toX, yLine + (R() - 0.5)]);
     }
   }
+  agents.push(a);
+}
+
+/* ============ the eastern quarter ============ *
+ * The plaza, quay and far bank were only ever reachable as the tail of a lane
+ * itinerary, so they competed for `laneCap` and lost — two narrow roll bands out of
+ * one budget that peaks at nine. They get their own arrivals instead: their own
+ * cap, their own rate, and no claim on the lane's.
+ *
+ * Each gate is a passage the town already has, and each is chosen to be *near* what
+ * it serves. That is the binding constraint: a day is 55 s, so a round trip much
+ * over ~40 s outlives the daylight that authorised it and the far side never empties
+ * at night. Hence the alley for the plaza rather than the length of the quay.
+ * Everything they visit already exists — this is budget, not scenery.
+ */
+const EAST_GATE_A = [96.3, ALLEY_Y + 0.4],   // in through the alley cut, from the town
+      EAST_GATE_Q = [112.9, -2.5],           // off the north end of the quay
+      EAST_GATE_P = [PARK_GATE, 64.6];       // up through the park gate arch
+// one predicate, three readers: nobody sets out for the far side after this, anyone
+// still sitting there gets up, and anyone walking home does it briskly.
+function eastOpen(){ return daylight > 0.16; }
+function spawnEastAgent(){
+  const a = {
+    kind:'plaza', street:true, east:true,
+    x:0, y:0, wp:[], i:0, speed:1.5 + R() * 0.8, state:'walk', timer:0,
+    shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9,
+  };
+  const roll = R();
+  let gate, lead;
+  if (roll < 0.32){                          // into the plaza: a bench, or the fountain
+    a.kind = 'plaza';
+    if (R() < 0.5){
+      const b = pick(PLAZA_BENCHES);
+      a.stop = {x:b.x + 0.5, y:b.y + 1.0, act:'sit', dur:9 + R() * 9};
+    } else {
+      a.stop = {x:FOUNTAIN.x - 2.4 + R() * 1.6, y:FOUNTAIN.y + 3.1, act:'stand', dur:5 + R() * 5,
+        say: R() < 0.12 ? 'Someone trails a hand through the fountain and flicks it dry.' : null};
+    }
+    gate = EAST_GATE_A; lead = [[99.8, ALLEY_Y + 0.4]];
+  } else if (roll < 0.62){                   // along the quay: a bench, or the rail
+    a.kind = 'quay';
+    if (R() < 0.5){ const b = pick(QUAY_BENCHES); a.stop = {x:b.x + 0.5, y:b.y + 1.0, act:'sit', dur:9 + R() * 9}; }
+    else a.stop = {x:112.9, y:10 + R() * 32, act:'stand', dur:5 + R() * 6,
+      say: R() < 0.12 ? 'Someone leans on the quay rail, watching the river go about its business.' : null};
+    gate = EAST_GATE_Q; lead = [[112.9, 7]];
+  } else if (roll < 0.76){                   // down the steps onto the towpath
+    a.kind = 'green';
+    a.stop = {x:TOW_WALK, y:22 + R() * 33, act:'stand', dur:6 + R() * 6,
+      say: R() < 0.1 ? 'Someone walks the towpath on the far bank, hands behind their back.' : null};
+    gate = EAST_GATE_P; lead = [[PARK_GATE, 60.5], [TOW_WALK, 59]];
+  } else {                                   // the church green: a bench, or the bandstand
+    a.kind = 'green';
+    const b = R() < 0.5 ? pick(FAR_BENCHES) : null;
+    a.stop = b ? {x:b.x + 0.5, y:b.y + 1.0, act:'sit', dur:10 + R() * 10}
+               : {x:BANDSTAND.x + 2.7, y:BANDSTAND.y + 2.4, act:'stand', dur:6 + R() * 6,
+                  say: R() < 0.1 ? 'Someone stops by the bandstand to listen to nothing in particular.' : null};
+    gate = EAST_GATE_P; lead = [[PARK_GATE, 60.5], [FAR_WALK, 57]];
+  }
+  a.x = gate[0]; a.y = gate[1];
+  for (const p of lead) a.wp.push(p.slice());
+  a.wp.push([a.stop.x, a.stop.y]);
+  for (let i = lead.length - 1; i >= 0; i--) a.wp.push(lead[i].slice());
+  a.wp.push(gate.slice());                   // and back out the way they came
   agents.push(a);
 }
 /* the dawn sweeper */
@@ -3140,15 +3206,20 @@ function simStep(sdt, dt){
   while (caAcc > 0.35){ caAcc -= 0.35; caTick(); }
 
   const courtyardCount = agents.filter(a => !a.street).length;
-  const laneCount = agents.length - courtyardCount;
+  const eastCount = agents.filter(a => a.east).length;
+  const laneCount = agents.length - courtyardCount - eastCount;
   const capacity = 2 + Math.round(maturity() * 12 * (0.25 + 0.75 * daylight));
   const laneCap = 1 + Math.round(maturity() * 8 * (0.2 + 0.8 * daylight));
+  // the far side arrives on its own budget, so it no longer loses to the lane
+  const eastCap = 1 + Math.round(maturity() * 6 * daylight);
   const rate = (0.05 + maturity() * 0.42) * (0.12 + daylight) * (raining ? 0.25 : 1);
   const laneRate = (0.08 + maturity() * 0.5) * (0.15 + daylight) * (raining ? 0.3 : 1) * (marketActive() ? 1.7 : 1);
+  const eastRate = (0.15 + maturity() * 0.6) * (0.1 + daylight) * (raining ? 0.25 : 1);
   spawnAcc += sdt;
   if (spawnAcc > 1){ spawnAcc = 0;
     if (courtyardCount < capacity && R() < rate) spawnAgent();
     if (laneCount < laneCap && R() < laneRate) spawnLaneAgent();
+    if (eastOpen() && eastCount < eastCap && R() < eastRate) spawnEastAgent();
     if (agents.length === 0 && day === 0 && simT > 6 && !window._first){ window._first = true; spawnAgent();
       announce('The first neighbour wanders in through the archway.'); }
   }
@@ -3251,6 +3322,9 @@ window.__census = function(){
     people: agents.length,
     inCourtyard: agents.filter(a => !a.street).length,
     onStreet: agents.filter(a => a.street).length,
+    // a subset of onStreet, not a new axis: the same where-are-they split, extended
+    // to the half of the world that never had a counter.
+    inEast: agents.filter(a => a.east).length,
     ducks: ducks.length, swans: swans.length, birds: birds.length,
     butterflies: butterflies.length, fireflies: fireflies.length,
     leaves: leaves.length, raindrops: raindrops.length,
