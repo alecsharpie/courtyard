@@ -20,7 +20,7 @@
   "avoid": "Do NOT simply raise the day-8 and day-16 caps in maturity()/richness(). That stretches the same one-way ramp and the town still stops, just later — the season must be cyclic. Do not make it a boolean or a four-way enum; this town's idiom is ramps, and the rate-cap law is what makes continuity provable by probe. Do not add a census field per reader — one `season` on the clock is enough. And set a floor: the shortest day must still leave the town populated and legible, because someone arriving in deep winter must not find a dead diorama. Measure population across a full cycle and state the trough.",
   "budgetMin": 40,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 12,
   "issued": "2026-08-03T04:59:49.650Z",
