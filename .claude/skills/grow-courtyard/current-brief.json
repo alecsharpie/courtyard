@@ -17,7 +17,7 @@
   "avoid": "Do not make the trees change SIZE with the season — maturity() sizes them, and a tree that grows and shrinks every 24 real minutes reads as a bug, not a year. Do not go fully bare and stay there; winter should keep the orchard's structure and the linden's silhouette. And this is the biggest thing drawn in the frame: LAW says the largest gated draw is the pop, so cross the seasons on a ramp and prove it with a region-cropped filmstrip, not the whole-frame mean, which will be loud about the sky regardless.",
   "budgetMin": 45,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 17,
   "issued": "2026-08-03T07:15:00.707Z",
