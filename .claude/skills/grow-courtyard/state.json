@@ -2,7 +2,7 @@
   "updated": "2026-08-03",
   "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
   "phase": "expanding",
-  "lastIteration": 5,
+  "lastIteration": 6,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -205,6 +205,9 @@
       ],
       "deepen": [
         3
+      ],
+      "connect": [
+        6
       ]
     },
     "life": {
@@ -246,7 +249,8 @@
       "market day every 4th day with three stalls",
       "planters",
       "street lamps",
-      "lane benches"
+      "lane benches",
+      "washing that comes in before the rain: the rope stays strung and garments leave one at a time on per-garment thresholds and ~1.6s fades, driven by weatherComing() and a dusk ramp — never all in one frame"
     ],
     "street": [
       "cross street with two footways, roadway, curbs",
@@ -284,7 +288,8 @@
       "night window lighting",
       "chimney smoke",
       "a balloon",
-      "cloud cover as one slow rate-capped scalar (cloudCover()) — fronts build over ~half a day and break up after rain · drifting cloud banks that fade in as cover thickens · rain gated on cover, so it never rains from a clear sky · sun and moon veiled · stars put out · roof key light flattened · overcast ticker lines"
+      "cloud cover as one slow rate-capped scalar (cloudCover()) — fronts build over ~half a day and break up after rain · drifting cloud banks that fade in as cover thickens · rain gated on cover, so it never rains from a clear sky · sun and moon veiled · stars put out · roof key light flattened · overcast ticker lines",
+      "weatherComing(): one ramped predicate for 'rain is coming', off cloudCover() and damped by daylight so overcast nights (which cannot rain) read 0. Three readers at their own trigger points on the same scalar"
     ],
     "life": [
       "walkers with itineraries, courtyard and street",
@@ -302,7 +307,9 @@
       "an ambient ticker",
       "walkers who break stride and look up while the bell is ringing (a.listen)",
       "agents that notice each other: two who pass within 0.9–1.6 cells may stop, turn and talk a few seconds (greetPass, a.greet, chatCool), then walk on — ~2 conversations a minute",
-      "butterflies drift to their flower at a capped 3 cells/s instead of lunging across the courtyard"
+      "butterflies drift to their flower at a capped 3 cells/s instead of lunging across the courtyard",
+      "street sitters who read the sky: new sits refused above weatherComing() 0.42, existing sitters released over 0.55..0.88 off a stable per-agent a.wary (courtyard sitters excluded)",
+      "umbrellas that go up on the approach (weatherComing() 0.62..1.17, so ~30% never open one), put away below 0.42 and cleared when the rain stops"
     ]
   },
   "openCues": [
@@ -363,6 +370,12 @@
     {
       "id": "c12",
       "note": "RUNLOG.jsonl records secs=0, costUsd=0, turns=0, tokens=null on every worker row (iters 2-5); only the manager row carries real numbers. The exact metric that killed the previous loop — cost per iteration climbing while output stays flat — is therefore unmeasurable for the workers, and stall.mjs is averaging $0.28/iter off the one manager row that has data. HARNESS, not town: needs run-loop.sh or runlog.mjs to capture the worker session cost. Flagged to the human at pass #5.",
+      "raisedBy": 5,
+      "seenBy": 0
+    },
+    {
+      "id": "c11",
+      "note": "Courtyard sitters (picnic, sitter kinds) do not read the sky — only a.street agents do. Their sit is assigned at a waypoint with no route left, so refusing it would despawn them mid-lawn; extending the effect inland needs routeToExit() on refusal.",
       "raisedBy": 5,
       "seenBy": 0
     }

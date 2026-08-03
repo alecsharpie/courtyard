@@ -18,22 +18,19 @@
   "rationale": "Rung 2 again, deliberately and for the last time at this width. The rule is that a stall forces me up the ladder; nothing here is stalling, and rungs 1-2 still have obvious unmined ground — three domains the loop has never touched and five of seven kinds unused. Climbing now would be spending the strong moves out of impatience rather than need.\n\nThe diagnosis that shapes the batch: iterations 2-5 each shipped a system and each left it with fewer readers than it deserves, and that is now the town's characteristic shape. bellUntil was written and unread (fixed at #2). cloudCover() was added at #3 and has exactly ONE reader, the rain roll — a probe measured a 27 s median lead between cover crossing 0.5 and the first drop, and the town spends every second of it behaving as though the sky were clear. updateBoat has none. So b5 and b8 are the same move applied twice, at different scales.\n\nI checked four candidate gaps against the source before writing, per the standing watch note, and two died there. 'Nobody shelters from the rain' is wrong: umbrellas go up at line 1297, unumbrella'd walkers speed up 1.5x at 782, sitters get up at 765, and every spawn rate already scales by raining. What is actually missing is not the reaction but its *timing* — everything reacts to `raining`, a boolean that flips in a single frame, and nothing reads the half-day of warning that now exists. 'The allotments have no crop system' is also wrong: SPECIES carries four veg entries and speciesFor() splits the CA on inAllotment. What is missing there is the other half of the cycle — nothing is ever picked. Both survived as briefs, but as much smaller and more accurate ones than the versions I would have written from the cue list. I also corrected c11 outright: people do cross the bridge (the lane IS the bridge, 114 to 127 carried at y 66.4), they just never stop on it.\n\nOrdering. b5 first because it is the frontier and the batch's real bet — it touches the largest system added so far, it has a legibility trap and a pop trap in it, and it is the one that could fail. b6 is the risk-balanced middle. b7 fixes the single largest visual pop in the town and is the safest big-payoff item. b8 and b9 are small, close three cues between them, and are there so a stale plan still has cheap useful work at the end of it rather than the batch degrading into whatever the worker invents.\n\nStill NOT reaching for c1 (the world stops progressing after ~15 real minutes, rung 4). Second pass holding it. The condition for spending it is a batch that comes back thin, and this one has five briefs that each name a real absence I verified in the source. Nor am I briefing Courtyard & garden, which the loop has never touched — I looked, and it is the best-developed part of the town (CA ring, dieback, daisies, desire paths, sweeper, nappers, picnickers, butterflies, fireflies). Its gap is a rung-5 gap: there is no way to *read* the courtyard, only to watch it. That is the same shelf c1 sits on.",
   "queue": [
     {
-      "id": "b5",
-      "domain": "Sky, light & weather",
-      "kind": "Connect",
-      "brief": "cloudCover() was added at iteration 3 and has exactly one reader: the rain roll. Its own probe measured a median 27 s — half a day — between cover crossing 0.5 and the first drop, and the town uses none of it. Everything that reacts to weather reads `raining` instead, a boolean that flips in one frame: the washing lines are gated `!raining` at ~line 2401 and so vanish between two frames, and umbrellas go up at line 1297 only once the rain has already started. Give the town a state for 'weather is coming', read off cover, so that a viewer watching the wide shot sees the lane prepare before the sky opens. Pick two or three readers with the strongest read rather than wiring all of them — the washing coming in is the most legible single thing in the frame — and make each one a transition, not a pop.",
-      "seams": ["cloudCover", "stepClouds", "raining", "isWindy", "CAFE_TABLES", "a.umbrella", "laneRate"],
-      "successLooksLike": "On a building front you can watch the town get ready before the first drop lands, and the filmstrip shows no frame where the washing disappears all at once.",
-      "avoid": "Do not add a second predicate for 'about to rain' — one function, many readers (see the one-predicate law). Do not touch stepClouds' rate cap or the cover>0.66 rain gate: iteration 3 proved both with a probe that still depends on them.",
-      "budgetMin": 35,
-      "risk": "medium-high"
-    },
-    {
       "id": "b6",
       "domain": "Cross street & allotments",
       "kind": "New CA rule",
       "brief": "The allotment block — 21 plots, the longest untouched part of the town — already grows vegetables: SPECIES carries carrots, cabbages, beans and pumpkins flagged veg:1, and speciesFor() splits the CA on inAllotment(). What it has is half a cycle. A mature carrot sits at bSt 3 until the same age-and-crowding dieback that clears a rose removes it at random. Nothing is ever picked. Add harvest as a real term: a mature veg cell can be taken, by the `allot` gardener who already walks in through the gate, kneels at a real BED cell and leaves (spawn at ~line 935, kneel at ~792), and a cleared row then re-seeds. The observable outcome is that the allotments visibly turn over — rows fill, get cleared and come back — instead of drifting to a static full block.",
-      "seams": ["caTick", "SPECIES", "inAllotment", "bSt", "bAge", "tendPlot", "ALT_GATE"],
+      "seams": [
+        "caTick",
+        "SPECIES",
+        "inAllotment",
+        "bSt",
+        "bAge",
+        "tendPlot",
+        "ALT_GATE"
+      ],
       "successLooksLike": "Watched over several days the allotment rows fill, empty and refill, and a gardener who kneels leaves with something rather than only putting something in.",
       "avoid": "Do not add a fifth vegetable — four exist and the census counts them. Do not give the flower ring a harvest; dieback there is correct and the ring is meant to be decorative.",
       "budgetMin": 30,
@@ -44,7 +41,13 @@
       "domain": "Lane & market",
       "kind": "Deepen",
       "brief": "marketActive() is `isMarketDay() && hour >= 8 && hour < 17` and the draw list consults it directly (`if (marketActive()) for (const s of MARKET_STALLS) items.push(...)`, ~line 2328). So at hour 8 three fully-built stalls appear between two frames, and at 17 they vanish the same way. It is the largest single pop in the town and it happens every fourth day. Give market day a beginning and an end: traders arrive and put the stalls up before opening, and pack down after. Mind the compression — hour 8 to 17 is about 20 s of real time, so a setup has roughly 2 s to happen in and still read as an event.",
-      "seams": ["marketActive", "MARKET_STALLS", "isMarketDay", "drawMarketStall", "marketAnnounced"],
+      "seams": [
+        "marketActive",
+        "MARKET_STALLS",
+        "isMarketDay",
+        "drawMarketStall",
+        "marketAnnounced"
+      ],
       "successLooksLike": "On a market morning you can watch the market being built and in the evening watch it go, and no filmstrip frame shows three stalls arriving at once.",
       "avoid": "Do not add a fourth stall or a new stall type. Do not move marketActive()'s hours — laneRate multiplies by 1.7 on it at ~3216 and marketAnnounced reads it at ~3190.",
       "budgetMin": 25,
@@ -55,7 +58,14 @@
       "domain": "River & far bank",
       "kind": "Deepen",
       "brief": "Closes c5 and c11. updateBoat() runs a boat the length of the river, past a quay where people stand at the rail and under a bridge that every far-bank visitor walks over, and not one of them ever looks at it — the same written-but-unread shape bellUntil had, and a.listen (built at #2) is the mechanism that fits. Second, related, and verified: people DO cross the bridge (the lane is carried over the water from RIVER_X0 114 to RIVER_X1 127 at LANE_N_Y 66.4, and the `green` itinerary routes out to PARK_GATE at x=134), but no waypoint in the town ever stops anyone on it. Make the boat's passage something the town answers, and let some crossers stop at the parapet and look down.",
-      "seams": ["updateBoat", "a.listen", "QUAY_BENCHES", "LANE_N_Y", "RIVER_X0", "RIVER_X1"],
+      "seams": [
+        "updateBoat",
+        "a.listen",
+        "QUAY_BENCHES",
+        "LANE_N_Y",
+        "RIVER_X0",
+        "RIVER_X1"
+      ],
       "successLooksLike": "When the boat goes by, the people at the quay rail turn and follow it, and on a wide shot you sometimes catch somebody leaning on the bridge watching the water.",
       "avoid": "strikeClock owns the bell; this is a separate event and must not re-derive bellUntil. Hold nobody long — an answer that runs past ~2 s stops being an event and becomes state.",
       "budgetMin": 25,
@@ -66,7 +76,14 @@
       "domain": "People & animals",
       "kind": "Polish",
       "brief": "announce() assigns tickerEl.textContent outright (~line 534), so two events in the same frame show only the second — the town's one text surface silently drops lines and has done since it was built. That is also what blocks c4: the church-answer branch in strikeClock (~line 3143) is unreachable dead code, because `(hInt === 9 || hInt === 18)` hangs off an else-if under `(hInt % 3 === 0)` and both 9 and 18 are divisible by three; it cannot simply be un-nested while a second announce in the same frame would erase the first. Fix the cause, then the symptom: make announce() a small ordered queue with a minimum dwell per line, and then let the church actually answer the clock at nine and eighteen.",
-      "seams": ["announce", "tickerEl", "tickerTimer", "strikeClock", "HOUR_WORDS", "ambientLine"],
+      "seams": [
+        "announce",
+        "tickerEl",
+        "tickerTimer",
+        "strikeClock",
+        "HOUR_WORDS",
+        "ambientLine"
+      ],
       "successLooksLike": "At nine o'clock on day 2 or later you read the clock line and then the church line, in that order, both legible; no line is ever cut off mid-word by another.",
       "avoid": "Do not grow the ticker into a log or a second UI element — it is one line and should stay one line. Do not let the queue back up; drop stale entries rather than showing an old line late.",
       "budgetMin": 20,
@@ -74,10 +91,26 @@
     }
   ],
   "consumed": [
-    { "id": "b1", "at": "2026-08-03T01:25:59.097Z" },
-    { "id": "b2", "at": "2026-08-03T01:45:06.014Z" },
-    { "id": "b3", "at": "2026-08-03T02:02:12.408Z" },
-    { "id": "b4", "at": "2026-08-03T02:15:44.499Z" }
+    {
+      "id": "b1",
+      "at": "2026-08-03T01:25:59.097Z"
+    },
+    {
+      "id": "b2",
+      "at": "2026-08-03T01:45:06.014Z"
+    },
+    {
+      "id": "b3",
+      "at": "2026-08-03T02:02:12.408Z"
+    },
+    {
+      "id": "b4",
+      "at": "2026-08-03T02:15:44.499Z"
+    },
+    {
+      "id": "b5",
+      "at": "2026-08-03T02:50:16.579Z"
+    }
   ],
   "recommendStop": null
 }

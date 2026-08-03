@@ -215,3 +215,69 @@ ever rose much above 7.
 **Cue:** Nobody ever crosses the bridge on foot between the plaza side and the far bank —
 lane walkers do, east agents never do, because their gates are on one side or the other.
 The bridge is the town's only link across the river and no itinerary uses it as a link.
+
+## Iteration 6 — the town gets ready before the sky opens (2026-08-03) [Sky, light & weather × Connect]
+
+**Brief:** b5 — `cloudCover()` had one reader (the rain roll). Everything else read
+`raining`, a boolean that flips in one frame. Give the town a state for "weather is
+coming" and make two or three readers transitions rather than pops.
+**Did:** One predicate, `weatherComing()` — 0 while fair, 1 by the cover at which the
+rain roll goes live, damped by daylight because the roll is itself gated on
+`daylight > 0.15`. Three readers, each with its own trigger point on the same scalar,
+which is the whole benefit of a ramp over a boolean: **washing** — the rope stays
+strung and the garments come in one at a time on their own thresholds (0.16..0.82) and
+their own ~1.6 s fades, driven by `max(weatherComing(), a local dusk ramp on daylight)`;
+**street sitters** — new sits refused above 0.42, existing sitters released over
+0.55..0.88 off a per-person `wary`, the gap guaranteeing nobody sits and stands right
+up; **umbrellas** — up over 0.62..1.17 (so ~30% never open one and get caught out),
+put away below 0.42 and cleared when the rain stops. The rain-start `R()<0.5` umbrella
+sweep is gone: whoever was going to put one up already has.
+**Gates:** census PASS (`people` 138→135, within PRNG churn) · visual PASS (wide,
+courtyard, east, lane at the pinned moment, plus a controlled overcast afternoon at
+seed 9 and a six-frame retreat strip at seed 1) · motion PASS (0 jumps / 0 nan / 0 oob
+/ 0 flicker in all four scenes) · filmstrip day and night both clean, no POP, no FROZEN
+· perf PASS (interleaved vs HEAD, both at the 16.7 ms vsync cap) · probes
+`probes/weather-lead.mjs` and `probes/wash-pop.mjs`. Over 20 seeds × 440 s: median lead
+from first umbrella to first drop **0.5 s → 16.0 s** (n=21, every shower), last sitter
+leaving **25.5 s → 37.5 s**. Street sitting by cloud band, HEAD → work: 0.40→0.44 under
+a clear sky (unchanged), 0.57→0.31, 0.67→0.05, 0.61→0.00 — monotone in the cover, and
+daylit population is flat at 12.30→12.49. Washing: HEAD loses all 10 garments in a
+single frame 41 times per sweep; the largest single-garment change per frame is now
+**0.116** with zero frames above 0.25.
+**Verdict:** shipped   ← my view; runlog.mjs decides from the diff
+**Surprise:** Three defects, and the gates that caught them were not the gates I
+expected. (1) The census called a `people` COLLAPSE of −12.3%, and it was noise — one
+of the nine cells had shifted into rain. The probe that split population by cloud band
+showed every band flat or up. Had I tuned to satisfy the census I would have weakened a
+working feature to chase a coincidence. (2) The *screenshot* caught what every number
+missed: a night full of open umbrellas. Overcast nights are common and can never rain,
+so an undamped predicate had the whole town waiting for weather that was not coming.
+(3) Worst of all, `a.phase` looked like a stable per-agent trait and is the walk cycle,
+advanced every frame — so `a.phase % 1` cycled through the entire threshold band several
+times a second and my "stagger" staggered nothing. It showed up as 14/14 walkers holding
+umbrellas where the arithmetic predicted 69%; I only found it because I checked the
+arithmetic against the count instead of accepting a plausible picture.
+**Law:** A per-agent trait must be one that is never written after spawn. `a.phase` is
+the walk cycle and `a.timer`, `a.greet`, `a.chatCool` all count down; reading any of
+them as a stable personal threshold produces a value that cycles the whole band every
+few frames, which looks like a stagger and is a flicker. Give the trait its own field at
+spawn (`a.wary`), and sanity-check it by predicting the fraction that should react and
+counting the fraction that did.
+**Law:** A crossfade window must be no wider than the smallest threshold it fades in
+from, or the first item sits permanently translucent. My garment fade was 0.14 wide
+against a band starting at 0.10, so the lowest-hashed garment hung at 71% alpha in
+perfect weather for four gate runs before a probe printed 9.49 where 10 was expected.
+**Law:** A `?pause` + `__warp()` probe must do all of its stepping inside ONE
+`page.evaluate`. The page keeps running its entity loop between host round-trips, so
+frames — and the PRNG draws and spawns they consume — land between your steps; a probe
+split across evaluates is not reproducible across runs, and `__reseed()` does not fix it
+because it rewinds the stream and not the agents those frames already created. For a
+filmstrip this does not matter (one session, consecutive frames is all it needs); for a
+measurement it matters completely.
+**Cue:** `weatherComing()` is damped by daylight, so a front that peaks overnight still
+builds full cover and still cannot rain — cue c8 is untouched. The town now *visibly*
+does nothing about those nights, which is correct but makes c8 more conspicuous.
+**Cue:** Courtyard sitters (`picnic`, `sitter`) deliberately do not read the sky — only
+`a.street` agents do — because their sit is assigned at a waypoint with no route left,
+so refusing it would despawn them mid-lawn. Giving them a `routeToExit` on refusal would
+extend the effect into the courtyard.
