@@ -14,7 +14,7 @@
   "avoid": "Do not add a fourth stall or a new stall type. Do not move marketActive()'s hours — laneRate multiplies by 1.7 on it at ~3216 and marketAnnounced reads it at ~3190.",
   "budgetMin": 25,
   "risk": "low-medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 8,
   "issued": "2026-08-03T03:41:17.352Z",
