@@ -70,3 +70,52 @@ anything lasting more than ~2 s stops being an event and becomes state.
 **Cue:** `updateBoat()` still runs the boat past a quay full of people who never look at
 it — the same written-but-unread shape as `bellUntil`, and now there is a mechanism
 (`a.listen`) that would fit it.
+
+## Iteration 3 — the sky now tells you rain is coming (2026-08-03) [Sky, light & weather × Deepen]
+
+**Brief:** b2 — `grep -i cloud` returned nothing. Give the sky cover as one slow value
+on the same footing as `isWindy()`, and have both `skyCols()` and the rain roll read it.
+**Did:** New `cloudCover()` over `cloud`/`cloudTgt`/`frontLeft`, stepped by `stepClouds(sdt)`
+in `simStep`. A front picks a target (heavy 0.76–1.0 with p≈0.3+0.24·richness, else
+`R()*R()*0.5`) and holds it 24–60 s; `cloud` eases toward it rate-capped at +0.02/−0.026 per
+second, so it can never step. The rain roll is now gated `cloudCover() > 0.66` with a rate
+that scales with how far above; rain pins the target to 0.92 and, on stopping, sets it to
+0.1–0.38 so cover visibly breaks up behind the shower. Readers: `skyCols()` mixes both stops
+toward grey *after* the dusk term (cloud mutes a sunset, it doesn't sit under one);
+`drawClouds()` is a new per-frame pass of 11 hash-seeded banks that fade in one at a time as
+cover thickens, drifting on `simT` and wind, drawn over the sun and under the hills;
+`drawSunMoon` gets a `veil` factor; `drawBackdrop` puts the stars out; `drawRoofRow` flattens
+its key light; `ambientLine()` gained two overcast tiers. Cover rides the existing
+`lightBucket` (already ~1.75 rebuilds/s) rather than its own key, so it costs no extra
+backdrop or ground rebuilds.
+**Gates:** census PASS (raindrops +110 — a sampled cell now rains where it didn't; rest is
+PRNG churn) · visual PASS (clear → building 0.44 → heavy 0.89 → raining, plus wide/courtyard/
+east/lane and the 390×844 framing; the diagonal pale streak in every shot is the pre-existing
+glass-glare overlay, confirmed against HEAD) · motion PASS (zero jumps/nan/oob/flicker) ·
+filmstrip PASS (no POP; cover visibly breaks across 12 frames) · perf PASS (interleaved vs
+HEAD, both at the 16.7 ms vsync cap) · probe `probes/cloud-cover.mjs`: over 4 seeds × 14 days,
+lowest cover while raining **0.771**, largest change per 0.5 s **0.0130** (= the rate cap, so
+no step changes anywhere), median lead from cover-0.5 to first drop **27 s** — half a day.
+**Verdict:** shipped   ← my view; runlog.mjs decides from the diff
+**Surprise:** The probe was nondeterministic and I nearly believed it. Three runs of
+*unchanged* code gave 9, 11 and 16 rain starts, which I first misread as my draw-only cloud-
+height tweak changing the simulation. The cause is that `R() < dt * k` evaluates `R()` before
+comparing, so a paused frame still burns PRNG draws even though `dt` is 0 — and how many rAF
+frames arrive between load and the first `__warp()` is machine-dependent. A controlled test
+(identical `idle=0` runs giving cloud 0.883 vs 0.009, identical `idle=120` runs matching
+exactly) pinned it. `census.mjs` and `motion.mjs` both already call `__reseed()` first and are
+fine; my probe didn't. Adding it made three consecutive runs byte-identical. The near-miss is
+the point: an unreseeded probe doesn't error, it just quietly reports a different plausible
+number every run, which is exactly the shape of evidence that survives review.
+**Law:** Any `?pause` + `__warp()` measurement must call `__reseed()` before it starts. A
+paused frame still consumes PRNG draws, and the frame count before the first warp is
+machine-dependent — without the rewind a probe reports a different plausible number each run.
+**Law:** Rate-cap a slow world scalar instead of easing it. A cap makes "it never steps" a
+single measurable number (max delta per sample = the cap), so continuity is proved by the
+probe rather than argued from a screenshot.
+**Cue:** `drawSunMoon`'s `veil` hides the disc, but the shadow direction and the fixed shadow
+alphas at `SUN[0]/SUN[2]` call sites are unchanged — the town still casts hard sun shadows
+under full overcast. Softening them is a wider diff across ~6 call sites.
+**Cue:** Rain now only starts while `daylight > 0.15`, so a heavy front that peaks overnight
+builds full cover, never rains, and breaks up by morning. It reads fine, but it means overcast
+nights are more common than rain.

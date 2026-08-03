@@ -2,7 +2,7 @@
   "updated": "2026-08-03",
   "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
   "phase": "expanding",
-  "lastIteration": 2,
+  "lastIteration": 3,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -199,6 +199,9 @@
         "pre19",
         "pre24",
         "pre29"
+      ],
+      "deepen": [
+        3
       ]
     },
     "life": {
@@ -272,7 +275,8 @@
       "wind days",
       "night window lighting",
       "chimney smoke",
-      "a balloon"
+      "a balloon",
+      "cloud cover as one slow rate-capped scalar (cloudCover()) — fronts build over ~half a day and break up after rain · drifting cloud banks that fade in as cover thickens · rain gated on cover, so it never rains from a clear sky · sun and moon veiled · stars put out · roof key light flattened · overcast ticker lines"
     ],
     "life": [
       "walkers with itineraries, courtyard and street",
@@ -325,6 +329,18 @@
     {
       "id": "c6",
       "note": "state.mjs rewrites state.json with JSON.stringify(...,2), which explodes every inline array onto its own lines — the first write after a hand-edited file produced a 353-line diff for two inventory entries. Every future iteration's state diff will be noise unless state.mjs preserves the compact form.",
+      "raisedBy": 2,
+      "seenBy": 0
+    },
+    {
+      "id": "c7",
+      "note": "The town still casts hard sun shadows under full overcast — drawSunMoon veils the disc, but the ~6 SUN[0]/SUN[2] shadow call sites use fixed alphas.",
+      "raisedBy": 2,
+      "seenBy": 0
+    },
+    {
+      "id": "c8",
+      "note": "Rain requires daylight>0.15, so a heavy front peaking overnight builds full cover, never rains, and breaks by morning — overcast nights are commoner than rain.",
       "raisedBy": 2,
       "seenBy": 0
     }

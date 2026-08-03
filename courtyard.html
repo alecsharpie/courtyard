@@ -504,6 +504,22 @@ function timeLabel(){
 function kioskOpen(){ return day >= 2 && hour >= 7.5 && hour < 18.5; }
 function isMarketDay(){ return day > 0 && day % 4 === 2; }
 function isWindy(){ return hash(day, 99) < 0.28; }
+/* Cloud cover — ONE slow scalar the whole sky reads, on the same footing as
+ * isWindy(). Weather is a front that builds and breaks over most of a day, not a
+ * coin flip in a clear blue sky: the rain roll is gated on it, so cover always
+ * arrives first and there is no such thing as cloudless rain. */
+let cloud = 0.16, cloudTgt = 0.16, frontLeft = 0;
+function cloudCover(){ return cloud; }
+function stepClouds(dt){
+  frontLeft -= dt;
+  if (frontLeft <= 0){                          // the next front moves in
+    const heavy = day >= 1 && R() < 0.3 + 0.24 * richness();
+    cloudTgt = heavy ? 0.76 + R() * 0.24 : R() * R() * 0.5;
+    frontLeft = 24 + R() * 36;                  // ~half a day to a day and a half
+  }
+  if (raining) cloudTgt = Math.max(cloudTgt, 0.84);
+  cloud = clamp(cloud + clamp(cloudTgt - cloud, -dt * 0.026, dt * 0.02), 0, 1);
+}
 let wet = 0;                                   // post-rain street sheen timer
 function marketActive(){ return isMarketDay() && hour >= 8 && hour < 17; }
 const MARKET_STALLS = [
@@ -528,6 +544,11 @@ function ambientLine(){
     'A floorboard creaks in the house across the lane.']);
   if (isWindy()) return pick(['The washing snaps like little flags.',
     'The linden turns all its leaves silver-side out.']);
+  if (cloudCover() > 0.7) return pick(['The light goes flat and grey; the sky is thinking about it.',
+    'Someone brings the washing in early, just in case.',
+    'The whole block sits under one low grey lid.']);
+  if (cloudCover() > 0.42) return pick(['Cloud comes over the rooftops from the west.',
+    'The sun keeps going in and out.']);
   return pick(['Sparrows bicker somewhere in the linden.',
     'A window box gets watered from a first-floor window.',
     'The kiosk man rearranges tulips no one has bought yet.',
@@ -1141,9 +1162,12 @@ function updateWildlife(dt){
     while (raindrops.length < want) raindrops.push({x:R()*W, y:R()*H, v:520+R()*260});
     for (const r of raindrops){ r.y += r.v*dt; r.x -= r.v*dt*0.12; if (r.y>H){ r.y=-12; r.x=R()*(W*1.15); } }
     if (rainLeft <= 0){ raining=false; raindrops.length=0; wet = 18;
+      cloudTgt = 0.1 + R() * 0.28; frontLeft = 26 + R() * 26;   // and the cover breaks up behind it
       announce('The rain moves on. Everything smells green, and the lane shines.'); groundDirty=true; }
-  } else if (daylight > 0.15 && day >= 1 && R() < dt * 0.0035 * (1 + rich)){
+  } else if (cloudCover() > 0.66 && daylight > 0.15 && day >= 1
+             && R() < dt * 0.10 * (cloudCover() - 0.66) / 0.34 * (0.6 + rich)){
     raining = true; rainLeft = 10 + R() * 9;
+    cloudTgt = 0.92; frontLeft = Math.max(frontLeft, 24);
     announce('Rain drifts in across the rooftops.');
     for (const a of agents) if (a.state==='walk' && R()<0.5) a.umbrella = true;
   }
@@ -1189,6 +1213,10 @@ function skyCols(){
   let low = mix('#1a2340', '#c6dcec', d);
   top = mix(top, '#6b5590', dusk * 0.5);
   low = mix(low, '#e4a066', dusk * 0.75);
+  // cover comes last: cloud mutes a sunset, it does not sit under one
+  const c = cloudCover();
+  top = mix(top, mix('#232a3a', '#7f8894', d), c * 0.82);
+  low = mix(low, mix('#2c3446', '#b9bfc4', d), c * 0.74);
   return [top, low];
 }
 // stars, hills and the far-off skyline change slowly, so they live in their own layer
@@ -1201,6 +1229,7 @@ function drawSky(g){
   gr.addColorStop(0, top); gr.addColorStop(1, low);
   g.fillStyle = gr; g.fillRect(0, 0, W, hz + 4 * cellH);
   drawSunMoon(g, hz, top);
+  drawClouds(g, hz);                                // over the sun, under the hills
   const key = W + 'x' + H + ':' + lightBucket;
   if (key !== backKey){
     backKey = key;
@@ -1210,34 +1239,70 @@ function drawSky(g){
   }
   g.drawImage(bcv, 0, 0, W, H);
 }
+/* A fixed pool of banks that fade in one by one as cover thickens, so the sky
+ * fills continuously instead of popping a cloud into existence. Draw path, so it
+ * is hash()-and-simT deterministic — never R(). */
+function drawClouds(g, hz){
+  const c = cloudCover();
+  if (c < 0.04) return;
+  const drift = simT * (isWindy() ? 3.4 : 1.4) * (RM ? 0.12 : 1);
+  const span = W + cellW * 36;
+  const pale = mix('#ffffff', '#8a919d', clamp((c - 0.34) * 1.5, 0, 1));
+  const dark = mix('#3b4358', '#161c2c', clamp((c - 0.4) * 1.4, 0, 1));
+  const col = mix(pale, dark, nightF);
+  g.fillStyle = col;
+  for (let k = 0; k < 11; k++){
+    const a = clamp((c - k * 0.085) * 3.2, 0, 1);
+    if (a <= 0.01) continue;
+    const sp = 0.5 + hash(k, 41) * 0.9;              // higher banks drift slower
+    const cx = ((hash(k, 7) * span + drift * sp * cellW * 0.5) % span) - cellW * 18;
+    const cy = hz * (0.06 + hash(k, 17) * 0.86);      // right down to the hills, so heavy cover reads as a lid
+    const rw = cellW * (4.5 + hash(k, 23) * 6) * (0.7 + 0.45 * c);
+    const rh = rw * (0.24 + hash(k, 29) * 0.16);
+    g.globalAlpha = a * (0.3 + 0.5 * c) * (1 - 0.35 * nightF);
+    g.beginPath();
+    for (let j = 0; j < 5; j++){
+      const jx = cx + (j - 2) * rw * 0.42;
+      const jy = cy - Math.abs(2 - j) * rh * 0.14 + hash(k * 7 + j, 31) * rh * 0.3;
+      const jr = rw * (0.30 + hash(k * 7 + j, 37) * 0.22);
+      g.ellipse(jx, jy, jr, jr * (0.44 + hash(k * 7 + j, 43) * 0.3), 0, 0, 7);
+    }
+    g.fill();
+  }
+  g.globalAlpha = 1;
+}
 function drawSunMoon(g, hz, top){
   const sa = clamp((hour - 5.6) / 13.6, 0, 1);
+  const veil = 1 - 0.82 * cloudCover();              // cover swallows the disc
   if (daylight > 0.02){                              // the sun, rising in the east (to the right)
     const sx = W * (0.9 - 0.8 * sa), sy = hz - Math.sin(Math.PI * sa) * hz * 0.74;
     const gl = g.createRadialGradient(sx, sy, 0, sx, sy, cellW * 10);
-    gl.addColorStop(0, 'rgba(255,238,190,' + (0.45 * daylight + 0.2) + ')');
+    gl.addColorStop(0, 'rgba(255,238,190,' + ((0.45 * daylight + 0.2) * veil) + ')');
     gl.addColorStop(1, 'rgba(255,220,160,0)');
     g.fillStyle = gl; g.beginPath(); g.arc(sx, sy, cellW * 10, 0, 7); g.fill();
-    g.fillStyle = 'rgba(255,250,230,' + (0.55 + 0.45 * daylight) + ')';
+    g.fillStyle = 'rgba(255,250,230,' + ((0.55 + 0.45 * daylight) * veil) + ')';
     g.beginPath(); g.arc(sx, sy, cellW * 1.4, 0, 7); g.fill();
   } else if (nightF > 0.25){                         // and the moon on the same arc
     const ma = clamp(((hour + 11) % 24 - 5.6) / 13.6, 0, 1);
     const mx = W * (0.86 - 0.72 * ma), my = hz - Math.sin(Math.PI * ma) * hz * 0.66;
     const gl = g.createRadialGradient(mx, my, 0, mx, my, cellW * 7);
-    gl.addColorStop(0, 'rgba(210,225,255,' + (0.28 * nightF) + ')');
+    gl.addColorStop(0, 'rgba(210,225,255,' + (0.28 * nightF * veil) + ')');
     gl.addColorStop(1, 'rgba(200,220,255,0)');
     g.fillStyle = gl; g.beginPath(); g.arc(mx, my, cellW * 7, 0, 7); g.fill();
-    g.fillStyle = 'rgba(240,244,255,' + (0.85 * nightF) + ')';
+    g.fillStyle = 'rgba(240,244,255,' + (0.85 * nightF * veil) + ')';
     g.beginPath(); g.arc(mx, my, cellW * 1.2, 0, 7); g.fill();
+    g.globalAlpha = veil;                            // else the crescent's bite outlives the moon
     g.fillStyle = mix(top, '#0b1226', 0.4);
     g.beginPath(); g.arc(mx - cellW * 0.55, my - cellW * 0.3, cellW * 1.1, 0, 7); g.fill();
+    g.globalAlpha = 1;
   }
 }
 function drawBackdrop(g, hz, low){
-  if (nightF > 0.1){
+  const starF = nightF * (1 - cloudCover());         // cover puts the stars out
+  if (starF > 0.1){
     for (let k = 0; k < 120; k++){
       const sx = hash(k, 3) * W, sy = hash(k, 11) * hz * 0.95;
-      g.fillStyle = 'rgba(234,240,255,' + (nightF * (0.2 + 0.65 * hash(k, 19))) + ')';
+      g.fillStyle = 'rgba(234,240,255,' + (starF * (0.2 + 0.65 * hash(k, 19))) + ')';
       g.fillRect(sx, sy, 1.3, 1.3);
     }
   }
@@ -1287,7 +1352,8 @@ function roofShade(x, y){
 }
 let HAZE = '#c6dcec';
 function drawRoofRow(g, y){
-  const amb = 0.26 + 0.20 * daylight, key = 0.22 + 0.78 * daylight;
+  const cc = cloudCover();                                       // cover flattens the key light
+  const amb = 0.26 + 0.20 * daylight + 0.07 * cc * daylight, key = (0.22 + 0.78 * daylight) * (1 - 0.5 * cc);
   for (let x = XLO; x < XHI; x++){
     const gx = clamp(x, 0, GW - 1);
     if (!solidM[y * GW + gx]) continue;
@@ -3000,7 +3066,10 @@ function simStep(sdt, dt){
     announce('A brisk wind combs the block; everything that can flutter, does.');
   }
   wet = Math.max(0, wet - sdt);
-  const lb = Math.floor(hour * 4);          // sun moves: relight the static layer now and then
+  stepClouds(sdt);
+  // sun moves, cover thickens: relight the static layer now and then. Cover rides
+  // the same bucket rather than its own, so it costs no extra rebuilds.
+  const lb = Math.floor(hour * 4) * 8 + Math.round(cloudCover() * 6);
   if (lb !== lightBucket){ lightBucket = lb; groundDirty = true; }
 
   caAcc += sdt;
@@ -3135,6 +3204,7 @@ window.__census = function(){
     world: { GW, WH, cells: GW * WH },
     clock: { simT: +simT.toFixed(3), day, hour: +hour.toFixed(3),
              marketDay: isMarketDay(), windy: isWindy(), raining: !!raining,
+             cloud: +cloudCover().toFixed(3),
              maturity: +maturity().toFixed(4), richness: +richness().toFixed(4) },
     tiles, life, structure,
     planting: { planted, blooming, daisies, matureTrees, worn, species: SPECIES.length, bySpecies },
