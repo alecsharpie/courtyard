@@ -20,7 +20,7 @@
   "avoid": "Do not add snow, fog, or a new precipitation type: this is the year arriving in a system that already exists, not a new system. Do not raise the total amount of rain — a diorama that is wet more of the time is worse to look at and the census cannot see the difference. Two things are folded in and both are part of the same seam, not extras. (1) c8: the rain roll is gated on `daylight > 0.15`, so a front peaking overnight builds full cover and can never rain — in an 11.5-hour winter day that is most of the clock, and it would make the season you have just made cloudiest the one least able to rain. `weatherComing()` also damps on daylight, for a different and still-correct reason (the town must not stand under umbrellas at midnight); do not conflate them. The question here is whether rain may START in the dark, not whether people anticipate it. (2) c35: rain is this brief's own feature and `motion.mjs` cannot see a raindrop — drops are screen-space and absent from `__entities()`. One line there plus a screen-space exemption from the world-bounds test buys you a gate that actually covers what you changed.",
   "budgetMin": 35,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 21,
   "issued": "2026-08-03T23:28:25.631Z",
