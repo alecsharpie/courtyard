@@ -16,7 +16,7 @@
   "avoid": "Do not touch the arrival — it is already ramped and correct. Do not change how long the shower lasts; rainLeft owns that, and this brief only changes how it ends. Time-compress: a day is 55 s, so a fade longer than ~2-3 s stops being an ending and becomes drizzle.",
   "budgetMin": 20,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 2,
   "nextIter": 15,
   "issued": "2026-08-03T05:54:05.108Z",
