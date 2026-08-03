@@ -25,6 +25,19 @@
  * Legitimate teleports exist (rain recycles, birds respawn off-screen), so the
  * gate is a DIFF against a pinned baseline, exactly like the census: what matters
  * is a kind that started jumping, not that jumps exist.
+ *
+ * RAIN is the exception, and it is tracked differently. Raindrops are the town's
+ * largest spawn/despawn population by an order of magnitude (~110 of them against
+ * ~10 walkers) and until #16 this gate could not see one of them: they live in
+ * SCREEN space, not world space, so `__entities()` does not carry them and the
+ * world-bounds test would call every one of them out of bounds. So the shower is
+ * watched as a POPULATION — `__census().life.raindrops` sampled at every step,
+ * with the rises counted as spawns, the falls as despawns, and a step larger than
+ * half the shower's own peak as a jump. That catches a shower that stops arriving,
+ * one that empties in a single frame, and one that never ends; it is NOT per-drop
+ * continuity, so nan/oob/flicker print as `–` for that row rather than as a
+ * reassuring 0. Per-drop identity would need `raindrops` added to `__entities()`
+ * in courtyard.html — see the cue from #16.
  */
 import { homedir } from 'node:os';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
@@ -66,7 +79,10 @@ async function sample(browser, seed, t) {
     window.__reseed();
     window.__warp(warm);
     const out = [];
-    for (let i = 0; i < steps; i++) { window.__warp(step); out.push(window.__entities()); }
+    for (let i = 0; i < steps; i++) {
+      window.__warp(step);
+      out.push({ ents: window.__entities(), rain: window.__census().life.raindrops });
+    }
     return out;
   }, { warm: t, step: STEP, steps: STEPS });
   await p.close();
@@ -79,9 +95,37 @@ function analyse(frames) {
   const examples = [];
   const K = () => ({ jumps: 0, nan: 0, oob: 0, flicker: 0, spawns: 0, despawns: 0, samples: 0 });
 
+  /* The shower, as a population. Frame 0 is the starting level, not an arrival, so
+   * only the changes after it are counted — warping into an existing shower must
+   * not read as 110 spawns.
+   *
+   * `spawns`/`despawns` alone would be a weak gate: they are the integral of the
+   * rises and the falls, and a shower that vanishes in one frame has exactly the
+   * same integral as one that tapers over three seconds — which is the bug #15
+   * actually fixed. So `jumps` carries the shape, on the same principle the entity
+   * rule uses: a step out of all proportion to how this thing normally moves. For a
+   * population that is a step bigger than half its own peak. Rain STARTS abruptly by
+   * design (`want` goes to 110 the instant it begins), so one jump per shower is
+   * expected and sits in the baseline; a second one means the ending broke too. */
+  const rain = frames.map(f => f.rain).filter(Number.isFinite);
+  if (rain.length) {
+    const s = (stats.raindrop ||= K());
+    const peak = Math.max(...rain);
+    for (let i = 0; i < rain.length; i++) {
+      s.samples += rain[i];
+      if (i === 0) continue;
+      const d = rain[i] - rain[i - 1];
+      if (d > 0) s.spawns += d; else if (d < 0) s.despawns += -d;
+      if (peak >= 8 && Math.abs(d) > peak * 0.5) {
+        s.jumps++;
+        if (examples.length < 12) examples.push(`raindrops stepped ${d > 0 ? '+' : ''}${d} in one ${STEP}s step (peak ${peak})`);
+      }
+    }
+  }
+
   let prev = new Map();
   for (let f = 0; f < frames.length; f++) {
-    const now = new Map(frames[f].map(e => [e.id, e]));
+    const now = new Map(frames[f].ents.map(e => [e.id, e]));
     for (const [id, e] of now) {
       const s = (stats[e.kind] ||= K());
       s.samples++;
@@ -146,27 +190,32 @@ if (save) {
 
 const base = !save && existsSync(baseFile) ? JSON.parse(readFileSync(baseFile, 'utf8')) : null;
 const FIELDS = ['jumps', 'nan', 'oob', 'flicker', 'spawns', 'despawns'];
+/* Fields a kind is not measured on. Printing 0 here would claim a check that was
+ * never run — the rain is counted, not identified. */
+const UNTRACKED = { raindrop: ['nan', 'oob', 'flicker'] };
+const tracked = (kind, f) => !(UNTRACKED[kind] || []).includes(f);
 let fail = [];
 
 for (const [name, sc] of Object.entries(result.scenes)) {
   console.log(`\n${name}:`);
   const bs = base && base.scenes[name] ? base.scenes[name].stats : null;
   const kinds = Object.keys(sc.stats).sort();
-  console.log('  ' + 'kind'.padEnd(10) + FIELDS.map(f => f.padStart(9)).join(''));
+  console.log('  ' + 'kind'.padEnd(10) + FIELDS.map(f => f.padStart(10)).join(''));
   for (const k of kinds) {
     const row = sc.stats[k];
     const cells = FIELDS.map(f => {
+      if (!tracked(k, f)) return '–'.padStart(10);
       const v = row[f], was = bs && bs[k] ? bs[k][f] : null;
-      if (was === null || was === v) return String(v).padStart(9);
-      return `${v}(${v - was > 0 ? '+' : ''}${v - was})`.padStart(9);
+      if (was === null || was === v) return String(v).padStart(10);
+      return `${v}(${v - was > 0 ? '+' : ''}${v - was})`.padStart(10);
     });
     console.log('  ' + k.padEnd(10) + cells.join(''));
     /* NaN and out-of-world are always bugs. The rest are judged as regressions. */
-    if (row.nan) fail.push(`${name}/${k}: ${row.nan} NaN positions`);
-    if (row.oob) fail.push(`${name}/${k}: ${row.oob} positions outside the world`);
+    if (row.nan && tracked(k, 'nan')) fail.push(`${name}/${k}: ${row.nan} NaN positions`);
+    if (row.oob && tracked(k, 'oob')) fail.push(`${name}/${k}: ${row.oob} positions outside the world`);
     if (bs && bs[k]) {
-      if (row.jumps > bs[k].jumps) fail.push(`${name}/${k}: jumps ${bs[k].jumps} -> ${row.jumps}`);
-      if (row.flicker > bs[k].flicker) fail.push(`${name}/${k}: flicker ${bs[k].flicker} -> ${row.flicker}`);
+      if (tracked(k, 'jumps') && row.jumps > bs[k].jumps) fail.push(`${name}/${k}: jumps ${bs[k].jumps} -> ${row.jumps}`);
+      if (tracked(k, 'flicker') && row.flicker > bs[k].flicker) fail.push(`${name}/${k}: flicker ${bs[k].flicker} -> ${row.flicker}`);
     } else if (!bs && (row.jumps || row.flicker)) {
       console.log(`    note: ${row.jumps} jumps, ${row.flicker} flickers — no baseline to compare against yet`);
     }

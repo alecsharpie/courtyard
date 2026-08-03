@@ -616,3 +616,117 @@ passed this iteration without being able to see it.
 
 **Note:** `context-budget.mjs` read **OVER** at 52.8 KB against the 46 KB cap when this
 iteration started (LEDGER.md 17.1 KB, state.json 13.4 KB, laws 28/60).
+
+## Iteration 16 — five instruments that could not see the year (2026-08-03) [Sky, light & weather × Harness]
+
+**Brief:** b15 — the world has had a 26-day year since #12 and five of the loop's own
+instruments cannot see it, or actively confuse it. Repair them; change nothing a viewer
+sees. `courtyard.html` is byte-identical at the end of this iteration.
+
+**Did:** five repairs, no new gates and no new metrics.
+
+**(a) `shoot.mjs` pins its instant.** It is no longer a wrapper over screenshot-verify —
+it drives Playwright itself with `?pause&t=0` then `__reseed()` + `__warp(t)`, the same
+way `census.mjs`, `motion.mjs` and `probes/year-shots.mjs` already did. Framings still
+come from the repo's `shoot.config.json`, so there is still one list of them. It prints
+the instant it actually reached (`at: simT 175  day 3  hour 10.364  season 0.3724`) and
+warns if two framings in one run disagree.
+
+**(b) `--tag` prefixes files.** It used to forward `--prefix` to a screenshot-verify that
+has no such flag. Two tagged runs now leave two files: `summer-wide.png` at season 0.5213
+and `winter-wide.png` at season 0.0213, **both at hour 7.309**, three distinct sha1s.
+
+**(c) The census age ladder holds the season fixed.** warmth is `0.5 − 0.5·cos(2π·phase)`
+and phase is linear in `simT`, so equal warmth means equal phase up to a reflection: only
+`p`, `1−p` and `p+1` exist. Anchoring the young cell where it was (warp 90) *forces* the
+other two — 625 and 1520. The ladder is now 90 / 625 / 1520 = days 1 / 11 / 27, and all
+nine cells measure at **warmth 0.6925** (was 0.693 / 0.996 / **0.138**). `planted` per
+seed now rises with age (628 → 699 → 733) instead of collapsing into January. The ladder
+string travels with the baseline and in `census-history.jsonl`; a baseline pinned on a
+different ladder now refuses to diff (`VERDICT: NO COMPARISON`) rather than printing a
+large fake regression.
+
+**(d) `motion.mjs` reports a `raindrop` kind.** Raindrops are screen-space and not in
+`__entities()`, and the town was off-limits, so the shower is watched as a *population*:
+`__census().life.raindrops` at every step, rises → `spawns`, falls → `despawns`. Rain
+turned out to be in 3 of the 4 existing scenes already, so no scene was added.
+
+**(e) `stall.mjs` runs on worker rows only.** `rows` is now `kind !== 'manager'`;
+`managers` is reported separately. `build-stats.mjs` did **not** need this — it has
+filtered since it was written (its two whole-run totals are deliberate and labelled).
+
+**Gates:** census PASS · motion PASS · visual PASS · perf skipped (town untouched) ·
+probe `probe-shoot-jitter.mjs` (scratch, not kept)
+
+Two runs of the new `census.mjs` on the same commit diff **unchanged in every group**. Two
+runs of `shoot.mjs --t 175` land on `simT 175.00 / hour 10.364 / season 0.3724`, twice.
+`stall.mjs`'s last-10 goes 10m → 8m and $2.30 → $2.01 when a worker row is removed, and
+does not move at all when a manager row is added.
+
+**Surprise:** three.
+
+**The old `shoot.mjs` was not jittering, it was biased — by eight hours of town clock.**
+The brief and cue c31 both said "jitters ~15 s". Measured over five runs each: the jitter
+is real but small (0.14 s of sim idle, 0.91 s under six busy cores — the latter being
+24 sim minutes, so the cue was not wrong about load). The *large* error is systematic.
+Asking for `--t 175` reliably photographed **simT 193.5, hour 18.47** — evening — while
+the file's own comment said "day 3, mid-morning". `?fast` is 8×, the wait was 2600 ms,
+and 8 × 2.6 s ≈ 18.5 s of sim every single run. A wall-clock wait does not blur the
+instant so much as move it, and the same offset on every run is exactly what nobody
+notices. The framing now reads "Day 4 · Morning", which is what it always claimed to be.
+
+**`spawns`/`despawns` would have been a decorative gate.** They are the integral of the
+rises and the falls, so a shower that vanishes in one frame has the *same* totals as one
+that tapers over three seconds — the totals cannot see the bug #15 exists to have fixed.
+So the shape went into the existing `jumps` field, on the entity rule's own principle: a
+step out of all proportion to how this thing normally moves, here bigger than half the
+shower's own peak. Verified by rebuilding #15's one-frame ending in a scratch copy and
+running the gate at it: `day/raindrop: jumps 1 → 3`, with `raindrops stepped -110 in one
+0.25s step` named in the examples. On HEAD every jump is a `+110` *start* and there is
+not one `-110` in any scene — rain begins abruptly by design and now ends measurably.
+
+**One fifth of the brief was already done.** `build-stats.mjs` has filtered manager rows
+since it was written. Worth stating because the same brief's claim about `stall.mjs` was
+not just true but worse than stated: on the *real* runlog the old code reported
+`last: #15 … -> no-ship` — that was the manager pass wearing the worker's #15 — and
+last-10 as 12m / $3.09 / src moved 7/10 against the true 10m / $2.30 / 9/10. Cost
+overstated 34%. And two manager passes in a row (a re-plan, or a plan after a rejected
+brief) fired `noShipStreak,srcFlat` on the old code: **the stall detector could summon a
+manager off nothing but its own footprints.** New code: `ok` on the same input.
+
+**Law:** An instrument that reaches a moment by waiting in wall time does not blur that
+moment, it *moves* it — by the same amount every run, which is why nobody catches it.
+Measure the offset, not the spread. And make the instrument print the instant it actually
+reached: a harness that reports where it landed cannot lie about where it aimed.
+
+**Law:** A churn total is shape-blind. Counting arrivals and departures cannot distinguish
+a population that drains smoothly from one that is deleted, because both have the same
+integral — if the *shape* is the thing that broke, the gate needs a per-step limit, not a
+sum. Then prove the gate bites by rebuilding the old bug in a scratch copy and pointing
+the gate at it; a gate never seen to fail is a gate nobody has tested.
+
+**Law:** A row a subsystem writes about itself is not evidence about the thing it watches.
+The manager's own runlog row is `no-ship`, `srcChanged: false` by construction, so any
+streak or average taken over all rows counts the observer's footprints as the observation
+— and here it could trip the very alarm that summons the observer.
+
+**Cue:** the census ladder still varies the *hour* across the age axis (21.27 / 14.73 /
+21.27), so anything gated on time of day is sampled unevenly. The algebra is tighter than
+it looks: fixing hour *and* season needs `t ≡ 0 or 27.5 (mod 55)`, which admits exactly
+two hours — **06:00 and 18:00**. Both are awkward (dawn has almost nobody out, 18:00 sits
+inside market pack-down and the six o'clock bell), so this is a real trade, not an
+oversight. Do not re-derive it.
+
+**Cue:** per-*drop* continuity still does not exist. `raindrops` are screen-space and
+absent from `__entities()`; adding them needs one line in `courtyard.html` plus a
+screen-space exemption from `motion.mjs`'s world-bounds test. Only then would a drop that
+goes NaN or strobes be visible.
+
+**Cue:** the ladder change is a step in the published growth curve. `census-history.jsonl`
+now carries a `ladder` field so the discontinuity is legible, but `stats.html` plots
+`RUNLOG.jsonl`'s census scalars and knows nothing about it — `planted` jumps 4782 → 6109
+between #15 and #16 with no town change behind it.
+
+**Note:** `context-budget.mjs` read **OVER** at 46.7 KB against the 46 KB cap when this
+iteration started, and still does (LEDGER.md 14.5 KB, state.json 8.4 KB, laws 27/60).
+Third iteration running over.

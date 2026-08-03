@@ -42,9 +42,23 @@ const save = process.argv.includes('--save-baseline');
 const asJson = process.argv.includes('--json');
 
 /* The matrix. Day length is 55 s: maturity() saturates around day 8, richness()
- * around day 16 — so these three ages are "young / filling in / fully grown". */
+ * around day 16 — so these three ages are "young / filling in / fully grown".
+ *
+ * They are also all at the SAME SEASON, which is the only reason the age axis
+ * measures age. The old ladder (90 / 330 / 900) was picked before the town had a
+ * year; warp 900 lands at season 0.879, warmth 0.14 — midwinter — so the "fully
+ * grown" cell was really the "midwinter" cell, and iteration 14 got a −16% FAIL on
+ * `planted` for correctly emptying the beds in January.
+ *
+ * warmth = 0.5 − 0.5·cos(2π·phase) and phase = (0.25 + simT/(26·55)) % 1, so equal
+ * warmth means equal phase up to a reflection: only `p`, `1−p` and `p+1` are
+ * available. Anchoring the young cell where it already was (warp 90, phase 0.3129)
+ * fixes the other two at warp 625 (phase 0.6871, the mirror) and warp 1520 (phase
+ * 0.3129 again, exactly one year on). All three sit at warmth 0.6929. */
 const SEEDS = [7, 42, 1234];
-const AGES = [{ name: 'day1', warp: 90 }, { name: 'day6', warp: 330 }, { name: 'day16', warp: 900 }];
+const AGES = [{ name: 'day1', warp: 90 }, { name: 'day11', warp: 625 }, { name: 'day27', warp: 1520 }];
+/* Two ladders are not comparable, so the ladder travels with the baseline. */
+const LADDER = `${SEEDS.join(',')} x ${AGES.map(a => a.warp).join(',')}`;
 
 /* Headline aggregates. `CORE` are structural: if one of these craters the town has
  * genuinely broken, and that is the only thing this gate hard-fails on. */
@@ -87,7 +101,7 @@ function summarize(data) {
     for (const t in c.structure) structure[t] = (structure[t] || 0) + c.structure[t];
     for (const t in c.planting.bySpecies) species[t] = (species[t] || 0) + c.planting.bySpecies[t];
   }
-  return { when: data.when, pageerrors: data.pageerrors, errors: data.errors,
+  return { when: data.when, ladder: LADDER, pageerrors: data.pageerrors, errors: data.errors,
     scalars, tiles, life, structure, species, cells: data.cells };
 }
 
@@ -115,9 +129,20 @@ if (save) {
   process.exit(cur.pageerrors ? 1 : 0);
 }
 
-const base = existsSync(baseFile) ? JSON.parse(readFileSync(baseFile, 'utf8')) : null;
+let base = existsSync(baseFile) ? JSON.parse(readFileSync(baseFile, 'utf8')) : null;
 
-console.log(`census: ${SEEDS.length} seeds x ${AGES.length} ages = ${Object.keys(cur.cells).length} cells`);
+/* A baseline pinned on a different seed x age matrix is a measurement of a
+ * different town, and diffing across the two reads as a huge fake regression.
+ * Say so and stop, rather than printing a diff that means nothing. */
+let ladderChanged = false;
+if (base && base.ladder !== LADDER) {
+  ladderChanged = true;
+  console.error(`census: BASELINE LADDER MISMATCH — baseline is "${base.ladder || '(unrecorded, pre-#16)'}", this run is "${LADDER}".`);
+  console.error('        The two are not comparable. Re-pin with --save-baseline before using this as a gate.');
+  base = null;
+}
+
+console.log(`census: ${SEEDS.length} seeds x ${AGES.length} ages = ${Object.keys(cur.cells).length} cells  [${LADDER}]`);
 if (cur.pageerrors) { console.error(`\nPAGE ERRORS: ${cur.pageerrors}`); for (const e of cur.errors.slice(0, 10)) console.error('  ' + e); }
 if (!base) console.log('\n(no baseline pinned — showing absolute values)');
 console.log('\n' + diffBlock('scalars', cur.scalars, base && base.scalars));
@@ -129,7 +154,7 @@ console.log(diffBlock('species', cur.species, base && base.species));
 /* One line per run, appended forever. Survives baseline overwrites, and is what
  * build-stats.mjs plots as the town's growth curve. */
 appendFileSync(histFile, JSON.stringify({
-  when: cur.when, pageerrors: cur.pageerrors, scalars: cur.scalars,
+  when: cur.when, ladder: LADDER, pageerrors: cur.pageerrors, scalars: cur.scalars,
   tileKinds: Object.keys(cur.tiles).length, lifeKinds: Object.keys(cur.life).length,
 }) + '\n');
 
@@ -141,6 +166,10 @@ if (base) for (const k of CORE) {
 
 if (asJson) console.log('\nJSON ' + JSON.stringify({ pageerrors: cur.pageerrors, collapsed, scalars: cur.scalars }));
 
+if (ladderChanged) {
+  console.error('\nVERDICT: NO COMPARISON — the age ladder moved, so there is nothing to diff against.');
+  process.exit(1);
+}
 if (cur.pageerrors || collapsed.length) {
   console.error('\nVERDICT: FAIL');
   for (const c of collapsed) console.error('  COLLAPSE ' + c);

@@ -28,9 +28,21 @@ const argv = process.argv.slice(2);
 const report = argv.includes('--report');
 const asJson = argv.includes('--json');
 
-const rows = existsSync(RUNLOG)
+const all = existsSync(RUNLOG)
   ? readFileSync(RUNLOG, 'utf8').trim().split('\n').filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean)
   : [];
+
+/* EVERY SIGNAL BELOW IS ABOUT THE WORKER, so every signal below reads worker rows.
+ * A manager pass writes a row too, and by construction it is verdict=no-ship with
+ * evidence.srcChanged=false — it plans, it does not build. Run the streaks over all
+ * rows and the manager is a permanent poison pill: it lands between every batch, so
+ * `noShipStreak` and `srcFlat` can never exceed the length of one batch however
+ * badly the loop is doing, and one manager pass on its own trips nothing while
+ * looking exactly like the failure these signals were written to catch. It also
+ * drags the last-10 pace and cost averages toward a run that did no building.
+ * (Rows with no `kind` predate the field and were all workers.) */
+const rows = all.filter(r => r.kind !== 'manager');
+const managers = all.filter(r => r.kind === 'manager');
 
 const plan = existsSync(PLAN) ? JSON.parse(readFileSync(PLAN, 'utf8')) : null;
 
@@ -100,7 +112,7 @@ const verdictCounts = {};
 for (const r of last(20)) if (r.verdict) verdictCounts[r.verdict] = (verdictCounts[r.verdict] || 0) + 1;
 
 if (report) {
-  console.log(`stall: ${rows.length} iterations logged.`);
+  console.log(`stall: ${rows.length} worker iterations logged (+ ${managers.length} manager passes, excluded from everything below).`);
   if (!rows.length) { console.log('  (no runs yet — plan the opening batch)'); }
   else {
     const l = rows[rows.length - 1];
@@ -120,7 +132,7 @@ if (report) {
     console.log('  do not re-plan the same rung with different words.');
   }
 } else if (asJson) {
-  console.log(JSON.stringify({ iterations: rows.length, signals, verdictCounts }, null, 1));
+  console.log(JSON.stringify({ iterations: rows.length, managerPasses: managers.length, signals, verdictCounts }, null, 1));
 } else {
   console.log(signals.length ? signals.map(s => s.id).join(',') : 'ok');
 }

@@ -1,24 +1,25 @@
 {
-  "id": "b14",
+  "id": "b15",
   "domain": "Sky, light & weather",
-  "kind": "Polish",
-  "brief": "Rain arrives over half a day and leaves in a single frame. When rainLeft hits zero the code sets raining = false and does raindrops.length = 0, dropping all ~110 drops between two frames, while the wet sheen behind it eases out over 18 s and the cloud cover eases over half a day. The arrival is ramped and the departure is a cut, and it is the town's largest remaining pop. This is not theoretical: it is the POP at frame 7 that cost iteration 9 a whole diagnosis, and it will keep firing on filmstrips run by iterations that did not cause it. Let the shower thin out instead — the drop count should fall away over a couple of seconds, so the last few drops are still falling as the light comes back.",
+  "kind": "Harness",
+  "brief": "The world has had a 26-day year since #12 and five of the loop's own instruments cannot see it, or actively confuse it — two have already cost real work. Fix them; change nothing a viewer sees. (a) shoot.mjs reaches its target instant by sleeping a fixed 2600 ms of wall time under ?fast, so the sim instant jitters ~15 s and it has twice shot a different day than the one it aimed at; drive it with ?pause + __warp(t), which probes/year-shots.mjs already does correctly. (b) shoot.mjs --tag is a no-op: it forwards --prefix to a screenshot-verify that ignores it, so two tagged runs silently overwrite each other's courtyard.png, and iteration 14 lost a summer shot to a winter one that way. Implement the prefix or delete the flag. (c) The census gate's age ladder picks its 'fully grown' cell at warp 900, which lands at season 0.879 — midwinter — so the growth axis is measuring the season instead; hold season fixed across the age axis, or pick the ages at comparable warmth. (d) motion.mjs tracks no raindrop kind, so the continuity gate is blind to the town's largest spawn/despawn population. (e) stall.mjs's streak() and both dashboards run over ALL rows, and a manager row is verdict=no-ship and srcChanged=false by construction — streak and average over kind==='worker' rows only. Now that four seasonal shots of one instant are the standard evidence for anything the year touches, an instrument that cannot pin an instant is not a nuisance; it is the reason the next three briefs could not be believed.",
   "seams": [
-    "raining",
-    "rainLeft",
-    "raindrops",
-    "wet",
-    "cloudCover",
-    "courtyard.html:1526-1537",
-    "courtyard.html:2722-2725"
+    "shoot.mjs",
+    "probes/year-shots.mjs",
+    "motion.mjs",
+    "stall.mjs",
+    "build-stats.mjs",
+    "the census gate's age ladder",
+    "__warp",
+    "?pause"
   ],
-  "successLooksLike": "A filmstrip across a rain-ending window shows no POP where HEAD gives a 10.99 delta against a 0.48 median, and the largest single-frame change through the ending sits inside the noise floor of that same window on HEAD.",
-  "avoid": "Do not touch the arrival — it is already ramped and correct. Do not change how long the shower lasts; rainLeft owns that, and this brief only changes how it ends. Time-compress: a day is 55 s, so a fade longer than ~2-3 s stops being an ending and becomes drizzle.",
-  "budgetMin": 20,
+  "successLooksLike": "Two runs of shoot.mjs at the same --t on the same commit land at the same sim instant and the same season, and two tagged runs leave two files. The census ladder's three age cells differ in age and agree in warmth. motion.mjs reports a raindrop kind. stall.mjs's last-10 averages and streaks change when you remove a worker row from RUNLOG.jsonl and do not change when you add a manager row.",
+  "avoid": "Do not touch courtyard.html — if you find a town bug while you are in here, raise it as a cue and leave it. Do not add new gates or new metrics; repair the ones that exist. LAW: don't add a census field per feature.",
+  "budgetMin": 25,
   "risk": "low",
-  "status": "done",
-  "attempts": 2,
-  "nextIter": 15,
-  "issued": "2026-08-03T05:54:05.108Z",
-  "fromPlan": "2026-08-03T14:45:00Z"
+  "status": "active",
+  "attempts": 1,
+  "nextIter": 16,
+  "issued": "2026-08-03T06:50:34.787Z",
+  "fromPlan": "2026-08-03T07:20:00Z"
 }

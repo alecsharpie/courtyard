@@ -22,22 +22,20 @@
   "rationale": "Rung 2, and the reason is that pass #10 climbed to rung 4 and the climb is only half done.\n\nThe year shipped at #12 and it is the largest thing this town has ever been given. It currently has three readers: day length, light, and the courtyard beds. That is all. Everything else in the diorama still runs on a constant or on a one-way ramp. The ladder says rung 2 — deepen and interconnect what already exists — is usually the highest-yield move, and it is plainly right here: you do not climb again on top of an unread system. A season visible only in the sky and the flower beds is a lighting change with a garden attached.\n\nSo the batch has one spine — make the year have readers — and I picked the three a viewer would notice, in that order.\n\nThe find that set the batch. I went looking for what is most wrong to somebody watching for thirty seconds, and it is not subtle: this town has thirteen trees and not one of them knows what month it is. drawTree draws the courtyard linden; drawLaneTree draws four street trees, four plaza trees and four orchard trees. Every one is sized on maturity(), which pinned at day 8, and filled from a hard-coded array of summer greens. So in deep winter the beds are correctly turned earth, the sun correctly sets at 18.30, and thirteen trees stand in full leaf above it all. The falling-leaf spawner makes it worse: gated on `day>=4 || gusty` and scaled on richness(), another dead ramp, so leaves fall out of those permanently green trees at the same rate in July and in January. That is b16, it is the batch's bet, and it carries the risk because it is the biggest thing in the wide shot and it is pure draw — the census cannot guard a single pixel of it.\n\nThe second find is quieter and I think it is the more interesting one. When b11 turned a constant into a variable it moved sunrise and sunset — sunUp/sunDown now swing from 7.00/18.50 to 4.00/21.50 — and nothing that anybody in the town DOES followed. kioskOpen is still 7.5-18.5. marketActive is still 8-17. marketRaise still starts putting stalls up at 6.90 and the sweeper still works at 5.00. In midwinter that means the traders build three stalls and the sweeper sweeps the courtyard in the dark, an hour before dawn; in midsummer the kiosk shuts with three hours of daylight left. The town's sun has a year and the town's working day does not. The fix already has a model in the file — timeLabel() was hung off sunUp/sunDown at #12 with a comment saying otherwise 'the label reads Morning in the winter dark' — and nobody carried the idea past the label. That is b17, and the general lesson is now a law: when you turn a constant into a variable, hunt everything tuned against its old value.\n\nb18 spends c24, the third reader and the one I am least sure of. The population is supposed to breathe with the year and it breathes 15%, because capacity/laneCap/eastCap compress daylight to 0.25+0.75*d and a 52% daylight swing therefore moves the courtyard cap from 8 to 9. It is a real gap and it is the People & animals vector, untouched since #10. It carries an explicit floor because the failure mode is a dead diorama in January, which is worse than no season at all.\n\nb19 is the tail: cheap, real and user-visible. c27, found at pass #10 and unspent since. Now that the cursor advertises the click, the SIDE/ROAD branch is caught promising the wrong place — the paving of the entire town answers 'You scatter crumbs onto the lane' and lands its birds in the lane rows however far east you clicked. Put it last so that a stale plan degrades into a genuine small job rather than into whatever the worker invents.\n\nWhy b15 is first, and why it is not a town brief. Five of the loop's own instruments cannot see the year, and two have already cost real work: c31 lost iteration 14 a summer screenshot to a winter one, and c29 made iteration 14's whole -16.3% planted reading unreadable, because the census age ladder picks its 'fully grown' cell at a warp that lands in midwinter — a growth axis silently measuring the season. b16's evidence is four seasonal shots of the same instant, and that evidence cannot be produced at all until shoot.mjs can pin an instant. The instrument goes before the work that depends on it, exactly as b10 went before b11. I folded c21, c23, c26, c29, c31 and c32 into it. On c23 I made the ruling myself, since the skill says it is my call: streak over kind==='worker' rows only. A manager row is no-ship and src-flat by construction, so counting it is counting my own footprints as evidence of a stall — which is precisely what summoned a manager at #11 off a single no-ship worker.\n\nCuration, which was the harder half this pass. context-budget.mjs read OVER at 50.8 KB against a 46 KB cap, and it had been over since iteration 13 (c28) — three workers have already run at ~10% above the budget the loop sets itself. It is now 45.7 KB, and getting there took real cuts rather than deferrals. Cues 20 -> 7: six promoted into briefs, four closed as hypothetical, never-bitten or refactor-for-its-own-sake, one closed by doing it. The inventory went back to nouns; the workers had been writing implementation histories into it again, and the courtyard and sky entries alone were 1.7 KB of prose about how a thing was built rather than what the town contains. Two of the three `watch` notes were deleted outright because both had become prose restatements of laws that are now sharper in LAWS.md — a watch note that duplicates a law is charged to every worker twice.\n\nAnd LAWS.md is the decision I want on the record. I promoted four laws from #12-#15 (the cyclic-scalar law, merged into the rate-cap law; the anchor rule; ceiling-is-not-a-kill-term; and #15's split-the-flag rule) plus the constant-to-variable law that b17 exists to pay for — and the file went 8.8 -> 11.8 KB, straight to its own 12 KB ceiling, and became the reason the total was still over. The COUNT was fine, 32 of 60. The bytes were not. So the cap that binds this file is bytes, not laws, and that is now written into its header. I distilled it back to 9.4 KB: merged the two judge laws, folded two census-hygiene laws into the regression-guard law, merged the two renderer traps, merged the promote/cap pair, and cut 'a killed iteration is often finished work' outright — it addresses whoever inspects a dead run, not the worker who reads it thirty times. Net across the pass: four new laws, 27 total, and the worker's read budget down 5.1 KB.",
   "queue": [
     {
-      "id": "b15",
-      "domain": "Sky, light & weather",
-      "kind": "Harness",
-      "brief": "The world has had a 26-day year since #12 and five of the loop's own instruments cannot see it, or actively confuse it — two have already cost real work. Fix them; change nothing a viewer sees. (a) shoot.mjs reaches its target instant by sleeping a fixed 2600 ms of wall time under ?fast, so the sim instant jitters ~15 s and it has twice shot a different day than the one it aimed at; drive it with ?pause + __warp(t), which probes/year-shots.mjs already does correctly. (b) shoot.mjs --tag is a no-op: it forwards --prefix to a screenshot-verify that ignores it, so two tagged runs silently overwrite each other's courtyard.png, and iteration 14 lost a summer shot to a winter one that way. Implement the prefix or delete the flag. (c) The census gate's age ladder picks its 'fully grown' cell at warp 900, which lands at season 0.879 — midwinter — so the growth axis is measuring the season instead; hold season fixed across the age axis, or pick the ages at comparable warmth. (d) motion.mjs tracks no raindrop kind, so the continuity gate is blind to the town's largest spawn/despawn population. (e) stall.mjs's streak() and both dashboards run over ALL rows, and a manager row is verdict=no-ship and srcChanged=false by construction — streak and average over kind==='worker' rows only. Now that four seasonal shots of one instant are the standard evidence for anything the year touches, an instrument that cannot pin an instant is not a nuisance; it is the reason the next three briefs could not be believed.",
-      "seams": ["shoot.mjs", "probes/year-shots.mjs", "motion.mjs", "stall.mjs", "build-stats.mjs", "the census gate's age ladder", "__warp", "?pause"],
-      "successLooksLike": "Two runs of shoot.mjs at the same --t on the same commit land at the same sim instant and the same season, and two tagged runs leave two files. The census ladder's three age cells differ in age and agree in warmth. motion.mjs reports a raindrop kind. stall.mjs's last-10 averages and streaks change when you remove a worker row from RUNLOG.jsonl and do not change when you add a manager row.",
-      "avoid": "Do not touch courtyard.html — if you find a town bug while you are in here, raise it as a cue and leave it. Do not add new gates or new metrics; repair the ones that exist. LAW: don't add a census field per feature.",
-      "budgetMin": 25,
-      "risk": "low"
-    },
-    {
       "id": "b16",
       "domain": "Cross street & allotments",
       "kind": "Deepen",
       "brief": "The town has a year and thirteen trees that have never heard of it. drawTree draws the courtyard linden; drawLaneTree draws four street trees (TREE_PITS), four plaza trees (PLAZA_PITS) and four orchard trees (ORCHARD, fruit:1). Every one is sized on maturity(), which pinned at day 8, and filled from a hard-coded array of summer greens. So in deep winter the beds are correctly turned earth, the sun correctly sets at 18.30, and thirteen trees stand in full leaf above it. Make the canopies read `warmth`: bare or nearly bare in winter, thin and light in spring, full and dark in summer, turning in autumn — the orchard's existing fruit:1 flag is the natural place to hang blossom and then fruit. And fix the falling leaves while you are there: the `leaves` spawner is gated on `day>=4 || gusty` and scaled on richness(), a ramp that pinned at day 16, so leaves fall out of those permanently green trees at the same rate in July and January. Put the fall on the season, peaking in autumn. This is the single loudest thing a thirty-second viewer sees wrong, it is in the wide shot, and it is the same contradiction in four domains at once.",
-      "seams": ["drawTree", "drawLaneTree", "TREE_PITS", "PLAZA_PITS", "ORCHARD", "warmth", "leaves", "maturity"],
+      "seams": [
+        "drawTree",
+        "drawLaneTree",
+        "TREE_PITS",
+        "PLAZA_PITS",
+        "ORCHARD",
+        "warmth",
+        "leaves",
+        "maturity"
+      ],
       "successLooksLike": "Four wide shots at the same hour, one per season, are unmistakably four different times of year from the trees alone — and the winter one has no full green canopy anywhere in it. Leaves fall in autumn and hardly at all in midsummer.",
       "avoid": "Do not make the trees change SIZE with the season — maturity() sizes them, and a tree that grows and shrinks every 24 real minutes reads as a bug, not a year. Do not go fully bare and stay there; winter should keep the orchard's structure and the linden's silhouette. And this is the biggest thing drawn in the frame: LAW says the largest gated draw is the pop, so cross the seasons on a ramp and prove it with a region-cropped filmstrip, not the whole-frame mean, which will be loud about the sky regardless.",
       "budgetMin": 45,
@@ -48,7 +46,18 @@
       "domain": "Lane & market",
       "kind": "Connect",
       "brief": "b11 moved the sun and nothing anybody DOES followed it. sunUp/sunDown now swing from 7.00/18.50 in midwinter to 4.00/21.50 in midsummer, while the town's working day is still nailed to the clock: kioskOpen() 7.5-18.5, marketActive() 8-17, marketRaise putting stalls up from 6.90 and taking them down from 17.00, the sweeper at 5.00-6.50, the wind announcement between 7 and 9. So in midwinter the traders raise three stalls and the sweeper works the courtyard in the dark an hour before dawn, and in midsummer the kiosk shuts with three hours of daylight left and the market packs away in full sun. Put the working day on the sun. timeLabel() is the model and it is already in the file — hung off sunUp/sunDown at #12 with a comment saying otherwise 'the label reads Morning in the winter dark' — and nobody carried the idea past the label. Keep each interval's RELATION to sunrise and sunset rather than its number.",
-      "seams": ["sunUp", "sunDown", "dayHours", "kioskOpen", "marketActive", "marketRaise", "MK_RAISE", "isMarketDay", "the sweeper spawn (~line 1393)", "windAnnounced"],
+      "seams": [
+        "sunUp",
+        "sunDown",
+        "dayHours",
+        "kioskOpen",
+        "marketActive",
+        "marketRaise",
+        "MK_RAISE",
+        "isMarketDay",
+        "the sweeper spawn (~line 1393)",
+        "windAnnounced"
+      ],
       "successLooksLike": "Nobody in this town starts work in the dark on any day of the year, and the long summer evening gets used. A probe at four seasons shows the market's raise window and the kiosk's hours sitting at a constant offset from sunUp/sunDown while their clock times move by hours.",
       "avoid": "Do not stretch marketActive() so far that market day loses its shape — it is nine hours now, and a winter market that runs four is a different feature; set a floor. LAW: when you turn a constant into a variable, grep for everything tuned against the old number — the 17.00 pack-away is also read by the market-closed announcement near line 3745, and marketRaise's down window has to stay inside whatever marketActive() becomes.",
       "budgetMin": 35,
@@ -59,7 +68,20 @@
       "domain": "People & animals",
       "kind": "Deepen",
       "brief": "The year is supposed to be felt in how busy the town is, and it is barely felt at all. capacity, laneCap and eastCap each multiply through a hard daylight compression (0.25+0.75*d, 0.2+0.8*d, and eastCap on raw d), so a 52% swing in mean daylight moves the courtyard cap from 8 to 9 and the population breathes about 15% trough to peak. A January afternoon should be visibly quieter than a July one and it is not. Widen the breathing so that a winter day is a town with a few people crossing it and a summer evening is genuinely busy — then hold an absolute floor, because the failure mode here is a viewer arriving in deep winter and finding a dead diorama, which is worse than having no season. The three arrival sources have separate budgets, so they can breathe by different amounts: the lane and the east quarter are exposed, the walled courtyard is sheltered, and that difference is itself worth seeing.",
-      "seams": ["capacity", "laneCap", "eastCap", "rate", "laneRate", "eastRate", "eastOpen", "spawnAgent", "spawnLaneAgent", "spawnEastAgent", "warmth", "daylight"],
+      "seams": [
+        "capacity",
+        "laneCap",
+        "eastCap",
+        "rate",
+        "laneRate",
+        "eastRate",
+        "eastOpen",
+        "spawnAgent",
+        "spawnLaneAgent",
+        "spawnEastAgent",
+        "warmth",
+        "daylight"
+      ],
       "successLooksLike": "A probe over one full year reports mean standing population at four seasons with a summer:winter ratio well clear of today's ~1.15, and a hard minimum that never falls below the current floor of seven people at any phase.",
       "avoid": "Do not raise eastCap much above 7 without reading cue c10 first — east agents retrace their inbound route exactly, so arrivals sharing a gate walk single-file and would queue. Do not reach for warmth where daylight is already the honest driver; the defect is the compression, not the input. LAW: caps set the inflow, trip length sets the standing population — check which one you actually moved before claiming the town got quieter.",
       "budgetMin": 35,
@@ -70,7 +92,19 @@
       "domain": "Plaza & quay",
       "kind": "Polish",
       "brief": "Now that the cursor advertises the click, the handler's last branch is caught making its promise in the wrong place. SIDE and ROAD are the paving of the WHOLE town — the lane, the cross street, the plaza, the quay, the towpath — and every one of them answers 'You scatter crumbs onto the lane', then spawns birds clamped into LN_WALK_N..LN_WALK_S, which lands them down in the lane however far east you clicked. Give the eastern paving its own answers and its own birds: the plaza around the fountain, the quay with the water right there, the cross street, the towpath on the far bank. One place, one line, and birds that land where you actually pointed. The bug is pre-existing; the pointer cursor from #13 is what turned it into a broken promise.",
-      "seams": ["the click handler (~line 3617)", "answersTouch", "LN_WALK_N", "LN_WALK_S", "PLAZA_X0", "QUAY_X0", "RIVER_X0", "TOW_X0", "XS_W0", "birds", "announce"],
+      "seams": [
+        "the click handler (~line 3617)",
+        "answersTouch",
+        "LN_WALK_N",
+        "LN_WALK_S",
+        "PLAZA_X0",
+        "QUAY_X0",
+        "RIVER_X0",
+        "TOW_X0",
+        "XS_W0",
+        "birds",
+        "announce"
+      ],
       "successLooksLike": "A click on the quay says something about the quay and the birds land on the quay; likewise the plaza, the cross street and the towpath. No click anywhere in town mentions the lane unless you clicked the lane.",
       "avoid": "Do not add a seventh KIND of response — the six that exist are good, and this is about the one that fires in five places while knowing only one of them. Keep the existing bird cap and the daylight>0.2 gate. LAW: one predicate, one definition — decide which place a cell is in exactly once.",
       "budgetMin": 20,
@@ -78,20 +112,66 @@
     }
   ],
   "consumed": [
-    { "id": "b1", "at": "2026-08-03T01:25:59.097Z" },
-    { "id": "b2", "at": "2026-08-03T01:45:06.014Z" },
-    { "id": "b3", "at": "2026-08-03T02:02:12.408Z" },
-    { "id": "b4", "at": "2026-08-03T02:15:44.499Z" },
-    { "id": "b5", "at": "2026-08-03T02:50:16.579Z" },
-    { "id": "b6", "at": "2026-08-03T03:20:36.118Z" },
-    { "id": "b7", "at": "2026-08-03T03:41:17.351Z" },
-    { "id": "b8", "at": "2026-08-03T03:56:42.244Z" },
-    { "id": "b9", "at": "2026-08-03T04:24:19.920Z" },
-    { "id": "b10", "at": "2026-08-03T04:43:28.314Z" },
-    { "id": "b11", "at": "2026-08-03T04:59:49.649Z" },
-    { "id": "b12", "at": "2026-08-03T05:21:22.690Z" },
-    { "id": "b13", "at": "2026-08-03T05:38:52.813Z" },
-    { "id": "b14", "at": "2026-08-03T05:54:05.107Z" }
+    {
+      "id": "b1",
+      "at": "2026-08-03T01:25:59.097Z"
+    },
+    {
+      "id": "b2",
+      "at": "2026-08-03T01:45:06.014Z"
+    },
+    {
+      "id": "b3",
+      "at": "2026-08-03T02:02:12.408Z"
+    },
+    {
+      "id": "b4",
+      "at": "2026-08-03T02:15:44.499Z"
+    },
+    {
+      "id": "b5",
+      "at": "2026-08-03T02:50:16.579Z"
+    },
+    {
+      "id": "b6",
+      "at": "2026-08-03T03:20:36.118Z"
+    },
+    {
+      "id": "b7",
+      "at": "2026-08-03T03:41:17.351Z"
+    },
+    {
+      "id": "b8",
+      "at": "2026-08-03T03:56:42.244Z"
+    },
+    {
+      "id": "b9",
+      "at": "2026-08-03T04:24:19.920Z"
+    },
+    {
+      "id": "b10",
+      "at": "2026-08-03T04:43:28.314Z"
+    },
+    {
+      "id": "b11",
+      "at": "2026-08-03T04:59:49.649Z"
+    },
+    {
+      "id": "b12",
+      "at": "2026-08-03T05:21:22.690Z"
+    },
+    {
+      "id": "b13",
+      "at": "2026-08-03T05:38:52.813Z"
+    },
+    {
+      "id": "b14",
+      "at": "2026-08-03T05:54:05.107Z"
+    },
+    {
+      "id": "b15",
+      "at": "2026-08-03T06:50:34.785Z"
+    }
   ],
   "recommendStop": null
 }

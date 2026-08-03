@@ -2,7 +2,7 @@
   "updated": "2026-08-03",
   "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
   "phase": "expanding",
-  "lastIteration": 15,
+  "lastIteration": 16,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -228,6 +228,9 @@
       ],
       "scale": [
         12
+      ],
+      "harness": [
+        16
       ]
     },
     "life": {
@@ -343,6 +346,24 @@
       "note": "The allotments inherit bloomCap through the shared caTick path, so crops do not ripen in deep winter, harvestPlot stops and ripePlots()->0 damps their arrival source for ~a fifth of the year. Seasonally true and UNMEASURED — nobody has checked the gardeners come back at the right rate in spring.",
       "raisedBy": 13,
       "seenBy": 1
+    },
+    {
+      "id": "c34",
+      "note": "The census ladder holds season fixed but still varies the HOUR (21.27/14.73/21.27), so day-gated systems sample unevenly. Fixing hour AND season needs t = 0 or 27.5 (mod 55) — exactly two hours exist, 06.00 and 18.00, both awkward (dawn is empty; 18.00 is inside market pack-down and the bell). A real trade, derived at #16 — do not re-derive.",
+      "raisedBy": 16,
+      "seenBy": 0
+    },
+    {
+      "id": "c35",
+      "note": "motion.mjs watches rain as a POPULATION (census life.raindrops), not per drop: raindrops are screen-space and absent from __entities(). A drop that goes NaN or strobes is still invisible; needs one line in __entities() plus a screen-space exemption from motion.mjs's world-bounds test.",
+      "raisedBy": 16,
+      "seenBy": 0
+    },
+    {
+      "id": "c36",
+      "note": "#16's census ladder change is a step in the published growth curve: planted 4782 -> 6109 between #15 and #16 with no town change behind it. census-history.jsonl now carries a 'ladder' field; stats.html plots RUNLOG census scalars and knows nothing about it.",
+      "raisedBy": 16,
+      "seenBy": 0
     }
   ],
   "watch": [
