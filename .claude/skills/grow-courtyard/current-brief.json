@@ -20,7 +20,7 @@
   "avoid": "If b11 did not land, do NOT invent a second seasonal scalar to work around it — log this brief as blocked and take the next one. Do not add a species. Do not special-case the ring; roofs are emergent and so is the bed ring. Heed the CA-variety law: a rule that empties the beds coherently will also make them monotonous over several cycles unless something reseeds the mix, so measure variety across cycles and not just within one. And the courtyard must never read as dead — a bare bed still has structure.",
   "budgetMin": 35,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 14,
   "issued": "2026-08-03T05:38:52.814Z",
