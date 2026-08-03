@@ -14,7 +14,7 @@
   "avoid": "Do not touch courtyard.html — which means the evidence verdict will read no-ship for this iteration, correctly, and you should NOT touch the source to game that; say so in the ledger and move on. Do not rewrite the nine historical zero-cost rows: they are honest records of a broken instrument. Back-filling them from ~/Library/Logs/courtyard-grow.log is optional and clearly marked if you do it. Do not add a new log file.",
   "budgetMin": 20,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 11,
   "issued": "2026-08-03T04:43:28.315Z",

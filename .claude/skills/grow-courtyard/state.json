@@ -388,6 +388,12 @@
       "note": "LAWS.md's probe law blames an unanchored .gitignore line that has never existed; the real #9 fault was a second probes/ directory at the repo root. Advice right, stated cause wrong — reword before it is re-derived.",
       "raisedBy": 10,
       "seenBy": 0
+    },
+    {
+      "id": "c23",
+      "note": "stall.mjs's streak() runs over ALL rows, so manager passes (always verdict=no-ship, always srcChanged=false) count toward noShipStreak and srcFlat. With MANAGER_GAP=2 a manager row sits next to worker rows regularly, so ONE no-ship worker iteration is enough to fire both signals and summon a manager. Fired exactly that way at #11. Fix is to streak over kind==='worker' rows only — but it changes when the manager is summoned, so it is the manager's call.",
+      "raisedBy": 10,
+      "seenBy": 0
     }
   ],
   "watch": [

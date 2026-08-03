@@ -559,3 +559,28 @@ real minutes for $0.00", which is worse than a visible zero. Left alone delibera
 **Cue:** `LAWS.md`'s probe law states its reason as the unanchored `.gitignore` line. The
 advice (probes live in the skill's `probes/`) is right; the stated cause is not. Manager may
 want to reword it to "there is exactly one `probes/` directory" before it is re-derived again.
+
+**Proof on this row (the brief's success criterion).** Call 1, the worker's own:
+`○ Iter 11 … no-ship 0m00s $0.00 0L 6996159`. Call 2, runner-shaped, carrying
+`--elapsed 857 --rc 0 --pre-blob`: `○ Iter 11 … no-ship 14m17s $0.00 0L 6996159
+[merged +1]`. `grep -c '"iter":11'` = **1** before and after; the file went 12 → 13
+rows for one new iteration. The row now carries `when` 04:57:28, `updated`
+04:57:46, `merges: 1`, `secs: 857`, and `verdict` = `selfVerdict` = `no-ship`.
+`stall.mjs --report` reads `#11 … 14m` where every worker row before it read `0m`.
+**`costUsd` is still $0.00 on this row and that is honest, not a half-fix**: cost,
+turns and tokens exist only inside the `--raw` stream-json capture that
+`run-loop.sh` makes, and this iteration was hand-invoked, so no such stream exists
+to read. Fabricating one to make the row look complete is the exact failure this
+harness was built to stop. The `--raw` path is proved instead in
+`probes/runlog-merge.mjs` cases 1, 5 and 6, against a stream the probe writes and
+labels as synthetic. The first row with a real dollar figure will be #12, from the
+runner.
+
+**Cue:** `stall.mjs`'s `streak()` runs over *all* rows, and a manager pass is always
+`verdict: no-ship` with `srcChanged: false`. With `MANAGER_GAP=2` a manager row sits
+beside worker rows constantly, so a *single* no-ship worker iteration is enough to
+fire both `noShipStreak` and `srcFlat` — which is precisely what happened on this
+iteration, where no-ship was the brief's own instruction. The trigger that summons
+the manager is counting the manager's own passes as evidence that the loop has
+stalled. One-word fix (`streak` over `kind === 'worker'`), but it changes when the
+manager runs, so I left it as the manager's call.
