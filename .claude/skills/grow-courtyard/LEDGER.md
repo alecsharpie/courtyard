@@ -344,3 +344,69 @@ excludes `x>=84 && y>=42` for the pond corner. Cosmetic, but two documents are w
 **Cue:** `ripePlots()` rescans 102 cells once a second to set the arrival rate. It is free at
 this size, but it is the first place in the town where a *spawn rate* reads the CA, and if
 anything else wants that pattern it should be cached on the CA tick rather than recomputed.
+
+## Iteration 8 — the market is put up and packed away (2026-08-03) [Lane & market × Deepen]
+
+**Brief:** b7 — `marketActive()` gated the whole stall list, so three finished stalls
+appeared between two frames at hour 8 and vanished the same way at 17. Give market day
+a beginning and an end.
+**Did:** A stall is no longer a boolean. `marketRaise(i)` is a 0..1 progress with a
+per-stall stagger (`MK_RAISE` 0.62 h, `MK_STAGGER` 0.24 h), so the three go up one at a
+time over 6.90→8.00 and come down over 17.00→18.10. The draw list pushes per stall on
+`p > 0` and carries `p`; `drawMarketStall` stages it as four clamps on that one number —
+the trader fades up crouched over the pitch (`arrive`), the trestle unfolds up to its
+board and out to its full width (`table`), the frame rises on lengthening poles
+(`pole`), the canvas rolls out from the left pole toward the right (`can`, a lerp of the
+two right-hand corners; the stripes are anchored in screen x so they stand still and get
+*revealed*), and the six goods come out one at a time over p 0.80..1.00. The trader
+stands up as the canvas starts. Because every stage is a clamp on the same p, running p
+backwards packs the stall down in exactly the reverse order — no second code path.
+`marketActive()` is untouched, so `laneRate`'s ×1.7 and the browser roll still see the
+same 8–17. The ticker now brackets the day: the opening line moved onto the first
+trestle (6.92) and a new `marketClosed` flag fires at 17.00, on the first stall coming
+down rather than after the last, which also keeps it an hour clear of the six o'clock
+strike.
+**Gates:** census PASS (**unchanged in every group** — the point: draw-only, and it
+confirms no new `R()` draw) · visual PASS (wide/courtyard/east/lane at the pinned moment,
+plus zoomed dsf-4 crops of the pitch across both windows: at 7.66 stall 0 is finished,
+stall 1's canvas is half out and stall 2 is a bare frame) · motion PASS (0 jumps / 0 nan
+/ 0 oob / 0 flicker in day, night, market) · filmstrip day clean, no POP, no FROZEN ·
+perf skipped (no new per-frame pass; the stall loop is ≤ the old one) · probe
+`probes/market-raise.mjs`, 4 seeds, crop of the market pitch stepped at 0.05 s: largest
+single-step change **6.66 → 1.83** opening and **7.42 → 1.81** closing — and the 1.8s
+are not mine, they are byte-identical in the HEAD control. A separate check confirms the
+fully-open stall is **pixel-identical to HEAD** (weighted pixel sum 18852789 both), so
+the raise adds no drift to the finished state.
+**Verdict:** shipped   ← my view; runlog.mjs decides from the diff
+**Surprise:** Two.
+(1) **The filmstrip could not see the bug it was pointed at.** Run across the opening
+window at 0.28 s gaps, HEAD and the work give the same frame deltas to two decimal
+places (median 2.643 vs 2.654) and neither shows a POP. The market pitch is 148×72 px of
+a 1152×667 canvas — 1.4% — so HEAD's 6.66 mean-channel spike inside it dilutes to 0.10
+across the whole frame and drowns under a dawn sky that is repainting every frame
+anyway. The gate is a whole-frame mean; anything smaller than a couple of percent of the
+canvas is invisible to it however violently it pops. Cropping to the feature was not a
+refinement of the filmstrip, it was the only way to measure this at all.
+(2) My first probe reported the closing line firing at hour 6.00 and the opening line
+never firing — a real-looking bug in code that was fine. `__setTime()` rewinds `simT` but
+not the announce flags, and an earlier `grab()` in the same page had already set
+`marketAnnounced = 2`. `__reseed()` was not enough. The fix was a fresh page per
+measurement. This is the same shape as #3's unreseeded probe: the harness rewinds *some*
+of the world, and the part it does not rewind is exactly where a false reading hides.
+**Law:** `filmstrip.mjs`'s Δ is a whole-frame mean, so it is blind to anything under
+~2% of the canvas. Before trusting a clean strip, ask what fraction of the frame your
+change occupies; if it is small, crop to it (see `probes/market-raise.mjs`).
+**Law:** `__reseed()` rewinds the PRNG and `__setTime()` rewinds the clock, but neither
+rewinds module-level latches (`marketAnnounced`, `windAnnounced`, `bellSeen`, `lastStruck`).
+Reuse a page for two measurements and the second one starts with the first one's flags
+already tripped. One page per measurement, or the probe invents a bug.
+**Law:** Stage an appearance as N clamps on one 0..1 progress rather than as timed
+steps. Reversing the progress then packs the thing away in the reverse order for free,
+and there is only one code path to get right.
+**Cue:** The probe's crop goes flat — exactly 0.00 for ~0.9 s after hour 8.03, and again
+before 16.84 — in **both** HEAD and the work. Nothing moves in that box: the ground is a
+cached layer, a standing stall is static, and no walker is inside it. Worth knowing that
+the busiest-looking part of the lane is genuinely still for a second at a time.
+**Cue:** `marketRaise()` is the town's third staged-appearance ramp after the washing and
+the umbrellas, and all three hand-roll their own clamp chain. If a fourth arrives, that
+is the moment for a shared helper.

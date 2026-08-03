@@ -546,6 +546,28 @@ const MARKET_STALLS = [
   {x:50.5, y:76.1, c1:'#3d5a80', c2:'#e8ddc4'},
   {x:56, y:76.4, c1:'#b08030', c2:'#e2d6b8'},
 ];
+/* Market day has a beginning and an end. marketActive() still owns the hours the
+ * market is OPEN — laneRate and the browser roll read it and must not move. What is
+ * new is that a stall is no longer a boolean: marketRaise(i) is a 0..1 progress,
+ * staggered per stall, so the three go up one at a time over the hour before eight
+ * and come down over the hour after five, instead of three finished stalls landing
+ * between two frames. A day is 55 s, so an hour is 2.3 s and the whole setup gets
+ * ~2.2 s — about as long as a thing can last here and still read as an event.
+ * Pack-down is this same function running backwards, so it undoes the raise in
+ * reverse order for free: goods away, canvas rolled up, frame down, trestle folded. */
+const MK_RAISE = 0.62, MK_STAGGER = 0.24;     // hours: one stall, and between stalls
+function marketRaise(i){
+  if (!isMarketDay()) return 0;
+  const up = 8 - MK_RAISE - MK_STAGGER * (MARKET_STALLS.length - 1 - i);
+  if (hour < up) return 0;
+  if (hour < up + MK_RAISE) return (hour - up) / MK_RAISE;
+  const dn = 17 + MK_STAGGER * i;
+  if (hour < dn) return 1;
+  if (hour < dn + MK_RAISE) return 1 - (hour - dn) / MK_RAISE;
+  return 0;
+}
+// the whole span, first trestle to last pole away — for the ticker, not for the draw
+function marketUp(){ return marketRaise(0) > 0 || marketRaise(MARKET_STALLS.length - 1) > 0; }
 
 /* ============ ticker ============ */
 const tickerEl = document.getElementById('ticker');
@@ -2472,7 +2494,10 @@ function drawScene(t, dt){
   if (boat && (boat.y < 64.5 || boat.y > 79)) items.push({y:boat.y + 0.6, f:drawBoat});
   for (const tb of CAFE_TABLES) items.push({y:tb.y + 0.45, f:drawCafeTable, tb});
   if (kioskOpen()) items.push({y:KIOSK.y + 0.8, f:drawKiosk});
-  if (marketActive()) for (const s of MARKET_STALLS) items.push({y:s.y + 0.8, f:drawMarketStall, s});
+  for (let i = 0; i < MARKET_STALLS.length; i++){
+    const p = marketRaise(i);                    // 0 well before eight and well after five
+    if (p > 0) items.push({y:MARKET_STALLS[i].y + 0.8, f:drawMarketStall, s:MARKET_STALLS[i], p});
+  }
   const cellAt = (x, y) => grid[clamp(y|0, 0, WH-1) * GW + clamp(x|0, 0, GW-1)];
   for (const a of agents){
     if (cellAt(a.x, a.y) !== TUNNEL)               // inside an archway: hidden under the roof
@@ -2939,36 +2964,63 @@ function drawKiosk(){
     shirt:'#5d7a4a', pants:'#3a3a44', skin:SKIN[1]}});
 }
 function drawMarketStall(it){
-  const s = it.s;
+  const s = it.s, p = it.p;
   const [x, y] = project(s.x, s.y + 1, 0);
   const w = cellW * 2.5;
-  ctx.fillStyle = 'rgba(20,20,15,.25)';
+  /* The raise, in order. Every stage starts at zero size, so nothing ever arrives
+   * finished: the trader fades up crouched over the pitch, the trestle unfolds up
+   * to its full board, the frame rises, the canvas rolls out from the left pole,
+   * and only then do the goods come out. Every term is a clamp on the same p, so
+   * running p backwards packs the stall down in the reverse order. */
+  const arrive = clamp(p / 0.10, 0, 1);
+  const table  = clamp((p - 0.08) / 0.26, 0, 1);
+  const pole   = clamp((p - 0.34) / 0.24, 0, 1);
+  const can    = clamp((p - 0.56) / 0.24, 0, 1);
+  ctx.fillStyle = 'rgba(20,20,15,' + (0.25 * clamp(p / 0.55, 0, 1)).toFixed(3) + ')';
   ctx.beginPath(); ctx.ellipse(x, y, w * 0.6, cellH * 0.7, 0, 0, 7); ctx.fill();
-  ctx.fillStyle = '#6a4f36';
-  ctx.fillRect(x - w/2, y - cellH * 1.4, w, cellH * 1.0);
-  for (let k = 0; k < 6; k++){
+  if (table > 0){                                  // the board comes up on its legs
+    const tw = w * (0.44 + 0.56 * table), th = cellH * table;
+    ctx.fillStyle = '#6a4f36';
+    ctx.fillRect(x - tw/2, y - cellH * 0.4 - th, tw, th);
+  }
+  for (let k = 0; k < 6; k++){                     // goods, laid out one at a time
+    const g = clamp((p - 0.80 - k * 0.03) / 0.05, 0, 1);
+    if (g <= 0) continue;
     ctx.fillStyle = ['#c9903a', '#a83c32', '#7f9a5d', '#e0b95a', '#8a5f3f', '#c96f8e'][(hash(s.x, k) * 6) | 0];
     ctx.beginPath();
-    ctx.arc(x - w/2 + 3 + (k % 3) * (w/3) + hash(k, s.x) * 4, y - cellH * 1.5 - (k > 2 ? 3 : 0), 1.8, 0, 7);
+    ctx.arc(x - w/2 + 3 + (k % 3) * (w/3) + hash(k, s.x) * 4, y - cellH * 1.5 - (k > 2 ? 3 : 0), 1.8 * g, 0, 7);
     ctx.fill();
   }
-  const c1 = project(s.x - 1.25, s.y - 0.2, 2.5), c2 = project(s.x + 1.25, s.y - 0.2, 2.5);
-  const f1 = project(s.x - 1.25, s.y + 1.7, 2.1), f2 = project(s.x + 1.25, s.y + 1.7, 2.1);
-  ctx.strokeStyle = '#4a3a2a'; ctx.lineWidth = 2;
-  for (const [gp, cp] of [[project(s.x-1.25, s.y-0.2, 0), c1], [project(s.x+1.25, s.y-0.2, 0), c2],
-                          [project(s.x-1.25, s.y+1.7, 0), f1], [project(s.x+1.25, s.y+1.7, 0), f2]]){
-    ctx.beginPath(); ctx.moveTo(gp[0], gp[1]); ctx.lineTo(cp[0], cp[1]); ctx.stroke();
+  const c1 = project(s.x - 1.25, s.y - 0.2, 2.5 * pole), c2 = project(s.x + 1.25, s.y - 0.2, 2.5 * pole);
+  const f1 = project(s.x - 1.25, s.y + 1.7, 2.1 * pole), f2 = project(s.x + 1.25, s.y + 1.7, 2.1 * pole);
+  if (pole > 0){
+    ctx.strokeStyle = '#4a3a2a'; ctx.lineWidth = 2;
+    for (const [gp, cp] of [[project(s.x-1.25, s.y-0.2, 0), c1], [project(s.x+1.25, s.y-0.2, 0), c2],
+                            [project(s.x-1.25, s.y+1.7, 0), f1], [project(s.x+1.25, s.y+1.7, 0), f2]]){
+      ctx.beginPath(); ctx.moveTo(gp[0], gp[1]); ctx.lineTo(cp[0], cp[1]); ctx.stroke();
+    }
   }
-  const cnv = [c1, c2, f2, f1];
-  ctx.fillStyle = s.c1; poly(ctx, cnv); ctx.fill();
-  ctx.save(); poly(ctx, cnv); ctx.clip();
-  ctx.fillStyle = s.c2;
-  for (let k = -6; k < 7; k += 2) ctx.fillRect(x + k * 7, Math.min(c1[1], f1[1]) - 4, 7, 36);
-  ctx.restore();
-  ctx.strokeStyle = 'rgba(40,30,20,.4)'; ctx.lineWidth = 1; poly(ctx, cnv); ctx.stroke();
-  drawPerson({a:{x:s.x - 0.6, y:s.y + 1.1, state:'stand', phase:0,
+  if (can > 0){
+    // unrolled from the left pole toward the right one. The stripes are anchored in
+    // screen x, so they stand still and get revealed rather than sliding with the edge.
+    const roll = (A, B) => [A[0] + (B[0] - A[0]) * can, A[1] + (B[1] - A[1]) * can];
+    const cnv = [c1, roll(c1, c2), roll(f1, f2), f1];
+    ctx.fillStyle = s.c1; poly(ctx, cnv); ctx.fill();
+    ctx.save(); poly(ctx, cnv); ctx.clip();
+    ctx.fillStyle = s.c2;
+    for (let k = -6; k < 7; k += 2) ctx.fillRect(x + k * 7, Math.min(c1[1], f1[1]) - 4, 7, 36);
+    ctx.restore();
+    ctx.strokeStyle = 'rgba(40,30,20,.4)'; ctx.lineWidth = 1; poly(ctx, cnv); ctx.stroke();
+  }
+  // the trader: crouched over the pitch while it goes up, on their feet behind it once
+  // the canvas is out. Both the fade and the walk round the trestle take ~0.2 s.
+  const st = clamp((p - 0.50) / 0.16, 0, 1);
+  ctx.save(); ctx.globalAlpha = arrive;
+  drawPerson({a:{x:s.x - 1.1 + 0.5 * st, y:s.y + 0.9 + 0.2 * st, state:st > 0.5 ? 'stand' : 'kneel',
+    phase:0,
     shirt:['#5d7a4a', '#3d5a80', '#8a4a3a'][(hash(s.x, 9) * 3) | 0], pants:'#3a3a44',
     skin:SKIN[(hash(s.x, 4) * SKIN.length) | 0]}});
+  ctx.restore();
 }
 function drawCafeTable(it){
   const tb = it.tb;
@@ -3315,7 +3367,7 @@ document.getElementById('speed').addEventListener('click', e => {
 
 /* ============ main loop ============ */
 let last = 0, caAcc = 0, spawnAcc = 0, statAcc = 0, lightBucket = -1;
-let lastStruck = -1, marketAnnounced = -1, windAnnounced = -1, bellUntil = -1, bellSeen = -1;
+let lastStruck = -1, marketAnnounced = -1, marketClosed = -1, windAnnounced = -1, bellUntil = -1, bellSeen = -1;
 const HOUR_WORDS = ['twelve','one','two','three','four','five','six','seven','eight','nine','ten','eleven'];
 function strikeClock(){
   const hInt = Math.floor(hour);
@@ -3364,9 +3416,15 @@ function simStep(sdt, dt){
   updateClock();
   strikeClock();
   if (bellUntil > simT && bellUntil !== bellSeen){ bellSeen = bellUntil; bellStartle(); }
-  if (marketActive() && marketAnnounced !== day){
+  if (marketUp() && marketAnnounced !== day){          // now fires on the first trestle
     marketAnnounced = day;
-    announce('Market morning — canvas snaps open along the lane.');
+    announce('Market morning — trestles out, and the canvas rolls open along the lane.');
+  }
+  // fired at the FIRST stall coming down, not the last: it points at the pack-down
+  // rather than reporting it afterwards, and 17.00 keeps clear of the six o'clock strike.
+  if (isMarketDay() && hour >= 17 && marketClosed !== day){
+    marketClosed = day;
+    announce('Five o’clock; the canvas comes down and the lane is left to the sparrows.');
   }
   if (isWindy() && windAnnounced !== day && hour > 7 && hour < 9){
     windAnnounced = day;

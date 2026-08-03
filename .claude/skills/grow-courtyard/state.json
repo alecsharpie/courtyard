@@ -2,7 +2,7 @@
   "updated": "2026-08-03",
   "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
   "phase": "expanding",
-  "lastIteration": 7,
+  "lastIteration": 8,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -152,7 +152,8 @@
         "pre16"
       ],
       "deepen": [
-        "pre13"
+        "pre13",
+        8
       ],
       "polish": [
         "pre17"
@@ -253,7 +254,8 @@
       "planters",
       "street lamps",
       "lane benches",
-      "washing that comes in before the rain: the rope stays strung and garments leave one at a time on per-garment thresholds and ~1.6s fades, driven by weatherComing() and a dusk ramp — never all in one frame"
+      "washing that comes in before the rain: the rope stays strung and garments leave one at a time on per-garment thresholds and ~1.6s fades, driven by weatherComing() and a dusk ramp — never all in one frame",
+      "market stalls that are put up and packed away: marketRaise(i) is a 0..1 progress staggered per stall (6.90-8.00 up, 17.00-18.10 down) and drawMarketStall stages trader, trestle, frame, canvas and goods as clamps on it, so running it backwards packs down in reverse. marketActive() still owns the open hours for laneRate and the browser roll. The ticker brackets the day at the first trestle and at the first stall coming down"
     ],
     "street": [
       "cross street with two footways, roadway, curbs",
@@ -401,6 +403,18 @@
     {
       "id": "c14",
       "note": "runlog.mjs derives srcChanged from --pre-blob, which only run-loop.sh supplies. A hand-invoked /grow-courtyard iteration therefore logs verdict 'no-ship' however much it shipped — iter 7 did exactly this and had to be re-derived with 'git rev-parse HEAD~1:courtyard.html'. HARNESS: runlog could fall back to HEAD~1's blob when --pre-blob is empty.",
+      "raisedBy": 7,
+      "seenBy": 0
+    },
+    {
+      "id": "c15",
+      "note": "filmstrip.mjs's whole-frame mean is blind to a change under ~2% of the canvas — it could not tell HEAD from the three-stalls-in-one-frame fix at all; crop to the feature (probes/market-raise.mjs)",
+      "raisedBy": 7,
+      "seenBy": 0
+    },
+    {
+      "id": "c16",
+      "note": "marketRaise is the third hand-rolled staged-appearance clamp chain (washing, umbrellas, stalls); a fourth would justify a shared helper",
       "raisedBy": 7,
       "seenBy": 0
     }
