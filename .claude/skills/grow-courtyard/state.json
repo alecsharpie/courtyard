@@ -2,7 +2,7 @@
   "updated": "2026-08-03",
   "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
   "phase": "expanding",
-  "lastIteration": 19,
+  "lastIteration": 20,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -193,6 +193,9 @@
       ],
       "deepen": [
         5
+      ],
+      "polish": [
+        20
       ]
     },
     "river": {
@@ -311,7 +314,8 @@
       "THE DIORAMA IS CLICKABLE and has been since before the loop — a bed takes seeds of a real species, the lawn a daisy, the pond crumbs (ducks converge), the fountain a coin, the river a pebble, paving crumbs (birds land). answersTouch(x,y) is the ONE predicate for 'this cell answers': cursor swaps to pointer on it (46% of the frame), handler guards on it. ONE ticker invitation, once ever, at 8 REAL seconds, cancelled if the viewer clicks first, stood down on ?pause. probes/touch-hint.mjs",
       "the ticker is an ordered queue, not an overwrite — TICK_DWELL 2.5 real s, cap 2, 6 s staleness cut; a follow-on line enqueues only when its antecedent is DISPLAYED, and a line may buy its own dwell (lineDwell)",
       "__entities() carries role, act and watch per person — the seam a behaviour probe reads instead of a bespoke hook",
-      "the year is felt in how busy the town is — yearBusy(ex) multiplies the DAYLIGHT term of capacity/laneCap/eastCap only, never their fixed share, so the anchor and every night are provably unchanged; read off daySpan() (day length 0..1), not warmth. Exposure differs by source: EX_COURT 0.5 (walled), EX_LANE 1.0, EX_EAST 1.25. eastCap keeps Math.min(7,…) for c10 — summer reaches the ceiling earlier, never raises it. Folded 2-year summer:winter ratio 1.09 -> 1.56 total (courtyard 1.26, lane 1.94, east 2.10), settled mean unchanged at ~21.5. POP_FLOOR 8 + scarcity: a lift on the three arrival RATES only, never the caps, holding the absolute floor at 8 people. probes/season-year.mjs now reports population per arrival source"
+      "the year is felt in how busy the town is — yearBusy(ex) multiplies the DAYLIGHT term of capacity/laneCap/eastCap only, never their fixed share, so the anchor and every night are provably unchanged; read off daySpan() (day length 0..1), not warmth. Exposure differs by source: EX_COURT 0.5 (walled), EX_LANE 1.0, EX_EAST 1.25. eastCap keeps Math.min(7,…) for c10 — summer reaches the ceiling earlier, never raises it. Folded 2-year summer:winter ratio 1.09 -> 1.56 total (courtyard 1.26, lane 1.94, east 2.10), settled mean unchanged at ~21.5. POP_FLOOR 8 + scarcity: a lift on the three arrival RATES only, never the caps, holding the absolute floor at 8 people. probes/season-year.mjs now reports population per arrival source",
+      "PAVING + pavingAt(x,y) — the ONE predicate naming which paving a SIDE/ROAD cell is: lane, bridge deck, cross street, plaza mouth, quay, towpath. Each entry carries its own crumbs line AND the box its birds land in, so the words and the birds cannot disagree. crumbSpot() staggers the three birds at thirds of the place's long axis (never under 3 cells) and fits the scatter by moving its CENTRE, so a two-cell quay still reads as three. probes/paving-places.mjs (--shot for the eye check)"
     ]
   },
   "openCues": [
@@ -408,6 +412,12 @@
     {
       "id": "c42",
       "note": "context-budget printed OVER at 53.6 KB against a 46 KB cap at the start of #19 (worse than c38's 48.8): LEDGER 18.9, SKILL 11.8, state 11.4, LAWS 9.4. Rotation is overdue.",
+      "raisedBy": 19,
+      "seenBy": 0
+    },
+    {
+      "id": "c43",
+      "note": "answersTouch() does not answer PATH, so the plaza roundel around the fountain and the whole courtyard path ring are dead to cursor and click. PAVING.plaza only fires on the plaza's 6x4 MOUTH onto the lane — 24 of the world's 2903 paved cells. Extending the surface to PATH is a real vector but moves the cursor's 46% share and needs touch-hint.mjs re-measured.",
       "raisedBy": 19,
       "seenBy": 0
     }

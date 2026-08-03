@@ -3798,6 +3798,62 @@ function answersTouch(x, y){
   const g = grid[y * GW + x];
   return g === BED || g === CBED || g === GRASS || g === WATER || g === SIDE || g === ROAD;
 }
+/* SIDE and ROAD are the paving of the WHOLE town — the lane, the cross street,
+ * the plaza's mouth, the quay, the bridge deck, the towpath on the far bank — so
+ * the branch that answers a click on paving has to know WHICH paving. ONE table:
+ * each place carries the line it answers with AND the box its crumbs' birds may
+ * land in, so the words and the birds can never disagree about where you pointed.
+ *
+ * The spread is per place because the shapes differ: the lane and the bridge run
+ * east-west and are wide, the quay and the towpath are two- and three-cell strips
+ * running north-south. The LONGER of the two is the axis the scatter staggers
+ * along, and it is never under 3 cells, because three birds inside 3 cells is
+ * where they stop reading as three (see crumbSpot). */
+const PAVING = {
+  lane:    {x0:0,        x1:GW,       y0:LN_WALK_N, y1:LN_WALK_S, sx:3,   sy:2,
+            line:'You scatter crumbs onto the lane. Small eyes take notice.'},
+  bridge:  {x0:RIVER_X0, x1:RIVER_X1, y0:LN_WALK_N, y1:LN_WALK_S, sx:3,   sy:2,
+            line:'You scatter crumbs on the bridge. Birds drop in off the parapet.'},
+  cross:   {x0:XS_W0,    x1:XS_E1,    y0:0,         y1:LN_WALK_N, sx:2.2, sy:3,
+            line:'You scatter crumbs along the cross street. Small eyes take notice from the kerb.'},
+  plaza:   {x0:102,      x1:108,      y0:61,        y1:LN_WALK_N, sx:3,   sy:2,
+            line:'You scatter crumbs onto the plaza. Pigeons are on them before you straighten up.'},
+  quay:    {x0:QUAY_X0,  x1:RIVER_X0, y0:0,         y1:LN_WALK_N, sx:1.2, sy:4,
+            line:'You scatter crumbs along the quay, a step from the water. Small eyes take notice.'},
+  towpath: {x0:TOW_X0,   x1:FAR_X0,   y0:3,         y1:LN_WALK_N, sx:1.8, sy:4,
+            line:'You scatter crumbs on the towpath. Birds come over the water for it.'},
+};
+/* Called only on a cell answersTouch() has already called SIDE or ROAD; every such
+ * cell falls in exactly one of these boxes. South of LN_WALK_N the paving is the
+ * lane, all the way across, except where it is carried over the river. */
+function pavingAt(x, y){
+  if (y >= LN_WALK_N) return (x >= RIVER_X0 && x < RIVER_X1) ? PAVING.bridge : PAVING.lane;
+  if (x >= TOW_X0)   return PAVING.towpath;
+  if (x >= QUAY_X0)  return PAVING.quay;
+  if (x >= PLAZA_X0) return PAVING.plaza;
+  return PAVING.cross;
+}
+/* Where the k-th of three birds comes down on a handful of crumbs. Sampling all
+ * three independently in one small box lands two of them on top of each other
+ * about half the time, and under ~0.9 cells apart they draw as one shape — so
+ * they are STAGGERED at fixed thirds of the long axis and only jittered within a
+ * twelfth of it, which floors the gap at s/3. The scatter is fitted into the
+ * place by moving its CENTRE, never by clamping each bird: clamping them one at
+ * a time is exactly what collapses the stagger back into a heap at the far end
+ * of a two-cell quay. */
+function fitIn(c, lo, hi, span){
+  const a = lo + span / 2 + 0.4, b = hi - span / 2 - 0.4;
+  return a > b ? (lo + hi) / 2 : clamp(c, a, b);
+}
+function crumbSpot(p, x, y, k){
+  const along = p.sy > p.sx;                        // a north-south strip runs down itself
+  const s = along ? p.sy : p.sx, w = along ? p.sx : p.sy;
+  const cx = fitIn(x + 0.5, p.x0, p.x1, along ? w : s);
+  const cy = fitIn(y + 0.5, p.y0, p.y1, along ? s : w);
+  const u = (k - 1) * s / 2 + (R() - 0.5) * s / 6;  // -s/2, 0, +s/2, each ±s/12
+  const v = (R() - 0.5) * w;
+  return along ? [cx + v, cy + u] : [cx + u, cy + v];
+}
 function cellAt(ev){
   const r = cv.getBoundingClientRect();
   const [wx, wy] = unproject(ev.clientX - r.left, ev.clientY - r.top);
@@ -3839,10 +3895,14 @@ cv.addEventListener('click', ev => {
       for (const d of ducks){ d.tx = x + 0.5; d.ty = y + 0.5; d.t = 4; }
     }
   } else if (grid[j] === SIDE || grid[j] === ROAD){
-    announce('You scatter crumbs onto the lane. Small eyes take notice.');
+    const p = pavingAt(x, y);
+    announce(p.line);
     if (birds.length < 4 && daylight > 0.2){
-      for (let k = 0; k < 3; k++) birds.push({x:x+(R()-0.5)*3, y:clamp(y+(R()-0.5)*2, LN_WALK_N, LN_WALK_S-1), z:9, state:'land', hop:0, t:6+R()*6,
-        col:pick(['#7d8089','#6e6a60','#33302c'])});
+      for (let k = 0; k < 3; k++){
+        const [bx, by] = crumbSpot(p, x, y, k);
+        birds.push({x:bx, y:by, z:9, state:'land', hop:0, t:6+R()*6,
+          col:pick(['#7d8089','#6e6a60','#33302c'])});
+      }
     }
   }
 });

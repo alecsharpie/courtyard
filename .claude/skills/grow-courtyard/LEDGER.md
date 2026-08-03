@@ -1001,3 +1001,56 @@ a servo rather than a ramp.
 **Cue:** `context-budget.mjs` printed **OVER — 53.6 KB against a 46 KB cap** at the
 start of this iteration (c38's 48.8 KB, worse). LEDGER is 18.9 KB of it and this entry
 adds to that. Rotation is overdue.
+
+## Iteration 20 — the paving learns which paving it is (2026-08-04) [Plaza & quay × Polish]
+
+**Brief:** b19 — the click handler's `SIDE || ROAD` branch answers "You scatter crumbs
+onto the lane" for the paving of five different quarters, and clamps its birds into
+`LN_WALK_N..LN_WALK_S` so they land in the lane however far east you clicked.
+
+**Did:** One table, `PAVING`, with six entries — `lane`, `bridge`, `cross`, `plaza`,
+`quay`, `towpath` — each carrying its line *and* the box its crumbs' birds may land
+in, plus the spread along each axis. `pavingAt(x, y)` is the single predicate that
+places a cell; it is called only on a cell `answersTouch()` has already called SIDE or
+ROAD, and south of `LN_WALK_N` the paving is the lane all the way across except where
+it is carried over the river (the bridge deck — a sixth place the brief did not name,
+found by walking the grid). No seventh KIND: still one branch, still crumbs, still
+`birds.length < 4` and `daylight > 0.2`, still 3 birds and the same two `R()` draws
+each. Bird placement moved out to `crumbSpot(p, x, y, k)`.
+
+**Gates:** census PASS (scalars/tiles/life/structure/species all *unchanged* — a click
+handler moves nothing the census watches, which is the point) · visual PASS (`east`
+and `lane` byte-identical to pre-edit; `wide` differs but is **not reproducible
+run-to-run on unmodified HEAD either**, so that diff is the harness, not the change) ·
+motion PASS (unchanged) · perf skipped (no per-frame pass) · **probe PASS** —
+`probes/paving-places.mjs`.
+
+**Verdict:** shipped
+
+**Surprise:** the probe found two defects the brief did not contain, and I would have
+shipped both. (1) The cross street and the quay run from **y = 0**, not y = 3 as I had
+guessed from the towpath's `y < 3 ? WALL : SIDE`; 6+ cells were being named for a box
+they sat outside. (2) Sampling three birds independently inside one small box put two
+of them within 0.9 cells — the "renders as one shape" law — in **4 of 8** click cases,
+including the *old* lane behaviour. So the pre-existing code had a second bug hiding
+under the one I was sent to fix, and only a numeric check saw it. Staggering the three
+at fixed thirds of the long axis with a ±s/12 jitter floors the gap at s/3, so every
+place's long spread is now ≥ 3 cells by construction.
+
+**Law:** *Fit a scatter by moving its centre, not by clamping its members.* Clamping
+each of N placements into a box independently is what collapses a deliberate spread
+back into a heap at the box's edge — exactly where the code looks most careful. Fit
+the whole pattern's centre first, then place relative to it, and the spread is
+guaranteed instead of hoped for.
+
+**Cue:** the plaza's actual paving is `PATH`, and `answersTouch()` does not answer
+PATH — so the plaza roundel around the fountain, and the whole courtyard path ring,
+are dead to the cursor and to the click. `PAVING.plaza` only ever fires on the plaza's
+6×4-cell **mouth** onto the lane (24 cells of the world's 2903 paved ones). The brief
+asked for "the plaza around the fountain" believing otherwise. Extending the answering
+surface is a real vector, but it is not this one — it moves the cursor's 46% share and
+needs `touch-hint.mjs` re-measured.
+
+**Cue:** `context-budget.mjs` printed **OVER — 53.7 KB against a 46 KB cap** at the
+start of this iteration, again (c42 saw 53.6 at #19, c38 saw 48.8 at #17). Three
+consecutive workers have now reported it and the file has only grown.
