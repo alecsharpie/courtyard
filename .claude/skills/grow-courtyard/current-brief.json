@@ -17,7 +17,7 @@
   "avoid": "Do not add new click responses — there are six and this brief is about making them findable, not about having more. No tutorial overlay, no modal, no persistent on-canvas text. Do not let the invitation repeat: one, and it does not come back. Watch the ticker queue's drop policy (TICK_DWELL 2.5 s, cap 2, 6 s staleness) — an invitation that competes with a bell strike will lose, and it should lose gracefully rather than be shown late.",
   "budgetMin": 30,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 13,
   "issued": "2026-08-03T05:21:22.691Z",
