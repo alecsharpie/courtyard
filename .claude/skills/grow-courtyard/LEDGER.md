@@ -476,3 +476,37 @@ the departure is a cut.
 **Cue:** `byTheWater()` names the three places a person can see the river. Nothing else uses
 it yet, but it is the predicate any future river event (a swan taking off, ice, a barge) would
 want, and it should stay the only definition of that.
+
+## Iteration 10 — the ticker holds its line, and the church finally answers (2026-08-03) [People & animals × Polish]
+
+**Brief:** b9 — `announce()` overwrote `tickerEl.textContent` outright, so two events in one
+frame showed only the second; fix that, then un-nest the unreachable church-answer branch.
+**Did:** `announce()` is now a shallow ordered queue. `showLine()` owns the surface;
+`TICK_DWELL = 2.5` real seconds is guaranteed to every line before the next may take it;
+`tickTicker()` runs from the existing half-second stat bucket (no new per-frame work) and
+ages, expires and drains the queue. The queue is capped at `TICK_QMAX = 2` and entries die at
+`TICK_STALE = 6` s — a line that cannot be shown while it is still true is dropped, oldest
+first, never shown late. In `strikeClock()` the `(hInt === 9 || hInt === 18)` branch is now
+*inside* `hInt % 3 === 0` rather than an else-if against it, and `bellUntil` is one write
+(`simT + (answered ? 2.6 : 2.2)`) so an answered strike is one longer flush, not two.
+**Gates:** census PASS (unchanged, all 9 cells — no new `R()` draw, and the ticker is not
+town state) · visual PASS · motion PASS (identical to baseline) · perf skipped (2 Hz, no new
+per-frame pass) · probe `probes/ticker-queue.mjs` PASS on seeds 42/7/99/3
+**Verdict:** shipped
+**Surprise:** Two things the first cut got wrong, both invisible to a screenshot. (1) The
+dwell was quantised to the 0.5 s stat bucket, so a line that went up mid-bucket was credited
+with the whole of it and could be cut at 2.0 s; `tickerAge = -statAcc` at show time makes the
+age equal real seconds on screen exactly. (2) Worse — at 18:00 a gardener line arrived in the
+same window and shifted the *strike* out of the queue while its *answer* survived, so the
+ticker read "The church bell answers…" with nothing to answer. Fixed by making the answer a
+follow-on (`announce(txt, then)`) enqueued only when the strike is actually **displayed**, and
+unshifted to the front. A dropped strike now takes its answer with it.
+**Law:** A queued line that depends on another line is not an independent entry. Bind it as a
+follow-on enqueued at *display* time of its antecedent, or the drop policy will eventually
+show the reply without the remark. More generally: any drop-oldest queue will, given enough
+traffic, break exactly the pairs you added it to protect.
+**Cue:** iteration 9 left `probes/parapet-and-boat.mjs` at the repo root, matched by the
+*unanchored* `parapet-and-boat.mjs` line in `.gitignore` — so it is cited in the ledger and
+absent from the repo, which is the precise failure the anchored `/probe-*.mjs` comment above
+it warns about. Either move it into `.claude/skills/grow-courtyard/probes/` and drop that
+gitignore line, or delete it.

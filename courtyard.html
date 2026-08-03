@@ -578,10 +578,54 @@ function marketUp(){ return marketRaise(0) > 0 || marketRaise(MARKET_STALLS.leng
 /* ============ ticker ============ */
 const tickerEl = document.getElementById('ticker');
 let tickerTimer = 0, ambientAcc = 0;
-function announce(txt){
-  tickerEl.textContent = txt;
+/* The town has exactly ONE text surface and it stays one line. announce() used to
+ * assign textContent outright, so two events in the same frame showed only the
+ * second — the bell answering the clock could never be read, and any pair of
+ * coincident lines silently lost one. So: a shallow ordered queue. A line is
+ * guaranteed TICK_DWELL seconds of its own before the next may take the surface.
+ * The queue is deliberately shallow and self-expiring — a ticker that backs up
+ * reports news that has stopped being true, so anything that cannot be shown while
+ * it is still current is DROPPED, oldest first, never shown late.
+ * These are REAL seconds, not sim seconds: it is a reading speed, not a clock. */
+const TICK_DWELL = 2.5, TICK_LIFE = 9, TICK_STALE = 6, TICK_QMAX = 2;
+const tickerQ = [];
+let tickerAge = TICK_LIFE;   // real seconds the line on screen has been up
+function showLine(e){
+  tickerEl.textContent = e.txt;
   tickerEl.classList.remove('fade');
-  tickerTimer = 9;
+  tickerTimer = TICK_LIFE;
+  // The ticker is ticked from the half-second stat bucket, so a line that goes up
+  // mid-bucket would be credited with the whole of it and could be swapped out
+  // after 2.0 s instead of 2.5 s. Starting the age at minus the elapsed part of
+  // the bucket makes tickerAge equal real seconds on screen, exactly.
+  tickerAge = -statAcc;
+  // A follow-on is an ANSWER to the line now on screen, so it is enqueued at the
+  // moment that line is DISPLAYED, never when it was announced. That is what stops
+  // the bell answering a strike nobody read: if the strike is dropped as stale, its
+  // answer is dropped with it, because it was never queued. And an answer outranks
+  // whatever news arrived in the meantime — it goes to the front.
+  if (e.then){
+    tickerQ.unshift({ txt: e.then, age: 0 });
+    while (tickerQ.length > TICK_QMAX) tickerQ.pop();
+  }
+}
+function announce(txt, then){
+  if (tickerTimer < 0 || tickerAge >= TICK_DWELL){ showLine({ txt, then }); return; }
+  if (txt === tickerEl.textContent) return;
+  if (tickerQ.some(q => q.txt === txt)) return;
+  tickerQ.push({ txt, then, age: 0 });
+  while (tickerQ.length > TICK_QMAX) tickerQ.shift();   // stale goes, not the news
+}
+// half a real second of ticker time — called from the same bucket as refreshStats
+function tickTicker(){
+  tickerAge += 0.5;
+  tickerTimer -= 0.5;
+  if (tickerTimer < 0) tickerEl.classList.add('fade');
+  for (let i = tickerQ.length - 1; i >= 0; i--){
+    tickerQ[i].age += 0.5;
+    if (tickerQ[i].age > TICK_STALE) tickerQ.splice(i, 1);
+  }
+  if (tickerQ.length && tickerAge >= TICK_DWELL) showLine(tickerQ.shift());
 }
 function ambientLine(){
   if (raining) return pick(['Gutters murmur along the whole block.',
@@ -3447,11 +3491,15 @@ function strikeClock(){
   if (hInt !== lastStruck){
     lastStruck = hInt;
     if (hInt % 3 === 0){
-      announce('The clock over the lane strikes ' + HOUR_WORDS[hInt % 12] + '.');
-      bellUntil = simT + 2.2;
-    } else if ((hInt === 9 || hInt === 18) && day >= 2){
-      announce('The church bell answers from across the river, half a beat behind.');
-      bellUntil = simT + 2.6;
+      // Nine and eighteen are the two strikes the church answers — and both are
+      // divisible by three, so this can only ever live INSIDE the strike, never as
+      // an alternative to it. As an else-if it was unreachable and the bell was
+      // never once answered. The answer rides as the strike's follow-on line, so it
+      // reaches the ticker a beat later and only ever behind the strike itself.
+      const answered = (hInt === 9 || hInt === 18) && day >= 2;
+      announce('The clock over the lane strikes ' + HOUR_WORDS[hInt % 12] + '.',
+        answered ? 'The church bell answers from across the river, half a beat behind.' : null);
+      bellUntil = simT + (answered ? 2.6 : 2.2);   // one flush, held longer — not a second one
     }
   }
 }
@@ -3554,9 +3602,7 @@ function simStep(sdt, dt){
   updateBoat(sdt);
 
   statAcc += dt;
-  if (statAcc > 0.5){ statAcc = 0; refreshStats();
-    tickerTimer -= 0.5; if (tickerTimer < 0) tickerEl.classList.add('fade');
-  }
+  if (statAcc > 0.5){ statAcc = 0; refreshStats(); tickTicker(); }
   ambientAcc += sdt;
   if (ambientAcc > 20 && tickerTimer < -8){
     ambientAcc = 0;

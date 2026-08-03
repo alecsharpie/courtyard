@@ -2,7 +2,7 @@
   "updated": "2026-08-03",
   "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
   "phase": "expanding",
-  "lastIteration": 9,
+  "lastIteration": 10,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -226,7 +226,8 @@
         "pre13"
       ],
       "polish": [
-        "pre9"
+        "pre9",
+        10
       ],
       "connect": [
         4
@@ -324,7 +325,9 @@
       "butterflies drift to their flower at a capped 3 cells/s instead of lunging across the courtyard",
       "street sitters who read the sky: new sits refused above weatherComing() 0.42, existing sitters released over 0.55..0.88 off a stable per-agent a.wary (courtyard sitters excluded)",
       "umbrellas that go up on the approach (weatherComing() 0.62..1.17, so ~30% never open one), put away below 0.42 and cleared when the rain stops",
-      "__entities() now carries role, act and watch on each person alongside position — the seam a behaviour probe reads instead of a bespoke hook per feature"
+      "__entities() now carries role, act and watch on each person alongside position — the seam a behaviour probe reads instead of a bespoke hook per feature",
+      "the ticker is an ordered queue, not an overwrite: announce(txt, then) queues rather than clobbering, every line gets TICK_DWELL 2.5 real seconds of its own before the next takes the surface, and the queue is capped at 2 with a 6 s staleness cut so an unshowable line is dropped oldest-first rather than shown late. A follow-on line (the 'then' arg) is enqueued only when its antecedent is DISPLAYED, so a reply can never outlive the remark",
+      "the church bell answers the clock at nine and eighteen from day 2 — the branch was unreachable dead code (both hours are divisible by three, and it hung off an else-if under hInt%3===0); it is now nested inside the strike and rides as its follow-on ticker line, with one bellUntil write of simT+2.6 so an answered strike is a single longer flush"
     ]
   },
   "openCues": [
@@ -333,12 +336,6 @@
       "note": "The town stops changing after ~15 real minutes. maturity() caps at day 8 and richness() at day 16; at a 55 s day that is 14.7 minutes, after which every progression term is pinned at 1. There is no season and no later act. This is the rung-4 lever that would reopen the whole board. STILL HELD at manager pass #5: four iterations have shipped cleanly, no stall signal has fired, and rungs 1-2 still have unmined ground (three domains untouched by the loop, four of seven kinds unused). Spend this the first time a batch comes back thin.",
       "raisedBy": 0,
       "seenBy": 2
-    },
-    {
-      "id": "c4",
-      "note": "PROMOTED to brief b9 at manager pass #5. The church-answer branch in strikeClock is UNREACHABLE: (hInt===9||hInt===18) hangs off an else-if under (hInt%3===0), and both 9 and 18 are divisible by 3. Confirmed by reading the function at line 3143. The blocker is announce(), which overwrites tickerEl.textContent outright, so two lines in one frame show only the second — which is why b9 is scoped as fixing announce() first.",
-      "raisedBy": 0,
-      "seenBy": 1
     },
     {
       "id": "c6",
@@ -423,6 +420,12 @@
       "note": "byTheWater() names the three places a person can see the river. Only boatWatch reads it; any future river event (a swan taking off, ice, a barge) should read the same predicate rather than re-deriving it.",
       "raisedBy": 8,
       "seenBy": 0
+    },
+    {
+      "id": "c19",
+      "note": "iteration 9's probes/parapet-and-boat.mjs sits at the repo root matched by an UNANCHORED .gitignore line, so it is cited in the ledger and absent from the repo — the exact failure the anchored /probe-*.mjs comment warns about. Move it into the skill's probes/ and drop the gitignore line, or delete it.",
+      "raisedBy": 9,
+      "seenBy": 0
     }
   ],
   "watch": [
@@ -455,6 +458,14 @@
       "seenBy": 1,
       "closedBy": 8,
       "reason": "the parapet stop shipped at #9 — somebody is on the bridge ~12% of daylight, measured"
+    },
+    {
+      "id": "c4",
+      "note": "PROMOTED to brief b9 at manager pass #5. The church-answer branch in strikeClock is UNREACHABLE: (hInt===9||hInt===18) hangs off an else-if under (hInt%3===0), and both 9 and 18 are divisible by 3. Confirmed by reading the function at line 3143. The blocker is announce(), which overwrites tickerEl.textContent outright, so two lines in one frame show only the second — which is why b9 is scoped as fixing announce() first.",
+      "raisedBy": 0,
+      "seenBy": 1,
+      "closedBy": 9,
+      "reason": "fixed at iteration 10: announce() is an ordered queue and the church-answer branch is nested inside the strike as its follow-on line"
     }
   ]
 }
