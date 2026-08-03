@@ -2,7 +2,7 @@
   "updated": "2026-08-03",
   "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
   "phase": "expanding",
-  "lastIteration": 14,
+  "lastIteration": 15,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -128,6 +128,11 @@
         "id": "scale",
         "name": "Scale/World",
         "what": "change the size, span or time of the world itself"
+      },
+      {
+        "id": "harness",
+        "name": "Harness",
+        "what": "the loop's own instruments — gates, probes, runlog, stats. Changes nothing a viewer sees, and does NOT count toward a domain's balance"
       }
     ]
   },
@@ -212,13 +217,17 @@
         "pre11",
         "pre19",
         "pre24",
-        "pre29"
+        "pre29",
+        15
       ],
       "deepen": [
         3
       ],
       "connect": [
         6
+      ],
+      "scale": [
+        12
       ]
     },
     "life": {
@@ -240,101 +249,56 @@
   },
   "saturation": {},
   "inventory": {
-    "note": "What the town ALREADY CONTAINS, in the words a brief would use. Read by every worker before it builds. This list is the direct antidote to the previous loop's terminal failure mode: nine consecutive iterations that each surveyed the world, found everything already existed, and exited.",
+    "note": "What the town ALREADY CONTAINS, in the words a brief would use. Read before you build. The antidote to the previous loop's terminal failure: nine consecutive iterations that each surveyed the world, found everything already existed, and exited.",
     "courtyard": [
-      "walled garden with an organic bed ring",
-      "four arch entrances (two TUNNEL, two SLOT)",
-      "planting CA with 11 species and bloom stages",
-      "seeds that spread from mature neighbours, and beds that crowd out and die back with age",
-      "rain that accelerates every growth term",
-      "daisies in the lawn",
-      "desire paths from foot wear",
-      "benches",
-      "a sweeper",
-      "ivy on the south wall",
-      "the planting CA reads the YEAR — growF() 0.30..1.70, dieF() 1.80..0.20 and bloomCap() 3/2/1 (thresholds warmth 0.42/0.20), all off b11's warmth and each equal to the constant it replaced at warmth 0.5; they scale both seed rolls, the stage advance, wear recovery, the daisy terms and the dieback probability. bloomCap is a CEILING not a kill term — caTick already ages whatever sits at its ceiling, so lowering it empties the beds by itself. Per-cell hardiness hash(x,y+41)>0.86 keeps ~1/7 of cells at the full ceiling so deep winter is a scatter of blooms (17-35) in turned earth, never zero. blooming traces 17..698 over the 26-day year; the species mix holds at Shannon evenness ~0.998 across three years because winter forces fresh draws (neighborsMature finds nothing to inherit). Lawn health in groundCol and the gatehouse ivy reach+colour read the same warmth instead of deriving from richness(); ivy clamped to 5.2 against a measured 5.6 eave. probes/beds-year.mjs"
+      "walled garden with an organic bed ring; four arch entrances (two TUNNEL, two SLOT)",
+      "planting CA — 11 species, bloom stages, seeds spreading from mature neighbours, crowding and age dieback; rain accelerates every growth term",
+      "daisies in the lawn, desire paths from foot wear, benches, a sweeper (05.00-06.30), ivy on the gatehouse",
+      "one big courtyard linden (drawTree, CX/CY), sized on maturity(), hard-coded summer green",
+      "the beds read the YEAR — growF()/dieF()/bloomCap() off warmth, plus lawn health in groundCol and the ivy. bloomCap is a CEILING, not a kill term; per-cell hardiness holds ~1/7 of cells at the full ceiling, so winter is a scatter of blooms in turned earth rather than an empty grid. probes/beds-year.mjs"
     ],
     "lane": [
-      "kiosk",
-      "pavement cafe with tables",
-      "awnings",
-      "washing lines strung over the lane",
-      "market day every 4th day with three stalls",
-      "planters",
-      "street lamps",
-      "lane benches",
-      "washing that comes in before the rain — per-garment thresholds and ~1.6s fades on weatherComing() plus a dusk ramp, never all in one frame",
-      "market stalls put up and packed away — marketRaise(i), a per-stall staggered 0..1 progress (6.90-8.00 up, 17.00-18.10 down) staging trader/trestle/frame/canvas/goods as clamps on it; marketActive() still owns the open hours; the ticker brackets the day"
+      "kiosk (07.30-18.30), pavement cafe with tables, awnings, washing lines, planters, street lamps, benches",
+      "market day every 4th day, three stalls, marketActive() 08.00-17.00",
+      "washing comes in before the rain — per-garment thresholds, ~1.6 s fades on weatherComing(), plus a dusk ramp; never all in one frame",
+      "market put up and packed away — marketRaise(i), a per-stall staggered 0..1 progress (06.90-08.00 up, 17.00-18.10 down) staging trader/trestle/frame/canvas/goods as clamps on it"
     ],
     "street": [
-      "cross street with two footways, roadway, curbs",
-      "street lamps",
-      "street trees in pits",
-      "allotment block of 17 plots (buildGrid excludes the pond corner), timber fence, gates, shed",
-      "an alley cut through the block",
-      "allotment harvest cycle — harvestPlot() lifts a mature 3x2 bed whole, bAge doubles as a 12-20s fallow clock, then it is re-sown as a row under plotCrop()",
-      "spawnAllotAgent() — the allotments own arrival source, rate scaling on ripePlots(); ~1.1 gardeners/day, ~1 plot cleared/day",
-      "gardeners work 1-3 rows a visit and walk out carrying a basket of the crop (a.crop)",
+      "cross street with two footways, roadway, curbs; street lamps; four street trees in stone pits (TREE_PITS, drawLaneTree)",
+      "allotment block of 17 plots (buildGrid excludes the pond corner), timber fence, gates, shed, and an alley cut through the block",
+      "harvest cycle — harvestPlot() lifts a mature 3x2 bed whole, bAge doubles as a 12-20 s fallow clock, then it is re-sown as a row under plotCrop()",
+      "spawnAllotAgent() — the allotments' own arrival source, rate on ripePlots(); ~1.1 gardeners/day, ~1 plot cleared/day; they work 1-3 rows and walk out carrying a basket (a.crop)",
       "census planting.harvested"
     ],
     "plaza": [
-      "plaza with a fountain",
-      "four planting pits",
-      "benches",
+      "plaza with a fountain and a paved roundel, four tree pits, benches",
       "quay along the river with benches",
-      "spawnEastAgent() — the east quarter own arrival source (eastCap/eastRate, a.east, excluded from laneCount); enters by the alley, the quay head or the park gate, visits one stop, leaves the way it came; eastOpen() on daylight>0.16",
+      "spawnEastAgent() — the east quarter's own arrival source (eastCap/eastRate, a.east, excluded from laneCount, eastOpen() on daylight>0.16); enters by the alley, the quay head or the park gate, visits one stop, leaves the way it came",
       "census life.inEast"
     ],
     "river": [
-      "river with a boat",
-      "three-arch bridge",
-      "towpath",
-      "church with tower and nave",
-      "bandstand",
-      "orchard",
-      "jetty",
-      "park gate",
+      "river with a boat, three-arch bridge, towpath, church with tower and nave, bandstand, four orchard trees (drawLaneTree fruit:1), jetty, park gate",
       "pigeons that flush off the belfry when the bell rings, from a finite roost that refills",
-      "the boat is watched — boatWatch() gives anyone byTheWater() (quay and rail, bridge deck, towpath) one glance per boat (a.watch, ~1.4s, ticked at the top of stepAgent so it never holds anybody); drawPerson tracks the live boat and standers turn. ~2.1 glances per boat",
+      "boatWatch() — anyone byTheWater() (quay and rail, bridge deck, towpath) gets one glance per passing boat (a.watch ~1.4 s, ticked at the top of stepAgent so it never holds anybody); ~2.1 glances per boat",
       "a parapet stop mid-span (PARAPET_Y, PARAPET_Z 1.0), served mainly from spawnEastAgent; somebody is on the bridge ~12% of daylight"
     ],
     "sky": [
-      "day/night cycle (55 s day)",
-      "sun and moon arc",
-      "backdrop hills",
-      "rain with puddle sheen",
-      "wind days",
-      "night window lighting",
-      "chimney smoke",
-      "a balloon",
-      "cloudCover() — one slow rate-capped scalar; fronts build over ~half a day and break after rain, rain is gated on it so it never rains from a clear sky, sun and moon veiled, stars put out, drifting cloud banks",
+      "day/night cycle (55 s day), sun and moon arc, backdrop hills, wind days, night window lighting, chimney smoke, a balloon",
+      "cloudCover() — one slow rate-capped scalar; fronts build over ~half a day and break after rain, rain is gated on it so it never rains from a clear sky, sun and moon veiled, stars put out, drifting banks",
       "weatherComing() — one ramped rain-is-coming predicate off cloudCover(), damped by daylight so overcast nights read 0; three readers at their own trigger points",
-      "season() — the town's YEAR: one slow CYCLIC scalar over SEASON_LEN 26 days (~24 real min), phase 0 = midwinter, clock starts at 0.25 where warmth = 0.5 and every seasoned term equals the constant it replaced. Rate-capped by construction (7.0e-4/s), continuous through the wrap. Two sky readers — day length (dayHours 11.5..17.5 about SOLAR_NOON 12.75; sunUp/sunDown/sunArc/timeLabel) and light (sunVec elevation + azimuth, the drawn disc's arc height and colour, skyCols day/night/dusk palettes with both dusk windows hung off sunset/sunrise, the roof key term 0.84..1.16). Population breathes ~15% trough-to-peak, absolute floor 7 people. census clock.season",
-      "rainFall — a 0..1 shower intensity beside the raining boolean; drops, the overcast tint, pond rings, water sparkle and chimney smoke all read it, so a shower thins out over RAIN_TAIL=2.2s instead of cutting"
+      "season() — the YEAR: a cyclic scalar over SEASON_LEN 26 days (~24 real min), phase 0 = midwinter, anchored at 0.25 where warmth = 0.5 and every seasoned term equals the constant it replaced. Rate-capped, continuous through the wrap. TWO sky readers only — day length (dayHours 11.5..17.5 about SOLAR_NOON 12.75; sunUp/sunDown/sunArc/timeLabel) and light (sunVec, the disc's arc and colour, skyCols, roof key). Population breathes only ~15%, floor 7 people. census clock.season",
+      "rainFall — a 0..1 shower intensity beside the raining boolean; drops, the overcast tint, pond rings, water sparkle and chimney smoke all read it, so a shower thins out over ~3 s (RAIN_TAIL 2.2 s plus one fall time) instead of cutting"
     ],
     "life": [
-      "walkers with itineraries, courtyard and street",
-      "eastern itineraries: plaza bench, fountain gaze, quay rail, quay bench, towpath, church green, allotment plot, bridge parapet",
-      "cafe sitters who claim and release a table",
-      "market and kiosk browsers",
-      "ducks",
-      "swans",
-      "butterflies (capped drift, 3 cells/s)",
-      "fireflies",
-      "birds",
-      "one night cat",
-      "falling leaves",
-      "a clock that strikes and a church bell that answers it at nine and eighteen from day 2",
-      "an ambient ticker",
-      "walkers who break stride and look up while the bell rings (a.listen)",
-      "agents that notice each other — two passing within 0.9-1.6 cells may stop, turn and talk (greetPass, a.greet, chatCool); ~2 conversations a minute",
-      "street sitters who read the sky (refuse above weatherComing() 0.42, released over 0.55..0.88 off a per-agent a.wary); courtyard sitters excluded",
-      "umbrellas up over weatherComing() 0.62..1.17, so ~30% get caught out",
-      "THE DIORAMA IS ALREADY CLICKABLE and nothing on screen says so — cv click + unproject(): a bed takes a handful of a real species, the lawn takes a daisy, the pond takes crumbs and the ducks converge like a small navy, the fountain takes a coin, the river takes a pebble, the lane takes crumbs and birds land. Built pre-loop, never advertised, and the coverage grid reads interaction=0 which is about the LOOP, not the town",
-      "__entities() carries role, act and watch per person — the seam a behaviour probe reads instead of a bespoke hook",
-      "the ticker is an ordered queue, not an overwrite — TICK_DWELL 2.5 real seconds per line, cap 2, 6 s staleness cut, and a follow-on line is enqueued only when its antecedent is DISPLAYED",
-      "the click is now ADVERTISED — answersTouch(x,y) is the ONE predicate for 'this cell answers' (BED/CBED/GRASS/WATER/SIDE/ROAD): the cursor swaps to pointer on it (46% of the frame) and the click handler guards on it; plus ONE ticker invitation, once ever, offered at 8 REAL seconds when tickerFree(), cancelled if the viewer clicks first (touched) and stood down on a ?pause page (DRIVEN). A narrow sill lends it the plate's and clock's place for 7 s (#sill.inviting) with a shorter line. probes/touch-hint.mjs",
-      "a ticker line may buy its own dwell — lineDwell + tickerFree(); the invitation takes 5.5 s where a remark gets TICK_DWELL 2.5 s"
+      "walkers with itineraries, courtyard and street; eastern itineraries: plaza bench, fountain gaze, quay rail, quay bench, towpath, church green, allotment plot, bridge parapet",
+      "cafe sitters who claim and release a table; market and kiosk browsers",
+      "ducks, swans, butterflies, fireflies, birds, one night cat, falling leaves (gated on day>=4 or gusty, and on richness() — not on the season)",
+      "a clock that strikes and a church bell that answers it at nine and eighteen from day 2; walkers break stride and look up while it rings (a.listen)",
+      "greetPass — two passing within 0.9-1.6 cells may stop, turn and talk (a.greet, chatCool); ~2 conversations a minute",
+      "street sitters read the sky (refuse above weatherComing() 0.42, released over 0.55..0.88 off a per-agent a.wary); courtyard sitters excluded. Umbrellas up over 0.62..1.17, so ~30% get caught out",
+      "THE DIORAMA IS CLICKABLE and has been since before the loop — a bed takes seeds of a real species, the lawn a daisy, the pond crumbs (ducks converge), the fountain a coin, the river a pebble, paving crumbs (birds land). answersTouch(x,y) is the ONE predicate for 'this cell answers': cursor swaps to pointer on it (46% of the frame), handler guards on it. ONE ticker invitation, once ever, at 8 REAL seconds, cancelled if the viewer clicks first, stood down on ?pause. probes/touch-hint.mjs",
+      "the ticker is an ordered queue, not an overwrite — TICK_DWELL 2.5 real s, cap 2, 6 s staleness cut; a follow-on line enqueues only when its antecedent is DISPLAYED, and a line may buy its own dwell (lineDwell)",
+      "__entities() carries role, act and watch per person — the seam a behaviour probe reads instead of a bespoke hook"
     ]
   },
   "openCues": [
@@ -342,127 +306,43 @@
       "id": "c7",
       "note": "The town still casts hard sun shadows under full overcast — drawSunMoon veils the disc, but the ~6 SUN[0]/SUN[2] shadow call sites use fixed alphas.",
       "raisedBy": 2,
-      "seenBy": 2
+      "seenBy": 3
     },
     {
       "id": "c8",
       "note": "Rain requires daylight>0.15, so a heavy front peaking overnight builds full cover, never rains, and breaks by morning — overcast nights are commoner than rain.",
       "raisedBy": 2,
-      "seenBy": 2
-    },
-    {
-      "id": "c9",
-      "note": "chatCool is decremented only inside greetPass(); an early-out there would freeze the cooldown",
-      "raisedBy": 3,
-      "seenBy": 2
+      "seenBy": 3
     },
     {
       "id": "c10",
       "note": "East agents retrace their inbound route exactly, so arrivals sharing a gate walk single-file; would queue if eastCap rose much above 7",
       "raisedBy": 4,
-      "seenBy": 2
+      "seenBy": 3
     },
     {
       "id": "c11",
-      "note": "Courtyard sitters (picnic, sitter kinds) do not read the sky — only a.street agents do. Their sit is assigned at a waypoint with no route left, so refusing it would despawn them mid-lawn; extending the effect inland needs routeToExit() on refusal.",
+      "note": "Courtyard sitters (picnic, sitter) do not read the sky — only a.street agents do. Their sit is assigned at a waypoint with no route left, so refusing it would despawn them mid-lawn; extending it inland needs routeToExit() on refusal.",
       "raisedBy": 5,
-      "seenBy": 1
-    },
-    {
-      "id": "c13",
-      "note": "ripePlots() rescans 102 cells every spawn tick (1/s) to set an arrival rate — the first place a spawn rate reads the CA. Free at this size; cache it on the CA tick if anything else wants the pattern.",
-      "raisedBy": 6,
-      "seenBy": 1
-    },
-    {
-      "id": "c16",
-      "note": "marketRaise is the third hand-rolled staged-appearance clamp chain (washing, umbrellas, stalls); a fourth would justify a shared helper",
-      "raisedBy": 7,
-      "seenBy": 1
+      "seenBy": 2
     },
     {
       "id": "c18",
-      "note": "byTheWater() names the three places a person can see the river. Only boatWatch reads it; any future river event (a swan taking off, ice, a barge) should read the same predicate rather than re-deriving it.",
+      "note": "byTheWater() names the three places a person can see the river, and only boatWatch reads it. Any future river event (a swan taking off, ice, a barge) should read that predicate, not re-derive it.",
       "raisedBy": 8,
-      "seenBy": 1
-    },
-    {
-      "id": "c21",
-      "note": "stall.mjs:110 and build-stats.mjs average secs/costUsd across all rows including the nine zero-metric ones, so the per-iteration means read low until rows with secs===0 are excluded from the aggregates",
-      "raisedBy": 10,
-      "seenBy": 0
-    },
-    {
-      "id": "c22",
-      "note": "LAWS.md's probe law blames an unanchored .gitignore line that has never existed; the real #9 fault was a second probes/ directory at the repo root. Advice right, stated cause wrong — reword before it is re-derived.",
-      "raisedBy": 10,
-      "seenBy": 0
-    },
-    {
-      "id": "c23",
-      "note": "stall.mjs's streak() runs over ALL rows, so manager passes (always verdict=no-ship, always srcChanged=false) count toward noShipStreak and srcFlat. With MANAGER_GAP=2 a manager row sits next to worker rows regularly, so ONE no-ship worker iteration is enough to fire both signals and summon a manager. Fired exactly that way at #11. Fix is to streak over kind==='worker' rows only — but it changes when the manager is summoned, so it is the manager's call.",
-      "raisedBy": 10,
-      "seenBy": 0
-    },
-    {
-      "id": "c24",
-      "note": "capacity/laneCap/eastCap compress daylight hard (0.25+0.75*d), so a 52% swing in mean daylight moves capacity only 8->9 — that compression, not the season, caps the population breathing at ~15%. Widening it risks the winter floor; People & animals vector, manager's call.",
-      "raisedBy": 10,
-      "seenBy": 0
+      "seenBy": 2
     },
     {
       "id": "c25",
-      "note": "stepClouds' heavy-front probability reads richness(), which pins at day 16 — weather is now the last slow system still on a one-way ramp. season() is available to it.",
+      "note": "stepClouds' heavy-front probability reads richness(), which pins at day 16 — WEATHER IS THE LAST SLOW SYSTEM STILL ON A ONE-WAY RAMP. season() is available to it. Strongest cue on the board; next batch unless something displaces it.",
       "raisedBy": 10,
-      "seenBy": 0
-    },
-    {
-      "id": "c26",
-      "note": "shoot.mjs runs ?fast with a fixed 2600ms wall wait, so its sim instant jitters ~15s and its --t comment is wrong; it shot 'Day 4 Night' twice while aiming at day-3 mid-morning. Fine as a smoke test, cannot compare two builds. probes/year-shots.mjs pins with ?pause+__warp.",
-      "raisedBy": 10,
-      "seenBy": 0
-    },
-    {
-      "id": "c27",
-      "note": "A SIDE/ROAD click ANYWHERE in town announces the LANE crumb line and clamps the birds it spawns into the lane rows, so a cross-street or east-quarter click keeps its promise in the wrong place. Pre-existing, but the new pointer cursor is what makes it visible.",
-      "raisedBy": 10,
-      "seenBy": 0
-    },
-    {
-      "id": "c28",
-      "note": "context-budget.mjs read OVER at 51.5 KB against the 46 KB cap when iteration 13 started; LEDGER.md at 18.6 KB is the bulk, laws 28/60.",
-      "raisedBy": 10,
-      "seenBy": 0
-    },
-    {
-      "id": "c29",
-      "note": "The census age ladder conflates growth with season: its warp-900 'fully grown' cell lands at season 0.879 / warmth 0.14, i.e. midwinter. Iteration 14's whole -16.3% planted collapse is that one cell (the warp-90 and warp-330 cells were bit-unchanged), and a real winter planting regression is now invisible behind it. Pick ages at comparable warmth, or hold season fixed across the age axis.",
-      "raisedBy": 13,
-      "seenBy": 0
+      "seenBy": 1
     },
     {
       "id": "c30",
-      "note": "The allotments now inherit bloomCap too (one shared caTick path, no special case), so crops do not ripen in deep winter, harvestPlot stops firing and ripePlots()->0 damps the allotment arrival source for ~a fifth of the year. Intended and seasonally true, but unmeasured over a full year — nobody has checked whether the gardeners come back at the right rate in spring.",
+      "note": "The allotments inherit bloomCap through the shared caTick path, so crops do not ripen in deep winter, harvestPlot stops and ripePlots()->0 damps their arrival source for ~a fifth of the year. Seasonally true and UNMEASURED — nobody has checked the gardeners come back at the right rate in spring.",
       "raisedBy": 13,
-      "seenBy": 0
-    },
-    {
-      "id": "c31",
-      "note": "shoot.mjs --tag is a no-op: it forwards --prefix to a screenshot-verify that ignores it, so two tagged runs silently overwrite each other's courtyard.png. Iteration 14 lost a summer shot to a winter one this way before noticing. Either implement the prefix or drop the flag.",
-      "raisedBy": 13,
-      "seenBy": 0
-    },
-    {
-      "id": "c32",
-      "note": "motion.mjs tracks no raindrop kind, so the continuity gate cannot see the town's largest spawn/despawn population at all",
-      "raisedBy": 14,
-      "seenBy": 0
-    },
-    {
-      "id": "c33",
-      "note": "The rain tail runs ~3s not RAIN_TAIL=2.2s: want falls to zero on a ramp but a drop only leaves when it reaches the bottom, so the count lags by one fall time (~1.4s). Tune the constant knowing it is not the duration.",
-      "raisedBy": 14,
-      "seenBy": 0
+      "seenBy": 1
     }
   ],
   "watch": [
@@ -471,12 +351,8 @@
       "since": 0
     },
     {
-      "note": "An empty-looking place is a budget question before it is a content question. Twice at pass #0 a plausible 'the town lacks X' turned out to be 'the town has X and you rarely see it' — the allotment gardeners and every eastern destination both exist. Grep for the feature before briefing it, and if it exists, ask how often it fires.",
-      "since": 0
-    },
-    {
-      "note": "cloudCover() (added #3) is a slow world scalar with exactly ONE reader — the rain roll. It hands the town ~27 s of warning that rain is coming and nothing else in the file reads it. Any future weather work should ask whether it can read cover instead of reading `raining`, which is a boolean that flips in a single frame.",
-      "since": 5
+      "note": "The year (#12) has TWO readers in the sky and one in the courtyard beds. Everything else — the trees, the working hours, the population caps, the weather fronts, the river — still runs on a constant or a one-way ramp. Before briefing anything, ask whether it should read warmth. Same question for cloudCover(), which still has one reader through weatherComing().",
+      "since": 15
     }
   ],
   "closedCues": [
@@ -575,6 +451,118 @@
       "seenBy": 0,
       "closedBy": 6,
       "reason": "FOLDED into b10 at pass #6 — the illegal two-blob pathspec is real, but it only ever mattered because the runner row was being dropped."
+    },
+    {
+      "id": "c9",
+      "note": "chatCool is decremented only inside greetPass(); an early-out there would freeze the cooldown",
+      "raisedBy": 3,
+      "seenBy": 2,
+      "closedBy": 15,
+      "reason": "CLOSED at pass #15 as hypothetical — greetPass() has no early-out today, so the cooldown cannot freeze. Re-raise if one is added."
+    },
+    {
+      "id": "c13",
+      "note": "ripePlots() rescans 102 cells every spawn tick (1/s) to set an arrival rate — the first place a spawn rate reads the CA. Free at this size; cache it on the CA tick if anything else wants the pattern.",
+      "raisedBy": 6,
+      "seenBy": 1,
+      "closedBy": 15,
+      "reason": "CLOSED at pass #15 — 'free at this size' and it has never bitten in nine iterations. A perf note with no observable is memory rent."
+    },
+    {
+      "id": "c16",
+      "note": "marketRaise is the third hand-rolled staged-appearance clamp chain (washing, umbrellas, stalls); a fourth would justify a shared helper",
+      "raisedBy": 7,
+      "seenBy": 1,
+      "closedBy": 15,
+      "reason": "CLOSED at pass #15 — three is not four. Re-raise when a fourth staged appearance is actually briefed; extracting a helper for its own sake buys the viewer nothing."
+    },
+    {
+      "id": "c21",
+      "note": "stall.mjs:110 and build-stats.mjs average secs/costUsd across all rows including the nine zero-metric ones, so the per-iteration means read low until rows with secs===0 are excluded from the aggregates",
+      "raisedBy": 10,
+      "seenBy": 0,
+      "closedBy": 15,
+      "reason": "PROMOTED into brief b15 at pass #15 (the loop's instruments, half two)."
+    },
+    {
+      "id": "c22",
+      "note": "LAWS.md's probe law blames an unanchored .gitignore line that has never existed; the real #9 fault was a second probes/ directory at the repo root. Advice right, stated cause wrong — reword before it is re-derived.",
+      "raisedBy": 10,
+      "seenBy": 0,
+      "closedBy": 15,
+      "reason": "CLOSED at pass #15 by doing it — the probe law now names the real fault (a second probes/ directory at the repo root), not the .gitignore line that never existed."
+    },
+    {
+      "id": "c23",
+      "note": "stall.mjs's streak() runs over ALL rows, so manager passes (always verdict=no-ship, always srcChanged=false) count toward noShipStreak and srcFlat. With MANAGER_GAP=2 a manager row sits next to worker rows regularly, so ONE no-ship worker iteration is enough to fire both signals and summon a manager. Fired exactly that way at #11. Fix is to streak over kind==='worker' rows only — but it changes when the manager is summoned, so it is the manager's call.",
+      "raisedBy": 10,
+      "seenBy": 0,
+      "closedBy": 15,
+      "reason": "PROMOTED into brief b15 at pass #15. Manager's ruling, since it was my call: streak over kind==='worker' rows only. A manager row is no-ship and src-flat BY CONSTRUCTION, so counting it is counting my own footprints as evidence of a stall — that is how #11 summoned a manager off one no-ship worker."
+    },
+    {
+      "id": "c24",
+      "note": "capacity/laneCap/eastCap compress daylight hard (0.25+0.75*d), so a 52% swing in mean daylight moves capacity only 8->9 — that compression, not the season, caps the population breathing at ~15%. Widening it risks the winter floor; People & animals vector, manager's call.",
+      "raisedBy": 10,
+      "seenBy": 0,
+      "closedBy": 15,
+      "reason": "PROMOTED to brief b18 at pass #15 — the year's readers are the batch's spine, and this is the People & animals one."
+    },
+    {
+      "id": "c26",
+      "note": "shoot.mjs runs ?fast with a fixed 2600ms wall wait, so its sim instant jitters ~15s and its --t comment is wrong; it shot 'Day 4 Night' twice while aiming at day-3 mid-morning. Fine as a smoke test, cannot compare two builds. probes/year-shots.mjs pins with ?pause+__warp.",
+      "raisedBy": 10,
+      "seenBy": 0,
+      "closedBy": 15,
+      "reason": "PROMOTED into brief b15 at pass #15."
+    },
+    {
+      "id": "c27",
+      "note": "A SIDE/ROAD click ANYWHERE in town announces the LANE crumb line and clamps the birds it spawns into the lane rows, so a cross-street or east-quarter click keeps its promise in the wrong place. Pre-existing, but the new pointer cursor is what makes it visible.",
+      "raisedBy": 10,
+      "seenBy": 0,
+      "closedBy": 15,
+      "reason": "PROMOTED to brief b19 at pass #15."
+    },
+    {
+      "id": "c28",
+      "note": "context-budget.mjs read OVER at 51.5 KB against the 46 KB cap when iteration 13 started; LEDGER.md at 18.6 KB is the bulk, laws 28/60.",
+      "raisedBy": 10,
+      "seenBy": 0,
+      "closedBy": 15,
+      "reason": "CLOSED at pass #15 by doing it — cues 20 -> 7, the inventory back to nouns, three census laws merged into one."
+    },
+    {
+      "id": "c29",
+      "note": "The census age ladder conflates growth with season: its warp-900 'fully grown' cell lands at season 0.879 / warmth 0.14, i.e. midwinter. Iteration 14's whole -16.3% planted collapse is that one cell (the warp-90 and warp-330 cells were bit-unchanged), and a real winter planting regression is now invisible behind it. Pick ages at comparable warmth, or hold season fixed across the age axis.",
+      "raisedBy": 13,
+      "seenBy": 0,
+      "closedBy": 15,
+      "reason": "PROMOTED into brief b15 at pass #15."
+    },
+    {
+      "id": "c31",
+      "note": "shoot.mjs --tag is a no-op: it forwards --prefix to a screenshot-verify that ignores it, so two tagged runs silently overwrite each other's courtyard.png. Iteration 14 lost a summer shot to a winter one this way before noticing. Either implement the prefix or drop the flag.",
+      "raisedBy": 13,
+      "seenBy": 0,
+      "closedBy": 15,
+      "reason": "PROMOTED into brief b15 at pass #15."
+    },
+    {
+      "id": "c32",
+      "note": "motion.mjs tracks no raindrop kind, so the continuity gate cannot see the town's largest spawn/despawn population at all",
+      "raisedBy": 14,
+      "seenBy": 0,
+      "closedBy": 15,
+      "reason": "PROMOTED into brief b15 at pass #15."
+    },
+    {
+      "id": "c33",
+      "note": "The rain tail runs ~3s not RAIN_TAIL=2.2s: want falls to zero on a ramp but a drop only leaves when it reaches the bottom, so the count lags by one fall time (~1.4s). Tune the constant knowing it is not the duration.",
+      "raisedBy": 14,
+      "seenBy": 0,
+      "closedBy": 15,
+      "reason": "CLOSED at pass #15 — folded into the sky inventory line, which now says ~3 s rather than repeating RAIN_TAIL. The general lesson went into the #15 law."
     }
   ]
 }
