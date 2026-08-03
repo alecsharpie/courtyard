@@ -20,7 +20,7 @@
   "avoid": "Do not add a seventh KIND of response — the six that exist are good, and this is about the one that fires in five places while knowing only one of them. Keep the existing bird cap and the daylight>0.2 gate. LAW: one predicate, one definition — decide which place a cell is in exactly once.",
   "budgetMin": 20,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 20,
   "issued": "2026-08-03T23:04:34.337Z",
