@@ -14,7 +14,7 @@
   "avoid": "Do not add a second bell predicate and do not add another `announce` line — `strikeClock` already owns when the bell rings and already announces it. Read `bellUntil`; do not re-derive it. Do not add a census field for this.",
   "budgetMin": 20,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 2,
   "issued": "2026-08-03T01:25:59.097Z",
