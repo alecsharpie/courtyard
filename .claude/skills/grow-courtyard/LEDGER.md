@@ -824,3 +824,80 @@ change is seasonal rather than a glitch.
 **Cue:** the context budget printed **OVER** at the start of this iteration — 48.8 KB
 against a 46 KB cap (LEDGER 15.9, SKILL 11.8, LAWS 9.4, state 9.4). This entry makes it
 worse. The manager should distil this pass.
+
+## Iteration 18 — the working day goes on the sun (2026-08-04) [Lane & market × Connect]
+
+**Brief:** b17 — #11 moved sunrise and sunset across the year and nothing anybody DOES
+followed. Put the working day on the sun, keeping each interval's relation to sunrise
+and sunset rather than its number.
+
+**Did:** every hour anybody works is now an offset from `sunUp`/`sunDown`, and every
+offset is chosen so that at `SEASON_START` it reduces *exactly* to the constant it
+replaced. `kioskOpen()` 7.50–18.50 → `sunUp+2` .. `sunDown-1.5`. `marketActive()` 8–17 →
+`marketOpen()`/`marketClose()`, two new one-definition accessors, because three things
+read those ends — the predicate, `marketRaise()`, and the pack-away line in `simStep()`.
+`marketRaise()`'s hard-coded 8 and 17 now call them. The sweeper's 5.00–6.50 →
+`sunUp-0.5` .. `sunUp+1`. The wind announcement's 7–9 → `sunUp+1.5` .. `sunUp+3.5`. The
+market-closed announcement's `hour >= 17` → `hour >= marketClose()`, and its copy lost
+the words "Five o'clock" because the hour it named now moves 16.44–18.44 across the year.
+
+Two clamps, both stated in the source. `MK_MIN_SPAN = 7`: a pure offset hands midwinter a
+six-hour market and the brief was right that that is a different feature, so the close is
+pushed back to meet a floor. `MK_EARLIEST = 7.2`: see **Surprise**.
+
+**Gates:** census **FAIL**, attributable (below) · visual PASS (4 framings + a HEAD-beside-
+HERE pair at two pinned instants) · motion **PASS** (nothing new jumped, flickered or went
+NaN) · filmstrip PASS (no POP, no FROZEN) · perf skipped — the change is ~6 extra `Math.max`
+calls per frame, no new pass · `probes/working-day.mjs` **34/34**
+
+The probe is the gate that matters, because the census cannot see a predicate. Across four
+market days spread round the season year it reports every boundary as an offset from the sun
+*at the moment of the flip*: kiosk open holds `sunUp+2.02..2.05`, kiosk shut `sunDown-1.50..1.56`,
+the sweeper `sunUp-0.44..-0.47`, while the clock times themselves move 2.19 h (market open) and
+2.94 h (kiosk close). At `simT 0` all ten boundaries land on the old constant to 1e-9.
+
+**Census FAIL is the PRNG reshuffle, not a regression** — `people` 183 → 167 (−8.7%). Changing
+what gates an `R()`-consuming branch moves the whole stream. `probes/census-noise.mjs` at the
+census's own ages: the same statistic is −1.5% across eight seeds, and **HEAD's own 9-cell total
+spans 8% on identical code** just by choosing three different seeds. The census's three seeds
+drew the low end. `raindrops −110` is the same shower landing on a different frame — the motion
+gate still counts 110 drop spawns in all three scenes.
+
+**Verdict:** shipped
+
+**Surprise:** the sim day's rollover is a hidden tuning constant, and it nearly ate the feature.
+`hour` runs 6.00 → 6.00 and `day` rolls with it, so everything before 6.00 belongs to the
+*previous* day's tail where `isMarketDay()` is false. The stalls need the hour before opening to
+go up (`marketOpen() - 1.10`), and a midsummer opening at `sunUp+2.5 = 6.50` puts that at 5.40 —
+`marketRaise()` returns 0 through the whole raise, and then three near-finished stalls land in a
+single frame at the rollover. Exactly the pop `marketRaise()` was built to prevent, reintroduced
+by a change that never touched it. The original source had already encoded this and I read past
+it: the comment said the raise starts at "6.90", one decimal place from the boundary, and did not
+say why that mattered. `MK_EARLIEST = 7.2` is the earliest opening whose raise starts inside its
+own day with margin; it is the one place the sun does not get the last word, and high summer opens
+`sunUp+3.2` instead of `sunUp+2.5` because of it.
+
+The second surprise was cheaper: my first anchor assertion failed and the code was right. I
+checked neutrality by scanning day 26 (phase 0.250) and comparing clock times, but the season
+drifts 1/26 of a year *within a single day*, so by evening `sunDown` had already moved 0.36 h and
+the kiosk shut at 18.69 instead of 18.50.
+
+**Law:** Neutrality is a claim about an *instant*, so assert it at the instant — evaluate the
+boundary functions at the anchor phase, not by scanning a day that sits on it. A day is 1/26 of
+this world's year, which is enough drift to fail a tolerance and send you looking at correct code.
+Everything else stays a scan, and reports its offset against the sun *sampled at the flip*.
+
+**Law:** Before hanging a schedule on a continuous quantity, find the discontinuity it has to live
+inside. Here it is the day rollover at `hour 6.00`, where `day` — and therefore every
+`day`-derived predicate — steps. Any window that a variable now drags across that seam silently
+evaluates against the wrong day, and the failure is not an error but a pop. Grep for what the old
+constant was *clear of*, not only for what read it.
+
+**Cue:** the sweeper still starts half an hour before sunrise, where `daylight` is exactly 0. That
+is deliberate — "before the town wakes" is the point of him, and the shot pair shows HEAD had him
+out 1.4 h before a midwinter dawn against HERE's nothing — but a 0.5 h offset into true dark is a
+seam for anyone who later wants civil twilight as a real quantity rather than a clamped sine.
+
+**Cue:** `context-budget.mjs` printed **OVER** at the start of this iteration — 52.1 KB against a
+46 KB cap (LEDGER 18.1, SKILL 11.8, state 10.8, LAWS 9.4). Two passes over now. This entry makes
+it worse again. The state inventory has grown past the ledger's own share and is the softest target.

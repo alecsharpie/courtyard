@@ -268,7 +268,8 @@
       "kiosk (07.30-18.30), pavement cafe with tables, awnings, washing lines, planters, street lamps, benches",
       "market day every 4th day, three stalls, marketActive() 08.00-17.00",
       "washing comes in before the rain — per-garment thresholds, ~1.6 s fades on weatherComing(), plus a dusk ramp; never all in one frame",
-      "market put up and packed away — marketRaise(i), a per-stall staggered 0..1 progress (06.90-08.00 up, 17.00-18.10 down) staging trader/trestle/frame/canvas/goods as clamps on it"
+      "market put up and packed away — marketRaise(i), a per-stall staggered 0..1 progress (06.90-08.00 up, 17.00-18.10 down) staging trader/trestle/frame/canvas/goods as clamps on it",
+      "working day hung off the sun: kioskOpen/marketActive/marketRaise/sweeper/wind announcement are offsets from sunUp/sunDown, neutral at SEASON_START. marketOpen()/marketClose() are the one definition of the market's ends; MK_MIN_SPAN floors winter at 7h, MK_EARLIEST keeps the summer stall-raise inside its own sim day"
     ],
     "street": [
       "cross street with two footways, roadway, curbs; street lamps; four street trees in stone pits (TREE_PITS, drawLaneTree)",
@@ -382,6 +383,12 @@
       "id": "c38",
       "note": "context-budget printed OVER at the start of #17 (48.8 KB vs 46 KB cap: LEDGER 15.9, SKILL 11.8, LAWS 9.4, state 9.4) and #17's ledger entry makes it worse. Distil this pass.",
       "raisedBy": 16,
+      "seenBy": 0
+    },
+    {
+      "id": "c39",
+      "note": "the sim day rolls at hour 6.00, so any window a seasonal variable drags below 6.00 evaluates against the PREVIOUS day and its day-derived predicates go false mid-window; MK_EARLIEST clamps the market for exactly this reason and nothing else is currently near the seam",
+      "raisedBy": 17,
       "seenBy": 0
     }
   ],

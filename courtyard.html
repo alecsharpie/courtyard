@@ -636,7 +636,18 @@ function timeLabel(){
   if (hour < sunDown - 2.5) return 'Afternoon'; if (hour < sunDown) return 'Dusk';
   return 'Night';
 }
-function kioskOpen(){ return day >= 2 && hour >= 7.5 && hour < 18.5; }
+/* ---- the working day ----------------------------------------------------------
+ * timeLabel() above is the model and for three iterations it was the only reader that
+ * had noticed: #11 put sunrise and sunset on the year (7.00/18.50 midwinter to
+ * 4.00/21.50 midsummer) and every hour anybody WORKS stayed nailed to the clock. So
+ * the sweeper swept the winter lane an hour before dawn, the traders raised three
+ * stalls in the dark, and the summer kiosk shut with three hours of sun left.
+ *
+ * Each interval below keeps its RELATION to sunrise or sunset instead of its number,
+ * and every offset is chosen so that at SEASON_START (warmth 0.5 -> sunUp 5.50,
+ * sunDown 20.00) it reduces EXACTLY to the constant it replaces. Day one is provably
+ * the old table; anything a gate catches is about the new range, not new algebra. */
+function kioskOpen(){ return day >= 2 && hour >= sunUp + 2 && hour < sunDown - 1.5; }
 function isMarketDay(){ return day > 0 && day % 4 === 2; }
 function isWindy(){ return hash(day, 99) < 0.28; }
 /* Cloud cover — ONE slow scalar the whole sky reads, on the same footing as
@@ -675,7 +686,26 @@ function weatherComing(){
        * clamp((cloud - 0.46) / 0.22, 0, 1);
 }
 let wet = 0;                                   // post-rain street sheen timer
-function marketActive(){ return isMarketDay() && hour >= 8 && hour < 17; }
+/* The market opens two and a half hours after sunrise and packs away three before
+ * sunset — but a pure offset hands midwinter a six-hour market, and a market that
+ * short is a different feature, so the span has a FLOOR and the close is pushed back
+ * to meet it. No ceiling: high summer runs 7.10–18.50, and 11.4h of 17.5h daylight is
+ * the same 60-odd percent of the day the market has always taken. ONE definition of
+ * each end, because three things read them — the predicate, marketRaise(), and the
+ * pack-away line in simStep().
+ *
+ * MK_EARLIEST is the one place the sun does not get the last word, and it is the sim
+ * day's fault, not the market's: `hour` runs 6.00 -> 6.00 and `day` rolls with it, so
+ * anything before 6.00 belongs to the PREVIOUS day's tail where isMarketDay() is false.
+ * The stalls need the hour before opening to go up (marketOpen() - 1.10), so a midsummer
+ * 6.50 opening would raise them at 5.40, get 0 from isMarketDay(), and then land three
+ * near-finished stalls in one frame at the rollover — the exact pop marketRaise() exists
+ * to prevent. 7.20 is the earliest opening whose raise still starts inside its own day,
+ * with a tenth of an hour of margin on the rollover. */
+const MK_OPEN_OFF = 2.5, MK_CLOSE_OFF = 3, MK_MIN_SPAN = 7, MK_EARLIEST = 7.2;
+function marketOpen(){ return Math.max(sunUp + MK_OPEN_OFF, MK_EARLIEST); }
+function marketClose(){ return Math.max(sunDown - MK_CLOSE_OFF, marketOpen() + MK_MIN_SPAN); }
+function marketActive(){ return isMarketDay() && hour >= marketOpen() && hour < marketClose(); }
 const MARKET_STALLS = [
   {x:45, y:76.3, c1:'#a83c32', c2:'#e8ddc4'},
   {x:50.5, y:76.1, c1:'#3d5a80', c2:'#e8ddc4'},
@@ -684,8 +714,8 @@ const MARKET_STALLS = [
 /* Market day has a beginning and an end. marketActive() still owns the hours the
  * market is OPEN — laneRate and the browser roll read it and must not move. What is
  * new is that a stall is no longer a boolean: marketRaise(i) is a 0..1 progress,
- * staggered per stall, so the three go up one at a time over the hour before eight
- * and come down over the hour after five, instead of three finished stalls landing
+ * staggered per stall, so the three go up one at a time over the hour before opening
+ * and come down over the hour after closing, instead of three finished stalls landing
  * between two frames. A day is 55 s, so an hour is 2.3 s and the whole setup gets
  * ~2.2 s — about as long as a thing can last here and still read as an event.
  * Pack-down is this same function running backwards, so it undoes the raise in
@@ -693,10 +723,10 @@ const MARKET_STALLS = [
 const MK_RAISE = 0.62, MK_STAGGER = 0.24;     // hours: one stall, and between stalls
 function marketRaise(i){
   if (!isMarketDay()) return 0;
-  const up = 8 - MK_RAISE - MK_STAGGER * (MARKET_STALLS.length - 1 - i);
+  const up = marketOpen() - MK_RAISE - MK_STAGGER * (MARKET_STALLS.length - 1 - i);
   if (hour < up) return 0;
   if (hour < up + MK_RAISE) return (hour - up) / MK_RAISE;
-  const dn = 17 + MK_STAGGER * i;
+  const dn = marketClose() + MK_STAGGER * i;
   if (hour < dn) return 1;
   if (hour < dn + MK_RAISE) return 1 - (hour - dn) / MK_RAISE;
   return 0;
@@ -1448,7 +1478,10 @@ function spawnEastAgent(){
 /* the dawn sweeper */
 let sweeper = null;
 function updateSweeper(){
-  if (!sweeper && hour > 5 && hour < 6.5 && day >= 1 && !raining){
+  // half an hour before sunrise to an hour after it, whatever the season — the half
+  // hour of twilight is the point of him ("before the town wakes"), the two hours of
+  // true winter dark he used to work in were not
+  if (!sweeper && hour > sunUp - 0.5 && hour < sunUp + 1 && day >= 1 && !raining){
     sweeper = {
       kind:'sweeper', street:true, x:-2.5, y:LANE_N_Y + 0.5, wp:[[66.5, LANE_N_Y + 0.5]], i:0,
       speed:2.6, state:'walk', timer:0, shirt:'#5a6c46', pants:'#3a3a44', skin:pick(SKIN),
@@ -2771,7 +2804,7 @@ function drawScene(t, dt){
   for (const tb of CAFE_TABLES) items.push({y:tb.y + 0.45, f:drawCafeTable, tb});
   if (kioskOpen()) items.push({y:KIOSK.y + 0.8, f:drawKiosk});
   for (let i = 0; i < MARKET_STALLS.length; i++){
-    const p = marketRaise(i);                    // 0 well before eight and well after five
+    const p = marketRaise(i);                    // 0 well before opening and well after close
     if (p > 0) items.push({y:MARKET_STALLS[i].y + 0.8, f:drawMarketStall, s:MARKET_STALLS[i], p});
   }
   const cellAt = (x, y) => grid[clamp(y|0, 0, WH-1) * GW + clamp(x|0, 0, GW-1)];
@@ -3889,12 +3922,13 @@ function simStep(sdt, dt){
     announce('Market morning — trestles out, and the canvas rolls open along the lane.');
   }
   // fired at the FIRST stall coming down, not the last: it points at the pack-down
-  // rather than reporting it afterwards, and 17.00 keeps clear of the six o'clock strike.
-  if (isMarketDay() && hour >= 17 && marketClosed !== day){
+  // rather than reporting it afterwards. The hour used to be 17.00 and the line used to
+  // say so; closing now moves 16.50–18.50 across the year, so the clock leaves the copy.
+  if (isMarketDay() && hour >= marketClose() && marketClosed !== day){
     marketClosed = day;
-    announce('Five o’clock; the canvas comes down and the lane is left to the sparrows.');
+    announce('Market’s end; the canvas rolls shut and the lane is left to the sparrows.');
   }
-  if (isWindy() && windAnnounced !== day && hour > 7 && hour < 9){
+  if (isWindy() && windAnnounced !== day && hour > sunUp + 1.5 && hour < sunUp + 3.5){
     windAnnounced = day;
     announce('A brisk wind combs the block; everything that can flutter, does.');
   }
