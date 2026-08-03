@@ -17,7 +17,7 @@
   "avoid": "The backdrop lives in its own layer keyed by `backKey`/`lightBucket` and the ground relights on a quarter-hour bucket — do not force either to rebuild every frame. Judge frame time against an interleaved same-session control, never the stored baseline. Do not introduce a second 'is it about to rain' test; `cloudCover()` is the one.",
   "budgetMin": 40,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 3,
   "issued": "2026-08-03T01:45:06.015Z",
