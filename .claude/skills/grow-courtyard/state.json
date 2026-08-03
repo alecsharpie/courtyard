@@ -1,8 +1,8 @@
 {
-  "updated": "2026-08-04",
+  "updated": "2026-08-03",
   "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
   "phase": "expanding",
-  "lastIteration": 20,
+  "lastIteration": 21,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -230,7 +230,8 @@
         15
       ],
       "deepen": [
-        3
+        3,
+        21
       ],
       "connect": [
         6
@@ -301,7 +302,9 @@
       "cloudCover() — one slow rate-capped scalar; fronts build over ~half a day and break after rain; rain is gated on it so it never rains from a clear sky; sun and moon veiled, stars put out, drifting banks",
       "weatherComing() — one ramped rain-is-coming predicate off cloudCover(), damped by daylight so overcast nights read 0; three readers at their own trigger points",
       "rainFall — a 0..1 shower intensity beside the raining boolean; drops, the overcast tint, pond rings, water sparkle and chimney smoke all read it, so a shower thins out over ~3 s instead of cutting",
-      "season() — the YEAR. A cyclic scalar over SEASON_LEN 26 days (~24 real min), phase 0 = midwinter, anchored at 0.25 where every seasoned term equals the constant it replaced; rate-capped, continuous through its wrap. READERS: day length, light, the courtyard beds, all 13 trees, the working day, the population caps. NOT YET: the weather fronts (stepClouds still on richness()) and the river. census clock.season"
+      "season() — the YEAR. A cyclic scalar over SEASON_LEN 26 days (~24 real min), phase 0 = midwinter, anchored at 0.25 where every seasoned term equals the constant it replaced; rate-capped, continuous through its wrap. READERS: day length, light, the courtyard beds, all 13 trees, the working day, the population caps. NOT YET: the weather fronts (stepClouds still on richness()) and the river. census clock.season",
+      "The weather reads the year: greyF() drives front frequency, depth and spell length (winter a low grey lid, summer mostly clear), and showerRate/showerLen/showerHard move the OPPOSITE way, so summer's rare showers are the hard ones. Annual rain total held at HEAD's.",
+      "Rain can start in the dark (nightDamp, NIGHT_RAIN 0.12) — the old daylight>0.15 gate is gone. weatherComing() still damps on daylight, for the separate reason that people anticipate weather by looking up."
     ],
     "life": [
       "walkers with itineraries, courtyard and street; eastern itineraries — plaza bench, fountain gaze, quay rail, quay bench, towpath, church green, allotment plot, bridge parapet",
@@ -351,6 +354,18 @@
       "raisedBy": 17,
       "seenBy": 0,
       "seenByManager": 1
+    },
+    {
+      "id": "c44",
+      "note": "Winter sits above the umbrella band far more of the time. weather-year.mjs measures daylight hours with weatherComing() over the band floor and no rain: HEAD flat 17-20% all year, now winter 38.1% / summer 7.7% (annual mean 18.1 -> 20.5%, redistributed not added). Defensible, but nobody has looked at whether a courtyard of umbrellas under a lid that never breaks reads as care or as a false promise.",
+      "raisedBy": 20,
+      "seenBy": 0
+    },
+    {
+      "id": "c45",
+      "note": "FRONT_DEEP lets deep-winter cover clamp at a saturated 1.000 for whole spells. Nothing downstream misbehaves (starF correctly puts the stars out, the sun's veil bottoms at 0.18), but no drawn term has range left above ~0.95, so a future 'how heavy is this lid' signal cannot be read off cover alone up there.",
+      "raisedBy": 20,
+      "seenBy": 0
     }
   ],
   "watch": [

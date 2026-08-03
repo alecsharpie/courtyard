@@ -594,3 +594,62 @@ the long axis with a ±s/12 jitter floors the gap at s/3.
 the plaza roundel around the fountain, and the whole courtyard path ring, are dead to the
 cursor and to the click. `PAVING.plaza` only ever fires on the plaza's 6×4-cell **mouth**
 onto the lane (24 cells of the world's 2903 paved ones).
+
+## Iteration 21 — the sky joins the year, and rain may start in the dark (2026-08-04) [Sky, light & weather × Deepen]
+
+**Brief:** b20 — `stepClouds()` and the rain roll both scaled on `richness()`, a ramp pinned since
+day 16. Put the fronts on the year; fold in c8 (rain gated on daylight) and c35 (the motion gate
+cannot see a raindrop). Do not raise the total rain.
+
+**Did:** One scalar, `greyF() = 1 - 2*warmth` (+1 midwinter, 0 at SEASON_START, -1 midsummer), and
+six terms on it. `FRONT_HEAVY 0.54 +/- 0.24` sets how often the next front is a grey one,
+`FRONT_DEEP 0.06` lowers the lid it settles at, and `spellLen()` — ONE definition, read by the
+front moving in *and* by the clearance behind a shower — makes a spell outstay itself in the
+season that favours it (`FRONT_SLOW 0.30`). Rain then moves the OTHER way: `showerRate() =
+1.6 - 0.9*greyF()` per second of full-cover sky, `showerLen()` +12% in winter, `showerHard()`
++/-25% on the drop count. Winter is a lid that does not rain much; summer breaks rarely and hard.
+That opposition is what holds the annual total still while making the seasons unmistakable. Every
+constant is the value `richness()` had already *reached* and stepClouds takes the same number of
+`R()` draws as before, so greyF 0 is the old sky exactly. c8: the `daylight > 0.15` gate is gone,
+replaced by `nightDamp()` — exactly 1 at any lit hour, `NIGHT_RAIN 0.12` in the dark;
+`weatherComing()` keeps its own daylight damping and its comment now says why that is a different
+question. c35: one line adds `raindrops` to `__entities()`, and `motion.mjs` gained a `SCREEN` kind
+set (canvas bounds, px jump threshold, a recycle kept out of the drop's own step series) with the
+old population row renamed `shower`.
+
+**Gates:** census **PASS** (people 181->196, blooming +3, tiles/structure unchanged — reshuffle, no
+collapse) · visual **PASS** (four framings; 16 pinned Jan/Jul afternoons) · motion **PASS**, new
+`raindrop` row 0/0/0/0 on jumps, nan, oob, flicker in both scenes that rain · filmstrip night
+**POP at frame 11**, diagnosed with the new `probes/pop-what-moved.mjs`: cover pinned at 1.000 the
+whole strip and `nightF` lifting off zero — a winter sunset, and `daylight` does not read weather,
+so that frame is HEAD's · perf **skipped**, no new per-frame pass · probe
+`probes/weather-year.mjs`, 8 seeds x 3 years folded into season quarters, HEAD -> here: overcast
+winter **33.3 -> 54.5%**, summer **30.4 -> 13.5%**, spring/autumn **29.8/27.5 -> 30.9/27.4** (the
+anchor seasons land on HEAD — neutrality measured, not asserted); summer 37 showers at 119 drops
+against winter's 70 at 78; **annual rain 9.48% -> 9.85%**; dark starts **1/208 -> 40/217**.
+
+**Verdict:** shipped   ← my view; runlog.mjs decides from the diff
+
+**Surprise:** The first build came out **+38% rain** and I had reasoned it would go *down*. Two
+mistakes, and the second is the interesting one. (1) Cover is slew-limited (0.02/s rising) against
+~42 s fronts, so a grey spell only just reaches its target before the next arrives — lengthening
+winter's greys buys *more* overcast time than shortening summer's gives back. (2) At `FRONT_SLOW
+0.35` the probe reported spring 13.4% wet against autumn 8.3% — a 60% split between two phases
+where every term I had written is *identical* by construction. It is hysteresis: a slow scalar
+carries the season it came from across the boundary, so spring inherits winter's lid and autumn
+summer's blue. At 0.30 it fell back to HEAD's own 30.9/27.4. I nearly went hunting for an
+asymmetry bug in symmetric code.
+
+**Law:** A slow scalar's season is not the season it is in. A rate-capped variable carries the
+previous quarter across the boundary, so the phases either side of an anchor come out *unequal*
+even when every term reading the phase is symmetric by construction — hysteresis, not an algebra
+bug. Measure the shoulder seasons: they are the neutrality claim, and if they land on HEAD the
+anchor is proven by the same run that measures the range.
+
+**Law:** Extending how long a state lasts is not the inverse of making it rarer. Anything that
+slews toward a target reaches further the longer it holds, so a symmetric +/-x% on duration is a
+net *increase* in time spent at the extreme. Budget the effect on the total before tuning the
+contrast, against a folded multi-year probe — one year of a stochastic system is a sample.
+
+**Cue:** Two recorded in `state.json` rather than here, since the entry was over budget without
+them: winter's new share of umbrella-band time, and cover saturating at 1.000 in deep winter.

@@ -26,18 +26,20 @@
  * gate is a DIFF against a pinned baseline, exactly like the census: what matters
  * is a kind that started jumping, not that jumps exist.
  *
- * RAIN is the exception, and it is tracked differently. Raindrops are the town's
- * largest spawn/despawn population by an order of magnitude (~110 of them against
- * ~10 walkers) and until #16 this gate could not see one of them: they live in
- * SCREEN space, not world space, so `__entities()` does not carry them and the
- * world-bounds test would call every one of them out of bounds. So the shower is
- * watched as a POPULATION — `__census().life.raindrops` sampled at every step,
- * with the rises counted as spawns, the falls as despawns, and a step larger than
- * half the shower's own peak as a jump. That catches a shower that stops arriving,
- * one that empties in a single frame, and one that never ends; it is NOT per-drop
- * continuity, so nan/oob/flicker print as `–` for that row rather than as a
- * reassuring 0. Per-drop identity would need `raindrops` added to `__entities()`
- * in courtyard.html — see the cue from #16.
+ * RAIN is watched at BOTH levels, and they answer different questions.
+ *
+ *   shower    the POPULATION — `__census().life.raindrops` at every step, rises
+ *             counted as spawns, falls as despawns, a step bigger than half the
+ *             shower's own peak as a jump. This is the shape of the weather: a
+ *             shower that stops arriving, empties in one frame, or never ends.
+ *             It has no per-drop identity, so nan/oob/flicker print `–` rather
+ *             than a reassuring 0.
+ *   raindrop  per-DROP continuity, since #21. Drops live in SCREEN space, so
+ *             `__entities()` had not carried them and the world-bounds test would
+ *             have called every one of them out of bounds; both are now told about
+ *             SCREEN kinds. A drop that drifts to NaN, stalls, leaves the frame or
+ *             jumps sideways is a fault the population count cannot see — and rain
+ *             is the feature #21 changed, so the gate had to be able to see it.
  */
 import { homedir } from 'node:os';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
@@ -68,6 +70,10 @@ const WORLD = { x: [-12, 152], y: [-12, 100] };
  * the absolute test, and near-stationary things trip the relative one. */
 const ABS_JUMP = 2.5;       // world units in 0.25 s — nothing in this town moves that fast
 const REL_JUMP = 8;         // ...and 8x its own median step
+/* Kinds whose x,y are canvas pixels rather than world cells. They are bounded by the
+ * frame and their absolute jump threshold is in pixels, so both tests need telling. */
+const SCREEN = new Set(['raindrop']);
+const ABS_JUMP_PX = 400;    // px in 0.25 s — a drop falls ~160, so this is a real teleport
 
 async function sample(browser, seed, t) {
   const p = await browser.newPage();
@@ -83,13 +89,15 @@ async function sample(browser, seed, t) {
       window.__warp(step);
       out.push({ ents: window.__entities(), rain: window.__census().life.raindrops });
     }
-    return out;
+    // the canvas the screen-space kinds live in — read, not assumed, because the page
+    // sizes its own canvas and a hard-coded viewport would silently mis-bound the rain
+    return { out, screen: { w: W, h: H } };
   }, { warm: t, step: STEP, steps: STEPS });
   await p.close();
-  return { frames, errs };
+  return { frames: frames.out, screen: frames.screen, errs };
 }
 
-function analyse(frames) {
+function analyse(frames, screen) {
   const seen = new Map();       // id -> { kind, steps: [displacement…], lastFrame, gaps }
   const stats = {};
   const examples = [];
@@ -109,7 +117,7 @@ function analyse(frames) {
    * expected and sits in the baseline; a second one means the ending broke too. */
   const rain = frames.map(f => f.rain).filter(Number.isFinite);
   if (rain.length) {
-    const s = (stats.raindrop ||= K());
+    const s = (stats.shower ||= K());
     const peak = Math.max(...rain);
     for (let i = 0; i < rain.length; i++) {
       s.samples += rain[i];
@@ -130,13 +138,25 @@ function analyse(frames) {
       const s = (stats[e.kind] ||= K());
       s.samples++;
       if (!Number.isFinite(e.x) || !Number.isFinite(e.y) || !Number.isFinite(e.z)) { s.nan++; if (examples.length < 12) examples.push(`${id} NaN at frame ${f}`); continue; }
-      if (e.x < WORLD.x[0] || e.x > WORLD.x[1] || e.y < WORLD.y[0] || e.y > WORLD.y[1]) { s.oob++; if (examples.length < 12) examples.push(`${id} out of world at (${e.x.toFixed(1)}, ${e.y.toFixed(1)}) frame ${f}`); }
+      /* SCREEN-space kinds are bounded by the canvas, not the world. A raindrop's x,y
+       * are canvas pixels, so the world box would call every one of them out of bounds
+       * — which is why they were invisible to this gate until #21. The x margins are
+       * wide because a drop is blown left about 12% of its fall and is recycled up to
+       * 1.15 W to the right; anything outside THIS box has genuinely got away. */
+      const sc = SCREEN.has(e.kind) ? screen : null;
+      const box = sc ? { x: [-0.3 * sc.w, 1.35 * sc.w], y: [-60, sc.h + 60] } : WORLD;
+      if (e.x < box.x[0] || e.x > box.x[1] || e.y < box.y[0] || e.y > box.y[1]) { s.oob++; if (examples.length < 12) examples.push(`${id} out of ${sc ? 'frame' : 'world'} at (${e.x.toFixed(1)}, ${e.y.toFixed(1)}) frame ${f}`); }
 
       const was = prev.get(id);
       const rec = seen.get(id) || { kind: e.kind, d: [], last: f };
       if (was) {
         const d = Math.hypot(e.x - was.x, e.y - was.y);
-        rec.d.push(d);
+        /* A drop that reaches the bottom is put back above the top as the SAME object:
+         * a teleport of nearly the canvas height, by design. Leaving it in the step
+         * series would set the entity's own median and hide the very anomaly the
+         * series exists to find, so a recycle is excluded — everything else about the
+         * drop (NaN, a drift, a stall, a sideways jump) is still measured. */
+        if (!(sc && e.y < was.y - sc.h * 0.5)) rec.d.push(d);
       } else if (seen.has(id)) {
         /* it was here, then it wasn't, and now it is again */
         if (f - rec.last <= 4) { s.flicker++; if (examples.length < 12) examples.push(`${id} vanished and returned within ${f - rec.last} steps (frame ${f})`); }
@@ -154,8 +174,9 @@ function analyse(frames) {
     if (rec.d.length < 6) continue;
     const sorted = [...rec.d].sort((a, b) => a - b);
     const med = sorted[sorted.length >> 1] || 0.0001;
+    const abs = SCREEN.has(rec.kind) ? ABS_JUMP_PX : ABS_JUMP;
     for (const d of rec.d) {
-      if (d > ABS_JUMP && d > med * REL_JUMP) {
+      if (d > abs && d > med * REL_JUMP) {
         (stats[rec.kind] ||= K()).jumps++;
         if (examples.length < 12) examples.push(`${id} moved ${d.toFixed(2)} in one step (its median is ${med.toFixed(3)})`);
         break;   // one report per entity, not one per frame
@@ -170,9 +191,9 @@ const result = { when: new Date().toISOString(), pageerrors: 0, scenes: {} };
 for (const [name, t] of scenes) {
   const merged = {}; const ex = [];
   for (const seed of SEEDS) {
-    const { frames, errs } = await sample(b, seed, t);
+    const { frames, screen, errs } = await sample(b, seed, t);
     result.pageerrors += errs.length;
-    const a = analyse(frames);
+    const a = analyse(frames, screen);
     for (const k in a.stats) {
       const m = (merged[k] ||= { jumps: 0, nan: 0, oob: 0, flicker: 0, spawns: 0, despawns: 0, samples: 0 });
       for (const f in a.stats[k]) m[f] += a.stats[k][f];
@@ -192,7 +213,7 @@ const base = !save && existsSync(baseFile) ? JSON.parse(readFileSync(baseFile, '
 const FIELDS = ['jumps', 'nan', 'oob', 'flicker', 'spawns', 'despawns'];
 /* Fields a kind is not measured on. Printing 0 here would claim a check that was
  * never run — the rain is counted, not identified. */
-const UNTRACKED = { raindrop: ['nan', 'oob', 'flicker'] };
+const UNTRACKED = { shower: ['nan', 'oob', 'flicker'] };
 const tracked = (kind, f) => !(UNTRACKED[kind] || []).includes(f);
 let fail = [];
 

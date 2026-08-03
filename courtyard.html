@@ -696,19 +696,63 @@ function isWindy(){ return hash(day, 99) < 0.28; }
 /* Cloud cover — ONE slow scalar the whole sky reads, on the same footing as
  * isWindy(). Weather is a front that builds and breaks over most of a day, not a
  * coin flip in a clear blue sky: the rain roll is gated on it, so cover always
- * arrives first and there is no such thing as cloudless rain. */
+ * arrives first and there is no such thing as cloudless rain.
+ *
+ * ---- reader seven: the sky itself ----------------------------------------------
+ * Both weather terms used to scale on richness(), a ramp spent by day 16, so this
+ * was the last system in town running one climate forever while six others had a
+ * year. greyF() is the departure — +1 midwinter, 0 at SEASON_START, -1 midsummer —
+ * and every term below is written so that greyF() 0 reduces EXACTLY to the constant
+ * richness() had already reached, with no change to how many R() draws are taken.
+ * The anchor is therefore not merely close to the old sky, it is the same numbers.
+ *
+ * The shape is deliberately NOT "winter is wetter". Winter's fronts are commoner,
+ * sit deeper and outstay their welcome — the sky is a lid — but a lid does not rain
+ * hard. Summer is mostly blue and breaks rarely, and when it breaks it is a
+ * downpour: fewer, shorter, half again as many drops. So cover and rain RATE move
+ * in opposite directions across the year, which is what makes the two seasons
+ * unmistakable at a glance while leaving the annual rain total where it was. */
+function greyF(){ return 1 - 2 * warmth; }
+const FRONT_HEAVY = 0.54;        // what `0.3 + 0.24 * richness()` reached and stayed at
+const FRONT_HEAVY_SWING = 0.24;  // 0.78 of midwinter's fronts are grey ones, 0.30 of midsummer's
+const FRONT_DEEP = 0.06;         // and the grey ones sit lower: floor 0.82 in January, 0.70 in July
+const FRONT_SLOW = 0.30;         // a spell outstays itself in the season that favours it
+/* ONE definition of how long a spell holds, read by the front that moves in and by
+ * the clearance behind a shower — they are the same question asked twice. */
+function spellLen(heavy, base){ return base * (1 + FRONT_SLOW * greyF() * (heavy ? 1 : -1)); }
 let cloud = 0.16, cloudTgt = 0.16, frontLeft = 0;
 function cloudCover(){ return cloud; }
 function stepClouds(dt){
   frontLeft -= dt;
   if (frontLeft <= 0){                          // the next front moves in
-    const heavy = day >= 1 && R() < 0.3 + 0.24 * richness();
-    cloudTgt = heavy ? 0.76 + R() * 0.24 : R() * R() * 0.5;
-    frontLeft = 24 + R() * 36;                  // ~half a day to a day and a half
+    const g = greyF();
+    const heavy = day >= 1 && R() < FRONT_HEAVY + FRONT_HEAVY_SWING * g;
+    cloudTgt = heavy ? clamp(0.76 + FRONT_DEEP * g + R() * 0.24, 0, 1) : R() * R() * 0.5;
+    frontLeft = spellLen(heavy, 24 + R() * 36);  // ~half a day to a day and a half, x the season
   }
   if (raining) cloudTgt = Math.max(cloudTgt, 0.84);
   cloud = clamp(cloud + clamp(cloudTgt - cloud, -dt * 0.026, dt * 0.02), 0, 1);
 }
+/* The rain, as against the cover. Rate is per second of full-cover sky, so it reads
+ * against the time the lid is down rather than against the calendar: midsummer's
+ * rarer heavy fronts break more than twice as readily as midwinter's standing grey.
+ * Length and drop count go the other way — a January shower is long and thin, a July
+ * one short and hard — so what a season changes most is the KIND of shower. */
+const SHOWER_RATE = 1.6, SHOWER_RATE_SWING = 0.9;  // 1.6 is what `(0.6 + rich)` reached
+const SHOWER_LONG = 0.12, SHOWER_HARD = 0.25;
+function showerRate(){ return SHOWER_RATE - SHOWER_RATE_SWING * greyF(); }
+function showerLen(){ return 1 + SHOWER_LONG * greyF(); }
+function showerHard(){ return 1 - SHOWER_HARD * greyF(); }
+/* c8, folded in: the roll used to be gated hard on `daylight > 0.15`, so a front
+ * peaking overnight built full cover and could never rain. In an 11.5-hour winter
+ * day that is most of the clock — it would have made the season this change just
+ * made cloudiest the one least able to rain. Rain may now start in the dark, at a
+ * reduced rate: the daytime sky is still the one that breaks. Note this is NOT the
+ * question weatherComing() answers — that damps on daylight so the town does not
+ * stand under umbrellas at midnight anticipating weather, which is a different and
+ * still-correct reason. At any lit hour this is exactly 1, so the anchor is neutral. */
+const NIGHT_RAIN = 0.12;
+function nightDamp(){ return lerp(NIGHT_RAIN, 1, clamp(daylight / 0.25, 0, 1)); }
 /* "Weather is coming" — 0 while the sky is fair, ~0.91 by the cover at which the rain
  * roll goes live (0.66), 1 just past it. ONE predicate off the same scalar, read by
  * several things at their OWN trigger points — that is the whole reason it is a ramp and
@@ -720,11 +764,13 @@ function stepClouds(dt){
  * fires on the step to 1 instead of on the approach. */
 function weatherComing(){
   if (raining) return 1;
-  // Damped by the light, because the rain roll below is itself gated on daylight > 0.15
-  // and day >= 1: a heavy front peaking at 2am builds full cover and can never rain, so
-  // an undamped predicate had the whole town walking around at midnight under umbrellas
-  // waiting for weather that was not coming. Ramped, not switched — daylight moves about
-  // 0.09/s through dusk, so this takes ~1.5 s and the umbrellas come down in ones.
+  // Damped by the light: an undamped predicate had the whole town walking around at
+  // midnight under umbrellas waiting for weather. That is about people, not about the
+  // sky — since #21 rain CAN start in the dark (nightDamp), and when it does this
+  // returns 1 anyway because `raining` is true, so nobody is caught out. What stays
+  // damped is the ANTICIPATION, which is a thing you do by looking up. Ramped, not
+  // switched — daylight moves about 0.09/s through dusk, so this takes ~1.5 s and the
+  // umbrellas come down in ones.
   return clamp((daylight - 0.10) / 0.14, 0, 1) * (day >= 1 ? 1 : 0)
        * clamp((cloud - 0.46) / 0.22, 0, 1);
 }
@@ -1764,7 +1810,7 @@ function updateWildlife(dt){
      * that reaches the bottom is simply not sent round again — so the last few are
      * still falling while the sheen comes up and the grey lifts off the frame. */
     rainFall = clamp(rainLeft / RAIN_TAIL, 0, 1);
-    const want = Math.round((RM ? 40 : 110) * rainFall);
+    const want = Math.round((RM ? 40 : 110) * rainFall * showerHard());
     while (raindrops.length < want) raindrops.push({x:R()*W, y:R()*H, v:520+R()*260});
     let k = 0;
     for (const r of raindrops){
@@ -1775,12 +1821,13 @@ function updateWildlife(dt){
     raindrops.length = k;
     wet = Math.max(wet, 6 * (1 - rainFall));   // the street is already shining before the last drop lands
     if (rainLeft <= 0 && !raindrops.length){ raining=false; rainFall=0; wet = 18;
-      cloudTgt = 0.1 + R() * 0.28; frontLeft = 26 + R() * 26;   // and the cover breaks up behind it
+      // and the cover breaks up behind it — for a July afternoon, not for long in January
+      cloudTgt = 0.1 + R() * 0.28; frontLeft = spellLen(false, 26 + R() * 26);
       for (const a of agents) a.umbrella = false;               // down they come, all at once
       announce('The rain moves on. Everything smells green, and the lane shines.'); groundDirty=true; }
-  } else if (cloudCover() > 0.66 && daylight > 0.15 && day >= 1
-             && R() < dt * 0.10 * (cloudCover() - 0.66) / 0.34 * (0.6 + rich)){
-    raining = true; rainLeft = 10 + R() * 9;
+  } else if (cloudCover() > 0.66 && day >= 1
+             && R() < dt * 0.10 * (cloudCover() - 0.66) / 0.34 * showerRate() * nightDamp()){
+    raining = true; rainLeft = (10 + R() * 9) * showerLen();
     cloudTgt = 0.92; frontLeft = Math.max(frontLeft, 24);
     announce('Rain drifts in across the rooftops.');
     // no sweep here any more: whoever was going to put one up already has, on the way in
@@ -4162,6 +4209,13 @@ window.__entities = function(){
   take(birds, 'bird'); take(leaves, 'leaf');
   if (balloon) take([balloon], 'balloon');
   if (boat) take([boat], 'boat');
+  /* Raindrops are the one population here in SCREEN space, not world space — x,y are
+   * canvas pixels, so motion.mjs must exempt this kind from the world-bounds test or
+   * every drop reads as out of bounds. Until #21 the gate could only watch the shower
+   * as a count, which cannot see a drop that stops falling or drifts to NaN. Drops are
+   * recycled objects, so identity survives a trip round and a recycle reads as one
+   * legitimate jump — which is exactly the shape the gate already expects of rain. */
+  take(raindrops, 'raindrop');
   return out;
 };
 window.__census = function(){
