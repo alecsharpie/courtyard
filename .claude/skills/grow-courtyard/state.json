@@ -426,6 +426,12 @@
       "note": "iteration 9's probes/parapet-and-boat.mjs sits at the repo root matched by an UNANCHORED .gitignore line, so it is cited in the ledger and absent from the repo — the exact failure the anchored /probe-*.mjs comment warns about. Move it into the skill's probes/ and drop the gitignore line, or delete it.",
       "raisedBy": 9,
       "seenBy": 0
+    },
+    {
+      "id": "c20",
+      "note": "runlog.mjs:72 runs 'git diff --numstat <blobA> <blobB> -- courtyard.html', which git rejects (a pathspec is illegal with a two-blob diff) — it prints git usage noise and returns nothing, so srcLines ALWAYS comes from the HEAD~1 fallback at :76, the very path the comment at :63-65 says was unreliable. Drop the '-- courtyard.html' pathspec. Separately: runlog.mjs needs --pre-blob from run-loop.sh, so a hand-invoked /grow-courtyard scores itself no-ship regardless of evidence (hit at iter 10; row rewritten by hand). HARNESS, not town.",
+      "raisedBy": 10,
+      "seenBy": 0
     }
   ],
   "watch": [

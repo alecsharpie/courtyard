@@ -15,7 +15,7 @@
   "avoid": "Do not grow the ticker into a log or a second UI element — it is one line and should stay one line. Do not let the queue back up; drop stale entries rather than showing an old line late.",
   "budgetMin": 20,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 10,
   "issued": "2026-08-03T04:24:19.921Z",
