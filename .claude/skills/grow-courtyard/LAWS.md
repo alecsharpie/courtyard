@@ -65,3 +65,26 @@ here so this loop does not buy them twice.
   reintroduces a black seam beside every wall.
 - **Roofs are emergent.** `buildVolumes()` lifts each roof vertex by its distance
   to the block edge. Do not special-case a roof; change the footprint instead.
+- **Any new `R()` draw reshuffles the whole seeded world.** Everything downstream
+  moves: the census histogram churns everywhere, a motion gate fires on a kind you
+  never touched, a shower lands on a different frame. Read a census diff for
+  *collapse*, not for delta. When a gate fires on something you did not build,
+  measure that system's own distribution on HEAD, or dump the page's state
+  (`__census().clock`, the ticker) per frame — before you theorise. If a system was
+  already sitting on a threshold, move the system, not the threshold. (#2, #4, #5)
+- **Time-compress everything you build.** A day is 55 s. "Every third hour" is
+  every ~7 s, so an effect lasting more than ~2 s stops reading as an event and
+  becomes state; a round trip longer than ~40 s leaves its walker permanently
+  present regardless of the cap that spawned it. Caps set the inflow, trip length
+  sets the standing population and its phase. Measure duration against the *day*,
+  never against the clock you hung it off. (#2, #5)
+- **Reseed before you measure.** Any `?pause` + `__warp()` probe must call
+  `__reseed()` first. A paused frame still consumes PRNG draws and the frame count
+  before the first warp is machine-dependent, so an unreseeded probe does not
+  error — it quietly reports a different plausible number every run. (#3)
+- **Rate-cap a slow world scalar, don't ease it.** A cap makes "it never steps" one
+  measurable number (max delta per sample = the cap), so continuity is proved by a
+  probe instead of argued from a screenshot. (#3)
+- **Two figures nearer than ~0.9 cells render as one shape.** Anything that puts
+  people in the same spot — a queue, a bench, a haggle, a conversation — has to
+  hold them apart to read at all. (#4)

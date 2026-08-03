@@ -308,68 +308,62 @@
   "openCues": [
     {
       "id": "c1",
-      "note": "The town stops changing after ~15 real minutes. maturity() caps at day 8 and richness() at day 16; at a 55 s day that is 14.7 minutes, after which every progression term is pinned at 1. There is no season and no later act. This is the rung-4 lever to reach for when rotating and deepening are spent — it would reopen the whole board. HELD DELIBERATELY: it is the strongest move available and the highest rung reached for so far is 2; spending it before the loop has actually stalled would leave nothing above it.",
+      "note": "The town stops changing after ~15 real minutes. maturity() caps at day 8 and richness() at day 16; at a 55 s day that is 14.7 minutes, after which every progression term is pinned at 1. There is no season and no later act. This is the rung-4 lever that would reopen the whole board. STILL HELD at manager pass #5: four iterations have shipped cleanly, no stall signal has fired, and rungs 1-2 still have unmined ground (three domains untouched by the loop, four of seven kinds unused). Spend this the first time a batch comes back thin.",
       "raisedBy": 0,
-      "seenBy": 1
-    },
-    {
-      "id": "c2",
-      "note": "PROMOTED to brief b2 at manager pass #0. Confirmed by grep: the string 'cloud' does not appear anywhere in courtyard.html. Rain arrives out of a cloudless blue sky — skyCols() reads only hour and daylight, and the scheduler flips `raining` in a single frame on an R() roll. The largest surface in the frame carries the least legible system in the town.",
-      "raisedBy": 0,
-      "seenBy": 1
-    },
-    {
-      "id": "c3",
-      "note": "CORRECTED at manager pass #0 — the original wording was wrong in a way that would have wasted an iteration. The east is NOT missing itineraries: spawnLaneAgent already routes people to the plaza bench, the fountain, the quay rail, the quay benches, the towpath, the church green and the allotments. What it is missing is budget — those destinations sit in narrow bands of one roll cascade (quay 0.48-0.53, green 0.53-0.58) under one laneCap that peaks at 9. Partly promoted to b4 (budget) and b1 (bellUntil is written by strikeClock and read by nothing). Still open and unpromoted: updateBoat() runs a boat past a quay where people already stand, and the two never acknowledge each other.",
-      "raisedBy": 0,
-      "seenBy": 1
+      "seenBy": 2
     },
     {
       "id": "c4",
-      "note": "strikeClock()'s church-answer branch is UNREACHABLE: (hInt===9||hInt===18) hangs off an else-if under (hInt%3===0), and both 9 and 18 are divisible by 3. Fixing it needs a decision about announce(), which overwrites, so two lines in one frame show only the second.",
+      "note": "PROMOTED to brief b9 at manager pass #5. The church-answer branch in strikeClock is UNREACHABLE: (hInt===9||hInt===18) hangs off an else-if under (hInt%3===0), and both 9 and 18 are divisible by 3. Confirmed by reading the function at line 3143. The blocker is announce(), which overwrites tickerEl.textContent outright, so two lines in one frame show only the second — which is why b9 is scoped as fixing announce() first.",
       "raisedBy": 0,
-      "seenBy": 0
+      "seenBy": 1
     },
     {
       "id": "c5",
-      "note": "updateBoat() runs a boat past a quay full of people who never acknowledge it — the same written-but-unread shape bellUntil had. a.listen now exists as a mechanism that would fit.",
+      "note": "PROMOTED to brief b8 at manager pass #5. updateBoat() runs a boat past a quay full of people who never acknowledge it — the written-but-unread shape bellUntil had. a.listen now exists as a mechanism that fits.",
       "raisedBy": 0,
-      "seenBy": 0
+      "seenBy": 1
     },
     {
       "id": "c6",
-      "note": "state.mjs rewrites state.json with JSON.stringify(...,2), which explodes every inline array onto its own lines — the first write after a hand-edited file produced a 353-line diff for two inventory entries. Every future iteration's state diff will be noise unless state.mjs preserves the compact form.",
+      "note": "state.mjs rewrites state.json with JSON.stringify(...,2), which explodes every inline array onto its own lines — the first write after a hand-edited file produced a 353-line diff for two inventory entries. HARNESS, not town: no worker brief can fix it. Now benign in practice because the file is already fully exploded, so every subsequent write is a clean diff. Downgraded from noise-risk to a cosmetic note; close it if it has not bitten by pass #12.",
       "raisedBy": 2,
-      "seenBy": 0
+      "seenBy": 1
     },
     {
       "id": "c7",
       "note": "The town still casts hard sun shadows under full overcast — drawSunMoon veils the disc, but the ~6 SUN[0]/SUN[2] shadow call sites use fixed alphas.",
       "raisedBy": 2,
-      "seenBy": 0
+      "seenBy": 1
     },
     {
       "id": "c8",
       "note": "Rain requires daylight>0.15, so a heavy front peaking overnight builds full cover, never rains, and breaks by morning — overcast nights are commoner than rain.",
       "raisedBy": 2,
-      "seenBy": 0
+      "seenBy": 1
     },
     {
       "id": "c9",
       "note": "chatCool is decremented only inside greetPass(); an early-out there would freeze the cooldown",
       "raisedBy": 3,
-      "seenBy": 0
+      "seenBy": 1
     },
     {
       "id": "c10",
       "note": "East agents retrace their inbound route exactly, so arrivals sharing a gate walk single-file; would queue if eastCap rose much above 7",
       "raisedBy": 4,
-      "seenBy": 0
+      "seenBy": 1
     },
     {
       "id": "c11",
-      "note": "Nobody crosses the bridge on foot as a link between the plaza side and the far bank — east agents' gates sit on one side or the other, so the town's only river crossing is never used as a connection",
+      "note": "CORRECTED at manager pass #5 — the original wording overstated it. People DO cross the bridge: the lane IS the bridge (RIVER_X0 114 to RIVER_X1 127, carried at LANE_N_Y 66.4), and the `green` itinerary routes walkers out to PARK_GATE at x=134, so every far-bank visitor walks over the water. What is actually missing is that nobody ever STOPS on it — no waypoint in the town puts a person at the parapet looking down. Folded into b8.",
       "raisedBy": 4,
+      "seenBy": 1
+    },
+    {
+      "id": "c12",
+      "note": "RUNLOG.jsonl records secs=0, costUsd=0, turns=0, tokens=null on every worker row (iters 2-5); only the manager row carries real numbers. The exact metric that killed the previous loop — cost per iteration climbing while output stays flat — is therefore unmeasurable for the workers, and stall.mjs is averaging $0.28/iter off the one manager row that has data. HARNESS, not town: needs run-loop.sh or runlog.mjs to capture the worker session cost. Flagged to the human at pass #5.",
+      "raisedBy": 5,
       "seenBy": 0
     }
   ],
@@ -381,6 +375,10 @@
     {
       "note": "An empty-looking place is a budget question before it is a content question. Twice at pass #0 a plausible 'the town lacks X' turned out to be 'the town has X and you rarely see it' — the allotment gardeners and every eastern destination both exist. Grep for the feature before briefing it, and if it exists, ask how often it fires.",
       "since": 0
+    },
+    {
+      "note": "cloudCover() (added #3) is a slow world scalar with exactly ONE reader — the rain roll. It hands the town ~27 s of warning that rain is coming and nothing else in the file reads it. Any future weather work should ask whether it can read cover instead of reading `raining`, which is a boolean that flips in a single frame.",
+      "since": 5
     }
   ]
 }
