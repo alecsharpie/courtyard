@@ -15,7 +15,7 @@
   "avoid": "Do not run an O(n²) scan over a growing list every frame without a cheap distance reject first. Do not let a conversation deadlock a pair — `done` must stay reachable, because a stuck agent holds its café table via `tableRef` forever. Do not add a census field for this.",
   "budgetMin": 30,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 4,
   "issued": "2026-08-03T02:02:12.409Z",
