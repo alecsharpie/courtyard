@@ -119,3 +119,46 @@ under full overcast. Softening them is a wider diff across ~6 call sites.
 **Cue:** Rain now only starts while `daylight > 0.15`, so a heavy front that peaks overnight
 builds full cover, never rains, and breaks up by morning. It reads fine, but it means overcast
 nights are more common than rain.
+
+## Iteration 4 — people now notice each other (2026-08-03) [People & animals × Connect]
+
+**Brief:** b3 — no agent-to-agent code existed anywhere. Give agents the barest social
+awareness: two who pass close should occasionally stop and acknowledge each other.
+**Did:** New `greetPass()` on a 0.5 s accumulator in `simStep()`, after the agent loop so
+positions are current. It walks a filtered `free` list (`chatty()`: walking, not small, not
+listening/greeting/cooling, not `sweeper` — working — and not `picnic`, who arrive as a pair
+and would chatter the whole way in), axis-rejects on dx/dy before any hypot, and pairs on an
+*annulus* `GREET_MIN 0.9 .. GREET_R 1.6` at `GREET_P 0.17`. Pairing sets `a.greet = b.greet =
+2.2–5 s` (×0.45 in rain), opposite `faceL`, and `chatCool = greet + 16–26 s` on both.
+`stepAgent()` returns early while `a.greet > 0`, clamped at 0, right beside the existing
+`a.listen` branch — a countdown and nothing more, so `done` stays reachable and no table can
+strand. `drawPerson()` gained `chatting`: legs go to the standing pose instead of freezing
+mid-stride, and the head turns toward the other one and nods (`Math.sin(a.greet*4.4)`).
+Factored the dog-follow out to `stepDog()` and called it from the greet *and* listen branches,
+so a stopped owner no longer leaves a frozen dog beside them.
+**Gates:** census PASS (`people` +10 — capacity-bound drift plus PRNG churn, not new spawns) ·
+visual PASS (wide/courtyard/lane at night and morning, no draw-order regression) · motion PASS
+(walker 0 jumps / 0 nan / 0 oob / 0 flicker in all four scenes) · filmstrip day PASS (Δ 0.28–0.64,
+no POP, no FROZEN) · probe `probes/passing-word.mjs`: ~19 conversations per 10 seeded days,
+2.4% of walker-ticks chatting, 10 different kinds involved, maxGreet 4.87 < 5, `stuck` empty ·
+perf skipped (the pass is 0.5 s-throttled over a ≤20-item list)
+**Verdict:** shipped   ← my view; runlog.mjs decides from the diff
+**Surprise:** The motion gate failed on `day/butterfly: jumps 0 -> 1` — a system I never
+touched. The tempting reads were "PRNG churn, ignore it" and "re-pin the baseline". Both were
+wrong. `probes/butterfly-step.mjs` replayed the gate's own sampling over 12 seeds on HEAD and
+found butterflies *already* taking 3.4–4.4-cell steps against a 0.55 median: `(b.tx-b.x)*dt*0.5`
+flies a freshly-targeted butterfly across the courtyard faster than a person runs, and 4.4 sits
+exactly on `ABS_JUMP 2.5 AND 8×median`. So the gate was a coin-flip on the random stream for
+*every* iteration, not just mine. Clamped the approach to 3 cells/s; largest step over 12 seeds
+is now 1.31 and the knife-edge is retired.
+Second, smaller: at first the pair stopped wherever they happened to be, often 0.8 cells apart,
+and a zoomed crop showed them rendering as a single blob. Hence `GREET_MIN`. Rate and
+legibility turned out to be the same dial.
+**Law:** When a gate fails on a kind you did not touch, measure that kind's own distribution on
+HEAD before you either blame yourself or re-pin the baseline. Any change that consumes `R()`
+shifts the whole stream, so a threshold that a system was already sitting on will flip at
+random — the fix is to move the system off the threshold, not to move the threshold.
+**Law:** Two figures nearer than ~0.9 cells render as one shape at this scale. Anything that
+puts two people in the same spot (a queue, a bench, a haggle) has to hold them apart to read.
+**Cue:** `chatCool` is decremented only inside `greetPass()`, so it is wall-clock-correct only
+while that pass runs every 0.5 s. Fine today; a future early-out in the pass would freeze it.

@@ -769,7 +769,10 @@ function stepAgent(a, dt){
     }
     return;
   }
-  if (a.listen > 0){ a.listen -= dt; return; }   // the bell: a beat of standing still, head back
+  if (a.listen > 0){ a.listen -= dt; stepDog(a, a.speed, dt); return; }   // the bell: a beat of standing still, head back
+  // a passing word: both hold still, facing each other, then walk on. Only ever a
+  // countdown — nothing here can hold an agent, so `done` stays reachable.
+  if (a.greet > 0){ a.greet = Math.max(0, a.greet - dt); stepDog(a, a.speed, dt); return; }
   const tgt = a.i < a.wp.length ? a.wp[a.i] : null;
   if (!tgt){ a.done = true; return; }
   const dx = tgt[0] - a.x, dy = tgt[1] - a.y;
@@ -814,11 +817,61 @@ function stepAgent(a, dt){
       if (R()<dt*2) groundDirty = true;
     }
   }
-  if (a.dog){
-    const g = a.dog, ddx = a.x - g.x + Math.sin(a.phase*0.7)*1.2, ddy = a.y - g.y + 0.6;
-    const dd = Math.hypot(ddx, ddy);
-    if (dd > 1.2){ g.x += ddx/dd * Math.min(sp*1.3*dt, dd); g.y += ddy/dd * Math.min(sp*1.3*dt, dd); }
-    g.phase += dt * 9;
+  stepDog(a, sp, dt);
+}
+/* the dog trails its human. Called from the walk path AND from every beat the human
+ * spends standing still, so a stopped owner never leaves a frozen dog beside them. */
+function stepDog(a, sp, dt){
+  if (!a.dog) return;
+  const g = a.dog, ddx = a.x - g.x + Math.sin(a.phase*0.7)*1.2, ddy = a.y - g.y + 0.6;
+  const dd = Math.hypot(ddx, ddy);
+  if (dd > 1.2){ g.x += ddx/dd * Math.min(sp*1.3*dt, dd); g.y += ddy/dd * Math.min(sp*1.3*dt, dd); }
+  g.phase += dt * 9;
+}
+
+/* ============ a passing word ============ */
+/* Until now every agent moved as though alone in the town — no proximity test
+ * existed anywhere, which is why the wide shot read as traffic rather than as
+ * neighbours. This is the whole of their social life: on a coarse tick, two people
+ * who happen to pass close may stop and talk for a few seconds. A pass over a short
+ * list, axis-rejected before any hypot, and both parties then sit out a cooldown so
+ * the same pair cannot chatter their way down the lane. */
+/* GREET_MIN matters as much as GREET_R: a pair that stops at half a cell renders as
+ * one blob, so they only pair at a distance you can read as two people. */
+const GREET_DT = 0.5, GREET_R = 1.6, GREET_MIN = 0.9, GREET_P = 0.17;
+let greetAcc = 0;
+function chatty(a){
+  return a.state === 'walk' && !a.small && !(a.listen > 0) && !(a.greet > 0) && !(a.chatCool > 0)
+      && a.kind !== 'sweeper' && a.kind !== 'picnic';   // the sweeper is working; picnic pairs arrive together
+}
+function greetPass(){
+  const free = [];
+  for (const a of agents){
+    if (a.chatCool > 0) a.chatCool = Math.max(0, a.chatCool - GREET_DT);
+    if (chatty(a)) free.push(a);
+  }
+  for (let i = 0; i < free.length; i++){
+    const a = free[i];
+    if (a.greet > 0) continue;
+    for (let j = i + 1; j < free.length; j++){
+      const b = free[j];
+      if (b.greet > 0) continue;
+      const dx = b.x - a.x; if (dx > GREET_R || dx < -GREET_R) continue;    // cheap reject, no hypot
+      const dy = b.y - a.y; if (dy > GREET_R || dy < -GREET_R) continue;
+      const q = dx*dx + dy*dy;
+      if (q > GREET_R*GREET_R || q < GREET_MIN*GREET_MIN) continue;
+      if (R() > GREET_P) continue;
+      const t = (2.2 + R() * 2.8) * (raining ? 0.45 : 1);   // nobody lingers in the wet
+      a.greet = b.greet = t;
+      a.faceL = dx < 0; b.faceL = !a.faceL;
+      a.chatCool = b.chatCool = t + 16 + R() * 10;
+      if (R() < 0.12) announce(pick([
+        'Two neighbours stop mid-path and fall into talk.',
+        'A conversation breaks out on the lane and the walk waits for it.',
+        'Someone stops someone else; hands go into pockets.',
+      ]));
+      break;
+    }
   }
 }
 
@@ -1095,8 +1148,14 @@ function updateWildlife(dt){
     if (b.t <= 0){ const bx = b.alt ? 86.5 : CX, by = b.alt ? 32 : CY;
       const th=R()*Math.PI*2, r=5+R()*(b.alt?7:15); b.tx=bx+Math.cos(th)*r; b.ty=by+Math.sin(th)*r; b.t=2+R()*4; }
     b.ph += dt * (RM?6:14);
-    b.x += (b.tx-b.x)*dt*0.5 + Math.sin(b.ph*0.3)*dt*2;
-    b.y += (b.ty-b.y)*dt*0.5;
+    // drift toward the flower, but never lunge at it: a butterfly can pick a target
+    // 30 cells away, and a raw (tx-x)*0.5 flies it there faster than a person runs —
+    // a 4-cell step in a quarter second, which sat right on the motion gate's jump
+    // threshold and flipped it on any change to the random stream
+    let ax = (b.tx-b.x)*0.5, ay = (b.ty-b.y)*0.5;
+    const av = Math.hypot(ax, ay); if (av > 3){ ax = ax/av*3; ay = ay/av*3; }
+    b.x += ax*dt + Math.sin(b.ph*0.3)*dt*2;
+    b.y += ay*dt;
     b.z = 0.7 + Math.sin(b.ph*0.13)*0.35;
   }
   const wantF = (day>=3 && nightF>0.6 && !raining) ? Math.round(4+rich*8) : 0;
@@ -2773,7 +2832,8 @@ function drawLamp(it){
 function drawPerson(it, t){
   const a = it.a;
   const scale = a.small ? 0.72 : 1;
-  const walking = a.state === 'walk';
+  const chatting = a.greet > 0;
+  const walking = a.state === 'walk' && !chatting;   // stood talking, not frozen mid-stride
   const bob = walking ? Math.abs(Math.sin(a.phase)) * 1.6 : 0;
   const [x, y] = project(a.x, a.y, 0);
   const hgt = (a.state==='sit'? 8 : a.state==='kneel'? 7 : a.state==='lie'? 3 : 12) * scale * (cellH/8);
@@ -2807,7 +2867,11 @@ function drawPerson(it, t){
   ctx.closePath(); ctx.fill();
   ctx.fillStyle = a.skin;
   const up = a.listen > 0 ? 1 : 0;               // listening to the bell: head tipped back
-  ctx.beginPath(); ctx.arc(up * (a.faceL ? 1.2 : -1.2), -hgt*1.05 - 2.2*scale - up*1.2, 2.9*scale*(cellW/13), 0, 7); ctx.fill();
+  // mid-conversation: head turned toward the other one, and nodding along
+  const nod = chatting ? Math.sin(a.greet * 4.4) : 0;
+  const turn = chatting ? (a.faceL ? -1 : 1) * (1.5 + nod * 0.5) : 0;
+  ctx.beginPath(); ctx.arc(up * (a.faceL ? 1.2 : -1.2) + turn,
+    -hgt*1.05 - 2.2*scale - up*1.2 + Math.abs(nod) * 0.7, 2.9*scale*(cellW/13), 0, 7); ctx.fill();
   if (a.broom){
     ctx.strokeStyle = '#8a6a42'; ctx.lineWidth = 1.4;
     ctx.beginPath(); ctx.moveTo(bw, -hgt*0.7); ctx.lineTo(bw + 7, 1); ctx.stroke();
@@ -3097,6 +3161,8 @@ function simStep(sdt, dt){
       agents.splice(i, 1);
     }
   }
+  greetAcc += sdt;
+  while (greetAcc > GREET_DT){ greetAcc -= GREET_DT; greetPass(); }
   updateSweeper();
   updateWildlife(sdt);
   updateDucks(sdt);

@@ -15,24 +15,6 @@
   "rationale": "Rung 2 (deepen/interconnect), not rung 1. Thirty-one hand-driven iterations already put the nouns in — eleven flower species, a church, a bandstand, an orchard, a market, swans, a balloon — so rotating in another noun is the low-yield move, and the coverage grid agrees: `connect` has been used once in the town's whole history. The frontier for somebody looking at the diorama for thirty seconds is not a missing object, it is that the objects do not know about each other.\n\nI checked four candidate gaps against the source rather than against the cue list, and two of them were already built: the allotments do have gardeners who walk to a real BED cell and kneel (`tendPlot`, ~line 860), and the planting CA already does neighbour-seeded spread, crowding and ageing (`caTick`, `neighborsMature`). Briefing either would have been the previous loop's failure mode with extra steps. The two that survived are real absences, verified by grep returning nothing: there is no cloud anywhere in the file, and there is no agent-to-agent code anywhere in the file. Those are b2 and b3.\n\nOn ordering: b1 (the bell) is the shakedown — `bellUntil` is written by `strikeClock()` and read by nothing, so it is a genuinely dead variable, the diff is small, and it exercises the full gate chain including the motion gate that a still frame cannot substitute for. b2 (clouds) is the frontier and the brief that could fail: it touches the largest surface in the frame, the cached backdrop layer and the per-frame sky, so it is the one with a real perf and caching trap in it. b3 and b4 are the two halves of 'the town is not populated the way it looks like it should be' — b3 gives people awareness of each other, b4 gives the east half a spawn budget of its own.\n\nI am deliberately NOT reaching for c1 (the world stops progressing after ~15 real minutes). It is the strongest lever on the board and it is rung 4; spending it now would leave nothing above it for the first time the loop actually stalls. It stays a cue, and it is what I climb to.",
   "queue": [
     {
-      "id": "b3",
-      "domain": "People & animals",
-      "kind": "Connect",
-      "brief": "There is no agent-to-agent code anywhere in the source — no proximity test, no pairing, nothing. Every walker, gardener, café sitter and browser moves as though alone in the town, which is why the wide shot reads as traffic rather than as neighbours. Give agents the barest social awareness: when two of them pass close on the lane or on the courtyard ring, they should occasionally acknowledge each other — a pause, a turn of the head, a short stop to talk. Rare and brief is right; a town where everybody stops to chat is as wrong as one where nobody does.",
-      "seams": [
-        "agents",
-        "stepAgent",
-        "STAYING",
-        "spawnAgent",
-        "spawnLaneAgent",
-        "announce"
-      ],
-      "successLooksLike": "Watching the lane for a minute you see two people stop, face each other for a few seconds and move on, while the rest walk past each other as before. Census `people` is unchanged.",
-      "avoid": "Do not run an O(n²) scan over a growing list every frame without a cheap distance reject first. Do not let a conversation deadlock a pair — `done` must stay reachable, because a stuck agent holds its café table via `tableRef` forever. Do not add a census field for this.",
-      "budgetMin": 30,
-      "risk": "medium"
-    },
-    {
       "id": "b4",
       "domain": "Plaza & quay",
       "kind": "Deepen",
@@ -61,6 +43,10 @@
     {
       "id": "b2",
       "at": "2026-08-03T01:45:06.014Z"
+    },
+    {
+      "id": "b3",
+      "at": "2026-08-03T02:02:12.408Z"
     }
   ],
   "recommendStop": null

@@ -2,7 +2,7 @@
   "updated": "2026-08-03",
   "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
   "phase": "expanding",
-  "lastIteration": 3,
+  "lastIteration": 4,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -214,6 +214,9 @@
       ],
       "polish": [
         "pre9"
+      ],
+      "connect": [
+        4
       ]
     }
   },
@@ -292,7 +295,9 @@
       "falling leaves",
       "a clock that strikes and a church bell that answers",
       "an ambient ticker",
-      "walkers who break stride and look up while the bell is ringing (a.listen)"
+      "walkers who break stride and look up while the bell is ringing (a.listen)",
+      "agents that notice each other: two who pass within 0.9–1.6 cells may stop, turn and talk a few seconds (greetPass, a.greet, chatCool), then walk on — ~2 conversations a minute",
+      "butterflies drift to their flower at a capped 3 cells/s instead of lunging across the courtyard"
     ]
   },
   "openCues": [
@@ -342,6 +347,12 @@
       "id": "c8",
       "note": "Rain requires daylight>0.15, so a heavy front peaking overnight builds full cover, never rains, and breaks by morning — overcast nights are commoner than rain.",
       "raisedBy": 2,
+      "seenBy": 0
+    },
+    {
+      "id": "c9",
+      "note": "chatCool is decremented only inside greetPass(); an early-out there would freeze the cooldown",
+      "raisedBy": 3,
       "seenBy": 0
     }
   ],
