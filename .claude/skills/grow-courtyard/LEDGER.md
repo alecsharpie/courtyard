@@ -281,3 +281,66 @@ does nothing about those nights, which is correct but makes c8 more conspicuous.
 `a.street` agents do — because their sit is assigned at a waypoint with no route left,
 so refusing it would despawn them mid-lawn. Giving them a `routeToExit` on refusal would
 extend the effect into the courtyard.
+
+## Iteration 7 — the allotments are picked, rested and re-sown (2026-08-03) [Cross street & allotments × New CA rule]
+
+**Brief:** b6 — mature veg sat at `bSt` 3 until random dieback took it. Nothing was ever
+picked. Add harvest as a real term, and let a cleared row re-seed.
+**Did:** The cycle is addressed by **plot**, not by cell — `buildGrid` lays the block out as
+3×2 beds on a 5×7 lattice, so `plotOrigin()`/`plotCrop()` make that the unit. `harvestPlot(a)`
+fires from the existing kneel branch in `stepAgent` (`a.kind==='allot' && a.plot`): if any cell
+of the plot is at `bSt` 3 the whole bed is lifted, `harvested` counts the ripe cells, `a.crop`
+is set, and every cell gets `bAge = FALLOW + R()*8` (12–20 s ≈ 0.3 of a day). Nothing ripe →
+it falls through to the existing hand-planting, so one kneel does both halves. `caTick`'s empty
+branch now reads `bAge` on an unplanted bed as a **fallow clock** (dieback zeroes `bAge` so
+that reading is unambiguous), and splits: the allotment is *sown*, not self-seeded — the first
+drill goes in at 0.055 and the other five follow at 0.30 **under `plotCrop()`**, so a row comes
+up as a row and under one crop. `drawPerson` gives `a.crop` a basket with the crop's `col2`
+heaped in it. Census gains one field, `planting.harvested`.
+**Gates:** census PASS (`blooming` +110, `planted` +159, `people` +10; species churn is
+per-plot monoculture sampled at three instants, see Surprise) · visual PASS (wide/courtyard/
+east/lane clean, plus two pinned dsf-6 captures: the block showing four distinct crops with one
+bed bare and turned, and a gardener walking out with the basket) · motion PASS (0 jumps / 0 nan
+/ 0 oob / 0 flicker in day, night and market) · filmstrip day clean, no POP, no FROZEN · perf
+PASS (interleaved vs HEAD, both at the 16.7 ms vsync cap) · probes
+`probes/allot-turnover.mjs` and `probes/allot-rate.mjs`, 4 seeds × 1000 s (18 days):
+harvested cells **0–22 → 97–114**, cycles per plot **0.00–0.24 → 0.88–1.29**, longest a plot
+stays bare **12.5 s → 20–22.5 s**, and all four vegetables present in every seed where three of
+four seeds had lost pumpkins entirely.
+**Verdict:** shipped   ← my view; runlog.mjs decides from the diff
+**Surprise:** Three, and two of them changed the shape of the work.
+(1) **The harvest was never the bottleneck — the gardeners were.** The first build passed every
+gate and did nothing: 22 cells picked in 18 days against a 17-plot block that sat 98/102 full
+the whole time. `probes/allot-rate.mjs` printed the reason in one run — **0.06–0.22 `allot`
+gardeners per day**, one every 5–15 days, because they live in a 0.36–0.42 slice of
+`spawnLaneAgent`'s roll chain behind `sun && day>=1`. The brief called them "the gardener who
+already walks in through the gate", and so did I, until I counted. The fix is that the
+allotments now arrive on their **own** budget like the far bank does — `spawnAllotAgent()` at
+`allotRate = 0.01 + 0.16 * ripePlots()/17`, so the crop calls its own picker and a bare block
+draws nobody. That took it to 1.1/day and ~1 plot cleared per day. `state.json` had already
+written this down at pass #0 ("an empty-looking place is a budget question before it is a
+content question... the allotment gardeners exist — ask how often it fires") and I re-derived
+it from zero.
+(2) **Row coherence quietly ate two of the four crops.** Making a plot come back under
+`plotCrop()` is what makes a row read as a row, but it also makes the crop *sticky*: the block
+is sown on day 0 when only carrots and cabbages exist, and after that a plot only re-picks if
+it goes completely empty. Beans −153, pumpkins −124 to zero. Harvesting only the ripe cells
+left the unripe ones holding the crop, so the fix is that a harvest lifts the **whole** bed —
+which is also the more honest gesture, and gives rotation for free.
+(3) I spent three attempts re-deriving a zoomed screenshot framing that
+`probes/east-shots.mjs` already had, including its note that `shoot.mjs`'s `?fast` + 2600 ms
+wait advances the sim ~20 s (which is why the "day 3 midday" shot comes back at dusk).
+**Law:** A feature that "already exists" may exist at a rate of zero. Before building on top of
+an existing agent kind, mechanism or route, **count how often it fires** — the spawn bands in
+`spawnLaneAgent` are a single shared budget and a branch three-quarters down the chain can fire
+once a fortnight. Rate is a design parameter, not an implementation detail.
+**Law:** Read `probes/` before writing a probe. It is part of the seam and it is not in the
+worker's read budget, so every iteration is one `ls` away from re-solving a solved measurement.
+**Law:** When a CA cell's state is inherited from its neighbourhood, check what the inheritance
+does to *variety* over many cycles, not just to the one cycle you are looking at. A rule that
+makes a region coherent makes it monotonous unless something resets it.
+**Cue:** The block is 17 plots, not the 21 the brief and the inventory both say — `buildGrid`
+excludes `x>=84 && y>=42` for the pond corner. Cosmetic, but two documents are wrong.
+**Cue:** `ripePlots()` rescans 102 cells once a second to set the arrival rate. It is free at
+this size, but it is the first place in the town where a *spawn rate* reads the CA, and if
+anything else wants that pattern it should be cached on the CA tick rather than recomputed.
