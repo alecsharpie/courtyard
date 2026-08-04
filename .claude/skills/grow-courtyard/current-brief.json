@@ -18,7 +18,7 @@
   "avoid": "Do not change SEASON_LEN or SEASON_START — the entire seasonal spine is anchored at 0.25 and its neutrality there is provable, which is the property that has made every seasonal brief since #12 gateable. Do not let a fast-forward leak into a permanent speed that the census, the gates or ?fast inherit.",
   "budgetMin": 40,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 28,
   "issued": "2026-08-04T03:09:46.650Z",
