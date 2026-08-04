@@ -20,7 +20,7 @@
   "avoid": "Do not add ice, a barge, or a second boat type — c18 says any new river event must read `byTheWater()` rather than re-deriving who can see the water, and this brief is not where that budget goes. Do NOT make winter boatless: the boat is the town's only long-travelling object and `boatWatch()`, the best behaviour this domain has, dies with it. Thin it, do not switch it off. If a seasonal rate would give a boatless January, floor the rate rather than accepting the gap.",
   "budgetMin": 30,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 23,
   "issued": "2026-08-04T00:14:28.099Z",
