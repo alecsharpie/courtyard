@@ -1865,3 +1865,97 @@ water streaks as a finding.
 
 **Cue:** Context budget was **OVER (46.1 KB / 46 KB)** at the start of this iteration.
 
+## Iteration 29 — the stalls sell what the plots grew (2026-08-04) [Lane & market × Connect]
+
+**Brief:** b28 — the market is the last flat system in the town. Connect it to the
+allotments, which ripen and are picked across a full year fifty feet away.
+
+**Did:** one store, `produce[]`, written by exactly one line — `harvestPlot()` pays in the
+cells it lifted, so the basket (`a.crop`) that walked out of the block for four iterations
+now goes somewhere. `stockMarket()` latches that store ONCE per market day at the first
+trestle, empties it, and lays it out as `mkShelf` (species order, so a stall sells one or
+two things). `marketRaise(i)` gates on `mkTrades(i)`: `MK_NEED [0,4,13]` units, so the
+second and third traders only set up if the plots sent enough — stall 0 always comes, but
+it can stand behind an empty board. The goods are no longer a fixed six-colour palette:
+each pitch is a vegetable the stall was actually stocked with, in its own colour and size.
+Half of what the market cannot carry (`MK_CAP` 18) keeps to the next one. `mkLine()` says
+which crop, and the browsers walk to a stall that came out.
+
+**Gates:** census **PASS** (small reshuffle churn, no collapse; new field `planting.produce`)
+· motion **PASS** vs baseline · visual PASS · filmstrip day PASS, no POP · `probes/market-year.mjs`
+over **120 markets / 5 seeds / 104 days**: midwinter **6.0 units, 1.67 stalls** vs midsummer
+**35.7, 2.96**; one stall on 24% of markets, three on 58% · `probes/market-shots.mjs` (the
+brief's own test) midsummer 3 stalls 6/6/6 vs midwinter 2 stalls 6/5/0, and it names the
+plots the difference came from · `probes/market-raise.mjs` unchanged vs HEAD (seed 42's 4.9
+close spike is **pre-existing** — stashed and confirmed). Budget opened **OVER** (48.4 / 46 KB).
+
+**Verdict:** shipped
+
+**Surprise:** two, and the second is the one that matters. (1) The store made the year's
+trough move. Without carry-over winter was bare and spring recovering; with it, autumn's
+glut arrives late and **spring** becomes the thinnest quarter (3.8 units vs winter's 6.0)
+— the market is four days behind a block that is already behind the season, and two lags
+compose into a hungry gap nobody wrote. That is #21/#23's hysteresis law arriving a third
+time, and it is also the only thing that softens cue c50's stepped cliff. (2) My first
+probe reported a different midwinter market every run — 2.1 units, 13.6, 22.1, 5.4 — with
+the same seed, same code, same pinned instant. **Drawing consumes `R()`.** On a `?pause`
+page frozen at simT 300, `R()` reads 0.110 after two drawn frames and 0.746 after forty.
+So a screenshot, a `boundingBox()`, a `waitForFunction` poll — any real-time gap — moves
+the world, even with the sim stopped. One page per quarter fixed it; two runs now diff clean.
+
+**Law:** the existing "step inside ONE `page.evaluate`" rule is right for the wrong reason.
+It is not that the sim keeps running (`paused` sets `dt = 0`) — it is that the RENDERER
+draws from the PRNG, so frames the machine happens to deliver during a host round-trip
+advance the seeded stream. A probe that screenshots between measurements needs a fresh
+page per measurement, not a tidier loop.
+
+**Cue:** the initial scatter puts flowers into allotment beds (seed 42 opens with one fern
+in the block, seed 7 with a fern and a lavender), so a fern can be harvested, ride the
+basket and reach a market board. Pre-existing; `speciesFor()` only filters NEW sowing.
+
+## Iteration 30 — the courtyard reads the sky too (2026-08-04) [People & animals × Connect]
+
+**Brief:** b29 — the street refuses and vacates a seat under a building front; the
+courtyard sat through it, because both gates read `a.street`. Close c11.
+
+**Did:** two predicates, one definition each — `SIT_REFUSE` 0.42 (take a seat) and
+`skyLifts(a)` (give one up, 0.55..0.88 off `a.wary`). The gate is no longer `a.street` but
+**what you are doing**: on the street everyone not lying down; in the courtyard the people
+*sitting*, so the napper sleeps on and the gardener finishes their row. c11 sat open 24
+iterations because `picnic`/`sitter` are `STAYING` and reach their seat with an empty
+waypoint list, so a refusal meant `a.done` on the lawn — `routeToExit()` is the walk out
+they never had. A pair is linked both ways (`a.mate`) and judges the sky **once**: first to
+the grass decides, and if your half is already down you join them regardless. The blanket
+line moved from spawn to when the blanket is spread: a refusable seat makes an
+announcement at spawn a promise the town may break.
+
+**Gates:** census PASS (reshuffle churn, no collapse; `people` 186→182 is the feature) ·
+motion **FAIL→analysed**: only `shower` fired, untouched —
+`probes/shower-jump-spread.mjs` puts it at 0..2 on both builds, and the same statistic
+fell 4→1 on market · visual PASS · filmstrip day PASS · perf skipped (a getter
+and two clamps, for the ≤5 agents sitting) · **`probes/seats-out.mjs`**, 8 seeds × 12 sim
+days, HEAD vs here: refusals **0 → 15**; under `cover>0.60` the courtyard sits **0.269 →
+0.074** while the street holds 0.020/0.019 — it empties *to where the cafe already was*;
+under `cover<0.30` 0.439 → 0.461, a blue afternoon untouched; release cover mean 0.729,
+stagger 4.09 sim s against the street's 3.4; **0 vanished, 0 pair splits** ·
+`probes/seats-shots.mjs`: blanket on the grass, then an empty lawn and umbrellas walking
+out, two sim days ahead of the first drop.
+
+**Verdict:** shipped
+
+**Surprise:** the vanish test nearly shipped as a tautology. I first wrote it as "despawned
+while `act === 'sit'`" — the bug's exact *inverse*: a naive refusal sets `done` in the
+**walk** branch, so the agent disappears mid-lawn still labelled `walk` and the test reads
+a clean 0 forever. Re-anchoring on *position* (a legitimate exit ends off-grid) made it
+real; the min observed despawn radius, **32.7** against a threshold of 16 with a seat at
+3..12, is what turns the 0 into evidence. Second: `__warp(0.25)` is 7–8
+sub-steps of 1/30 s and a probe sees only the boundary, so a sit that began and ended
+inside one window was invisible — sampling reported 3 phantom refusals **on HEAD**, which
+has no refusal path. Wrapping the one function both paths go through gave 0.
+
+**Law:** a zero is evidence only if you show the test can be non-zero — print the margin.
+Anchor it on the state the **bug** would leave, not the one the feature leaves. And a
+sampled warp sees only step boundaries: wrap the function instead.
+
+**Cue:** c58 — the pair shares a decision but not its two sit timers. c59 — two cues are
+both numbered c11. Context budget opened **OVER** (49.8 / 46 KB).

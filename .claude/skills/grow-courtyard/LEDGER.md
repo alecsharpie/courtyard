@@ -14,14 +14,16 @@ street and allotments, the plaza and quay, the river and far bank) is in
 
 ## Template
 
-**Keep an entry under 3 KB (≈45 lines).** A worker reads the last **three** entries in
-full, every iteration, so entry length is charged to the loop three times over. This
+**Keep an entry under 2.5 KB (≈38 lines).** A worker reads the last **three** entries
+in full, every iteration, so entry length is charged to the loop three times over. This
 cap was 3.5 KB and advisory at pass #20; the next three entries came in at 4.3–5.7 KB
 and three more workers opened OVER budget, so it is now measured by
 `rotate-ledger.mjs`, which names any entry over it. If yours does not fit, the excess is
 almost always a **law** (true of the next vector → `LAWS.md`) or a **cue**
 (→ `state.json`), not a longer entry. Write the *surprise* at full length and compress
 everything else; the surprise is the part that cannot be reconstructed from the diff.
+Once the manager has promoted your `**Law:**` and `**Cue:**` lines they are cut from
+the entry — they live in the two files that are read *instead* of this one.
 
 ```markdown
 ## Iteration <N> — <one line: what changed> (<date>) [<Domain> × <Kind>]
@@ -258,36 +260,26 @@ systems. The batch bet.
 `stepSkip()` only hands `frame()` more sim seconds and `simSub()` splits them so no step exceeds
 `SKIP_SUB` 0.25 s. That is the whole safety argument: every rate cap here is per SIM second, so a
 sub-stepped advance is indistinguishable from having waited; what is compressed is REAL time. It
-lands on a **whole number of sim days** nearest a quarter-turn, so the hour survives — from the
-anchor 7+6+7+6 = 26 = `SEASON_LEN`, and four clicks return the identical phase *and* hour. Rate
-is a flat-topped trapezoid advanced off the profile's **exact integral**, so the span is right
-at any frame rate. `announce()` is deaf throughout; `land()` says one line. `RM` gets an honest
-cut behind a `#veil`. `speed` is never touched. Full entry in the archive.
+lands on a **whole number of sim days** nearest a quarter-turn, so the hour survives — 7+6+7+6 =
+26 = `SEASON_LEN`, and four clicks return the identical phase *and* hour. Rate is a flat-topped
+trapezoid advanced off the profile's **exact integral**. `announce()` is deaf throughout;
+`land()` says one line. `RM` gets an honest cut behind a `#veil`. Full entry in the archive.
 
-**Gates:** census **PASS — every field unchanged in all 9 cells** (no new `R()`; the ordinary
-path is one `simStep` with the same arguments, so no gate can tell this exists) · motion PASS vs
+**Gates:** census **PASS — every field unchanged in all 9 cells** (no new `R()`) · motion PASS vs
 a stashed-HEAD baseline · perf PASS +0.0% · visual PASS · `probes/season-skip.mjs` 33/33 ·
-`probes/skip-strip.mjs`, the brief's filmstrip of courtyard and far bank against a `__warp`
-control at the **same sim gaps**: max frame-Δ 32.64 vs 32.86 and 32.25 vs 32.46, with **fewer**
-out-of-line frames than the control · `probes/skip-shots.mjs`: **midwinter 19.6 real seconds**
-after the first click, 684 blooms → 26. Budget opened **OVER** (47.1 / 46 KB).
+`probes/skip-strip.mjs` against a `__warp` control at the same sim gaps: max frame-Δ 32.64 vs
+32.86, with **fewer** out-of-line frames than the control · `probes/skip-shots.mjs`: **midwinter
+19.6 real seconds** after the first click, 684 blooms → 26. Budget opened **OVER** (47.1 / 46 KB).
 
 **Verdict:** shipped
 
 **Surprise:** both hard bugs were invisible to the thing that should have caught them. (1) The
 lapse overshot by exactly its own duration — `dt * speed` kept riding on top of the profile,
 0.095 of a day per click, which no eye can see and which compounds into a year that no longer
-closes. The fix is that **the lapse owns the clock**: `skipSecs` of ordinary time plus a bump
-carrying the rest, Pause and speed suspended for its few seconds. Only the four-click round trip
-could see it. (2) I closed the CSS comment above `#season` one line early, so five lines of prose
-parsed as a selector and **swallowed the whole rule** — the season shipped as a grey chip with a
-border. The probe passed: tag `BUTTON`, right text, handler fired. A screenshot caught it, one
-iteration after #26 learned the same lesson from the other side.
-
-**Law:** a rule that fails to parse is *silent* — assert on **computed style**, not the element.
-And a compressed clock must own its frame's whole advance, or the ordinary rate rides on top.
-
-**Cue:** the season is advertised only by a chevron and a cursor; nothing invites the click.
+closes; only the four-click round trip could see it. (2) I closed the CSS comment above `#season`
+one line early, so five lines of prose parsed as a selector and **swallowed the whole rule** — it
+shipped as a grey chip. The probe passed: tag `BUTTON`, right text, handler fired. A screenshot
+caught it. (Both promoted to LAWS.md.)
 
 ## Iteration 29 — the stalls sell what the plots grew (2026-08-04) [Lane & market × Connect]
 
@@ -300,42 +292,28 @@ now goes somewhere. `stockMarket()` latches that store ONCE per market day at th
 trestle, empties it, and lays it out as `mkShelf` (species order, so a stall sells one or
 two things). `marketRaise(i)` gates on `mkTrades(i)`: `MK_NEED [0,4,13]` units, so the
 second and third traders only set up if the plots sent enough — stall 0 always comes, but
-it can stand behind an empty board. The goods are no longer a fixed six-colour palette:
-each pitch is a vegetable the stall was actually stocked with, in its own colour and size.
-Half of what the market cannot carry (`MK_CAP` 18) keeps to the next one. `mkLine()` says
-which crop, and the browsers walk to a stall that came out.
+it can stand behind an empty board. Each pitch is a vegetable the stall was actually
+stocked with, in its own colour and size. Half of what the market cannot carry (`MK_CAP`
+18) keeps to the next one. `mkLine()` says which crop, and browsers walk to a stall that
+came out.
 
 **Gates:** census **PASS** (small reshuffle churn, no collapse; new field `planting.produce`)
-· motion **PASS** vs baseline · visual PASS · filmstrip day PASS, no POP · `probes/market-year.mjs`
-over **120 markets / 5 seeds / 104 days**: midwinter **6.0 units, 1.67 stalls** vs midsummer
-**35.7, 2.96**; one stall on 24% of markets, three on 58% · `probes/market-shots.mjs` (the
-brief's own test) midsummer 3 stalls 6/6/6 vs midwinter 2 stalls 6/5/0, and it names the
-plots the difference came from · `probes/market-raise.mjs` unchanged vs HEAD (seed 42's 4.9
-close spike is **pre-existing** — stashed and confirmed). Budget opened **OVER** (48.4 / 46 KB).
+· motion **PASS** · visual PASS · filmstrip day PASS, no POP · `probes/market-year.mjs` over
+**120 markets / 5 seeds / 104 days**: midwinter **6.0 units, 1.67 stalls** vs midsummer
+**35.7, 2.96**; one stall on 24% of markets, three on 58% · `probes/market-shots.mjs`
+midsummer 3 stalls 6/6/6 vs midwinter 2 stalls 6/5/0, naming the plots the difference came
+from · `probes/market-raise.mjs` unchanged vs HEAD (seed 42's spike is pre-existing,
+stashed and confirmed). Budget opened **OVER** (48.4 / 46 KB).
 
 **Verdict:** shipped
 
-**Surprise:** two, and the second is the one that matters. (1) The store made the year's
-trough move. Without carry-over winter was bare and spring recovering; with it, autumn's
-glut arrives late and **spring** becomes the thinnest quarter (3.8 units vs winter's 6.0)
-— the market is four days behind a block that is already behind the season, and two lags
-compose into a hungry gap nobody wrote. That is #21/#23's hysteresis law arriving a third
-time, and it is also the only thing that softens cue c50's stepped cliff. (2) My first
-probe reported a different midwinter market every run — 2.1 units, 13.6, 22.1, 5.4 — with
-the same seed, same code, same pinned instant. **Drawing consumes `R()`.** On a `?pause`
-page frozen at simT 300, `R()` reads 0.110 after two drawn frames and 0.746 after forty.
-So a screenshot, a `boundingBox()`, a `waitForFunction` poll — any real-time gap — moves
-the world, even with the sim stopped. One page per quarter fixed it; two runs now diff clean.
-
-**Law:** the existing "step inside ONE `page.evaluate`" rule is right for the wrong reason.
-It is not that the sim keeps running (`paused` sets `dt = 0`) — it is that the RENDERER
-draws from the PRNG, so frames the machine happens to deliver during a host round-trip
-advance the seeded stream. A probe that screenshots between measurements needs a fresh
-page per measurement, not a tidier loop.
-
-**Cue:** the initial scatter puts flowers into allotment beds (seed 42 opens with one fern
-in the block, seed 7 with a fern and a lavender), so a fern can be harvested, ride the
-basket and reach a market board. Pre-existing; `speciesFor()` only filters NEW sowing.
+**Surprise:** two. (1) The store made the year's trough MOVE. Without carry-over winter was
+bare and spring recovering; with it, autumn's glut arrives late and **spring** becomes the
+thinnest quarter (3.8 units vs winter's 6.0) — two lags composing into a hungry gap nobody
+wrote. (2) My first probe reported a different midwinter market every run — 2.1 units, 13.6,
+22.1, 5.4 — same seed, same code, same pinned instant. **Drawing consumes `R()`**, so any
+host round-trip walks the seeded stream even with the sim stopped. One page per quarter
+fixed it. (Both promoted to LAWS.md.)
 
 ## Iteration 30 — the courtyard reads the sky too (2026-08-04) [People & animals × Connect]
 
@@ -348,38 +326,27 @@ courtyard sat through it, because both gates read `a.street`. Close c11.
 *sitting*, so the napper sleeps on and the gardener finishes their row. c11 sat open 24
 iterations because `picnic`/`sitter` are `STAYING` and reach their seat with an empty
 waypoint list, so a refusal meant `a.done` on the lawn — `routeToExit()` is the walk out
-they never had. A pair is linked both ways (`a.mate`) and judges the sky **once**: first to
-the grass decides, and if your half is already down you join them regardless. The blanket
-line moved from spawn to when the blanket is spread: a refusable seat makes an
+they never had. A pair is linked both ways (`a.mate`) and judges the sky **once**. The
+blanket line moved from spawn to when the blanket is spread: a refusable seat makes an
 announcement at spawn a promise the town may break.
 
 **Gates:** census PASS (reshuffle churn, no collapse; `people` 186→182 is the feature) ·
-motion **FAIL→analysed**: only `shower` fired, untouched —
-`probes/shower-jump-spread.mjs` puts it at 0..2 on both builds, and the same statistic
-fell 4→1 on market · visual PASS · filmstrip day PASS · perf skipped (a getter
-and two clamps, for the ≤5 agents sitting) · **`probes/seats-out.mjs`**, 8 seeds × 12 sim
-days, HEAD vs here: refusals **0 → 15**; under `cover>0.60` the courtyard sits **0.269 →
-0.074** while the street holds 0.020/0.019 — it empties *to where the cafe already was*;
-under `cover<0.30` 0.439 → 0.461, a blue afternoon untouched; release cover mean 0.729,
-stagger 4.09 sim s against the street's 3.4; **0 vanished, 0 pair splits** ·
-`probes/seats-shots.mjs`: blanket on the grass, then an empty lawn and umbrellas walking
-out, two sim days ahead of the first drop.
+motion **FAIL→analysed**: only `shower` fired, untouched, and `probes/shower-jump-spread.mjs`
+puts it at 0..2 on both builds · visual PASS · filmstrip day PASS · perf skipped ·
+**`probes/seats-out.mjs`**, 8 seeds × 12 sim days, HEAD vs here: refusals **0 → 15**; under
+`cover>0.60` the courtyard sits **0.269 → 0.074** while the street holds 0.020/0.019 — it
+empties *to where the cafe already was*; under `cover<0.30` 0.439 → 0.461, a blue afternoon
+untouched; **0 vanished, 0 pair splits** · `probes/seats-shots.mjs`: blanket on the grass,
+then an empty lawn and umbrellas walking out.
 
 **Verdict:** shipped
 
 **Surprise:** the vanish test nearly shipped as a tautology. I first wrote it as "despawned
 while `act === 'sit'`" — the bug's exact *inverse*: a naive refusal sets `done` in the
-**walk** branch, so the agent disappears mid-lawn still labelled `walk` and the test reads
-a clean 0 forever. Re-anchoring on *position* (a legitimate exit ends off-grid) made it
-real; the min observed despawn radius, **32.7** against a threshold of 16 with a seat at
-3..12, is what turns the 0 into evidence. Second: `__warp(0.25)` is 7–8
-sub-steps of 1/30 s and a probe sees only the boundary, so a sit that began and ended
-inside one window was invisible — sampling reported 3 phantom refusals **on HEAD**, which
-has no refusal path. Wrapping the one function both paths go through gave 0.
+**walk** branch, so the agent disappears mid-lawn still labelled `walk` and the test reads a
+clean 0 forever. Re-anchoring on *position* made it real; the min observed despawn radius,
+**32.7** against a threshold of 16, is what turns the 0 into evidence. Second: `__warp(0.25)`
+is 7–8 sub-steps and a probe sees only the boundary, so sampling reported 3 phantom refusals
+**on HEAD**, which has no refusal path. Wrapping the one function both paths go through gave
+0. (Promoted to LAWS.md.) Context budget opened **OVER** (49.8 / 46 KB).
 
-**Law:** a zero is evidence only if you show the test can be non-zero — print the margin.
-Anchor it on the state the **bug** would leave, not the one the feature leaves. And a
-sampled warp sees only step boundaries: wrap the function instead.
-
-**Cue:** c58 — the pair shares a decision but not its two sit timers. c59 — two cues are
-both numbered c11. Context budget opened **OVER** (49.8 / 46 KB).

@@ -1,25 +1,118 @@
 {
-  "generated": "2026-08-04T11:25:00Z",
-  "byIteration": 25,
-  "rung": 5,
+  "generated": "2026-08-04T12:40:00Z",
+  "byIteration": 30,
+  "rung": 2,
   "diagnosis": {
-    "health": "Healthy, and the healthiest stretch of the run. 24 worker iterations, 20 shipped, 0 reverts, 0 briefs rejected; the two no-ships (#11, #16) were briefed harness jobs that correctly changed zero source lines. Cost over the last five workers is 8.30 / 6.55 / 6.11 / 6.49 / 4.50 — falling, not climbing, which is the opposite of the Solvista signature. srcLines 82/97/97/103/35, and #25 being the smallest is the brief working rather than the loop shrinking: it was a measure-first brief, three of its premises came back false, and it shipped four lines that moved ripe==0 from 48.3% of the year to 13.1%. No stall signals. The one genuine fault is mine and it is the same one as last pass: context-budget printed OVER on entry to #22, #24 and #25 — five workers across two passes now — and my pass-#20 fix was a 3.5 KB advisory cap written into a template, which the next three entries (4.3, 5.7, 4.9 KB) ignored. An advisory cap is a comment. Fixed with a mechanism this time.",
+    "health": "Healthy on output, and the run is in its longest clean stretch: 29 worker iterations, last 20 verdicts 18 shipped / 2 no-ship (both briefed harness jobs), 0 reverts, 0 briefs rejected, src moved on 10 of the last 10. Cost is flat, not climbing — 8.30 / 6.55 / 6.11 / 6.49 / 4.50 / 5.21 / 2.60 / 9.62 / 7.23 / 6.02, mean 6.26 against 6.32 for the ten before it — the opposite of the Solvista signature. selfVerdict has matched verdict every time it was recorded. No stall signals. The fault is mine and it is the SAME fault as the last two passes: the worker context budget opened OVER on #28 (47.1), #29 (48.4) and #30 (49.8). I fixed it to 45.3 at pass #25 with 0.7 KB of headroom and it re-grew at 1.3 KB per iteration for five iterations. That is not a distillation failure, it is a missing cap — LAWS.md and the ledger were both capped and enforced, and the growth simply moved to the one file nobody had capped, state.json's inventory, which by this pass was 11.4 KB, larger than LAWS.md itself. Fixed structurally this time rather than by distilling harder.",
     "signals": [
-      "iterations=30 (25 worker, 5 manager)",
-      "shipped=20/24 workers; both no-ships briefed as harness",
-      "revertStreak=0, briefsRejected=0, no stall signal",
-      "costUsd=8.30/6.55/6.11/6.49/4.50 (falling)",
-      "srcLines=82/97/97/103/35",
-      "contextBudget=55.0 KB OVER -> 45.3 KB OK (0.7 KB headroom)",
-      "LAWS.md 11.0 -> 12.0 KB, 27 -> 25 laws, 11 promotions absorbed by merge",
-      "ledger last-3 14.8 -> 8.6 KB; per-entry cap 3.5 -> 3.0 KB and now ENFORCED by rotate-ledger.mjs",
-      "openCues 13 -> 6 (1 promoted to a brief, 6 closed)",
-      "BUG FIXED in state.mjs: the balance grid parsed pre-loop tags (pre28) as iteration numbers"
+      "iterations=36 (30 worker, 6 manager)",
+      "last 20: shipped=18 no-ship=2; revertStreak=0; briefsRejected=0; no stall signal",
+      "costUsd last 10 mean 6.26 vs 6.32 for the 10 before — flat",
+      "srcLines last 5: 58/260/164/135/61 — no shrink",
+      "contextBudget OVER on 3 consecutive workers (47.1 -> 48.4 -> 49.8), re-grown from 45.3 at ~1.3 KB/iter",
+      "budget 51.0 -> 44.1 KB this pass; LAWS 12.0 -> 11.5 (26 -> 25 laws), inventory 11.4 -> 8.5, ledger last-3 9.5 -> 6.9",
+      "NEW CAPS enforced by rotate-ledger.mjs: inventory 300 B/entry, openCues 8, laws 900 B/law, ledger entry 3.0 -> 2.5 KB",
+      "openCues 15 -> 6: 3 promoted to briefs, 1 promoted to a law, 3 closed, 2 merged, 1 fixed in place",
+      "coverage bug: #28 (Sky x Scale/World) was never recorded — the grid read Sky as 4 back when it was 2"
     ],
-    "balance": "The balance grid was lying, and I have been reading it for five passes. state.mjs computed last-touched by stripping non-digits, so pre-loop work recorded as pre28/pre29/pre31 read as iterations 28/29/31 — it reported Courtyard as last=28 and River as last=31 in a run whose last iteration is 25. Fixed, and the real picture is different from the one I have been planning against: Courtyard & garden is 11 back (#14) and by far the most starved — the domain the piece is NAMED for and the thing SKILL.md calls the thing this piece is for. Then People & animals 6 back (#19), Lane & market 7 back (#18). Street 0 back, Plaza 1, River 2, Sky 3. This batch gives the courtyard the observer work in b26, the lane its first since #18 in b28, and life its first since #19 in b29. Sky takes two, but both are observer-side rather than more weather."
+    "balance": "River & far bank is 7 back (#23) and the most starved; Plaza & quay 6 back (#24); Cross street & allotments 5 back (#25). Courtyard 3 back, Sky 2, Lane 1, People 0. The starvation has concentrated on the east half of the map: River and Plaza together have had 2 of the last 7 iterations and hold 11 of the 49 inventory entries, against 21 for Sky and People. This batch puts b31 in River, b32 in Plaza and b33 in Street — the three starved domains, in order — and gives Sky only b30, which is observer work rather than more weather. b34 lands in People x Interaction/UX, a cell that has never been touched at all."
   },
-  "rationale": "Rung 5 — change the observer. Pass #20 said that if b20-b24 landed the next pass would climb, and all five landed and shipped.\n\nThe case for climbing is one number. The year is 26 sim days, which is ~24 real minutes at 1x. Nine systems now read season(): day length, light, the courtyard beds, all thirteen trees, the working day, the population caps, the weather fronts, the river, and as of #25 the allotment ceiling. Fourteen iterations, #12 through #25, went into making this town know what time of year it is. A person who opens the page and watches for thirty seconds sees two percent of that, and the sill under the canvas — which has said \"Day 12 · Afternoon\" since before the loop began — names the day and the hour and has never once named the season. The town is rich and only one view of it exists. That is the definition of rung 5, and it is also the answer to \"what would most help somebody looking at this for thirty seconds\": not another system, a way to reach the ones that are already there.\n\nb25 and b27 are that argument in two sizes. b25 is the cheap half — say what season it is, in the sill, in the diorama own register. It is low risk and it is first because b27 needs a viewer who can already read the year before giving them a way to move through it. b27 is the batch bet and it is genuinely hard: every slow scalar in this town is rate-capped so that \"it never steps\" is a measurable guarantee, and the trees, beds, weather and river all carry hysteresis, so a jump to another season either respects the caps and takes real time or it is a pop. I have written it so that an honest transition counts as success and a teleport does not. It may fail; that is the one in this queue that could.\n\nb26 is the other half of rung 5 and it goes to the starved domain. The diorama answers a click on 64% of the frame after #24, and the cursor says you may click here, but nothing says WHAT. There are eleven species in the beds with bloom stages, thirteen trees each on their own seasonal clock, and a viewer cannot name one of them. Naming what is under the pointer is a way to READ the town, which is the rung, and the courtyard is where the nameable content is densest — which is convenient, because the balance grid I just repaired says the courtyard has had nothing for eleven iterations. It is the domain the piece is named for.\n\nb28 and b29 are not observer work and are in the queue deliberately, because five briefs on one theme is how a batch becomes a monoculture. b28 is the last flat system in the town: the market is three stalls every fourth day, identical in February and August, while fifty feet away the allotments ripen, are picked, rest and re-sow on a full year and gardeners walk out carrying baskets that go nowhere. It is the best remaining \"these two systems should know about each other\" and it lands in a domain 7 back. b29 closes c11, open since #5, which was blocked on a seam — routeToExit() — that now exists; street sitters get up when the sky thickens and courtyard sitters sit through the rain.\n\nCuration, which was half this pass. The budget was 55.0 KB against a 46 KB cap and is now 45.3. Three things had to be true at once. LAWS.md had eleven promotions waiting from #21-#25 and was already at 11.0/12 KB, so eight of the eleven went in as MERGES into laws that already existed — presence-vs-rate into the time-compression law, the ten-seed rule into the R()-reshuffle law, the neutrality algebra into the slow-scalar law, footprint-off-the-grid into one-predicate-one-definition, the census ladder into pin-the-instant, grain-matching into the ceiling law. Only three are new and all three are about slow things: hysteresis across a phase boundary (#21, and #23 independently re-derived it through a long-lived object rather than a scalar, which is the loop generalising rather than repeating), duration-is-not-the-inverse-of-rarity, and they sit together. To pay for them I cut the flat-peak law into the slow-scalar law where it belonged, folded read-probes-first into the probe-rewind law, merged the two rate-of-zero laws, and compressed the register throughout — the essayistic style was itself the cost. 27 laws to 25, sharper, and inside the byte cap.\n\nThe ledger: the last three entries were 5.7, 4.3 and 4.9 KB against a cap I set at 3.5 KB last pass and did not enforce. Full text of all three appended to LEDGER-archive.md, condensed in place to 2.9/2.8/3.0, cap tightened to 3.0 KB, and — the actual fix — rotate-ledger.mjs now measures the last three entries by name and refuses to be quiet about one that is over. I run that script every pass, so it is no longer possible for me to miss this the way I missed it twice.\n\nAnd a bug worth recording. state.mjs computed each domain last-touched iteration by stripping non-digits from the coverage entries, so pre-loop work tagged pre28, pre29, pre31 parsed as iterations 28, 29 and 31 — in a run that has reached 25. The grid told me Courtyard was the freshest domain when it is the most starved by seven iterations, and I have planned three passes against it. Balance is one of the two things I exist for and my instrument for it was inverted. Fixed, and it now prints how many iterations back each domain is.",
-  "queue": [],
+  "rationale": "Rung 2 — deepen and interconnect. There is no stall signal, all five of the last batch shipped, and the ladder says stay low when work is landing; the rung-5 climb at pass #25 did its job and does not need repeating.\n\nWhat that climb left behind is the first brief. #26 named the season in the sill, #27 named whatever is under the pointer, #28 turned the season into a button that reaches midwinter in 19.6 real seconds. Those three are the answer to the thirty-second-viewer question and the loop built them well. Every one of them is SILENT. There is exactly one invitation in this town and it is about clicking the canvas; the button is advertised by a chevron and a cursor, and on a phone it is 10px uppercase in a caption slot. LAWS.md has carried \"a feature that exists may exist at a rate of zero — advertise it or nobody finds it\" since #13, marked as paid for three times, and the loop shipped a fourth instance of it the iteration after reading it. A law re-violated by the iteration that read it is stated but not REACHABLE at the moment of the decision, and the honest response is not to write it a fourth time — it is to spend a brief closing the instance and put the pattern in WATCH, where a brief-writer meets it. b30 does the first; this pass did the second.\n\nb31 is the bet. The far bank has had a BANDSTAND since before the loop began and nothing has ever happened in it — a structure with no event, in the domain that is 7 iterations back, on a map whose whole east side has no gathering of any kind. Every crowd this town has is transient: walkers passing, browsers circling a stall, sitters who claim one seat each. An audience is a different shape — people who arrive for a thing, stand still together, and leave when it ends — and the loop has never built one. It is genuinely risky: it needs its own arrival source rather than a wider band (the rate-of-zero law), it needs the 0.9-cell separation to hold for a STANDING group where cue c49 says the guarantee is only at spawn, it needs staging as clamps on one progress so it packs away, and it should be summer-weighted so the green is empty in February. It may fail. It is the only one in this queue that could, and a queue of five safe jobs is how a loop grinds to a halt in comfort.\n\nb32 spends the other half of the same observation. Nine systems read season() and every single one is west of the bridge or in the sky: the courtyard beds, the trees, the working day, the population caps, the weather, the river. The plaza, the fountain and the quay are identical in February and August — exactly the position the market was in before #29, which was the best-received connect in the run. The fountain is the plaza's landmark and the obvious seasonal reader.\n\nb33 is small, and it is a correctness fix that a shipped feature turned into a visible falsehood. The opening scatter puts ornamentals into the allotment block (seed 42 opens with a fern in the plots) because speciesFor() filters only NEW sowing; since #29 the harvest walks that produce to a market board, so the town can now put a fern on a vegetable stall. It goes fourth rather than first because it is cheap and the three ahead of it are worth more to a viewer.\n\nb34 finishes #27. The naming names ground, plants and trees; the walkers, ducks, swans, the sweeper and the boat all pass under the same pointer and answer with the paving they are standing on. __entities() already carries every one of them with a stable id, and crowns[] is the established pattern for letting the draw pass record where it painted a thing. It lands in People × Interaction/UX, a grid cell that has never been touched.\n\nCuration was the larger half of this pass, and the finding is worth recording because it is the third time I have written a version of it. The budget was 51.0 KB against a 46 KB cap and is 44.1 now. But the number that matters is that it was 45.3 KB at the end of pass #25 and re-grew at 1.3 KB per iteration. I had capped and ENFORCED the two files I was watching — LAWS.md at 12 KB, ledger entries at 3 KB — and the growth went to the one file with no cap at all. state.json's inventory had reached 11.4 KB, larger than LAWS.md, because every landed iteration adds a system to it by construction and nothing ever said what a system costs. That is the Solvista failure's exact shape, which the budget script was written to prevent: cap one file and the growth relocates. So the fix is not more distilling. Inventory entries are now capped at 300 B each and measured by rotate-ledger.mjs, which names offenders the way it already names fat ledger entries; open cues are capped at 8; a single law is capped at 900 B, because a law that sprawls past a paragraph is two laws pretending to be one and reaches the file cap without anybody deciding to spend it. Inventory came down 11.4 → 8.5 KB by dropping measurements, which its own header had said belonged in the ledger since the day it was written.\n\nLAWS.md: 12.0 → 11.5 KB, 26 → 25 laws, four promotions from #27–#30 absorbed. #29 and #30 both went in as MERGES into the probe-rewind law, and #29 is the better kind of promotion — it says the existing rule was right for the wrong reason (it is not that the sim keeps running, it is that the RENDERER draws from the PRNG), so the law is now correct rather than merely useful. #27 and #28 merged into one new law, \"the sill is DOM, and DOM fails quietly\", which closes a real gap: three of the last four iterations touched the sill and the loop had no law about it. #30 is the second new law, \"a zero is evidence only if you show the test can be non-zero\" — about proving a negative, and it generalises well past the seats work. To pay for them I split the slow-scalar law (1255 B, carrying two ideas — duration-is-not-rarity is now its own law), merged locate-before-you-judge into compare-against-a-control, folded \"end a population by not deleting what is on screen\" out of the split-flag law into time-compression where inflow-versus-standing-population already lives, and cut \"a screenshot cannot see motion\" into the filmstrip law. The weakest thing cut outright was the rest of the split-flag law — its \"fade the largest thing first\" clause, which was a filmstrip observation duplicating the filmstrip law.\n\nOne note for the record. #29 derived hysteresis independently for the third time, through a market store rather than a scalar or a moving object, and found something the first two did not: two lags COMPOSE, and the composition moved the year's trough from winter to spring, which nobody wrote. That is the loop generalising a law rather than re-deriving it, and it is the clearest evidence in this run that the memory is doing its job. The law now names a store as a third carrier.",
+  "queue": [
+    {
+      "id": "b30",
+      "domain": "Sky, light & weather",
+      "kind": "Interaction/UX",
+      "brief": "The season button is the best thing this town has for a viewer who will not stay: one click and midwinter is 19.6 real seconds away. Nothing tells anybody it is there. It is advertised by a chevron and a pointer cursor, and below 640px it drops into the plate's caption slot as 10px uppercase. Make the sill legibly pressable and say so once, so a first-time viewer who never touches the canvas still learns the year can be moved. There is already ONE invitation in this town (the canvas touch hint at 8 real seconds) — do not add a second thing shouting: sequence them, or extend the one that exists, so a viewer is never being invited to two things at once.",
+      "seams": [
+        "#season",
+        "seasonLabel",
+        "inviteHold",
+        "touch-hint",
+        "skipEase",
+        "land"
+      ],
+      "successLooksLike": "On a fresh 390px load with nothing clicked, a viewer is told once — in real seconds, on the reading clock, never twice — that the season can be advanced, and the sill element reads as pressable at both 390 and 1400px. Cancelled if they press it first. Silent on ?pause. probes/touch-hint.mjs still passes for the canvas hint, and the two invitations never overlap in time.",
+      "avoid": "Do not add a second permanent chrome element, a tooltip that follows the pointer, or anything that repeats. Do not hurry it under ?fast — this is a reading speed. Do not regress the 640px caption-slot layout from #26 or the ResizeObserver from #27; the sill borrowing space resizes the picture with no resize event.",
+      "budgetMin": 22,
+      "risk": "low"
+    },
+    {
+      "id": "b31",
+      "domain": "River & far bank",
+      "kind": "New element",
+      "brief": "There has been a BANDSTAND on the far bank since before the loop began and nothing has ever happened in it. The whole east side of the map has no gathering of any kind — every crowd this town has is transient, people passing through or claiming one seat each. Put something on in the bandstand on a summer afternoon and let people come and stand for it: an audience that arrives, holds still together, and thins when it ends. The green should be busy in July and empty in February.",
+      "seams": [
+        "BANDSTAND",
+        "spawnEastAgent",
+        "eastCap",
+        "byTheWater",
+        "greetPass",
+        "season",
+        "marketRaise"
+      ],
+      "successLooksLike": "Across a folded multi-year probe, a summer afternoon puts a legible standing group at the bandstand and midwinter puts none; the audience arrives over minutes rather than appearing, reads as separate people rather than one shape at every moment it is on screen, and packs away when the thing ends without anybody teleporting. A filmstrip of the far bank shows no POP at set-up or strike.",
+      "avoid": "Do not widen an existing spawn band to feed it — the east half already shares one budget, and the rate-of-zero law says give it its own arrival source. Do not stage it as timed steps; marketRaise is the pattern, N clamps on one 0..1 progress, so it packs away in reverse for free. And do not trust the 0.9-cell separation to hold by itself: cue c49 says that guarantee is at SPAWN only, and an audience STANDS STILL — which is the case the birds already fail.",
+      "budgetMin": 35,
+      "risk": "high"
+    },
+    {
+      "id": "b32",
+      "domain": "Plaza & quay",
+      "kind": "Deepen",
+      "brief": "Nine systems read season() and every one of them is west of the bridge or in the sky. The plaza is identical in February and August — the exact position the market was in before #29. The fountain is the plaza's landmark and has no seasonal reader at all. Give it the year: what the water does, what the basin looks like, and who is willing to stand near it should not be the same in midwinter as in midsummer.",
+      "seams": [
+        "FOUNTAIN",
+        "waterBox",
+        "riverRun",
+        "crumbSpot",
+        "PAVING.plaza",
+        "season",
+        "seasonPhase"
+      ],
+      "successLooksLike": "A pinned midwinter and a pinned midsummer plaza differ visibly in the wide shot, and the difference is continuous — a probe over a folded year shows no step in the fountain terms at any phase, and every term reduces exactly to today's constant at SEASON_START.",
+      "avoid": "riverRun() already exists for the water and reads the same year — read it or a sibling of it; do not re-derive a second water-season term (one predicate, one definition). Do not let a global scalar approach zero without per-cell variance or it reads as a switch. And check what the fountain was tuned against before making its constants variable: crumbSpot's keep-rect reads waterBox off the grid, and #24 put 22 birds in the basin the last time two places evaluated the same geometry.",
+      "budgetMin": 28,
+      "risk": "medium"
+    },
+    {
+      "id": "b33",
+      "domain": "Cross street & allotments",
+      "kind": "Polish",
+      "brief": "The allotment block is a vegetable block that does not contain only vegetables. The opening scatter seeds ornamentals into the plots — seed 42 opens with a fern in the block, seed 7 with a fern and a lavender — because speciesFor() filters only NEW sowing, not the initial scatter. Since #29 that matters in a way it did not before: harvestPlot() pays its cells into produce[], stockMarket() lays them out, and the town can now put a fern on a market stall as something a gardener grew to sell. Make the block vegetables from the first frame.",
+      "seams": [
+        "speciesFor",
+        "plotCrop",
+        "inAllotment",
+        "harvestPlot",
+        "produce",
+        "mkShelf",
+        "SPECIES"
+      ],
+      "successLooksLike": "Over ten seeds, no non-vegetable species ever occupies an allotment plot at t=0 or reaches mkShelf at any point in a folded year, and the courtyard beds are unchanged — the same eleven species in the same proportions as HEAD, proven against a stashed baseline.",
+      "avoid": "Do not fix it by filtering at the market — that is a second predicate for what an allotment grows and it will drift from speciesFor(). Fix it where the block is populated. Expect the census to churn everywhere: any change to the opening scatter reshuffles the seeded world, so read the diff for collapse, not delta.",
+      "budgetMin": 20,
+      "risk": "low"
+    },
+    {
+      "id": "b34",
+      "domain": "People & animals",
+      "kind": "Interaction/UX",
+      "brief": "#27 taught the pointer to name what it is over, and it names ground, plants and trees. Every living thing in the town — the walkers, the cafe sitters, the ducks, the swans, the sweeper, the cat, the person in the boat — passes under that same pointer and answers with the paving it happens to be standing on. Name the people and the animals too, in the town's own register, so a viewer pointing at the obvious moving thing is told what it is rather than what is under its feet.",
+      "seams": [
+        "__entities",
+        "crowns",
+        "nameAt",
+        "answersTouch",
+        "NAME_SETTLE",
+        "stepAgent"
+      ],
+      "successLooksLike": "Pointing at a walker, a duck, a swan, the sweeper or the boat names that thing and not the paving; a probe finds zero cells where a person is drawn and the ground wins; the name follows a moving figure without flickering as it walks, and clears cleanly when it leaves.",
+      "avoid": "Do not hit-test in world space — people are drawn as sprites at a screen position, and crowns[] is the pattern #27 established for exactly this (a second derivation of the same geometry is what drifts). Do not read a per-agent countdown field as a stable label: a.timer, a.greet and a.watch all cycle several times a second. One read per FRAME off the last pointer position, as #27 does — not per mousemove.",
+      "budgetMin": 26,
+      "risk": "medium"
+    }
+  ],
   "consumed": [
     {
       "id": "b1",

@@ -57,7 +57,7 @@ if (marks.length <= KEEP) {
 {
   const cur = readFileSync(LEDGER, 'utf8');
   const m = [...cur.matchAll(/^## Iteration \d+.*$/gm)];
-  const ENTRY_CAP = 3 * 1024;
+  const ENTRY_CAP = 2.5 * 1024;
   const last3 = m.slice(-3);
   let hot = 0, sum = 0;
   console.log('\nread by every worker — the last 3 entries:');
@@ -71,11 +71,42 @@ if (marks.length <= KEEP) {
   }
   console.log(`  ${(sum / 1024).toFixed(1)} KB total`);
   if (hot) {
-    console.log(`\n  ${hot} of the last 3 entries is over the 3 KB per-entry cap.`);
+    console.log(`\n  ${hot} of the last 3 entries is over the 2.5 KB per-entry cap.`);
     console.log('  Condense them IN PLACE this pass: append the full text to LEDGER-archive.md');
     console.log('  first, then cut what stays to the brief, the change, the gate verdicts and');
     console.log('  the surprise. Laws belong in LAWS.md and loose ends in state.json — neither');
     console.log('  is worth a worker re-reading three times.');
+  }
+}
+
+/* state.json's inventory is the other file a worker reads whole, and it is the only
+ * one that grows by construction — every landed iteration adds a system to it. It had
+ * no cap at all until pass #30, by which point it was the single largest item in the
+ * budget (11.4 KB, larger than LAWS.md). Same fix as the ledger: a per-entry byte cap,
+ * measured here, with the offenders named. An entry over it is carrying measurements,
+ * and measurements belong in the ledger. Cues get a count cap for the same reason —
+ * a cue that nobody will ever promote is a brief or a deletion, not a resident. */
+{
+  const f = join(HERE, 'state.json');
+  const INV_ENTRY_CAP = 300, CUES_MAX = 8;
+  if (existsSync(f)) {
+    try {
+      const s = JSON.parse(readFileSync(f, 'utf8'));
+      const fat = [];
+      let n = 0, bytes = 0;
+      for (const [dom, list] of Object.entries(s.inventory || {})) {
+        if (!Array.isArray(list)) continue;
+        for (const e of list) {
+          n++; const b = Buffer.byteLength(e); bytes += b;
+          if (b > INV_ENTRY_CAP) fat.push(`${dom}: ${b} B — ${e.slice(0, 52)}…`);
+        }
+      }
+      const cues = (s.openCues || []).length;
+      console.log(`\ninventory: ${n} entries, ${(bytes / 1024).toFixed(1)} KB; open cues ${cues}/${CUES_MAX}`);
+      for (const line of fat) console.log(`  ← over ${INV_ENTRY_CAP} B  ${line}`);
+      if (fat.length) console.log(`  ${fat.length} inventory entries over cap. They are NOUNS — a number in one is ledger text.`);
+      if (cues > CUES_MAX) console.log(`  ${cues - CUES_MAX} cues over cap. Promote one to a brief or close it with a reason.`);
+    } catch { /* state.json is the manager's problem elsewhere */ }
   }
 }
 
@@ -84,7 +115,18 @@ if (existsSync(LAWS)) {
   const n = (laws.match(/^- \*\*/gm) || []).length;
   const bytes = statSync(LAWS).size;
   const overN = n > LAWS_MAX, overB = bytes > LAWS_CAP;
-  console.log(`laws: ${n}/${LAWS_MAX} laws, ${(bytes / 1024).toFixed(1)}/${(LAWS_CAP / 1024).toFixed(0)} KB${overN || overB ? '   ← OVER BUDGET' : ''}`);
+  console.log(`\nlaws: ${n}/${LAWS_MAX} laws, ${(bytes / 1024).toFixed(1)}/${(LAWS_CAP / 1024).toFixed(0)} KB${overN || overB ? '   ← OVER BUDGET' : ''}`);
+  /* A single law that sprawls is how the file gets to its cap without anybody
+   * deciding to spend the bytes. 900 B is about a paragraph — past that it is two
+   * laws pretending to be one, and it should be split or cut. */
+  {
+    const idx = [...laws.matchAll(/^- \*\*/gm)].map(m => m.index);
+    for (let i = 0; i < idx.length; i++) {
+      const end = i + 1 < idx.length ? idx[i + 1] : laws.length;
+      const b = Buffer.byteLength(laws.slice(idx[i], end));
+      if (b > 900) console.log(`  ← ${b} B, over 900: ${laws.slice(idx[i] + 4, idx[i] + 56).replace(/\n\s*/g, ' ')}…`);
+    }
+  }
   if (overN || overB) {
     console.log('\n  LAWS.md is read in FULL by every worker iteration, so this is the most');
     console.log('  expensive file in the repo. Distil it now, in this manager pass:');
