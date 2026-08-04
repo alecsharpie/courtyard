@@ -17,7 +17,7 @@
   "avoid": "Do not give courtyard sitters umbrellas by default — the ~30% who get caught out is a deliberate reading. A picnic pair arrives together and shares a blanket, so do not let one half leave without the other.",
   "budgetMin": 25,
   "risk": "low-medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 30,
   "issued": "2026-08-04T04:04:17.406Z",
