@@ -17,7 +17,7 @@
   "avoid": "No permanent labels painted on the canvas. Do not fire on every mousemove — a name that changes sixty times a second is noise, not information. Do not fight the one-time invitation (inviteHold owns the sill while it runs). And mobile has no cursor at all, so a hover-only affordance is a discovery rate of zero on a tracked framing — see how the invitation borrows the sill at 390px.",
   "budgetMin": 30,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 2,
   "nextIter": 27,
   "issued": "2026-08-04T01:43:49.561Z",
