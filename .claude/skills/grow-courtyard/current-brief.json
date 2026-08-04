@@ -18,7 +18,7 @@
   "avoid": "Do not add a fourth stall type — three exist and the census says they are under-used. Do not give the market its own arrival source; it already has a spawn band under laneCap, and the whole east half competes for that one budget. Watch the autumn shoulder: bloomCap is stepped 3/2/1 while everything around it lerps (c50), so a market driven off ripeness will inherit that cliff.",
   "budgetMin": 30,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 29,
   "issued": "2026-08-04T03:42:25.236Z",
