@@ -321,7 +321,8 @@
       "the weather reads the year — greyF() drives front frequency, depth and spellLen() (winter a low grey lid, summer mostly clear) while showerRate/showerLen/showerHard move the OPPOSITE way, so summers rare showers are the hard ones and the annual total holds. Rain can start in the dark (nightDamp, NIGHT_RAIN 0.12). probes/weather-year.mjs",
       "the ground reads the lid — shadowF() (SH_KNEE 0.32, SH_FULL 0.94, SH_FLOOR 0.20) with shSpread() and shOffset(), so a cast shadow fades, widens and retracts together. Eight sites; a REAL blur on the cached ground layer behind CAN_BLUR. probes/shadow-cover.mjs, probes/ground-relight.mjs",
       "the sill NAMES the year — seasonLabel(), the sibling of timeLabel(): eight names on seasonPhase (never warmth, which hits 0.5 twice), sectors of 1/8 CENTRED on their phase so midwinter is one continuous name across the wrap and Spring lands on SEASON_START. #season in the sill, serif beside the plate; below 640px it drops into the plate's caption slot and reads as a museum label under the title. #stats now yields below 860px so the sixth item does not starve the ticker. probes/sill-year.mjs",
-      "a ResizeObserver on the canvas frame — the sill BORROWS space (naming, invitation), which resizes the picture +16px at 390px with no resize event, and unproject() was landing 2 cells out at the bottom of the frame"
+      "a ResizeObserver on the canvas frame — the sill BORROWS space (naming, invitation), which resizes the picture +16px at 390px with no resize event, and unproject() was landing 2 cells out at the bottom of the frame",
+      "the sill's season is a BUTTON — clicking it runs the town on to the next quarter as a sub-stepped fast-forward, never a jump. stepSkip()/simSub()/skipEase(): SKIP_SUB 0.25 sim s, a flat-topped trapezoid advanced off its exact integral, lands on a WHOLE number of sim days so the hour survives (7+6+7+6 = 26 = SEASON_LEN, four clicks close the year exactly). The lapse OWNS the clock — speed and Pause are suspended for its few seconds and speed is never written. announce() is deaf throughout; land() says one line. RM takes an honest cut behind #veil instead of a six-sunrise time-lapse. probes/season-skip.mjs, skip-strip.mjs, skip-shots.mjs"
     ],
     "life": [
       "walkers with itineraries, courtyard and street; eastern itineraries — plaza bench, fountain gaze, quay rail, quay bench, towpath, church green, allotment plot, bridge parapet",
@@ -385,6 +386,18 @@
       "id": "c53",
       "note": "The naming names places and plants, not PEOPLE. Walkers, ducks, swans, the sweeper and the boat all pass under the pointer and answer with the ground they stand on. __entities() already carries every one with a stable id, and crowns[] is the pattern — let the draw pass record where it painted a thing.",
       "raisedBy": 26,
+      "seenBy": 0
+    },
+    {
+      "id": "c54",
+      "note": "The season button is advertised only by a chevron and a pointer cursor. The one-time invitation covers the CANVAS; nothing tells a viewer the sill answers too, and on a phone it is 10px uppercase in the caption slot. Midwinter is 19.6 real seconds away and nobody is told.",
+      "raisedBy": 27,
+      "seenBy": 0
+    },
+    {
+      "id": "c55",
+      "note": "On a ?pause page the sill's TEXT never refreshes: refreshStats() runs from statAcc += dt with dt 0, and the load-time call happens before updateClock(), so a ?t=175&pause page reads 'Day 1 · Dawn' while __census() says day 3. Pre-existing, verified identical on HEAD, harness-only — but any future gate that reads the sill DOM instead of the hook will be reading the opening frame.",
+      "raisedBy": 27,
       "seenBy": 0
     }
   ],

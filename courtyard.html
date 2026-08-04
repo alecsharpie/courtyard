@@ -65,9 +65,27 @@
      tabular ones are the two that COUNT. min-width holds the longest name so the
      clock beside it never slides when the year turns.
      It lives INSIDE #plate rather than beside it so the narrow breakpoint can drop it
-     onto the caption line without reparenting — see the media query. */
-  #season{ flex:none; font-size:14px;
-    color:var(--ink); letter-spacing:.02em; white-space:nowrap; min-width:9ch; }
+     onto the caption line without reparenting — see the media query.
+     And it is a BUTTON, because the year is 26 sim days — 24 real minutes at 1x —
+     and the one thing in the sill that names the season is also the most obvious
+     place to ask for another one. See beginSkip(). It carries a chevron at all
+     times rather than only on hover: a phone has no hover, and this is the one
+     control in the row that does not already look like a control. */
+  #season{ flex:none; font-size:14px; font-family:inherit;
+    color:var(--ink); letter-spacing:.02em; white-space:nowrap; min-width:10.5ch;
+    background:transparent; border:0; padding:0; margin:0; text-align:left;
+    cursor:pointer; transition:color .25s; }
+  #season::after{ content:'\2009\203A'; opacity:.5; }
+  #season:hover, #season:hover::after{ color:var(--accent); opacity:1; }
+  #season:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:3px; }
+  #season[disabled]{ cursor:default; opacity:.55; }
+  /* The reduced-motion path's honest cut: a lapse of six sunrises in six seconds is
+     precisely the thing prefers-reduced-motion is asking not to be shown, so under it
+     the same advance is delivered behind this instead. It is the only thing in the
+     frame allowed over the glass. */
+  #veil{ position:absolute; inset:0; pointer-events:none; background:var(--room);
+    opacity:0; transition:opacity .38s ease; }
+  #veil.on{ opacity:1; }
   #daytime{ flex:none; font-variant-numeric:tabular-nums; white-space:nowrap; min-width:12ch; }
   #ticker{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
     font-family:"Iowan Old Style", Palatino, Georgia, serif; font-style:italic; font-size:14px;
@@ -144,9 +162,11 @@
   <div id="frame">
     <canvas id="cv" aria-label="A courtyard and the lane beside it, seen from an upstairs window"></canvas>
     <div id="glass"></div>
+    <div id="veil"></div>
   </div>
   <div id="sill">
-    <div id="plate"><span id="title">The Courtyard<small>a cellular block</small></span><span id="season">Spring</span></div>
+    <div id="plate"><span id="title">The Courtyard<small>a cellular block</small></span><button id="season" type="button"
+      title="Run on to the next season" aria-label="Run on to the next season">Spring</button></div>
     <div id="daytime">Day 1 &middot; Dawn</div>
     <div id="ticker">The courtyard is quiet. Not much here yet.</div>
     <div id="naming"></div>
@@ -1004,6 +1024,10 @@ function showLine(e){
  * it, and the invitation waits on it rather than queueing behind the news. */
 function tickerFree(){ return tickerTimer < 0 || tickerAge >= lineDwell; }
 function announce(txt, then, dwell){
+  // Deaf through a season skip. Six sim days go past in six real ones, and every
+  // strike, market and wind line in them would either flood the surface or land on it
+  // as stale news after the lapse ended. The lapse says one thing, on arrival: land().
+  if (skipping()) return;
   if (tickerFree()){ showLine({ txt, then, dwell }); return; }
   if (txt === tickerEl.textContent) return;
   if (tickerQ.some(q => q.txt === txt)) return;
@@ -2007,7 +2031,7 @@ function refreshStats(){
   document.getElementById('stats').textContent = people + (people===1?' person · ':' people · ') + blooms + ' blooms'
     + (ducks.length ? ' · ' + ducks.length + ' ducks' : '');
   document.getElementById('daytime').textContent = 'Day ' + (day+1) + ' · ' + timeLabel();
-  document.getElementById('season').textContent = seasonLabel();
+  seasonEl.textContent = seasonLabel();
 }
 
 /* ============ static ground layer ============ */
@@ -4310,10 +4334,13 @@ const INVITE_HOLD = 7;    // real seconds a narrow sill lends it the plate's pla
 const INVITE_WIDE = 'Reach out of the window if you like — the beds, the pond, the lane all answer.';
 const INVITE_NARROW = 'Touch the picture — it answers.';
 const sillEl = document.getElementById('sill');
+const seasonEl = document.getElementById('season');
+const veilEl = document.getElementById('veil');
 const DRIVEN = location.search.indexOf('pause') >= 0;   // the harness, not a viewer
 let touched = DRIVEN, invited = false, inviteHold = 0;
 function offerInvite(now){
-  if (invited || touched || now < INVITE_AT || !tickerFree()) return;
+  // deferred, never spent, through a lapse: announce() is deaf and would swallow it
+  if (invited || touched || skipping() || now < INVITE_AT || !tickerFree()) return;
   invited = true;
   if (innerWidth > 640){ announce(INVITE_WIDE, null, INVITE_DWELL); return; }
   announce(INVITE_NARROW, null, INVITE_DWELL);
@@ -4424,7 +4451,9 @@ function lookAt(p){
 }
 function updateNaming(now){
   let want = HOVERS ? (hoverPx ? lookAt(hoverPx) : '') : (heldTo > now ? held : '');
-  if (want && (inviteHold || (innerWidth > 640 && now - lineAt < lineDwell))) want = '';
+  // ...and never through a lapse: the label is read off a cell that is turning over
+  // several times a second under it, which is the one way this label CAN be wrong
+  if (want && (inviteHold || skipping() || (innerWidth > 640 && now - lineAt < lineDwell))) want = '';
   if (want !== nCand){ nCand = want; nCandAt = now; }
   if (nCand && now - nCandAt < NAME_SETTLE) return;
   if (nCand === nShown) return;
@@ -4441,6 +4470,9 @@ document.getElementById('speed').addEventListener('click', e => {
   speed = speed === 1 ? 3 : speed === 3 ? 8 : 1;
   e.target.textContent = speed + '×';
 });
+// the season names itself and, being the only fact in the sill you would want to
+// change, offers itself as the way to change it
+seasonEl.addEventListener('click', beginSkip);
 
 /* ============ opening state ============ */
 (function seed(){
@@ -4602,13 +4634,127 @@ function simStep(sdt, dt){
     if (R() < 0.6) announce(ambientLine());
   }
 }
+/* ============ reaching another season ============
+ * The year is SEASON_LEN days — about 24 real minutes at 1x, and the speed button
+ * tops out at 8x. Every seasonal term in this file is written for a viewer who would
+ * have to sit at this window for twenty-four minutes to see it. So the season's NAME
+ * in the sill is also the control: click it and the town runs on to the next quarter.
+ *
+ * It is a FAST-FORWARD, not a jump. Nothing here writes seasonPhase, cloud, bSt, or a
+ * walker's position — it only hands simStep() more seconds per frame, sub-stepped so
+ * no single step is longer than SKIP_SUB. That is the whole safety argument, and it
+ * is why six hysteretic systems can be crossed at once without a pop: every rate cap
+ * in this town is per SIM second (cover at 0.02/s, the CA's 0.35 s tick, the spawn
+ * accumulator's 1 s roll, a boat's trip, a garment's threshold), so a sub-stepped
+ * advance is indistinguishable from having waited. What is compressed is REAL time.
+ * Sub-stepping is not cosmetic either: spawnAcc resets to 0 when it fires, so one
+ * enormous step would silently drop six days of arrivals.
+ *
+ * Three consequences worth stating:
+ *   · It lands on a WHOLE number of sim days, the nearest to a quarter-turn, so the
+ *     hour you left at is the hour you arrive at — winter at noon, not winter at
+ *     midnight. From the anchor those days are 7+6+7+6 = 26 = SEASON_LEN exactly, so
+ *     four clicks return the town to the identical phase AND the identical hour.
+ *   · The rate is a flat-topped trapezoid with smoothstep shoulders, advanced off the
+ *     EXACT integral of that profile — so the span delivered is right whatever frame
+ *     rate the machine gives, and both ends have zero slope, so the lapse eases out of
+ *     the ordinary clock and back into it instead of cutting. Flat-topped rather than
+ *     a cosine bump because the peak rate is how fast day and night alternate on
+ *     screen, and 1/(1-s) of the mean is a great deal kinder than 2x.
+ *   · Under prefers-reduced-motion a time-lapse of six sunrises is precisely the thing
+ *     being asked for less of, so RM gets the honest cut: a veil, the same sub-stepped
+ *     advance delivered behind it, the veil away.
+ * `speed` is never touched, and no click reaches a driven page, so nothing leaks:
+ * ?fast, __warp, the census and every gate see exactly the town they saw before. */
+const SKIP_SUB = 0.25;      // sim seconds — the longest step the lapse is allowed to take
+const SKIP_RATE = 1.0;      // sim DAYS per real second, mean across the lapse. This is
+                            // also how fast day alternates with night on screen, so the
+                            // peak of the profile (1/(1-s) of it) is the number that has
+                            // to stay well under the 3 Hz photosensitive flash threshold.
+const SKIP_SHOULDER = 0.2;  // the fraction of it spent easing in, and again easing out
+const SKIP_MIN = 0.09;      // never aim at a boundary nearer than this in phase
+const VEIL_MS = 420;        // the reduced-motion cut, ~one transition plus a frame
+let skipSpan = 0, skipSecs = 0, skipAt = 0, skipLanded = false;
+function skipping(){ return skipSpan > 0; }
+/* The cumulative profile: monotone 0..1, flat-topped, zero slope at both ends.
+ * smoothstep(x) = 3x^2 - 2x^3 integrates to x^3 - x^4/2, which is all this needs. */
+function skipEase(u){
+  const s = SKIP_SHOULDER, P = 1 / (1 - s);
+  if (u <= 0) return 0;
+  if (u >= 1) return 1;
+  if (u < s){ const v = u / s; return P * s * (v*v*v - v*v*v*v / 2); }
+  if (u > 1 - s){ const v = (1 - u) / s; return 1 - P * s * (v*v*v - v*v*v*v / 2); }
+  return P * (s * 0.5 + (u - s));
+}
+/* Whole sim days to the next quarter-turn of the year. The rounding is what keeps the
+ * hour; SKIP_MIN stops a click made just short of a boundary from being a no-op. */
+function skipDays(){
+  let to = (Math.floor(seasonPhase / 0.25) + 1) * 0.25;
+  if (to - seasonPhase < SKIP_MIN) to += 0.25;
+  return Math.max(1, Math.round((to - seasonPhase) * SEASON_LEN));
+}
+/* One step of the town, split so that no piece is longer than SKIP_SUB. */
+function simSub(sdt, dt){
+  const n = Math.max(1, Math.ceil(sdt / SKIP_SUB));
+  for (let i = 0; i < n; i++) simStep(sdt / n, dt / n);
+}
+function beginSkip(){
+  if (skipping()) return;
+  skipSpan = skipDays() * DAY_LEN;
+  skipSecs = clamp(skipSpan / DAY_LEN / SKIP_RATE, 2.4, 7.2);
+  skipAt = 0;
+  seasonEl.disabled = true;
+  if (!RM) return;
+  veilEl.classList.add('on');
+  setTimeout(() => {                       // behind an opaque veil, so a hitch is nobody's
+    simSub(skipSpan, VEIL_MS / 1000);
+    skipSpan = 0; skipAt = 0;
+    veilEl.classList.remove('on');
+    land();
+  }, VEIL_MS);
+}
+/* Real seconds in, sim seconds out — the WHOLE of this frame's advance while a lapse
+ * runs, and 0 when one is not. The lapse owns the clock for its few seconds: the base
+ * is 1x whatever the speed button says, and Pause does not apply, because a deliberate
+ * act is not the town running on its own. That ownership is also what makes the span
+ * exact — the first version left `dt * speed` riding on top of the profile and every
+ * lapse overshot by its own duration, which is small (0.095 of a day) and compounds
+ * into a year that no longer closes. */
+function stepSkip(rdt){
+  if (!skipping() || RM) return 0;
+  const u0 = skipAt / skipSecs;
+  skipAt += rdt;
+  const u1 = Math.min(1, skipAt / skipSecs);
+  // skipSecs of ordinary clock, plus a shaped bump carrying all the rest. Both terms
+  // are exact integrals, so the total delivered is skipSpan to the last decimal
+  // however many frames the machine happens to give us.
+  const out = (u1 - u0) * skipSecs + (skipSpan - skipSecs) * (skipEase(u1) - skipEase(u0));
+  if (u1 >= 1){ skipSpan = 0; skipAt = 0; skipLanded = true; }
+  return out;
+}
+/* The town says where it has got to, once, after the last stepped frame — announce()
+ * is deaf for the duration of a lapse, or six sim days of clock strikes, markets and
+ * wind would arrive as a stack of stale news the moment it ended. */
+function land(){
+  skipLanded = false;
+  seasonEl.disabled = false;
+  refreshStats();
+  announce('The year runs on: ' + seasonLabel().toLowerCase() + ' over the block now.');
+}
 function frame(ts){
   requestAnimationFrame(frame);
   const now = ts / 1000;
   let dt = Math.min(now - last, 0.1); last = now;
+  const rdt = dt;              // a deliberate act outranks Pause, and runs on real time
   if (paused) dt = 0;
-  simStep(dt * speed, dt);
-  drawScene(now, dt * speed);
+  const lapse = skipping();    // read BEFORE stepSkip, which clears it on the last frame
+  const extra = stepSkip(rdt);
+  const sdt = lapse ? extra : dt * speed;
+  // the ordinary path is byte-for-byte what it was — one call, same arguments — so no
+  // gate and no ?fast page can tell this feature exists. Only a lapse sub-steps.
+  if (lapse) simSub(sdt, rdt); else simStep(sdt, dt);
+  drawScene(now, sdt);
+  if (skipLanded) land();
   if (!invited) offerInvite(now); else if (inviteHold) endInvite(now);
   updateNaming(now);
 }

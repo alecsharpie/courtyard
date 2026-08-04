@@ -1657,3 +1657,93 @@ The first rail (~1.25× at seven people) was too gentle and only reached 7.
 so the opening fill is hurried compared with HEAD (day 4 mid-morning: 13 → 18 people).
 `maturity()` still bounds it, but the very first minute is now a servo rather than a ramp.
 
+## Iteration 20 — the paving learns which paving it is (2026-08-04) [Plaza & quay × Polish]
+
+**Brief:** b19 — the click handler's `SIDE || ROAD` branch answers "You scatter crumbs onto
+the lane" for the paving of five different quarters, and clamps its birds into
+`LN_WALK_N..LN_WALK_S` so they land in the lane however far east you clicked.
+
+**Did:** one table, `PAVING`, with six entries — `lane`, `bridge`, `cross`, `plaza`, `quay`,
+`towpath` — each carrying its line *and* the box its crumbs' birds may land in, plus the
+spread along each axis. `pavingAt(x, y)` is the single predicate that places a cell; it is
+called only on a cell `answersTouch()` has already called SIDE or ROAD. The bridge deck is a
+sixth place the brief did not name, found by walking the grid. No seventh KIND: still one
+branch, still crumbs, still `birds.length < 4` and `daylight > 0.2`, still 3 birds and the
+same two `R()` draws each. Bird placement moved out to `crumbSpot(p, x, y, k)`.
+
+**Gates:** census PASS (scalars/tiles/life/structure/species all *unchanged* — a click
+handler moves nothing the census watches, which is the point) · visual PASS (`east` and
+`lane` byte-identical to pre-edit; `wide` differs but is **not reproducible run-to-run on
+unmodified HEAD either**, so that diff is the harness) · motion PASS · perf skipped ·
+**probe PASS** `probes/paving-places.mjs`.
+
+**Verdict:** shipped
+
+**Surprise:** the probe found two defects the brief did not contain, and I would have
+shipped both. (1) The cross street and the quay run from **y = 0**, not y = 3 as I had
+guessed from the towpath's `y < 3 ? WALL : SIDE`; 6+ cells were being named for a box they
+sat outside. (2) Sampling three birds independently inside one small box put two of them
+within 0.9 cells — the "renders as one shape" law — in **4 of 8** click cases, *including
+the old lane behaviour*. So the pre-existing code had a second bug hiding under the one I
+was sent to fix, and only a numeric check saw it. Staggering the three at fixed thirds of
+the long axis with a ±s/12 jitter floors the gap at s/3.
+
+**Law:** promoted — see the scatter law in `LAWS.md`.
+
+**Cue:** the plaza's actual paving is `PATH`, and `answersTouch()` does not answer PATH — so
+the plaza roundel around the fountain, and the whole courtyard path ring, are dead to the
+cursor and to the click. `PAVING.plaza` only ever fires on the plaza's 6×4-cell **mouth**
+onto the lane (24 cells of the world's 2903 paved ones).
+
+
+## Iteration 28 — the season is a button, and the year runs on (2026-08-04) [Sky, light & weather × Scale/World]
+
+**Brief:** b27 — fourteen iterations of seasonal work are addressed to a viewer who would have
+to sit here 24 real minutes to see any of it. Give them a way to reach another season, without
+popping six hysteretic systems. The batch bet; allowed to fail.
+
+**Did:** `#season` — the label #26 put in the sill — becomes a `<button>`, and clicking it runs
+the town on to the next quarter as a **fast-forward, not a jump**. Nothing writes `seasonPhase`,
+`cloud`, `bSt` or a walker's position; `stepSkip()` only hands `frame()` more sim seconds, and
+`simSub()` splits them so no step exceeds `SKIP_SUB` 0.25 s. That is the whole safety argument:
+every rate cap in this town is per SIM second, so a sub-stepped advance is indistinguishable
+from having waited — what is compressed is REAL time. It lands on a **whole number of sim
+days** nearest a quarter-turn, so the hour survives; from the anchor that is 7+6+7+6 = 26 =
+`SEASON_LEN`, and four clicks return the identical phase *and* the identical hour. The rate is a
+flat-topped trapezoid with smoothstep shoulders, advanced off the profile's **exact integral**,
+so the span is right at any frame rate and both ends run at the ordinary clock. `announce()` is
+deaf for the duration (six days of strikes and markets would arrive as stale news) and `land()`
+says one line. `RM` gets the honest cut instead — a `#veil`, the same sub-stepped advance
+behind it — because six sunrises in six seconds is precisely what reduced-motion is asking not
+to be shown. `speed` is never touched.
+
+**Gates:** census **PASS — every field unchanged in all 9 cells** (no new `R()` draw; the
+ordinary path is one `simStep` call with the same arguments, so no gate can tell this exists) ·
+motion **PASS** vs a stashed-HEAD baseline · perf **PASS** +0.0% day and night · visual PASS
+(wide, mobile, sill at rest/hover, both colour schemes) · `probes/season-skip.mjs` **33/33** ·
+`probes/skip-strip.mjs` — the brief's filmstrip, cropped to courtyard and far bank, against a
+`__warp` control at the **same sim gaps**: max frame-Δ 32.64 vs control 32.86 (courtyard),
+32.25 vs 32.46 (river), and **fewer** out-of-line frames than the control (17 vs 21, 18 vs 19).
+`probes/skip-shots.mjs`: **midwinter 19.6 real seconds** after the first click, 684 blooms → 26;
+whole year and back to Spring in 26.8 s. Context budget opened **OVER** (47.1 KB / 46 KB cap).
+
+**Verdict:** shipped
+
+**Surprise:** the two hardest bugs were both invisible to the thing that should have caught
+them. (1) The lapse overshot by exactly its own duration, because `dt * speed` kept riding on
+top of the profile — 0.095 of a day per click, which no eye can see and which compounds into a
+year that no longer closes. The fix is that **the lapse owns the clock**: it delivers `skipSecs`
+of ordinary time plus a bump carrying the rest, and Pause and the speed button are suspended for
+its few seconds. Only the four-click round trip could see this at all. (2) I closed the CSS
+comment above `#season` one line early, so five lines of prose parsed as a selector and
+**swallowed the entire rule** — the season shipped as a grey chip with a button border. The
+probe passed: the tag was `BUTTON`, the text was right, the handler fired. A screenshot caught
+it, one iteration after #26 learned the same lesson from the other direction.
+
+**Law:** a CSS or JS rule that fails to parse is *silent* — assert on **computed style**, never
+on the element. And a compressed clock must own its frame's whole advance, or the ordinary rate
+rides on top of it.
+
+**Cue:** the season is advertised only by a chevron and a cursor; nothing invites the click.
+And on a `?pause` page the sill's text never refreshes (`statAcc += dt`, dt 0) — pre-existing,
+verified identical on HEAD, harness-only.
