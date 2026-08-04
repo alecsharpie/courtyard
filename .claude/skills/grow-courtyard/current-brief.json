@@ -19,7 +19,7 @@
   "avoid": "Do not make the allotments productive in January to fix a number. Winter should be quiet; the question is whether it is quiet or broken. This brief is explicitly allowed to come back as 'measured, it is correct, here are the numbers' with no source change and a shipped probe — that is a genuine result and it will be logged as a no-ship, which is fine and expected. Do not spend the budget building a winter feature to avoid that outcome.",
   "budgetMin": 25,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 25,
   "issued": "2026-08-04T00:53:21.302Z",
