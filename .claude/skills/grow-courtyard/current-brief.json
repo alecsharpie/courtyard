@@ -16,7 +16,7 @@
   "avoid": "Do not add a second row to the sill — it is one baseline-aligned flex row, and #ticker and #stats are already display:none under 640px. Do not draw text on the canvas. Do not touch SEASON_START or the anchor.",
   "budgetMin": 20,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 26,
   "issued": "2026-08-04T01:29:15.803Z",
