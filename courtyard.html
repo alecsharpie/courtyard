@@ -51,25 +51,59 @@
     flex:none; display:flex; align-items:baseline; gap:18px;
     padding:12px 6px 4px; font-size:13px; color:var(--ink-dim);
   }
+  /* flex:none on every nowrap item. They are all white-space:nowrap, so a flex box
+     that shrinks below its text does not clip or ellipsis it — it SPILLS, silently,
+     over its neighbour. #ticker (flex:1, min-width:0) is the only item allowed to
+     take up the slack, because it is the only one with text-overflow. */
   #plate{ font-family:"Iowan Old Style", Palatino, "Palatino Linotype", Georgia, serif;
+    flex:none; display:flex; align-items:baseline; gap:18px;
     font-size:17px; color:var(--ink); letter-spacing:.02em; white-space:nowrap; }
   #plate small{ display:block; font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--ink-dim); font-family:system-ui,sans-serif; margin-top:1px;}
-  #daytime{ font-variant-numeric:tabular-nums; white-space:nowrap; min-width:12ch; }
+  /* The season is prose, so it is set in the plate's serif and not the clock's sans:
+     the sill reads title · season · clock · ticker · counts, coarse to fine, and the
+     two serif items are the two that SPEAK (one fixed, one changing) while the two
+     tabular ones are the two that COUNT. min-width holds the longest name so the
+     clock beside it never slides when the year turns.
+     It lives INSIDE #plate rather than beside it so the narrow breakpoint can drop it
+     onto the caption line without reparenting — see the media query. */
+  #season{ flex:none; font-size:14px;
+    color:var(--ink); letter-spacing:.02em; white-space:nowrap; min-width:9ch; }
+  #daytime{ flex:none; font-variant-numeric:tabular-nums; white-space:nowrap; min-width:12ch; }
   #ticker{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
     font-family:"Iowan Old Style", Palatino, Georgia, serif; font-style:italic; font-size:14px;
     color:var(--ink); opacity:.9; transition:opacity .6s; }
   #ticker.fade{ opacity:.35; }
-  #stats{ font-variant-numeric:tabular-nums; white-space:nowrap; }
-  #ctrl{ display:flex; gap:6px; }
+  #stats{ flex:none; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  #ctrl{ flex:none; display:flex; gap:6px; }
   #ctrl button{
     font:inherit; font-size:12px; color:var(--ink); background:transparent;
     border:1px solid var(--ink-dim); border-radius:4px; padding:2px 9px; cursor:pointer;
   }
   #ctrl button:hover{ border-color:var(--accent); color:var(--accent); }
   #ctrl button:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  /* The season is a sixth item in a fixed-width row, and the row was already tight in
+     the 640-860 band: on HEAD the ticker was down to 71px of box at 641px, ellipsised
+     to nothing. So the COUNTS yield first. They are the most expendable thing here —
+     people and blooms and ducks are all visible in the picture above, whereas which
+     season it is was the one fact the sill could not tell you. Net effect in this band
+     is a season gained and a ticker that reads BETTER than it did (126px at 641,
+     253px at 768, against HEAD's 71 and 193). */
+  @media (max-width:860px){
+    #stats{ display:none; }
+  }
   @media (max-width:640px){
     #ticker,#stats{ display:none; }
+    /* The narrow row has ~32px of slack and the season wants ~80, so it comes OUT of
+       the row and onto the plate's second line — the caption slot, which on a phone
+       was empty anyway ("a cellular block" has always been hidden here). Costs zero
+       horizontal width, and the label ends up in its truest form: a title with the
+       season set under it. Which season it is outranks a subtitle on a 390px screen. */
+    #plate{ display:block; }
+    #title{ display:block; }
     #plate small{ display:none; }
+    #season{ display:block; min-width:0; margin-top:1px;
+      font-size:10px; letter-spacing:.22em; text-transform:uppercase;
+      color:var(--ink-dim); font-family:system-ui,sans-serif; }
     /* A narrow sill has no room for the ticker, so a phone has neither a cursor
        nor a text surface — the two hints that the picture answers a touch. The
        one-time invitation therefore BORROWS the sill for its few seconds: the
@@ -86,7 +120,7 @@
     <div id="glass"></div>
   </div>
   <div id="sill">
-    <div id="plate">The Courtyard<small>a cellular block</small></div>
+    <div id="plate"><span id="title">The Courtyard<small>a cellular block</small></span><span id="season">Spring</span></div>
     <div id="daytime">Day 1 &middot; Dawn</div>
     <div id="ticker">The courtyard is quiet. Not much here yet.</div>
     <div id="stats">0 people &middot; 0 blooms</div>
@@ -685,6 +719,21 @@ function timeLabel(){
   if (hour < sunDown - 2.5) return 'Afternoon'; if (hour < sunDown) return 'Dusk';
   return 'Night';
 }
+/* The sill's other label, and the same idea one scale up: timeLabel() names the hour
+ * off the sun, this names the quarter off the phase. Nine systems read season() and
+ * nothing SAID which season it was, so a viewer arriving in deep winter had a bare,
+ * grey, half-empty town and no way to know that was the point.
+ *
+ * It reads seasonPhase, never warmth, for the canopy's reason: warmth 0.5 happens
+ * twice and a rising 0.5 is bud burst while a falling 0.5 is the turn. Eight sectors
+ * of 1/8, each CENTRED on its phase rather than starting at it — so midwinter
+ * straddles the wrap and stays one continuous name through it, and Spring lands
+ * exactly on SEASON_START. Winter and summer get an early/mid/late apiece because a
+ * cosine dwells at its extremes; spring and autumn are the crossings and go by fast,
+ * so they get one name each. Names, not numbers: this is the museum label. */
+const SEASON_NAMES = ['Midwinter', 'Late winter', 'Spring', 'Early summer',
+                      'Midsummer', 'Late summer', 'Autumn', 'Early winter'];
+function seasonLabel(){ return SEASON_NAMES[Math.floor(seasonPhase * 8 + 0.5) % 8]; }
 /* ---- the working day ----------------------------------------------------------
  * timeLabel() above is the model and for three iterations it was the only reader that
  * had noticed: #11 put sunrise and sunset on the year (7.00/18.50 midwinter to
@@ -1904,6 +1953,7 @@ function refreshStats(){
   document.getElementById('stats').textContent = people + (people===1?' person · ':' people · ') + blooms + ' blooms'
     + (ducks.length ? ' · ' + ducks.length + ' ducks' : '');
   document.getElementById('daytime').textContent = 'Day ' + (day+1) + ' · ' + timeLabel();
+  document.getElementById('season').textContent = seasonLabel();
 }
 
 /* ============ static ground layer ============ */
