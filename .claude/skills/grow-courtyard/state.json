@@ -2,7 +2,7 @@
   "updated": "2026-08-04",
   "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
   "phase": "expanding",
-  "lastIteration": 26,
+  "lastIteration": 27,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -151,7 +151,8 @@
         14
       ],
       "interaction": [
-        13
+        13,
+        27
       ]
     },
     "lane": {
@@ -278,7 +279,8 @@
       "walled garden, organic bed ring, four arch entrances (2 TUNNEL, 2 SLOT), benches, desire paths from foot wear, daisies, ivy on the gatehouse, a pre-dawn sweeper, one linden (drawTree, CX/CY)",
       "planting CA — 11 species, bloom stages, seeding from mature neighbours, crowding, age dieback; rain accelerates every growth term",
       "the beds read the YEAR — growF()/dieF()/bloomCap() off warmth, lawn health in groundCol; bloomCap is a CEILING, and per-cell hardiness holds ~1/7 of cells at it, so winter is blooms scattered in turned earth. probes/beds-year.mjs",
-      "the path ring answers a touch — PAVING.court, the largest single place in the town"
+      "the path ring answers a touch — PAVING.court, the largest single place in the town",
+      "the naming — the thing under the pointer is named in the sill (borrows the ticker's box; a TAP names on a phone). Species+stage read off bSp/bSt against bedCap(x,y), allotments per PLOT off plotCrop, places off pavingAt/WATERS, 13 trees hit-tested in SCREEN space against crowns[] the draw pass records. Settles 0.12s, yields to a live ticker line, silent under inviteHold. probes/naming.mjs, naming-shots.mjs"
     ],
     "lane": [
       "kiosk, pavement cafe with claimable tables, awnings, washing lines, planters, street lamps, benches",
@@ -318,7 +320,8 @@
       "season() — the YEAR. A cyclic scalar over SEASON_LEN 26 days (~24 real min), phase 0 = midwinter, anchored at SEASON_START 0.25 where every seasoned term equals the constant it replaced. NINE READERS: day length, light, the courtyard beds, all 13 trees, the working day, the population caps, the weather fronts, the river, the allotment ceiling. census clock.season",
       "the weather reads the year — greyF() drives front frequency, depth and spellLen() (winter a low grey lid, summer mostly clear) while showerRate/showerLen/showerHard move the OPPOSITE way, so summers rare showers are the hard ones and the annual total holds. Rain can start in the dark (nightDamp, NIGHT_RAIN 0.12). probes/weather-year.mjs",
       "the ground reads the lid — shadowF() (SH_KNEE 0.32, SH_FULL 0.94, SH_FLOOR 0.20) with shSpread() and shOffset(), so a cast shadow fades, widens and retracts together. Eight sites; a REAL blur on the cached ground layer behind CAN_BLUR. probes/shadow-cover.mjs, probes/ground-relight.mjs",
-      "the sill NAMES the year — seasonLabel(), the sibling of timeLabel(): eight names on seasonPhase (never warmth, which hits 0.5 twice), sectors of 1/8 CENTRED on their phase so midwinter is one continuous name across the wrap and Spring lands on SEASON_START. #season in the sill, serif beside the plate; below 640px it drops into the plate's caption slot and reads as a museum label under the title. #stats now yields below 860px so the sixth item does not starve the ticker. probes/sill-year.mjs"
+      "the sill NAMES the year — seasonLabel(), the sibling of timeLabel(): eight names on seasonPhase (never warmth, which hits 0.5 twice), sectors of 1/8 CENTRED on their phase so midwinter is one continuous name across the wrap and Spring lands on SEASON_START. #season in the sill, serif beside the plate; below 640px it drops into the plate's caption slot and reads as a museum label under the title. #stats now yields below 860px so the sixth item does not starve the ticker. probes/sill-year.mjs",
+      "a ResizeObserver on the canvas frame — the sill BORROWS space (naming, invitation), which resizes the picture +16px at 390px with no resize event, and unproject() was landing 2 cells out at the bottom of the frame"
     ],
     "life": [
       "walkers with itineraries, courtyard and street; eastern itineraries — plaza bench, fountain gaze, quay rail, quay bench, towpath, church green, allotment plot, bridge parapet",
@@ -376,6 +379,12 @@
       "id": "c52",
       "note": "the sill overflows its box at 320px — 44px on HEAD before this iteration, pre-existing and untouched. 390 is the tracked framing; if a narrower one is ever added, the fix is the same caption-slot move applied to #daytime.",
       "raisedBy": 25,
+      "seenBy": 0
+    },
+    {
+      "id": "c53",
+      "note": "The naming names places and plants, not PEOPLE. Walkers, ducks, swans, the sweeper and the boat all pass under the pointer and answer with the ground they stand on. __entities() already carries every one with a stable id, and crowns[] is the pattern — let the draw pass record where it painted a thing.",
+      "raisedBy": 26,
       "seenBy": 0
     }
   ],

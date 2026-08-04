@@ -38,59 +38,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 19 — the year is felt in how busy the town is (2026-08-04) [People & animals × Deepen]
-
-**Brief:** b18 — a 52% swing in mean daylight was coming out as a ~15% swing in people.
-Widen the breathing, let the three arrival sources breathe by different amounts, and hold
-an absolute floor.
-
-**Did:** *The compression.* `capacity`, `laneCap` and `eastCap` were each `k + span*(f +
-(1-f)*d)`. Multiplied out, `k + span*f` is the share the sun never touches — 5 of the
-courtyard's 14, 3 of the lane's 9 — and averaged over a day that fixed share is most of the
-budget. Peak daylight is also 1.0 in *every* season by design (duration is the seasonal
-lever, never midday brightness), so the honest swing available is bounded by the day-length
-ratio, 17.5/11.5 = 1.52. So the year went onto the *varying* term as a multiplier and the
-fixed term was left exactly alone. `yearBusy(ex)` is read off `daySpan()` rather than off
-`warmth` — the same number, honest provenance, since what makes a July evening busy is that
-it is still light. `ex` is exposure: `EX_COURT` 0.5 (walled), `EX_LANE` 1.0 (open),
-`EX_EAST` 1.25 (you go out to it, across a bridge). `YEAR_SWING` 0.40. `eastCap` keeps
-`Math.min(7, …)` because c10 says east agents retrace their inbound route and would queue
-above seven, so summer spends its lift on reaching the ceiling *earlier in the day*.
-*The rail.* `POP_FLOOR` 8 with `scarcity = 1 + 0.8 * clamp(POP_FLOOR - agents.length, 0,
-6)`, multiplying the three arrival rates only — never the caps. Nobody pops into being.
-
-**Gates:** census PASS (people 167→190) · visual PASS (`probes/year-shots.mjs`, five pinned
-instants on HEAD and here: summer noon 23→28, winter noon 25→21, winter dusk 27→17; winter
-night still legible) · motion: the only kind that moved is `raindrop` — the shower changed
-scene under the reshuffle, and HEAD's own baseline records the same distribution;
-**`walker`, the kind this iteration actually moved, is 0 jumps / 0 nan / 0 oob / 0 flicker
-in all four scenes** · filmstrip clean, median Δ 0.410 · perf skipped · anchor assertion:
-`yearBusy` is **exactly 1.0000** for all three exposures at `SEASON_START` and again one
-full year on, so day one is provably the town as it was.
-
-**Probe:** `probes/season-year.mjs` extended — 3 seeds × 60 sim days (~2.3 years) folded
-onto one year, carrying `inCourtyard`, `onStreet - inEast` and `inEast` separately.
-Summer:winter ratio — total 1.09 → **1.56**, courtyard 1.05 → 1.26, lane 1.04 → **1.94**,
-east 1.40 → **2.10**. Settled mean 21.65 → 21.48: the year *redistributes* the town rather
-than inflating it. Absolute floor across all 3,600 samples: 8 → **8**, equal to HEAD.
-
-**Verdict:** shipped
-
-**Surprise:** holding every night-time cap identical did not hold the night. The first build
-left `capacity` and `laneCap` at `daylight` 0 byte-identical to HEAD in every season — and
-the worst sample still fell from 8 people to 5. Most of a 03.00 population is not spawned at
-03.00; it is daytime walkers still finishing forty-second trips, so an emptier winter
-afternoon arrives at midnight as an emptier town, several sim hours later, through a term
-nobody edited. That is also why the rail had to lift the *rate* rather than the cap: the
-caps at night already permitted 5 + 3 = 8, and what was missing was arrivals to fill them.
-The first rail (~1.25× at seven people) was too gentle and only reached 7.
-
-**Laws:** promoted — see the cap/trip-length law and the flat-peak law in `LAWS.md`.
-
-**Cue:** `scarcity` also fires in the first sim minute, when the town is legitimately empty,
-so the opening fill is hurried compared with HEAD (day 4 mid-morning: 13 → 18 people).
-`maturity()` still bounds it, but the very first minute is now a servo rather than a ramp.
-
 ## Iteration 20 — the paving learns which paving it is (2026-08-04) [Plaza & quay × Polish]
 
 **Brief:** b19 — the click handler's `SIDE || ROAD` branch answers "You scatter crumbs onto
@@ -412,3 +359,46 @@ answers only one — see `LAWS.md`.
 
 **Cue:** the sill overflows at 320px on HEAD too (44px, pre-existing); 390 is the tracked
 framing so I gated there and left it.
+
+## Iteration 27 — the pointer names what it is over (2026-08-04) [Courtyard & garden × Interaction/UX]
+
+**Brief:** b26 — 64% of the frame answers a click and the cursor says so, but nothing says
+*what* you are pointing at. Name it, read off the grid, correct as the season changes.
+
+**Did:** one label in the sill, borrowing the **ticker's** box (upright, no full stop — the
+ticker is prose the town says, this is a label for a thing). Everything in it is read, never
+inferred: species off `bSp`, stage off `bSt` against `bedCap(x,y)` — lifted out of `caTick`
+so the ceiling has one definition now a second reader wants it — allotments named per *plot*
+off `plotCrop` at the row's best stage, paving and water off `pavingAt`/a new `WATERS` table
+that also feeds the click's three water lines. Trees are hit-tested in **screen** space
+against a `crowns[]` the draw pass records: a crown is painted cells north of its own trunk,
+and a second derivation of that geometry is exactly what drifts. Manners: one read per
+*frame* off the last pointer position, not per mousemove; `NAME_SETTLE` 0.12 s before a name
+commits (a sweep crosses fifty 9-px cells), instant to clear; yields to a live ticker line,
+never opens under `inviteHold`. A phone has no hover, so the **tap** names and holds 4.5 s.
+
+**Gates:** census **PASS — every field unchanged in all 9 cells** (no new `R()` draw, so a
+read-only vector must reshuffle nothing; `bedCap` is the old inline expression moved, and
+the census proves it exactly) · motion **PASS** vs a HEAD baseline · visual PASS
+(`probes/naming-shots.mjs`) · perf **PASS** (+0.0% day and night, 3 interleaved reps) ·
+**probe PASS** `probes/naming.mjs` 24/24: 13 crowns each naming their own tree, **0 cells**
+where `nameAt` and `answersTouch` disagree (9581 = 9581), 733 beds named with 0 wrong,
+4 linden labels round the year, blossom *and* fruit found.
+
+**Verdict:** shipped
+
+**Surprise:** a feature that reads a screen *position* found a bug that #24 shipped and
+nobody could see. The sill **borrows** space — one line where the plate was two — and that
+changes the canvas's box with no `resize` event at all: measured **+16 px at 390 px**, a 2%
+vertical stretch that is invisible in the picture and puts `unproject()` **two cells out at
+the bottom of the frame**, because it is still working in the old geometry. The invitation
+has resized the sill this way since #24; nothing read a position back then. A
+`ResizeObserver` on the frame fixes it (0 px at 1400 — a phone-only shift). Second: the
+naming waits for the ticker's line to be *read*, and `tickerAge` is bucketed off the sim's
+`dt` — so on a **paused** page it waits forever. Reading is a real-time act, so `lineAt` is
+stamped off `performance.now()`, as `TICK_DWELL` is documented to be.
+
+**Law:** read a screen coordinate → observe the **frame**, not the window; a UI element that
+borrows space resizes the picture silently. A timer a *person* races runs on the real clock.
+
+**Cue:** c53 — the naming names places and plants, not people.

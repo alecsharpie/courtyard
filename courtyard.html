@@ -73,6 +73,17 @@
     font-family:"Iowan Old Style", Palatino, Georgia, serif; font-style:italic; font-size:14px;
     color:var(--ink); opacity:.9; transition:opacity .6s; }
   #ticker.fade{ opacity:.35; }
+  /* The naming — what the pointer is on — borrows the TICKER's box rather than adding
+     a seventh item to a row that was already tight at 641px (see #stats yielding
+     below 860). Same slot, same serif, but UPRIGHT and with no full stop: the ticker
+     is prose the town says, this is a label for a thing, and the sill's other two
+     labels (title, season) are upright too. It never covers a line that has not been
+     read — see updateNaming. */
+  #naming{ display:none; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis;
+    white-space:nowrap; font-family:"Iowan Old Style", Palatino, Georgia, serif;
+    font-size:14px; color:var(--ink); letter-spacing:.01em; }
+  #sill.naming #ticker{ display:none; }
+  #sill.naming #naming{ display:block; }
   #stats{ flex:none; font-variant-numeric:tabular-nums; white-space:nowrap; }
   #ctrl{ flex:none; display:flex; gap:6px; }
   #ctrl button{
@@ -90,6 +101,11 @@
      253px at 768, against HEAD's 71 and 193). */
   @media (max-width:860px){
     #stats{ display:none; }
+    /* In this band the ticker's box is down to 136 px at 641, and the label is the one
+       item here that is answering a hand. So the CLOCK yields to it as well, for as long
+       as the pointer is on something — the hour is legible in the picture (the sun is in
+       it), and it comes back the moment the pointer leaves. */
+    #sill.naming #daytime{ display:none; }
   }
   @media (max-width:640px){
     #ticker,#stats{ display:none; }
@@ -111,6 +127,16 @@
        through this door — see inviteHold. */
     #sill.inviting #ticker{ display:block; }
     #sill.inviting #plate, #sill.inviting #daytime{ display:none; }
+    /* A phone has no cursor to follow, so the name arrives on the TAP that also acts
+       and borrows the sill the same way, for a few real seconds. #naming is already
+       display:block under .naming above — the ticker's hiding rule does not reach it —
+       so all it needs here is the width.
+       And here it WRAPS rather than ellipsising: 251 px is not enough for the longest
+       label the beds can produce, the plate it stands in for is two lines high anyway,
+       so two lines cost the sill nothing — and on a phone this is a caption, which is
+       the one form that is allowed to run onto a second line. */
+    #sill.naming #plate, #sill.naming #daytime{ display:none; }
+    #sill.naming #naming{ white-space:normal; }
   }
 </style>
 
@@ -123,6 +149,7 @@
     <div id="plate"><span id="title">The Courtyard<small>a cellular block</small></span><span id="season">Spring</span></div>
     <div id="daytime">Day 1 &middot; Dawn</div>
     <div id="ticker">The courtyard is quiet. Not much here yet.</div>
+    <div id="naming"></div>
     <div id="stats">0 people &middot; 0 blooms</div>
     <div id="ctrl">
       <button id="pause" aria-label="Pause simulation">Pause</button>
@@ -223,6 +250,15 @@ function resize(){
   groundDirty = true;
 }
 addEventListener('resize', resize);
+/* The window is not the only thing that resizes the picture. The sill grows and shrinks
+ * under it — a borrowed sill is one line where the plate was two — and every one of
+ * those changes moves the frame without a `resize` event. The canvas then stretches its
+ * unchanged bitmap over a taller box: 16 px at 390 px wide, a 2% vertical scale, which
+ * is invisible in the picture and NOT invisible to the pointer, because unproject() is
+ * still working in the old geometry and lands two cells out at the bottom of the frame.
+ * So the frame itself is observed. (The invitation has borrowed the sill this way since
+ * #24; nothing read a screen POSITION back then, so nothing noticed.) */
+if (window.ResizeObserver) new ResizeObserver(resize).observe(cv.parentElement);
 
 /* ============ noise & utils ============ */
 function hash(x, y){
@@ -936,8 +972,16 @@ let tickerAge = TICK_LIFE;   // real seconds the line on screen has been up
  * the viewer to DO something needs longer than one that only asks to be read, so a
  * line may buy its own dwell — the only caller that does is the invitation. */
 let lineDwell = TICK_DWELL;
+/* When the line went up, on the REAL clock. tickerAge is bucketed off the sim's dt, so
+ * it stops dead on a paused page — press Pause and the line on screen never finishes
+ * being read. The ticker can live with that (nothing new arrives either), but the
+ * naming cannot: it waits for a line to be read before taking the box, and waiting on
+ * a stopped clock is waiting forever. Reading is a real-time act, so it is timed on the
+ * real clock, exactly as TICK_DWELL is documented to be. */
+let lineAt = -99;
 function showLine(e){
   lineDwell = e.dwell || TICK_DWELL;
+  lineAt = performance.now() / 1000;             // the same epoch as frame()'s `now`
   tickerEl.textContent = e.txt;
   tickerEl.classList.remove('fade');
   tickerTimer = TICK_LIFE;
@@ -1045,6 +1089,18 @@ function plotCrop(x, y){                      // whatever this plot is already u
    itself — the winter block goes quieter as its standing crops are picked, instead of
    the same seventh being hardy every year forever. */
 function plotStands(x, y){ const sp = plotCrop(x, y); return !!(sp && SPECIES[sp - 1].hardy); }
+/* The stage this particular cell is allowed to reach right now — bloomCap() for most of
+   the town, the full 3 for whatever stands the cold, grain-matched to how the region is
+   addressed (a courtyard CELL by hash, an allotment PLOT by its crop). Lifted out of
+   caTick because a second reader arrived: the naming has to say whether a bed is
+   flowering ABOVE its season or stalled AT it, and two evaluations of the same ceiling
+   would drift the moment either is tuned. */
+function bedCap(x, y){
+  const cap = bloomCap();
+  return cap === 3 ? 3
+       : inAllotment(x, y) ? (plotStands(x, y) ? 3 : cap)
+       : hash(x, y + 41) > 0.86 ? 3 : cap;
+}
 const FALLOW = 12;   // sim seconds a picked plot lies bare, +R()*8 — a third to a half of a 55 s day,
                        // long enough that a dug-over row is something you notice from the wide view
 let harvested = 0;     // cumulative cells picked: the one number that separates picked from died back
@@ -1075,7 +1131,7 @@ function harvestPlot(a){
 }
 function caTick(){
   const m = maturity(), boost = raining ? 3 : 1;
-  const vig = growF(), cap = bloomCap(), die = dieF();
+  const vig = growF(), die = dieF();          // the ceiling is per-cell now: bedCap(x, y)
   const availF = SPECIES.filter(s => s.minDay <= day && !s.veg);
   const availV = SPECIES.filter(s => s.minDay <= day && s.veg);
   for (let y = 3; y < LN_WALK_S; y++) for (let x = 0; x < GW; x++){
@@ -1098,9 +1154,7 @@ function caTick(){
             bSt[i] = 1; bAge[i] = 0;
           }
         }
-      } else if (bSt[i] < (cap === 3 ? 3
-                   : inAllotment(x, y) ? (plotStands(x, y) ? 3 : cap)
-                   : hash(x, y + 41) > 0.86 ? 3 : cap)){
+      } else if (bSt[i] < bedCap(x, y)){
         if (R() < 0.10 * (0.3 + m) * boost * vig) bSt[i]++;
       } else {
         // the bed AT its ceiling is the bed that ages — so a low winter ceiling turns
@@ -2974,6 +3028,11 @@ const LANE_LAMPS = [[5, 65.6], [28, 65.6], [37, 65.6], [60, 65.6], [82, 65.6], [
                     [RIVER_X0 - 0.4, 65.4], [RIVER_X1 + 0.4, 65.4],         // bridge ends
                     [128.4, 65.6], [135, 65.6], [128.9, 20], [128.9, 46],   // far bank
                     [132.4, 36], [136.6, 45]];
+/* Where each of the thirteen crowns actually landed on screen this frame, written by
+   drawTree/drawLaneTree and read only by the naming: a crown is drawn several cells
+   NORTH of its own trunk, so a tree cannot be found by unprojecting the pointer, and a
+   second derivation of the same geometry is the thing that drifts (see waterBox). */
+const crowns = [];
 function drawScene(t, dt){
   ctx.setTransform(DPR,0,0,DPR,0,0);
   if (groundDirty){ drawGround(); groundDirty = false; }
@@ -3023,6 +3082,7 @@ function drawScene(t, dt){
   }
 
   const items = [];
+  crowns.length = 0;                    // refilled by the tree draws below, in paint order
   for (let y=3;y<LN_WALK_S;y++) for (let x=0;x<GW;x++){
     const i=y*GW+x;
     if (bSp[i] && (grid[i]===BED || grid[i]===CBED)) items.push({y:y+0.5, f:drawPlant, x, gy:y, i});
@@ -3031,9 +3091,10 @@ function drawScene(t, dt){
   for (const b of LANE_BENCHES) items.push({y:b.y+0.2, f:drawBench, b});
   for (const L of LAMPS) items.push({y:L[1], f:drawLamp, L});
   for (const L of LANE_LAMPS) items.push({y:L[1], f:drawLamp, L});
-  for (const px of TREE_PITS) items.push({y:66.9, f:drawLaneTree, px, pit:1});
-  for (const [ppx, ppy] of PLAZA_PITS) items.push({y:ppy + 0.4, f:drawLaneTree, px:ppx - 0.5, py:ppy + 0.4, pit:1});
-  for (const [ox, oy] of ORCHARD) items.push({y:oy + 0.4, f:drawLaneTree, px:ox - 0.5, py:oy + 0.4, fruit:1});
+  // tname is what the naming calls this tree; the four groups are the only kinds there are
+  for (const px of TREE_PITS) items.push({y:66.9, f:drawLaneTree, px, pit:1, tname:'a street tree'});
+  for (const [ppx, ppy] of PLAZA_PITS) items.push({y:ppy + 0.4, f:drawLaneTree, px:ppx - 0.5, py:ppy + 0.4, pit:1, tname:'a plaza tree'});
+  for (const [ox, oy] of ORCHARD) items.push({y:oy + 0.4, f:drawLaneTree, px:ox - 0.5, py:oy + 0.4, fruit:1, tname:'an orchard tree'});
   for (const b of PLAZA_BENCHES) items.push({y:b.y + 0.2, f:drawBench, b});
   for (const b of QUAY_BENCHES) items.push({y:b.y + 0.2, f:drawBench, b});
   for (const b of FAR_BENCHES) items.push({y:b.y + 0.2, f:drawBench, b});
@@ -3060,7 +3121,7 @@ function drawScene(t, dt){
   items.push({y:65.1, f:drawSouthBand});
   for (const A of ARCHES) items.push({y: A.yF === 3 ? 3.06 : 65.3, f:drawArch, A});
   items.push({y:6.6, f:drawShed});
-  items.push({y:CY+0.6, f:drawTree, sway, treeR, treeH});
+  items.push({y:CY+0.6, f:drawTree, sway, treeR, treeH, tname:'the linden'});
   items.sort((p,q)=>p.y-q.y);
   for (const it of items) it.f(it, t);
 
@@ -3277,6 +3338,14 @@ function drawTree(it, t){
   ctx.closePath(); ctx.fill();
   const blobs = [[0,0,1],[-0.55,-0.15,0.72],[0.55,-0.1,0.75],[-0.25,-0.45,0.6],[0.3,-0.4,0.62],[0,0.28,0.7]];
   const cols = [[76,122,62],[92,138,74],[84,127,66],[103,149,82],[92,138,74],[69,111,56]];
+  // The crown the naming points at: the blobs' own centre, swayed with them, and roughly
+  // the extent they reach at full leaf (|ox| 0.55 + the widest blob's own radius ≈ 0.95).
+  // Deliberately the FULL-LEAF envelope and not the shrinking blob — a bare winter linden
+  // is still a linden you can point at — and deliberately a little inside it, because
+  // aiming at a tree should hit the tree while the beds a hand's width below it stay
+  // nameable. One ellipse, not six: the mass is what a pointer is aimed at.
+  const [kx, ky] = project(CX + sway, CY + 0.5, treeH);
+  crowns.push({x:kx, y:ky, rx:treeR*cellW*0.88, ry:treeR*cellH*0.88, name:it.tname});
   // The canopy is six clamps on ONE 0..1 progress, exactly as the market stalls are:
   // the mass comes in first and the outermost blobs last, and running leafOut backwards
   // through autumn sheds them in reverse for free. Each blob's radius grows from zero
@@ -3344,6 +3413,8 @@ function drawLaneTree(it){
   ctx.lineTo(tx2 + tw * 0.6, ty2); ctx.quadraticCurveTo(bx + tw * 0.8, (by + ty2) / 2, bx + tw * 1.9, by);
   ctx.closePath(); ctx.fill();
   const swx = RM ? 0 : Math.sin(windT * 1.4 + px) * 0.12;
+  const [kx, ky] = project(px + swx, py, h);      // the crown as painted, for the naming
+  crowns.push({x:kx, y:ky, rx:r*cellW*0.88, ry:r*cellH*0.88, name:it.tname, fruit:it.fruit});
   const cols = it.fruit ? [[95,138,72], [110,154,82], [84,127,66]] : [[84,128,74], [97,143,82], [74,116,64]];
   const blobs = [[0, 0, 1], [-0.5, -0.3, 0.7], [0.5, -0.25, 0.72], [0, 0.45, 0.62]];
   const LTH = [0, 0.24, 0.30, 0.50];
@@ -4069,25 +4140,47 @@ function waterBox(x0, x1, y0, y1){
     }
   return {x0:a, x1:b, y0:c, y1:d};
 }
+/* `what` is the same place as a NOUN, for the naming: the words a click answers with and
+ * the words a pointer is told it is over come out of one entry, so the two can no more
+ * disagree about where you are than the words and the birds can. */
 const PAVING = {
   court:   {x0:3,        x1:61,       y0:3,         y1:61,        sx:3,   sy:2,
+            what:'the courtyard flags',
             line:'You scatter crumbs on the courtyard flags. Sparrows come down off the wall.'},
   lane:    {x0:0,        x1:GW,       y0:LN_WALK_N, y1:LN_WALK_S, sx:3,   sy:2,
+            what:'the lane',
             line:'You scatter crumbs onto the lane. Small eyes take notice.'},
   bridge:  {x0:RIVER_X0, x1:RIVER_X1, y0:LN_WALK_N, y1:LN_WALK_S, sx:3,   sy:2,
+            what:'the bridge deck',
             line:'You scatter crumbs on the bridge. Birds drop in off the parapet.'},
   cross:   {x0:XS_W0,    x1:XS_E1,    y0:0,         y1:LN_WALK_N, sx:2.2, sy:3,
+            what:'the cross street',
             line:'You scatter crumbs along the cross street. Small eyes take notice from the kerb.'},
   plaza:   {x0:PLAZA_X0, x1:PLAZA_X1, y0:3,         y1:61,        sx:3,   sy:2,
             keep:waterBox(PLAZA_X0, PLAZA_X1, 3, 61),
-            line:PLAZA_WORDS},
+            what:'the plaza', line:PLAZA_WORDS},
   mouth:   {x0:102,      x1:108,      y0:61,        y1:LN_WALK_N, sx:3,   sy:2,
-            line:PLAZA_WORDS},
+            what:'the plaza mouth', line:PLAZA_WORDS},
   quay:    {x0:QUAY_X0,  x1:RIVER_X0, y0:0,         y1:LN_WALK_N, sx:1.2, sy:4,
+            what:'the quay',
             line:'You scatter crumbs along the quay, a step from the water. Small eyes take notice.'},
   towpath: {x0:TOW_X0,   x1:FAR_X0,   y0:3,         y1:LN_WALK_N, sx:1.8, sy:4,
+            what:'the towpath',
             line:'You scatter crumbs on the towpath. Birds come over the water for it.'},
 };
+/* The three waters, the same way round: this town has one pond, one fountain and one
+ * river, and they are separated by nothing but x. The click branch used to carry these
+ * three lines inline and the naming would have needed the same three-way test a second
+ * time — so they are a table, first match wins, west to east. */
+const WATERS = [
+  {x0:RIVER_X0, what:'the river',
+   line:'You drop a pebble into the river; the rings are gone in a moment.'},
+  {x0:PLAZA_X0, what:'the fountain',
+   line:'A coin plinks into the fountain. You make a wish.'},
+  {x0:0,        what:'the pond', ducks:1,
+   line:'You toss crumbs into the pond. The ducks arrive like a small navy.'},
+];
+function waterAt(x){ return WATERS.find(w => x >= w.x0); }
 /* Called only on a cell answersTouch() has already called SIDE, ROAD or PATH; every
  * such cell falls in exactly one of these boxes. PATH is only ever the courtyard or
  * the plaza square, and the two are separated by half the world. Below that, south
@@ -4135,20 +4228,31 @@ function crumbSpot(p, x, y, k){
   const v = (R() - 0.5) * w;
   return along ? [cx + v, cy + u] : [cx + u, cy + v];
 }
-function cellAt(ev){
+/* Screen point → cell, in two halves, because the naming needs the SCREEN point too:
+ * a tree's crown is nowhere near the cell its trunk stands in. One rect read per event. */
+function evPx(ev){
   const r = cv.getBoundingClientRect();
-  const [wx, wy] = unproject(ev.clientX - r.left, ev.clientY - r.top);
+  return [ev.clientX - r.left, ev.clientY - r.top];
+}
+function cellOf(p){
+  const [wx, wy] = unproject(p[0], p[1]);
   return [Math.floor(wx), Math.floor(wy)];
 }
+function cellAt(ev){ return cellOf(evPx(ev)); }
 /* Only the transitions touch the DOM: mousemove fires at pointer rate, and setting
- * cv.style.cursor on every one of them is a style write per event for no change. */
-let hoverLive = false;
+ * cv.style.cursor on every one of them is a style write per event for no change. The
+ * naming is the same economy one step further — the event only RECORDS the pointer, and
+ * updateNaming reads it once a frame. */
+let hoverLive = false, hoverPx = null;
 cv.addEventListener('mousemove', ev => {
-  const [x, y] = cellAt(ev);
+  hoverPx = evPx(ev);
+  const [x, y] = cellOf(hoverPx);
   const live = answersTouch(x, y);
   if (live !== hoverLive){ hoverLive = live; cv.style.cursor = live ? 'pointer' : 'default'; }
 });
-cv.addEventListener('mouseleave', () => { hoverLive = false; cv.style.cursor = 'default'; });
+cv.addEventListener('mouseleave', () => {
+  hoverLive = false; hoverPx = null; cv.style.cursor = 'default';
+});
 
 cv.addEventListener('click', ev => {
   const [x, y] = cellAt(ev);
@@ -4167,14 +4271,9 @@ cv.addEventListener('click', ev => {
     daisy[j] = 2; groundDirty = true;
     announce('You flick a daisy seed down onto the lawn.');
   } else if (grid[j] === WATER){
-    if (x >= RIVER_X0){
-      announce('You drop a pebble into the river; the rings are gone in a moment.');
-    } else if (x >= PLAZA_X0){
-      announce('A coin plinks into the fountain. You make a wish.');
-    } else {
-      announce('You toss crumbs into the pond. The ducks arrive like a small navy.');
-      for (const d of ducks){ d.tx = x + 0.5; d.ty = y + 0.5; d.t = 4; }
-    }
+    const w = waterAt(x);
+    announce(w.line);
+    if (w.ducks) for (const d of ducks){ d.tx = x + 0.5; d.ty = y + 0.5; d.t = 4; }
   } else if (grid[j] === SIDE || grid[j] === ROAD || grid[j] === PATH){
     const p = pavingAt(x, y);
     announce(p.line);
@@ -4186,6 +4285,11 @@ cv.addEventListener('click', ev => {
       }
     }
   }
+  /* Where there is no cursor there is no hover, so the TAP has to do the naming too:
+   * it holds the label on the sill for a few real seconds. Read AFTER the action, not
+   * before — the label's contract is the picture as it now stands, and on bare earth
+   * the interesting answer is the thing you just sowed. */
+  if (!HOVERS){ held = lookAt(evPx(ev)); heldTo = performance.now() / 1000 + NAME_HELD; }
 });
 /* The invitation: one line, once, and then never again in this page's life.
  *
@@ -4221,6 +4325,113 @@ function endInvite(now){
   if (now < inviteHold && tickerEl.textContent === INVITE_NARROW) return;
   inviteHold = 0;
   sillEl.classList.remove('inviting');
+}
+
+/* ============ the naming ============
+ * The cursor says a cell ANSWERS. It cannot say what the cell IS — and the densest thing
+ * in this picture is exactly the thing nothing named: eleven species at three stages in
+ * the beds, seventeen plots under four vegetables, thirteen trees each on its own
+ * seasonal clock. So: ONE label for the thing under the pointer, in the state it is
+ * actually in, written into the sill beside the season.
+ *
+ * Everything in it is READ, never inferred from position — the species out of `bSp`, the
+ * stage out of `bSt` against the very ceiling `caTick` grows it to, the plot's crop out
+ * of `plotCrop`, the paving out of `pavingAt`, the tree out of the crown its own draw
+ * call recorded. The label can therefore not be wrong about a season: it does not know
+ * what season it is, only what is in front of it.
+ *
+ * Three manners it keeps:
+ *   · It costs one read per FRAME off the last pointer position, not one per mousemove.
+ *   · A name COMMITS only once the pointer has rested (NAME_SETTLE). A bed cell is ~9 px
+ *     across and a sweep over the ring crosses fifty of them; a label that changed on
+ *     every boundary would be a strobe, not information. Clearing is instant.
+ *   · It never covers something the town said. Where the ticker is on screen it waits for
+ *     the line on it to have had its dwell — including the line the click that named this
+ *     cell just announced — and it never opens while the one-time invitation holds the
+ *     sill (INVITE_HOLD owns it outright). */
+const namingEl = document.getElementById('naming');
+const HOVERS = matchMedia('(hover: hover)').matches;   // a phone has no pointer to follow
+const NAME_SETTLE = 0.12;   // real seconds the pointer rests before a name commits
+const NAME_HELD = 4.5;      // real seconds a TAP's name keeps the sill, where nothing hovers
+let held = '', heldTo = 0, nCand = '', nCandAt = 0, nShown = '';
+
+/* What a plant IS, at the stage it is at, against the ceiling THIS cell is allowed.
+ * Stage 3 is the one the eye can check — a flower head, a cabbage — and the case worth
+ * naming is the one #14 and #25 built: a bed at 3 under a bloomCap below 3 is a plant
+ * holding above its season, which is what winter colour in this town is made of. A bed
+ * stalled AT a low ceiling is the commoner winter answer, and says that instead. */
+function stageOf(s, st, cap){
+  if (st >= 3) return cap < 3 ? (s.veg ? 'standing through the cold' : 'in flower against the cold')
+                              : (s.veg ? 'ready to lift' : 'in full flower');
+  if (st >= cap) return s.veg ? 'stalled in the cold' : 'too cold to flower';
+  return st > 1 ? (s.veg ? 'in leaf' : 'coming into flower')
+                : (s.veg ? 'newly drilled' : 'just up');
+}
+function bedName(x, y, j){
+  if (!bSp[j]) return bAge[j] > 0 ? 'turned earth, resting' : 'bare earth, nothing sown';
+  return SPECIES[bSp[j] - 1].name + ', ' + stageOf(SPECIES[bSp[j] - 1], bSt[j], bedCap(x, y));
+}
+/* The allotments are addressed by PLOT and not by cell, so a plot is named as a plot:
+ * its crop is whatever plotCrop finds in the row, and its stage is the row's best,
+ * because a 3x2 bed is drilled together, lifted whole, and reads as one row. */
+function plotName(x, y){
+  const sp = plotCrop(x, y);
+  if (!sp) return 'a plot lately lifted, lying bare';
+  const [ox, oy] = plotOrigin(x, y);
+  let st = 0;
+  for (let yy = oy; yy < oy + 2; yy++) for (let xx = ox; xx < ox + 3; xx++){
+    const i = yy * GW + xx;
+    if (i >= 0 && i < GW * WH && bSp[i]) st = Math.max(st, bSt[i]);
+  }
+  return 'a plot of ' + SPECIES[sp - 1].name + ', ' + stageOf(SPECIES[sp - 1], st, bedCap(x, y));
+}
+function nameAt(x, y){
+  if (x < 0 || y < 0 || x >= GW || y >= WH) return '';
+  const j = y * GW + x, g = grid[j];
+  if (g === BED || g === CBED) return inAllotment(x, y) ? plotName(x, y) : bedName(x, y, j);
+  if (g === GRASS) return daisy[j] ? 'the lawn, daisies in it'
+                 : wear[j] > 0.45 ? 'the lawn, worn to a path' : 'the lawn';
+  if (g === WATER) return waterAt(x).what;
+  if (g === SIDE || g === ROAD || g === PATH) return pavingAt(x, y).what;
+  return '';                       // a wall, a roof, the inside of an archway: no name
+}
+/* The trees, hit-tested in SCREEN space against the crowns the draw pass recorded —
+ * painter's order, so where two overlap the one on top wins, exactly as the eye reads
+ * them. What the tree is DOING comes off the same seasonal terms the crown is drawn
+ * with, in the order a person would say them: what is hanging in it first, then what
+ * the leaves are doing. */
+function treeState(fruit){
+  const out = leafOut();
+  if (fruit && blossomF() > 0.15) return 'in blossom';
+  if (fruit && fruitF() > 0.25) return 'in fruit';
+  if (out < 0.06) return 'bare for the winter';
+  if (leafTurn() > 0.35) return leafShed() > 0.45 ? 'dropping its leaves' : 'on the turn';
+  if (leafFresh() > 0.35) return 'in new leaf';
+  return out > 0.75 ? 'in full leaf' : 'coming into leaf';
+}
+function treeAt(p){
+  for (let i = crowns.length - 1; i >= 0; i--){
+    const c = crowns[i], dx = (p[0] - c.x) / c.rx, dy = (p[1] - c.y) / c.ry;
+    if (dx * dx + dy * dy <= 1) return c;
+  }
+  return null;
+}
+function lookAt(p){
+  const c = treeAt(p);
+  if (c) return c.name + ', ' + treeState(c.fruit);
+  const [x, y] = cellOf(p);
+  return nameAt(x, y);
+}
+function updateNaming(now){
+  let want = HOVERS ? (hoverPx ? lookAt(hoverPx) : '') : (heldTo > now ? held : '');
+  if (want && (inviteHold || (innerWidth > 640 && now - lineAt < lineDwell))) want = '';
+  if (want !== nCand){ nCand = want; nCandAt = now; }
+  if (nCand && now - nCandAt < NAME_SETTLE) return;
+  if (nCand === nShown) return;
+  nShown = nCand;
+  // a label, so it opens with a capital and closes with nothing
+  namingEl.textContent = nShown ? nShown.charAt(0).toUpperCase() + nShown.slice(1) : '';
+  sillEl.classList.toggle('naming', !!nShown);
 }
 
 document.getElementById('pause').addEventListener('click', e => {
@@ -4399,6 +4610,7 @@ function frame(ts){
   simStep(dt * speed, dt);
   drawScene(now, dt * speed);
   if (!invited) offerInvite(now); else if (inviteHold) endInvite(now);
+  updateNaming(now);
 }
 
 /* ============ test hooks (grow-courtyard) ============

@@ -21,26 +21,6 @@
   "rationale": "Rung 5 — change the observer. Pass #20 said that if b20-b24 landed the next pass would climb, and all five landed and shipped.\n\nThe case for climbing is one number. The year is 26 sim days, which is ~24 real minutes at 1x. Nine systems now read season(): day length, light, the courtyard beds, all thirteen trees, the working day, the population caps, the weather fronts, the river, and as of #25 the allotment ceiling. Fourteen iterations, #12 through #25, went into making this town know what time of year it is. A person who opens the page and watches for thirty seconds sees two percent of that, and the sill under the canvas — which has said \"Day 12 · Afternoon\" since before the loop began — names the day and the hour and has never once named the season. The town is rich and only one view of it exists. That is the definition of rung 5, and it is also the answer to \"what would most help somebody looking at this for thirty seconds\": not another system, a way to reach the ones that are already there.\n\nb25 and b27 are that argument in two sizes. b25 is the cheap half — say what season it is, in the sill, in the diorama own register. It is low risk and it is first because b27 needs a viewer who can already read the year before giving them a way to move through it. b27 is the batch bet and it is genuinely hard: every slow scalar in this town is rate-capped so that \"it never steps\" is a measurable guarantee, and the trees, beds, weather and river all carry hysteresis, so a jump to another season either respects the caps and takes real time or it is a pop. I have written it so that an honest transition counts as success and a teleport does not. It may fail; that is the one in this queue that could.\n\nb26 is the other half of rung 5 and it goes to the starved domain. The diorama answers a click on 64% of the frame after #24, and the cursor says you may click here, but nothing says WHAT. There are eleven species in the beds with bloom stages, thirteen trees each on their own seasonal clock, and a viewer cannot name one of them. Naming what is under the pointer is a way to READ the town, which is the rung, and the courtyard is where the nameable content is densest — which is convenient, because the balance grid I just repaired says the courtyard has had nothing for eleven iterations. It is the domain the piece is named for.\n\nb28 and b29 are not observer work and are in the queue deliberately, because five briefs on one theme is how a batch becomes a monoculture. b28 is the last flat system in the town: the market is three stalls every fourth day, identical in February and August, while fifty feet away the allotments ripen, are picked, rest and re-sow on a full year and gardeners walk out carrying baskets that go nowhere. It is the best remaining \"these two systems should know about each other\" and it lands in a domain 7 back. b29 closes c11, open since #5, which was blocked on a seam — routeToExit() — that now exists; street sitters get up when the sky thickens and courtyard sitters sit through the rain.\n\nCuration, which was half this pass. The budget was 55.0 KB against a 46 KB cap and is now 45.3. Three things had to be true at once. LAWS.md had eleven promotions waiting from #21-#25 and was already at 11.0/12 KB, so eight of the eleven went in as MERGES into laws that already existed — presence-vs-rate into the time-compression law, the ten-seed rule into the R()-reshuffle law, the neutrality algebra into the slow-scalar law, footprint-off-the-grid into one-predicate-one-definition, the census ladder into pin-the-instant, grain-matching into the ceiling law. Only three are new and all three are about slow things: hysteresis across a phase boundary (#21, and #23 independently re-derived it through a long-lived object rather than a scalar, which is the loop generalising rather than repeating), duration-is-not-the-inverse-of-rarity, and they sit together. To pay for them I cut the flat-peak law into the slow-scalar law where it belonged, folded read-probes-first into the probe-rewind law, merged the two rate-of-zero laws, and compressed the register throughout — the essayistic style was itself the cost. 27 laws to 25, sharper, and inside the byte cap.\n\nThe ledger: the last three entries were 5.7, 4.3 and 4.9 KB against a cap I set at 3.5 KB last pass and did not enforce. Full text of all three appended to LEDGER-archive.md, condensed in place to 2.9/2.8/3.0, cap tightened to 3.0 KB, and — the actual fix — rotate-ledger.mjs now measures the last three entries by name and refuses to be quiet about one that is over. I run that script every pass, so it is no longer possible for me to miss this the way I missed it twice.\n\nAnd a bug worth recording. state.mjs computed each domain last-touched iteration by stripping non-digits from the coverage entries, so pre-loop work tagged pre28, pre29, pre31 parsed as iterations 28, 29 and 31 — in a run that has reached 25. The grid told me Courtyard was the freshest domain when it is the most starved by seven iterations, and I have planned three passes against it. Balance is one of the two things I exist for and my instrument for it was inverted. Fixed, and it now prints how many iterations back each domain is.",
   "queue": [
     {
-      "id": "b26",
-      "domain": "Courtyard & garden",
-      "kind": "Interaction/UX",
-      "brief": "Since #24 the diorama answers a click on 64% of the frame and the cursor changes to say so — but nothing says WHAT you are pointing at. The courtyard beds hold eleven species with bloom stages, there are thirteen trees each on their own seasonal clock, and a viewer cannot name a single one. Give the picture a quiet identification of the thing under the pointer: this bed is lavender coming into bloom, this is the linden in leaf-turn, this is a cabbage plot standing through the cold. Read what the cell actually holds off the grid; do not guess from position. Why now: the courtyard has had no iteration since #14, eleven back and the most starved domain in the town, and it is where the nameable content is densest.",
-      "seams": [
-        "answersTouch",
-        "pavingAt",
-        "SPECIES",
-        "caTick",
-        "tickerQ",
-        "pushTicker",
-        "inviteHold",
-        "__entities"
-      ],
-      "successLooksLike": "Ten seconds of moving the pointer over the courtyard teaches a viewer three plant names they did not arrive with, and the naming stays correct as the season changes what is actually growing there.",
-      "avoid": "No permanent labels painted on the canvas. Do not fire on every mousemove — a name that changes sixty times a second is noise, not information. Do not fight the one-time invitation (inviteHold owns the sill while it runs). And mobile has no cursor at all, so a hover-only affordance is a discovery rate of zero on a tracked framing — see how the invitation borrows the sill at 390px.",
-      "budgetMin": 30,
-      "risk": "medium"
-    },
-    {
       "id": "b27",
       "domain": "Sky, light & weather",
       "kind": "Scale/World",
@@ -203,6 +183,10 @@
     {
       "id": "b25",
       "at": "2026-08-04T01:29:15.802Z"
+    },
+    {
+      "id": "b26",
+      "at": "2026-08-04T01:43:49.560Z"
     }
   ],
   "recommendStop": null

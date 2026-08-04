@@ -1604,3 +1604,56 @@ phase, and a day is 1/26 of this world's year, enough drift to fail a tolerance.
 0. That is deliberate — "before the town wakes" is the point of him — but it is the seam
 for anyone who later wants civil twilight as a real quantity rather than a clamped sine.
 
+## Iteration 19 — the year is felt in how busy the town is (2026-08-04) [People & animals × Deepen]
+
+**Brief:** b18 — a 52% swing in mean daylight was coming out as a ~15% swing in people.
+Widen the breathing, let the three arrival sources breathe by different amounts, and hold
+an absolute floor.
+
+**Did:** *The compression.* `capacity`, `laneCap` and `eastCap` were each `k + span*(f +
+(1-f)*d)`. Multiplied out, `k + span*f` is the share the sun never touches — 5 of the
+courtyard's 14, 3 of the lane's 9 — and averaged over a day that fixed share is most of the
+budget. Peak daylight is also 1.0 in *every* season by design (duration is the seasonal
+lever, never midday brightness), so the honest swing available is bounded by the day-length
+ratio, 17.5/11.5 = 1.52. So the year went onto the *varying* term as a multiplier and the
+fixed term was left exactly alone. `yearBusy(ex)` is read off `daySpan()` rather than off
+`warmth` — the same number, honest provenance, since what makes a July evening busy is that
+it is still light. `ex` is exposure: `EX_COURT` 0.5 (walled), `EX_LANE` 1.0 (open),
+`EX_EAST` 1.25 (you go out to it, across a bridge). `YEAR_SWING` 0.40. `eastCap` keeps
+`Math.min(7, …)` because c10 says east agents retrace their inbound route and would queue
+above seven, so summer spends its lift on reaching the ceiling *earlier in the day*.
+*The rail.* `POP_FLOOR` 8 with `scarcity = 1 + 0.8 * clamp(POP_FLOOR - agents.length, 0,
+6)`, multiplying the three arrival rates only — never the caps. Nobody pops into being.
+
+**Gates:** census PASS (people 167→190) · visual PASS (`probes/year-shots.mjs`, five pinned
+instants on HEAD and here: summer noon 23→28, winter noon 25→21, winter dusk 27→17; winter
+night still legible) · motion: the only kind that moved is `raindrop` — the shower changed
+scene under the reshuffle, and HEAD's own baseline records the same distribution;
+**`walker`, the kind this iteration actually moved, is 0 jumps / 0 nan / 0 oob / 0 flicker
+in all four scenes** · filmstrip clean, median Δ 0.410 · perf skipped · anchor assertion:
+`yearBusy` is **exactly 1.0000** for all three exposures at `SEASON_START` and again one
+full year on, so day one is provably the town as it was.
+
+**Probe:** `probes/season-year.mjs` extended — 3 seeds × 60 sim days (~2.3 years) folded
+onto one year, carrying `inCourtyard`, `onStreet - inEast` and `inEast` separately.
+Summer:winter ratio — total 1.09 → **1.56**, courtyard 1.05 → 1.26, lane 1.04 → **1.94**,
+east 1.40 → **2.10**. Settled mean 21.65 → 21.48: the year *redistributes* the town rather
+than inflating it. Absolute floor across all 3,600 samples: 8 → **8**, equal to HEAD.
+
+**Verdict:** shipped
+
+**Surprise:** holding every night-time cap identical did not hold the night. The first build
+left `capacity` and `laneCap` at `daylight` 0 byte-identical to HEAD in every season — and
+the worst sample still fell from 8 people to 5. Most of a 03.00 population is not spawned at
+03.00; it is daytime walkers still finishing forty-second trips, so an emptier winter
+afternoon arrives at midnight as an emptier town, several sim hours later, through a term
+nobody edited. That is also why the rail had to lift the *rate* rather than the cap: the
+caps at night already permitted 5 + 3 = 8, and what was missing was arrivals to fill them.
+The first rail (~1.25× at seven people) was too gentle and only reached 7.
+
+**Laws:** promoted — see the cap/trip-length law and the flat-peak law in `LAWS.md`.
+
+**Cue:** `scarcity` also fires in the first sim minute, when the town is legitimately empty,
+so the opening fill is hurried compared with HEAD (day 4 mid-morning: 13 → 18 people).
+`maturity()` still bounds it, but the very first minute is now a servo rather than a ramp.
+
