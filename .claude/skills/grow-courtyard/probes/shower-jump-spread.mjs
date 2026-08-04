@@ -13,7 +13,11 @@ const { chromium } = (await import(pathToFileURL(PW).href)).default;
 const FILES = process.argv.slice(2).length ? process.argv.slice(2)
   : ['/tmp/courtyard-head.html', 'courtyard.html'];
 const SEEDS = [3, 7, 11, 19, 42, 63, 101, 404, 777, 1234];
-const T = 605, STEP = 0.25, STEPS = 240;          // motion.mjs's `market` scene, verbatim
+// motion.mjs's scenes, verbatim. Default `market`; SCENE=dusk (or a raw t) for the others,
+// since any of the four population rows can fire and each has its own distribution.
+const SCENES = { day: 175, dusk: 1080, night: 1230, market: 605 };
+const T = SCENES[process.env.SCENE] ?? +(process.env.SCENE || 605);
+const STEP = 0.25, STEPS = 240;
 
 const browser = await chromium.launch();
 for (const file of FILES) {

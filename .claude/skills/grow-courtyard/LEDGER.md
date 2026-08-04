@@ -850,3 +850,71 @@ worse than no gate.
 measured 0.2 cells apart — the hop is a ±0.4 random walk with no separation term. Pre-existing
 and as true on the lane as on the new surfaces, so #24 did not cause it, but the law is weaker
 in motion than the probe suggests.
+
+---
+
+## Iteration 25 — one vegetable stands the winter (2026-08-04) [Cross street & allotments × Deepen]
+
+**Brief:** b24 — the allotments inherit `bloomCap()` through `caTick`, so nothing ripens in
+deep winter. MEASURE IT FIRST: fold ripeness, arrivals and gardeners over a multi-year run
+and find out whether winter is quiet or broken. Change only if the numbers warrant it.
+
+**Did:** Measured first, with two new probes, and three of the brief's premises came back
+wrong. Then one change, four lines.
+*What the numbers said.* `probes/allot-year.mjs` — 4 seeds × 3 seasonal years, 1 s samples,
+folded onto one year. Winter is **not a fifth of the year: `ripePlots()` is 0 for 48.3% of
+it**, one unbroken stretch of **11.2–11.4 sim days** every year. The gardeners do **not** damp
+away — `allotRate`'s 0.01 floor plus a ~2.2-day round trip holds one in the block 44.9% of
+midwinter, so the brief's failure mode was already covered. And it is **not seventeen plots of
+bare earth**: bare plots are 0.0 all winter, every plot sown and stalled at mean stage 1.1.
+`probes/allot-shots.mjs` crops to the block at four pinned instants — winter reads as turned
+earth with a scatter standing in it. Resting, not dead.
+*What was actually wrong.* The winter variance #14 bought is **per-CELL** (`hash(x,y+41)`
+holds a seventh of cells at the full ceiling) and the allotments are addressed **per-PLOT**:
+`ripePlots()` wants five of six cells up, so a seventh per cell is 2e-4 per plot. The
+courtyard's answer to a low ceiling is structurally inert next door, and 10 hardy cells in
+midwinter buy exactly 0 ripe plots.
+*The change.* `hardy:1` on cabbages, `plotStands(x,y)` off `plotCrop()`, and `caTick`'s
+ceiling expression grain-matched to the region: `cap===3 ? 3 : inAllotment ? (plotStands?3:cap)
+: (hash>0.86?3:cap)`. A plot under the brassica keeps the full ceiling through the cold. No
+`R()` — the crop is already in the ground. And because a lifted plot comes back under whatever
+is sown next, **which** plots stand rotates by itself instead of being the same seventh forever.
+
+**Gates:** census **PASS** (blooming −92/5066, planted −30, species reshuffled ±50) · visual
+**PASS** (four framings + the four allotment crops) · motion **FAIL, attributed** — `dusk/shower`
+jumps 0→1, the population row #23 already priced; entity-level `raindrop` is 0/0/0/0, and
+`probes/shower-jump-spread.mjs` (now scene-selectable) over 10 seeds gives HEAD 0..1 mean 0.20,
+here 0..1 mean 0.30 · filmstrip/perf **skipped** — no draw code, no per-frame pass; `caTick` gained
+6 cell reads per sub-ceiling allotment cell at 2.9 ticks/s · `allot-year.mjs` HEAD→here: ripe==0
+share of the year **48.3% → 13.1%**, longest ripe-0 stretch **11.2d → 0.9d**, winter ripe
+**0.00 → 1.18/17** against summer's 15.68 (a 13× swing, still quiet), winter picked/day 0.1 → 0.2
+against summer's 9.0, winter ≥1 gardener 44.9% → 52.2%, **summer unchanged** (15.74 → 15.68).
+
+**Verdict:** shipped   ← my view; runlog.mjs decides from the diff
+
+**Surprise:** **The census cannot see this change at all, and I can prove it.** Its three warps
+(90/625/1520 s) all land at phase 0.313 or 0.687 — *the same warmth, 0.693*, both at `bloomCap`
+3, where the new expression is algebraically the old one. Dumping ripe cells at those instants:
+HEAD and here are **bit-identical at t=90 and t=625** and only diverge at t=1520, which is after
+t≈752 s, the first moment `bloomCap` leaves 3 and the two R() streams can part. So the entire
+census diff is reshuffle, definitionally, and no seasonal-ceiling work will ever move that gate.
+Second: the winter tail came out shaped without being asked. Folded ripeness decays 2.45 → 1.91
+→ 1.37 → 1.12 → 0.95 → 0.68 at midwinter and climbs back — the standing crops being picked off
+one by one through the cold, each replacement only 1-in-4 hardy. I wrote a ceiling rule, not a
+decay; the harvest cycle supplied the curve.
+
+**Law:** Match the grain of a variance term to the grain the region is ADDRESSED by. Per-cell
+hardiness cannot lift a per-plot predicate — a seventh per cell is 2e-4 across six — so a rule
+that reads correctly in one region is silently a no-op in the next one that inherits it.
+
+**Law:** The census ladder samples ONE warmth. Its three warps land at phase 0.313/0.687, both
+warmth 0.693 and `bloomCap` 3, so anything that only acts away from the anchor is invisible to
+it by construction — and that also makes it a clean attribution tool: pin the phase, and any
+diff left is the PRNG reshuffle.
+
+**Cue:** `bloomCap()` is the town's only STEPPED seasonal term (3/2/1) while `growF`/`dieF`/the
+rest are lerps, so ripeness still falls off a cliff at the autumn shoulder — folded 12.53 → 5.52
+→ 2.45 in two sim days. The winter tail is now soft; the entry into it is not.
+
+**Cue:** Context budget was **OVER on entry — 53.4 KB against the 46 KB cap**, third iteration
+running. LEDGER.md is the bulk; laws 27/60 but 11.0 KB against a 12 KB byte cap.

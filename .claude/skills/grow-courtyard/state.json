@@ -2,7 +2,7 @@
   "updated": "2026-08-04",
   "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
   "phase": "expanding",
-  "lastIteration": 24,
+  "lastIteration": 25,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -187,7 +187,8 @@
         7
       ],
       "deepen": [
-        17
+        17,
+        25
       ]
     },
     "plaza": {
@@ -287,7 +288,8 @@
       "harvest cycle — harvestPlot() lifts a mature 3x2 bed whole, bAge doubles as a 12-20 s fallow clock, then re-sown as a row under plotCrop(). census planting.harvested",
       "spawnAllotAgent() — the allotments' own arrival source, rate on ripePlots(); ~1.1 gardeners/day, ~1 plot cleared/day, out again carrying a basket (a.crop)",
       "seasonal canopy on all 13 trees — leafOut/leafFresh/leafDeep/leafTurn/leafShed + leafCol(base,k), bare in winter behind drawBoughs()' tapered boughs, patchy amber in autumn; reads seasonPhase, not warmth. leafFallF() drives the falling leaves. probes/canopy-year.mjs, probes/year-strip.mjs",
-      "orchard year on the existing fruit:1 flag — blossomF() (white crown, out ahead of the leaves) and fruitF() (green->red, gone before the tree is bare)"
+      "orchard year on the existing fruit:1 flag — blossomF() (white crown, out ahead of the leaves) and fruitF() (green->red, gone before the tree is bare)",
+      "winter in the allotments is grain-matched to the PLOT: SPECIES gains hardy:1 (cabbages only), plotStands(x,y) reads it off plotCrop(), and caTick's ceiling is cap===3 ? 3 : inAllotment ? (plotStands?3:cap) : (hash>0.86?3:cap). A brassica plot keeps the full ceiling through the cold; which plots stand rotates with the harvest, so the winter tail decays and recovers on its own. ripe==0 share of the year 48.3% -> 13.1%, longest ripe-0 stretch 11.2d -> 0.9d, winter 1.18/17 ripe vs summer 15.68, summer unchanged. probes/allot-year.mjs, probes/allot-shots.mjs"
     ],
     "plaza": [
       "plaza with a fountain and a paved roundel (the roundel is PATH), four tree pits, benches; quay with benches along the river",
@@ -397,6 +399,18 @@
       "id": "c49",
       "note": "The 0.9-cell spread is a guarantee at SPAWN only: birds hop a +/-0.4 random walk with no separation term, and a pair measured 0.2 cells apart 1.8 s after landing. Pre-existing, and as true on the lane as on the surfaces #24 added — but it means probes/paving-places.mjs proves less about what a viewer sees than its number suggests.",
       "raisedBy": 23,
+      "seenBy": 0
+    },
+    {
+      "id": "c50",
+      "note": "bloomCap() is the town's only STEPPED seasonal term (3/2/1) while growF/dieF are lerps: allotment ripeness still falls off a cliff at the autumn shoulder, folded 12.53 -> 5.52 -> 2.45 in two sim days. The winter tail is soft now; the entry into it is not.",
+      "raisedBy": 24,
+      "seenBy": 0
+    },
+    {
+      "id": "c51",
+      "note": "The census ladder's three warps (90/625/1520 s) all land at warmth 0.693, bloomCap 3 — it samples ONE point of the year, so no seasonal-ceiling change can move it. Pinning a second phase would let the gate see the half of the year it currently cannot.",
+      "raisedBy": 24,
       "seenBy": 0
     }
   ],

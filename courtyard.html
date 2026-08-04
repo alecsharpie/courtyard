@@ -250,7 +250,10 @@ const SPECIES = [
   {name:'salvia',    col:'#4a5fb0', col2:'#6379c9', h:0.8,  style:'spike', minDay:2},
   /* allotment vegetables */
   {name:'carrots',   col:'#5f8a3c', col2:'#e07b28', h:0.4,  style:'spike', minDay:0, veg:1},
-  {name:'cabbages',  col:'#7f9a5d', col2:'#a3b876', h:0.35, style:'bush',  minDay:0, veg:1},
+  // `hardy` = stands the cold: the plot keeps the full ceiling when bloomCap() drops.
+  // Only the brassica. Beans and pumpkins are the first things a frost takes, and
+  // carrots being hardy too would leave half the block ripening in January.
+  {name:'cabbages',  col:'#7f9a5d', col2:'#a3b876', h:0.35, style:'bush',  minDay:0, veg:1, hardy:1},
   {name:'beans',     col:'#4f7a3d', col2:'#d9c04a', h:1.1,  style:'spike', minDay:1, veg:1},
   {name:'pumpkins',  col:'#6a8a44', col2:'#d9822b', h:0.4,  style:'bush',  minDay:3, veg:1},
 ];
@@ -981,7 +984,19 @@ function plotCrop(x, y){                      // whatever this plot is already u
   }
   return 0;
 }
-const FALLOW = 12;     // sim seconds a picked plot lies bare, +R()*8 — a third to a half of a 55 s day,
+/* Does this plot stand the winter? bloomCap() is a CEILING, and the courtyard's answer
+   to a low one is per-CELL hardiness (hash(x,y+41) holds a seventh of cells at the full
+   ceiling). That answer cannot lift a PLOT: ripePlots() wants five of six cells up, and
+   a seventh per cell is 2e-4 per plot — measured, the allotments had exactly 0 ripe
+   plots for 11 days of the 26, while the courtyard beside them still had colour in
+   them. So the allotments read their winter off the CROP instead. A plot under the one
+   hardy vegetable keeps the full ceiling through the cold; the rest stall at bloomCap()
+   like everything else. Costs no R(): the crop is already in the ground, and because a
+   lifted plot comes back under whatever is sown next, WHICH plots stand rotates by
+   itself — the winter block goes quieter as its standing crops are picked, instead of
+   the same seventh being hardy every year forever. */
+function plotStands(x, y){ const sp = plotCrop(x, y); return !!(sp && SPECIES[sp - 1].hardy); }
+const FALLOW = 12;   // sim seconds a picked plot lies bare, +R()*8 — a third to a half of a 55 s day,
                        // long enough that a dug-over row is something you notice from the wide view
 let harvested = 0;     // cumulative cells picked: the one number that separates picked from died back
 /* A gardener kneeling at a ripe plot clears it in one go and walks out with the crop.
@@ -1034,15 +1049,19 @@ function caTick(){
             bSt[i] = 1; bAge[i] = 0;
           }
         }
-      } else if (bSt[i] < (cap === 3 || hash(x, y + 41) > 0.86 ? 3 : cap)){
+      } else if (bSt[i] < (cap === 3 ? 3
+                   : inAllotment(x, y) ? (plotStands(x, y) ? 3 : cap)
+                   : hash(x, y + 41) > 0.86 ? 3 : cap)){
         if (R() < 0.10 * (0.3 + m) * boost * vig) bSt[i]++;
       } else {
         // the bed AT its ceiling is the bed that ages — so a low winter ceiling turns
-        // the beds over rather than freezing them half-grown. A seventh of the cells are
-        // HARDY and keep the full ceiling anyway (the hash is per-cell, so it is the same
-        // seventh every winter): measured, the cap alone took blooming to exactly 0 for
-        // 11 days of the 26, and a garden with no colour in it at all reads as dead
-        // rather than as wintering.
+        // the beds over rather than freezing them half-grown. Whatever keeps the full
+        // ceiling through the cold is grain-matched to what the region is ADDRESSED by:
+        // a seventh of courtyard CELLS by hash (the same seventh every winter, which is
+        // fine where the unit is a cell), and in the allotments a whole PLOT under a
+        // hardy crop, because there the unit ripePlots() reads is the plot. Measured,
+        // the cap alone took blooming to exactly 0 for 11 days of the 26, and a garden
+        // with no colour in it at all reads as dead rather than as wintering.
         bAge[i] += 0.35;
         const [nm] = neighborsMature(x, y);
         const crowd = nm > 5 ? 0.03 : 0;
