@@ -789,3 +789,64 @@ ten seeds: the row that fired 2→4 here has a per-seed range of 0..2 on HEAD.
 
 **Cue:** 3 of 24 individual winters saw no boat at all (HEAD's worst season is 3/24 springs, so
 this is no worse than the town already was, but it is where the floor is spent).
+
+---
+
+## Iteration 24 — the courtyard and the plaza answer a touch (2026-08-04) [Plaza & quay × Interaction/UX]
+
+**Brief:** b23 — `answersTouch()` answered six tiles and not PATH, so the plaza's roundel and
+the whole courtyard were dead to the cursor and the click. Extend the answering surface to
+PATH and give those cells their entries in `PAVING`/`pavingAt`.
+
+**Did:** `answersTouch()` takes PATH; the click handler's paving branch takes it too. `PAVING`
+gains `court` (1,896 cells) and `plaza` (730 — the square, where the old `plaza` entry was the
+24-cell mouth onto the lane, now `mouth`). The two share one `PLAZA_WORDS` string: a place is
+one set of WORDS, but it needs one box per piece of GROUND, because the four rows between the
+square and its mouth are the terrace's end wall and a single bbox over both lands birds on a
+roof. `pavingAt()` branches on the tile first — PATH is only ever the courtyard or the plaza,
+and they are half a world apart. `crumbSpot()` gains an optional `keep` rectangle: the fountain
+is the first obstacle standing in the MIDDLE of a place rather than at its edge, so the scatter's
+CENTRE is pushed clear of it (shortest translation out of the basin grown by the spread's own
+reach, `s*7/12` along the stagger and `w/2` across) — never the individual birds, which is the
+clamp #20 already paid for. **The frame that answers the cursor goes 46.1% → 64.1%**; paving
+cells that answer, 2,903 → 5,529.
+
+**Gates:** census **PASS** — *identical* on all 9 cells, every field, which is the point:
+`crumbSpot` runs on click, so no `R()` draw was added and the seeded world is untouched ·
+visual **PASS** (four framings; plus 7 crumb crops incl. four sides of the basin) · motion
+**PASS**, clean · perf skipped (nothing per-frame changed) · `probes/paving-places.mjs` **PASS**
+with a new exhaustive section: `crumbSpot` over every one of the 5,529 paving cells, 6 draws
+each (~99k bird placements) — 0 outside their box, 0 pairs under 0.9 cells (closest 1.01),
+0 in water · `probes/touch-hint.mjs` **PASS**, 345 points, 0 cursor/handler disagreements.
+Context budget was **OVER** on entry (52.7 KB vs the 46 KB cap).
+
+**Surprise:** The brief warned that the courtyard path ring is "narrow and curved — exactly the
+case the 0.9-cell law bites on". It is neither. It is 1,896 cells, 8–20 cells thick radially,
+and it is the **largest single place in the town** — bigger than the lane's 1,731. The law never
+came near biting: the tightest place in the world is still the two-cell quay at 1.36. The risk
+was real but it was in the other half of the brief, and it was floating point. I derived the
+basin's footprint from the same ellipse `buildGrid()` cuts it with, and got the boundary row
+wrong — `(28.5-30)*1.2` is `1.7999999999999998`, so the row that ought to be the rim is water.
+My careful rectangle was *worse than the crude circle it replaced* (22 birds in the basin against
+1) and it took an exhaustive probe to see it at all, because 22 in 99k never shows in a
+screenshot. Reading WATER back off the grid took it to 0.
+
+Also: a throwaway patch-sampling probe told me a bird north of the fountain was hidden behind it.
+It was lying — a patch centred on a bird's ground anchor misses a sprite drawn above it.
+Leave-one-out (splice bird k, re-shoot, diff the crop) says 3/3 visible on all four sides.
+Promoted as `probes/crumb-birds-seen.mjs`.
+
+**Law:** Don't re-derive a footprint — read it back off the grid. A second evaluation of the
+same geometric test disagrees with the first at the boundary, by 2e-16, which is a whole cell.
+Anything needing to know which cells a shape claims should scan for them.
+
+**Law:** A gate that fails on an unmodified HEAD is not a gate. `touch-hint.mjs` asserted the
+invitation appears no earlier than `INVITE_AT` = 8 s, timed on a host clock that starts before
+`goto()` — so it failed by ~66 ms on every run, mine and HEAD's alike. Stash and run before
+attributing a red gate to your change; then fix the assert, because a permanently red gate is
+worse than no gate.
+
+**Cue:** the 0.9-cell guarantee is a guarantee at SPAWN only. After 1.8 s of hopping a pair
+measured 0.2 cells apart — the hop is a ±0.4 random walk with no separation term. Pre-existing
+and as true on the lane as on the new surfaces, so #24 did not cause it, but the law is weaker
+in motion than the probe suggests.

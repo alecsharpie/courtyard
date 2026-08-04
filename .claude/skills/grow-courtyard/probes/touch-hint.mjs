@@ -123,7 +123,11 @@ const INV = { wide: 'Reach out of the window', narrow: 'Touch the picture' };
   const first = hits.length ? hits[0].t : -1, last = hits.length ? hits[hits.length - 1].t : -1;
   console.log(`invite wide: runs ${runs} · first seen ${first}s · on screen ${(last - first).toFixed(2)}s · lines seen ${new Set(s.map(r => r.txt)).size}`);
   if (runs !== 1) fail('invitation appeared ' + runs + ' times in 26 s, must be exactly 1');
-  if (first < 8) fail('invitation came at ' + first + 's, before INVITE_AT');
+  // 7.7, not 8: this probe's t0 starts before goto() and INVITE_AT is counted from
+  // the page's own first frame, so the host clock leads the page by however long the
+  // load took (~66 ms here). Asserting the exact boundary made the gate fail on an
+  // unmodified HEAD, which is worse than not having it.
+  if (first < 7.7) fail('invitation came at ' + first + 's, before INVITE_AT');
   if (first > 16) fail('invitation came at ' + first + 's — too late to be found');
   if (last - first < 5.0) fail('invitation held the surface ' + (last - first) + 's, under INVITE_DWELL');
 }

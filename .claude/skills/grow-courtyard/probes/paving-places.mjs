@@ -44,7 +44,7 @@ await p.waitForFunction('typeof window.__census === "function"');
     for (const k in PAVING) per[k] = 0;
     for (let y = 0; y < WH; y++) for (let x = 0; x < GW; x++) {
       const g = grid[y * GW + x];
-      if (g !== SIDE && g !== ROAD) continue;
+      if (g !== SIDE && g !== ROAD && g !== PATH) continue;
       const q = pavingAt(x, y);
       const key = Object.keys(PAVING).find(k => PAVING[k] === q);
       per[key]++;
@@ -53,13 +53,58 @@ await p.waitForFunction('typeof window.__census === "function"');
     }
     return { per, escapes, total: Object.values(per).reduce((a, n) => a + n, 0) };
   });
-  console.log('paving cells by place (' + r.total + ' SIDE/ROAD cells in the world):');
+  console.log('paving cells by place (' + r.total + ' SIDE/ROAD/PATH cells in the world):');
   for (const [k, n] of Object.entries(r.per)) {
     console.log('  ' + k.padEnd(9) + String(n).padStart(6));
     if (!n) fail('place "' + k + '" claims no cell in the world — it can never be clicked');
   }
   if (r.escapes.length) fail(r.escapes.length + '+ cells named for a place they are outside: ' +
     JSON.stringify(r.escapes));
+}
+
+/* ---- 1b: the 0.9-cell law, EXHAUSTIVELY. Twelve hand-picked clicks below say
+ * nothing about the 2,626 PATH cells added at #24 — and the courtyard and the
+ * plaza are the first places whose shape is not the box that contains them (an
+ * annulus round a garden; a square with a fountain in the middle). So run
+ * crumbSpot itself over EVERY paving cell in the world, several draws each, and
+ * count: birds outside their own box, pairs under 0.9 cells apart, and birds that
+ * came down in water. A hand-picked point cannot find the one cell that fails. */
+{
+  const r = await p.evaluate(() => {
+    const DRAWS = 6, per = {};
+    const key = q => Object.keys(PAVING).find(k => PAVING[k] === q);
+    for (const k in PAVING) per[k] = { cells: 0, out: 0, close: 0, wet: 0, minGap: 9, maxShift: 0 };
+    for (let y = 0; y < WH; y++) for (let x = 0; x < GW; x++) {
+      const g = grid[y * GW + x];
+      if (g !== SIDE && g !== ROAD && g !== PATH) continue;
+      const q = pavingAt(x, y), s = per[key(q)];
+      s.cells++;
+      for (let d = 0; d < DRAWS; d++) {
+        const b = [0, 1, 2].map(k => crumbSpot(q, x, y, k));
+        for (const [bx, by] of b) {
+          if (bx < q.x0 || bx > q.x1 || by < q.y0 || by > q.y1) s.out++;
+          const gx = Math.floor(bx), gy = Math.floor(by);
+          if (gx >= 0 && gy >= 0 && gx < GW && gy < WH && grid[gy * GW + gx] === WATER) s.wet++;
+          s.maxShift = Math.max(s.maxShift, Math.hypot(bx - (x + 0.5), by - (y + 0.5)));
+        }
+        for (let i = 0; i < 3; i++) for (let j = i + 1; j < 3; j++) {
+          const gap = Math.hypot(b[i][0] - b[j][0], b[i][1] - b[j][1]);
+          s.minGap = Math.min(s.minGap, gap);
+          if (gap < 0.9) s.close++;
+        }
+      }
+    }
+    __reseed();
+    return { per, DRAWS };
+  });
+  console.log(`\ncrumbSpot over every paving cell, ${r.DRAWS} draws each — box escapes, pairs under 0.9, birds in water:`);
+  for (const [k, s] of Object.entries(r.per)) {
+    console.log(`  ${k.padEnd(9)} ${String(s.cells).padStart(5)} cells · outside ${s.out} · under-0.9 ${s.close}` +
+                ` · in water ${s.wet} · closest pair ${s.minGap.toFixed(2)} · furthest bird ${s.maxShift.toFixed(1)} cells from the click`);
+    if (s.out) fail(`${k}: ${s.out} birds outside their own box`);
+    if (s.close) fail(`${k}: ${s.close} bird pairs under 0.9 cells — they draw as one shape`);
+    if (s.wet) fail(`${k}: ${s.wet} birds came down in water`);
+  }
 }
 
 /* ---- 2: the promise — one click per place, words and birds together ---- */
@@ -69,21 +114,28 @@ const CASES = [
   ['bridge', 120, 72],   // the deck, mid-span
   ['cross',   67, 30],   // west footway of the cross street
   ['cross',   70, 20],   // its roadway
-  ['plaza',  105, 62],   // the plaza's mouth onto the lane
+  ['mouth',  105, 62],   // the plaza's mouth onto the lane
   ['quay',   113, 30],   // the quay strip, water one cell east
   ['towpath', 128, 40],  // the far bank
+  ['court',   32, 10],   // the courtyard's own flags, north of the garden
+  ['plaza',  105, 25],   // the roundel, five cells north of the basin
+  ['plaza',  100, 30],   // the roundel's west edge, level with the basin
   // the edges, where a per-bird clamp would collapse the scatter into a heap
   ['lane',     0, 65],   // west end of the lane, hard against the world edge
   ['quay',   112,  0],   // the quay's north end
-  ['plaza',  102, 64],   // the plaza mouth's west jamb
+  ['mouth',  102, 64],   // the plaza mouth's west jamb
   ['towpath',129, 64],   // the towpath's foot, where it meets the lane
+  ['court',    6, 32],   // the courtyard's west edge, beside the passage
+  ['plaza',   99,  3],   // the plaza's north-west corner
 ];
 const box = await p.locator('#cv').boundingBox();
 console.log('\nclick -> line -> where the birds landed:');
 for (const [want, cx, cy] of CASES) {
   const pt = await p.evaluate(({ cx, cy }) => {
     const s = project(cx + 0.5, cy + 0.5, 0);
-    return { sx: s[0], sy: s[1], kind: grid[cy * GW + cx] === ROAD ? 'ROAD' : grid[cy * GW + cx] === SIDE ? 'SIDE' : 'OTHER',
+    const g = grid[cy * GW + cx];
+    return { sx: s[0], sy: s[1],
+             kind: g === ROAD ? 'ROAD' : g === SIDE ? 'SIDE' : g === PATH ? 'PATH' : 'OTHER',
              live: answersTouch(cx, cy) };
   }, { cx, cy });
   if (!pt.live || pt.kind === 'OTHER') { fail(`(${cx},${cy}) is not paving (${pt.kind}) — the case is wrong, not the code`); continue; }
@@ -150,6 +202,12 @@ if (process.argv.includes('--shot')) {
     ['paving-quay',    113, 30],
     ['paving-towpath', 128, 40],
     ['paving-plaza',   105, 62],
+    // #24: the two surfaces PATH added. The roundel pair is the keep-out working —
+    // clicked one cell off the basin's rim, north and west, where the shove bites.
+    ['paving-court',    32, 10],
+    ['paving-court-w',   6, 32],
+    ['paving-roundel-n',105, 27],
+    ['paving-roundel-w',103, 30],
   ]) {
     await p.evaluate(() => { birds.length = 0; });
     // crop from the click's own projected point, ±5 cells: a fraction-of-frame clip

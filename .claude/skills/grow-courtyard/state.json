@@ -2,7 +2,7 @@
   "updated": "2026-08-04",
   "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
   "phase": "expanding",
-  "lastIteration": 23,
+  "lastIteration": 24,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -199,6 +199,9 @@
       ],
       "polish": [
         20
+      ],
+      "interaction": [
+        24
       ]
     },
     "river": {
@@ -289,7 +292,8 @@
     "plaza": [
       "plaza with a fountain and a paved roundel (the roundel is PATH), four tree pits, benches; quay with benches along the river",
       "spawnEastAgent() — the east quarter's own arrival source (eastCap/eastRate, a.east, excluded from laneCount, eastOpen() on daylight>0.16); enters by the alley, the quay head or the park gate, visits one stop, leaves the way it came. census life.inEast",
-      "PAVING + pavingAt(x,y) — the ONE predicate naming which paving a SIDE/ROAD cell is: lane, bridge deck, cross street, plaza mouth, quay, towpath. Each carries its own crumbs line AND the box its birds land in. crumbSpot() staggers three birds along the long axis, never under 3 cells. probes/paving-places.mjs"
+      "PAVING + pavingAt(x,y) — the ONE predicate naming which paving a SIDE/ROAD cell is: lane, bridge deck, cross street, plaza mouth, quay, towpath. Each carries its own crumbs line AND the box its birds land in. crumbSpot() staggers three birds along the long axis, never under 3 cells. probes/paving-places.mjs",
+      "answersTouch() answers PATH too — the courtyard's own flags (1,896 cells, the largest single place in the town) and the plaza square incl. the roundel (730). PAVING gained court + plaza; the old 24-cell plaza mouth is now 'mouth', sharing PLAZA_WORDS. crumbSpot()'s optional keep rect shoves the SCATTER'S CENTRE clear of the fountain basin, read back off the grid by waterBox(). Cursor answers 64.1% of the frame (was 46.1%); 5,529 paving cells answer (was 2,903). probes/paving-places.mjs now runs crumbSpot over EVERY paving cell; probes/crumb-birds-seen.mjs asks leave-one-out whether a bird is actually drawn"
     ],
     "river": [
       "river, a rowboat, three-arch bridge, towpath, church with tower and nave, bandstand, four orchard trees, jetty, park gate",
@@ -387,6 +391,12 @@
       "id": "c48",
       "note": "motion.mjs's shower row is a POPULATION count sampled at two seeds, so it fires on any iteration that shifts R() at all. probes/shower-jump-spread.mjs replays the gate's exact world over ten seeds and is the cheap answer the next time it goes off.",
       "raisedBy": 21,
+      "seenBy": 0
+    },
+    {
+      "id": "c49",
+      "note": "The 0.9-cell spread is a guarantee at SPAWN only: birds hop a +/-0.4 random walk with no separation term, and a pair measured 0.2 cells apart 1.8 s after landing. Pre-existing, and as true on the lane as on the surfaces #24 added — but it means probes/paving-places.mjs proves less about what a viewer sees than its number suggests.",
+      "raisedBy": 23,
       "seenBy": 0
     }
   ],

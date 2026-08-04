@@ -3938,52 +3938,98 @@ function applyLight(t){
 }
 
 /* ============ interaction ============ */
-/* Six cells answer a touch, and for most of this town's life nothing on screen said
- * so. The two hints below are the whole of the advertisement, and both are meant to
- * be missable: the cursor, which costs no pixels and only speaks while a hand is
- * already on the picture, and ONE line on the ticker, once, ever.
+/* Seven kinds of cell answer a touch, and for most of this town's life nothing on
+ * screen said so. The two hints below are the whole of the advertisement, and both
+ * are meant to be missable: the cursor, which costs no pixels and only speaks while
+ * a hand is already on the picture, and ONE line on the ticker, once, ever.
  *
  * ONE predicate decides which cells answer. The cursor reads it on every mouse move
  * and the click handler guards on it, so the hint can never promise a response the
- * click does not give, or stay silent over one it does. */
+ * click does not give, or stay silent over one it does.
+ *
+ * PATH was the hole in it. PATH is not a lesser surface — it is the courtyard's own
+ * paving and the whole of the plaza, 2,626 cells against SIDE and ROAD's 2,903 — so
+ * leaving it out made the two places the eye goes to FIRST, the roundel round the
+ * fountain and the court itself, the two places that would not answer. SLOT stays
+ * out on purpose: it is drawn like paving but it is a cut THROUGH a building seen
+ * edge-on, 52 cells of doorway, and nobody scatters crumbs in a doorway. */
 function answersTouch(x, y){
   if (x < 0 || y < 0 || x >= GW || y >= WH) return false;
   const g = grid[y * GW + x];
-  return g === BED || g === CBED || g === GRASS || g === WATER || g === SIDE || g === ROAD;
+  return g === BED || g === CBED || g === GRASS || g === WATER ||
+         g === SIDE || g === ROAD || g === PATH;
 }
-/* SIDE and ROAD are the paving of the WHOLE town — the lane, the cross street,
- * the plaza's mouth, the quay, the bridge deck, the towpath on the far bank — so
- * the branch that answers a click on paving has to know WHICH paving. ONE table:
- * each place carries the line it answers with AND the box its crumbs' birds may
- * land in, so the words and the birds can never disagree about where you pointed.
+/* SIDE, ROAD and PATH are the paving of the WHOLE town — the courtyard's flags,
+ * the lane, the cross street, the plaza and its mouth, the quay, the bridge deck,
+ * the towpath on the far bank — so the branch that answers a click on paving has
+ * to know WHICH paving. ONE table: each place carries the line it answers with AND
+ * the box its crumbs' birds may land in, so the words and the birds can never
+ * disagree about where you pointed.
  *
  * The spread is per place because the shapes differ: the lane and the bridge run
  * east-west and are wide, the quay and the towpath are two- and three-cell strips
  * running north-south. The LONGER of the two is the axis the scatter staggers
  * along, and it is never under 3 cells, because three birds inside 3 cells is
- * where they stop reading as three (see crumbSpot). */
+ * where they stop reading as three (see crumbSpot).
+ *
+ * The plaza is TWO boxes and one line, not one box: the square and the mouth it
+ * opens onto the lane are the same place to a visitor, but the four rows between
+ * them are the terrace's end wall, and a single bounding box over both would land
+ * birds on a roof. A place is one set of WORDS; a box is one piece of GROUND.
+ *
+ * `keep` is the fountain, the only thing standing in the MIDDLE of a place rather
+ * than at its edge: the basin is the one obstacle a scatter can be centred beside
+ * and still straddle, and a bird that comes down in it sorts behind the basin and
+ * reads as a bird swallowed by the stonework. It moves the CENTRE clear — never
+ * the individual birds, which is the clamp that collapses a stagger into a heap.
+ *
+ * It is a RECTANGLE, not a radius, because the thing being avoided is whole CELLS
+ * of water and the shove has to clear the corners: a circle wide enough to cover
+ * them on the diagonal is ~2.9 cells of shove on the axes, where the rectangle's
+ * minimum-translation push is 0.5. */
+const PLAZA_WORDS = 'You scatter crumbs onto the plaza. Pigeons are on them before you straighten up.';
+/* The basin as the grid actually CUT it, not as the ellipse describes it. Recomputing
+ * buildGrid()'s own test here gets the boundary row wrong: (28.5-30)*1.2 evaluates to
+ * 1.7999999999999998, so the row that reads as the rim of the basin is water, and a
+ * footprint derived a second time is a footprint that disagrees with itself. */
+function waterBox(x0, x1, y0, y1){
+  let a = 1e9, b = -1e9, c = 1e9, d = -1e9;
+  for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++)
+    if (grid[y * GW + x] === WATER){
+      a = Math.min(a, x); b = Math.max(b, x + 1); c = Math.min(c, y); d = Math.max(d, y + 1);
+    }
+  return {x0:a, x1:b, y0:c, y1:d};
+}
 const PAVING = {
+  court:   {x0:3,        x1:61,       y0:3,         y1:61,        sx:3,   sy:2,
+            line:'You scatter crumbs on the courtyard flags. Sparrows come down off the wall.'},
   lane:    {x0:0,        x1:GW,       y0:LN_WALK_N, y1:LN_WALK_S, sx:3,   sy:2,
             line:'You scatter crumbs onto the lane. Small eyes take notice.'},
   bridge:  {x0:RIVER_X0, x1:RIVER_X1, y0:LN_WALK_N, y1:LN_WALK_S, sx:3,   sy:2,
             line:'You scatter crumbs on the bridge. Birds drop in off the parapet.'},
   cross:   {x0:XS_W0,    x1:XS_E1,    y0:0,         y1:LN_WALK_N, sx:2.2, sy:3,
             line:'You scatter crumbs along the cross street. Small eyes take notice from the kerb.'},
-  plaza:   {x0:102,      x1:108,      y0:61,        y1:LN_WALK_N, sx:3,   sy:2,
-            line:'You scatter crumbs onto the plaza. Pigeons are on them before you straighten up.'},
+  plaza:   {x0:PLAZA_X0, x1:PLAZA_X1, y0:3,         y1:61,        sx:3,   sy:2,
+            keep:waterBox(PLAZA_X0, PLAZA_X1, 3, 61),
+            line:PLAZA_WORDS},
+  mouth:   {x0:102,      x1:108,      y0:61,        y1:LN_WALK_N, sx:3,   sy:2,
+            line:PLAZA_WORDS},
   quay:    {x0:QUAY_X0,  x1:RIVER_X0, y0:0,         y1:LN_WALK_N, sx:1.2, sy:4,
             line:'You scatter crumbs along the quay, a step from the water. Small eyes take notice.'},
   towpath: {x0:TOW_X0,   x1:FAR_X0,   y0:3,         y1:LN_WALK_N, sx:1.8, sy:4,
             line:'You scatter crumbs on the towpath. Birds come over the water for it.'},
 };
-/* Called only on a cell answersTouch() has already called SIDE or ROAD; every such
- * cell falls in exactly one of these boxes. South of LN_WALK_N the paving is the
- * lane, all the way across, except where it is carried over the river. */
+/* Called only on a cell answersTouch() has already called SIDE, ROAD or PATH; every
+ * such cell falls in exactly one of these boxes. PATH is only ever the courtyard or
+ * the plaza square, and the two are separated by half the world. Below that, south
+ * of LN_WALK_N the paving is the lane, all the way across, except where it is
+ * carried over the river. */
 function pavingAt(x, y){
+  if (grid[y * GW + x] === PATH) return x >= PLAZA_X0 ? PAVING.plaza : PAVING.court;
   if (y >= LN_WALK_N) return (x >= RIVER_X0 && x < RIVER_X1) ? PAVING.bridge : PAVING.lane;
   if (x >= TOW_X0)   return PAVING.towpath;
   if (x >= QUAY_X0)  return PAVING.quay;
-  if (x >= PLAZA_X0) return PAVING.plaza;
+  if (x >= PLAZA_X0) return PAVING.mouth;
   return PAVING.cross;
 }
 /* Where the k-th of three birds comes down on a handful of crumbs. Sampling all
@@ -4001,8 +4047,21 @@ function fitIn(c, lo, hi, span){
 function crumbSpot(p, x, y, k){
   const along = p.sy > p.sx;                        // a north-south strip runs down itself
   const s = along ? p.sy : p.sx, w = along ? p.sx : p.sy;
-  const cx = fitIn(x + 0.5, p.x0, p.x1, along ? w : s);
-  const cy = fitIn(y + 0.5, p.y0, p.y1, along ? s : w);
+  let cx = fitIn(x + 0.5, p.x0, p.x1, along ? w : s);
+  let cy = fitIn(y + 0.5, p.y0, p.y1, along ? s : w);
+  if (p.keep){
+    /* the forbidden GROUND, grown by the scatter's own reach — s/2 + s/12 along
+     * the stagger, w/2 across it — so the whole spread clears it, not just the
+     * centre. Grown from sx/sy rather than typed: widen the spread and the shove
+     * widens with it. Then the shortest push out of the box that is left. */
+    const rx = (along ? w / 2 : s * 7 / 12) + 0.02, ry = (along ? s * 7 / 12 : w / 2) + 0.02;
+    const l = p.keep.x0 - rx, r = p.keep.x1 + rx, u = p.keep.y0 - ry, d = p.keep.y1 + ry;
+    if (cx > l && cx < r && cy > u && cy < d){
+      const m = Math.min(cx - l, r - cx, cy - u, d - cy);
+      if (m === cx - l) cx = l; else if (m === r - cx) cx = r;
+      else if (m === cy - u) cy = u; else cy = d;
+    }
+  }
   const u = (k - 1) * s / 2 + (R() - 0.5) * s / 6;  // -s/2, 0, +s/2, each ±s/12
   const v = (R() - 0.5) * w;
   return along ? [cx + v, cy + u] : [cx + u, cy + v];
@@ -4047,7 +4106,7 @@ cv.addEventListener('click', ev => {
       announce('You toss crumbs into the pond. The ducks arrive like a small navy.');
       for (const d of ducks){ d.tx = x + 0.5; d.ty = y + 0.5; d.t = 4; }
     }
-  } else if (grid[j] === SIDE || grid[j] === ROAD){
+  } else if (grid[j] === SIDE || grid[j] === ROAD || grid[j] === PATH){
     const p = pavingAt(x, y);
     announce(p.line);
     if (birds.length < 4 && daylight > 0.2){
