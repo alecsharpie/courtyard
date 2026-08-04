@@ -48,6 +48,37 @@ if (marks.length <= KEEP) {
   console.log(`rotate: moved ${marks.length - KEEP} entries to LEDGER-archive.md, kept the last ${KEEP}.`);
 }
 
+/* The last 3 entries are read by EVERY worker, so their length is charged three
+ * times over. Pass #20 answered that with a 3.5 KB advisory cap in the ledger's
+ * own template; all three of the next three entries came in at 4.3-5.7 KB and
+ * three more workers opened OVER budget. An advisory cap that nobody enforces is
+ * a comment. So it is measured here, in the script the manager runs every pass,
+ * and it names the entry — condensing it is the manager's job and nobody else's. */
+{
+  const cur = readFileSync(LEDGER, 'utf8');
+  const m = [...cur.matchAll(/^## Iteration \d+.*$/gm)];
+  const ENTRY_CAP = 3 * 1024;
+  const last3 = m.slice(-3);
+  let hot = 0, sum = 0;
+  console.log('\nread by every worker — the last 3 entries:');
+  for (let i = 0; i < last3.length; i++) {
+    const start = last3[i].index;
+    const end = i + 1 < last3.length ? last3[i + 1].index : cur.length;
+    const bytes = Buffer.byteLength(cur.slice(start, end));
+    sum += bytes;
+    if (bytes > ENTRY_CAP) hot++;
+    console.log(`  ${(bytes / 1024).toFixed(1)} KB  ${last3[i][0].slice(3, 60)}${bytes > ENTRY_CAP ? '   ← over 3 KB' : ''}`);
+  }
+  console.log(`  ${(sum / 1024).toFixed(1)} KB total`);
+  if (hot) {
+    console.log(`\n  ${hot} of the last 3 entries is over the 3 KB per-entry cap.`);
+    console.log('  Condense them IN PLACE this pass: append the full text to LEDGER-archive.md');
+    console.log('  first, then cut what stays to the brief, the change, the gate verdicts and');
+    console.log('  the surprise. Laws belong in LAWS.md and loose ends in state.json — neither');
+    console.log('  is worth a worker re-reading three times.');
+  }
+}
+
 if (existsSync(LAWS)) {
   const laws = readFileSync(LAWS, 'utf8');
   const n = (laws.match(/^- \*\*/gm) || []).length;

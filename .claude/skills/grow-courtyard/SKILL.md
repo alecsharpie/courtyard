@@ -211,14 +211,11 @@ honestly, claim nothing, and let the diff speak.
   `WALL`/`TUNNEL` footprint lifts each roof vertex by its distance to the block
   edge, so ridges, hips, valleys and gap-free wall-to-eave joins fall out of the
   data. Do not special-case a roof.
-- **`project()` pinches on *screen* depth** (`wy - wz*LIFT`), not world depth.
-  Changing it back reintroduces a black seam beside every wall.
 - **Passages are typed.** `TUNNEL` = roofed (drawn as a clipped vaulted arch with
   the walkers inside). `SLOT` = an open cut, for east–west passages seen edge-on.
-- **Every random draw goes through `R()`** (or `hash(x,y)` for per-cell decisions).
-  A bare `Math.random()` is invisible to `?seed=` and silently breaks the census.
-- **Census fields are town state, never render state.** A per-frame draw
-  accumulator (like the lit-window list) makes the census non-reproducible.
+- **Three more you will find stated as laws** — `project()` pinching on *screen*
+  depth, every draw going through `R()`, and census fields being town state and never
+  render state. They are invariants; `LAWS.md` says why, so they are not repeated here.
 - **Reduced motion is respected** (`RM`) and the page must stay usable on mobile
   (390×844 is a tracked framing).
 - **The courtyard survives everything.** The garden at the centre is the thing this

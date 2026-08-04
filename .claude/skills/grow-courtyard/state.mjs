@@ -51,10 +51,14 @@ if (has('--show')) {
       const sat = (s.saturation[`${d.id}x${k}`] ? '!' : '');
       return ((v.length ? String(v.length) + sat : '·')).padEnd(kw[i]);
     });
-    /* last touched: the highest numeric iteration anywhere in the row */
-    const nums = Object.values(row).flat().map(v => parseInt(String(v).replace(/\D/g, ''), 10)).filter(Number.isFinite);
+    /* Last touched BY THE LOOP. Pre-loop work is recorded as `pre28` etc., and
+     * stripping the letters made "pre28" read as iteration 28 — which reported
+     * the most starved domain as the freshest one, in the exact grid the manager
+     * rotates from. Count only entries that are actually numbers. */
+    const nums = Object.values(row).flat().filter(v => typeof v === 'number');
     const last = nums.length ? Math.max(...nums) : null;
-    console.log(d.name.padEnd(w + 2) + cells.join(' ') + `  last=${last ?? '—'}`);
+    const age = last === null ? '' : `  (${s.lastIteration - last} back)`;
+    console.log(d.name.padEnd(w + 2) + cells.join(' ') + `  last=${last ?? 'pre-loop'}${age}`);
   }
   console.log('\n(counts, not iteration numbers; "!" = marked saturated; open state.json for detail)');
 

@@ -14,13 +14,13 @@ street and allotments, the plaza and quay, the river and far bank) is in
 
 ## Template
 
-**Keep an entry under ~3.5 KB (≈55 lines).** A worker reads the last **three** entries
-in full, every iteration, so entry length is charged to the loop three times over. At
-pass #20 the last three had reached 15.3 KB between them and the read budget had been
-OVER for four consecutive iterations; the manager condensed them and the full text went
-to `LEDGER-archive.md`. If your entry does not fit, the excess is almost always a
-**law** (true of the next vector, so it belongs in `LAWS.md`) or a **cue** (belongs in
-`state.json`) — not a longer entry. Write the *surprise* at full length and compress
+**Keep an entry under 3 KB (≈45 lines).** A worker reads the last **three** entries in
+full, every iteration, so entry length is charged to the loop three times over. This
+cap was 3.5 KB and advisory at pass #20; the next three entries came in at 4.3–5.7 KB
+and three more workers opened OVER budget, so it is now measured by
+`rotate-ledger.mjs`, which names any entry over it. If yours does not fit, the excess is
+almost always a **law** (true of the next vector → `LAWS.md`) or a **cue**
+(→ `state.json`), not a longer entry. Write the *surprise* at full length and compress
 everything else; the surprise is the part that cannot be reconstructed from the diff.
 
 ```markdown
@@ -37,428 +37,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 ```
 
 ---
-
-## Iteration 13 — the picture now admits it answers a touch (2026-08-03) [Courtyard & garden × Interaction/UX]
-
-**Brief:** b13 — the diorama has been clickable since before the loop began and nothing on
-screen said so. Make the touch discoverable without spoiling it: a cursor that tells you the
-cell under the pointer will answer, and a first-time viewer invited exactly once.
-
-**Did:** Two hints and no third.
-*The cursor.* One predicate, `answersTouch(x,y)`, is now the single definition of "this cell
-answers": the six tile types the click handler branches on. `mousemove` reads it and swaps
-`cv.style.cursor` between `pointer` and `default` — on transitions only, not per event — and
-the click handler now *guards* on the same call instead of doing its own bounds check, so the
-hint cannot promise a response the click does not give. Both go through a new `cellAt(ev)`.
-The canvas base cursor was `crosshair`, which said "aim" everywhere and so said nothing; it is
-now the plain arrow, and the pointer is the only special cursor in the frame. 46% of the frame
-is live, so a hand crossing the picture finds it.
-*The invitation.* One line, once, then never again: `offerInvite(now)` off the real frame
-clock (not sim time — `?fast` must not hurry a reading speed). It refuses to compete for the
-ticker: it waits for `tickerFree()` and takes the surface directly rather than queueing, where
-the drop policy would either lose it behind the news or hand it over long after the viewer had
-moved on. Clicking first cancels it — `touched = true` in the click handler — and a `?pause`
-page is the harness, not a viewer, so `DRIVEN` stands it down and every gate still measures the
-town rather than the advertisement.
-*Two small seam changes it needed.* `tickerFree()` is factored out of `announce()` (announce,
-`tickTicker` and the invitation now route on one definition), and a line may buy its own dwell
-via `lineDwell` — the invitation takes 5.5 s because it asks the viewer to *do* something and
-2.5 s is a fair read of a remark, not of an instruction. It is the only caller that does.
-*The narrow sill.* `@media (max-width:640px)` hides the ticker, so a phone had neither of the
-two hints. `#sill.inviting` lends the invitation the plate's and the clock's place for 7 s and
-then gives them back, with a shorter line ("Touch the picture — it answers.") that fits 390 px
-untruncated.
-
-**Gates:** census **PASS — literally `unchanged` in all five sections**, which is the point:
-the change consumes no `R()` and writes no town state, so the world is byte-identical and the
-whole diff is affordance · motion **PASS** (nothing new jumped, NaN'd, flickered or churned) ·
-visual **PASS** (wide/courtyard/east/lane unchanged — `shoot.mjs` fires at 2.6 s wall, before
-`INVITE_AT`, so the idle diorama it photographs is exactly as busy as yesterday's; plus the
-sill during and after the invitation at 1280 and at 390×844) · filmstrip **skipped** — no draw
-code was touched and no per-frame pass added (the frame gained one boolean test) · perf
-**skipped**, same reason · probe `probes/touch-hint.mjs`: 345 real mouse positions, cursor and
-click handler agree on **345/345**, live share **46.1%**; a pointer cell answers a click and a
-default cell does not; the invitation appears **exactly once** at ~9.2 s and holds the surface
-**5.4–5.6 s**; **0** appearances to a viewer who clicked at 3 s; at 390×844 it is visible,
-**unclipped**, and the plate is back by ~15 s.
-
-**Verdict:** shipped   ← my view; runlog.mjs decides from the diff
-
-**Surprise:** Two, and both were the probe overruling me.
-(1) **The first cursor run reported 14 disagreements out of 345 and there was no bug.**
-Chromium rounds the coordinates it puts on a synthesised mouse event, so my fractional sample
-point made the page floor one cell and the probe floor its neighbour — and because a whole
-sampled row shared a `y`, the phantoms clustered on the rows nearest a terrain edge, which is
-exactly what a real off-by-one draw fault would look like. Rounding the points to integers took
-it to 0/345. A probe that drives real input has to *be* pixel-honest, not approximately so.
-(2) **The invitation was being swapped out at 2.5 s and I would have shipped that.** The queue
-guarantees every line `TICK_DWELL`, and the ambient remarks are frequent enough that the one
-line asking the viewer to act got the same 2.5 s as "Sparrows bicker somewhere in the linden."
-The still frames looked perfect; only the time series caught it. Hence per-line dwell.
-Also worth recording: I checked the cursor by hand at a point I had labelled "wall", got
-`pointer`, and briefly believed I had a bug. The cell was the cross-street ROAD, which does
-answer. The probe had already been right about that point; my label was wrong.
-
-**Law:** An affordance is a claim, and the claim and the response must be the SAME predicate,
-read by both — a hint derived separately from the handler it advertises will drift into either
-a lie or a silence. Verify it by agreement over many real input positions, not by looking.
-
-**Law:** A probe that drives real mouse or touch input must use integer screen coordinates.
-The browser rounds what it puts on the event, so a fractional point makes the page and the
-probe disagree about which cell was hit, and the phantoms cluster along edges — indistinguishable
-from a genuine off-by-one.
-
-**Cue:** `context-budget.mjs` reports **OVER: 51.5 KB against the 46 KB cap** (LEDGER.md at
-18.6 KB is the bulk, laws 28/60). It was already over when this iteration started.
-
-**Cue:** The cursor now advertises the whole cross street and every footway in town, but a
-`SIDE`/`ROAD` click anywhere announces the *lane* crumb line and clamps the birds it spawns into
-the lane rows — so a click at the north end of the cross street reads as a promise kept in the
-wrong place. Pre-existing; out of scope here (the brief forbade new click responses), but the
-hint is what makes it visible.
-
-**Cue:** `INVITE_WIDE` is one fixed string, deliberately not a `pick()`, so the page consumes no
-`R()` for it and the census stays byte-identical. Anything later that wants to vary the line
-must accept that it reshuffles the whole seeded world.
-
-## Iteration 14 — the beds read the year: growth, ceiling and dieback all scale with warmth (2026-08-03) [Courtyard & garden × New CA rule]
-
-**Brief:** b13 — let the planting CA read b11's `season()`, so the beds fill and empty
-over the cycle instead of saturating at maturity-1 and holding there forever.
-
-**Did:** Three seasoned terms next to `maturity()`/`richness()`, all reading `warmth`
-and nothing else, each written so warmth 0.5 *is* the constant it replaced:
-`growF()` 0.30..1.70, `dieF()` 1.80..0.20, `bloomCap()` 3/2/1 at warmth 0.42/0.20.
-In `caTick` they multiply the two seed rolls, the stage-advance roll, the wear-recovery
-and daisy terms, and the dieback probability. The lawn's `health` in `groundCol` and
-the gatehouse ivy's reach and colour now hang off the same `warmth` instead of deriving
-their own from `richness()`.
-
-The load-bearing bit is that `bloomCap` is a *ceiling*, not a kill term. `caTick` already
-ages the bed that sits **at** its ceiling, so lowering the ceiling turns the beds over by
-itself — no seasonal dieback branch bolted on beside the existing one. Changing `bSt[i] < 3`
-to `bSt[i] < cap` is the entire winter.
-
-**Gates:** census **FAIL** (`planted` 5729→4793, −16.3%) · visual PASS · motion PASS
-(zero jumps/nan/oob/flicker; only spawn churn) · filmstrip PASS · perf skipped
-
-The census failure is attributable and I did not touch the gate to hide it.
-`probes/beds-year.mjs` measures the three census cells directly: the warp-90 and warp-330
-cells are **unchanged** (1832, 2160), and the entire delta is the warp-900 cell
-(1737→749), which at SEASON_LEN 26 lands at season 0.879 — **warmth 0.14, deep winter**.
-The gate is reading a bare garden in January as a collapse. See the Cue.
-
-**Surprise:** two, both from measuring instead of assuming.
-
-The CA-variety law made me expect the winter clear-out to cost species diversity, and I
-had a seasonal inheritance term written to counter it. It is not needed and I did not ship
-it: over three full years the flower mix holds at Shannon evenness 0.999 / 0.998 / 0.998
-with all 7 species present at every summer peak. The reason is mechanical — re-seeding
-inherits a neighbour's species only when `neighborsMature()` finds one, and in winter
-there are none, so every spring cell falls through to a fresh uniform draw. **Winter is
-itself the reseeder.** The variety law's "something has to reset it" was already satisfied
-by a rule I was about to duplicate.
-
-The other: the cap alone drove `blooming` to *exactly* 0 for 11 of the 26 days. Numerically
-fine, artistically dead, and against the brief. Fixed with per-cell hardiness —
-`hash(x, y+41) > 0.86` keeps the full ceiling for about a seventh of the cells, so deep
-winter reads as a few things still out in turned earth (17–35 blooms) rather than nothing.
-Winter blooming went 0 → ~22; summer is untouched at ~690. The year now runs 17..698.
-
-**Law:** A seasonal *ceiling* on a CA stage is a better lever than a seasonal kill term,
-when the rule already ages whatever sits at its ceiling — one changed comparison gets the
-emptying, the turning-over and the refill, and it cannot desync from the growth term the
-way a parallel kill branch would. But check what the ceiling does to the thing the census
-counts: a ceiling that is *below* the counted stage takes that count to exactly zero, not
-merely low, and zero of anything visible reads as broken rather than as seasonal. Give it
-a per-cell `hash()` exemption so the floor is a scatter, not an absence.
-
-**Cue:** the census age ladder now conflates two axes. Its ages were chosen as
-"young / filling in / fully grown" (warp 90/330/900), but with a 26-day year the warp-900
-cell is also *midwinter*, so any change to seasonal planting reads as a collapse in
-`planted` and any real winter regression is now invisible against it. Either pick ages
-that land at comparable warmth, or have the census hold `season` fixed across the age axis.
-
-## Iteration 15 — the shower runs out of drops instead of being switched off (2026-08-03) [Sky, light & weather × Polish]
-
-**Brief:** b14 — rain ended in one frame: `raining=false`, `raindrops.length=0`, all
-~110 drops gone between two frames while the sheen behind it eased out over 18 s.
-
-**Did:** Split the shower in two. `raining` stays the boolean the town's *behaviour*
-reads — umbrellas, "nobody lingers in the wet", the three damped spawn rates — and it
-is right for that to be a switch. `rainFall` is the same shower's 0..1 intensity, and
-it is what everything *drawn* reads: the drop count, the whole-screen `rgba(90,105,125)`
-tint, the pond rings, the water sparkle it crossfades with, and `drawSmoke`'s `cold`.
-`RAIN_TAIL = 2.2` s against a 55 s day.
-
-The load-bearing bit is that the drops are not deleted, they are **not sent round
-again**. The tick already recycled a drop that passed `y > H` back to the top; now it
-recycles only while the kept count is under `want`, and `want` is `110 * rainFall`. So
-the shower ends the way a shower ends — nothing new arrives, and what is in the air
-finishes falling. No drop ever vanishes mid-screen, which is why the motion gate stays
-clean. `raining` flips when `rainLeft <= 0 && !raindrops.length`, so the last drop
-lands before the announcement. `wet` is ramped to 6 (its own full-sheen clamp) across
-the tail, so the street is already shining before the last drop lands, and the existing
-`wet = 18` at the end is now a no-op step rather than a jump from nothing.
-
-At `rainFall === 1` every one of those expressions is the constant it replaced, so full
-rain is unchanged.
-
-**Gates:** census PASS · motion PASS (0 jumps/nan/oob/flicker) · visual PASS · filmstrip
-PASS · perf skipped (same per-frame loop, one extra write per drop)
-
-**Measured, not argued** — `probes/rain-out.mjs` finds each build's *own* rain end (the
-PRNG reshuffles, so the shower does not land twice at the same instant) and replays the
-6 s around it at a 0.1 s gap:
-
-| seed | HEAD max Δ | new max Δ | where the max is now |
-| --- | --- | --- | --- |
-| 42 | 7.689 (×7.9 med) **at the end** | 1.849 (×1.7 med) | 1.3 s *before* the end |
-| 7 | 10.855 (×62.4 med) **at the end** | 1.053 (×8.8 med) | 2.3 s *before* the end |
-| 19 | 8.195 (×8.2 med) **at the end** | 1.567 (×1.5 med) | 0.7 s *before* the end |
-
-On HEAD the largest frame in the window *is* the ending, on all three seeds. After the
-change the ending is not the largest frame on any of them. Seed 7's Δ at the instant
-`raining` goes false is **0.074**, against a window median of 0.120 — the flip is now
-below the noise. And the same filmstrip that flagged it: HEAD `--scene 230 --seed 7`
-POPs at Δ 11.054 against a 0.421 median; here `--scene 231.4` has no POP, a 1.918 max,
-and a monotonic decay 1.9 → 0.17 across the ending. Drop count runs 104 → 0 over ~3 s.
-
-**Surprise:** the drops were the smaller half of it. A 0.16-alpha fill over the *whole*
-canvas is worth more mean-pixel Δ than 110 two-pixel lines, so cutting only the drop
-count would have left most of the pop. The brief named the drops; the instrument named
-the tint. The ~3 s taper also overruns `RAIN_TAIL` by ~0.8 s, because `want` falling to
-zero only removes a drop when that drop reaches the bottom — the count lags the ramp by
-one fall time (~1.4 s at 520–780 px/s). Physically right, and worth knowing before
-anyone tunes the constant expecting it to be the duration.
-
-**Law:** When a state flag gates both behaviour and drawing, splitting it into the
-boolean and a 0..1 intensity is cheaper than easing the flag: behaviour keeps its clean
-edge, and every draw site becomes a multiply by the same scalar. Fade the *largest* thing
-the flag draws first — a full-canvas tint outweighs any number of small sprites in a
-whole-frame Δ, so ask what fraction of the frame each gated draw covers before deciding
-which one is the pop.
-
-**Law:** An entity population is better wound down by **withholding its supply** than by
-truncating its array. Stop recycling and let each thing finish its own life and the
-count decays for free, with no mid-screen despawn for the motion gate to catch —
-`raindrops.length = 0` is one line and one pop; "recycle only while under `want`" is one
-line and an ending.
-
-**Cue:** `motion.mjs` has no `raindrop` kind, so the gate that exists to catch things
-popping in and out of existence is blind to the town's largest such population. It
-passed this iteration without being able to see it.
-
-**Note:** `context-budget.mjs` read **OVER** at 52.8 KB against the 46 KB cap when this
-iteration started (LEDGER.md 17.1 KB, state.json 13.4 KB, laws 28/60).
-
-## Iteration 16 — five instruments that could not see the year (2026-08-03) [Sky, light & weather × Harness]
-
-**Brief:** b15 — the world has had a 26-day year since #12 and five of the loop's own
-instruments cannot see it, or actively confuse it. Repair them; change nothing a viewer
-sees. `courtyard.html` is byte-identical at the end of this iteration.
-
-**Did:** five repairs, no new gates and no new metrics.
-
-**(a) `shoot.mjs` pins its instant.** It is no longer a wrapper over screenshot-verify —
-it drives Playwright itself with `?pause&t=0` then `__reseed()` + `__warp(t)`, the same
-way `census.mjs`, `motion.mjs` and `probes/year-shots.mjs` already did. Framings still
-come from the repo's `shoot.config.json`, so there is still one list of them. It prints
-the instant it actually reached (`at: simT 175  day 3  hour 10.364  season 0.3724`) and
-warns if two framings in one run disagree.
-
-**(b) `--tag` prefixes files.** It used to forward `--prefix` to a screenshot-verify that
-has no such flag. Two tagged runs now leave two files: `summer-wide.png` at season 0.5213
-and `winter-wide.png` at season 0.0213, **both at hour 7.309**, three distinct sha1s.
-
-**(c) The census age ladder holds the season fixed.** warmth is `0.5 − 0.5·cos(2π·phase)`
-and phase is linear in `simT`, so equal warmth means equal phase up to a reflection: only
-`p`, `1−p` and `p+1` exist. Anchoring the young cell where it was (warp 90) *forces* the
-other two — 625 and 1520. The ladder is now 90 / 625 / 1520 = days 1 / 11 / 27, and all
-nine cells measure at **warmth 0.6925** (was 0.693 / 0.996 / **0.138**). `planted` per
-seed now rises with age (628 → 699 → 733) instead of collapsing into January. The ladder
-string travels with the baseline and in `census-history.jsonl`; a baseline pinned on a
-different ladder now refuses to diff (`VERDICT: NO COMPARISON`) rather than printing a
-large fake regression.
-
-**(d) `motion.mjs` reports a `raindrop` kind.** Raindrops are screen-space and not in
-`__entities()`, and the town was off-limits, so the shower is watched as a *population*:
-`__census().life.raindrops` at every step, rises → `spawns`, falls → `despawns`. Rain
-turned out to be in 3 of the 4 existing scenes already, so no scene was added.
-
-**(e) `stall.mjs` runs on worker rows only.** `rows` is now `kind !== 'manager'`;
-`managers` is reported separately. `build-stats.mjs` did **not** need this — it has
-filtered since it was written (its two whole-run totals are deliberate and labelled).
-
-**Gates:** census PASS · motion PASS · visual PASS · perf skipped (town untouched) ·
-probe `probe-shoot-jitter.mjs` (scratch, not kept)
-
-Two runs of the new `census.mjs` on the same commit diff **unchanged in every group**. Two
-runs of `shoot.mjs --t 175` land on `simT 175.00 / hour 10.364 / season 0.3724`, twice.
-`stall.mjs`'s last-10 goes 10m → 8m and $2.30 → $2.01 when a worker row is removed, and
-does not move at all when a manager row is added.
-
-**Surprise:** three.
-
-**The old `shoot.mjs` was not jittering, it was biased — by eight hours of town clock.**
-The brief and cue c31 both said "jitters ~15 s". Measured over five runs each: the jitter
-is real but small (0.14 s of sim idle, 0.91 s under six busy cores — the latter being
-24 sim minutes, so the cue was not wrong about load). The *large* error is systematic.
-Asking for `--t 175` reliably photographed **simT 193.5, hour 18.47** — evening — while
-the file's own comment said "day 3, mid-morning". `?fast` is 8×, the wait was 2600 ms,
-and 8 × 2.6 s ≈ 18.5 s of sim every single run. A wall-clock wait does not blur the
-instant so much as move it, and the same offset on every run is exactly what nobody
-notices. The framing now reads "Day 4 · Morning", which is what it always claimed to be.
-
-**`spawns`/`despawns` would have been a decorative gate.** They are the integral of the
-rises and the falls, so a shower that vanishes in one frame has the *same* totals as one
-that tapers over three seconds — the totals cannot see the bug #15 exists to have fixed.
-So the shape went into the existing `jumps` field, on the entity rule's own principle: a
-step out of all proportion to how this thing normally moves, here bigger than half the
-shower's own peak. Verified by rebuilding #15's one-frame ending in a scratch copy and
-running the gate at it: `day/raindrop: jumps 1 → 3`, with `raindrops stepped -110 in one
-0.25s step` named in the examples. On HEAD every jump is a `+110` *start* and there is
-not one `-110` in any scene — rain begins abruptly by design and now ends measurably.
-
-**One fifth of the brief was already done.** `build-stats.mjs` has filtered manager rows
-since it was written. Worth stating because the same brief's claim about `stall.mjs` was
-not just true but worse than stated: on the *real* runlog the old code reported
-`last: #15 … -> no-ship` — that was the manager pass wearing the worker's #15 — and
-last-10 as 12m / $3.09 / src moved 7/10 against the true 10m / $2.30 / 9/10. Cost
-overstated 34%. And two manager passes in a row (a re-plan, or a plan after a rejected
-brief) fired `noShipStreak,srcFlat` on the old code: **the stall detector could summon a
-manager off nothing but its own footprints.** New code: `ok` on the same input.
-
-**Law:** An instrument that reaches a moment by waiting in wall time does not blur that
-moment, it *moves* it — by the same amount every run, which is why nobody catches it.
-Measure the offset, not the spread. And make the instrument print the instant it actually
-reached: a harness that reports where it landed cannot lie about where it aimed.
-
-**Law:** A churn total is shape-blind. Counting arrivals and departures cannot distinguish
-a population that drains smoothly from one that is deleted, because both have the same
-integral — if the *shape* is the thing that broke, the gate needs a per-step limit, not a
-sum. Then prove the gate bites by rebuilding the old bug in a scratch copy and pointing
-the gate at it; a gate never seen to fail is a gate nobody has tested.
-
-**Law:** A row a subsystem writes about itself is not evidence about the thing it watches.
-The manager's own runlog row is `no-ship`, `srcChanged: false` by construction, so any
-streak or average taken over all rows counts the observer's footprints as the observation
-— and here it could trip the very alarm that summons the observer.
-
-**Cue:** the census ladder still varies the *hour* across the age axis (21.27 / 14.73 /
-21.27), so anything gated on time of day is sampled unevenly. The algebra is tighter than
-it looks: fixing hour *and* season needs `t ≡ 0 or 27.5 (mod 55)`, which admits exactly
-two hours — **06:00 and 18:00**. Both are awkward (dawn has almost nobody out, 18:00 sits
-inside market pack-down and the six o'clock bell), so this is a real trade, not an
-oversight. Do not re-derive it.
-
-**Cue:** per-*drop* continuity still does not exist. `raindrops` are screen-space and
-absent from `__entities()`; adding them needs one line in `courtyard.html` plus a
-screen-space exemption from `motion.mjs`'s world-bounds test. Only then would a drop that
-goes NaN or strobes be visible.
-
-**Cue:** the ladder change is a step in the published growth curve. `census-history.jsonl`
-now carries a `ladder` field so the discontinuity is legible, but `stats.html` plots
-`RUNLOG.jsonl`'s census scalars and knows nothing about it — `planted` jumps 4782 → 6109
-between #15 and #16 with no town change behind it.
-
-**Note:** `context-budget.mjs` read **OVER** at 46.7 KB against the 46 KB cap when this
-iteration started, and still does (LEDGER.md 14.5 KB, state.json 8.4 KB, laws 27/60).
-Third iteration running over.
-
-## Iteration 17 — thirteen trees learn the year (2026-08-03) [Cross street & allotments × Deepen]
-
-**Brief:** b16 — the town has a year and thirteen trees that have never heard of it.
-Make the canopies read `warmth`; put the leaf fall on the season.
-
-**Did:** Eight terms next to `growF`/`dieF`/`bloomCap`, and one colour rule. They read
-`seasonPhase`, **not `warmth` alone**, because warmth 0.5 happens twice and a rising 0.5
-(bud burst) and a falling 0.5 (the turn) are the two most different-looking days of the
-year — `warmth` cannot tell them apart and every seasonal reader after this one will hit
-the same wall. `leafOut` is canopy coverage; `leafFresh`/`leafDeep`/`leafTurn` are the
-tints; `leafShed` drives `leafFallF`; `blossomF`/`fruitF` are the orchard. `leafCol(base,
-k)` is the one colour rule all thirteen trees go through, keyed per blob so a turning
-tree is patchy rather than uniformly orange.
-
-The canopy is **six clamps on one 0..1 progress**, exactly as the market stalls are — the
-mass fills first, the outermost blobs last, and running `leafOut` backwards through
-autumn sheds them in reverse for free. Each blob's radius grows from *zero* at its own
-threshold, so nothing appears at a size. `drawBoughs()` draws what is left: tapered,
-slightly curved boughs forking two twigs at 62%, faded out entirely at `leafOut` 1 so the
-summer tree is untouched.
-
-The `leaves` spawner keeps its exact `R()` draw count (one rate roll, one `src`, six per
-leaf) — only the thresholds moved, so nothing was added to the stream on purpose. The
-gust now *multiplies* the seasonal rate instead of overriding it, so a January gale off
-bare branches sheds nothing. Falling leaves take their colour from `leafCol` too, so a
-leaf is the colour of the tree it fell off.
-
-Every term is written so that at `SEASON_START` (phase 0.25) it is **exactly** the
-constant it replaced — `leafOut` 1, all three tints 0, `leafFallF` 1, and `leafCol`
-returning the literal old hexes. `fruitF` is the one deliberate exception: apples in
-April were the bug, not the baseline.
-
-**Gates:** census **PASS** (`planted` −0.6%, `blooming` −0.8% — PRNG reshuffle, no
-collapse) · visual PASS · motion **FAIL**, attributable (below) · filmstrip PASS (no POP,
-no FROZEN) · perf **PASS** (+0.0% vs interleaved control) · `probes/canopy-year.mjs`
-PASS 5/5
-
-The motion failure is `market/raindrop jumps 0 -> 1`, a system I did not touch. Tallied
-across all four scenes the shower budget is **exactly conserved** — jumps 4 → 4, drop
-spawns 440 → 440; one shower moved out of `dusk` and into `market` because the changed
-leaf-spawn count shifted the PRNG stream. `leaf`, the kind I actually changed, is clean
-everywhere: 0 jumps, 0 nan, 0 oob, 0 flicker. I did not touch the gate.
-
-`probes/canopy-year.mjs` measures what the census cannot: winter canopy is **0 px across
-all thirteen trees** against summer's 9674; autumn amber 2306 vs summer 49; the orchard
-carries 723 px of blossom in spring; airborne leaves run autumn 7.83 / spring 3.14 /
-summer 0.27 / winter 0. `probes/year-strip.mjs` is the region-cropped year the brief
-asked for — 26 crops of the linden, one per day, same hour.
-
-**Surprise:** three, all from measuring.
-
-A tree-cropped *box* cannot see this at all. The linden stands against lawn and the
-orchard against the allotments, so the box floors at ~2500 green px of ground in every
-season and reported winter as **57% as green as summer** — a clean-looking number that
-was entirely the grass behind the tree. Rendering the frame twice, once with
-`leafOut`/`blossomF`/`fruitF` monkeypatched to 0, and counting the pixels that *differ*
-gives the canopy exactly, whatever is behind it. `?pause` sets `dt = 0`, which freezes
-`windT` and the sway, so the two renders differ in nothing else.
-
-Then that measurement blamed my own change on the wrong thing. It scored the orchard at
-1070 px of "green canopy" in peak autumn — four trees that were fully turned. Two causes,
-both mine: the loose classifier `r>g+8 && r>b+30 && r>95` scores the **stone tree pit**
-(107,90,68) as autumn colour, and the pit is inside the diff because I had made the
-ground shadow scale with `leafOut`. Cutting the box at the trunk top took it 1070 → 228
-with amber unchanged at 306. Both were probe defects; neither was visible in any
-screenshot.
-
-And the first bare linden looked like a spider — five uniform strokes from one point.
-A bare tree is most of the winter frame and it has to read as a *crown*: taper, curve,
-and fork it and the same five boughs read as a tree.
-
-**Law:** A cyclic world scalar is not enough to hang a seasonal look on — you need the
-**phase**, because a cosine visits every value twice and the two visits are the two
-things you most need to tell apart (bud burst vs. the turn). Write each term as a window
-closed on *both* sides of the phase so only one or two are ever live at once, anchor them
-so the start phase reduces exactly to the constant being replaced, and state the one
-term you deliberately left un-neutral and why.
-
-**Law:** To measure a draw-only feature, do not crop a box around it — render the frame
-twice with the feature suppressed and count the pixels that changed. A box measures the
-background, and the background is the thing that looks most like what you are counting.
-`?pause` gives dt=0, so the two renders are otherwise identical. Then check what *else*
-your change made season-dependent: my ground shadow put itself in the diff.
-
-**Cue:** `maturity()` still sizes all thirteen trees off a ramp that pins at day 8, so a
-tree is the same size in its first winter as in its fifth. Deliberately untouched — the
-brief said a tree that grows and shrinks every 24 real minutes reads as a bug — but if a
-slow multi-year growth term is ever wanted, `leafOut` is now the seam that proves a size
-change is seasonal rather than a glitch.
-
-**Cue:** the context budget printed **OVER** at the start of this iteration — 48.8 KB
-against a 46 KB cap (LEDGER 15.9, SKILL 11.8, LAWS 9.4, state 9.4). This entry makes it
-worse. The manager should distil this pass.
 
 ## Iteration 18 — the working day goes on the sun (2026-08-04) [Lane & market × Connect]
 
@@ -715,206 +293,122 @@ water streaks as a finding.
 
 ## Iteration 23 — the river joins the year (2026-08-04) [River & far bank × Deepen]
 
-**Brief:** b22 — the river had one iteration in twelve and was the quarter of town most
-identical in February and August. Give it a year, name the flow, anchor at `SEASON_START`.
+**Brief:** b22 — the river had one iteration in twelve and was the quarter most identical in
+February and August. Give it a year, name the flow, anchor at `SEASON_START`.
 
-**Did:** One term, `riverRun() = 1 + RIVER_SWING * greyF()` — how full and how fast the
-channel runs. ×1.45 in January, ×0.55 in July, exactly 1 at the anchor. Four readers, and
-the flow now has a name: `drawRiverFlow(t)` was twelve anonymous streaks inline in the frame
-loop, and reads riverRun() for drift speed, streak COUNT (7–17), streak LENGTH, and a colour
-written as an offset from the two constants that were there (±11/6/6 on r/g/b), so winter is
-many long fast cold-blue streaks and August a few short slow green ones. The fifth reader is
-the water itself: `riverCol()` leans the channel toward `RIVER_COLD`/`RIVER_GREEN`, and
-`clamp(mid * riverRun())` pushes the deep mid-channel out toward both banks in winter and
-draws it back to a thread in summer — the same gradient, run higher. None of it consumes an
-`R()`; it is `hash()` and the clock.
+**Did:** One term, `riverRun() = 1 + RIVER_SWING * greyF()` — how full and fast the channel
+runs. ×1.45 in January, ×0.55 in July, exactly 1 at the anchor. The flow got a NAME:
+`drawRiverFlow(t)` was twelve anonymous streaks inline in the frame loop, and now reads
+riverRun() for drift speed, streak count (7–17), streak length and a colour written as an
+offset from the two constants already there. Fifth reader is the water itself — `riverCol()`
+leans toward `RIVER_COLD`/`RIVER_GREEN` and `clamp(mid * riverRun())` pushes the deep
+mid-channel out to both banks in winter, back to a thread in summer. No `R()` consumed.
+The boat moves the other way: `boatRate()` thins as the water rises (`BOAT_SWING 0.75`,
+`BOAT_FLOOR 0.0065` binding all winter so `boatWatch()` never dies), `boatSpeed()` takes
+`BOAT_DRIFT 0.24` of the current.
 
-The boat moves the other way: `boatRate()` thins as the water rises (`BOAT_SWING 0.75`) with
-`BOAT_FLOOR 0.0065` binding through the whole winter quarter, because a boatless season kills
-`boatWatch()` with it. `boatSpeed()` takes `BOAT_DRIFT 0.24` of the current, so high water
-carries the hull through quicker — which is also what stops one slow summer boat blocking the
-river, since only one is ever on it.
+**Gates:** census PASS (reshuffle — the boat's spawn times move) · visual PASS · motion FAIL,
+attributed (`market/shower`, a population row; `probes/shower-jump-spread.mjs` over 10 seeds:
+HEAD 0..2, here 0..3) · filmstrip night POP = #21's known winter sunset · perf PASS · new
+`river-year.mjs`: ANCHOR IDENTICAL to HEAD (ground layer sha1 both `48728a5366b8`). 8 seeds ×
+3 years, boats/day and share of time a boat is on the water, HEAD → here: winter
+0.314/52.2% → 0.230/32.4%, summer 0.314/51.1% → 0.320/72.2%, YEAR 0.290/49.3% → 0.279/50.5% ·
+new `river-shots.mjs`: channel was `rgb(63,90,104)` in both seasons, now `rgb(80,111,109)`
+July against `rgb(64,92,109)` January.
 
-**Gates:** census **PASS** (people +2, blooming −43, species reshuffled ±100, structure and
-tiles unchanged — the boat's spawn times move, so every downstream `R()` moves) · visual
-**PASS** (four framings; plus pinned same-hour winter/summer river crops) · motion **FAIL,
-attributed** — `market/shower` jumps 2→4, a POPULATION row where a shower starting *is* a jump
-by construction, and the entity-level `raindrop` row is 0/0/0/0. New `probes/shower-jump-spread.mjs`
-replays motion.mjs's exact world over 10 seeds instead of 2: HEAD 0..2 (mean 0.80), here 0..3
-(mean 0.90). The gate's two-seed sample landed on 2 and 4. I did not touch the threshold ·
-filmstrip day clean; night **POP at frame 11** = #21/#22's known winter sunset, `pop-what-moved.mjs`
-shows `nightF` lifting off zero at that frame on HEAD identically · perf **PASS** (16.70/16.70,
-vsync-capped) · probes: new `river-year.mjs` — ANCHOR IDENTICAL to HEAD (ground layer sha1
-`48728a5366b8` both, channel `rgb(63,90,104)` both, streak rgb `190,210,235` both, riverRun 1,
-boatSpeed 1.05, streaks 12; boatRate differs by 1 ulp, which is `Math.cos(PI/2)`'s 6.1e-17 and
-is in HEAD's seasoned terms too). 8 seeds × 3 years, HEAD → here, boats/day and share of time a
-boat is actually on the water: winter 0.314/52.2% → **0.230/32.4%**, summer 0.314/51.1% →
-**0.320/72.2%**, spring 0.250/44.1% → 0.289/44.3%, autumn 0.282/49.6% → 0.276/53.3%, YEAR
-0.290/49.3% → **0.279/50.5%** — redistributed, not removed · new `river-shots.mjs`: HEAD's
-channel is `rgb(63,90,104)` in *both* seasons; here it is `rgb(80,111,109)` in July and
-`rgb(64,92,109)` in January, and the crop's mean g−b goes from HEAD's −6.23/−6.34 (0.11 apart)
-to +7.22/−6.45.
+**Verdict:** shipped
 
-**Verdict:** shipped   ← my view; runlog.mjs decides from the diff
+**Surprise:** The brief asked for a summer:winter ratio in **boats per day** and that is the one
+number I could not move — 0.320 against 0.230. The river holds exactly one boat, so arrivals are
+occupancy-bound: summer saturates however high the rate goes, and the floor that keeps January
+from going boatless eats the range from the other side. The year landed in **presence** instead —
+72% of summer has a boat on the water against 32% of winter, where HEAD was flat at ~50% all
+year. Count and presence are the same throughput seen twice and only one was free to move.
+The second one I nearly filed as a bug: spring 44.3% against autumn 53.3%, an 18-point split
+between phases where every term I wrote is symmetric. It is #21's hysteresis arriving through a
+different door — the slow variable is not a scalar, it is the boat, whose trip is ~2 days of a
+26-day year. The pair averages to 48.8% against HEAD's 49.3%, which is the neutrality claim.
 
-**Surprise:** The brief asked for a summer:winter ratio in **boats per day** and that number is
-the one I could not move much — 0.320 against 0.230. The river holds exactly one boat, so a
-trip plus a wait is a fifth of a season and arrivals are occupancy-bound: summer saturates at
-~0.35/day however high the rate goes, and raising the winter floor to keep January from going
-boatless eats the bottom of the range from the other side. The year is unmistakable anyway,
-because it landed in **presence** — 72% of summer has a boat on the water against 32% of winter,
-where HEAD was flat at ~50% in every season. Count and presence are the same throughput seen
-twice, and only one of them was free to move.
-
-The second one I nearly filed as a bug: spring and autumn are 44.3% and 53.3% present, an
-18-point split between two phases where every term I wrote is symmetric by construction. It is
-#21's hysteresis law arriving through a completely different door — the slow variable here is
-not a rate-capped scalar, it is the boat itself. A summer boat's trip is ~2 days of a 26-day
-year, so autumn inherits a river with a slow boat still on it and spring inherits an empty one.
-The pair averages to 48.8% against HEAD's 49.3%, which is the neutrality claim.
-
-**Law:** A rate change cannot show a season on a channel that holds ONE object. Arrivals are
-bounded by trip-time occupancy at the top and by whatever floor keeps the thing from vanishing
-at the bottom, so the two ends squeeze the ratio from both sides — measure PRESENCE, the share
-of time the thing is there, which is what a viewer actually sees and is free to move.
-
-**Law:** Any long-lived object is itself a slow variable, and carries its season across a
-boundary exactly as a rate-capped scalar does. If a trip is an appreciable fraction of the
-cycle, the shoulder phases come out unequal from symmetric code — check that the PAIR averages
-to the anchor rather than expecting each to.
-
-**Law:** A population count in a continuity gate is sample-sensitive, and two seeds is not a
-sample. Before treating a population row as a regression, replay the gate's exact world across
-ten seeds: the row that fired 2→4 here has a per-seed range of 0..2 on HEAD.
-
-**Cue:** 3 of 24 individual winters saw no boat at all (HEAD's worst season is 3/24 springs, so
-this is no worse than the town already was, but it is where the floor is spent).
-
----
+**Laws:** three promoted (presence vs rate on a one-object channel; a long-lived object is
+itself a slow variable; two seeds is not a sample). See `LAWS.md`. Full entry in the archive.
 
 ## Iteration 24 — the courtyard and the plaza answer a touch (2026-08-04) [Plaza & quay × Interaction/UX]
 
 **Brief:** b23 — `answersTouch()` answered six tiles and not PATH, so the plaza's roundel and
-the whole courtyard were dead to the cursor and the click. Extend the answering surface to
-PATH and give those cells their entries in `PAVING`/`pavingAt`.
+the whole courtyard were dead to the cursor and the click. Extend it, and give those cells their
+entries in `PAVING`/`pavingAt`.
 
-**Did:** `answersTouch()` takes PATH; the click handler's paving branch takes it too. `PAVING`
-gains `court` (1,896 cells) and `plaza` (730 — the square, where the old `plaza` entry was the
-24-cell mouth onto the lane, now `mouth`). The two share one `PLAZA_WORDS` string: a place is
-one set of WORDS, but it needs one box per piece of GROUND, because the four rows between the
-square and its mouth are the terrace's end wall and a single bbox over both lands birds on a
-roof. `pavingAt()` branches on the tile first — PATH is only ever the courtyard or the plaza,
-and they are half a world apart. `crumbSpot()` gains an optional `keep` rectangle: the fountain
-is the first obstacle standing in the MIDDLE of a place rather than at its edge, so the scatter's
-CENTRE is pushed clear of it (shortest translation out of the basin grown by the spread's own
-reach, `s*7/12` along the stagger and `w/2` across) — never the individual birds, which is the
-clamp #20 already paid for. **The frame that answers the cursor goes 46.1% → 64.1%**; paving
-cells that answer, 2,903 → 5,529.
+**Did:** `answersTouch()` takes PATH, and so does the click handler's paving branch. `PAVING`
+gains `court` (1,896 cells) and `plaza` (730 — the square; the old 24-cell `plaza` entry was
+the mouth onto the lane, now `mouth`). The two share one `PLAZA_WORDS`: a place is one set of
+WORDS but needs one box per piece of GROUND, because the four rows between square and mouth are
+the terrace's end wall and a single bbox lands birds on a roof. `pavingAt()` branches on the
+tile first — PATH is only ever courtyard or plaza and they are half a world apart.
+`crumbSpot()` gains an optional `keep` rectangle: the fountain is the first obstacle in the
+MIDDLE of a place rather than at its edge, so the scatter's CENTRE is pushed clear of it, never
+the individual birds. **Frame answering the cursor 46.1% → 64.1%**; paving cells 2,903 → 5,529.
 
-**Gates:** census **PASS** — *identical* on all 9 cells, every field, which is the point:
-`crumbSpot` runs on click, so no `R()` draw was added and the seeded world is untouched ·
-visual **PASS** (four framings; plus 7 crumb crops incl. four sides of the basin) · motion
-**PASS**, clean · perf skipped (nothing per-frame changed) · `probes/paving-places.mjs` **PASS**
-with a new exhaustive section: `crumbSpot` over every one of the 5,529 paving cells, 6 draws
-each (~99k bird placements) — 0 outside their box, 0 pairs under 0.9 cells (closest 1.01),
-0 in water · `probes/touch-hint.mjs` **PASS**, 345 points, 0 cursor/handler disagreements.
-Context budget was **OVER** on entry (52.7 KB vs the 46 KB cap).
+**Gates:** census PASS — *identical* on all 9 cells, which is the point: `crumbSpot` runs on
+click, so no `R()` draw was added · visual PASS · motion PASS · perf skipped ·
+`paving-places.mjs` PASS with a new exhaustive section: `crumbSpot` over all 5,529 paving
+cells, 6 draws each (~99k placements) — 0 outside their box, 0 pairs under 0.9 cells, 0 in
+water · `touch-hint.mjs` PASS, 345 points, 0 cursor/handler disagreements.
 
-**Surprise:** The brief warned that the courtyard path ring is "narrow and curved — exactly the
-case the 0.9-cell law bites on". It is neither. It is 1,896 cells, 8–20 cells thick radially,
-and it is the **largest single place in the town** — bigger than the lane's 1,731. The law never
-came near biting: the tightest place in the world is still the two-cell quay at 1.36. The risk
-was real but it was in the other half of the brief, and it was floating point. I derived the
-basin's footprint from the same ellipse `buildGrid()` cuts it with, and got the boundary row
-wrong — `(28.5-30)*1.2` is `1.7999999999999998`, so the row that ought to be the rim is water.
-My careful rectangle was *worse than the crude circle it replaced* (22 birds in the basin against
-1) and it took an exhaustive probe to see it at all, because 22 in 99k never shows in a
-screenshot. Reading WATER back off the grid took it to 0.
+**Verdict:** shipped
 
-Also: a throwaway patch-sampling probe told me a bird north of the fountain was hidden behind it.
-It was lying — a patch centred on a bird's ground anchor misses a sprite drawn above it.
-Leave-one-out (splice bird k, re-shoot, diff the crop) says 3/3 visible on all four sides.
-Promoted as `probes/crumb-birds-seen.mjs`.
+**Surprise:** The brief warned the courtyard path ring is "narrow and curved — exactly the case
+the 0.9-cell law bites on". It is neither: 1,896 cells, 8–20 thick, the **largest single place
+in the town**, bigger than the lane's 1,731. The risk was real but it was in the other half of
+the brief, and it was floating point. I derived the basin's footprint from the same ellipse
+`buildGrid()` cuts it with and got the boundary row wrong — `(28.5-30)*1.2` is
+`1.7999999999999998` — so my careful rectangle was *worse than the crude circle it replaced*
+(22 birds in the basin against 1), and it took an exhaustive probe to see at all, because 22 in
+99k never shows in a screenshot. Reading WATER back off the grid took it to 0. Also: a throwaway
+patch-sampling probe claimed a bird north of the fountain was hidden behind it. It was lying — a
+patch centred on a bird's ground anchor misses a sprite drawn above it. Leave-one-out says 3/3
+visible on all four sides; promoted as `probes/crumb-birds-seen.mjs`.
 
-**Law:** Don't re-derive a footprint — read it back off the grid. A second evaluation of the
-same geometric test disagrees with the first at the boundary, by 2e-16, which is a whole cell.
-Anything needing to know which cells a shape claims should scan for them.
-
-**Law:** A gate that fails on an unmodified HEAD is not a gate. `touch-hint.mjs` asserted the
-invitation appears no earlier than `INVITE_AT` = 8 s, timed on a host clock that starts before
-`goto()` — so it failed by ~66 ms on every run, mine and HEAD's alike. Stash and run before
-attributing a red gate to your change; then fix the assert, because a permanently red gate is
-worse than no gate.
-
-**Cue:** the 0.9-cell guarantee is a guarantee at SPAWN only. After 1.8 s of hopping a pair
-measured 0.2 cells apart — the hop is a ±0.4 random walk with no separation term. Pre-existing
-and as true on the lane as on the new surfaces, so #24 did not cause it, but the law is weaker
-in motion than the probe suggests.
-
----
+**Laws:** two promoted (read a footprint off the grid, never re-derive it; a gate that fails on
+unmodified HEAD is not a gate). See `LAWS.md`. Full entry in the archive.
 
 ## Iteration 25 — one vegetable stands the winter (2026-08-04) [Cross street & allotments × Deepen]
 
 **Brief:** b24 — the allotments inherit `bloomCap()` through `caTick`, so nothing ripens in
-deep winter. MEASURE IT FIRST: fold ripeness, arrivals and gardeners over a multi-year run
-and find out whether winter is quiet or broken. Change only if the numbers warrant it.
+deep winter. MEASURE IT FIRST and change only if the numbers warrant it.
 
-**Did:** Measured first, with two new probes, and three of the brief's premises came back
-wrong. Then one change, four lines.
-*What the numbers said.* `probes/allot-year.mjs` — 4 seeds × 3 seasonal years, 1 s samples,
-folded onto one year. Winter is **not a fifth of the year: `ripePlots()` is 0 for 48.3% of
-it**, one unbroken stretch of **11.2–11.4 sim days** every year. The gardeners do **not** damp
-away — `allotRate`'s 0.01 floor plus a ~2.2-day round trip holds one in the block 44.9% of
-midwinter, so the brief's failure mode was already covered. And it is **not seventeen plots of
-bare earth**: bare plots are 0.0 all winter, every plot sown and stalled at mean stage 1.1.
-`probes/allot-shots.mjs` crops to the block at four pinned instants — winter reads as turned
-earth with a scatter standing in it. Resting, not dead.
-*What was actually wrong.* The winter variance #14 bought is **per-CELL** (`hash(x,y+41)`
-holds a seventh of cells at the full ceiling) and the allotments are addressed **per-PLOT**:
-`ripePlots()` wants five of six cells up, so a seventh per cell is 2e-4 per plot. The
-courtyard's answer to a low ceiling is structurally inert next door, and 10 hardy cells in
-midwinter buy exactly 0 ripe plots.
+**Did:** Measured first, with two new probes, and three of the brief's premises came back wrong.
+Then one change, four lines.
+*What the numbers said.* `probes/allot-year.mjs`, 4 seeds × 3 years folded onto one: winter is
+**not a fifth of the year — `ripePlots()` is 0 for 48.3% of it**, one unbroken 11.2-day stretch.
+The gardeners do **not** damp away: `allotRate`'s 0.01 floor plus a ~2.2-day round trip holds one
+in the block 44.9% of midwinter. And it is **not seventeen plots of bare earth** — bare plots are
+0.0 all winter, every plot sown and stalled at mean stage 1.1. Resting, not dead.
+*What was actually wrong.* The winter variance #14 bought is **per-CELL** (`hash(x,y+41)` holds
+a seventh of cells at the full ceiling) and the allotments are addressed **per-PLOT**:
+`ripePlots()` wants five of six cells up, so a seventh per cell is 2e-4 per plot. 10 hardy
+cells in midwinter buy exactly 0 ripe plots.
 *The change.* `hardy:1` on cabbages, `plotStands(x,y)` off `plotCrop()`, and `caTick`'s
-ceiling expression grain-matched to the region: `cap===3 ? 3 : inAllotment ? (plotStands?3:cap)
-: (hash>0.86?3:cap)`. A plot under the brassica keeps the full ceiling through the cold. No
-`R()` — the crop is already in the ground. And because a lifted plot comes back under whatever
-is sown next, **which** plots stand rotates by itself instead of being the same seventh forever.
+ceiling grain-matched to the region: `cap===3 ? 3 : inAllotment ? (plotStands?3:cap) :
+(hash>0.86?3:cap)`. No `R()` — the crop is already in the ground. And because a lifted plot
+comes back under whatever is sown next, **which** plots stand rotates by itself.
 
-**Gates:** census **PASS** (blooming −92/5066, planted −30, species reshuffled ±50) · visual
-**PASS** (four framings + the four allotment crops) · motion **FAIL, attributed** — `dusk/shower`
-jumps 0→1, the population row #23 already priced; entity-level `raindrop` is 0/0/0/0, and
-`probes/shower-jump-spread.mjs` (now scene-selectable) over 10 seeds gives HEAD 0..1 mean 0.20,
-here 0..1 mean 0.30 · filmstrip/perf **skipped** — no draw code, no per-frame pass; `caTick` gained
-6 cell reads per sub-ceiling allotment cell at 2.9 ticks/s · `allot-year.mjs` HEAD→here: ripe==0
-share of the year **48.3% → 13.1%**, longest ripe-0 stretch **11.2d → 0.9d**, winter ripe
-**0.00 → 1.18/17** against summer's 15.68 (a 13× swing, still quiet), winter picked/day 0.1 → 0.2
-against summer's 9.0, winter ≥1 gardener 44.9% → 52.2%, **summer unchanged** (15.74 → 15.68).
+**Gates:** census PASS (blooming −92/5066, species reshuffled ±50) · visual PASS · motion FAIL,
+attributed — the `shower` population row #23 already priced · filmstrip/perf skipped, no draw
+code · `allot-year.mjs` HEAD→here: ripe==0 share of the year **48.3% → 13.1%**, longest ripe-0
+stretch **11.2d → 0.9d**, winter ripe **0.00 → 1.18/17** against summer's 15.68, winter ≥1
+gardener 44.9% → 52.2%, **summer unchanged** (15.74 → 15.68).
 
-**Verdict:** shipped   ← my view; runlog.mjs decides from the diff
+**Verdict:** shipped
 
 **Surprise:** **The census cannot see this change at all, and I can prove it.** Its three warps
-(90/625/1520 s) all land at phase 0.313 or 0.687 — *the same warmth, 0.693*, both at `bloomCap`
-3, where the new expression is algebraically the old one. Dumping ripe cells at those instants:
-HEAD and here are **bit-identical at t=90 and t=625** and only diverge at t=1520, which is after
-t≈752 s, the first moment `bloomCap` leaves 3 and the two R() streams can part. So the entire
-census diff is reshuffle, definitionally, and no seasonal-ceiling work will ever move that gate.
-Second: the winter tail came out shaped without being asked. Folded ripeness decays 2.45 → 1.91
-→ 1.37 → 1.12 → 0.95 → 0.68 at midwinter and climbs back — the standing crops being picked off
-one by one through the cold, each replacement only 1-in-4 hardy. I wrote a ceiling rule, not a
-decay; the harvest cycle supplied the curve.
+(90/625/1520 s) all land at phase 0.313 or 0.687 — *the same warmth, 0.693*, both at
+`bloomCap` 3, where the new expression is algebraically the old one. Dumping ripe cells at
+those instants: HEAD and here are **bit-identical at t=90 and t=625**, diverging only at t=1520,
+after the first moment `bloomCap` leaves 3 and the two `R()` streams can part. So the entire
+census diff is reshuffle, definitionally. Second: the winter tail came out shaped without being
+asked — folded ripeness decays 2.45 → 1.91 → 1.37 → 1.12 → 0.95 → 0.68 at midwinter and climbs
+back, the standing crops picked off one by one through the cold, each replacement only 1-in-4
+hardy. I wrote a ceiling rule, not a decay; the harvest cycle supplied the curve.
 
-**Law:** Match the grain of a variance term to the grain the region is ADDRESSED by. Per-cell
-hardiness cannot lift a per-plot predicate — a seventh per cell is 2e-4 across six — so a rule
-that reads correctly in one region is silently a no-op in the next one that inherits it.
-
-**Law:** The census ladder samples ONE warmth. Its three warps land at phase 0.313/0.687, both
-warmth 0.693 and `bloomCap` 3, so anything that only acts away from the anchor is invisible to
-it by construction — and that also makes it a clean attribution tool: pin the phase, and any
-diff left is the PRNG reshuffle.
-
-**Cue:** `bloomCap()` is the town's only STEPPED seasonal term (3/2/1) while `growF`/`dieF`/the
-rest are lerps, so ripeness still falls off a cliff at the autumn shoulder — folded 12.53 → 5.52
-→ 2.45 in two sim days. The winter tail is now soft; the entry into it is not.
-
-**Cue:** Context budget was **OVER on entry — 53.4 KB against the 46 KB cap**, third iteration
-running. LEDGER.md is the bulk; laws 27/60 but 11.0 KB against a 12 KB byte cap.
+**Laws:** two promoted (match the grain of a variance term to the grain the region is addressed
+by; the census ladder samples ONE warmth). See `LAWS.md`. Full entry in the archive.
