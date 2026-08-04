@@ -2000,3 +2000,95 @@ different door — the slow variable is not a scalar, it is the boat, whose trip
 **Laws:** three promoted (presence vs rate on a one-object channel; a long-lived object is
 itself a slow variable; two seeds is not a sample). See `LAWS.md`. Full entry in the archive.
 
+## Iteration 24 — the courtyard and the plaza answer a touch (2026-08-04) [Plaza & quay × Interaction/UX]
+
+**Brief:** b23 — `answersTouch()` answered six tiles and not PATH, so the plaza's roundel and
+the whole courtyard were dead to the cursor and the click. Extend it, and give those cells their
+entries in `PAVING`/`pavingAt`.
+
+**Did:** `answersTouch()` takes PATH, and so does the click handler's paving branch. `PAVING`
+gains `court` (1,896 cells) and `plaza` (730 — the square; the old 24-cell `plaza` entry was
+the mouth onto the lane, now `mouth`). The two share one `PLAZA_WORDS`: a place is one set of
+WORDS but needs one box per piece of GROUND, because the four rows between square and mouth are
+the terrace's end wall and a single bbox lands birds on a roof. `pavingAt()` branches on the
+tile first — PATH is only ever courtyard or plaza and they are half a world apart.
+`crumbSpot()` gains an optional `keep` rectangle: the fountain is the first obstacle in the
+MIDDLE of a place rather than at its edge, so the scatter's CENTRE is pushed clear of it, never
+the individual birds. **Frame answering the cursor 46.1% → 64.1%**; paving cells 2,903 → 5,529.
+
+**Gates:** census PASS — *identical* on all 9 cells, which is the point: `crumbSpot` runs on
+click, so no `R()` draw was added · visual PASS · motion PASS · perf skipped ·
+`paving-places.mjs` PASS with a new exhaustive section: `crumbSpot` over all 5,529 paving
+cells, 6 draws each (~99k placements) — 0 outside their box, 0 pairs under 0.9 cells, 0 in
+water · `touch-hint.mjs` PASS, 345 points, 0 cursor/handler disagreements.
+
+**Verdict:** shipped
+
+**Surprise:** The brief warned the courtyard path ring is "narrow and curved — exactly the case
+the 0.9-cell law bites on". It is neither: 1,896 cells, 8–20 thick, the **largest single place
+in the town**, bigger than the lane's 1,731. The risk was real but it was in the other half of
+the brief, and it was floating point. I derived the basin's footprint from the same ellipse
+`buildGrid()` cuts it with and got the boundary row wrong — `(28.5-30)*1.2` is
+`1.7999999999999998` — so my careful rectangle was *worse than the crude circle it replaced*
+(22 birds in the basin against 1), and it took an exhaustive probe to see at all, because 22 in
+99k never shows in a screenshot. Reading WATER back off the grid took it to 0. Also: a throwaway
+patch-sampling probe claimed a bird north of the fountain was hidden behind it. It was lying — a
+patch centred on a bird's ground anchor misses a sprite drawn above it. Leave-one-out says 3/3
+visible on all four sides; promoted as `probes/crumb-birds-seen.mjs`.
+
+**Laws:** two promoted (read a footprint off the grid, never re-derive it; a gate that fails on
+unmodified HEAD is not a gate). See `LAWS.md`. Full entry in the archive.
+
+
+
+<!-- full text of #32, condensed in LEDGER.md to fit the 2.5 KB cap -->
+
+## Iteration 32 — something is on in the bandstand, and people come and stand for it (2026-08-04) [River & far bank × New element]
+
+**Brief:** b31 — the bandstand has stood on the far bank since before the loop with nothing
+ever happening in it, and the whole east side has no gathering of any kind. Put a concert on
+in summer and let an audience arrive, hold still together, and thin when it ends.
+
+**Did:** `bandF()` — one 0..1 over set-up/set/strike, `marketRaise()`'s shape — with the three
+`BAND_PLAYERS` hung off it at cues 0.10/0.30/0.50 and bunting at 0.72, so they step up one at a
+time and pack away in reverse. Players are plain records handed to `drawPerson()` (which now
+reads `a.z`), drawn between the back and front posts inside `drawBandstand()` rather than pushed
+to the sorted item list, which could only put them wholly in front of or behind the structure.
+The day is `hash(day, 617) < bandChance()` off `warmth` — no `R()`, so most days pay nothing.
+Audience: `spawnConcertAgent()`, its own source, own `BAND_TICK` (the shared 1 Hz spawn tick
+cannot fill nine places in a seven-second window), and subtracted from **both** `eastCount` and
+`laneCount`. They claim one of nine `BAND_SLOTS` and release it on `done`.
+
+**Gates:** census PASS (people +7, onStreet +7, inEast +2 — the audience lands in fields that
+already exist; the rest is the reshuffle) · visual PASS · perf PASS (+0.0%) · motion **FAIL,
+attributed**: night/shower jumps 1→2, on a kind I did not touch. Replayed over twelve seeds on
+HEAD and here: rises are 0/1/2 in **both**, falls are 0 in both. Two shower onsets in the
+window, not a broken ending · **`probes/bandstand-year.mjs` PASS ×4** — 18 concert days at
+midsummer vs **0** at midwinter over three folded years; peak 7 standing over 14.5 s with the
+worst single step 43% of peak; min separation while standing **1.68 cells**; 0 teleports, 0
+off-slot standers · filmstrip PASS cropped to the green: the raise sheet shows each player
+fading in alone and the strike sheet undoes it in reverse, no POP either side (the Δ4.36 on
+frame 1 is **4.355 on unmodified HEAD too** — the ground cache relighting after the warm-up).
+
+**Verdict:** shipped
+
+**Surprise:** the first cut ended the set at 19.2 and every gate I had was green — the year
+folded right, nobody teleported, the separation held. Then the arrival series showed six of nine
+listeners leaving in a single 0.25 s step. Not my code: `eastOpen()` is `daylight > 0.16`, which
+is `sunDown - 0.05*dayHours`, and the strike ramp ran straight through it, so the existing rule
+that sends the far side home at dusk cleared the green wholesale. Nothing errored and no still
+frame could have shown it. **The walk is what sets every number here** — the park gate is eleven
+seconds from the green, five sim hours — and I had sized the set against the walk and then
+forgotten to size the *end* against the light.
+
+**Law:** an event whose audience must WALK to it is bounded at both ends by things that are not
+the event: the trip in sets the earliest it can be full, and every standing rule already in the
+file — dusk, rain, a thickening front — sets the latest it can still be full. Budget the span
+against those, not against how long the thing should last. And an audience that STANDS wants
+claimed places, not a scatter: a spawn-time separation is a guarantee for one frame, and this
+crowd holds its ground for twenty seconds.
+
+**Cue:** `motion.mjs` counts a shower's rises and falls into one `jumps` figure, but its own
+comment says only a fall is the bug ("the ending broke"). Rises are one-per-shower by design, so
+the count is really "how many showers started in the window" — which any reseed moves. Splitting
+them would make the night cell attributable instead of advisory.

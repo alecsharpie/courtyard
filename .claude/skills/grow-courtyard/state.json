@@ -2,7 +2,7 @@
   "updated": "2026-08-04",
   "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
   "phase": "expanding",
-  "lastIteration": 31,
+  "lastIteration": 32,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -210,7 +210,8 @@
     "river": {
       "new-element": [
         "pre22",
-        "pre30"
+        "pre30",
+        32
       ],
       "polish": [
         "pre31"
@@ -315,7 +316,8 @@
       "a parapet stop mid-span (PARAPET_Y, PARAPET_Z), served mainly from spawnEastAgent",
       "the water reads the YEAR — riverRun() drives drawRiverFlow(t): drift speed, streak count and length, channel colour (riverCol -> RIVER_COLD/RIVER_GREEN), width of the deep mid-channel. probes/river-year.mjs, river-shots.mjs",
       "the rowboat is a fair-weather thing — boatRate() thins as the water rises (BOAT_SWING, BOAT_FLOOR binding through winter), boatSpeed() takes BOAT_DRIFT of the current. ONE boat, so its year reads as PRESENCE not boats/day",
-      "the BANDSTAND has never been used — a structure with no event, and the far bank has no gathering of any kind"
+      "the BANDSTAND has never been used — a structure with no event, and the far bank has no gathering of any kind",
+      "the BANDSTAND has a summer concert — bandF() stages three BAND_PLAYERS (cues 0.10/0.30/0.50) and bunting up and back down on ONE 0..1; isBandDay() is hash(day,617) vs bandChance() off warmth, so July plays and February does not. probes/bandstand-year.mjs, bandstand-shots.mjs"
     ],
     "sky": [
       "day/night cycle (55 s day), sun and moon arc, backdrop hills, night window lighting, chimney smoke, a balloon",
@@ -342,7 +344,8 @@
       "the SILL under the canvas — #plate, #daytime (day + hour), #season, #ticker, #stats, #ctrl (Pause, speed 1x/3x/8x). Ticker and stats hidden under 640px except during the invitation",
       "__entities() carries role, act, watch and raindrops per person, with a stable id — the seam a behaviour probe reads instead of a bespoke hook",
       "yearBusy(ex) multiplies the DAYLIGHT term of capacity/laneCap/eastCap only, never their fixed share (EX_COURT/EX_LANE/EX_EAST; eastCap keeps Math.min(7,...)). POP_FLOOR + scarcity lift the three arrival RATES only. probes/season-year.mjs",
-      "the invitations are a QUEUE — OFFERS[] of two (touch, then season), each spent when it comes up whether spoken or not, INVITE_GAP 6 s of quiet between; at 390 the season offer keeps the plate and drops #title (.inviting.at-season). probes/sill-invite-shots.mjs"
+      "the invitations are a QUEUE — OFFERS[] of two (touch, then season), each spent when it comes up whether spoken or not, INVITE_GAP 6 s of quiet between; at 390 the season offer keeps the plate and drops #title (.inviting.at-season). probes/sill-invite-shots.mjs",
+      "the audience is the town's one STANDING crowd — spawnConcertAgent(), its own source and BAND_TICK, out of neither eastCount nor laneCount; nine claimed BAND_SLOTS hold them 1.99 cells apart for as long as they stand, and a.leaveAt thins them across the strike"
     ]
   },
   "openCues": [
@@ -357,12 +360,6 @@
       "id": "c44",
       "note": "THE WINTER LID HAS NO HEADROOM, in two senses. Winter sits above the umbrella band 38% of the time against summer's 8% (annual mean 20.5%, redistributed not added), so the courtyard's umbrellas stand under a lid that rarely breaks — nobody has asked whether that reads as care or as a false promise. And FRONT_DEEP lets deep-winter cover CLAMP at a saturated 1.000 for whole spells, so no drawn term has range left above ~0.95: a future how-heavy-is-this-lid signal cannot be read off cover alone. (merged c45 at pass #30)",
       "raisedBy": 20,
-      "seenBy": 1
-    },
-    {
-      "id": "c49",
-      "note": "the 0.9-cell separation is a guarantee at SPAWN only: birds then hop a +/-0.4 random walk with no separation term, and a pair was measured 0.2 cells apart 1.8 s after landing. Pre-existing, and it binds on any new STANDING group (a crowd, a queue, an audience), not just birds.",
-      "raisedBy": 23,
       "seenBy": 1
     },
     {
@@ -387,6 +384,24 @@
       "id": "c60",
       "note": "the offer queue bounds SPACING but not ARRIVAL: offerInvite waits for tickerFree(), and after a season lapse the town returns six sim days on with news solid for tens of seconds, so offer 1 landed at 17.4 s on HEAD and 30.1 s here. Harmless for the touch hint (they already found the other thing); a third offer, or a first on a busy ordinary day, inherits an arrival time nothing floors.",
       "raisedBy": 30,
+      "seenBy": 0
+    },
+    {
+      "id": "c61",
+      "note": "BAND_DUSK is a hand-computed clearance between the strike ramp and eastOpen()'s daylight>0.16 close. It holds across every season a concert can happen in, but nothing ASSERTS it — move BAND_DOWN, BAND_LEN or leaveAt's floor and the green goes back to emptying in one frame, which only the arrival series can see.",
+      "raisedBy": 32,
+      "seenBy": 0
+    },
+    {
+      "id": "c62",
+      "note": "motion.mjs sums a shower's rises and falls into one jumps figure, but its own comment says only a FALL is the bug it exists for. Rises are one per shower by design, so the number is really how many showers started in the window, which any reseed moves — 0/1/2 over twelve seeds on HEAD. Splitting them would make the night cell attributable instead of advisory.",
+      "raisedBy": 32,
+      "seenBy": 0
+    },
+    {
+      "id": "c63",
+      "note": "the BIRDS half of c49 is still open (that cue is closed but only its standing-group half was answered): birds hop a +/-0.4 random walk with no separation term and a pair measured 0.2 cells apart 1.8 s after landing. #32 answered the STANDING case by claiming places (BAND_SLOTS) rather than by scattering; a bird that keeps moving cannot use that, so it wants a separation term or a claimed perch.",
+      "raisedBy": 32,
       "seenBy": 0
     }
   ],
@@ -792,6 +807,14 @@
       "seenBy": 1,
       "closedBy": 30,
       "reason": "MERGED into c44 — same subject, the winter lid, from two sides."
+    },
+    {
+      "id": "c49",
+      "note": "the 0.9-cell separation is a guarantee at SPAWN only: birds then hop a +/-0.4 random walk with no separation term, and a pair was measured 0.2 cells apart 1.8 s after landing. Pre-existing, and it binds on any new STANDING group (a crowd, a queue, an audience), not just birds.",
+      "raisedBy": 23,
+      "seenBy": 1,
+      "closedBy": 32,
+      "reason": "answered for a standing crowd: BAND_SLOTS are claimed like the cafe tables, so the audience's separation is a property of the place rather than of the spawn. The birds' own random walk is untouched."
     }
   ]
 }

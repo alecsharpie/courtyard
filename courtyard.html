@@ -952,6 +952,121 @@ const BOAT_SWING = 0.75, BOAT_FLOOR = 0.0065;  // thinned, then floored — neve
 const BOAT_DRIFT = 0.24;                       // the share of the current the hull takes
 function boatRate(){ return Math.max(BOAT_FLOOR, BOAT_RATE * (1 - BOAT_SWING * greyF())); }
 function boatSpeed(){ return 1.05 * (1 + BOAT_DRIFT * greyF()); }
+
+/* ============ the band on the green ============ */
+/* The bandstand has stood on the far bank since before the loop and nothing has ever
+ * happened in it. Nor does anything east of the bridge GATHER: every crowd this town
+ * has is transient — people passing through, or claiming one seat each.
+ *
+ * A concert is three things and only the last is new to the file. The DAY is a
+ * seasonal draw: `hash(day, 617)` against `bandChance()`, so it costs no `R()` and
+ * cannot reshuffle the seeded world for a feature most days do not have. The BAND is
+ * `marketRaise()`'s pattern — one 0..1 progress with N clamps hung off it, so the
+ * players take their places one at a time on the way up and pack away in reverse on
+ * the way down for free. The AUDIENCE is people, and people here arrive by WALKING:
+ * the park gate is ~21 cells from the green, which is eleven seconds, which is five
+ * sim hours. That one number sets every other one — a concert shorter than the walk
+ * to it plays to an empty green — so this runs a long summer afternoon and the
+ * audience gathers through the whole of the set-up rather than after it.
+ *
+ * The band plays through rain: it is standing under a roof, which is what a bandstand
+ * is for. The green empties anyway, because every stander in this town already reads
+ * the sky (skyLifts). */
+const BAND_UP = 2.6, BAND_LEN = 6.6, BAND_DOWN = 2.2;   // hours: setting up, playing, packing away
+const BAND_SEASON = 0.86;                    // how often high summer puts something on at all
+function bandChance(){ return clamp((warmth - 0.42) / 0.4, 0, 1) * BAND_SEASON; }
+function isBandDay(){ return day > 1 && hash(day, 617) < bandChance(); }
+/* Late enough to be an afternoon, early enough that the last of the audience is off
+ * its feet while eastOpen() still holds. That second clause is BAND_DUSK, and it was
+ * measured rather than guessed: a first cut ended the set at 19.2, the strike ramp ran
+ * to 21.4, and eastOpen() — daylight below 0.16, which is sunDown minus 0.05*dayHours
+ * — cleared SIX standers in a single frame at hour 20.3. Nothing errored; the green
+ * simply vanished. The set now has to be over, and the slowest listener off their
+ * feet (leaveAt bottoms out at 0.35 of the strike), a clear hour before the light
+ * goes. Walking home in the dusk is fine and already brisk; STANDING in it is not.
+ *
+ * The ceiling is what binds in high summer and the sun is what binds at the shoulder.
+ * Both leave the raise past 7.5, which is the margin on the 6.00 rollover that
+ * `day`-derived predicates like isBandDay() fall through. */
+const BAND_DUSK = 3.0;
+function bandEnd(){ return Math.min(sunDown - BAND_DUSK, 17.4); }
+function bandStart(){ return bandEnd() - BAND_LEN; }
+function bandF(){
+  if (!isBandDay()) return 0;
+  const s = bandStart(), e = bandEnd();
+  if (hour < s - BAND_UP || hour >= e + BAND_DOWN) return 0;
+  if (hour < s) return (hour - s + BAND_UP) / BAND_UP;
+  if (hour < e) return 1;
+  return 1 - (hour - e) / BAND_DOWN;
+}
+/* Nine places to stand, two rows bent round the front of the stand. They are CLAIMED,
+ * like the cafe tables, and that is the whole of cue c49's answer: the 0.9-cell
+ * separation every group in this town leans on is a guarantee at SPAWN, and an
+ * audience does not move afterwards — a scatter drawn once and then stood still in
+ * for twenty seconds gets no second chance to be legible. The closest pair here is
+ * 1.99 cells apart and stays 1.99 cells apart. Held clear of the green's edges
+ * (x 130..137.9) and of the stand's own stepped base (y radius 1.92). */
+const BAND_SLOTS = [
+  {x:130.7, y:43.72, taken:0}, {x:132.4, y:44.47, taken:0}, {x:134.1, y:44.70, taken:0},
+  {x:135.8, y:44.41, taken:0}, {x:137.2, y:43.78, taken:0},
+  {x:131.5, y:46.24, taken:0}, {x:133.3, y:46.76, taken:0},
+  {x:135.1, y:46.69, taken:0}, {x:136.7, y:46.14, taken:0},
+];
+/* Three players on the platform, half a world-unit up. They are not agents — nothing
+ * about them moves through the town, and an agent that cannot leave is a leak — so
+ * they are plain records handed straight to drawPerson(), which is what makes them
+ * the same people as everyone else rather than a second, worse figure. Array order is
+ * DRAW order (back of the stand first); `cue` is the level of bandF() each one steps
+ * up at, which is a different order and has to be. */
+const BAND_PLAYERS = [
+  {px:133.60, x:133.60, y:40.45, z:0.55, plays:'drum', cue:0.30, state:'stand', phase:0,
+   shirt:'#4a5d7a', pants:'#2e3a4e', skin:'#c9975f', faceL:false},
+  {px:132.15, x:132.15, y:41.30, z:0.55, plays:'horn', cue:0.10, state:'stand', phase:0,
+   shirt:'#a8503f', pants:'#3a3a44', skin:'#e8c39a', faceL:false},
+  {px:135.05, x:135.05, y:41.30, z:0.55, plays:'bass', cue:0.50, state:'stand', phase:0,
+   shirt:'#5d7a4a', pants:'#43514a', skin:'#6b4a33', faceL:true},
+];
+const BAND_FADE = 0.10;          // no wider than the lowest cue, or the first stands translucent
+const BAND_FLAGS = 0.72;         // bunting between the posts — last up, first down
+/* The audience arrives on its own budget and its own clock. Its own budget because
+ * eastCap tops out at SEVEN and the green holds nine: fed from spawnEastAgent() a
+ * concert would empty the plaza and the quay to fill the far bank. Its own clock
+ * because the shared spawn tick is one roll a second and the gathering window is
+ * about seven seconds wide — no rate on that tick can fill nine places. */
+const BAND_TICK = 0.5, BAND_RATE = 0.62;
+let bandAcc = 0, bandSetDay = -1, bandPlayDay = -1;
+function bandGathering(){
+  return isBandDay() && eastOpen() && hour >= bandStart() - BAND_UP && hour < bandStart() + 0.5;
+}
+function spawnConcertAgent(){
+  const free = BAND_SLOTS.filter(s => !s.taken);
+  if (!free.length) return;
+  const s = pick(free);
+  s.taken = 1;
+  const a = {
+    kind:'green', street:true, east:true, band:true, slot:s,
+    x:PARK_GATE, y:64.6, wp:[], i:0, speed:1.5 + R() * 0.8, state:'walk', timer:0,
+    shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9, wary:R(),
+    /* when this one gives up on it, as a level of the SAME progress the band packs
+       away on — so the green thins across the strike instead of emptying in a frame.
+       A field written once at spawn, never a countdown read as a threshold. */
+    leaveAt:0.35 + R() * 0.5,
+  };
+  a.stop = {x:s.x, y:s.y, act:'stand', dur:90};      // the set ends them, not a timer
+  a.wp.push([PARK_GATE, 60.5], [FAR_WALK, 57], [s.x, s.y],
+            [FAR_WALK, 57], [PARK_GATE, 60.5], [PARK_GATE, 64.6]);
+  agents.push(a);
+}
+function bandNews(){
+  if (!isBandDay()) return;
+  if (bandSetDay !== day && hour >= bandStart() - BAND_UP && hour < bandStart()){
+    bandSetDay = day;
+    announce('Music stands are going up in the bandstand across the river.');
+  } else if (bandPlayDay !== day && hour >= bandStart() && hour < bandEnd()){
+    bandPlayDay = day;
+    announce('The band strikes up on the church green.');
+  }
+}
 /* The market opens two and a half hours after sunrise and packs away three before
  * sunset — but a pure offset hands midwinter a six-hour market, and a market that
  * short is a different feature, so the span has a FLOOR and the close is pushed back
@@ -1522,9 +1637,15 @@ function stepAgent(a, dt){
     // at a time across the ~11 s the cover takes to build. The band tops out at 0.88,
     // below the 0.91 at which the rain roll goes live, so the last seat is empty before
     // the first drop rather than in the same frame as it. See skyLifts().
+    // an audience is ended by the thing it came for, not by a timer of its own: once
+    // this one has heard the band at full it peels off at its own level of the same
+    // progress the players pack away on, and a latecomer who never heard it at all
+    // leaves when the last case comes off the stand.
+    if (a.band && !a.heard && bandF() > 0.98) a.heard = true;
     if (a.timer <= 0 || (raining && a.state !== 'lie')
         || skyLifts(a)
-        || (a.east && !eastOpen())){
+        || (a.east && !eastOpen())
+        || (a.band && (bandF() <= 0 || (a.heard && bandF() < a.leaveAt)))){
       if (a.blanket){ a.blanket = false; }
       if (a.tableRef){ a.tableRef.taken = 0; a.tableRef = null; a.cup = false; }
       if (a.resume && a.i < a.wp.length){ a.state = 'walk'; a.resume = false; }
@@ -3663,6 +3784,45 @@ function drawLaneTree(it){
     }
   }
 }
+/* The players stepping up, one at a time, on the same 0..1 the set comes down on.
+ * Handed straight to drawPerson(), so a musician is the same figure as a passer-by —
+ * the only differences are the platform under them (a.z) and what is in their hands. */
+function drawBandPlayers(f, t){
+  for (const p of BAND_PLAYERS){
+    const a = clamp((f - p.cue) / BAND_FADE, 0, 1);
+    if (a <= 0) continue;
+    p.x = p.px + (RM ? 0 : Math.sin(t * 2.1 + p.cue * 9) * 0.06);   // playing, not posing
+    ctx.save(); ctx.globalAlpha = a; drawPerson({a:p}, t); ctx.restore();
+  }
+}
+/* Bunting between the front posts — last thing up, so first thing down. */
+function drawBandFlags(f, posts){
+  const a = clamp((f - BAND_FLAGS) / BAND_FADE, 0, 1);
+  if (a <= 0) return;
+  const front = posts.filter(p => p[1] >= BANDSTAND.y).sort((p, q) => p[2][0] - q[2][0]);
+  ctx.save(); ctx.globalAlpha = a;
+  for (let k = 0; k + 1 < front.length; k++){
+    const t0 = front[k][3], t1 = front[k + 1][3];
+    /* A shallow swag, hard up under the eave. The first cut sagged a whole cell and
+       hung straight across the players' chests — there is only about half a cell of
+       headroom between a standing figure on the platform and the post tops, so the
+       line has to live in what is left of it. */
+    const x0 = t0[0], y0 = t0[1] + cellH * 0.05, x1 = t1[0], y1 = t1[1] + cellH * 0.05;
+    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2 + cellH * 0.45;
+    ctx.strokeStyle = 'rgba(201,185,138,.8)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.quadraticCurveTo(cx, cy, x1, y1); ctx.stroke();
+    for (let j = 1; j <= 3; j++){
+      const u = j / 4, v = 1 - u;
+      const fx = v * v * x0 + 2 * v * u * cx + u * u * x1;
+      const fy = v * v * y0 + 2 * v * u * cy + u * u * y1;
+      const w = Math.max(1.6, cellW * 0.13);
+      ctx.fillStyle = ['#b8503f', '#d8b04a', '#4a7d78'][(k + j) % 3];
+      ctx.beginPath(); ctx.moveTo(fx - w, fy); ctx.lineTo(fx + w, fy);
+      ctx.lineTo(fx, fy + w * 1.9); ctx.closePath(); ctx.fill();
+    }
+  }
+  ctx.restore();
+}
 function drawBandstand(it, t){
   const {x, y} = BANDSTAND, R0 = 2.3;
   const [bx, by] = project(x, y, 0);
@@ -3683,8 +3843,19 @@ function drawBandstand(it, t){
     posts.push([wx, wy, project(wx, wy, 0.5), project(wx, wy, 2.6)]);
   }
   posts.sort((p, q) => p[1] - q[1]);
+  /* The posts are drawn in two halves with the band between them. Everything else in
+     this file settles draw order by pushing an item into the sorted list, but the
+     players are INSIDE this structure — pushed out to the list they would land either
+     wholly in front of the near posts (standing on the grass) or wholly behind the far
+     ones (standing outside the back). The stand's own centre line is the sort key. */
+  const post = p => { ctx.beginPath(); ctx.moveTo(p[2][0], p[2][1]); ctx.lineTo(p[3][0], p[3][1]); ctx.stroke(); };
   ctx.strokeStyle = '#7d6a4e'; ctx.lineWidth = Math.max(1.6, cellW * 0.16);
-  for (const p of posts){ ctx.beginPath(); ctx.moveTo(p[2][0], p[2][1]); ctx.lineTo(p[3][0], p[3][1]); ctx.stroke(); }
+  for (const p of posts) if (p[1] < y) post(p);
+  const bf = bandF();
+  if (bf > 0) drawBandPlayers(bf, t);
+  ctx.strokeStyle = '#7d6a4e'; ctx.lineWidth = Math.max(1.6, cellW * 0.16);
+  for (const p of posts) if (p[1] >= y) post(p);
+  if (bf > 0) drawBandFlags(bf, posts);
   // ogee roof and a finial
   const [rx, ry] = project(x, y, 2.6);
   const [ax2, ay2] = project(x, y, 4.5);
@@ -3705,6 +3876,25 @@ function drawBandstand(it, t){
   ctx.beginPath(); ctx.moveTo(ax2, ay2); ctx.lineTo(ax2, ay2 - cellH * 1.5); ctx.stroke();
   ctx.fillStyle = '#c9b98a';
   ctx.beginPath(); ctx.arc(ax2, ay2 - cellH * 1.7, Math.max(1.5, cellW * 0.14), 0, 7); ctx.fill();
+  /* and the only thing that says it is MUSIC. Three marks on one phase of t, drawn
+     nowhere near the PRNG — a per-frame R() here would walk the seeded stream every
+     frame the machine happened to deliver, which is the trap probes keep falling into.
+     Gated on the same level as the bunting, so it arrives and goes with the set. */
+  if (bf > BAND_FLAGS && !RM){
+    const na = clamp((bf - BAND_FLAGS) / BAND_FADE, 0, 1), r2 = Math.max(1.4, cellW * 0.13);
+    ctx.save();
+    for (let k = 0; k < 3; k++){
+      const u = (t * 0.3 + k * 0.37) % 1;
+      ctx.globalAlpha = na * Math.sin(u * Math.PI) * 0.8;
+      const nx = ax2 + (k - 1) * cellW * 0.7 + Math.sin(u * 4.5 + k * 2.1) * cellW * 0.45;
+      const ny = ay2 - cellH * (1.9 + u * 3.6);
+      ctx.fillStyle = '#e8e0c8';
+      ctx.beginPath(); ctx.ellipse(nx, ny, r2, r2 * 0.78, -0.4, 0, 7); ctx.fill();
+      ctx.strokeStyle = '#e8e0c8'; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(nx + r2 * 0.85, ny); ctx.lineTo(nx + r2 * 0.85, ny - r2 * 3.2); ctx.stroke();
+    }
+    ctx.restore();
+  }
 }
 function drawJetty(){
   const {x, y} = JETTY;
@@ -4079,7 +4269,9 @@ function drawPerson(it, t){
   const chatting = a.greet > 0;
   const walking = a.state === 'walk' && !chatting;   // stood talking, not frozen mid-stride
   const bob = walking ? Math.abs(Math.sin(a.phase)) * 1.6 : 0;
-  const [x, y] = project(a.x, a.y, 0);
+  // z is 0 for everybody who walks on the ground, which is everybody except the band:
+  // they stand on the bandstand's platform, half a world-unit up
+  const [x, y] = project(a.x, a.y, a.z || 0);
   const hgt = (a.state==='sit'? 8 : a.state==='kneel'? 7 : a.state==='lie'? 3 : 12) * scale * (cellH/8);
   /* A person's patch is thrown nowhere — it is the contact under the feet, which is
    * occlusion rather than sun, so it takes only part of the lid: fade it the whole
@@ -4130,6 +4322,20 @@ function drawPerson(it, t){
     ctx.beginPath(); ctx.moveTo(bw, -hgt*0.7); ctx.lineTo(bw + 7, 1); ctx.stroke();
     ctx.strokeStyle = '#b0a488'; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.moveTo(bw + 6, 0); ctx.lineTo(bw + 9, 3); ctx.stroke();
+  }
+  if (a.plays){                     // the band: a bell up and out, or a drum at the waist
+    if (a.plays === 'drum'){
+      ctx.fillStyle = '#cbb68c';
+      ctx.beginPath(); ctx.ellipse(0, -hgt*0.52, bw*0.8, hgt*0.19, 0, 0, 7); ctx.fill();
+      ctx.strokeStyle = '#7d5a34'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.ellipse(0, -hgt*0.52, bw*0.8, hgt*0.19, 0, 0, 7); ctx.stroke();
+    } else {
+      const s2 = a.plays === 'bass' ? 1.35 : 1;
+      ctx.fillStyle = '#d8b04a';
+      ctx.beginPath();
+      ctx.moveTo(bw*0.35, -hgt*0.86); ctx.lineTo(bw*1.45*s2, -hgt*(0.86 + 0.3*s2));
+      ctx.lineTo(bw*1.45*s2, -hgt*(0.58 + 0.24*s2)); ctx.closePath(); ctx.fill();
+    }
   }
   if (a.kind === 'busker' && a.state === 'stand'){
     ctx.fillStyle = '#8a6a42';
@@ -4785,8 +4991,12 @@ function simStep(sdt, dt){
   while (caAcc > 0.35){ caAcc -= 0.35; caTick(); }
 
   const courtyardCount = agents.filter(a => !a.street).length;
-  const eastCount = agents.filter(a => a.east).length;
-  const laneCount = agents.length - courtyardCount - eastCount;
+  // the audience is subtracted from BOTH of the budgets it would otherwise be spent
+  // out of: eastCap, which it stands in the middle of, and laneCap, which is the
+  // residual of the other three and would silently absorb it.
+  const bandCount = agents.filter(a => a.band).length;
+  const eastCount = agents.filter(a => a.east && !a.band).length;
+  const laneCount = agents.length - courtyardCount - eastCount - bandCount;
   /* Each cap is its old expression with the multiply-out done, so the fixed share is
    * visible as a number and the year rides the daylight term alone (see yearBusy).
    * At the anchor, warmth 0.5, all three are algebraically identical to what they
@@ -4823,18 +5033,27 @@ function simStep(sdt, dt){
     if (agents.length === 0 && day === 0 && simT > 6 && !window._first){ window._first = true; spawnAgent();
       announce('The first neighbour wanders in through the archway.'); }
   }
+  // the audience's own arrival source, on its own tick. bandGathering() is false on
+  // every day that has no concert and every hour of one that is not the gathering, so
+  // the R() draw below exists only on the afternoons it is spending.
+  bandAcc += sdt;
+  if (bandAcc > BAND_TICK){ bandAcc = 0;
+    if (bandGathering() && bandCount < BAND_SLOTS.length && R() < BAND_RATE) spawnConcertAgent();
+  }
   for (let i = agents.length - 1; i >= 0; i--){
     stepAgent(agents[i], sdt);
     if (agents[i].done){
       const a = agents[i];
       if (a.table) a.table.taken = 0;
       if (a.tableRef) a.tableRef.taken = 0;
+      if (a.slot) a.slot.taken = 0;              // the place on the green goes back
       agents.splice(i, 1);
     }
   }
   greetAcc += sdt;
   while (greetAcc > GREET_DT){ greetAcc -= GREET_DT; greetPass(); }
   updateSweeper();
+  bandNews();
   updateWildlife(sdt);
   updateDucks(sdt);
   updateSwans(sdt);
@@ -5011,7 +5230,12 @@ window.__entities = function(){
   // machine's own label and `watch` is set while they are following the boat, so a
   // probe can measure behaviour without a bespoke hook per feature
   take(agents.filter(a => a.kind !== 'sweeper'), 'walker',
-       (o, a) => { o.act = a.state; o.role = a.kind; o.watch = a.watch > 0 ? 1 : 0; });
+       (o, a) => { o.act = a.state; o.role = a.kind; o.watch = a.watch > 0 ? 1 : 0;
+                   // the audience on the green. A probe has to tell a listener from a
+                   // passer-by, and a listener standing AT its claimed place from one
+                   // that drifted off it — which is the exact inverse of cue c49's bug.
+                   if (a.band){ o.band = 1;
+                     o.slotD = +Math.hypot(a.x - a.slot.x, a.y - a.slot.y).toFixed(2); } });
   take(agents.filter(a => a.kind === 'sweeper'), 'sweeper');
   take(ducks, 'duck'); take(swans, 'swan');
   take(butterflies, 'butterfly'); take(fireflies, 'firefly');
