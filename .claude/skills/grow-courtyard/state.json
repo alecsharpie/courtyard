@@ -2,7 +2,7 @@
   "updated": "2026-08-04",
   "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
   "phase": "expanding",
-  "lastIteration": 21,
+  "lastIteration": 23,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -213,7 +213,8 @@
         2
       ],
       "deepen": [
-        9
+        9,
+        23
       ]
     },
     "sky": {
@@ -295,7 +296,9 @@
       "pigeons that flush off the belfry when the bell rings, from a finite roost that refills",
       "boatWatch() — anyone byTheWater() (quay and rail, bridge deck, towpath) gets one glance per passing boat (a.watch ~1.4 s, ticked at the top of stepAgent so it never holds anybody); ~2.1 glances per boat",
       "a parapet stop mid-span (PARAPET_Y, PARAPET_Z 1.0), served mainly from spawnEastAgent; somebody is on the bridge ~12% of daylight",
-      "the water's flow — 12 drifting streaks drawn INLINE in the frame loop, no function and no name, one speed and one colour all year; updateBoat spawns one boat at a flat R() < dt*0.012, always north to south, always speed 1.05"
+      "the water's flow — 12 drifting streaks drawn INLINE in the frame loop, no function and no name, one speed and one colour all year; updateBoat spawns one boat at a flat R() < dt*0.012, always north to south, always speed 1.05",
+      "the water reads the YEAR — riverRun() (1 + RIVER_SWING*greyF(), exactly 1 at SEASON_START) drives drift speed, streak count, streak length, the channel's colour (riverCol -> RIVER_COLD/RIVER_GREEN) and the width of the deep mid-channel. The flow is NAMED: drawRiverFlow(t). Winter runs high, fast and cold-blue; August low, slow and green. probes/river-year.mjs, probes/river-shots.mjs",
+      "the rowboat is a fair-weather thing — boatRate() thins as the water rises (BOAT_SWING 0.75) with BOAT_FLOOR 0.0065 binding through all of winter so boatWatch() never dies, and boatSpeed() takes BOAT_DRIFT 0.24 of the current. Only ONE boat is ever on the river, so the year reads as PRESENCE (summer 72% vs winter 32%), not as boats/day (0.32 vs 0.23)"
     ],
     "sky": [
       "day/night cycle (55 s day), sun and moon arc, backdrop hills, wind days (isWindy), night window lighting, chimney smoke, a balloon",
@@ -371,6 +374,18 @@
     {
       "id": "c46",
       "note": "SH_FLOOR 0.20 keeps a trace of every cast shadow under a full lid, but one floor serves all eight sites: nothing distinguishes the trace a TALL object should keep (a crown occludes a lot of sky) from a flat one's. A deliberate simplification — per-object occlusion needs a height, and only drawShadows has one (eaveM).",
+      "raisedBy": 21,
+      "seenBy": 0
+    },
+    {
+      "id": "c47",
+      "note": "3 of 24 individual winters see no boat at all (HEAD's worst season is 3/24 springs, so this is no worse than the town was). Raising BOAT_FLOOR fixes it but flattens the boats/day ratio, which is already occupancy-bound — the two ends squeeze from both sides. A second concurrent boat is the only structural way out, and b22 forbade it.",
+      "raisedBy": 21,
+      "seenBy": 0
+    },
+    {
+      "id": "c48",
+      "note": "motion.mjs's shower row is a POPULATION count sampled at two seeds, so it fires on any iteration that shifts R() at all. probes/shower-jump-spread.mjs replays the gate's exact world over ten seeds and is the cheap answer the next time it goes off.",
       "raisedBy": 21,
       "seenBy": 0
     }

@@ -712,3 +712,80 @@ live canvas's real-time noise floor the same way (ref against itself, two loads)
 water streaks as a finding.
 
 **Cue:** Context budget was **OVER (46.1 KB / 46 KB)** at the start of this iteration.
+
+## Iteration 23 — the river joins the year (2026-08-04) [River & far bank × Deepen]
+
+**Brief:** b22 — the river had one iteration in twelve and was the quarter of town most
+identical in February and August. Give it a year, name the flow, anchor at `SEASON_START`.
+
+**Did:** One term, `riverRun() = 1 + RIVER_SWING * greyF()` — how full and how fast the
+channel runs. ×1.45 in January, ×0.55 in July, exactly 1 at the anchor. Four readers, and
+the flow now has a name: `drawRiverFlow(t)` was twelve anonymous streaks inline in the frame
+loop, and reads riverRun() for drift speed, streak COUNT (7–17), streak LENGTH, and a colour
+written as an offset from the two constants that were there (±11/6/6 on r/g/b), so winter is
+many long fast cold-blue streaks and August a few short slow green ones. The fifth reader is
+the water itself: `riverCol()` leans the channel toward `RIVER_COLD`/`RIVER_GREEN`, and
+`clamp(mid * riverRun())` pushes the deep mid-channel out toward both banks in winter and
+draws it back to a thread in summer — the same gradient, run higher. None of it consumes an
+`R()`; it is `hash()` and the clock.
+
+The boat moves the other way: `boatRate()` thins as the water rises (`BOAT_SWING 0.75`) with
+`BOAT_FLOOR 0.0065` binding through the whole winter quarter, because a boatless season kills
+`boatWatch()` with it. `boatSpeed()` takes `BOAT_DRIFT 0.24` of the current, so high water
+carries the hull through quicker — which is also what stops one slow summer boat blocking the
+river, since only one is ever on it.
+
+**Gates:** census **PASS** (people +2, blooming −43, species reshuffled ±100, structure and
+tiles unchanged — the boat's spawn times move, so every downstream `R()` moves) · visual
+**PASS** (four framings; plus pinned same-hour winter/summer river crops) · motion **FAIL,
+attributed** — `market/shower` jumps 2→4, a POPULATION row where a shower starting *is* a jump
+by construction, and the entity-level `raindrop` row is 0/0/0/0. New `probes/shower-jump-spread.mjs`
+replays motion.mjs's exact world over 10 seeds instead of 2: HEAD 0..2 (mean 0.80), here 0..3
+(mean 0.90). The gate's two-seed sample landed on 2 and 4. I did not touch the threshold ·
+filmstrip day clean; night **POP at frame 11** = #21/#22's known winter sunset, `pop-what-moved.mjs`
+shows `nightF` lifting off zero at that frame on HEAD identically · perf **PASS** (16.70/16.70,
+vsync-capped) · probes: new `river-year.mjs` — ANCHOR IDENTICAL to HEAD (ground layer sha1
+`48728a5366b8` both, channel `rgb(63,90,104)` both, streak rgb `190,210,235` both, riverRun 1,
+boatSpeed 1.05, streaks 12; boatRate differs by 1 ulp, which is `Math.cos(PI/2)`'s 6.1e-17 and
+is in HEAD's seasoned terms too). 8 seeds × 3 years, HEAD → here, boats/day and share of time a
+boat is actually on the water: winter 0.314/52.2% → **0.230/32.4%**, summer 0.314/51.1% →
+**0.320/72.2%**, spring 0.250/44.1% → 0.289/44.3%, autumn 0.282/49.6% → 0.276/53.3%, YEAR
+0.290/49.3% → **0.279/50.5%** — redistributed, not removed · new `river-shots.mjs`: HEAD's
+channel is `rgb(63,90,104)` in *both* seasons; here it is `rgb(80,111,109)` in July and
+`rgb(64,92,109)` in January, and the crop's mean g−b goes from HEAD's −6.23/−6.34 (0.11 apart)
+to +7.22/−6.45.
+
+**Verdict:** shipped   ← my view; runlog.mjs decides from the diff
+
+**Surprise:** The brief asked for a summer:winter ratio in **boats per day** and that number is
+the one I could not move much — 0.320 against 0.230. The river holds exactly one boat, so a
+trip plus a wait is a fifth of a season and arrivals are occupancy-bound: summer saturates at
+~0.35/day however high the rate goes, and raising the winter floor to keep January from going
+boatless eats the bottom of the range from the other side. The year is unmistakable anyway,
+because it landed in **presence** — 72% of summer has a boat on the water against 32% of winter,
+where HEAD was flat at ~50% in every season. Count and presence are the same throughput seen
+twice, and only one of them was free to move.
+
+The second one I nearly filed as a bug: spring and autumn are 44.3% and 53.3% present, an
+18-point split between two phases where every term I wrote is symmetric by construction. It is
+#21's hysteresis law arriving through a completely different door — the slow variable here is
+not a rate-capped scalar, it is the boat itself. A summer boat's trip is ~2 days of a 26-day
+year, so autumn inherits a river with a slow boat still on it and spring inherits an empty one.
+The pair averages to 48.8% against HEAD's 49.3%, which is the neutrality claim.
+
+**Law:** A rate change cannot show a season on a channel that holds ONE object. Arrivals are
+bounded by trip-time occupancy at the top and by whatever floor keeps the thing from vanishing
+at the bottom, so the two ends squeeze the ratio from both sides — measure PRESENCE, the share
+of time the thing is there, which is what a viewer actually sees and is free to move.
+
+**Law:** Any long-lived object is itself a slow variable, and carries its season across a
+boundary exactly as a rate-capped scalar does. If a trip is an appreciable fraction of the
+cycle, the shoulder phases come out unequal from symmetric code — check that the PAIR averages
+to the anchor rather than expecting each to.
+
+**Law:** A population count in a continuity gate is sample-sensitive, and two seeds is not a
+sample. Before treating a population row as a regression, replay the gate's exact world across
+ten seeds: the row that fired 2→4 here has a per-seed range of 0..2 on HEAD.
+
+**Cue:** 3 of 24 individual winters saw no boat at all (HEAD's worst season is 3/24 springs, so
+this is no worse than the town already was, but it is where the floor is spent).

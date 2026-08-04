@@ -778,6 +778,45 @@ function weatherComing(){
        * clamp((cloud - 0.46) / 0.22, 0, 1);
 }
 let wet = 0;                                   // post-rain street sheen timer
+/* ---- reader eight: the river ---------------------------------------------------
+ * The last quarter of the town running one climate forever. The water was twelve
+ * anonymous streaks drawn inline in the frame loop at one speed and one colour, and
+ * the rowboat arrived at a flat `R() < dt * 0.012` whatever the month — so February
+ * and August were identical from the quay, in the one place a town most obviously
+ * has weather in it.
+ *
+ * riverRun() is the ONE term: how full and how fast the channel is running. It is
+ * greyF()'s shape, and honestly so — what puts a river in spate is the season that
+ * keeps the lid down, and the sky is already the thing that decides that. 1 + swing
+ * at midwinter, 1 - swing at midsummer, and EXACTLY 1 at SEASON_START, so every term
+ * below (drift speed, streak count, streak length, the width of the deep channel)
+ * reduces to the constant it replaced. Winter runs high, fast and grey; August is
+ * low, slow and green.
+ *
+ * The boat moves the OTHER way, because a rowboat is a fair-weather thing: arrivals
+ * thin as the water rises. It never switches off — boatWatch() is the best behaviour
+ * this domain has and it dies with the boat — so the rate has a FLOOR that binds
+ * through the deepest weeks rather than a swing that runs it to nothing. It does
+ * take a small share of the current (BOAT_DRIFT): a boat on high water is carried
+ * through quicker, which is also what keeps the river from being blocked by one
+ * slow summer boat all season, since only one is ever on it. */
+const RIVER_SWING = 0.45;                      // channel: x1.45 in January, x0.55 in July
+const RIVER_TINT = 0.30;                       // how far its colour travels from the anchor
+const RIVER_COLD = '#43647a', RIVER_GREEN = '#5c8462';
+const FLOW_N = 12, FLOW_SPEED = 1.7;           // the streaks, as they have always been
+function riverRun(){ return 1 + RIVER_SWING * greyF(); }
+/* The channel's own colour, applied on top of whatever groundCol() already decided,
+ * so the anchor is neutral as an identity: at greyF() 0 the mix amount is 0 and the
+ * string that comes back is the same one. */
+function riverCol(c){
+  const s = greyF();
+  return mix(c, s > 0 ? RIVER_COLD : RIVER_GREEN, Math.abs(s) * RIVER_TINT);
+}
+const BOAT_RATE = 0.012;                       // the flat rate the boat always arrived at
+const BOAT_SWING = 0.75, BOAT_FLOOR = 0.0065;  // thinned, then floored — never a dead river
+const BOAT_DRIFT = 0.24;                       // the share of the current the hull takes
+function boatRate(){ return Math.max(BOAT_FLOOR, BOAT_RATE * (1 - BOAT_SWING * greyF())); }
+function boatSpeed(){ return 1.05 * (1 + BOAT_DRIFT * greyF()); }
 /* The market opens two and a half hours after sunrise and packs away three before
  * sunset — but a pure offset hands midwinter a six-hour market, and a market that
  * short is a different feature, so the span has a FLOOR and the close is pushed back
@@ -2493,8 +2532,11 @@ function groundCol(x, y, t, hv, m){
   if (t === ROAD) return mix('#87806f', '#8d8675', hv * 0.5);
   if (t === WATER){
     if (x >= RIVER_X0 - 1 && x <= RIVER_X1){
+      // the deep channel is WIDER when the river runs high — the same gradient, pushed
+      // out toward both banks in winter and drawn back to a thread in August
       const mid = 1 - Math.abs((x + 0.5 - (RIVER_X0 + RIVER_X1) / 2) / ((RIVER_X1 - RIVER_X0) / 2));
-      return mix(mix('#5d7a84', '#546f7c', hv * 0.6), '#3f5a68', clamp(mid, 0, 1));
+      return riverCol(mix(mix('#5d7a84', '#546f7c', hv * 0.6), '#3f5a68',
+                          clamp(mid * riverRun(), 0, 1)));
     }
     if (x >= PLAZA_X0 && x < PLAZA_X1) return mix('#527a86', '#4a6f7c', hv * 0.5);
     const depth = 1 - Math.hypot((x + .5 - POND.x) / POND.rx, (y + .5 - POND.y) / POND.ry);
@@ -2953,22 +2995,7 @@ function drawScene(t, dt){
   items.sort((p,q)=>p.y-q.y);
   for (const it of items) it.f(it, t);
 
-  // the river's flow: drifting streaks that vanish under the bridge
-  {
-    const glow = Math.max(daylight * 0.6, nightF * 0.25);
-    ctx.strokeStyle = nightF > 0.5 ? 'rgba(190,210,235,' + 0.22 * glow * 2 + ')' : 'rgba(225,238,240,' + 0.3 * glow + ')';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    for (let k = 0; k < 12; k++){
-      const fy = ((t * 1.7 * (0.7 + hash(k, 21) * 0.6)) + k * 7.7) % WH;
-      if (fy > 63.5 && fy < 79.5) continue;
-      const fx = RIVER_X0 + 0.8 + hash(k, 17) * (GW - RIVER_X0 - 1.8);
-      if (fy > 79 && fx < QUAY_X0 + 1) continue;
-      const [sx, sy] = project(fx, fy, 0);
-      ctx.moveTo(sx, sy); ctx.lineTo(sx - 1.2, sy + 4.5);
-    }
-    ctx.stroke();
-  }
+  drawRiverFlow(t);
 
   // water sparkle (warm by day, cold moon-glints by night) and rain rings on the pond
   if (rainFall < 1){
@@ -3419,13 +3446,45 @@ function drawFountain(it, t){
     }
   }
 }
+/* ============ the river's flow ============ *
+ * Drifting streaks that vanish under the bridge — the water's only motion, and until
+ * now the only part of the river with no name to reach for. Four things read
+ * riverRun(): how fast a streak drifts, how many there are, how long each one is
+ * drawn, and how far its colour leans from the anchor. Winter is a lot of long fast
+ * cold-blue streaks; August is a few short slow green ones. Every one of them is
+ * exactly the constant it replaced at riverRun() 1, and none of it consumes an R()
+ * draw — this is hash() and the clock, so the seeded world is untouched by it. */
+function drawRiverFlow(t){
+  const run = riverRun(), gr = greyF();
+  const glow = Math.max(daylight * 0.6, nightF * 0.25);
+  const cold = nightF > 0.5;
+  // one seasonal shift, written as an offset from the two colours that were there,
+  // so at greyF() 0 these round back to 190,210,235 and 225,238,240 exactly
+  const cr = Math.round((cold ? 190 : 225) - 11 * gr),
+        cg = Math.round((cold ? 210 : 238) - 6 * gr),
+        cb = Math.round((cold ? 235 : 240) + 6 * gr);
+  ctx.strokeStyle = 'rgba(' + cr + ',' + cg + ',' + cb + ',' +
+                    (cold ? 0.22 * glow * 2 : 0.3 * glow) + ')';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  const n = Math.round(FLOW_N * run);
+  for (let k = 0; k < n; k++){
+    const fy = ((t * FLOW_SPEED * run * (0.7 + hash(k, 21) * 0.6)) + k * 7.7) % WH;
+    if (fy > 63.5 && fy < 79.5) continue;
+    const fx = RIVER_X0 + 0.8 + hash(k, 17) * (GW - RIVER_X0 - 1.8);
+    if (fy > 79 && fx < QUAY_X0 + 1) continue;
+    const [sx, sy] = project(fx, fy, 0);
+    ctx.moveTo(sx, sy); ctx.lineTo(sx - 1.2, sy + 4.5 * run);
+  }
+  ctx.stroke();
+}
 let boat = null, boatUnder = false, boatSeq = 0;
 function updateBoat(dt){
-  if (!boat && day >= 1 && R() < dt * 0.012){
+  if (!boat && day >= 1 && R() < dt * boatRate()){
     boat = {x:116.5 + R() * 5, y:-7, ph:R() * 9, id:++boatSeq, hailed:false};
   }
   if (boat){
-    boat.y += dt * 1.05; boat.ph += dt * 2.6;
+    boat.y += dt * boatSpeed(); boat.ph += dt * 2.6;
     if (!boatUnder && boat.y > 62 && boat.y < 66){
       boatUnder = true;
       if (R() < 0.7) announce('A rowboat slips under the bridge and out the other side.');
