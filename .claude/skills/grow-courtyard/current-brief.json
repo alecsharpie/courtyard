@@ -14,7 +14,7 @@
   "avoid": "Do not touch `sunVec` or the lit-side shading on roofs and ground — that is already veiled through the sky colours, and moving both is how you end up with a flat grey world instead of an overcast one. This brief is only the CAST shadows. One definition read by every site, not six separate tunings: there are roughly six call sites and they will drift apart within two iterations if you tune them individually.",
   "budgetMin": 20,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 22,
   "issued": "2026-08-03T23:53:51.926Z",
