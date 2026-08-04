@@ -1645,9 +1645,14 @@ function stepAgent(a, dt){
     if (a.timer <= 0 || (raining && a.state !== 'lie')
         || skyLifts(a)
         || (a.east && !eastOpen())
+        || (a.tap && !tapOpen())
         || (a.band && (bandF() <= 0 || (a.heard && bandF() < a.leaveAt)))){
       if (a.blanket){ a.blanket = false; }
       if (a.tableRef){ a.tableRef.taken = 0; a.tableRef = null; a.cup = false; }
+      // the place at the door goes back the moment they step away from it, not when
+      // they are finally off the frame: the walk home is on another line, and a slot
+      // held for it would take a third off what a short summer evening can serve.
+      if (a.tap && a.slot){ a.slot.taken = 0; a.slot = null; a.cup = false; }
       if (a.resume && a.i < a.wp.length){ a.state = 'walk'; a.resume = false; }
       else if (a.street){ a.state = 'walk'; }        // lane agents just continue their route
       else routeToExit(a);
@@ -1967,6 +1972,103 @@ function spawnLaneAgent(){
     }
   }
   agents.push(a);
+}
+
+/* ============ the evening ============ *
+ * Every branch above that sets a `stop` opens with `sun &&`, and kioskOpen(),
+ * marketOpen(), the band and eastOpen() all close on the sun too — so for the ~45% of
+ * the clock that is dark this town had nothing on anywhere. Measured over 20 folded
+ * days before this existed: 0.21 street people standing still between 22.00 and 04.00,
+ * against 1.26 at midday, and all of the 0.21 was the three-second glance through the
+ * arch in the final else. Two of every five viewers met the lane as a transit corridor
+ * with lit windows over it.
+ *
+ * This is ONE place that keeps hours after dark, and it is deliberately one. The market
+ * and the allotments are shut for good reasons; reopening them would only make the
+ * night a dimmer day.
+ *
+ * ---- why it is HERE, which is budget and not scenery ---------------------------
+ * A day is 55 s, so a sim hour is 2.3 s and the whole of a midsummer night is 22 s of
+ * screen time. A drinker fetched from a lane edge is 36 cells — 20 s of walking each
+ * way — and trip length is what sets standing population (the cap only sets inflow), so
+ * they would still be outside at 03.00 whatever hour the door shut. The custom comes
+ * out of the courtyard's own south arch instead, eight cells off: 4.4 s each way, and a
+ * whole visit fits inside the shortest night of the year. That the door faces the
+ * garden gate is the constraint arriving as an image rather than the other way round.
+ */
+const TAP_DOOR = 26;                 // the wall cell the door is cut in — slot 5, blank
+const TAP_FACE = 64;                 // row 63's face plane, where drawFaceRow puts the fronts
+/* Four places on the footway, either side of the door and never in it. Held further
+ * apart than the ~0.9 cells at which two figures render as one shape (the tightest pair
+ * is 1.23), clear of the lane lamp at x=28 and of the arch surround at 30.55. */
+const TAP_SLOTS = [
+  {x:24.60, y:65.20, taken:0}, {x:25.85, y:65.60, taken:0},
+  {x:27.00, y:65.15, taken:0}, {x:29.30, y:65.45, taken:0},
+];
+const TAP_IN = [32.5, 62.5], TAP_MOUTH = [32.5, 64.9];   // inside the arch, and its mouth
+/* The hours. Everything else in this town hangs off sunUp/sunDown and therefore SHUTS
+ * as the light goes; this one opens as the light goes and shuts by the clock, at three
+ * in the morning, in every season. The asymmetry is the point: the market's midwinter
+ * day is its shortest and the door's is its LONGEST — ten and a half hours against
+ * midsummer's eight and a half — so the year reads backwards here, which is the only
+ * way this town gets a winter evening.
+ *
+ * TAP_EARLIEST is the market's MK_EARLIEST argument in the other direction: a pure
+ * sunDown - 3 opens the winter door at 15.30 in a bright afternoon, so the constant
+ * takes the later of the two. `hour` runs 6.00 -> 6.00 inside one `day`, so 18.30 ->
+ * 03.00 is a single contiguous window on hourEve() and nothing `day`-derived changes
+ * underneath it; the shut is at 27.0 and the day rolls at 30.0, well clear of the seam.
+ *
+ * TAP_LAST is #32's law paid up front. A visit is a walk of 1.9 sim-hours, a drink of
+ * up to 3.5 more, and the walk back — so the door stops SENDING people 5.5 hours before
+ * it shuts, and the last of them leaves on their own timer with the lamp still on. The
+ * !tapOpen() lift below is a backstop that should essentially never fire, which is what
+ * the probe measures rather than assumes. */
+const TAP_SHUT = 27, TAP_EARLIEST = 16.5, TAP_LAST = 5.5, TAP_FADE = 1.1;
+function hourEve(){ return hour < 6 ? hour + 24 : hour; }   // the evening's own axis, 6..30
+function tapUp(){ return Math.max(sunDown - 3, TAP_EARLIEST); }
+function tapOpen(){ return day >= 1 && hourEve() >= tapUp() && hourEve() < TAP_SHUT; }
+function tapServing(){ return tapOpen() && hourEve() < TAP_SHUT - TAP_LAST; }
+/* The flag is split: tapOpen() is the behaviour, tapF() is the 0..1 every draw site
+ * multiplies by, so the lamp comes up and goes out over an hour instead of switching. */
+function tapF(){
+  if (!tapOpen()) return 0;
+  const h = hourEve();
+  return clamp(Math.min((h - tapUp()) / TAP_FADE, (TAP_SHUT - h) / TAP_FADE), 0, 1);
+}
+function tapCount(){ return agents.filter(a => a.tap).length; }
+/* Its own arrival source, for the far side's reason (#22) and the audience's (#32):
+ * laneCap at daylight 0 is THREE and laneRate 0.087/s, so an evening band inside
+ * spawnLaneAgent() would be one drinker every few nights AND would come out of the
+ * lane's own budget. It does NOT read scarcity(): POP_FLOOR already lifts the three
+ * night rates when the town is thin, and a door whose custom rose because the rest of
+ * the town was empty would be crediting itself with POP_FLOOR's people. */
+function tapRate(){ return (0.14 + 0.34 * maturity()) * (raining ? 0.2 : 1); }
+function spawnTapAgent(){
+  const free = TAP_SLOTS.filter(s => !s.taken);
+  if (!free.length) return;
+  const s = pick(free);
+  s.taken = 1;
+  const a = {
+    kind:'tap', street:true, tap:true, slot:s,
+    x:TAP_IN[0], y:TAP_IN[1], wp:[], i:0, speed:1.9 + R() * 0.5, state:'walk', timer:0,
+    shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9, wary:R(),
+  };
+  // 4.5..8.0 s standing. Longer and the walk in plus the drink outruns TAP_LAST and the
+  // pavement has to be cleared by the shut instead of emptying itself.
+  a.stop = {x:s.x, y:s.y, act:'stand', dur:4.5 + R() * 3.5, cup:true};
+  a.wp.push(TAP_MOUTH.slice(), [s.x, s.y], TAP_MOUTH.slice(), TAP_IN.slice());
+  agents.push(a);
+}
+/* Nothing in the sill ever said this was here, and a feature nobody finds is a feature
+ * at a rate of zero. Once a day, when the lamp is up and the dark is real. */
+let tapNewsDay = -1;
+function tapNews(){
+  if (tapNewsDay === day || !tapOpen() || nightF < 0.4) return;
+  tapNewsDay = day;
+  announce(pick(['The lamp over the door on the lane is lit, and the room behind it is open.',
+    'A door opens on the lane and lets out a bar of warm light and some noise.',
+    'Somebody props the lane door open; the evening has somewhere to be.']));
 }
 
 /* ============ the eastern quarter ============ *
@@ -2930,6 +3032,64 @@ function drawPassage(g, A){
   g.beginPath(); g.ellipse(kx, ky, cellW * 0.19, cellH * 0.5, 0, 0, 7); g.fill();
 }
 function drawArch(it){ drawPassage(ctx, it.A); }
+/* The lit door on the lane. It is drawn EVERY frame, not only when it is open: a
+ * doorway that appears in a wall at half six and vanishes at three is a pop, and the
+ * whole point of splitting tapOpen() from tapF() is that the wall never changes shape.
+ * Everything below is one clamp or one mix on f, so the shut door and the open one are
+ * the same drawing at two ends of a ramp. The pavement pool goes in here rather than in
+ * the night pass because light on the ground belongs UNDER the people standing in it;
+ * the halo that belongs over them is in the glow pass with the lamps. */
+function drawTapDoor(){
+  const f = tapF(), x = TAP_DOOR + 0.5, dw = 0.44, dh = 2.15;
+  if (f > 0){                                     // the pool it throws on the footway
+    const [px, py] = project(x, TAP_FACE + 1.15, 0);
+    const gp = ctx.createRadialGradient(px, py, 1, px, py, cellW * 2.6);
+    const al = 0.30 * f * (0.22 + 0.78 * nightF);
+    gp.addColorStop(0, 'rgba(255,196,116,' + al.toFixed(3) + ')');
+    gp.addColorStop(1, 'rgba(255,196,116,0)');
+    ctx.fillStyle = gp;
+    ctx.save(); ctx.translate(px, py); ctx.scale(1, 0.42); ctx.translate(-px, -py);
+    ctx.beginPath(); ctx.arc(px, py, cellW * 2.6, 0, 7); ctx.fill();
+    ctx.restore();
+  }
+  const p1 = project(x - dw, TAP_FACE, dh), p2 = project(x + dw, TAP_FACE, dh);
+  const p3 = project(x + dw, TAP_FACE, 0), p4 = project(x - dw, TAP_FACE, 0);
+  ctx.fillStyle = 'rgba(238,231,214,.8)'; poly(ctx, [p1, p2, p3, p4]); ctx.fill();
+  const iw = dw * 0.72, ih = dh * 0.92;
+  const q1 = project(x - iw, TAP_FACE, ih), q2 = project(x + iw, TAP_FACE, ih);
+  const q3 = project(x + iw, TAP_FACE, 0), q4 = project(x - iw, TAP_FACE, 0);
+  // shut, this is a dark green door; open, it is the room behind it, which is the light.
+  // Brightest at the threshold, because what you can see through a doorway is its floor
+  const gl = ctx.createLinearGradient(0, q1[1], 0, q4[1]);
+  gl.addColorStop(0, mix('#2f4033', '#e0a052', 0.92 * f));
+  gl.addColorStop(1, mix('#3d5040', '#fff0cc', 0.94 * f));
+  ctx.fillStyle = gl;
+  poly(ctx, [q1, q2, q3, q4]); ctx.fill();
+  if (f > 0){                                     // the jamb the open door leans against
+    const j1 = project(x - iw, TAP_FACE, ih), j2 = project(x - iw * 0.42, TAP_FACE, ih);
+    const j3 = project(x - iw * 0.42, TAP_FACE, 0), j4 = project(x - iw, TAP_FACE, 0);
+    ctx.fillStyle = 'rgba(40,52,42,' + (0.75 * f).toFixed(3) + ')';
+    poly(ctx, [j1, j2, j3, j4]); ctx.fill();
+  }
+  ctx.strokeStyle = 'rgba(46,38,28,.45)'; ctx.lineWidth = 1;
+  poly(ctx, [q1, q2, q3, q4]); ctx.stroke();
+  const s1 = project(x - dw * 1.15, TAP_FACE, 0), s2 = project(x + dw * 1.15, TAP_FACE, 0);
+  const s3 = project(x + dw * 1.15, TAP_FACE + 0.30, 0), s4 = project(x - dw * 1.15, TAP_FACE + 0.30, 0);
+  ctx.fillStyle = 'rgba(214,205,184,.85)'; poly(ctx, [s1, s2, s3, s4]); ctx.fill();   // the step
+  /* The lantern over it, flat on the wall rather than out on an arm: at this scale a
+   * bracket is three pixels of iron and a lamp hung off it reads as a black ball
+   * floating beside the house. Dark iron by day, a small fire once the door is open. */
+  const lz = dh + 0.14, lh = 0.40, lw = 0.16;
+  const k1 = project(x - lw, TAP_FACE, lz + lh), k2 = project(x + lw, TAP_FACE, lz + lh);
+  const k3 = project(x + lw * 0.70, TAP_FACE, lz), k4 = project(x - lw * 0.70, TAP_FACE, lz);
+  ctx.fillStyle = mix('#332d24', '#ffe4b0', 0.92 * f);
+  poly(ctx, [k1, k2, k3, k4]); ctx.fill();
+  ctx.strokeStyle = 'rgba(30,26,20,.85)'; ctx.lineWidth = 1;
+  poly(ctx, [k1, k2, k3, k4]); ctx.stroke();
+  const h1 = project(x - lw * 1.5, TAP_FACE, lz + lh), h2 = project(x + lw * 1.5, TAP_FACE, lz + lh);
+  const h3 = project(x + lw * 1.5, TAP_FACE, lz + lh + 0.11), h4 = project(x - lw * 1.5, TAP_FACE, lz + lh + 0.11);
+  ctx.fillStyle = '#2e2820'; poly(ctx, [h1, h2, h3, h4]); ctx.fill();   // its little hood
+}
 function drawSouthBand(){
   for (let y = 61; y <= 64; y++){
     drawFaceRow(ctx, y); drawRoofRow(ctx, y); drawCrests(ctx, y);
@@ -3432,6 +3592,9 @@ function drawScene(t, dt){
   for (const d of ducks) items.push({y:d.y+0.3, f:drawDuck, d});
   if (catA) items.push({y:catA.y+0.3, f:drawCat});
   items.push({y:65.1, f:drawSouthBand});
+  // between the wall it is cut in (65.1) and the arch beside it (65.3), so the fronts
+  // are under it and anyone standing on the footway is in front of it
+  items.push({y:65.12, f:drawTapDoor});
   for (const A of ARCHES) items.push({y: A.yF === 3 ? 3.06 : 65.3, f:drawArch, A});
   items.push({y:6.6, f:drawShed});
   items.push({y:CY+0.6, f:drawTree, sway, treeR, treeH, tname:'the linden'});
@@ -4343,9 +4506,11 @@ function drawPerson(it, t){
     ctx.strokeStyle = '#5a4a3a'; ctx.lineWidth = 1.2;
     ctx.beginPath(); ctx.moveTo(bw*0.7, -hgt*0.66); ctx.lineTo(bw*1.6, -hgt*0.95); ctx.stroke();
   }
-  if (a.cup && a.state === 'sit'){
+  // a cup at a table is held low; a glass at the door is held at the chest, and it is
+  // the same two rectangles either way rather than a second, worse cup
+  if (a.cup && (a.state === 'sit' || a.state === 'stand')){
     ctx.fillStyle = '#efe9dc';
-    ctx.fillRect(bw * 0.7, -hgt * 0.72, 2.6 * scale, 2.2 * scale);
+    ctx.fillRect(bw * 0.7, -hgt * (a.state === 'sit' ? 0.72 : 0.86), 2.6 * scale, 2.2 * scale);
   }
   if (a.crop){              // walking back out of the allotments with the picking
     const c = SPECIES[a.crop - 1], bx = bw * 0.55, by = -hgt * 0.44;
@@ -4465,6 +4630,22 @@ function applyLight(t){
       ctx.translate(x, y); ctx.scale(1, 0.55); ctx.translate(-x, -y);
       ctx.beginPath(); ctx.arc(x, y, cellW * 3.4, 0, 7); ctx.fill();
       ctx.restore();
+    }
+    // and the one door on the north side that is still open. Up here with the lamps
+    // rather than in drawTapDoor(), because a halo belongs OVER the people under it.
+    // and the one door on the north side that is still open. Two radii, not one: the
+    // wide one is the halo, and the tight one puts the warmth BACK into the opening,
+    // which the multiply above has otherwise turned the same slate blue as the wall.
+    if (tapF() > 0){
+      const tf = tapF();
+      const [x, y] = project(TAP_DOOR + 0.5, TAP_FACE, 1.05);
+      for (const [r, al] of [[3.1, 0.30], [1.0, 0.60]]){
+        const g = ctx.createRadialGradient(x, y, 1, x, y, cellW * r);
+        g.addColorStop(0, 'rgba(255,192,108,' + (al * tf * nightF) + ')');
+        g.addColorStop(1, 'rgba(255,192,108,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(x, y, cellW * r, 0, 7); ctx.fill();
+      }
     }
     for (const f of fireflies){
       const glow = 0.3 + 0.7 * Math.abs(Math.sin(f.ph));
@@ -4996,7 +5177,9 @@ function simStep(sdt, dt){
   // residual of the other three and would silently absorb it.
   const bandCount = agents.filter(a => a.band).length;
   const eastCount = agents.filter(a => a.east && !a.band).length;
-  const laneCount = agents.length - courtyardCount - eastCount - bandCount;
+  // the evening's custom comes off its own budget for the same reason the audience does
+  const tapNow = tapCount();
+  const laneCount = agents.length - courtyardCount - eastCount - bandCount - tapNow;
   /* Each cap is its old expression with the multiply-out done, so the fixed share is
    * visible as a number and the year rides the daylight term alone (see yearBusy).
    * At the anchor, warmth 0.5, all three are algebraically identical to what they
@@ -5030,6 +5213,9 @@ function simStep(sdt, dt){
     if (laneCount < laneCap && R() < laneRate) spawnLaneAgent();
     if (eastOpen() && eastCount < eastCap && R() < eastRate) spawnEastAgent();
     if (daylight > 0.3 && day >= 1 && allotCount() < 3 && R() < allotRate) spawnAllotAgent();
+    // tapServing() is false on every hour that is not an evening, so this roll exists
+    // only in the window it is spending
+    if (tapServing() && tapNow < TAP_SLOTS.length && R() < tapRate()) spawnTapAgent();
     if (agents.length === 0 && day === 0 && simT > 6 && !window._first){ window._first = true; spawnAgent();
       announce('The first neighbour wanders in through the archway.'); }
   }
@@ -5054,6 +5240,7 @@ function simStep(sdt, dt){
   while (greetAcc > GREET_DT){ greetAcc -= GREET_DT; greetPass(); }
   updateSweeper();
   bandNews();
+  tapNews();
   updateWildlife(sdt);
   updateDucks(sdt);
   updateSwans(sdt);

@@ -21,29 +21,6 @@
   "rationale": "Rung 4 — change the world — and the change is that the world currently only exists for about 60% of its own clock.\n\nEvery one of the ten itinerary branches in `spawnLaneAgent` opens with `sun &&`, where `sun = daylight > 0.3`. The market, the kiosk, the cafe, the lane benches, the busker, the allotment, the plaza, the quay, the church green: all ten. After dark, every walker the town spawns falls through to the final else and crosses the frame without stopping anywhere. `kioskOpen`, `marketOpen`, `bandEnd` and `eastOpen` close on the sun as well. What night ADDS is lit windows, fireflies, one cat, the moon and two ticker lines. So the diorama at 22.00 is a transit corridor with ambience painted over it, and night is ~40% of the clock — two of every five people who open the page meet the town in that state. Thirty-two iterations have made the daylight town denser and denser and not one has touched the other half of the day. That is the frontier, it is not a polish job, and no amount of rotating domains at rung 2 would have found it, because every domain looks fully served when you only ever look at it in daylight.\n\nThat is b35, and it is deliberately the hardest brief in the run so far. It is filed Lane & market x Scale/World — the first Scale/World outside Sky — because the evening place will be on the lane and because the change is to the world’s hours, not to any one system.\n\nb36 is the other half of the same observation and comes almost free. `drawWindow()` decides `lit` as `nightF > 0.3 && hash(sa*3, sb*7+day) > 0.42`: every lit window in the town switches on in one frame and off in one frame, 58% of them burn from dusk to dawn, and nobody goes to bed. It is one line, it is the most visible thing in the night frame, and giving each window its own hour makes 22.00 and 03.00 different pictures for the first time. Two night briefs in one batch is the point of a rung climb: you commit to the new ground rather than dabble at its edge.\n\nb32 and b33 carry forward from the last plan unchanged. b32 is the strongest rung-2 brief I have — the plaza and the fountain are identical in February and August, exactly where the market was before #29 — and Plaza is 8 back. b33 is a cheap correctness fix that #29 turned into a visible falsehood: the opening scatter puts ornamentals in the allotment plots, and since the harvest now walks produce to a market board the town can put a fern on a vegetable stall.\n\nb37 promotes cue c50, which has now survived three manager passes and was already flagged as the strongest cue open. `bloomCap()` is the town’s only STEPPED seasonal term in a file where every other one is a lerp, so ripeness falls off a cliff at the autumn shoulder. A cue that survives three passes is a brief or a deletion; this one is a brief.\n\nb34 from the last plan — name the people and animals under the pointer — is not in this queue. It is good work and it is now cue c64 rather than lost. It went out because it is rung 2, because People is only 2 back, and because five briefs is the cap.\n\nOn curation, the finding is the same shape for the THIRD consecutive pass and this time I think it is actually fixed. The budget opened at 47.5 KB against a 46 KB cap. Pass #30 had capped inventory entries at 300 B each and cues at 8 by COUNT — and the growth went straight into the dimension that had no byte cap, cues, which reached 3.5 KB for 9 entries at ~390 B each, each one carrying the evidence that belongs in the ledger entry that raised it. Cap one dimension, the growth moves next door: that is the Solvista failure and I have now watched it happen three times in a row on my own watch. So the fix is not another round of distilling. Every dimension of the worker-read state now has BOTH caps and rotate-ledger.mjs enforces all of them: 8 domains x 8 entries x 300 B, 8 cues x 250 B, 4 watch items x 420 B. Those multiply to a ceiling of 45.0 KB, which is a number the file cannot exceed rather than a number it happens to sit at today. If the next pass opens over budget, the cause will be something I have not thought of, not this.\n\nTwo smaller curation notes. The inventory contained two entries that stated an ABSENCE — the bandstand “has never been used” (#32 built the concert) and the fountain “is the same in February as in August”. An absence is a cue wearing the wrong hat: it goes stale the moment somebody builds the thing, and it was still being read as fact by every worker. Both moved. And LAWS lost one law outright — “read the seam, not the file” — because SKILL.md’s read table already says grep-then-Read-with-offset, in a row the worker reads before the laws. A law that duplicates the protocol is paying rent twice; the only fact it carried that SKILL.md lacked was the file’s size, and SKILL.md’s stale ~3,000 is now the true ~5,300. The two new laws are #31’s (when a gate fails, suspect the instrument first) and #32’s (an event its audience must walk to is bounded at both ends by things that are not the event); the promoted Law paragraphs were replaced in their ledger entries by one-line pointers, which is what brought those entries back under the per-entry cap without losing anything the archive does not hold.",
   "queue": [
     {
-      "id": "b35",
-      "domain": "Lane & market",
-      "kind": "Scale/World",
-      "brief": "Open the diorama at 22.00 and nothing is happening anywhere. Every one of the ten itinerary branches in spawnLaneAgent opens with `sun &&` (`sun = daylight > 0.3`), so after dark every walker falls through to the final else and crosses the frame without stopping; kioskOpen, marketOpen, the band and eastOpen all close on the sun too. Night is ~40% of the clock, so two of every five viewers meet this town as a transit corridor with lit windows over it. Give it an evening: ONE place that keeps hours after dark, and people who go there and come back. Measure the dark first — on HEAD, count agents carrying a `stop` between 21.00 and 04.00 and print the number, because a clean zero is what makes the after worth reading.",
-      "seams": [
-        "spawnLaneAgent",
-        "daylight",
-        "kioskOpen",
-        "CAFE_TABLES",
-        "LANE_BENCHES",
-        "eastOpen",
-        "nightF",
-        "timeLabel",
-        "scarcity",
-        "POP_FLOOR",
-        "laneCap"
-      ],
-      "successLooksLike": "At a pinned 22.00 people are stopped somewhere, not only crossing, in both midsummer and midwinter. Over a folded night the count of agents with a `stop` rises off zero after dusk and returns to zero before dawn, with the margin printed. The DAY is untouched: noon population and the mix of kinds match a stashed HEAD baseline.",
-      "avoid": "Do not widen `sun`. Night is not a dimmer day — the market and the allotments are shut for good reasons and reopening them is the cheap version of this brief. Build one evening place with its own hours and its own branch, and let the rest stay closed. Two laws bind hard: an event people must WALK to is bounded at both ends by things that are not the event (#32 — eastOpen closes the far bank at daylight 0.16, so anything east runs on a shorter clock than you think), and trip length sets standing population while the cap only sets inflow, so a 40 s evening round trip leaves its walkers on screen at 03.00. Check laneCap before adding an arrival source, and remember POP_FLOOR/scarcity already lifts arrival rates when the town is thin — measure with that in mind or you will credit yourself with its people.",
-      "budgetMin": 35,
-      "risk": "high"
-    },
-    {
       "id": "b36",
       "domain": "Sky, light & weather",
       "kind": "Deepen",
@@ -245,6 +222,10 @@
     {
       "id": "b31",
       "at": "2026-08-04T05:15:12.431Z"
+    },
+    {
+      "id": "b35",
+      "at": "2026-08-04T06:02:13.630Z"
     }
   ],
   "recommendStop": null

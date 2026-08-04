@@ -2133,3 +2133,102 @@ classic script: `evaluate()` can name them.
 
 
 ---
+## Iteration 25 — one vegetable stands the winter (2026-08-04) [Cross street & allotments × Deepen]
+
+**Brief:** b24 — the allotments inherit `bloomCap()` through `caTick`, so nothing ripens in
+deep winter. MEASURE IT FIRST and change only if the numbers warrant it.
+
+**Did:** Measured first, with two new probes, and three of the brief's premises came back wrong.
+Then one change, four lines.
+*What the numbers said.* `probes/allot-year.mjs`, 4 seeds × 3 years folded onto one: winter is
+**not a fifth of the year — `ripePlots()` is 0 for 48.3% of it**, one unbroken 11.2-day stretch.
+The gardeners do **not** damp away: `allotRate`'s 0.01 floor plus a ~2.2-day round trip holds one
+in the block 44.9% of midwinter. And it is **not seventeen plots of bare earth** — bare plots are
+0.0 all winter, every plot sown and stalled at mean stage 1.1. Resting, not dead.
+*What was actually wrong.* The winter variance #14 bought is **per-CELL** (`hash(x,y+41)` holds
+a seventh of cells at the full ceiling) and the allotments are addressed **per-PLOT**:
+`ripePlots()` wants five of six cells up, so a seventh per cell is 2e-4 per plot. 10 hardy
+cells in midwinter buy exactly 0 ripe plots.
+*The change.* `hardy:1` on cabbages, `plotStands(x,y)` off `plotCrop()`, and `caTick`'s
+ceiling grain-matched to the region: `cap===3 ? 3 : inAllotment ? (plotStands?3:cap) :
+(hash>0.86?3:cap)`. No `R()` — the crop is already in the ground. And because a lifted plot
+comes back under whatever is sown next, **which** plots stand rotates by itself.
+
+**Gates:** census PASS (blooming −92/5066, species reshuffled ±50) · visual PASS · motion FAIL,
+attributed — the `shower` population row #23 already priced · filmstrip/perf skipped, no draw
+code · `allot-year.mjs` HEAD→here: ripe==0 share of the year **48.3% → 13.1%**, longest ripe-0
+stretch **11.2d → 0.9d**, winter ripe **0.00 → 1.18/17** against summer's 15.68, winter ≥1
+gardener 44.9% → 52.2%, **summer unchanged** (15.74 → 15.68).
+
+**Verdict:** shipped
+
+**Surprise:** **The census cannot see this change at all, and I can prove it.** Its three warps
+(90/625/1520 s) all land at phase 0.313 or 0.687 — *the same warmth, 0.693*, both at
+`bloomCap` 3, where the new expression is algebraically the old one. Dumping ripe cells at
+those instants: HEAD and here are **bit-identical at t=90 and t=625**, diverging only at t=1520,
+after the first moment `bloomCap` leaves 3 and the two `R()` streams can part. So the entire
+census diff is reshuffle, definitionally. Second: the winter tail came out shaped without being
+asked — folded ripeness decays 2.45 → 1.91 → 1.37 → 1.12 → 0.95 → 0.68 at midwinter and climbs
+back, the standing crops picked off one by one through the cold, each replacement only 1-in-4
+hardy. I wrote a ceiling rule, not a decay; the harvest cycle supplied the curve.
+
+**Laws:** two promoted (match the grain of a variance term to the grain the region is addressed
+by; the census ladder samples ONE warmth). See `LAWS.md`. Full entry in the archive.
+
+
+---
+
+## Iteration 33 — a door on the lane that keeps hours after dark (2026-08-04) [Lane & market × Scale/World]
+
+**Brief:** b35 — every `stop` branch in `spawnLaneAgent` opens with `sun &&`, so ~45% of the
+clock is a transit corridor. Give the town ONE evening place. Measure the dark first.
+
+**Did:** Measured first (`probes/evening-door.mjs`, 4 seeds × 20 folded days). The dark was
+**not** a clean zero: **0.21** street people standing still 22.00–04.00 against **1.26** at
+midday — 17%, and all of it the 3–6 s glance through the arch in the final `else`.
+*The place.* A lit door cut in the gatehouse front at `TAP_DOOR = 26`, on the wall plane
+`TAP_FACE = 64` that `drawFaceRow` already draws the terrace's own doors on — slot 5, so it
+lands on blank plaster. Drawn **every** frame (a doorway that appears at half six is a pop):
+`tapOpen()` is the behaviour, `tapF()` the 0..1 every draw mixes on, and shut/open are one
+`mix()` apart. Its lantern is flat on the wall, not on a bracket — at this scale a lamp hung
+off an arm reads as a black ball floating beside the house.
+*Its hours are the one clock here that is not the sun's.* It opens on `sunDown - 3` (floored at
+`TAP_EARLIEST` 16.5, MK_EARLIEST's argument in reverse) and shuts by the clock at 03.00, so
+midwinter's evening is its **longest** — 10.5 h against midsummer's 8.5 — and the year reads
+backwards at this one address.
+*Its people.* `spawnTapAgent()` on its own budget (four `TAP_SLOTS`, min gap 1.23 cells),
+subtracted from `laneCount`, deliberately **not** reading `scarcity()`. They come out of the
+courtyard's own south arch, eight cells off: a drinker fetched from a lane edge is 20 s of
+walking each way and would still be out at 03.00 whatever hour the door shut.
+
+**Gates:** census PASS (people +15, onStreet +13, in the two ladder cells that sit at 21.27) ·
+visual PASS (`probes/tap-shots.mjs`, six crops) · perf PASS (+0.0% day and night) ·
+motion **FAIL, attributed**: `market/shower` jumps 0→2 on a kind with no new code —
+`probes/shower-jump-spread.mjs` over ten seeds gives HEAD 0..2 mean 0.40 and this 0..3 mean
+0.50, and the gate's own pair {7,42} is 0 on HEAD by luck ·
+**`probes/evening-door.mjs`**: night STILL **0.21 → 0.98**, 17% → **77%** of midday; at the
+door 0.00 at 10h/12h/14h, 2.50 at 22h, 0.13 by 04h, standing zero before dawn; longest life at
+the door **23.5 s** against the 40 s limit; **0 samples** still standing after the shut, latest
+26.92 of 27.00 · **`probes/day-control.mjs`**, HEAD vs here, five seeds: `tap 0` at both midday
+instants in both builds.
+
+**Verdict:** shipped
+
+**Surprise:** the design was decided by arithmetic, not by taste, and it took three false
+starts to see it. A sim hour is 2.3 s, so a midsummer night is 22 s of screen time — and the
+brief's own success test ("stopped at 22.00 in midsummer") is only satisfiable if the walk to
+the place is about 3 s. Our own doorway at x=33.9, which `drawOurSide` has drawn since before
+the loop and nothing has ever used, is 15 cells across the lane: 6.8 s each way, so the first
+drinker would arrive at 23.6 and the round trip would be 92% of the whole window. The place had
+to move to the near side of the road for a reason that has nothing to do with what it looks
+like. Second surprise, and it cost more time than the first: `tap-shots.mjs` photographed 190 px
+of the frame's left border twice, because `project()` is relative to the canvas **parent** and
+I clipped at its raw numbers — the instrument, again, before the page.
+
+**Law:** the evening is bounded by ARITHMETIC before it is bounded by taste — at 2.3 s to the
+sim hour, where a new place can stand is decided by how far its people must walk to it, and a
+15-cell trip is already 92% of a midsummer night. Price the walk before choosing the address.
+
+**Cue:** `TAP_LAST`'s clearance is 0.08 h wide at worst and `evening-door.mjs` asserts it, but
+a greet or the bell can hold a walker mid-route and nothing bounds that; the backstop exists
+for it and has never fired in 80 folded nights.
