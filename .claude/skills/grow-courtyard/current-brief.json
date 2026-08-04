@@ -15,7 +15,7 @@
   "avoid": "Do not add a second permanent chrome element, a tooltip that follows the pointer, or anything that repeats. Do not hurry it under ?fast — this is a reading speed. Do not regress the 640px caption-slot layout from #26 or the ResizeObserver from #27; the sill borrowing space resizes the picture with no resize event.",
   "budgetMin": 22,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 31,
   "issued": "2026-08-04T04:41:52.160Z",
