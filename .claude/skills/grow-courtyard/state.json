@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-03",
+  "updated": "2026-08-04",
   "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
   "phase": "expanding",
   "lastIteration": 21,
@@ -304,7 +304,8 @@
       "rainFall — a 0..1 shower intensity beside the raining boolean; drops, the overcast tint, pond rings, water sparkle and chimney smoke all read it, so a shower thins out over ~3 s instead of cutting",
       "season() — the YEAR. A cyclic scalar over SEASON_LEN 26 days (~24 real min), phase 0 = midwinter, anchored at 0.25 where every seasoned term equals the constant it replaced; rate-capped, continuous through its wrap. READERS: day length, light, the courtyard beds, all 13 trees, the working day, the population caps. NOT YET: the weather fronts (stepClouds still on richness()) and the river. census clock.season",
       "The weather reads the year: greyF() drives front frequency, depth and spell length (winter a low grey lid, summer mostly clear), and showerRate/showerLen/showerHard move the OPPOSITE way, so summer's rare showers are the hard ones. Annual rain total held at HEAD's.",
-      "Rain can start in the dark (nightDamp, NIGHT_RAIN 0.12) — the old daylight>0.15 gate is gone. weatherComing() still damps on daylight, for the separate reason that people anticipate weather by looking up."
+      "Rain can start in the dark (nightDamp, NIGHT_RAIN 0.12) — the old daylight>0.15 gate is gone. weatherComing() still damps on daylight, for the separate reason that people anticipate weather by looking up.",
+      "the ground reads the lid — shadowF() is ONE hardness scalar (SH_KNEE 0.32 neutral, SH_FULL 0.94, SH_FLOOR 0.20) with two derivations, shSpread() and shOffset(), so a cast shadow fades, widens and retracts under its object together. Eight sites read it: drawShadows (tile, off every wall and eave, softened with a REAL blur — it is on the cached ground layer, guarded by CAN_BLUR), courtyard linden, lane/orchard trees, bandstand, shed, balloon, bridge-on-water and the person patch; the last two take only part of it, being occlusion rather than sun. NOT applied to the lit-side shading, already veiled through the sky colours. probes/shadow-cover.mjs, probes/ground-relight.mjs"
     ],
     "life": [
       "walkers with itineraries, courtyard and street; eastern itineraries — plaza bench, fountain gaze, quay rail, quay bench, towpath, church green, allotment plot, bridge parapet",
@@ -365,6 +366,12 @@
       "id": "c45",
       "note": "FRONT_DEEP lets deep-winter cover clamp at a saturated 1.000 for whole spells. Nothing downstream misbehaves (starF correctly puts the stars out, the sun's veil bottoms at 0.18), but no drawn term has range left above ~0.95, so a future 'how heavy is this lid' signal cannot be read off cover alone up there.",
       "raisedBy": 20,
+      "seenBy": 0
+    },
+    {
+      "id": "c46",
+      "note": "SH_FLOOR 0.20 keeps a trace of every cast shadow under a full lid, but one floor serves all eight sites: nothing distinguishes the trace a TALL object should keep (a crown occludes a lot of sky) from a flat one's. A deliberate simplification — per-object occlusion needs a height, and only drawShadows has one (eaveM).",
+      "raisedBy": 21,
       "seenBy": 0
     }
   ],

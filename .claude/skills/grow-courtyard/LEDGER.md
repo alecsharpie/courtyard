@@ -653,3 +653,62 @@ contrast, against a folded multi-year probe — one year of a stochastic system 
 
 **Cue:** Two recorded in `state.json` rather than here, since the entry was over budget without
 them: winter's new share of umbrella-band time, and cover saturating at 1.000 in deep winter.
+
+## Iteration 22 — the ground is told about the lid (2026-08-04) [Sky, light & weather × Polish]
+
+**Brief:** b21 — `cloudCover()` veiled the sun's disc and nothing on the ground was ever told, so
+under a grey lid the lane still had crisp midday shadows. Fade AND soften every cast shadow off
+ONE term, neutral at low cover. Only the cast shadows; leave the lit-side shading alone.
+
+**Did:** One scalar, `shadowF()` — how hard the sun's edge is — and two derivations of it, so the
+three things cover does to a shadow cannot drift apart: what fades also WIDENS (`shSpread()`) and
+PULLS IN (`shOffset()`). `SH_KNEE 0.32` is fair weather and changes nothing; `SH_FULL 0.94` is a
+sun with no edge left; `SH_FLOOR 0.20` is the trace that survives, because even a lid is brighter
+overhead than sideways. Eight sites read it: the tile shadow off every wall and eave
+(`drawShadows`), the courtyard linden, the lane/orchard trees, the bandstand, the shed, the
+balloon, the bridge on the water, and the person patch. Two of the eight take only part of it and
+say why in a comment — a person's patch and the water under a deck are occlusion, not sun, and
+fading them the whole way makes everybody float on a grey day. The tile shadow is the one that
+softens for *real* rather than swelling: it is a grid of quads with no radius to grow, but it
+lives on the CACHED ground layer, whose rebuild bucket already rides cover, so a
+`ctx.filter = 'blur()'` there costs nothing per frame (feature-detected once as `CAN_BLUR`; older
+Safari degrades to fade-and-retract). Every expression is `x * f()` or `x - k*(1 - f())`, so below
+the knee the multipliers are exactly 1.
+
+**Gates:** census **PASS** (unchanged in every section — a draw-only vector, as expected) ·
+visual **PASS** (five framings incl. mobile; plus wide/courtyard/east at cover 0.10 / 0.60 / 0.95
+against the same instant on HEAD) · motion **PASS**, nothing new · filmstrip day **no POP**; night
+**POP at frame 11**, which is #21's known winter sunset — `pop-what-moved.mjs` on *HEAD* shows
+cover pinned 1.000 and `nightF` lifting there, and since cover is constant across that strip my
+term is constant too and can only *shrink* its frame-to-frame Δ · perf **PASS** (16.70/16.70,
+vsync-capped, so the real number is the probe's) · probes: new `shadow-cover.mjs` — ground layer
+**byte-identical to HEAD at cover 0.10, 0.25, 0.32** and all three multipliers exactly 1.000 there,
+then gradual and monotone: 0.45 → 0.95 lifts 2.5–3.1% of sampled pixels by a mean of **+5.5 → +16.1
+luma** (main canvas +3.0 → +10.3, against a measured real-time noise floor of 0.03%) · new
+`ground-relight.mjs` — rebuild jumps **max 0.325 vs HEAD's 0.363**, and a lidded relight is
+**11.0 ms vs HEAD's 11.7**.
+
+**Verdict:** shipped   ← my view; runlog.mjs decides from the diff
+
+**Surprise:** The blurred, lidded relight is *faster* than HEAD's unblurred one. I had budgeted for
+the blur and instead the pass got cheaper, because `shOffset()` is upstream of a `continue`: as the
+throw retracts, more and more shadow cells land back on their own solid cell and are skipped
+entirely, so the path being filled shrinks faster than the filter costs. A term I added for how the
+frame *looks* turned out to be a term that decides how much geometry there *is*. The cheap version
+of this mistake is the opposite one — I could as easily have put the retraction on the far side of
+that test and quietly doubled the path.
+
+**Law:** Neutrality is cheapest to guarantee in the *algebra*, not in the tuning. Write every
+seasoned or veiled term as `x * f()` or `x - k*(1 - f())` and the anchor is exact in floating point;
+write it as `x * (a + b*f())` and `a + b` is 0.32000000000000006, so the identity you meant to
+claim is a tolerance you have to defend. Then prove it as an identity — the multipliers read out of
+the page as exactly 1, and a cached layer byte-identical to the ref — never as a small diff.
+
+**Law:** Diff against the ref, not against the frame. When a vector rides a scalar that already
+recolours everything (cover, season, daylight), no statistic of the frame is attributable: it moves
+for reasons that are not yours. Render the same pinned instant in both builds at the same value of
+that scalar and difference the pixels — every difference is then yours by construction. Measure the
+live canvas's real-time noise floor the same way (ref against itself, two loads) or you will read
+water streaks as a finding.
+
+**Cue:** Context budget was **OVER (46.1 KB / 46 KB)** at the start of this iteration.

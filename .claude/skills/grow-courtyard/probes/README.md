@@ -18,3 +18,13 @@ ignored it — it was tracked the whole time — but it was not here, so #10 rea
 missing and blamed a `.gitignore` line that has never existed. Two directories with
 the same name is its own failure mode. There is one `probes/`, and this is it.
 Probes resolve the artifact as `../../../../courtyard.html`. (moved at #11)
+
+- `shadow-cover.mjs` — the cast shadows against a forced cover ladder, measured as a
+  DIFFERENCE IMAGE against an older build rather than a statistic of the frame (cover
+  already recolours everything, so an absolute metric moves for reasons that are not
+  yours). Also prints the main canvas's real-time noise floor, by running the ref
+  against itself. (#22)
+- `ground-relight.mjs` — is a new term drawn into the cached ground layer a worse
+  staircase than the one `lightBucket` already imposes? Rides a front up on the real
+  slew and sizes every rebuild jump, plus the ms cost of one relight. Reusable by any
+  future ground-layer vector. (#22)

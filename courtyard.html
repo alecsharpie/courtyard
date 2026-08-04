@@ -103,6 +103,9 @@
 const cv = document.getElementById('cv');
 const ctx = cv.getContext('2d');
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// canvas 2d `filter` is missing on older Safari; feature-detect once, degrade quietly
+const CAN_BLUR = (() => { try { ctx.filter = 'blur(2px)'; const ok = ctx.filter !== 'none'; ctx.filter = 'none'; return ok; }
+                          catch (e){ return false; } })();
 const N = 64;                  // courtyard block is the left 64 columns
 const GW = 138;                // full world width: courtyard, cross street, allotments, plaza, river, far bank
 const WH = 88;                 // full world height incl. the lane below
@@ -1601,11 +1604,12 @@ function updateBalloon(dt){
 function drawBalloon(t){
   if (!balloon) return;
   const bz = 34 + Math.sin(balloon.ph) * 1.4;
-  // travelling shadow
+  // travelling shadow — the first thing a lid takes, being thrown the furthest
   if (daylight > 0.1){
-    const [shx, shy] = project(balloon.x + 3, balloon.y + 6, 0);
-    ctx.fillStyle = 'rgba(20,25,15,' + 0.10 * daylight + ')';
-    ctx.beginPath(); ctx.ellipse(shx, shy, cellW * 2.4, cellH * 1.6, 0, 0, 7); ctx.fill();
+    const off = shOffset(), sp = shSpread();
+    const [shx, shy] = project(balloon.x + 3 * off, balloon.y + 6 * off, 0);
+    ctx.fillStyle = 'rgba(20,25,15,' + 0.10 * daylight * shadowF() + ')';
+    ctx.beginPath(); ctx.ellipse(shx, shy, cellW * 2.4 * sp, cellH * 1.6 * sp, 0, 0, 7); ctx.fill();
   }
   const [bx, by] = project(balloon.x, balloon.y, bz);
   const rr = cellW * 2.1;
@@ -1871,6 +1875,30 @@ function sunVec(){
   const n = Math.hypot(lx, ly, lz) || 1;
   return [lx / n, ly / n, lz / n];
 }
+/* ---- how hard the sun's edge is ------------------------------------------------
+ * `cloudCover()` veiled the disc and muted the sky, and nothing on the ground was
+ * ever told: under a grey lid the lane still had crisp midday shadows. But cover
+ * does not merely dim a shadow, it dissolves it — the source stops being a point
+ * and becomes the whole hemisphere, so the penumbra grows until the shadow is all
+ * penumbra and the darkening collapses into contact under the object.
+ *
+ * ONE hardness scalar, and the three things it does are derivations of it rather
+ * than three tunings: what fades also WIDENS and PULLS IN. There are eight cast
+ * shadows in this town and tuning them individually is how they drift apart within
+ * two iterations. Every one is written `x * f()` or `x - k*(1 - f())`, so below
+ * SH_KNEE the multipliers are exactly 1 and a fair day is the old frame, byte for
+ * byte — the neutrality is an identity, not a tolerance. Deliberately NOT applied
+ * to the lit-side shading on roofs and ground: that is already veiled through the
+ * sky colours (drawRoofRow's `cc`), and veiling both is how you get a flat grey
+ * world instead of an overcast one. */
+const SH_KNEE = 0.32;            // fair-weather cover — at or below this, nothing changes
+const SH_FULL = 0.94;            // ...and by here the sun has no edge left
+const SH_FLOOR = 0.20;           // a trace survives: even a lid is brighter overhead than sideways
+function shadowF(){
+  return 1 - (1 - SH_FLOOR) * clamp((cloudCover() - SH_KNEE) / (SH_FULL - SH_KNEE), 0, 1);
+}
+function shSpread(){ return 1 + 0.5 * (1 - shadowF()); }    // the penumbra eats the umbra
+function shOffset(){ return 1 - 0.65 * (1 - shadowF()); }   // and the throw retracts under its object
 function skyCols(){
   const d = daylight, w = warmth;
   // the dusk windows ride sunset and sunrise, or winter glows orange an hour after dark
@@ -2476,12 +2504,13 @@ function groundCol(x, y, t, hv, m){
 }
 function drawShadows(g){
   if (daylight < 0.05) return;
-  g.fillStyle = 'rgba(26,28,22,' + (0.10 + 0.16 * daylight) + ')';
+  const hard = shadowF(), off = shOffset();
+  g.fillStyle = 'rgba(26,28,22,' + (0.10 + 0.16 * daylight) * hard + ')';
   g.beginPath();
   for (let y = 0; y < WH; y++) for (let x = XLO; x < XHI; x++){
     const gx = clamp(x, 0, GW - 1);
     if (!solidM[y * GW + gx]) continue;
-    const h = eaveM[y * GW + gx] + 0.4;
+    const h = (eaveM[y * GW + gx] + 0.4) * off;
     const tx = x - SUN[0] / SUN[2] * h, ty = y - SUN[1] / SUN[2] * h;
     if (ty < -1 || ty >= WH) continue;
     if (solidC(Math.floor(tx), Math.floor(ty))) continue;
@@ -2489,7 +2518,13 @@ function drawShadows(g){
     const c = project(tx + 1, ty + 1, 0), d = project(tx, ty + 1, 0);
     g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.lineTo(c[0], c[1]); g.lineTo(d[0], d[1]); g.closePath();
   }
-  g.fill();
+  /* This is the one shadow that can be softened for real rather than swelled: it is
+   * a grid of quads (no radius to grow) and it lives on the CACHED ground layer,
+   * whose rebuild bucket already rides cover — so the blur costs nothing per frame.
+   * `filter` is absent on older Safari; there it degrades to fade-and-retract. */
+  const blur = CAN_BLUR ? (1 - hard) * cellW * 0.6 : 0;
+  if (blur > 0.3){ g.save(); g.filter = 'blur(' + blur.toFixed(2) + 'px)'; g.fill(); g.restore(); }
+  else g.fill();
 }
 function drawGround(){
   gcv.width = W * DPR; gcv.height = H * DPR;
@@ -2719,10 +2754,14 @@ function drawBridge(g){
   const v1 = project(x0, yN, PARAPET_Z), v2 = project(x1, yN, PARAPET_Z);
   const v3 = project(x1, yN - 0.3, PARAPET_Z + 0.22), v4 = project(x0, yN - 0.3, PARAPET_Z + 0.22);
   poly(g, [v4, v3, v2, v1]); g.fill();
-  // the bridge lays a shadow on the water downstream
-  g.fillStyle = 'rgba(18,24,26,.32)';
+  /* the bridge lays a shadow on the water downstream — but water under a deck is
+   * dark because the SKY is occluded, not the sun, so the lid only takes the half
+   * of it that the sun was casting, and the band retracts toward the span */
+  const bHard = shadowF();
+  g.fillStyle = 'rgba(18,24,26,' + (0.32 - 0.16 * (1 - bHard)) + ')';
+  const bTail = 2.2 - 2.1 * (1 - shOffset());
   poly(g, [project(RIVER_X0, yS + 0.1, 0), project(RIVER_X1, yS + 0.1, 0),
-           project(RIVER_X1, yS + 2.2, 0), project(RIVER_X0, yS + 2.2, 0)]);
+           project(RIVER_X1, yS + bTail, 0), project(RIVER_X0, yS + bTail, 0)]);
   g.fill();
 }
 function drawOurSide(g){
@@ -2856,9 +2895,10 @@ function drawScene(t, dt){
   const sunX = lerp(1.6, -1.6, clamp((hour - 6) / 14, 0, 1)) * daylight;
 
   if (daylight > 0.05){
-    ctx.fillStyle = 'rgba(30,42,22,' + (0.22*daylight) + ')';
-    const [tsx, tsy] = project(CX + sunX*1.6, CY + 1.2, 0);
-    ctx.beginPath(); ctx.ellipse(tsx, tsy, treeR*cellW*0.95, treeR*cellH*0.8, 0, 0, 7); ctx.fill();
+    const sp = shSpread();
+    ctx.fillStyle = 'rgba(30,42,22,' + (0.22*daylight) * shadowF() + ')';
+    const [tsx, tsy] = project(CX + sunX*1.6*shOffset(), CY + 1.2, 0);
+    ctx.beginPath(); ctx.ellipse(tsx, tsy, treeR*cellW*0.95*sp, treeR*cellH*0.8*sp, 0, 0, 7); ctx.fill();
   }
 
   for (const a of agents) if (a.blanket && a.state==='sit'){
@@ -3195,9 +3235,10 @@ function drawLaneTree(it){
   }
   const out = leafOut();
   // a bare tree throws a thinner shadow; at leafOut 1 this is the old constant exactly
-  ctx.fillStyle = 'rgba(25,32,18,' + 0.22 * daylight * (0.40 + 0.60 * out) + ')';
-  const shx = -SUN[0] / SUN[2] * h * cellW * 0.55;
-  ctx.beginPath(); ctx.ellipse(bx + shx, by - h * cellH * 0.28, r * cellW * 0.8, r * cellH * 0.55, 0, 0, 7); ctx.fill();
+  const shOff = shOffset(), shSp = shSpread();
+  ctx.fillStyle = 'rgba(25,32,18,' + 0.22 * daylight * (0.40 + 0.60 * out) * shadowF() + ')';
+  const shx = -SUN[0] / SUN[2] * h * cellW * 0.55 * shOff;
+  ctx.beginPath(); ctx.ellipse(bx + shx, by - h * cellH * 0.28 * shOff, r * cellW * 0.8 * shSp, r * cellH * 0.55 * shSp, 0, 0, 7); ctx.fill();
   // trunk with a root flare, tapering as it rises
   const [tx2, ty2] = project(px, py, h * 0.52);
   const tw = cellW * 0.16;
@@ -3267,8 +3308,9 @@ function drawBandstand(it, t){
   const {x, y} = BANDSTAND, R0 = 2.3;
   const [bx, by] = project(x, y, 0);
   // shadow, then a stepped stone base
-  ctx.fillStyle = 'rgba(24,32,18,' + 0.22 * daylight + ')';
-  ctx.beginPath(); ctx.ellipse(bx - SUN[0] / SUN[2] * cellW * 1.4, by - cellH * 0.6, cellW * R0 * 1.15, cellH * R0 * 0.85, 0, 0, 7); ctx.fill();
+  const bSp = shSpread();
+  ctx.fillStyle = 'rgba(24,32,18,' + 0.22 * daylight * shadowF() + ')';
+  ctx.beginPath(); ctx.ellipse(bx - SUN[0] / SUN[2] * cellW * 1.4 * shOffset(), by - cellH * 0.6, cellW * R0 * 1.15 * bSp, cellH * R0 * 0.85 * bSp, 0, 0, 7); ctx.fill();
   for (const [rr, zz, col] of [[R0 * 1.16, 0.16, '#9a9184'], [R0 * 1.05, 0.34, '#aaa294'], [R0 * 0.96, 0.5, '#b6ad9d']]){
     const [px2, py2] = project(x, y, zz);
     ctx.fillStyle = col;
@@ -3561,11 +3603,12 @@ function drawShed(){
   // a real little building: front wall, eaves, a pitched roof with two visible slopes
   const x0 = 87.7, x1 = 91.3, yF = 6.6, yB = 4.2, eave = 2.5, ridge = 3.9;
   const rx = (x0 + x1) / 2, ry = (yF + yB) / 2;
-  ctx.fillStyle = 'rgba(20,25,15,' + (0.16 + 0.16 * daylight) + ')';
-  const sh = [project(x0 - SUN[0] / SUN[2] * eave, yF - SUN[1] / SUN[2] * eave, 0),
-              project(x1 - SUN[0] / SUN[2] * eave, yF - SUN[1] / SUN[2] * eave, 0),
-              project(x1 - SUN[0] / SUN[2] * eave, yB - SUN[1] / SUN[2] * eave, 0),
-              project(x0 - SUN[0] / SUN[2] * eave, yB - SUN[1] / SUN[2] * eave, 0)];
+  ctx.fillStyle = 'rgba(20,25,15,' + (0.16 + 0.16 * daylight) * shadowF() + ')';
+  const ev = eave * shOffset();                    // the throw slides back behind the shed
+  const sh = [project(x0 - SUN[0] / SUN[2] * ev, yF - SUN[1] / SUN[2] * ev, 0),
+              project(x1 - SUN[0] / SUN[2] * ev, yF - SUN[1] / SUN[2] * ev, 0),
+              project(x1 - SUN[0] / SUN[2] * ev, yB - SUN[1] / SUN[2] * ev, 0),
+              project(x0 - SUN[0] / SUN[2] * ev, yB - SUN[1] / SUN[2] * ev, 0)];
   poly(ctx, sh); ctx.fill();
   // front wall, boarded
   const a = project(x0, yF, 0), b = project(x1, yF, 0), c = project(x1, yF, eave), d = project(x0, yF, eave);
@@ -3639,8 +3682,12 @@ function drawPerson(it, t){
   const bob = walking ? Math.abs(Math.sin(a.phase)) * 1.6 : 0;
   const [x, y] = project(a.x, a.y, 0);
   const hgt = (a.state==='sit'? 8 : a.state==='kneel'? 7 : a.state==='lie'? 3 : 12) * scale * (cellH/8);
-  ctx.fillStyle = 'rgba(20,25,15,.28)';
-  ctx.beginPath(); ctx.ellipse(x, y, 4.5*scale + (a.state==='lie'?4:0), 2*scale, 0, 0, 7); ctx.fill();
+  /* A person's patch is thrown nowhere — it is the contact under the feet, which is
+   * occlusion rather than sun, so it takes only part of the lid: fade it the whole
+   * way and everybody floats on a grey day. It still spreads, like the rest. */
+  const pHard = 1 - 0.45 * (1 - shadowF()), pSp = shSpread();
+  ctx.fillStyle = 'rgba(20,25,15,' + 0.28 * pHard + ')';
+  ctx.beginPath(); ctx.ellipse(x, y, (4.5*scale + (a.state==='lie'?4:0)) * pSp, 2*scale*pSp, 0, 0, 7); ctx.fill();
   ctx.save();
   ctx.translate(x, y - bob);
   if (a.state === 'lie'){ ctx.rotate(-1.35); ctx.translate(0, -3); }
