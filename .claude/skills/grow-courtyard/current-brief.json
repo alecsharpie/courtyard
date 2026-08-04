@@ -16,7 +16,7 @@
   "avoid": "Do not widen an existing spawn band to feed it — the east half already shares one budget, and the rate-of-zero law says give it its own arrival source. Do not stage it as timed steps; marketRaise is the pattern, N clamps on one 0..1 progress, so it packs away in reverse for free. And do not trust the 0.9-cell separation to hold by itself: cue c49 says that guarantee is at SPAWN only, and an audience STANDS STILL — which is the case the birds already fail.",
   "budgetMin": 35,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 32,
   "issued": "2026-08-04T05:15:12.432Z",
