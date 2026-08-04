@@ -35,7 +35,7 @@ budget below is load-bearing.**
 | `LEDGER.md` last 2–3 entries | ✅ | what just happened |
 | the **seam** of `courtyard.html` | ✅ | `grep -n`, then `Read` with offset/limit |
 | `LEDGER-archive.md` | ❌ never | the manager reads it; you don't |
-| the whole of `courtyard.html` | ❌ never | ~3,000 lines; grep the seam instead |
+| the whole of `courtyard.html` | ❌ never | ~5,300 lines — a third of a fresh context |
 | `stats.html` / `RUNLOG.jsonl` | ❌ never | the manager's inputs, not yours |
 
 `node .claude/skills/grow-courtyard/context-budget.mjs` prints what you're about to

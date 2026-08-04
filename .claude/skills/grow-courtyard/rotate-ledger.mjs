@@ -79,16 +79,23 @@ if (marks.length <= KEEP) {
   }
 }
 
-/* state.json's inventory is the other file a worker reads whole, and it is the only
- * one that grows by construction — every landed iteration adds a system to it. It had
- * no cap at all until pass #30, by which point it was the single largest item in the
- * budget (11.4 KB, larger than LAWS.md). Same fix as the ledger: a per-entry byte cap,
- * measured here, with the offenders named. An entry over it is carrying measurements,
- * and measurements belong in the ledger. Cues get a count cap for the same reason —
- * a cue that nobody will ever promote is a brief or a deletion, not a resident. */
+/* state.json is the other thing a worker reads whole, and it is the only one that grows
+ * by construction — every landed iteration adds a system to the inventory and two or
+ * three cues to the pile. It had no cap at all until pass #30, by which point it was
+ * the single largest item in the budget (11.4 KB, larger than LAWS.md).
+ *
+ * Pass #30 capped the per-entry bytes and the cue COUNT, and pass #33 found the budget
+ * back over anyway: with only a count cap, cues had grown to 390 B each and the whole
+ * state block was 15.2 KB. That is the Solvista shape for the third time — cap one
+ * dimension and the growth moves to the neighbouring one. So every dimension is capped
+ * here, and each cap is a CEILING rather than a trajectory: 8 domains x 8 entries x
+ * 300 B, 8 cues x 250 B, 4 watch items x 420 B. Add a ninth entry to a full domain and
+ * two existing ones have to merge, which is what "the inventory is nouns, not history"
+ * means in practice. */
 {
   const f = join(HERE, 'state.json');
-  const INV_ENTRY_CAP = 300, CUES_MAX = 8;
+  const INV_ENTRY_CAP = 300, INV_PER_DOMAIN = 8, INV_CAP = 9.5 * 1024;
+  const CUES_MAX = 8, CUE_CAP = 250, WATCH_MAX = 4, WATCH_CAP = 420;
   if (existsSync(f)) {
     try {
       const s = JSON.parse(readFileSync(f, 'utf8'));
@@ -96,16 +103,25 @@ if (marks.length <= KEEP) {
       let n = 0, bytes = 0;
       for (const [dom, list] of Object.entries(s.inventory || {})) {
         if (!Array.isArray(list)) continue;
+        if (list.length > INV_PER_DOMAIN) fat.push(`${dom}: ${list.length} entries — over ${INV_PER_DOMAIN}; merge two`);
         for (const e of list) {
           n++; const b = Buffer.byteLength(e); bytes += b;
           if (b > INV_ENTRY_CAP) fat.push(`${dom}: ${b} B — ${e.slice(0, 52)}…`);
         }
       }
-      const cues = (s.openCues || []).length;
-      console.log(`\ninventory: ${n} entries, ${(bytes / 1024).toFixed(1)} KB; open cues ${cues}/${CUES_MAX}`);
-      for (const line of fat) console.log(`  ← over ${INV_ENTRY_CAP} B  ${line}`);
-      if (fat.length) console.log(`  ${fat.length} inventory entries over cap. They are NOUNS — a number in one is ledger text.`);
-      if (cues > CUES_MAX) console.log(`  ${cues - CUES_MAX} cues over cap. Promote one to a brief or close it with a reason.`);
+      const cues = s.openCues || [], watch = s.watch || [];
+      const state = Buffer.byteLength(JSON.stringify({ i: s.inventory, c: cues, w: watch }));
+      console.log(`\nstate.json (worker-read): ${(state / 1024).toFixed(1)} KB`);
+      console.log(`  inventory ${n} entries, ${(bytes / 1024).toFixed(1)}/${(INV_CAP / 1024).toFixed(1)} KB${bytes > INV_CAP ? '   ← OVER' : ''}`);
+      console.log(`  cues ${cues.length}/${CUES_MAX}   watch ${watch.length}/${WATCH_MAX}`);
+      for (const line of fat) console.log(`  ← over cap  ${line}`);
+      if (fat.length) console.log(`  ${fat.length} inventory offenders. Entries are NOUNS — a number in one is ledger text.`);
+      if (cues.length > CUES_MAX) console.log(`  ${cues.length - CUES_MAX} cues over cap. Promote one to a brief or close it with a reason.`);
+      for (const c of cues) if (Buffer.byteLength(c.note || '') > CUE_CAP)
+        console.log(`  ← over ${CUE_CAP} B  cue ${c.id}: ${Buffer.byteLength(c.note)} B — a cue is a POINTER; its evidence is in the ledger entry that raised it.`);
+      if (watch.length > WATCH_MAX) console.log(`  ${watch.length - WATCH_MAX} watch items over cap. One is spent — a watch item ends when a brief lands on it.`);
+      for (const w of watch) if (Buffer.byteLength(w.note || '') > WATCH_CAP)
+        console.log(`  ← over ${WATCH_CAP} B  watch since #${w.since}: ${Buffer.byteLength(w.note)} B`);
     } catch { /* state.json is the manager's problem elsewhere */ }
   }
 }

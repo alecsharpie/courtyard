@@ -305,9 +305,8 @@ with the ticker solid, and the deferred offer waits for a gap (17.4 s on HEAD, 3
 wall-clock arrival for a line queued behind the news is not assertable; that it was never
 **spent in silence** is.
 
-**Law:** a probe holding its own copy of the page's strings is a bug with a delay fuse — this one
-called a working page broken, one edit after the text changed. They are top-level consts in a
-classic script: `evaluate()` can name them.
+**Law:** promoted at pass #33 → LAWS.md, *"when a gate fails, suspect the instrument first"*
+(with surprise 2, the floored margin). Full entry in `LEDGER-archive.md`.
 
 ---
 
@@ -343,7 +342,5 @@ sends the far side home at dusk cleared the green wholesale. Nothing errored, an
 could have shown it. I sized the set against the walk in and forgot to size its *end* against
 the light.
 
-**Law:** an event its audience must WALK to is bounded at both ends by things that are not the
-event — the trip in sets the earliest it can be full, every standing rule already in the file
-(dusk, rain, a front) the latest. Budget the span against those, not against how long the thing
-should last.
+**Law:** promoted at pass #33 → LAWS.md, *"an event its audience must WALK to is bounded at both
+ends by things that are not the event"*. Full entry in `LEDGER-archive.md`.

@@ -2092,3 +2092,44 @@ crowd holds its ground for twenty seconds.
 comment says only a fall is the bug ("the ending broke"). Rises are one-per-shower by design, so
 the count is really "how many showers started in the window" — which any reseed moves. Splitting
 them would make the night cell attributable instead of advisory.
+
+## Iteration 31 — the sill says it is pressable, once, in its turn (2026-08-04) [Sky, light & weather × Interaction/UX]
+
+**Brief:** b30 — make the season button legibly pressable and say so once, without shouting
+beside the canvas hint.
+
+**Did:** (1) `#season` gains an underline that stops at the WORD — `::after` is now an
+`inline-block`, and text-decoration does not propagate into one, so the chevron stays
+punctuation. Padding is the hit area, an equal negative margin gives it back: **20→30px** wide,
+**12→29px** in the 390 caption slot, where it also takes full `--ink` instead of the `--ink-dim`
+of the subtitle it displaced. Sill and canvas byte-identical to HEAD.
+(2) `offerInvite` is an `OFFERS` queue of two, not a flag. Each carries the act that silences it
+(`touched`, `pressed`), and an offer is **spent when it comes up**, spoken or not — that is what
+makes "never twice" structural. `offerFree` (the dwell plus a 6 s staleness window) holds them
+apart. At 390 the second keeps the plate and drops the TITLE
+(`.inviting.at-season`): the offer pointing AT the season may not hide it while it speaks.
+
+**Gates:** census PASS · motion PASS · visual PASS · `touch-hint.mjs` PASS **unchanged** ·
+**`probes/season-invite.mjs` PASS, 7 FAILs on HEAD** — touch 8.0..13.7s, season 21.5..26.8s,
+**0 overlapping samples**, +28px fit, cancelled by a press, silent on `?pause`.
+
+**Verdict:** shipped
+
+**Surprise:** three, and all three were my instrument lying rather than the page. (1) I opened
+the narrow rule's rationale with no `/*`, so the whole `#season` block failed to parse, the
+caption fell back to the wide rule, and the sill grew 7px while the canvas lost 7 — **law #28
+verbatim, one iteration after it was written**, caught only by reading computed style. (2) The
+margin I added in order to "print the margin" was `clientWidth - scrollWidth`, **floored at
+zero**: `+0px` for a line with 28px to spare, and it can only ever report bad news. A range over
+the text is honest. (3) The gate then failed on `touch runs 0` after a
+press at 3 s — not a regression: a press starts a 7 s lapse, the town returns six sim days on
+with the ticker solid, and the deferred offer waits for a gap (17.4 s on HEAD, 30.1 s here). A
+wall-clock arrival for a line queued behind the news is not assertable; that it was never
+**spent in silence** is.
+
+**Law:** a probe holding its own copy of the page's strings is a bug with a delay fuse — this one
+called a working page broken, one edit after the text changed. They are top-level consts in a
+classic script: `evaluate()` can name them.
+
+
+---
