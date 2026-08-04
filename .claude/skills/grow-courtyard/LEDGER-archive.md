@@ -1959,3 +1959,44 @@ sampled warp sees only step boundaries: wrap the function instead.
 
 **Cue:** c58 — the pair shares a decision but not its two sit timers. c59 — two cues are
 both numbered c11. Context budget opened **OVER** (49.8 / 46 KB).
+## Iteration 23 — the river joins the year (2026-08-04) [River & far bank × Deepen]
+
+**Brief:** b22 — the river had one iteration in twelve and was the quarter most identical in
+February and August. Give it a year, name the flow, anchor at `SEASON_START`.
+
+**Did:** One term, `riverRun() = 1 + RIVER_SWING * greyF()` — how full and fast the channel
+runs. ×1.45 in January, ×0.55 in July, exactly 1 at the anchor. The flow got a NAME:
+`drawRiverFlow(t)` was twelve anonymous streaks inline in the frame loop, and now reads
+riverRun() for drift speed, streak count (7–17), streak length and a colour written as an
+offset from the two constants already there. Fifth reader is the water itself — `riverCol()`
+leans toward `RIVER_COLD`/`RIVER_GREEN` and `clamp(mid * riverRun())` pushes the deep
+mid-channel out to both banks in winter, back to a thread in summer. No `R()` consumed.
+The boat moves the other way: `boatRate()` thins as the water rises (`BOAT_SWING 0.75`,
+`BOAT_FLOOR 0.0065` binding all winter so `boatWatch()` never dies), `boatSpeed()` takes
+`BOAT_DRIFT 0.24` of the current.
+
+**Gates:** census PASS (reshuffle — the boat's spawn times move) · visual PASS · motion FAIL,
+attributed (`market/shower`, a population row; `probes/shower-jump-spread.mjs` over 10 seeds:
+HEAD 0..2, here 0..3) · filmstrip night POP = #21's known winter sunset · perf PASS · new
+`river-year.mjs`: ANCHOR IDENTICAL to HEAD (ground layer sha1 both `48728a5366b8`). 8 seeds ×
+3 years, boats/day and share of time a boat is on the water, HEAD → here: winter
+0.314/52.2% → 0.230/32.4%, summer 0.314/51.1% → 0.320/72.2%, YEAR 0.290/49.3% → 0.279/50.5% ·
+new `river-shots.mjs`: channel was `rgb(63,90,104)` in both seasons, now `rgb(80,111,109)`
+July against `rgb(64,92,109)` January.
+
+**Verdict:** shipped
+
+**Surprise:** The brief asked for a summer:winter ratio in **boats per day** and that is the one
+number I could not move — 0.320 against 0.230. The river holds exactly one boat, so arrivals are
+occupancy-bound: summer saturates however high the rate goes, and the floor that keeps January
+from going boatless eats the range from the other side. The year landed in **presence** instead —
+72% of summer has a boat on the water against 32% of winter, where HEAD was flat at ~50% all
+year. Count and presence are the same throughput seen twice and only one was free to move.
+The second one I nearly filed as a bug: spring 44.3% against autumn 53.3%, an 18-point split
+between phases where every term I wrote is symmetric. It is #21's hysteresis arriving through a
+different door — the slow variable is not a scalar, it is the boat, whose trip is ~2 days of a
+26-day year. The pair averages to 48.8% against HEAD's 49.3%, which is the neutrality claim.
+
+**Laws:** three promoted (presence vs rate on a one-object channel; a long-lived object is
+itself a slow variable; two seeds is not a sample). See `LAWS.md`. Full entry in the archive.
+

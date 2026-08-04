@@ -70,12 +70,24 @@
      and the one thing in the sill that names the season is also the most obvious
      place to ask for another one. See beginSkip(). It carries a chevron at all
      times rather than only on hover: a phone has no hover, and this is the one
-     control in the row that does not already look like a control. */
+     control in the row that does not already look like a control.
+     ...and it is UNDERLINED, because the chevron alone was carrying the whole
+     affordance: half-opacity punctuation at the end of a serif word, in a row of
+     serif words. An underline is the one mark that says "press this" inside running
+     prose without turning the label into a chip and fighting the plate's
+     typography. The rule stops at the WORD — ::after is an inline-block, and
+     text-decoration does not propagate into one — so the chevron stays a chevron
+     instead of becoming a tail on the line. The padding is the hit area (a 14px
+     label is a 17px target); the equal negative margin gives every pixel of it
+     back to the layout, so the sill is the same height it was. */
   #season{ flex:none; font-size:14px; font-family:inherit;
     color:var(--ink); letter-spacing:.02em; white-space:nowrap; min-width:10.5ch;
-    background:transparent; border:0; padding:0; margin:0; text-align:left;
-    cursor:pointer; transition:color .25s; }
-  #season::after{ content:'\2009\203A'; opacity:.5; }
+    background:transparent; border:0; padding:5px 0; margin:-5px 0; text-align:left;
+    cursor:pointer; transition:color .25s;
+    text-decoration:underline; text-decoration-color:var(--ink-dim);
+    text-decoration-thickness:1px; text-underline-offset:3px; }
+  #season::after{ content:'\2009\203A'; display:inline-block; opacity:.6; }
+  #season:hover{ text-decoration-color:var(--accent); }
   #season:hover, #season:hover::after{ color:var(--accent); opacity:1; }
   #season:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:3px; }
   #season[disabled]{ cursor:default; opacity:.55; }
@@ -135,9 +147,17 @@
     #plate{ display:block; }
     #title{ display:block; }
     #plate small{ display:none; }
-    #season{ display:block; min-width:0; margin-top:1px;
+    /* In the caption slot it was also the LEAST pressable thing in the sill: 10px
+       of dim uppercase, set exactly like the subtitle it displaced. So here it takes
+       the full ink (a caption is grey; a control is not), keeps the underline, and
+       spreads its hit area over the whole width of the line and down into the sill's
+       bottom padding — a 12px cap-line becomes a ~29px target with no cursor to help
+       it. Padding and margin cancel to the +1px this line always contributed, so the
+       plate is the same height and the picture above it does not resize. */
+    #season{ display:block; min-width:0;
+      padding:7px 0 10px; margin:-6px 0 -10px;
       font-size:10px; letter-spacing:.22em; text-transform:uppercase;
-      color:var(--ink-dim); font-family:system-ui,sans-serif; }
+      color:var(--ink); font-family:system-ui,sans-serif; text-underline-offset:4px; }
     /* A narrow sill has no room for the ticker, so a phone has neither a cursor
        nor a text surface — the two hints that the picture answers a touch. The
        one-time invitation therefore BORROWS the sill for its few seconds: the
@@ -145,6 +165,13 @@
        through this door — see inviteHold. */
     #sill.inviting #ticker{ display:block; }
     #sill.inviting #plate, #sill.inviting #daytime{ display:none; }
+    /* One offer points OUT of the sill, at the picture; the other points INTO it, at
+       the season. The second cannot hide the thing it is naming while it speaks, so
+       it keeps the plate and drops the TITLE instead — the season and the sentence
+       about it, side by side, is the whole message, and the title is the one line
+       here a first-time viewer has already read. */
+    #sill.inviting.at-season #plate{ display:block; }
+    #sill.inviting.at-season #title{ display:none; }
     /* A phone has no cursor to follow, so the name arrives on the TAP that also acts
        and borrows the sill the same way, for a few real seconds. #naming is already
        display:block under .naming above — the ticker's hiding rule does not reach it —
@@ -4464,43 +4491,81 @@ cv.addEventListener('click', ev => {
    * the interesting answer is the thing you just sowed. */
   if (!HOVERS){ held = lookAt(evPx(ev)); heldTo = performance.now() / 1000 + NAME_HELD; }
 });
-/* The invitation: one line, once, and then never again in this page's life.
+/* The invitations: two things this town does that nothing says, offered ONE AT A
+ * TIME, each once, and then never again in this page's life.
  *
- * It is TIMELESS — no bell is ringing in it — so it refuses to compete for the
- * surface. It waits for a moment when the ticker is nobody's and takes it directly
+ * The picture answers a touch, and the season in the sill is a button that runs the
+ * year on. Both are invisible; both were, at different times, the answer to "the
+ * viewer who will not stay". The temptation is to say both, and the failure mode of
+ * saying both is saying them at once — a sill shouting two different requests is
+ * worse at getting either done than a sill making one. So they are a QUEUE, not two
+ * timers: the picture first (it is 64% of the frame and the thing you are looking
+ * at), then the sill, after the first has been read and the surface has gone back to
+ * being ordinary for INVITE_GAP. Only one can ever be on screen.
+ *
+ * An offer is SPENT WHEN IT COMES UP, whether or not it is spoken. That is what makes
+ * "never twice" structural rather than a flag per line, and it is why finding a thing
+ * yourself is silence rather than a queue jump: if the viewer has already clicked the
+ * picture, its offer comes up at INVITE_AT, says nothing, and the season's follows
+ * immediately instead of waiting out a line that was never shown.
+ *
+ * They are TIMELESS — no bell is ringing in them — so they refuse to compete for the
+ * surface. Each waits for a moment when the ticker is nobody's and takes it directly
  * rather than queueing, where the drop policy (2.5 s dwell, cap 2, 6 s staleness)
  * would either lose it behind the news or, worse, hand it over long after the
  * viewer had moved on. Losing a few seconds to a bell strike costs nothing; being
- * shown late is the failure. If the viewer finds the picture answers before we say
- * so, we never say so.
+ * shown late is the failure.
  *
  * Real seconds off the frame clock, not sim seconds: this is a reading speed, and
  * ?fast must not hurry it. A ?pause page is the harness driving, not somebody
  * watching — nobody is there to invite, and the gates should measure the town. */
-const INVITE_AT = 8;      // real seconds of watching before it is offered at all
+const INVITE_AT = 8;      // real seconds of watching before the FIRST offer
+const INVITE_GAP = 6;     // real seconds of ordinary sill between one offer and the
+                          // next — one full staleness window, so the surface has
+                          // demonstrably stopped asking before it asks again
 const INVITE_DWELL = 5.5; // it asks for an action, so it outstays a remark (2.5 s)
-const INVITE_HOLD = 7;    // real seconds a narrow sill lends it the plate's place
+const INVITE_HOLD = 7;    // real seconds a narrow sill lends an offer the plate's place
 const INVITE_WIDE = 'Reach out of the window if you like — the beds, the pond, the lane all answer.';
 const INVITE_NARROW = 'Touch the picture — it answers.';
+/* The year is SEASON_LEN * DAY_LEN = 23.8 real minutes at 1x, which is the whole
+ * reason the button exists — so the offer leads with the wait it saves, not with the
+ * mechanism. The narrow line says "it", not "the season", and can afford to: the
+ * label is standing beside the words as they are read (see #sill.inviting.at-season),
+ * which is the one place in this sill where a pronoun has something to point at. It
+ * has to afford to, as well — keeping the plate leaves the narrow ticker 171px, not
+ * the 251px the touch offer gets, and the fuller sentence overran it by 11. */
+const SEASON_WIDE = 'The year here runs twenty-four minutes — press the season to reach the next one.';
+const SEASON_NARROW = 'Tap it — the year runs on.';
 const sillEl = document.getElementById('sill');
 const seasonEl = document.getElementById('season');
 const veilEl = document.getElementById('veil');
 const DRIVEN = location.search.indexOf('pause') >= 0;   // the harness, not a viewer
-let touched = DRIVEN, invited = false, inviteHold = 0;
+let touched = DRIVEN, pressed = DRIVEN;
+/* In the order a first-time viewer needs them. Each carries the act that makes it
+ * unnecessary: do the thing and it is never said. */
+const OFFERS = [
+  { id:'touch',  wide: INVITE_WIDE, narrow: INVITE_NARROW, found: () => touched },
+  { id:'season', wide: SEASON_WIDE, narrow: SEASON_NARROW, found: () => pressed },
+];
+let offerN = 0, offerFree = INVITE_AT, inviteHold = 0, inviteTxt = '';
 function offerInvite(now){
   // deferred, never spent, through a lapse: announce() is deaf and would swallow it
-  if (invited || touched || skipping() || now < INVITE_AT || !tickerFree()) return;
-  invited = true;
-  if (innerWidth > 640){ announce(INVITE_WIDE, null, INVITE_DWELL); return; }
-  announce(INVITE_NARROW, null, INVITE_DWELL);
+  if (offerN >= OFFERS.length || skipping() || now < offerFree || !tickerFree()) return;
+  const o = OFFERS[offerN++];
+  if (o.found()) return;                    // they got there first, so nothing is said
+  inviteTxt = innerWidth > 640 ? o.wide : o.narrow;
+  announce(inviteTxt, null, INVITE_DWELL);
+  offerFree = now + INVITE_DWELL + INVITE_GAP;
+  if (innerWidth > 640) return;
   sillEl.classList.add('inviting');
+  sillEl.classList.toggle('at-season', o.id === 'season');
   inviteHold = now + INVITE_HOLD;
 }
 // the borrowed sill goes back the moment the hold runs out or the news moves on
 function endInvite(now){
-  if (now < inviteHold && tickerEl.textContent === INVITE_NARROW) return;
+  if (now < inviteHold && tickerEl.textContent === inviteTxt) return;
   inviteHold = 0;
-  sillEl.classList.remove('inviting');
+  sillEl.classList.remove('inviting', 'at-season');
 }
 
 /* ============ the naming ============
@@ -4850,6 +4915,7 @@ function simSub(sdt, dt){
 }
 function beginSkip(){
   if (skipping()) return;
+  pressed = true;             // found without being told — the offer stands down unsaid
   skipSpan = skipDays() * DAY_LEN;
   skipSecs = clamp(skipSpan / DAY_LEN / SKIP_RATE, 2.4, 7.2);
   skipAt = 0;
@@ -4905,7 +4971,8 @@ function frame(ts){
   if (lapse) simSub(sdt, rdt); else simStep(sdt, dt);
   drawScene(now, sdt);
   if (skipLanded) land();
-  if (!invited) offerInvite(now); else if (inviteHold) endInvite(now);
+  if (inviteHold) endInvite(now);
+  offerInvite(now);
   updateNaming(now);
 }
 

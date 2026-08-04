@@ -40,47 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 23 — the river joins the year (2026-08-04) [River & far bank × Deepen]
-
-**Brief:** b22 — the river had one iteration in twelve and was the quarter most identical in
-February and August. Give it a year, name the flow, anchor at `SEASON_START`.
-
-**Did:** One term, `riverRun() = 1 + RIVER_SWING * greyF()` — how full and fast the channel
-runs. ×1.45 in January, ×0.55 in July, exactly 1 at the anchor. The flow got a NAME:
-`drawRiverFlow(t)` was twelve anonymous streaks inline in the frame loop, and now reads
-riverRun() for drift speed, streak count (7–17), streak length and a colour written as an
-offset from the two constants already there. Fifth reader is the water itself — `riverCol()`
-leans toward `RIVER_COLD`/`RIVER_GREEN` and `clamp(mid * riverRun())` pushes the deep
-mid-channel out to both banks in winter, back to a thread in summer. No `R()` consumed.
-The boat moves the other way: `boatRate()` thins as the water rises (`BOAT_SWING 0.75`,
-`BOAT_FLOOR 0.0065` binding all winter so `boatWatch()` never dies), `boatSpeed()` takes
-`BOAT_DRIFT 0.24` of the current.
-
-**Gates:** census PASS (reshuffle — the boat's spawn times move) · visual PASS · motion FAIL,
-attributed (`market/shower`, a population row; `probes/shower-jump-spread.mjs` over 10 seeds:
-HEAD 0..2, here 0..3) · filmstrip night POP = #21's known winter sunset · perf PASS · new
-`river-year.mjs`: ANCHOR IDENTICAL to HEAD (ground layer sha1 both `48728a5366b8`). 8 seeds ×
-3 years, boats/day and share of time a boat is on the water, HEAD → here: winter
-0.314/52.2% → 0.230/32.4%, summer 0.314/51.1% → 0.320/72.2%, YEAR 0.290/49.3% → 0.279/50.5% ·
-new `river-shots.mjs`: channel was `rgb(63,90,104)` in both seasons, now `rgb(80,111,109)`
-July against `rgb(64,92,109)` January.
-
-**Verdict:** shipped
-
-**Surprise:** The brief asked for a summer:winter ratio in **boats per day** and that is the one
-number I could not move — 0.320 against 0.230. The river holds exactly one boat, so arrivals are
-occupancy-bound: summer saturates however high the rate goes, and the floor that keeps January
-from going boatless eats the range from the other side. The year landed in **presence** instead —
-72% of summer has a boat on the water against 32% of winter, where HEAD was flat at ~50% all
-year. Count and presence are the same throughput seen twice and only one was free to move.
-The second one I nearly filed as a bug: spring 44.3% against autumn 53.3%, an 18-point split
-between phases where every term I wrote is symmetric. It is #21's hysteresis arriving through a
-different door — the slow variable is not a scalar, it is the boat, whose trip is ~2 days of a
-26-day year. The pair averages to 48.8% against HEAD's 49.3%, which is the neutrality claim.
-
-**Laws:** three promoted (presence vs rate on a one-object channel; a long-lived object is
-itself a slow variable; two seeds is not a sample). See `LAWS.md`. Full entry in the archive.
-
 ## Iteration 24 — the courtyard and the plaza answer a touch (2026-08-04) [Plaza & quay × Interaction/UX]
 
 **Brief:** b23 — `answersTouch()` answered six tiles and not PATH, so the plaza's roundel and
@@ -350,3 +309,41 @@ is 7–8 sub-steps and a probe sees only the boundary, so sampling reported 3 ph
 **on HEAD**, which has no refusal path. Wrapping the one function both paths go through gave
 0. (Promoted to LAWS.md.) Context budget opened **OVER** (49.8 / 46 KB).
 
+
+## Iteration 31 — the sill says it is pressable, once, in its turn (2026-08-04) [Sky, light & weather × Interaction/UX]
+
+**Brief:** b30 — make the season button legibly pressable and say so once, without shouting
+beside the canvas hint.
+
+**Did:** (1) `#season` gains an underline that stops at the WORD — `::after` is now an
+`inline-block`, and text-decoration does not propagate into one, so the chevron stays
+punctuation. Padding is the hit area, an equal negative margin gives it back: **20→30px** wide,
+**12→29px** in the 390 caption slot, where it also takes full `--ink` instead of the `--ink-dim`
+of the subtitle it displaced. Sill and canvas byte-identical to HEAD.
+(2) `offerInvite` is an `OFFERS` queue of two, not a flag. Each carries the act that silences it
+(`touched`, `pressed`), and an offer is **spent when it comes up**, spoken or not — that is what
+makes "never twice" structural. `offerFree` (the dwell plus a 6 s staleness window) holds them
+apart. At 390 the second keeps the plate and drops the TITLE
+(`.inviting.at-season`): the offer pointing AT the season may not hide it while it speaks.
+
+**Gates:** census PASS · motion PASS · visual PASS · `touch-hint.mjs` PASS **unchanged** ·
+**`probes/season-invite.mjs` PASS, 7 FAILs on HEAD** — touch 8.0..13.7s, season 21.5..26.8s,
+**0 overlapping samples**, +28px fit, cancelled by a press, silent on `?pause`.
+
+**Verdict:** shipped
+
+**Surprise:** three, and all three were my instrument lying rather than the page. (1) I opened
+the narrow rule's rationale with no `/*`, so the whole `#season` block failed to parse, the
+caption fell back to the wide rule, and the sill grew 7px while the canvas lost 7 — **law #28
+verbatim, one iteration after it was written**, caught only by reading computed style. (2) The
+margin I added in order to "print the margin" was `clientWidth - scrollWidth`, **floored at
+zero**: `+0px` for a line with 28px to spare, and it can only ever report bad news. A range over
+the text is honest. (3) The gate then failed on `touch runs 0` after a
+press at 3 s — not a regression: a press starts a 7 s lapse, the town returns six sim days on
+with the ticker solid, and the deferred offer waits for a gap (17.4 s on HEAD, 30.1 s here). A
+wall-clock arrival for a line queued behind the news is not assertable; that it was never
+**spent in silence** is.
+
+**Law:** a probe holding its own copy of the page's strings is a bug with a delay fuse — this one
+called a working page broken, one edit after the text changed. They are top-level consts in a
+classic script: `evaluate()` can name them.
