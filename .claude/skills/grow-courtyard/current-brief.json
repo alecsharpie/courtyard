@@ -18,7 +18,7 @@
   "avoid": "This moves the pointer's share of the frame, measured at 46% at #13 — re-measure it with `probes/touch-hint.mjs` and say the new number in the entry; do not ship this one on a screenshot. Do not add a seventh KIND of response: the roundel and the courtyard ring are paving, and paving takes crumbs. Watch that the courtyard path ring is a different shape from anything in `PAVING` — narrow and curved — so the three-birds-at-thirds staggering from #20 needs checking against it rather than assuming, since that is exactly the case the 0.9-cell law bites on.",
   "budgetMin": 25,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 24,
   "issued": "2026-08-04T00:33:59.366Z",
