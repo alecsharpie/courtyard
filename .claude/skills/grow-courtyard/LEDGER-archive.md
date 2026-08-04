@@ -1747,3 +1747,121 @@ rides on top of it.
 **Cue:** the season is advertised only by a chevron and a cursor; nothing invites the click.
 And on a `?pause` page the sill's text never refreshes (`statAcc += dt`, dt 0) — pre-existing,
 verified identical on HEAD, harness-only.
+## Iteration 21 — the sky joins the year, and rain may start in the dark (2026-08-04) [Sky, light & weather × Deepen]
+
+**Brief:** b20 — `stepClouds()` and the rain roll both scaled on `richness()`, a ramp pinned since
+day 16. Put the fronts on the year; fold in c8 (rain gated on daylight) and c35 (the motion gate
+cannot see a raindrop). Do not raise the total rain.
+
+**Did:** One scalar, `greyF() = 1 - 2*warmth` (+1 midwinter, 0 at SEASON_START, -1 midsummer), and
+six terms on it. `FRONT_HEAVY 0.54 +/- 0.24` sets how often the next front is a grey one,
+`FRONT_DEEP 0.06` lowers the lid it settles at, and `spellLen()` — ONE definition, read by the
+front moving in *and* by the clearance behind a shower — makes a spell outstay itself in the
+season that favours it (`FRONT_SLOW 0.30`). Rain then moves the OTHER way: `showerRate() =
+1.6 - 0.9*greyF()` per second of full-cover sky, `showerLen()` +12% in winter, `showerHard()`
++/-25% on the drop count. Winter is a lid that does not rain much; summer breaks rarely and hard.
+That opposition is what holds the annual total still while making the seasons unmistakable. Every
+constant is the value `richness()` had already *reached* and stepClouds takes the same number of
+`R()` draws as before, so greyF 0 is the old sky exactly. c8: the `daylight > 0.15` gate is gone,
+replaced by `nightDamp()` — exactly 1 at any lit hour, `NIGHT_RAIN 0.12` in the dark;
+`weatherComing()` keeps its own daylight damping and its comment now says why that is a different
+question. c35: one line adds `raindrops` to `__entities()`, and `motion.mjs` gained a `SCREEN` kind
+set (canvas bounds, px jump threshold, a recycle kept out of the drop's own step series) with the
+old population row renamed `shower`.
+
+**Gates:** census **PASS** (people 181->196, blooming +3, tiles/structure unchanged — reshuffle, no
+collapse) · visual **PASS** (four framings; 16 pinned Jan/Jul afternoons) · motion **PASS**, new
+`raindrop` row 0/0/0/0 on jumps, nan, oob, flicker in both scenes that rain · filmstrip night
+**POP at frame 11**, diagnosed with the new `probes/pop-what-moved.mjs`: cover pinned at 1.000 the
+whole strip and `nightF` lifting off zero — a winter sunset, and `daylight` does not read weather,
+so that frame is HEAD's · perf **skipped**, no new per-frame pass · probe
+`probes/weather-year.mjs`, 8 seeds x 3 years folded into season quarters, HEAD -> here: overcast
+winter **33.3 -> 54.5%**, summer **30.4 -> 13.5%**, spring/autumn **29.8/27.5 -> 30.9/27.4** (the
+anchor seasons land on HEAD — neutrality measured, not asserted); summer 37 showers at 119 drops
+against winter's 70 at 78; **annual rain 9.48% -> 9.85%**; dark starts **1/208 -> 40/217**.
+
+**Verdict:** shipped   ← my view; runlog.mjs decides from the diff
+
+**Surprise:** The first build came out **+38% rain** and I had reasoned it would go *down*. Two
+mistakes, and the second is the interesting one. (1) Cover is slew-limited (0.02/s rising) against
+~42 s fronts, so a grey spell only just reaches its target before the next arrives — lengthening
+winter's greys buys *more* overcast time than shortening summer's gives back. (2) At `FRONT_SLOW
+0.35` the probe reported spring 13.4% wet against autumn 8.3% — a 60% split between two phases
+where every term I had written is *identical* by construction. It is hysteresis: a slow scalar
+carries the season it came from across the boundary, so spring inherits winter's lid and autumn
+summer's blue. At 0.30 it fell back to HEAD's own 30.9/27.4. I nearly went hunting for an
+asymmetry bug in symmetric code.
+
+**Law:** A slow scalar's season is not the season it is in. A rate-capped variable carries the
+previous quarter across the boundary, so the phases either side of an anchor come out *unequal*
+even when every term reading the phase is symmetric by construction — hysteresis, not an algebra
+bug. Measure the shoulder seasons: they are the neutrality claim, and if they land on HEAD the
+anchor is proven by the same run that measures the range.
+
+**Law:** Extending how long a state lasts is not the inverse of making it rarer. Anything that
+slews toward a target reaches further the longer it holds, so a symmetric +/-x% on duration is a
+net *increase* in time spent at the extreme. Budget the effect on the total before tuning the
+contrast, against a folded multi-year probe — one year of a stochastic system is a sample.
+
+**Cue:** Two recorded in `state.json` rather than here, since the entry was over budget without
+them: winter's new share of umbrella-band time, and cover saturating at 1.000 in deep winter.
+
+## Iteration 22 — the ground is told about the lid (2026-08-04) [Sky, light & weather × Polish]
+
+**Brief:** b21 — `cloudCover()` veiled the sun's disc and nothing on the ground was ever told, so
+under a grey lid the lane still had crisp midday shadows. Fade AND soften every cast shadow off
+ONE term, neutral at low cover. Only the cast shadows; leave the lit-side shading alone.
+
+**Did:** One scalar, `shadowF()` — how hard the sun's edge is — and two derivations of it, so the
+three things cover does to a shadow cannot drift apart: what fades also WIDENS (`shSpread()`) and
+PULLS IN (`shOffset()`). `SH_KNEE 0.32` is fair weather and changes nothing; `SH_FULL 0.94` is a
+sun with no edge left; `SH_FLOOR 0.20` is the trace that survives, because even a lid is brighter
+overhead than sideways. Eight sites read it: the tile shadow off every wall and eave
+(`drawShadows`), the courtyard linden, the lane/orchard trees, the bandstand, the shed, the
+balloon, the bridge on the water, and the person patch. Two of the eight take only part of it and
+say why in a comment — a person's patch and the water under a deck are occlusion, not sun, and
+fading them the whole way makes everybody float on a grey day. The tile shadow is the one that
+softens for *real* rather than swelling: it is a grid of quads with no radius to grow, but it
+lives on the CACHED ground layer, whose rebuild bucket already rides cover, so a
+`ctx.filter = 'blur()'` there costs nothing per frame (feature-detected once as `CAN_BLUR`; older
+Safari degrades to fade-and-retract). Every expression is `x * f()` or `x - k*(1 - f())`, so below
+the knee the multipliers are exactly 1.
+
+**Gates:** census **PASS** (unchanged in every section — a draw-only vector, as expected) ·
+visual **PASS** (five framings incl. mobile; plus wide/courtyard/east at cover 0.10 / 0.60 / 0.95
+against the same instant on HEAD) · motion **PASS**, nothing new · filmstrip day **no POP**; night
+**POP at frame 11**, which is #21's known winter sunset — `pop-what-moved.mjs` on *HEAD* shows
+cover pinned 1.000 and `nightF` lifting there, and since cover is constant across that strip my
+term is constant too and can only *shrink* its frame-to-frame Δ · perf **PASS** (16.70/16.70,
+vsync-capped, so the real number is the probe's) · probes: new `shadow-cover.mjs` — ground layer
+**byte-identical to HEAD at cover 0.10, 0.25, 0.32** and all three multipliers exactly 1.000 there,
+then gradual and monotone: 0.45 → 0.95 lifts 2.5–3.1% of sampled pixels by a mean of **+5.5 → +16.1
+luma** (main canvas +3.0 → +10.3, against a measured real-time noise floor of 0.03%) · new
+`ground-relight.mjs` — rebuild jumps **max 0.325 vs HEAD's 0.363**, and a lidded relight is
+**11.0 ms vs HEAD's 11.7**.
+
+**Verdict:** shipped   ← my view; runlog.mjs decides from the diff
+
+**Surprise:** The blurred, lidded relight is *faster* than HEAD's unblurred one. I had budgeted for
+the blur and instead the pass got cheaper, because `shOffset()` is upstream of a `continue`: as the
+throw retracts, more and more shadow cells land back on their own solid cell and are skipped
+entirely, so the path being filled shrinks faster than the filter costs. A term I added for how the
+frame *looks* turned out to be a term that decides how much geometry there *is*. The cheap version
+of this mistake is the opposite one — I could as easily have put the retraction on the far side of
+that test and quietly doubled the path.
+
+**Law:** Neutrality is cheapest to guarantee in the *algebra*, not in the tuning. Write every
+seasoned or veiled term as `x * f()` or `x - k*(1 - f())` and the anchor is exact in floating point;
+write it as `x * (a + b*f())` and `a + b` is 0.32000000000000006, so the identity you meant to
+claim is a tolerance you have to defend. Then prove it as an identity — the multipliers read out of
+the page as exactly 1, and a cached layer byte-identical to the ref — never as a small diff.
+
+**Law:** Diff against the ref, not against the frame. When a vector rides a scalar that already
+recolours everything (cover, season, daylight), no statistic of the frame is attributable: it moves
+for reasons that are not yours. Render the same pinned instant in both builds at the same value of
+that scalar and difference the pixels — every difference is then yours by construction. Measure the
+live canvas's real-time noise floor the same way (ref against itself, two loads) or you will read
+water streaks as a finding.
+
+**Cue:** Context budget was **OVER (46.1 KB / 46 KB)** at the start of this iteration.
+

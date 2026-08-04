@@ -2,7 +2,7 @@
   "updated": "2026-08-04",
   "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
   "phase": "expanding",
-  "lastIteration": 29,
+  "lastIteration": 30,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -269,7 +269,8 @@
         10
       ],
       "connect": [
-        4
+        4,
+        30
       ]
     }
   },
@@ -331,7 +332,7 @@
       "cafe sitters who claim and release a table; market and kiosk browsers; ducks, swans, butterflies, fireflies, birds, one night cat, falling leaves",
       "a clock that strikes and a church bell that answers it at nine and eighteen from day 2; walkers break stride and look up while it rings (a.listen)",
       "greetPass — two passing within 0.9-1.6 cells may stop, turn and talk (a.greet, chatCool); ~2 conversations a minute",
-      "STREET sitters read the sky — refuse above weatherComing() 0.42, released over 0.55..0.88 off a per-agent a.wary; umbrellas up over 0.62..1.17. COURTYARD sitters (picnic, sitter) do NOT. routeToExit(a) exists",
+      "EVERY sitter reads the sky, street and courtyard alike — SIT_REFUSE 0.42 turns a seat down, skyLifts(a) gives one up over 0.55..0.88 off a per-agent a.wary; umbrellas up over 0.62..1.17. ONE predicate each, and the gate is what you are DOING, not a.street: on the street everyone not lying down, in the courtyard the people SITTING, so the napper sleeps on and the gardener finishes the row. A refused courtyard seat routes to the exit (routeToExit) instead of despawning on the lawn — a picnic pair judges the sky ONCE for both (a.mate) and never splits. Under cover>0.60 the courtyard sits 0.074 vs 0.269 on the old build, a blue sky is unchanged. probes/seats-out.mjs, seats-shots.mjs",
       "THE DIORAMA IS CLICKABLE and says so once — a bed takes seeds of a real species, the lawn a daisy, the pond crumbs, the fountain a coin, the river a pebble, paving crumbs. answersTouch(x,y) is the ONE predicate (BED/CBED/GRASS/WATER/SIDE/ROAD/PATH), ~64% of the frame; cursor and handler both read it. ONE invitation, once ever, at 8 REAL seconds. probes/touch-hint.mjs",
       "the ticker is an ordered queue, not an overwrite — TICK_DWELL 2.5 real s, cap 2, 6 s staleness cut; a follow-on enqueues only when its antecedent is DISPLAYED (lineDwell)",
       "the SILL under the canvas — #plate, #daytime (\"Day 12 · Afternoon\", names the day and the hour and never the season), #ticker, #stats (\"N people · N blooms\"), #ctrl (Pause, speed 1x/3x/8x). Ticker and stats hidden under 640px except during the invitation",
@@ -412,6 +413,18 @@
       "id": "c57",
       "note": "Drawing consumes R(): on a ?pause page frozen at simT 300, R() reads 0.110 after 2 drawn frames and 0.746 after 40. Every probe that round-trips to the host between measurements (screenshot, boundingBox, waitForFunction) is walking the seeded stream by however many frames the machine delivered. Pre-existing and untouched; several probes in probes/ round-trip.",
       "raisedBy": 27,
+      "seenBy": 0
+    },
+    {
+      "id": "c58",
+      "note": "The picnic pair now shares one decision but still has two independent sit TIMERS (each half draws 20+R()*14 on arrival), so on a clear day one half can get up and walk out while the other stays on the blanket. The sky can no longer split a pair; an ordinary afternoon still can.",
+      "raisedBy": 29,
+      "seenBy": 0
+    },
+    {
+      "id": "c59",
+      "note": "state.json has TWO cues numbered c11 in closedCues (one raised at #4 and closed at #8, one raised at #5 and closed at #25). Cue ids are not unique, so a brief that names a cue by id alone is ambiguous.",
+      "raisedBy": 29,
       "seenBy": 0
     }
   ],

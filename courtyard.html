@@ -1403,7 +1403,10 @@ function spawnAgent(){
       wp:a.wp.map(p=>[p[0]+0.9,p[1]+0.3]), i:0, x:a.x+0.7, y:a.y, phase:R()*9, lead:false});
     a.lead = true;
     finishItinerary(b); agents.push(b);
-    announce('A blanket unfurls on the grass — picnic hour.');
+    // linked both ways AFTER the copy, so the pair can decide the sky together. The
+    // line about the blanket now waits until the blanket is actually spread — a seat
+    // that can be refused makes an announcement at spawn a promise the town may break.
+    a.mate = b; b.mate = a;
   } else if (canDog && roll < 0.46){
     a.kind = 'dogwalker';
     a.dog = { x:a.x, y:a.y, phase:R()*9, col:pick(['#4a3a2c','#c9b18a','#2c2c2c','#a6763f']) };
@@ -1434,6 +1437,24 @@ function finishItinerary(a){
     const t = nearestRingXY(last[0], last[1]);
     a.wp.push(...ringPath(t, ex.k, ringDir(t, ex.k)), ...exitLeg(ex));
   }
+}
+/* Who minds a thickening sky, and by how much.
+ *
+ * ONE definition each, because four sites now ask. `SIT_REFUSE` is the bar for taking
+ * a seat at all; `skyLifts()` is the bar for giving one up, per person off `a.wary`,
+ * and the gap between the two is what guarantees nobody sits down and stands straight
+ * back up. Until now both were gated on `a.street`, so the courtyard sat through the
+ * front while the cafe emptied around it (c11). The gate is not `street` — it is what
+ * you are DOING: on the street everyone not lying down gets up, which keeps the
+ * allotment kneelers and the busker leaving as they have since #6; in the courtyard it
+ * is the people SITTING, so the napper under the tree sleeps on and the gardener with
+ * their hands in a bed finishes the row.
+ */
+const SIT_REFUSE = 0.42;
+function seatRefused(){ return weatherComing() > SIT_REFUSE; }
+function skyLifts(a){
+  return (a.street ? a.state !== 'lie' : a.state === 'sit')
+      && weatherComing() > 0.55 + (a.wary ?? 0.5) * 0.33;
 }
 function routeToExit(a){
   const ex = a.exit;
@@ -1469,13 +1490,13 @@ function stepAgent(a, dt){
     }
     // the far side goes home when the light does: a visit that outlasts the daylight
     // that authorised it is what leaves the quay occupied at midnight
-    // The tables and benches empty ahead of the sky, not with it: every street sitter has
-    // their own tolerance for a thickening front (a.wary), so they get up one at a time
-    // across the ~11 s the cover takes to build. The band tops out at 0.88, below the
-    // 0.91 at which the rain roll goes live, so the last chair is empty before the first
-    // drop rather than in the same frame as it.
+    // The tables, the benches and the blankets empty ahead of the sky, not with it: every
+    // sitter has their own tolerance for a thickening front (a.wary), so they get up one
+    // at a time across the ~11 s the cover takes to build. The band tops out at 0.88,
+    // below the 0.91 at which the rain roll goes live, so the last seat is empty before
+    // the first drop rather than in the same frame as it. See skyLifts().
     if (a.timer <= 0 || (raining && a.state !== 'lie')
-        || (a.street && a.state !== 'lie' && weatherComing() > 0.55 + (a.wary ?? 0.5) * 0.33)
+        || skyLifts(a)
         || (a.east && !eastOpen())){
       if (a.blanket){ a.blanket = false; }
       if (a.tableRef){ a.tableRef.taken = 0; a.tableRef = null; a.cup = false; }
@@ -1501,8 +1522,30 @@ function stepAgent(a, dt){
       if (a.kind === 'gardener' && !a.planted){ a.state='kneel'; a.timer=8+R()*4; return; }
       if (a.kind === 'napper' && a.napAt){ a.state='lie'; a.timer=16+R()*14; a.napAt=null;
         if (R()<0.6) announce('Asleep under the tree within minutes.'); return; }
-      if (a.kind === 'picnic' && a.picnicAt){ a.state='sit'; a.timer=20+R()*14; a.blanket=a.lead; a.picnicAt=null; return; }
-      if (a.kind === 'sitter' && a.benchAt){ a.state='sit'; a.timer=12+R()*16; a.onBench=true; a.benchAt=null; return; }
+      /* A courtyard seat can be refused now, which is why c11 stayed open for 24
+       * iterations: these two kinds are STAYING, so they arrive with an empty
+       * waypoint list and refusing used to mean `a.done` where they stood. routeToExit()
+       * gives them the walk back out that a street agent always had.
+       * The duration is drawn either way — a refusal must not add or drop an R() call,
+       * or a dry census cell would churn for a wet-weather feature it never sees. */
+      if (a.kind === 'picnic' && a.picnicAt){
+        const dur = 20 + R() * 14;
+        a.picnicAt = null;
+        // a pair arrives together and shares one blanket, so the sky is judged ONCE for
+        // both: whoever reaches the grass first decides, and if your half is already
+        // down you join them whatever the cloud is doing. (They share `a.wary` too — the
+        // partner is a copy — so the release lifts them in the same frame.)
+        if (seatRefused() && !(a.mate && a.mate.state === 'sit')){ routeToExit(a); return; }
+        a.state='sit'; a.timer=dur; a.blanket=a.lead;
+        if (a.lead) announce('A blanket unfurls on the grass — picnic hour.');
+        return;
+      }
+      if (a.kind === 'sitter' && a.benchAt){
+        const dur = 12 + R() * 16;
+        a.benchAt = null;
+        if (seatRefused()){ routeToExit(a); return; }
+        a.state='sit'; a.timer=dur; a.onBench=true; return;
+      }
       if (a.kind === 'allot' && a.tendPlot){
         a.tendPlot = false; a.state = 'kneel'; a.timer = 9 + R() * 5; a.resume = true;
         a.planted = false; a.rows = (a.rows || 0) + 1;   // each kneel is its own row
