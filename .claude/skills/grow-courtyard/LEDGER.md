@@ -406,3 +406,51 @@ iteration after #26 learned the same lesson from the other side.
 And a compressed clock must own its frame's whole advance, or the ordinary rate rides on top.
 
 **Cue:** the season is advertised only by a chevron and a cursor; nothing invites the click.
+
+## Iteration 29 — the stalls sell what the plots grew (2026-08-04) [Lane & market × Connect]
+
+**Brief:** b28 — the market is the last flat system in the town. Connect it to the
+allotments, which ripen and are picked across a full year fifty feet away.
+
+**Did:** one store, `produce[]`, written by exactly one line — `harvestPlot()` pays in the
+cells it lifted, so the basket (`a.crop`) that walked out of the block for four iterations
+now goes somewhere. `stockMarket()` latches that store ONCE per market day at the first
+trestle, empties it, and lays it out as `mkShelf` (species order, so a stall sells one or
+two things). `marketRaise(i)` gates on `mkTrades(i)`: `MK_NEED [0,4,13]` units, so the
+second and third traders only set up if the plots sent enough — stall 0 always comes, but
+it can stand behind an empty board. The goods are no longer a fixed six-colour palette:
+each pitch is a vegetable the stall was actually stocked with, in its own colour and size.
+Half of what the market cannot carry (`MK_CAP` 18) keeps to the next one. `mkLine()` says
+which crop, and the browsers walk to a stall that came out.
+
+**Gates:** census **PASS** (small reshuffle churn, no collapse; new field `planting.produce`)
+· motion **PASS** vs baseline · visual PASS · filmstrip day PASS, no POP · `probes/market-year.mjs`
+over **120 markets / 5 seeds / 104 days**: midwinter **6.0 units, 1.67 stalls** vs midsummer
+**35.7, 2.96**; one stall on 24% of markets, three on 58% · `probes/market-shots.mjs` (the
+brief's own test) midsummer 3 stalls 6/6/6 vs midwinter 2 stalls 6/5/0, and it names the
+plots the difference came from · `probes/market-raise.mjs` unchanged vs HEAD (seed 42's 4.9
+close spike is **pre-existing** — stashed and confirmed). Budget opened **OVER** (48.4 / 46 KB).
+
+**Verdict:** shipped
+
+**Surprise:** two, and the second is the one that matters. (1) The store made the year's
+trough move. Without carry-over winter was bare and spring recovering; with it, autumn's
+glut arrives late and **spring** becomes the thinnest quarter (3.8 units vs winter's 6.0)
+— the market is four days behind a block that is already behind the season, and two lags
+compose into a hungry gap nobody wrote. That is #21/#23's hysteresis law arriving a third
+time, and it is also the only thing that softens cue c50's stepped cliff. (2) My first
+probe reported a different midwinter market every run — 2.1 units, 13.6, 22.1, 5.4 — with
+the same seed, same code, same pinned instant. **Drawing consumes `R()`.** On a `?pause`
+page frozen at simT 300, `R()` reads 0.110 after two drawn frames and 0.746 after forty.
+So a screenshot, a `boundingBox()`, a `waitForFunction` poll — any real-time gap — moves
+the world, even with the sim stopped. One page per quarter fixed it; two runs now diff clean.
+
+**Law:** the existing "step inside ONE `page.evaluate`" rule is right for the wrong reason.
+It is not that the sim keeps running (`paused` sets `dt = 0`) — it is that the RENDERER
+draws from the PRNG, so frames the machine happens to deliver during a host round-trip
+advance the seeded stream. A probe that screenshots between measurements needs a fresh
+page per measurement, not a tidier loop.
+
+**Cue:** the initial scatter puts flowers into allotment beds (seed 42 opens with one fern
+in the block, seed 7 with a fern and a lavender), so a fern can be harvested, ride the
+basket and reach a market board. Pre-existing; `speciesFor()` only filters NEW sowing.

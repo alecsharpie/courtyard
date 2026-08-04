@@ -961,7 +961,7 @@ const MARKET_STALLS = [
  * reverse order for free: goods away, canvas rolled up, frame down, trestle folded. */
 const MK_RAISE = 0.62, MK_STAGGER = 0.24;     // hours: one stall, and between stalls
 function marketRaise(i){
-  if (!isMarketDay()) return 0;
+  if (!isMarketDay() || !mkTrades(i)) return 0;   // no stock, no trader: the pitch stays empty all day
   const up = marketOpen() - MK_RAISE - MK_STAGGER * (MARKET_STALLS.length - 1 - i);
   if (hour < up) return 0;
   if (hour < up + MK_RAISE) return (hour - up) / MK_RAISE;
@@ -970,8 +970,103 @@ function marketRaise(i){
   if (hour < dn + MK_RAISE) return 1 - (hour - dn) / MK_RAISE;
   return 0;
 }
-// the whole span, first trestle to last pole away — for the ticker, not for the draw
-function marketUp(){ return marketRaise(0) > 0 || marketRaise(MARKET_STALLS.length - 1) > 0; }
+// the whole span, first trestle to last pole away — for the ticker, not for the draw.
+// Any stall may sit the day out now (mkTrades), so this asks all three rather than
+// assuming the first up and the last down are the two ends of the span.
+function marketUp(){ return MARKET_STALLS.some((_, i) => marketRaise(i) > 0); }
+
+/* ============ what the plots send to the stalls ============ */
+/* The allotments have run a full year since #25 — ripening, picked, fallow, re-sown at
+ * a rate that IS ripePlots() — and the basket the gardener carried out of the block
+ * (a.crop) went nowhere. It comes here. `produce` is the standing store of vegetables
+ * lifted since the last market: harvestPlot() pays in, the market takes what it can
+ * carry and the rest spoils. Nothing else writes it. So a February market is thin
+ * because February's plots were thin, and it is cabbage-heavy because the brassica is
+ * the one thing that stands the cold (SPECIES.hardy, #25) — not because a constant
+ * somewhere says February.
+ *
+ * The day's stock is LATCHED once, at the first trestle, and held for the whole market.
+ * The store keeps moving while the market is open — a gardener can pick at noon — and a
+ * stall reading it live would gain and lose goods in front of you, or worse pack away
+ * mid-morning when the count fell back through a threshold. One latch, one market.
+ *
+ * The latch hour is marketRaise()'s own earliest, minus a tenth: any earlier and it is
+ * the PREVIOUS sim day (hour rolls at 6.00) where isMarketDay() is false. That is the
+ * same rollover MK_EARLIEST is defending, and MK_EARLIEST is what keeps this clear of
+ * it in midsummer. It is a floor, not a window — a page that jumps straight into a
+ * market afternoon latches on its first step rather than finding an unstocked day. */
+const produce = new Array(SPECIES.length).fill(0);
+const MK_GOODS = 6;                                  // pitches that fit on one board
+const MK_CAP = MARKET_STALLS.length * MK_GOODS;      // what the whole market can carry
+/* Units the day's stock must reach before a second and a third trader think it worth
+ * setting up. Stall 0 needs nothing: a market that fails to appear is a hole in the
+ * lane rather than a thin market, and the browsers' spawn band would have nowhere to
+ * stand — but it can stand behind an empty board, which is its own kind of February.
+ * The two numbers are read off probes/market-year.mjs over 120 markets: the second
+ * stall sits at the lower quartile of the year's stock (4.75) and the third a shade
+ * under the median (21). Measured, that is one stall on 24% of markets, three on 58%,
+ * and the middle state on the rest — the cold quarters and the growing ones. */
+const MK_NEED = [0, 4, 13];
+const MK_KEEP = 0.5;          // share of the surplus the market could not carry that keeps
+const MK_R = {8:1.5, 9:2.2, 10:1.4, 11:2.4};         // carrots, cabbages, beans, pumpkins
+const MK_FIRST = MK_RAISE + MK_STAGGER * (MARKET_STALLS.length - 1);   // hours of raise before opening
+const EMPTY = [];                                    // the shared no-goods board
+let mkDay = -1, mkTotal = 0, mkTop = 0, mkShelf = [], mkBoards = [EMPTY, EMPTY, EMPTY];
+const mkUnits = new Array(SPECIES.length).fill(0);
+function stockMarket(){
+  if (!isMarketDay() || mkDay === day) return;
+  if (hour < marketOpen() - MK_FIRST - 0.05) return;
+  mkDay = day; mkTotal = 0; mkTop = 0; mkShelf = [];
+  for (let s = 0; s < produce.length; s++){
+    mkUnits[s] = produce[s]; mkTotal += produce[s];
+    if (mkUnits[s] > mkUnits[mkTop]) mkTop = s;
+  }
+  /* The shelf is the day's stock as a list of species, laid out in species order so
+     that consecutive pitches are the same vegetable — a stall then takes a contiguous
+     slice and reads as a stall that sells one or two things, rather than three
+     identical rainbows.
+     What the market cannot carry is not thrown away: half of the surplus KEEPS to the
+     next market, in the proportions it was grown in. That is a store, and a store is
+     what makes an autumn glut arrive late — which is the one thing that softens cue
+     c50, the stepped bloomCap() cliff the allotments fall off at the shoulder. A
+     market four days behind the block is a market whose worst week is not the block's
+     worst week. It cannot rescue deep winter, and should not: by the third market of
+     the cold the boards genuinely are bare, and the ticker says so. */
+  // a pitch is a whole vegetable, so the shelf is whole even though the store is not
+  const sold = Math.min(Math.round(mkTotal), MK_CAP);
+  const keep = mkTotal > MK_CAP ? MK_KEEP * (1 - MK_CAP / mkTotal) : 0;
+  for (let s = 0; s < produce.length; s++) produce[s] = mkUnits[s] * keep;
+  if (sold > 0){
+    for (let s = 0; s < mkUnits.length; s++){
+      const n = Math.round(mkUnits[s] * sold / mkTotal);
+      for (let k = 0; k < n; k++) mkShelf.push(s + 1);
+    }
+    while (mkShelf.length > sold) mkShelf.pop();          // rounding, either way
+    while (mkShelf.length < sold) mkShelf.push(mkTop + 1);
+  }
+  mkTop = mkUnits[mkTop] > 0 ? mkTop + 1 : 0;             // species id, or 0 for a bare day
+  /* Each trading stall's board is cut from the shelf HERE, once, and not per frame:
+     the draw runs three times a frame all day and a slice() apiece is garbage for
+     nothing. Contiguous slices, so a stall tends to sell one or two things. */
+  const n = mkOpenCount(), per = n ? Math.min(MK_GOODS, Math.round(mkShelf.length / n)) : 0;
+  mkBoards = MARKET_STALLS.map(() => EMPTY);
+  let off = 0;
+  for (let i = 0; i < MARKET_STALLS.length; i++){
+    if (!mkTrades(i)) continue;
+    mkBoards[i] = mkShelf.slice(off, off + per); off += per;
+  }
+}
+function mkTrades(i){ return mkDay === day && mkTotal >= MK_NEED[i]; }
+function mkOpenCount(){ let n = 0; for (let i = 0; i < MARKET_STALLS.length; i++) if (mkTrades(i)) n++; return n; }
+function mkShelfFor(i){ return mkTrades(i) ? mkBoards[i] : EMPTY; }   // stall i's board
+function mkGoods(i){ return mkShelfFor(i).length; }
+function mkLine(){
+  if (!mkTotal) return 'Market morning — trestles out, though the plots have sent almost nothing to put on them.';
+  const nm = SPECIES[mkTop - 1].name;
+  if (mkOpenCount() < MARKET_STALLS.length)
+    return 'Market morning — one canvas rolls open, and it is ' + nm + ' on nearly every board.';
+  return 'Market morning — trestles out, the canvas rolls open, and the boards fill up with ' + nm + '.';
+}
 
 /* ============ ticker ============ */
 const tickerEl = document.getElementById('ticker');
@@ -1147,7 +1242,8 @@ function harvestPlot(a){
     if (grid[i] !== BED) continue;
     bSp[i] = 0; bSt[i] = 0; bAge[i] = FALLOW + R() * 8;
   }
-  a.crop = sp; harvested += took; groundDirty = true;
+  // the basket now has somewhere to go: the store the lane's stalls are stocked from
+  a.crop = sp; harvested += took; produce[sp - 1] += took; groundDirty = true;
   announce(pick(['A row of ' + SPECIES[sp-1].name + ' comes up; the basket fills.',
     'The ' + SPECIES[sp-1].name + ' are ready — the plot is cleared in one go.',
     'Someone straightens up out of the ' + SPECIES[sp-1].name + ' with an armful.']));
@@ -1584,7 +1680,9 @@ function spawnLaneAgent(){
   const roll = R(), sun = daylight > 0.3;
   if (sun && marketActive() && roll < 0.24){
     a.kind = 'browser';
-    const st = pick(MARKET_STALLS);
+    // browse a stall that actually came out today; same one R() draw either way
+    const open = MARKET_STALLS.filter((_, i) => mkTrades(i));
+    const st = pick(open.length ? open : MARKET_STALLS);
     a.stop = {x:st.x - 1.9, y:st.y + 0.9, act:'stand', dur:5 + R() * 6,
       say: R() < 0.3 ? pick(['A bag of apples changes hands at the market stall.',
         'The stallholder weighs out something wrapped in brown paper.']) : null};
@@ -3131,7 +3229,7 @@ function drawScene(t, dt){
   if (kioskOpen()) items.push({y:KIOSK.y + 0.8, f:drawKiosk});
   for (let i = 0; i < MARKET_STALLS.length; i++){
     const p = marketRaise(i);                    // 0 well before opening and well after close
-    if (p > 0) items.push({y:MARKET_STALLS[i].y + 0.8, f:drawMarketStall, s:MARKET_STALLS[i], p});
+    if (p > 0) items.push({y:MARKET_STALLS[i].y + 0.8, f:drawMarketStall, s:MARKET_STALLS[i], p, sh:mkShelfFor(i)});
   }
   const cellAt = (x, y) => grid[clamp(y|0, 0, WH-1) * GW + clamp(x|0, 0, GW-1)];
   for (const a of agents){
@@ -3767,12 +3865,20 @@ function drawMarketStall(it){
     ctx.fillStyle = '#6a4f36';
     ctx.fillRect(x - tw/2, y - cellH * 0.4 - th, tw, th);
   }
-  for (let k = 0; k < 6; k++){                     // goods, laid out one at a time
+  /* The goods are no longer a palette: each pitch is a vegetable this stall was
+     actually stocked with, in its own ripe colour and its own size, so an empty
+     board in February is the plots' answer and not a decision taken here. The
+     board is laid out one pitch at a time on the same p, as before, so it still
+     packs away in reverse. */
+  const sh = it.sh || [];
+  for (let k = 0; k < sh.length; k++){
     const g = clamp((p - 0.80 - k * 0.03) / 0.05, 0, 1);
     if (g <= 0) continue;
-    ctx.fillStyle = ['#c9903a', '#a83c32', '#7f9a5d', '#e0b95a', '#8a5f3f', '#c96f8e'][(hash(s.x, k) * 6) | 0];
+    const sp = SPECIES[sh[k] - 1];
+    ctx.fillStyle = k % 2 ? sp.col2 : sp.col;
     ctx.beginPath();
-    ctx.arc(x - w/2 + 3 + (k % 3) * (w/3) + hash(k, s.x) * 4, y - cellH * 1.5 - (k > 2 ? 3 : 0), 1.8 * g, 0, 7);
+    ctx.arc(x - w/2 + 3 + (k % 3) * (w/3) + hash(k, s.x) * 4, y - cellH * 1.5 - (k > 2 ? 3 : 0),
+            (MK_R[sh[k]] || 1.8) * g, 0, 7);
     ctx.fill();
   }
   const c1 = project(s.x - 1.25, s.y - 0.2, 2.5 * pole), c2 = project(s.x + 1.25, s.y - 0.2, 2.5 * pole);
@@ -4544,9 +4650,10 @@ function simStep(sdt, dt){
   updateClock();
   strikeClock();
   if (bellUntil > simT && bellUntil !== bellSeen){ bellSeen = bellUntil; bellStartle(); }
+  stockMarket();                                       // must precede marketUp(): it decides who trades
   if (marketUp() && marketAnnounced !== day){          // now fires on the first trestle
     marketAnnounced = day;
-    announce('Market morning — trestles out, and the canvas rolls open along the lane.');
+    announce(mkLine());                                // …and names what the plots sent
   }
   // fired at the FIRST stall coming down, not the last: it points at the pack-down
   // rather than reporting it afterwards. The hour used to be 17.00 and the line used to
@@ -4862,7 +4969,13 @@ window.__census = function(){
     /* `harvested` is the one thing bySpecies cannot show: a veg count falling is
        equally dieback, so without it nothing distinguishes a picked plot from a
        rotted one, and a regression that silently killed harvesting would read clean */
-    planting: { planted, blooming, daisies, matureTrees, worn, harvested, species: SPECIES.length, bySpecies },
+    /* `produce` is the other end of that same pipe: units standing in the store
+       between one market and the next. It is town state, not render state — a pure
+       function of what has been picked and what the last market carried away — and
+       nothing else the census reports moves when the harvest→market link breaks. */
+    planting: { planted, blooming, daisies, matureTrees, worn, harvested,
+                produce: +produce.reduce((a, b) => a + b, 0).toFixed(1),
+                species: SPECIES.length, bySpecies },
     /* headline aggregates — what the census gate watches for collapse */
     scalars: {
       developed: (tiles.WALL || 0) + (tiles.PATH || 0) + (tiles.ROAD || 0) + (tiles.SIDE || 0),

@@ -2,7 +2,7 @@
   "updated": "2026-08-04",
   "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
   "phase": "expanding",
-  "lastIteration": 27,
+  "lastIteration": 29,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -169,7 +169,8 @@
         "pre17"
       ],
       "connect": [
-        18
+        18,
+        29
       ]
     },
     "street": {
@@ -286,7 +287,8 @@
       "kiosk, pavement cafe with claimable tables, awnings, washing lines, planters, street lamps, benches",
       "market day every 4th day, three stalls; marketRaise(i) stages each stall up and down as clamps on one 0..1 progress",
       "washing comes in before the rain — per-garment thresholds on weatherComing(), plus a dusk ramp; never all in one frame",
-      "the working day hangs off the SUN — kioskOpen/marketOpen/marketClose/marketRaise/sweeper/wind announcement are offsets from sunUp/sunDown. MK_MIN_SPAN floors winter at 7 h; MK_EARLIEST keeps the summer raise inside its own sim day. probes/working-day.mjs"
+      "the working day hangs off the SUN — kioskOpen/marketOpen/marketClose/marketRaise/sweeper/wind announcement are offsets from sunUp/sunDown. MK_MIN_SPAN floors winter at 7 h; MK_EARLIEST keeps the summer raise inside its own sim day. probes/working-day.mjs",
+      "the stalls sell what the plots grew — produce[] is written only by harvestPlot(), stockMarket() latches it ONCE per market day at the first trestle and empties it into mkShelf; marketRaise(i) gates on mkTrades(i) (MK_NEED [0,4,13] units) so a thin year brings out one or two stalls and stall 0 can stand behind an empty board. Each pitch is a real vegetable in its own colour and size (MK_R); half the surplus over MK_CAP 18 keeps to the next market; mkLine() names the crop. census planting.produce. probes/market-year.mjs, market-shots.mjs"
     ],
     "street": [
       "cross street with two footways, roadway, curbs, street lamps, four street trees in stone pits (TREE_PITS, drawLaneTree)",
@@ -397,6 +399,18 @@
     {
       "id": "c55",
       "note": "On a ?pause page the sill's TEXT never refreshes: refreshStats() runs from statAcc += dt with dt 0, and the load-time call happens before updateClock(), so a ?t=175&pause page reads 'Day 1 · Dawn' while __census() says day 3. Pre-existing, verified identical on HEAD, harness-only — but any future gate that reads the sill DOM instead of the hook will be reading the opening frame.",
+      "raisedBy": 27,
+      "seenBy": 0
+    },
+    {
+      "id": "c56",
+      "note": "The initial scatter puts flowers into allotment beds (seed 42 opens with a fern in the block, seed 7 a fern and a lavender), so a fern can be harvested, ride the basket and reach a market board. speciesFor() only filters NEW sowing, not the opening scatter.",
+      "raisedBy": 27,
+      "seenBy": 0
+    },
+    {
+      "id": "c57",
+      "note": "Drawing consumes R(): on a ?pause page frozen at simT 300, R() reads 0.110 after 2 drawn frames and 0.746 after 40. Every probe that round-trips to the host between measurements (screenshot, boundingBox, waitForFunction) is walking the seeded stream by however many frames the machine delivered. Pre-existing and untouched; several probes in probes/ round-trip.",
       "raisedBy": 27,
       "seenBy": 0
     }
