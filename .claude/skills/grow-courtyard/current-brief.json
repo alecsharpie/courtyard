@@ -20,7 +20,7 @@
   "avoid": "Do not widen `sun`. Night is not a dimmer day — the market and the allotments are shut for good reasons and reopening them is the cheap version of this brief. Build one evening place with its own hours and its own branch, and let the rest stay closed. Two laws bind hard: an event people must WALK to is bounded at both ends by things that are not the event (#32 — eastOpen closes the far bank at daylight 0.16, so anything east runs on a shorter clock than you think), and trip length sets standing population while the cap only sets inflow, so a 40 s evening round trip leaves its walkers on screen at 03.00. Check laneCap before adding an arrival source, and remember POP_FLOOR/scarcity already lifts arrival rates when the town is thin — measure with that in mind or you will credit yourself with its people.",
   "budgetMin": 35,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 33,
   "issued": "2026-08-04T06:02:13.631Z",
