@@ -374,7 +374,8 @@
       "EVERY sitter reads the sky — SIT_REFUSE turns a seat down, skyLifts(a) gives one up off a.wary, umbrellas on their own band. Gate on what you are DOING, not a.street; a refused seat takes routeToExit(); a pair judges once (a.mate). probes/seats-out.mjs",
       "__entities() carries role, act, watch, raindrops and per-kind extras per person, with a stable id — the seam a behaviour probe reads instead of a bespoke hook",
       "yearBusy(ex) multiplies the DAYLIGHT term of capacity/laneCap/eastCap only (EX_COURT/EX_LANE/EX_EAST; eastCap keeps min 7). POP_FLOOR + scarcity lift the three arrival RATES only. probes/season-year.mjs",
-      "two crowds with their OWN arrival source, outside eastCount and laneCount: the concert audience (spawnConcertAgent, BAND_TICK, nine BAND_SLOTS, a.leaveAt) and the evening door (spawnTapAgent, four TAP_SLOTS, a.tap, tapServing() stops TAP_LAST h before the shut)"
+      "two crowds with their OWN arrival source, outside eastCount and laneCount: the concert audience (spawnConcertAgent, BAND_TICK, nine BAND_SLOTS, a.leaveAt) and the evening door (spawnTapAgent, four TAP_SLOTS, a.tap, tapServing() stops TAP_LAST h before the shut)",
+      "somebody goes HOME — HOME_DOORS (8, row 64, drawFrontDoor under a window); goHome(a) asked ONCE in stepAgent on the lane's last leg at nightF > 0.3, priced by pathHours() vs HOME_MIN/dawn edge; HOMES register read by windowLit (windowHours() the hash half): dark on the way, lit on arrival for the hash's span. probes/going-home.mjs, going-home-shots.mjs"
     ],
     "sill": [
       "the SILL under the canvas — #plate, #daytime, #season, #ticker (an ordered queue: TICK_DWELL 2.5 real s, cap 2, follow-ons wait for lineDwell), #stats, #ctrl; hidden under 640px except during an invitation. A ResizeObserver on the frame — the sill BORROWS space with no resize event",
@@ -432,6 +433,24 @@
     {
       "id": "c84",
       "note": "bunting flags ~3px at 1x — flutter only reads on a contact sheet; consider larger flags",
+      "raisedBy": 47,
+      "seenBy": 0
+    },
+    {
+      "id": "c85",
+      "note": "after dark the town holds 6–9 agents and under one askable leaver a night, so goHome fires ~1×/night; a night arrival source (people coming home FROM off-frame to a door) is the supply the windows are waiting for",
+      "raisedBy": 47,
+      "seenBy": 0
+    },
+    {
+      "id": "c86",
+      "note": "swans rest by the bank at nightF > 0.6 (one line in updateSwans) — unprobed beyond the motion gate",
+      "raisedBy": 47,
+      "seenBy": 0
+    },
+    {
+      "id": "c87",
+      "note": "row-64 windows are drawn live and then night-tinted, so a lit pane there lands at (127,118,116) — half the cached windows' warmth",
       "raisedBy": 47,
       "seenBy": 0
     }

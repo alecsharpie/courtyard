@@ -1770,13 +1770,22 @@ function stepAgent(a, dt){
   if (a.greet > 0){ a.greet = Math.max(0, a.greet - dt); stepDog(a, a.speed, dt); return; }
   const tgt = a.i < a.wp.length ? a.wp[a.i] : null;
   if (!tgt){ a.done = true; return; }
+  // the ONE place a leaver is asked home: on the lane, after dark, as the last leg (the
+  // walk off the frame) begins — every route out of the town passes this point, and a
+  // plain passer-by's whole route IS that leg, so they are asked on their first step;
+  // whoever is already walking out when the dusk edge crosses 0.3 is asked then.
+  if (a.i === a.wp.length - 1 && !a.homeAsked && nightF > 0.3 && !a.home && !a.cycle && !a.east
+      && !a.broom && a.y > 65 && a.y < 79){ a.homeAsked = true; if (goHome(a)) return; }
   const dx = tgt[0] - a.x, dy = tgt[1] - a.y;
   const d = Math.hypot(dx, dy);
   const sp = a.speed * (raining && !a.umbrella ? 1.5 : 1) * (a.kind === 'napper' ? 0.8 : 1)
                      * (a.east && !eastOpenFor(a) ? 1.55 : 1);   // home before dark
   if (d < 0.25){
     a.i++;
+    // the ONE place a leaver is asked home: on the lane, after dark, as the last leg
+    // (the walk off the frame) begins — every route out of the town passes this point.
     if (a.i >= a.wp.length){
+      if (a.home){ arriveHome(a); a.done = true; return; }   // at the door: in they go
       if (a.kind === 'gardener' && !a.planted){ a.state='kneel'; a.timer=8+R()*4; return; }
       if (a.kind === 'napper' && a.napAt){ a.state='lie'; a.timer=16+R()*14; a.napAt=null;
         if (R()<0.6) announce('Asleep under the tree within minutes.'); return; }
@@ -2218,6 +2227,53 @@ function callIn(a, pts, durMin, durMax){
   a.wp = path.concat([[laneEdge(), LANE_N_Y]]); a.i = 0; a.state = 'walk';
   return true;
 }
+/* ============ going home ============ *
+ * Until now every leaver walked off the frame and every window lit on its own. Eight
+ * front doors on the lane's north fronts, each under a window of row 64 (the courtyard
+ * block's own south face and the terrace east of it; none within the tap's four places
+ * at 24.6–29.3, none over the arch). After the dusk edge a share of the people who
+ * LEAVE — asked once, on the lane, as the last leg off the frame begins (stepAgent) —
+ * go to one of these instead, if the walk fits: the door must be
+ * unused tonight, its window home tonight, and the arrival HOME_MIN before the dawn
+ * edge — the register moves a light, never invents one. Priced with pathHours() (the
+ * brief asked for arrival BEFORE `on`, and priced that is nothing: a sim hour is 2.3 s,
+ * 5.5 cells; `on` is 0.15–2 h after dusk and the lane is ~25 h wide, so over ten
+ * seed-nights 0 of 41 leavers fitted even 3 h late). So the window waits: dark until
+ * they are in, then burns the evening the hash gave it from the moment they are in.
+ * The share is a stable per-person hash (speed is R()-drawn once at spawn), not a new
+ * R() draw: a refusal spends nothing. */
+const HOME_SHARE = 0.6;                          // of dusk leavers who would rather go home than off-frame
+const HOME_MIN = 1.2;                            // hours a window must have left to burn after they are in, before the dawn edge
+const HOME_LATE = 3;                             // hours past the priced arrival a window stays dark for them (a greet or two on the way)
+const HOME_DOORS = [4, 22, 36, 43, 53, 60, 88, 99].map(x => ({ x, y: 64, sa: x, sb: 64, nid: -1 }));
+function homeDoorAt(gx, y){ return y === 64 && HOME_DOORS.some(d => d.x === gx); }
+function goHome(a){
+  if (nightF <= 0.3) return false;
+  if (hash(Math.round(a.speed * 1e4), 53) >= HOME_SHARE) return false;
+  const n = nightAt();
+  let best = null, bestH = Infinity;
+  for (const d of HOME_DOORS){
+    if (d.nid === n.nid) continue;                // somebody already went in there tonight
+    const w = windowHours(d.sa, d.sb);
+    if (!w) continue;                             // nobody home tonight: an arrival would light an empty house
+    const path = [[d.x + 0.5, LANE_N_Y], [d.x + 0.5, 65.35]];
+    const h = pathHours(a.x, a.y, path, a.speed);
+    const at = w.t + h;
+    if (at + HOME_MIN >= w.last) continue;        // too far: the night would be over before their lamp had burned
+    if (h < bestH){ bestH = h; best = { d, path, at }; }
+  }
+  if (!best) return false;
+  best.d.nid = n.nid;
+  HOMES.set(best.d.sa * 1000 + best.d.sb, { nid: n.nid, t: null, due: best.at });
+  a.home = best.d; a.wp = best.path; a.i = 0; a.state = 'walk';
+  if (a.slot){ a.slot.taken = 0; a.slot = null; }
+  return true;
+}
+function arriveHome(a){                          // at the door: in they go, and the window over it lights
+  const n = nightAt();
+  HOMES.set(a.home.sa * 1000 + a.home.sb, { nid: n.nid, t: n.t, due: n.t });
+  a.home = null;
+}
 /* The trader: when the LAST stall is folded, one figure walks from that pitch to the
  * door — once per market, and only if the walk fits. The sweeper's opposite number:
  * the dawn sweeper works the lane before the town wakes; after a market this one works
@@ -2461,8 +2517,9 @@ function updateSwans(dt){
     s.ph += dt * 1.4;
     s.t -= dt;
     if (s.t <= 0){
-      const r = s.state === 'swim' ? R() : 1;   // a pose is always followed by a swim
+      let r = s.state === 'swim' ? R() : 1;     // a pose is always followed by a swim
       const nearBank = Math.min(s.x - x0, x1 - s.x) < SWAN_BANK;
+      if (nightF > 0.6) r = SWAN_UPEND + 1e-3;   // after dark: rest by the bank (preen there, or swim to it)
       if (r < SWAN_UPEND){                                   // upend where it floats
         s.state = 'upend'; s.t = 3 + R() * 2; s.tx = s.x; s.ty = s.y;
       } else if (r < SWAN_UPEND + SWAN_PREEN && nearBank){   // preen: at rest by the bank
@@ -2968,20 +3025,46 @@ function drawChimney(g, x, y){
  * fill and the LIT[] glow both read it. Variance is hash(), never R(): this is the
  * renderer. */
 const NIGHT_K = Math.asin(0.4375) / Math.PI;       // nightF 0.3 = 1 - 1.6*daylight -> daylight 0.4375
-function windowLit(sa, sb){
-  if (nightF <= 0.3) return false;
+function nightAt(){                                // the night's own clock: id, hours since the dusk edge, its span
   const duskAt = sunDown - NIGHT_K * dayHours;
   const span = 24 - dayHours + 2 * NIGHT_K * dayHours;   // dusk edge -> dawn edge, hours
   const nid = (hour >= 6 && hour < duskAt) ? day - 1 : day;
-  if (hash(sa * 3, sb * 7 + nid) <= 0.42) return false;   // nobody home tonight
   const t = (hour - duskAt + 24) % 24;
-  const hOn = hash(sa * 5 + 1, sb * 11 + nid), hBed = hash(sa * 7 + 2, sb * 13 + nid);
-  const on = 0.15 + 1.85 * hOn;                           // lamps go on as it darkens
-  const last = span - 0.05 - 0.9 * hOn;                   // and out again, one by one, before the edge
-  const off = hBed > 0.95 ? last : on + 1.2 + 6.8 * hBed * hBed;   // bedtime; a few burn through
-  if (t >= on && t < off) return true;
-  const hRise = hash(sa * 11 + 3, sb * 17 + nid);
-  if (hRise < 0.14 && t >= span - 0.6 - 1.6 * hRise / 0.14 && t < last) return true;  // early risers
+  return { nid, t, span };
+}
+function windowHours(sa, sb){                      // null = nobody home tonight; else the window's own hours
+  const n = nightAt();
+  if (hash(sa * 3, sb * 7 + n.nid) <= 0.42) return null;
+  const hOn = hash(sa * 5 + 1, sb * 11 + n.nid), hBed = hash(sa * 7 + 2, sb * 13 + n.nid);
+  n.on = 0.15 + 1.85 * hOn;                               // lamps go on as it darkens
+  n.last = n.span - 0.05 - 0.9 * hOn;                     // and out again, one by one, before the edge
+  n.off = hBed > 0.95 ? n.last : n.on + 1.2 + 6.8 * hBed * hBed;   // bedtime; a few burn through
+  n.hRise = hash(sa * 11 + 3, sb * 17 + n.nid);
+  return n;
+}
+/* Somebody is behind a few of these. HOMES is the one live register: (sa,sb) -> the
+ * night somebody is walking to that door and, once they are in, the hour they went in
+ * (goHome / arriveHome). The ONLY thing it may do is move that window's `on` to the
+ * evening to the arrival — held dark while they are on their way (a light nobody is
+ * behind is the thing this replaces), lit the frame they go in, out after the span the
+ * hash gave it or at the dawn edge — and the burn-through and early rise stay the hash's. A door is only chosen for a window that is home
+ * tonight, with the arrival HOME_MIN clear of the dawn edge and the same lit span,
+ * so nothing lights here that windowLit would not have lit that night anyway. Reads
+ * are hash+clock+register: no R(). If they never arrive (nothing ends a walk home but
+ * the door, but defend it), the hash's hour resumes HOME_LATE past the priced arrival. */
+const HOMES = new Map();
+function windowLit(sa, sb){
+  if (nightF <= 0.3) return false;
+  const w = windowHours(sa, sb);
+  if (!w) return false;
+  const home = HOMES.get(sa * 1000 + sb);
+  let on = w.on, off = w.off;
+  if (home && home.nid === w.nid){
+    if (home.t !== null){ on = home.t; off = Math.min(w.last, home.t + (w.off - w.on)); }   // in: the hash's evening, from the door
+    else on = w.t < home.due + HOME_LATE ? Infinity : w.on;                                   // on their way: dark
+  }
+  if (w.t >= on && w.t < off) return true;
+  if (w.hRise < 0.14 && w.t >= w.span - 0.6 - 1.6 * w.hRise / 0.14 && w.t < w.last) return true;  // early risers
   return false;
 }
 /* The pane and its mullions, drawn twice over: once dark into the cached ground layer
@@ -3059,19 +3142,23 @@ function drawFaceRow(g, y){
     if ((slot === 1 || slot === 4) && hash(gx, y * 7) > 0.12){
       drawWindow(g, x + 0.5, y + 1, e * 0.86, e * 0.30, gx, y);
       if (e > 4.2 && hash(gx, y * 9) > 0.2) drawWindow(g, x + 0.5, y + 1, e * 0.48, e * 0.28, gx, y + 40);
+      if (homeDoorAt(gx, y)) drawFrontDoor(g, x, y, e * 0.34 * 0.86);   // the door somebody comes home to
     } else if (slot === 6 && hash(gx, y * 13) > 0.45){
-      const dw = 0.34, dh = e * 0.34;                          // a front door
-      const p1 = project(x + 0.5 - dw, y + 1, dh), p2 = project(x + 0.5 + dw, y + 1, dh);
-      const p3 = project(x + 0.5 + dw, y + 1, 0), p4 = project(x + 0.5 - dw, y + 1, 0);
-      g.fillStyle = 'rgba(238,231,214,.75)'; poly(g, [p1, p2, p3, p4]); g.fill();
-      const q1 = project(x + 0.5 - dw * 0.72, y + 1, dh * 0.92), q2 = project(x + 0.5 + dw * 0.72, y + 1, dh * 0.92);
-      const q3 = project(x + 0.5 + dw * 0.72, y + 1, 0), q4 = project(x + 0.5 - dw * 0.72, y + 1, 0);
-      g.fillStyle = ['#4a5f5a', '#6b3f38', '#3d4a63', '#5a4a34'][(hash(gx, 17) * 4) | 0];
-      poly(g, [q1, q2, q3, q4]); g.fill();
-      g.fillStyle = '#d8c98a';
-      g.beginPath(); g.arc(q2[0] - 2, (q2[1] + q3[1]) / 2, 1.2, 0, 7); g.fill();
+      drawFrontDoor(g, x, y, e * 0.34);
     }
   }
+}
+function drawFrontDoor(g, x, y, dh){
+  const dw = 0.34;
+  const p1 = project(x + 0.5 - dw, y + 1, dh), p2 = project(x + 0.5 + dw, y + 1, dh);
+  const p3 = project(x + 0.5 + dw, y + 1, 0), p4 = project(x + 0.5 - dw, y + 1, 0);
+  g.fillStyle = 'rgba(238,231,214,.75)'; poly(g, [p1, p2, p3, p4]); g.fill();
+  const q1 = project(x + 0.5 - dw * 0.72, y + 1, dh * 0.92), q2 = project(x + 0.5 + dw * 0.72, y + 1, dh * 0.92);
+  const q3 = project(x + 0.5 + dw * 0.72, y + 1, 0), q4 = project(x + 0.5 - dw * 0.72, y + 1, 0);
+  g.fillStyle = ['#4a5f5a', '#6b3f38', '#3d4a63', '#5a4a34'][(hash(x, 17) * 4) | 0];
+  poly(g, [q1, q2, q3, q4]); g.fill();
+  g.fillStyle = '#d8c98a';
+  g.beginPath(); g.arc(q2[0] - 2, (q2[1] + q3[1]) / 2, 1.2, 0, 7); g.fill();
 }
 function drawBlocks(g, y0, y1){
   for (let y = y0; y < y1; y++){
@@ -5481,6 +5568,7 @@ function personName(a){
   if (st === 'stand') return a.watch > 0 ? 'someone watching the boat go by'
                           : k === 'browser' ? 'someone browsing' : 'someone standing about';
   const who = k === 'kid' ? 'a child' : k === 'dogwalker' ? 'someone with a dog' : k === 'gardener' ? 'the gardener' : 'someone';
+  if (a.home) return who + ', heading home';
   if (a.umbrella) return who + ', walking under an umbrella';
   if (a.watch > 0) return who + ', walking with an eye on the river';
   return who + (k === 'kid' ? ', running about' : ', walking');
@@ -5897,6 +5985,7 @@ window.__entities = function(){
   take(agents.filter(a => a.kind !== 'sweeper'), 'walker',
        (o, a) => { o.act = a.state; o.role = a.kind; o.watch = a.watch > 0 ? 1 : 0;
                    if (a.tap){ o.tap = 1; if (a.caller) o.caller = 1; }
+                   if (a.home) o.home = 1;
                    // the audience on the green. A probe has to tell a listener from a
                    // passer-by, and a listener standing AT its claimed place from one
                    // that drifted off it — which is the exact inverse of cue c49's bug.
