@@ -1,22 +1,23 @@
 {
-  "id": "b40",
-  "domain": "The sill & the observer",
-  "kind": "Harness",
-  "brief": "Three instrument lies, one file class. (1) `filmstrip.mjs --scene night` pins t=1230 s, which is day 22.4 hour ~14.7 — the night preset is a day strip; re-pin it to a real night instant (a mid-night hour on a whole day, chosen by the same rule the other presets use) and say in the file how the number was derived. (2) `runlog.mjs` grades a Harness brief 'no-ship' because srcChanged is false — #38 shipped and the dashboard says it failed; make the verdict read the brief's kind so a harness iteration that committed and logged is 'shipped' without source movement (a harness brief that DID touch courtyard.html should still be flagged). (3) A worker that ran >30 s with tokens and exited non-zero currently retires its brief as 'failed'; decide (and document in run-loop.sh) whether it is re-issued once or retired — the cheap, honest rule is one retry, then retire with the rc in the row.",
+  "id": "b41",
+  "domain": "People & animals",
+  "kind": "Deepen",
+  "brief": "The swans carry no behaviour — `updateSwans` gives each a `ph` and a wander target and nothing else, they are announced as 'a pair' but pick targets independently, and #42's naming can only say 'a swan'. Give them states the way ducks have `swimming`: a pair that holds together (the second swan targets within a few cells of the first), an UPEND (tail up, head under, a few seconds, drawn as the body tilted with no neck) and a PREEN at rest near the bank, each a state the draw reads and `personName`/`livingAt` can say ('a swan, upended', 'a swan, preening'). Rates so that in a thirty-second look at the river you usually see one of them doing something.",
   "seams": [
-    "filmstrip.mjs",
-    "runlog.mjs",
-    "run-loop.sh",
-    "pop-brief.mjs",
-    "stall.mjs"
+    "updateSwans",
+    "swans",
+    "drawSwan",
+    "livingAt",
+    "personName",
+    "updateDucks"
   ],
-  "successLooksLike": "The night filmstrip shows lit windows and lamp pools; `runlog.mjs` re-run over RUNLOG.jsonl reads #38 as shipped and no other row changes; a simulated rc=1 worker with tokens>0 is handled by the documented rule.",
-  "avoid": "Do not touch courtyard.html. Do not re-grade any row other than harness rows.",
-  "budgetMin": 15,
+  "successLooksLike": "Over ten seeds × one day the pair's mean separation is a few cells not twenty; each swan spends a measurable share of the day upended or preening; the sill names both states; motion gate clean.",
+  "avoid": "Do not add swans (two is the pair). Any new R() draw reshuffles the world — read the census for collapse, not delta.",
+  "budgetMin": 20,
   "risk": "low",
-  "status": "done",
+  "status": "active",
   "attempts": 1,
-  "nextIter": 43,
-  "issued": "2026-08-28T12:18:53.531Z",
+  "nextIter": 44,
+  "issued": "2026-08-28T12:28:04.655Z",
   "fromPlan": "2026-08-28T12:40:00.000Z"
 }

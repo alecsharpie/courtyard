@@ -2276,26 +2276,64 @@ function updateDucks(dt){
     d.swimming = Math.hypot((d.x - POND.x) / POND.rx, (d.y - POND.y) / POND.ry) < 1;
   }
 }
+// The swans are a PAIR with three states the draw and the sill both read:
+//   swim   — the cob (swans[0]) picks a stretch of river; the pen (swans[1]) picks a
+//            spot 1.3–3 cells off the cob's target, so they hold together but never
+//            render as one shape (the 0.9-cell law)
+//   upend  — tail up, head under: the body tilts and the neck goes, 3–5 s, in place
+//   preen  — at rest within SWAN_BANK of either bank, neck folded back, 5–8 s
+// Each decision is one R() on the same half of [0,1) it always owned — swim stays
+// the default, the two new states take a slice each; a swan too far out to preen swims
+// to the bank instead, so 'preen' is what happens NEXT when it gets there.
+const SWAN_BANK = 2.2, SWAN_UPEND = 0.22, SWAN_PREEN = 0.20;
 function updateSwans(dt){
   const want = day >= 1 ? 2 : 0;
-  while (swans.length < want)
-    swans.push({x:RIVER_X0 + 2 + R() * (RIVER_X1 - RIVER_X0 - 4), y:10 + R() * 40,
-                ph:R() * 9, t:0, tx:0, ty:0});
+  while (swans.length < want){
+    const c = swans[0];   // the pen arrives beside the cob, not somewhere else on the river
+    swans.push(c ? {x:clamp(c.x + 1.5, RIVER_X0 + 1.6, RIVER_X1 - 1.6), y:c.y + 0.8, ph:R() * 9, t:0, tx:0, ty:0, state:'swim', hold:0}
+                 : {x:RIVER_X0 + 2 + R() * (RIVER_X1 - RIVER_X0 - 4), y:10 + R() * 40,
+                    ph:R() * 9, t:0, tx:0, ty:0, state:'swim', hold:0});
+  }
   while (swans.length > want) swans.pop();
-  for (const s of swans){
+  const x0 = RIVER_X0 + 1.6, x1 = RIVER_X1 - 1.6;
+  for (let i = 0; i < swans.length; i++){
+    const s = swans[i];
     s.ph += dt * 1.4;
     s.t -= dt;
     if (s.t <= 0){
-      s.t = 6 + R() * 8;
-      s.tx = RIVER_X0 + 1.6 + R() * (RIVER_X1 - RIVER_X0 - 3.2);
-      s.ty = clamp(s.y + (R() - 0.5) * 18, 5, 58);
-      if (R() < 0.03) announce('A pair of swans work their way up the river, unhurried.');
+      const r = s.state === 'swim' ? R() : 1;   // a pose is always followed by a swim
+      const nearBank = Math.min(s.x - x0, x1 - s.x) < SWAN_BANK;
+      if (r < SWAN_UPEND){                                   // upend where it floats
+        s.state = 'upend'; s.t = 3 + R() * 2; s.tx = s.x; s.ty = s.y;
+      } else if (r < SWAN_UPEND + SWAN_PREEN && nearBank){   // preen: at rest by the bank
+        s.state = 'preen'; s.t = 5 + R() * 3; s.tx = s.x; s.ty = s.y;
+      } else {
+        s.state = 'swim'; s.t = i === 0 ? 6 + R() * 8 : 2.5 + R() * 3;   // the pen re-reads the cob often
+        if (r < SWAN_UPEND + SWAN_PREEN && r < 1){                     // wanted to preen: make for the near bank
+          s.tx = s.x - x0 < x1 - s.x ? x0 + R() * 1.2 : x1 - R() * 1.2;
+          s.ty = clamp(s.y + (R() - 0.5) * 6, 5, 58);
+        } else if (i === 0){                                  // the cob chooses the stretch
+          s.tx = x0 + R() * (x1 - x0);
+          s.ty = clamp(s.y + (R() - 0.5) * 18, 5, 58);
+        } else {                                              // the pen keeps company
+          const c = swans[0], th = R() * Math.PI * 2, rr = 1.3 + R() * 1.7;
+          s.tx = clamp(c.tx + Math.cos(th) * rr, x0, x1);
+          s.ty = clamp(c.ty + Math.sin(th) * rr, 5, 58);
+        }
+        if (R() < 0.03) announce('A pair of swans work their way up the river, unhurried.');
+      }
     }
+    // hold: 0..1 intensity of the pose, so the draw tilts in and out rather than snapping
+    s.hold = clamp(s.hold + (s.state === 'swim' ? -dt : dt) * 2.5, 0, 1);
     const d = Math.hypot(s.tx - s.x, s.ty - s.y);
-    if (d > 0.1){
-      const sp = 0.42 * dt;
+    if (d > 0.1 && s.state === 'swim'){
+      const sp = (i === 0 ? 0.42 : 0.5) * dt;
       s.x += (s.tx - s.x) / d * Math.min(sp, d);
       s.y += (s.ty - s.y) / d * Math.min(sp, d);
+    }
+    if (i === 1){   // two shapes nearer than 0.9 cells read as one: the pen gives way
+      const c = swans[0], dx = s.x - c.x, dy = s.y - c.y, dd = Math.hypot(dx, dy) || 0.01;
+      if (dd < 0.9){ s.x = clamp(c.x + dx / dd * 0.9, x0, x1); s.y = clamp(c.y + dy / dd * 0.9, 5, 58); }
     }
   }
 }
@@ -4176,18 +4214,36 @@ function drawSwan(it){
   const s = it.s;
   const [x, y] = project(s.x, s.y, 0);
   const sc = cellW / 11;
+  const up = s.state === 'upend' ? s.hold : 0, pr = s.state === 'preen' ? s.hold : 0;
   ctx.strokeStyle = 'rgba(232,242,240,.32)'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.arc(x, y + 2 * sc, 6 * sc, -0.7, 0.7); ctx.stroke();
-  const bob = Math.sin(s.ph) * 0.6;
+  if (up > 0.5){   // the ring an upended swan spreads
+    ctx.beginPath(); ctx.ellipse(x, y + 0.5 * sc, (5 + 2 * up) * sc, (2 + up) * sc, 0, 0, 7); ctx.stroke();
+  }
+  const bob = Math.sin(s.ph) * 0.6 * (1 - up);
   ctx.fillStyle = '#f2f0e8';
-  ctx.beginPath(); ctx.ellipse(x, y - 2 * sc - bob, 4.6 * sc, 2.6 * sc, 0, 0, 7); ctx.fill();
-  ctx.strokeStyle = '#f2f0e8'; ctx.lineWidth = Math.max(1.4, 1.5 * sc);
-  ctx.beginPath();
-  ctx.moveTo(x + 2.5 * sc, y - 3.4 * sc - bob);
-  ctx.quadraticCurveTo(x + 6 * sc, y - 6 * sc - bob, x + 4.6 * sc, y - 9 * sc - bob);
-  ctx.stroke();
-  ctx.fillStyle = '#e8952e';
-  ctx.beginPath(); ctx.arc(x + 5.2 * sc, y - 9.4 * sc - bob, 1.3 * sc, 0, 7); ctx.fill();
+  // upend: the body tips tail-up (rotated, lifted at the stern) and the neck is under
+  ctx.beginPath(); ctx.ellipse(x - 1.2 * up * sc, y - (2 + 1.5 * up) * sc - bob, (4.6 - 1.4 * up) * sc, (2.6 + 0.8 * up) * sc, -0.9 * up, 0, 7); ctx.fill();
+  if (up > 0){   // the tail, up out of the water
+    ctx.beginPath();
+    ctx.moveTo(x - 4.2 * sc, y - 3 * sc);
+    ctx.lineTo(x - (4.8 + 1.4 * up) * sc, y - (3.6 + 4.5 * up) * sc);
+    ctx.lineTo(x - 2.4 * sc, y - (3.5 + 1.8 * up) * sc);
+    ctx.closePath(); ctx.fill();
+  }
+  if (up < 1){
+    ctx.save(); ctx.globalAlpha = 1 - up;
+    ctx.strokeStyle = '#f2f0e8'; ctx.lineWidth = Math.max(1.4, 1.5 * sc);
+    ctx.beginPath();
+    ctx.moveTo(x + 2.5 * sc, y - 3.4 * sc - bob);
+    // preen: the neck folds back over the wing, the bill down on the flank
+    const hx = x + (4.6 - 5.4 * pr) * sc, hy = y - (9 - 5.2 * pr) * sc - bob;
+    ctx.quadraticCurveTo(x + (6 - 1.5 * pr) * sc, y - (6 + 1.5 * pr) * sc - bob, hx, hy);
+    ctx.stroke();
+    ctx.fillStyle = '#e8952e';
+    ctx.beginPath(); ctx.arc(hx + (0.6 - 1.2 * pr) * sc, hy - (0.4 - 1.6 * pr) * sc, 1.3 * sc, 0, 7); ctx.fill();
+    ctx.restore();
+  }
 }
 function drawFountain(it, t){
   const [x, y] = project(FOUNTAIN.x, FOUNTAIN.y + 1.9, 0);
@@ -5186,7 +5242,8 @@ function livingAt(p){
     if (a.dog && cellAt(a.dog.x, a.dog.y) !== TUNNEL) hit(a.dog.x, a.dog.y, 0, 0.6, a.dog.y + 0.4, 'a dog, at heel');
   }
   for (const d of ducks) hit(d.x, d.y, 0, 0.6, d.y + 0.3, d.swimming ? 'a duck, on the pond' : 'a duck, out on the bank');
-  for (const s of swans) hit(s.x, s.y, 0, 0.8, s.y + 0.3, 'a swan, on the river');
+  for (const s of swans) hit(s.x, s.y, 0, s.state === 'upend' ? 0.7 : 0.8, s.y + 0.3,
+    s.state === 'upend' ? 'a swan, upended' : s.state === 'preen' ? 'a swan, preening' : 'a swan, on the river', 1.1);
   if (boat && (boat.y < 64.5 || boat.y > 79)) hit(boat.x, boat.y, 0, 1.4, boat.y + 0.6, 'the rowboat, going downriver');
   if (catA) hit(catA.x, catA.y, 0, 0.6, catA.y + 0.3, 'the cat, out along the lane');
   return best;
@@ -5579,7 +5636,7 @@ window.__entities = function(){
                    if (a.band){ o.band = 1;
                      o.slotD = +Math.hypot(a.x - a.slot.x, a.y - a.slot.y).toFixed(2); } });
   take(agents.filter(a => a.kind === 'sweeper'), 'sweeper');
-  take(ducks, 'duck'); take(swans, 'swan');
+  take(ducks, 'duck'); take(swans, 'swan', (o, s) => { o.act = s.state; });
   take(butterflies, 'butterfly'); take(fireflies, 'firefly');
   take(birds, 'bird'); take(leaves, 'leaf');
   if (balloon) take([balloon], 'balloon');
