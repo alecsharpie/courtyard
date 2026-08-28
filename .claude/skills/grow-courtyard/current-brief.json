@@ -15,7 +15,7 @@
   "avoid": "Do not add swans (two is the pair). Any new R() draw reshuffles the world — read the census for collapse, not delta.",
   "budgetMin": 20,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 44,
   "issued": "2026-08-28T12:28:04.655Z",
