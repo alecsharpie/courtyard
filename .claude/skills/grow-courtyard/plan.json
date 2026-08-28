@@ -15,25 +15,6 @@
   "rationale": "HELD RUNG 4. Pass #32 climbed to it for one reason — the world exists for ~60% of its own clock — and only half of that climb has landed: #33 built the first evening place, but every window in the town still switches on and off in the same frame, and 22.00 and 03.00 are the same picture. Re-planning the same batch is the one thing the ladder forbids ONLY as a response to a stall, and this is not a stall: three briefs were destroyed by the runner before any worker saw them, so re-issuing b36/b32/b33 verbatim (with a note that no prior attempt exists, or a worker will go looking for one) is recovery, not repetition. b38 goes at the head as a harness brief because the fault will recur on the next restart and the runlog is currently lying about it: a launch failure must not consume a brief, and a 0-token row must not be counted as an iteration by stall.mjs. It also carries c62 (motion.mjs split rises from falls), which is the same file class. b39 is the batch's new work and the one most likely to fail: c64 has been open since #33 and the naming — the loop's most visible observer tool — answers with the paving under a walker's feet, so the diorama can name a fern and cannot name a swan. Three of five briefs are domains 12+ back (sky, plaza, street); the fourth is the sill; none is courtyard, lane or river. Cost expectation: b33 and b38 cheap, b36/b39 medium, b32 the expensive one. Curation this pass: closed six cues (three no-yield, two promoted, one absorbed into a law), fixed an id collision (open c61 was not closed c61 — renumbered c68), merged life's two own-source crowds into one inventory entry (life was 9/8), archived #37 verbatim and trimmed #33/#37 to 1.6 KB each, and paid for two law promotions (#33 price-the-walk into the time-compression law; #37 + the old #21 duration law merged into one folded-time-mean law) by compressing five verbose laws — laws count stays 26, 11.9/12 KB.",
   "queue": [
     {
-      "id": "b33",
-      "domain": "Cross street & allotments",
-      "kind": "Polish",
-      "brief": "The allotment block is a vegetable block that does not contain only vegetables. The opening scatter seeds ornamentals into the plots — seed 42 opens with a fern in the block, seed 7 with a fern and a lavender — because speciesFor() filters only NEW sowing, not the initial scatter. Since #29 that matters in a way it did not before: harvestPlot() pays its cells into produce[], stockMarket() lays them out, and the town can now put a fern on a market stall as something a gardener grew to sell. Make the block vegetables from the first frame. NOTE: issued at #36 and consumed by a harness fault before any worker ran — no prior attempt exists.",
-      "seams": [
-        "speciesFor",
-        "plotCrop",
-        "inAllotment",
-        "harvestPlot",
-        "produce",
-        "mkShelf",
-        "SPECIES"
-      ],
-      "successLooksLike": "Over ten seeds, no non-vegetable species ever occupies an allotment plot at t=0 or reaches mkShelf at any point in a folded year, and the courtyard beds are unchanged — the same eleven species in the same proportions as HEAD, proven against a stashed baseline.",
-      "avoid": "Do not fix it by filtering at the market — that is a second predicate for what an allotment grows and it will drift from speciesFor(). Fix it where the block is populated. Expect the census to churn everywhere: any change to the opening scatter reshuffles the seeded world, so read the diff for collapse, not delta.",
-      "budgetMin": 20,
-      "risk": "low"
-    },
-    {
       "id": "b39",
       "domain": "The sill & the observer",
       "kind": "Interaction/UX",
@@ -69,6 +50,10 @@
     {
       "id": "b32",
       "at": "2026-08-28T11:57:23.665Z"
+    },
+    {
+      "id": "b33",
+      "at": "2026-08-28T12:03:14.673Z"
     }
   ]
 }
