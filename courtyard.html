@@ -1717,7 +1717,7 @@ function stepAgent(a, dt){
     if (a.band && !a.heard && bandF() > 0.98) a.heard = true;
     if (a.timer <= 0 || (raining && a.state !== 'lie')
         || skyLifts(a)
-        || (a.east && !eastOpen())
+        || (a.east && !eastOpenFor(a))
         || (a.tap && !tapOpen())
         || (a.band && (bandF() <= 0 || (a.heard && bandF() < a.leaveAt)))){
       if (a.blanket){ a.blanket = false; }
@@ -1741,7 +1741,7 @@ function stepAgent(a, dt){
   const dx = tgt[0] - a.x, dy = tgt[1] - a.y;
   const d = Math.hypot(dx, dy);
   const sp = a.speed * (raining && !a.umbrella ? 1.5 : 1) * (a.kind === 'napper' ? 0.8 : 1)
-                     * (a.east && !eastOpen() ? 1.55 : 1);   // home before dark
+                     * (a.east && !eastOpenFor(a) ? 1.55 : 1);   // home before dark
   if (d < 0.25){
     a.i++;
     if (a.i >= a.wp.length){
@@ -2162,15 +2162,30 @@ const EAST_GATE_A = [96.3, ALLEY_Y + 0.4],   // in through the alley cut, from t
 // one predicate, three readers: nobody sets out for the far side after this, anyone
 // still sitting there gets up, and anyone walking home does it briskly.
 function eastOpen(){ return daylight > 0.16; }
-function spawnEastAgent(){
+/* ONE stop stays open after dark: the quay rail, for as long as the tap is serving
+ * (the only other thing awake at that hour). Priced: the dark half of the tap's hours
+ * is ~14 s in summer and the rail is the shortest walk the far side has — 7–13 cells
+ * from the quay head, 4–7 s each way — so a night stander is held to the north end
+ * of the rail, ONE at a time, and spawns outside eastCap (1 after dark, and held),
+ * and eastOpenFor(a) is what the three eastOpen() readers ask, so nobody else gets
+ * to stand in the dark. */
+const NIGHT_RAIL_RATE = 0.22;                // per second, while nobody is at the rail
+function eastOpenFor(a){ return eastOpen() || (a.nightRail && tapOpen()); }
+function nightRailFree(){ return !agents.some(a => a.nightRail); }
+function spawnEastAgent(nightRail){
   const a = {
     kind:'plaza', street:true, east:true,
     x:0, y:0, wp:[], i:0, speed:1.5 + R() * 0.8, state:'walk', timer:0,
     shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9, wary:R(),
   };
-  const roll = R();
+  const roll = nightRail ? 0.5 : R();        // the rail is the quay branch
   let gate, lead;
-  if (roll < 0.32){                          // into the plaza: a bench, or the fountain
+  if (nightRail){                            // after dark: the lit water from the rail
+    a.kind = 'quay'; a.nightRail = true;
+    a.stop = {x:112.9, y:5 + R() * 6, act:'stand', dur:5 + R() * 4,
+      say: R() < 0.2 ? 'Someone stands at the quay rail after dark, watching the lamps break up in the water.' : null};
+    gate = EAST_GATE_Q; lead = [[112.9, 4]];
+  } else if (roll < 0.32){                   // into the plaza: a bench, or the fountain
     a.kind = 'plaza';
     if (R() < 1 - 0.5 * fountainStand()){
       const b = pick(PLAZA_BENCHES);
@@ -2659,6 +2674,11 @@ function drawClouds(g, hz){
   }
   g.globalAlpha = 1;
 }
+// the moon's 0..1 arc, read by the disc and by its reflection so the two agree
+function moonArc(){
+  const mUp = sunDown - 1.4, mSpan = 24 - dayHours + 2.8;
+  return clamp(((hour - mUp + 24) % 24) / mSpan, 0, 1);
+}
 function drawSunMoon(g, hz, top){
   const sa = sunArc;                                 // the same arc the shading reads
   const veil = 1 - 0.82 * cloudCover();              // cover swallows the disc
@@ -2683,8 +2703,7 @@ function drawSunMoon(g, hz, top){
     // narrows. It opens 1.4 h before sunset and closes 1.4 h after sunrise so it is
     // already climbing by the time daylight drops under 0.02 and the disc appears —
     // start it exactly at sunset and the moon teleports on its first drawn frame.
-    const mUp = sunDown - 1.4, mSpan = 24 - dayHours + 2.8;
-    const ma = clamp(((hour - mUp + 24) % 24) / mSpan, 0, 1);
+    const ma = moonArc();
     const mx = W * (0.86 - 0.72 * ma), my = hz - Math.sin(Math.PI * ma) * hz * 0.66;
     const gl = g.createRadialGradient(mx, my, 0, mx, my, cellW * 7);
     gl.addColorStop(0, 'rgba(210,225,255,' + (0.28 * nightF * veil) + ')');
@@ -4375,6 +4394,51 @@ function drawRiverFlow(t){
   }
   ctx.stroke();
 }
+/* ============ the night on the water ============ *
+ * The lamps threw pools on the stone and nothing on the river; the moon lit a sky the
+ * water never answered. Each light by the water now has a broken reflection: a column
+ * of short bars under it, chopped by hash() and slid downstream on the same clock the
+ * streaks use, so it breaks and re-forms with the current. Brightness rides nightF;
+ * the moon's rides its height too and is off below the horizon; cloudCover() puts
+ * both out the way it puts the stars out. Drawn in the night 'screen' pass beside the
+ * lamp pools, not in drawRiverFlow — under the multiply a warm bar comes out blue.
+ * nightF is 0 by day, so the noon frame is untouched. hash() and the clock only. */
+const RIVER_LAMPS = LANE_LAMPS.filter(L => Math.abs(L[0] - RIVER_X0) < 2 || Math.abs(L[0] - RIVER_X1) < 2.4);
+function drawRiverLights(t){
+  const veil = 1 - cloudCover();
+  if (nightF < 0.03 || veil < 0.05) return;
+  const run = riverRun();
+  const slide = t * FLOW_SPEED * run;
+  ctx.lineWidth = 1.5;
+  const column = (lx, ly, len, col, al, spread, n) => {
+    const fx0 = clamp(lx, RIVER_X0 + 0.8, RIVER_X1 - 0.8);
+    ctx.strokeStyle = col;
+    ctx.beginPath();
+    for (let k = 0; k < n; k++){
+      // each bar has its own downstream phase, so the column never moves as one
+      const ph = (slide * (0.5 + hash(k, 47) * 0.7) + hash(k, 53) * len) % len;
+      const fy = ly + 0.4 + ph, fx = fx0 + (hash(k, 59) - 0.5) * spread;
+      if (fy > WH - 0.5 || (fy > 63.5 && fy < 79.5)) continue;
+      if (fy > 79 && fx < QUAY_X0 + 1) continue;
+      const w = 0.35 + hash(k, 61) * 0.5;
+      const [sx, sy] = project(fx - w, fy, 0), [ex, ey] = project(fx + w, fy, 0);
+      ctx.moveTo(sx, sy); ctx.lineTo(ex, ey);
+    }
+    ctx.globalAlpha = al;
+    ctx.stroke();
+  };
+  for (const L of RIVER_LAMPS){
+    // a lamp on the far bank is upstream of nothing: its column hangs off its own y
+    column(L[0], L[1], 6, 'rgb(255,200,120)', 0.55 * nightF * veil, 1.2, 14);
+  }
+  const ma = moonArc(), mh = Math.sin(Math.PI * ma);
+  if (nightF > 0.25 && ma > 0 && ma < 1 && mh > 0.02){
+    // the moon crosses the sky east to west; its light crosses the river the same way
+    const mx = RIVER_X1 - 1.2 - (RIVER_X1 - RIVER_X0 - 2.4) * ma;
+    column(mx, 2, 44, 'rgb(220,232,255)', 0.55 * nightF * veil * mh, 2.6, 40);
+  }
+  ctx.globalAlpha = 1;
+}
 let boat = null, boatUnder = false, boatSeq = 0;
 function updateBoat(dt){
   if (!boat && day >= 1 && R() < dt * boatRate()){
@@ -4814,6 +4878,7 @@ function applyLight(t){
       ctx.beginPath(); ctx.arc(px, py, cellW * 3, 0, 7); ctx.fill();
       ctx.restore();
     }
+    drawRiverLights(simT);
     // every lit window casts a little halo onto the night
     for (const [wx, wy] of LIT){
       const g = ctx.createRadialGradient(wx, wy, 0, wx, wy, cellW * 0.9);
@@ -5484,6 +5549,8 @@ function simStep(sdt, dt){
     if (courtyardCount < capacity && R() < rate) spawnAgent();
     if (laneCount < laneCap && R() < laneRate) spawnLaneAgent();
     if (eastOpen() && eastCount < eastCap && R() < eastRate) spawnEastAgent();
+    // not under eastCap: after dark that is 1, and the people walking home hold it
+    else if (!eastOpen() && tapOpen() && nightRailFree() && R() < NIGHT_RAIL_RATE) spawnEastAgent(true);
     if (daylight > 0.3 && day >= 1 && allotCount() < 3 && R() < allotRate) spawnAllotAgent();
     // tapServing() is false on every hour that is not an evening, so this roll exists
     // only in the window it is spending

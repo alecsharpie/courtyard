@@ -15,29 +15,6 @@
   "rationale": "HELD RUNG 4, for the same climb as #32 and #37 — the world only exists for ~60% of its clock — and now the second half of that climb is what is missing. The windows landed (#39: 22.00 and 03.00 are different pictures), the door landed (#33), and the two are not connected to anything: nobody walks FROM anywhere TO the door, the east half still shuts at daylight 0.16, and the river at night is the same water as noon under a blue multiply. b43 (river, the east's night) and b44 (lane, who the door's custom are) finish the night; both are Connect briefs because the pieces all exist and the loop's highest-yield move is wiring them. The batch's bet is b42: SNOW. The year has nine readers and winter is 'blooms scattered in turned earth' plus a skinned basin — a thirty-second viewer who lands in February cannot tell it is winter from the wide shot, and precipitation is the one weather kind the town has never had. It is rung-4 work (a new state of the world), it is high risk (it touches the cached ground layer and must be exactly zero at the anchor), and it is the single most visible thing the diorama lacks. b41 is the cheap life brief that pays c73 and gives #42's naming something new to say. b40 goes at the head: filmstrip's night preset is a day strip, runlog grades every harness brief no-ship, and a crashed worker still retires its brief — three small lies in the instruments, all one file class. Curation this pass: coverage entered for #38/#40/#41/#42; eight cues closed (five promoted into briefs, three no-yield: c63, c71, c72); inventory note cut from 700 B to 230 B, sky merged 9→8 entries, two 300 B+ entries trimmed; four laws promoted (#39 cached layer as a new law; #40 complement threshold into the R() law; #41 opening state into the one-predicate law; #42 per-pose hit box into the sill law), paid for by compressing six verbose laws — 27 laws, 12.0/12 KB; ledger rotated 12→8 entries, promoted Law/Cue lines cut from #39–#42. Worker budget 46.4 → 43.0 KB.",
   "queue": [
     {
-      "id": "b43",
-      "domain": "River & far bank",
-      "kind": "Connect",
-      "brief": "The east half has no night: `eastOpen()` is `daylight > 0.16`, so after dark nobody crosses the bridge, and the river under `nightF` is noon water under a blue multiply while the four plaza `LAMPS` throw pools on stone and nothing on the water. Connect the night to the river: the lamps and the moon put light ON the water — a broken reflection in `drawRiverFlow` that drifts with the current, its brightness off `nightF` and the moon's height, put out by `cloudCover` like the stars are — and extend `spawnEastAgent` so that during the tap's hours (`tapOpen()`) ONE stop stays open after dark: the quay rail / parapet (`byTheWater()`), a walker who stands and looks at the lit water, then leaves the way they came. The walk is short from the quay head, so this is priced.",
-      "seams": [
-        "eastOpen",
-        "spawnEastAgent",
-        "byTheWater",
-        "drawRiverFlow",
-        "riverCol",
-        "LAMPS",
-        "nightF",
-        "sunVec",
-        "cloudCover",
-        "tapOpen",
-        "boatWatch"
-      ],
-      "successLooksLike": "A 22.00 shot of the river shows lamp and moon reflections on the water where HEAD shows flat dark; over a night someone stands at the rail or parapet a measurable fraction of the tap's hours; the noon frame is byte-identical to HEAD; the east census counts at the anchor do not collapse.",
-      "avoid": "Do not open the plaza bench, fountain or church green after dark — one stop. Do not add an arrival source; widen eastOpen for that stop only. Keep the moon reflection off when the moon is below the horizon.",
-      "budgetMin": 30,
-      "risk": "medium"
-    },
-    {
       "id": "b44",
       "domain": "Lane & market",
       "kind": "Connect",
@@ -74,6 +51,10 @@
     {
       "id": "b42",
       "at": "2026-08-28T12:33:16.497Z"
+    },
+    {
+      "id": "b43",
+      "at": "2026-08-28T16:30:40.634Z"
     }
   ]
 }

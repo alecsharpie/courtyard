@@ -355,7 +355,9 @@
       "the water reads the YEAR — riverRun() drives drawRiverFlow(t): drift speed, streak count and length, channel colour (riverCol -> RIVER_COLD/RIVER_GREEN), width of the deep mid-channel. probes/river-year.mjs, river-shots.mjs",
       "the rowboat is a fair-weather thing — boatRate() thins as the water rises (BOAT_SWING, BOAT_FLOOR binding through winter), boatSpeed() takes BOAT_DRIFT of the current. ONE boat, so its year reads as PRESENCE not boats/day",
       "the BANDSTAND has a summer concert — bandF() stages three BAND_PLAYERS (cues 0.10/0.30/0.50) and bunting up and back down on ONE 0..1; isBandDay() is hash(day,617) vs bandChance() off warmth, so July plays and February does not. probes/bandstand-year.mjs, bandstand-shots.mjs",
-      "swans are a PAIR with states — s.state swim|upend|preen + s.hold intensity; cob (swans[0]) picks the stretch, pen re-reads it every 2.5–5.5 s at 1.3–3 cells, 0.9-cell give-way; SWAN_UPEND/SWAN_PREEN/SWAN_BANK; drawSwan tilts on hold, livingAt names both poses. probes/swan-pair.mjs"
+      "swans are a PAIR with states — s.state swim|upend|preen + s.hold intensity; cob (swans[0]) picks the stretch, pen re-reads it every 2.5–5.5 s at 1.3–3 cells, 0.9-cell give-way; SWAN_UPEND/SWAN_PREEN/SWAN_BANK; drawSwan tilts on hold, livingAt names both poses. probes/swan-pair.mjs",
+      "the NIGHT on the water — drawRiverLights() in the night screen pass: broken bar columns under RIVER_LAMPS (waterside LANE_LAMPS) and a moon column crossing the river with moonArc(), × nightF × (1 − cloudCover()); noon untouched. probes/river-night.mjs",
+      "eastOpenFor(a) — the far side's ONE after-dark exception: a.nightRail stands at the north end of the quay rail while tapOpen(), ONE at a time (nightRailFree, NIGHT_RAIL_RATE), outside eastCap"
     ],
     "sky": [
       "day/night cycle (55 s day), sun and moon arc, backdrop hills, chimney smoke, a balloon; night windows each keep their own hours (windowLit, below)",
@@ -411,6 +413,12 @@
     {
       "id": "c77",
       "note": "Snow × footfall: desire paths worn dark through lying snow (b42's named follow-on)",
+      "raisedBy": 42,
+      "seenBy": 0
+    },
+    {
+      "id": "c78",
+      "note": "bridge-end lamp reflections only show south of the deck; the deck's shadow on the water is an implicit edge worth drawing. The rowboat has no reflection after dark.",
       "raisedBy": 42,
       "seenBy": 0
     }
