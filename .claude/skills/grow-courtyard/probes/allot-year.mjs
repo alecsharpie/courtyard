@@ -48,11 +48,11 @@ for (const seed of SEEDS) {
   const series = await page.evaluate(({ step, n }) => {
     window.__reseed();
     const seen = new WeakSet();
-    let arrivals = 0;
+    let arrivals = 0, digs = 0;
     const out = [];
     for (let k = 0; k < n; k++) {
       window.__warp(step);
-      for (const a of agents) if (a.kind === 'allot' && !seen.has(a)) { seen.add(a); arrivals++; }
+      for (const a of agents) if (a.kind === 'allot' && !seen.has(a)) { seen.add(a); arrivals++; if (a.dig) digs++; }
       // every plot, by the same lattice ripePlots() walks
       let bare = 0, sown = 0, full = 0, stageSum = 0, cells = 0;
       for (let oy = 8; oy <= 50; oy += 7) for (let ox = 80; ox <= 90; ox += 5) {
@@ -67,7 +67,8 @@ for (const seed of SEEDS) {
         if (!pl) bare++; else if (pl < bed) sown++; else full++;
       }
       out.push([simT, seasonPhase, ripePlots(), agents.filter(a => a.kind === 'allot').length,
-                arrivals, harvested, bare, sown, full, stageSum / Math.max(1, cells)]);
+                arrivals, harvested, bare, sown, full, stageSum / Math.max(1, cells),
+                digs, typeof turned === 'undefined' ? 0 : turned.reduce((n, v) => n + v, 0)]);
     }
     return out;
   }, { step: STEP, n: Math.round(DAYS * DAY / STEP) });
@@ -77,7 +78,7 @@ for (const seed of SEEDS) {
 }
 await browser.close();
 
-const T = 0, PH = 1, RIPE = 2, HERE = 3, ARR = 4, HARV = 5, BARE = 6, SOWN = 7, FULL = 8, STAGE = 9;
+const T = 0, PH = 1, RIPE = 2, HERE = 3, ARR = 4, HARV = 5, BARE = 6, SOWN = 7, FULL = 8, STAGE = 9, DIG = 10, TURNED = 11;
 const warmthOf = p => 0.5 - 0.5 * Math.cos(2 * Math.PI * p);
 const mean = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
 /* phase 0 is midwinter, so the quarters are centred on the solstices/equinoxes */
@@ -90,7 +91,7 @@ console.log(`\n=== ${LABEL}  (${FILE})`);
 console.log(`${SEEDS.length} seeds x ${DAYS} days (${(DAYS / YEAR).toFixed(1)} seasonal years), 1 s samples, first ${WARM} days discarded`);
 
 /* --- 1. the year by season quarter ------------------------------------------------ */
-console.log('\nseason   warmth  cap  ripe/17   arrivals/day  present  >=1 gardener   plots: bare sown full   stage  picked/day');
+console.log('\nseason   warmth  cap  ripe/17   arrivals/day  present  >=1 gardener   plots: bare sown full   stage  picked/day   digs/day  turned');
 const rows = {};
 for (const name of SEASONS) rows[name] = [];
 for (const { s } of settled) for (const v of s) rows[seasonOf(v[PH])].push(v);
@@ -98,12 +99,12 @@ const capOf = w => w > 0.42 ? 3 : w > 0.20 ? 2 : 1;
 for (const name of SEASONS) {
   const v = rows[name];
   // arrivals and harvest are cumulative counters: rate = total delta / total sampled time
-  let dArr = 0, dHarv = 0, secs = 0;
+  let dArr = 0, dHarv = 0, dDig = 0, secs = 0;
   for (const { s } of settled) {
     let prev = null;
     for (const r of s) {
       if (seasonOf(r[PH]) === name) {
-        if (prev) { dArr += r[ARR] - prev[ARR]; dHarv += r[HARV] - prev[HARV]; secs += r[T] - prev[T]; }
+        if (prev) { dArr += r[ARR] - prev[ARR]; dHarv += r[HARV] - prev[HARV]; dDig += r[DIG] - prev[DIG]; secs += r[T] - prev[T]; }
       }
       prev = r;
     }
@@ -114,12 +115,12 @@ for (const name of SEASONS) {
     `        ${(dArr / days).toFixed(2).padStart(5)}       ${mean(v.map(r => r[HERE])).toFixed(2)}     ` +
     `${(100 * v.filter(r => r[HERE] > 0).length / v.length).toFixed(1).padStart(5)}%       ` +
     `${mean(v.map(r => r[BARE])).toFixed(1).padStart(4)} ${mean(v.map(r => r[SOWN])).toFixed(1).padStart(4)} ${mean(v.map(r => r[FULL])).toFixed(1).padStart(4)}   ` +
-    `${mean(v.map(r => r[STAGE])).toFixed(2)}     ${(dHarv / days).toFixed(1).padStart(5)}`);
+    `${mean(v.map(r => r[STAGE])).toFixed(2)}     ${(dHarv / days).toFixed(1).padStart(5)}      ${(dDig / days).toFixed(2).padStart(5)}   ${mean(v.map(r => r[TURNED])).toFixed(1).padStart(5)}`);
 }
 
 /* --- 2. the year day by day, folded on the seasonal year -------------------------- */
 console.log('\nthe fold: one seasonal year, day by day (phase 0 = midwinter)');
-console.log('yday  phase  warmth  ripe   arr/day  present  bare  stage   ripe bar');
+console.log('yday  phase  warmth  ripe   arr/day  dig/day  turned  present  bare  stage   ripe bar');
 const fold = new Map();
 for (const { s } of settled) for (const v of s) {
   const yd = Math.floor((((v[PH] % 1) + 1) % 1) * YEAR);
@@ -127,13 +128,14 @@ for (const { s } of settled) for (const v of s) {
   fold.get(yd).push(v);
 }
 // arrivals per folded day, from the counter deltas
-const foldArr = new Map(), foldSec = new Map();
+const foldArr = new Map(), foldSec = new Map(), foldDig = new Map();
 for (const { s } of settled) {
   let prev = null;
   for (const r of s) {
     if (prev) {
       const yd = Math.floor((((r[PH] % 1) + 1) % 1) * YEAR);
       foldArr.set(yd, (foldArr.get(yd) || 0) + (r[ARR] - prev[ARR]));
+      foldDig.set(yd, (foldDig.get(yd) || 0) + (r[DIG] - prev[DIG]));
       foldSec.set(yd, (foldSec.get(yd) || 0) + (r[T] - prev[T]));
     }
     prev = r;
@@ -145,8 +147,9 @@ for (let yd = 0; yd < YEAR; yd++) {
   const ph = yd / YEAR, w = warmthOf(ph);
   const ripe = mean(v.map(r => r[RIPE]));
   const arr = (foldArr.get(yd) || 0) / ((foldSec.get(yd) || 1) / DAY);
+  const dig = (foldDig.get(yd) || 0) / ((foldSec.get(yd) || 1) / DAY);
   console.log(`${String(yd).padStart(3)}  ${ph.toFixed(3)}   ${w.toFixed(2)}  ${ripe.toFixed(2).padStart(5)}` +
-    `   ${arr.toFixed(2).padStart(5)}    ${mean(v.map(r => r[HERE])).toFixed(2)}    ${mean(v.map(r => r[BARE])).toFixed(1).padStart(4)}  ` +
+    `   ${arr.toFixed(2).padStart(5)}    ${dig.toFixed(2).padStart(5)}   ${mean(v.map(r => r[TURNED])).toFixed(1).padStart(5)}    ${mean(v.map(r => r[HERE])).toFixed(2)}    ${mean(v.map(r => r[BARE])).toFixed(1).padStart(4)}  ` +
     `${mean(v.map(r => r[STAGE])).toFixed(2)}   ` + '#'.repeat(Math.round(ripe * 2)));
 }
 

@@ -13,30 +13,7 @@
     "balance": "After recording: courtyard 10 back (#37), plaza 7 back (#40), street 6 back (#41), sill 4, life 3, sky 2, river 1, lane 0. Sky × Polish stays saturated. The last five workers all sat in the four domains the night climb needed; this batch puts three of five in courtyard, plaza and street, and the two that are not are a visible defect (sky) and the batch's bet (life)."
   },
   "rationale": "DROPPED FROM RUNG 4 TO RUNG 2, deliberately. Passes #32, #37 and #42 held rung 4 for one reason — the town had no night — and that climb is now landed: windows keep hours (#39), the door has callers (#47), the river has lamps and a night stander (#46), and snow (#45) gave winter a wide-shot tell. The ladder says stay low while work lands, and the highest-yield move now is to COMPOUND what three rung-4 passes built rather than open a fourth world-change while the last one still has loose ends. Every brief here wires two things that already exist and ignore each other. b45 goes first because it is a defect a thirty-second viewer sees: the whole picture relights in one frame at winter dusk (5–9 whole-frame Δ on HEAD, twice what any feature produces) because the cached ground repaints on a quarter-hour bucket that is coarse exactly where the light moves fastest. b46 is snow × the one system the courtyard is famous for (desire paths) plus the sweeper who already exists — the cheapest legible winter connection, in the most starved domain. b47 gives the plaza the wind, the one scalar nothing east of the bridge reads (WATCH). b48 is the bet: the town's people leave the frame at dusk and nobody goes HOME — a walker who turns in at a door and lights the window they went to is the single thing that would make the night read as inhabited rather than decorated; it touches the cached facade layer, WINDOWS[] and routeToExit, and it can fail. b49 gives the allotments a winter (the block is empty for a quarter of the year: allotRate floors at 0.01 with ripePlots 0). Curation: coverage #43–#47 entered; c75/c76/c77 promoted (c75 re-raised as the swan half of b48's avoid), c74/c78/c79 kept (seen 1); three laws promoted from #44/#46/#47 (follower-rate as new; night cap and pathHours merged INTO the time-compress law rather than beside it; __entities extras into the instrument law; __warp-never-draws and filmstrip --page into the probe and control laws) paid for by compressing eight verbose laws — 28 laws, 12.0/12 KB, nothing cut outright; ledger rotated 12 → 8 and #45–#47 archived verbatim then condensed 3.4–3.8 → 1.8 KB each; inventory 59 → 45 entries by merging pairs, WATCH's two spent notes replaced with what is true now. Worker budget 50.5 → 43.6 KB OK.",
-  "queue": [
-    {
-      "id": "b49",
-      "domain": "Cross street & allotments",
-      "kind": "Deepen",
-      "brief": "The allotment block is empty for a quarter of the year: `allotRate = (0.01 + 0.16*ripePlots()/17) * (raining ? 0.2 : 1)` (~5630) and ripePlots() is 0 all winter, so the 0.01 floor sends nobody for ~six sim days and the plots sit under snow with nothing happening in them. Give the block a winter: on mild, dry, daylit winter days (warmth low, !raining, snowCover < 0.3) a gardener comes to a FALLOW plot (bAge as the fallow clock, `harvestPlot`, `plotCrop`) and turns it — an `act:'dig'` stop of a few seconds — and the plot reads as freshly turned earth (a darker, rowless state through `groundCol`/the plot draw) until the spring sowing. Hardy cabbages (`plotStands`) stand through it as they do now.",
-      "seams": [
-        "spawnAllotAgent",
-        "allotRate",
-        "ripePlots",
-        "harvestPlot",
-        "plotCrop",
-        "plotStands",
-        "bAge",
-        "groundCol",
-        "snowCover",
-        "probes/allot-year.mjs"
-      ],
-      "successLooksLike": "allot-year.mjs folded over two years: gardener visits in winter weeks go from ~0 to a small steady rate (1–3 per sim day on dry mild days, 0 in snow or rain), with the summer rate unchanged. A late-winter shot shows two or three dark turned plots among the white/fallow ones; the same instant on HEAD is uniform. Census planting.harvested unchanged.",
-      "avoid": "Do not change ripePlots() or the harvest cycle. Keep the winter gardener on spawnAllotAgent's own source (it exists so the block does not compete for laneCap). One new per-plot state at most.",
-      "budgetMin": 30,
-      "risk": "medium"
-    }
-  ],
+  "queue": [],
   "recommendStop": null,
   "consumed": [
     {
@@ -54,6 +31,10 @@
     {
       "id": "b48",
       "at": "2026-08-28T17:17:10.923Z"
+    },
+    {
+      "id": "b49",
+      "at": "2026-08-28T21:33:25.047Z"
     }
   ]
 }

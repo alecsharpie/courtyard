@@ -339,7 +339,8 @@
       "harvest cycle — harvestPlot() lifts a mature 3x2 bed whole, bAge doubles as a fallow clock, re-sown as a row under plotCrop(). census planting.harvested",
       "spawnAllotAgent() — the allotments' own arrival source, rate on ripePlots(); gardeners leave carrying a basket (a.crop)",
       "seasonal canopy on all 13 trees — leafOut/Fresh/Deep/Turn/Shed + leafCol() off seasonPhase, bare in winter behind drawBoughs(); leafFallF() drives falling leaves; fruit:1 trees add blossomF()/fruitF(). probes/canopy-year.mjs, year-strip.mjs",
-      "winter hardiness grain-matched to the PLOT — SPECIES.hardy:1 (cabbages), plotStands(x,y) off plotCrop(); seed() sows the block through speciesFor() so it is vegetables from t=0. probes/allot-year.mjs, allot-scatter.mjs"
+      "winter hardiness grain-matched to the PLOT — SPECIES.hardy:1 (cabbages), plotStands(x,y) off plotCrop(); seed() sows the block through speciesFor() so it is vegetables from t=0. probes/allot-year.mjs, allot-scatter.mjs",
+      "the allotments' WINTER — digWeather() (warmth < DIG_WARMTH, dry, snowCover < 0.3) adds DIG_RATE to allotRate; fallowPlots() = stalled non-hardy plots; a.dig holder turnPlot()s them: turned[] cells dark (groundBase) and unsown until warmth returns. probes/allot-year.mjs digs/turned columns"
     ],
     "plaza": [
       "plaza with a fountain and a paved roundel (PATH), four tree pits, benches; quay with benches along the river",
@@ -452,6 +453,12 @@
       "id": "c87",
       "note": "row-64 windows are drawn live and then night-tinted, so a lit pane there lands at (127,118,116) — half the cached windows' warmth",
       "raisedBy": 47,
+      "seenBy": 0
+    },
+    {
+      "id": "c88",
+      "note": "turned earth is faint at 1x — dark brown on brown; a furrow texture or colder tint would make a dug plot legible from the wide view",
+      "raisedBy": 52,
       "seenBy": 0
     }
   ],

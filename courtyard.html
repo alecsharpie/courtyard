@@ -356,6 +356,7 @@ const grid = new Uint8Array(GW * WH);
 const wear = new Float32Array(GW * WH);
 const daisy = new Uint8Array(GW * WH);
 const bSp = new Uint8Array(GW * WH), bSt = new Uint8Array(GW * WH), bAge = new Float32Array(GW * WH);
+const turned = new Uint8Array(GW * WH);   // allotment cell dug over for the winter: dark until the spring sowing clears it
 
 const SPECIES = [
   {name:'marigolds', col:'#e0913a', col2:'#f3b04e', h:0.55, style:'dot',   minDay:0},
@@ -1484,7 +1485,7 @@ function harvestPlot(a){
   for (let y = oy; y < oy + 2; y++) for (let x = ox; x < ox + 3; x++){
     const i = y * GW + x;
     if (grid[i] !== BED) continue;
-    bSp[i] = 0; bSt[i] = 0; bAge[i] = FALLOW + R() * 8;
+    bSp[i] = 0; bSt[i] = 0; bAge[i] = FALLOW + R() * 8; turned[i] = 0;
   }
   // the basket now has somewhere to go: the store the lane's stalls are stocked from
   a.crop = sp; harvested += took; produce[sp - 1] += took; groundDirty = true;
@@ -1504,12 +1505,13 @@ function caTick(){
       if (!bSp[i]){
         if (bAge[i] > 0){ bAge[i] = Math.max(0, bAge[i] - 0.35); continue; }   // turned earth, resting
         if (inAllotment(x, y)){
+          if (turned[i] && warmth < DIG_WARMTH) continue;   // dug over: waits for the warmth, then sows as usual
           // a plot is sown, not self-seeded: the first drill goes in slowly, then the
           // other five follow it fast and under the same crop, so a row comes up as a row
           const crop = plotCrop(x, y);
           if (R() < (crop ? 0.30 : 0.055) * (0.25 + m) * boost * vig){
             bSp[i] = crop || (SPECIES.indexOf(pick(availV)) + 1);
-            bSt[i] = 1; bAge[i] = 0;
+            bSt[i] = 1; bAge[i] = 0; turned[i] = 0;
           }
         } else {
           const [nm, nsp] = neighborsMature(x, y);
@@ -1719,14 +1721,15 @@ function stepAgent(a, dt){
       a.planted = true;
       // one kneel, both halves of the cycle: if the plot in front of them is ripe they
       // take it and leave with it, and only an unripe plot gets sown by hand
-      if (!(a.kind === 'allot' && a.plot && harvestPlot(a))){
+      if (a.kind === 'allot' && a.dig){ turnPlot(a); }
+      else if (!(a.kind === 'allot' && a.plot && harvestPlot(a))){
         let planted = 0;
         const sp = SPECIES.indexOf(pick(speciesFor(a.x, a.y))) + 1;
         for (let dy=-3; dy<=3 && planted<4; dy++) for (let dx=-3; dx<=3 && planted<4; dx++){
           const x = Math.round(a.x+dx), y = Math.round(a.y+dy);
           if (x<0||y<0||x>=N||y>=WH) continue;
           const j = y*GW+x;
-          if ((grid[j]===BED||grid[j]===CBED) && !bSp[j] && !bAge[j] && R()<0.6){ bSp[j]=sp; bSt[j]=1; bAge[j]=0; planted++; }
+          if ((grid[j]===BED||grid[j]===CBED) && !bSp[j] && !bAge[j] && !(turned[j] && warmth < DIG_WARMTH) && R()<0.6){ bSp[j]=sp; bSt[j]=1; bAge[j]=0; turned[j]=0; planted++; }
         }
         if (planted) announce('Fresh ' + SPECIES[sp-1].name + ' go into the bed, patted down gently.');
       }
@@ -1818,10 +1821,14 @@ function stepAgent(a, dt){
         a.planted = false; a.rows = (a.rows || 0) + 1;   // each kneel is its own row
         // they came a long way for one plot: most work a second or third before leaving
         if (a.rows < 3 && R() < 0.55){
-          const next = pickPlot();
-          a.plot = next; a.tendPlot = true;
-          a.wp.push([next[0] - 0.6, next[1] + 0.5]);
-          return;
+          // a digger works the next fallow plot; when none is left they leave, not pick
+          const more = a.dig ? fallowPlots() : null;
+          if (!more || more.length){
+            const next = more ? pick(more) : pickPlot();
+            a.plot = next; a.tendPlot = true;
+            a.wp.push([next[0] - 0.6, next[1] + 0.5]);
+            return;
+          }
         }
         const exitVia = R() < 0.5;
         if (exitVia) a.wp.push([ALT_GATE, 58], [ALT_GATE, 62], [ALT_GATE, LANE_N_Y], [laneEdge(), LANE_N_Y]);
@@ -1934,7 +1941,9 @@ function pickPlot(){
 function sendToPlot(a){
   a.kind = 'allot';
   const gateY = pick([20, 45]);
-  const plot = pickPlot();
+  const fallow = digWeather() ? fallowPlots() : [];
+  const plot = fallow.length ? pick(fallow) : pickPlot();
+  a.dig = fallow.length > 0;                  // the winter job: turn it, don't pick it
   a.x = XS_WALK_E; a.y = -2.5;
   if (R() < 0.5){ a.x = laneEdge(); a.y = LANE_N_Y; a.wp.push([ALT_GATE, LANE_N_Y], [ALT_GATE, 62], [ALT_GATE, 58]); }
   else { a.wp.push([XS_WALK_E, gateY], [79, gateY]); }
@@ -1957,6 +1966,42 @@ function ripePlots(){
     }
     if (bed && mt >= bed - 1) n++;          // ready when all but one cell is up
   }
+  return n;
+}
+/* The block's WINTER. ripePlots() is 0 for a quarter of the year, so the 0.01 floor sent
+   nobody for ~six sim days and the plots sat bare under snow with nothing happening in
+   them. On a mild, dry winter day a holder comes in to turn a fallow plot over instead —
+   the same source, priced on the same roll, an additive term that is exactly 0 outside
+   digWeather() so the summer rate is untouched. What gets turned is not a bare plot —
+   measured, the winter block has NO bare plots (a picked row is re-sown within a day and
+   stalls at stage 1 under the cap) — it is a plot under a non-hardy crop that cannot
+   ripen: the dead row goes under, and turned[] holds the plot dark and unsown until the
+   warmth comes back, so the spring sowing is the thing that clears it. */
+const DIG_WARMTH = 0.28, DIG_SNOW = 0.3, DIG_RATE = 0.06;   // ~1.7 a winter day at one roll per sim second
+function digWeather(){ return warmth < DIG_WARMTH && !raining && snowCover < DIG_SNOW; }
+function fallowPlots(){                       // stalled or bare, not hardy, not ripe, not yet turned — by the lattice ripePlots() walks
+  const out = [];
+  for (let oy = 8; oy <= 50; oy += 7) for (let ox = 80; ox <= 90; ox += 5){
+    let bed = 0, ok = true;
+    for (let y = oy; y < oy + 2; y++) for (let x = ox; x < ox + 3; x++){
+      const i = y * GW + x;
+      if (grid[i] !== BED) continue;
+      bed++; if (bSt[i] === 3 || (!bSp[i] && bAge[i] > 0) || turned[i]) ok = false;   // bAge is the fallow clock only on an EMPTY cell
+    }
+    if (bed && ok && !plotStands(ox, oy)) out.push([ox, oy]);
+  }
+  return out;
+}
+function turnPlot(a){
+  const [ox, oy] = plotOrigin(a.plot[0], a.plot[1]);
+  let n = 0;
+  for (let y = oy; y < oy + 2; y++) for (let x = ox; x < ox + 3; x++){
+    const i = y * GW + x;
+    if (grid[i] === BED && bSt[i] < 3){ bSp[i] = 0; bSt[i] = 0; bAge[i] = 0; turned[i] = 1; n++; }
+  }
+  if (n){ groundDirty = true;
+    if (R() < 0.5) announce(pick(['A fork goes into the cold ground; the plot comes up dark.',
+      'Someone turns a plot over for the winter, a row at a time.'])); }
   return n;
 }
 function spawnAllotAgent(){
@@ -3503,7 +3548,8 @@ function groundBase(x, y, t, hv, m){
              : mix('#9aa96b', '#74a04c', health);
     return mix(g1, '#a4906a', Math.pow(wear[y * GW + x], 0.7));
   }
-  if (t === BED || t === CBED) return mix('#5c4832', '#6b563c', hv);
+  if (t === BED || t === CBED) return turned[y * GW + x] ? mix('#3d2d1c', '#4a3826', hv)   // dug over: darker, rowless
+                                                          : mix('#5c4832', '#6b563c', hv);
   if (t === SIDE) return mix('#b3a88f', '#bfb49b', hv);
   if (t === ROAD) return mix('#87806f', '#8d8675', hv * 0.5);
   if (t === WATER){
@@ -5495,7 +5541,7 @@ function stageOf(s, st, cap){
                 : (s.veg ? 'newly drilled' : 'just up');
 }
 function bedName(x, y, j){
-  if (!bSp[j]) return bAge[j] > 0 ? 'turned earth, resting' : 'bare earth, nothing sown';
+  if (!bSp[j]) return bAge[j] > 0 ? 'turned earth, resting' : turned[j] ? 'dug over for the winter, waiting for spring' : 'bare earth, nothing sown';
   return SPECIES[bSp[j] - 1].name + ', ' + stageOf(SPECIES[bSp[j] - 1], bSt[j], bedCap(x, y));
 }
 /* The allotments are addressed by PLOT and not by cell, so a plot is named as a plot:
@@ -5556,7 +5602,7 @@ function personName(a){
                             : a.eve ? 'the evening sweeper, clearing up after the market' : 'the sweeper, working down the lane';
   if (k === 'cyclist') return 'a cyclist';
   if (st === 'lie') return 'someone lying on the grass';
-  if (st === 'kneel') return k === 'allot' ? 'an allotment holder, kneeling at the plot'
+  if (st === 'kneel') return k === 'allot' ? (a.dig ? 'an allotment holder, turning a plot over' : 'an allotment holder, kneeling at the plot')
                                            : 'the gardener, kneeling at a bed';
   if (k === 'busker' && st === 'stand') return 'a busker, playing';
   if (k === 'tap' && st === 'stand') return a.cup ? 'someone at the door, cup in hand' : 'someone waiting at the door';
@@ -5769,7 +5815,8 @@ function simStep(sdt, dt){
   // the allotments arrive on the crop's budget, not the lane's: 0.42 of the lane's
   // roll chain put one gardener in every 5-15 days against 17 plots, which is why
   // the block sat permanently full. Ripeness is the rate.
-  const allotRate = (0.01 + 0.16 * ripePlots() / 17) * (raining ? 0.2 : 1);
+  // + the winter digging, 0 by construction outside digWeather() (which is dry, so the rain term is moot)
+  const allotRate = (0.01 + 0.16 * ripePlots() / 17 + (digWeather() && fallowPlots().length ? DIG_RATE : 0)) * (raining ? 0.2 : 1);
   spawnAcc += sdt;
   if (spawnAcc > 1){ spawnAcc = 0;
     if (courtyardCount < capacity && R() < rate) spawnAgent();
@@ -5986,6 +6033,7 @@ window.__entities = function(){
        (o, a) => { o.act = a.state; o.role = a.kind; o.watch = a.watch > 0 ? 1 : 0;
                    if (a.tap){ o.tap = 1; if (a.caller) o.caller = 1; }
                    if (a.home) o.home = 1;
+                   if (a.dig) o.dig = 1;
                    // the audience on the green. A probe has to tell a listener from a
                    // passer-by, and a listener standing AT its claimed place from one
                    // that drifted off it — which is the exact inverse of cue c49's bug.
