@@ -15,7 +15,7 @@
   "avoid": "Do not touch courtyard.html. Do not delete the three synthetic rows — retag them; the archive is never edited away. Do not make the fix a retry loop inside run_claude: the runner already backs off on failure, the bug is only which brief the retry gets.",
   "budgetMin": 20,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 38,
   "issued": "2026-08-28T11:36:55.776Z",
