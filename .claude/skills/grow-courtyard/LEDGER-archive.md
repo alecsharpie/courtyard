@@ -2232,3 +2232,82 @@ sim hour, where a new place can stand is decided by how far its people must walk
 **Cue:** `TAP_LAST`'s clearance is 0.08 h wide at worst and `evening-door.mjs` asserts it, but
 a greet or the bell can hold a walker mid-route and nothing bounds that; the backstop exists
 for it and has never fired in 80 folded nights.
+## Iteration 26 — the sill names the season (2026-08-04) [Sky, light & weather × Interaction/UX]
+
+**Brief:** b25 — nine systems read `season()` and the sill never said which season it was.
+Name it, in the diorama's own register, without a second row.
+
+**Did:** `seasonLabel()` beside `timeLabel()` — same idea one scale up, the hour off the
+sun and the quarter off the phase. Eight names on `seasonPhase` (never `warmth`: 0.5 is
+both bud burst and the turn), sectors of 1/8 **centred** on their phase rather than
+starting at it, so midwinter straddles the wrap as one continuous name and `Spring` lands
+exactly on `SEASON_START`. Winter and summer get an early/mid/late apiece because a cosine
+dwells at its extremes; spring and autumn are the crossings and get one name each. New
+`#season` in the sill, serif, written by `refreshStats()`. `probes/sill-year.mjs`.
+
+**Gates:** census **PASS — every field unchanged in all 9 cells**, which is the real
+assertion here: no new `R()` draw, so a DOM-only vector must reshuffle *nothing*, and for
+once a `+0` census is a positive result rather than a blind one · visual PASS (wide +
+mobile at early summer and at midwinter: "Midwinter · Day 20 · Dusk" over a bare, dark,
+24-bloom town against "Early summer · Day 4 · Morning" over 464) · `probes/sill-year.mjs`
+**41/41** across six widths · motion skipped — nothing drawn or moving was touched.
+
+**Verdict:** shipped
+
+**Surprise:** the screenshot caught what the probe swore was fine. My first fit gate read
+`sill.scrollWidth - clientWidth` and passed at 390px; the mobile PNG showed
+"Early summer" printed straight through "Day 4". Every sill item is `white-space:nowrap`
+with default `flex-shrink:1`, so a squeezed item reports a **box that fits** while its
+glyphs run out over its neighbour — container overflow is exactly 0 and the layout is
+broken. `flex:none` on all of them made the number honest (0 → 26px over), and the gate
+had to compare *text extents* between row-mates, exempting `#ticker` as the one item that
+truncates by design. Second surprise: the fix wanted 80px the narrow row didn't have, and
+the answer was not smaller type — `#plate` already has a caption slot that is
+`display:none` on a phone, so below 640px the season moves **into** the plate and sits
+under the title for zero horizontal cost, which is also the truest museum-label form.
+Third: adding a sixth item exposed a band nobody had looked at. At 641px HEAD already gave
+`#ticker` 71px of box; the season would have overflowed it outright. `#stats` now yields
+below 860px, so that band gains a season *and* a ticker that reads better than before
+(100px at 641, 222px at 768, against HEAD's 71 and 193).
+
+**Law:** a flex row of `nowrap` items has two different fit questions and the container
+answers only one — see `LAWS.md`.
+
+**Cue:** the sill overflows at 320px on HEAD too (44px, pre-existing); 390 is the tracked
+framing so I gated there and left it.
+
+
+## Iteration 37 — the bed ceiling comes down cell by cell, not all at once (2026-08-28) [Courtyard & garden × Deepen]
+
+**Brief:** b37 — `bloomCap()` was the town's only STEPPED seasonal term (3/2/1 at warmth 0.42/0.20);
+make it continuous without moving the year's totals.
+
+**Did:** `bloomCap()` is now a ramp `1 + 2·clamp((warmth − BLOOM_LO)/(BLOOM_HI − BLOOM_LO))`, with
+`BLOOM_HI = 0.50` = SEASON_START's warmth so the anchor is 3 by the clamp, and `BLOOM_LO = 0.12` the one
+tuned number. `bedCap(x,y)` turns the fraction into an integer with `capStep()` — the fraction is the
+SHARE of cells already allowed the next stage, by `hash(x, y+53)` in the courtyard and by
+`hash(plotOrigin, +53)` in the allotments, so a plot still steps whole but not with its neighbour.
+Hardiness (`y+41`, `plotStands`) untouched. No new `R()`.
+
+**Gates:** census PASS (blooming −17, planted −25 — noise; winter cell planted 725 → 841) · visual PASS
+(early summer, cap 3 both builds — nothing to see, as expected) · motion skipped (CA state only, no
+draw or agent touched) · perf skipped · **`bloom-cap.mjs`** (folded year, 520 phases): max step in the
+courtyard's mean ceiling **0.876 → 0.038**, allotments 1.000 → 0.118 (one plot of seventeen),
+`bloomCap()` at the anchor exactly 3 both builds; year-mean of the cap 2.2577 → 2.2564 ·
+**`beds-year.mjs`** 3 seeds × 70 settled days: mean blooming **342.7 → 349.3 (+1.9%)**, planted +1.4%;
+autumn shoulder d13–15 was 534/147/53, now 512/232/56; spring d24–26 was 47/288/608, now 66/339/570;
+evenness 0.998 all three years. Context budget opened OVER (46.4 / 46 KB).
+
+**Verdict:** shipped
+
+**Surprise:** the cap's folded mean was flat to 0.06% and the beds still came out +1.9% — the ramp gives
+the SPRING side more than it takes from autumn (d25 +51, d14 +85 vs d26 −38), because a bed under a
+rising fractional cap starts climbing the moment its cell is admitted, while a bed under a falling one
+only ages out at `dieF()`'s pace. A continuous ceiling is still asymmetric through the CA either side of
+it. Also: BLOOM_LO tuned in warmth-space came out 0.12 rather than the 0.08 the area-under-the-step
+arithmetic said, because warmth is a cosine and time piles up at the extremes, not the middle.
+
+**Law:** a step replaced by a ramp with the same area is not the same YEAR — the world's phase density
+is a cosine, so tune the ramp's one free end on a folded-time mean, never on area in the scalar's own
+units; and expect the CA on either side to spend the ramp asymmetrically (climb is rate-limited by
+growth, descent by dieback), so check the consumer's annual mean, not just the scalar's.

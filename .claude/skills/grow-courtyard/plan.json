@@ -1,169 +1,115 @@
 {
-  "generated": "2026-08-04T18:20:00Z",
-  "byIteration": 32,
+  "generated": "2026-08-28T11:36:44.545Z",
+  "byIteration": 37,
   "rung": 4,
   "diagnosis": {
-    "health": "Output is still healthy — 31 worker iterations, last 20 verdicts 19 shipped / 1 no-ship, 0 reverts, 0 briefs rejected, src moved on 10 of 10, selfVerdict has matched verdict every time it was recorded. But costSpike fired: the last three averaged $13.54 against a $6.11 median. Decomposed, it is one outlier and one honest expense. #31 cost $22.72 — 3.7x the median — and its own ledger entry says why: three separate instrument failures in one iteration (a comment that closed early and swallowed a CSS rule, a margin computed with a floor so it could only report bad news, an arrival time that was never assertable), each of which had to be found and re-measured. #32 cost $11.88 for 236 lines, a new arrival source, a new tick and a new probe. Strip #31 out and the last ten average $6.63 against $6.26 for the ten before and $5.19 for the ten before that: about +13% per ten iterations, not the Solvista 2.5x. So I do not read this as the death signature. I do read it as one true thing: the two most expensive iterations in the run are the two most recent, and I briefed both of them at rung 2. A concert with its own spawn source, its own tick and nine claimed slots is not Deepen. If I keep writing rung-4-sized work in a rung-2 costume, the cost climbs while the ladder never moves, and the run gets the price of climbing without the benefit. The signal says the rung is spent; the evidence says the rung was already being exceeded in secret. Both point the same way.",
+    "health": "Output is healthy where a worker actually ran: #33 shipped a 193-line evening door for $18 and #37 shipped a 30-line ramp for $3.44 in five minutes on a different model (fable-5), the smallest and cheapest iteration since #15 and the brief working as written. But three iterations in the last ten are not iterations at all: #34, #35, #36 (and the manager row at #33) are 1–2 s, 0-token, rc=1 synthetic rows from the 2026-08-28 restart, with sha 'Manager: plan refresh' and model '<synthetic>' — the harness could not launch a worker, and run-loop.sh burns one brief per failed launch because pop-brief claims before the worker starts and a non-zero rc just backs off and pops the next. So the stats say 'src moved 7/10, 3 failed' when the truth is 7/7 shipped and three briefs (b36, b32, b33) were destroyed unexecuted. No stall signal fired because stall.mjs counts them as ordinary failures. Cost, once those zero rows are stripped, is $7.2/$6.0/$22.7/$11.9/$18.2/$3.4 — the two expensive ones are the two rung-4-sized builds, priced honestly this time.",
     "signals": [
-      "iterations=39 (31 worker, 8 manager)",
-      "costSpike FIRING: last 3 mean $13.54 vs $6.11 median; #31 alone was $22.72",
-      "cost ex-#31: 5.19 -> 6.26 -> 6.63 per successive ten — a mild climb, not a runaway",
-      "last 20: shipped=19 no-ship=1; revertStreak=0; briefsRejected=0",
-      "srcLines last 5: 260/164/135/61/109/236 — no shrink",
-      "contextBudget OVER for the THIRD consecutive pass (47.5 KB); the growth had moved into openCues, 3.5 KB for 9 cues under a count-only cap",
-      "budget 47.5 -> 45.2 KB; every dimension of state.json now has a byte cap AND a count cap, so the ceiling is 45.0 KB rather than a trajectory",
-      "coverage instrument was WRONG: 3 pure-sill iterations were filed under Sky, so the grid read Sky as 1 back when the sky itself is 10 back",
-      "LAWS 26 laws / 12.0 KB: 2 promoted from #31-#32, 1 cut as a duplicate of SKILL.md, 5 tightened to pay for them",
-      "openCues 9 -> 7, all under 250 B; 2 closed with reasons, 1 promoted to a brief, 1 recovered from a dropped brief"
+      "queue empty (b37 was the last brief)",
+      "3 synthetic launch failures #34–36 burned briefs b36/b32/b33 with no worker run",
+      "selfVerdict==verdict on every real row; 0 reverts; 0 briefs rejected",
+      "context budget opened OVER at #33 (47.1) and #37 (46.4) — the inventory grew by two entries and the ledger by two 2.9 KB entries; fixed this pass to ~44 KB"
     ],
-    "balance": "The grid was lying and I fixed it. #26 (season label), #28 (season button) and #31 (season underline + offer queue) are sill iterations that were filed under Sky because the sill draws the weather word; with a `sill` domain added at rung 3 and those three re-filed, Sky is 10 iterations back, not 1, and it is the most starved domain in the town. Behind it: Plaza & quay 8, Cross street 7, Courtyard 5, Lane 3, People 2, River 0. Sky x Polish is now marked saturated at 6 entries — more than any other cell, on the best-drawn system in the town — so the Sky work in this batch is a Deepen. This queue is one brief each in Lane, Sky, Plaza, Street and Courtyard: the five domains that are not River or People, in roughly starvation order, with the two most starved carrying the two riskiest jobs."
+    "balance": "Sky 14 back (the most starved domain, and Sky x Polish is saturated so what it wants is Deepen); Plaza 13 back; Street 12 back; Sill 6 back; River 5; Life 7; Lane 4; Courtyard 0. Coverage was never entered for #33 (lane x scale) or #37 (courtyard x deepen) — done now."
   },
-  "rationale": "Rung 4 — change the world — and the change is that the world currently only exists for about 60% of its own clock.\n\nEvery one of the ten itinerary branches in `spawnLaneAgent` opens with `sun &&`, where `sun = daylight > 0.3`. The market, the kiosk, the cafe, the lane benches, the busker, the allotment, the plaza, the quay, the church green: all ten. After dark, every walker the town spawns falls through to the final else and crosses the frame without stopping anywhere. `kioskOpen`, `marketOpen`, `bandEnd` and `eastOpen` close on the sun as well. What night ADDS is lit windows, fireflies, one cat, the moon and two ticker lines. So the diorama at 22.00 is a transit corridor with ambience painted over it, and night is ~40% of the clock — two of every five people who open the page meet the town in that state. Thirty-two iterations have made the daylight town denser and denser and not one has touched the other half of the day. That is the frontier, it is not a polish job, and no amount of rotating domains at rung 2 would have found it, because every domain looks fully served when you only ever look at it in daylight.\n\nThat is b35, and it is deliberately the hardest brief in the run so far. It is filed Lane & market x Scale/World — the first Scale/World outside Sky — because the evening place will be on the lane and because the change is to the world’s hours, not to any one system.\n\nb36 is the other half of the same observation and comes almost free. `drawWindow()` decides `lit` as `nightF > 0.3 && hash(sa*3, sb*7+day) > 0.42`: every lit window in the town switches on in one frame and off in one frame, 58% of them burn from dusk to dawn, and nobody goes to bed. It is one line, it is the most visible thing in the night frame, and giving each window its own hour makes 22.00 and 03.00 different pictures for the first time. Two night briefs in one batch is the point of a rung climb: you commit to the new ground rather than dabble at its edge.\n\nb32 and b33 carry forward from the last plan unchanged. b32 is the strongest rung-2 brief I have — the plaza and the fountain are identical in February and August, exactly where the market was before #29 — and Plaza is 8 back. b33 is a cheap correctness fix that #29 turned into a visible falsehood: the opening scatter puts ornamentals in the allotment plots, and since the harvest now walks produce to a market board the town can put a fern on a vegetable stall.\n\nb37 promotes cue c50, which has now survived three manager passes and was already flagged as the strongest cue open. `bloomCap()` is the town’s only STEPPED seasonal term in a file where every other one is a lerp, so ripeness falls off a cliff at the autumn shoulder. A cue that survives three passes is a brief or a deletion; this one is a brief.\n\nb34 from the last plan — name the people and animals under the pointer — is not in this queue. It is good work and it is now cue c64 rather than lost. It went out because it is rung 2, because People is only 2 back, and because five briefs is the cap.\n\nOn curation, the finding is the same shape for the THIRD consecutive pass and this time I think it is actually fixed. The budget opened at 47.5 KB against a 46 KB cap. Pass #30 had capped inventory entries at 300 B each and cues at 8 by COUNT — and the growth went straight into the dimension that had no byte cap, cues, which reached 3.5 KB for 9 entries at ~390 B each, each one carrying the evidence that belongs in the ledger entry that raised it. Cap one dimension, the growth moves next door: that is the Solvista failure and I have now watched it happen three times in a row on my own watch. So the fix is not another round of distilling. Every dimension of the worker-read state now has BOTH caps and rotate-ledger.mjs enforces all of them: 8 domains x 8 entries x 300 B, 8 cues x 250 B, 4 watch items x 420 B. Those multiply to a ceiling of 45.0 KB, which is a number the file cannot exceed rather than a number it happens to sit at today. If the next pass opens over budget, the cause will be something I have not thought of, not this.\n\nTwo smaller curation notes. The inventory contained two entries that stated an ABSENCE — the bandstand “has never been used” (#32 built the concert) and the fountain “is the same in February as in August”. An absence is a cue wearing the wrong hat: it goes stale the moment somebody builds the thing, and it was still being read as fact by every worker. Both moved. And LAWS lost one law outright — “read the seam, not the file” — because SKILL.md’s read table already says grep-then-Read-with-offset, in a row the worker reads before the laws. A law that duplicates the protocol is paying rent twice; the only fact it carried that SKILL.md lacked was the file’s size, and SKILL.md’s stale ~3,000 is now the true ~5,300. The two new laws are #31’s (when a gate fails, suspect the instrument first) and #32’s (an event its audience must walk to is bounded at both ends by things that are not the event); the promoted Law paragraphs were replaced in their ledger entries by one-line pointers, which is what brought those entries back under the per-entry cap without losing anything the archive does not hold.",
-  "queue": [],
-  "consumed": [
+  "rationale": "HELD RUNG 4. Pass #32 climbed to it for one reason — the world exists for ~60% of its own clock — and only half of that climb has landed: #33 built the first evening place, but every window in the town still switches on and off in the same frame, and 22.00 and 03.00 are the same picture. Re-planning the same batch is the one thing the ladder forbids ONLY as a response to a stall, and this is not a stall: three briefs were destroyed by the runner before any worker saw them, so re-issuing b36/b32/b33 verbatim (with a note that no prior attempt exists, or a worker will go looking for one) is recovery, not repetition. b38 goes at the head as a harness brief because the fault will recur on the next restart and the runlog is currently lying about it: a launch failure must not consume a brief, and a 0-token row must not be counted as an iteration by stall.mjs. It also carries c62 (motion.mjs split rises from falls), which is the same file class. b39 is the batch's new work and the one most likely to fail: c64 has been open since #33 and the naming — the loop's most visible observer tool — answers with the paving under a walker's feet, so the diorama can name a fern and cannot name a swan. Three of five briefs are domains 12+ back (sky, plaza, street); the fourth is the sill; none is courtyard, lane or river. Cost expectation: b33 and b38 cheap, b36/b39 medium, b32 the expensive one. Curation this pass: closed six cues (three no-yield, two promoted, one absorbed into a law), fixed an id collision (open c61 was not closed c61 — renumbered c68), merged life's two own-source crowds into one inventory entry (life was 9/8), archived #37 verbatim and trimmed #33/#37 to 1.6 KB each, and paid for two law promotions (#33 price-the-walk into the time-compression law; #37 + the old #21 duration law merged into one folded-time-mean law) by compressing five verbose laws — laws count stays 26, 11.9/12 KB.",
+  "queue": [
     {
-      "id": "b1",
-      "at": "2026-08-03T01:25:59.097Z"
-    },
-    {
-      "id": "b2",
-      "at": "2026-08-03T01:45:06.014Z"
-    },
-    {
-      "id": "b3",
-      "at": "2026-08-03T02:02:12.408Z"
-    },
-    {
-      "id": "b4",
-      "at": "2026-08-03T02:15:44.499Z"
-    },
-    {
-      "id": "b5",
-      "at": "2026-08-03T02:50:16.579Z"
-    },
-    {
-      "id": "b6",
-      "at": "2026-08-03T03:20:36.118Z"
-    },
-    {
-      "id": "b7",
-      "at": "2026-08-03T03:41:17.351Z"
-    },
-    {
-      "id": "b8",
-      "at": "2026-08-03T03:56:42.244Z"
-    },
-    {
-      "id": "b9",
-      "at": "2026-08-03T04:24:19.920Z"
-    },
-    {
-      "id": "b10",
-      "at": "2026-08-03T04:43:28.314Z"
-    },
-    {
-      "id": "b11",
-      "at": "2026-08-03T04:59:49.649Z"
-    },
-    {
-      "id": "b12",
-      "at": "2026-08-03T05:21:22.690Z"
-    },
-    {
-      "id": "b13",
-      "at": "2026-08-03T05:38:52.813Z"
-    },
-    {
-      "id": "b14",
-      "at": "2026-08-03T05:54:05.107Z"
-    },
-    {
-      "id": "b15",
-      "at": "2026-08-03T06:50:34.785Z"
-    },
-    {
-      "id": "b16",
-      "at": "2026-08-03T07:15:00.705Z"
-    },
-    {
-      "id": "b17",
-      "at": "2026-08-03T22:35:03.209Z"
-    },
-    {
-      "id": "b18",
-      "at": "2026-08-03T22:49:30.895Z"
-    },
-    {
-      "id": "b19",
-      "at": "2026-08-03T23:04:34.336Z"
-    },
-    {
-      "id": "b20",
-      "at": "2026-08-03T23:28:25.630Z"
-    },
-    {
-      "id": "b21",
-      "at": "2026-08-03T23:53:51.925Z"
-    },
-    {
-      "id": "b22",
-      "at": "2026-08-04T00:14:28.098Z"
-    },
-    {
-      "id": "b23",
-      "at": "2026-08-04T00:33:59.365Z"
-    },
-    {
-      "id": "b24",
-      "at": "2026-08-04T00:53:21.301Z"
-    },
-    {
-      "id": "b25",
-      "at": "2026-08-04T01:29:15.802Z"
-    },
-    {
-      "id": "b26",
-      "at": "2026-08-04T01:43:49.560Z"
-    },
-    {
-      "id": "b27",
-      "at": "2026-08-04T03:09:46.648Z"
-    },
-    {
-      "id": "b28",
-      "at": "2026-08-04T03:42:25.235Z"
-    },
-    {
-      "id": "b29",
-      "at": "2026-08-04T04:04:17.405Z"
-    },
-    {
-      "id": "b30",
-      "at": "2026-08-04T04:41:52.159Z"
-    },
-    {
-      "id": "b31",
-      "at": "2026-08-04T05:15:12.431Z"
-    },
-    {
-      "id": "b35",
-      "at": "2026-08-04T06:02:13.630Z"
+      "id": "b38",
+      "domain": "The sill & the observer",
+      "kind": "Harness",
+      "brief": "On the 2026-08-28 restart the runner failed to launch a worker three times in a row (#34, #35, #36: 1–2 s, 0 tokens, rc=1, model '<synthetic>') and each failure BURNED a brief: run-loop.sh pops the brief before the worker starts, and on rc≠0 it backs off and pops the next one. Three planned briefs were destroyed without a worker ever reading them, and runlog/stall count the rows as ordinary failed iterations, so the dashboard reports 'src moved 7/10' for a run that shipped 7/7. Make a launch failure (rc≠0 with 0 tokens / no raw stream, or elapsed under ~30 s) leave the brief claimed and re-issue it on the next loop, and make stall.mjs and build-stats.mjs exclude such rows from verdict counts the way they already exclude manager rows. Second, smaller: motion.mjs sums a shower's rises and falls into one `jumps` figure, but only a FALL is the bug it exists for — split them so the night cell is attributable (was c62).",
+      "seams": [
+        "run-loop.sh (claim/pop order, rc handling)",
+        "pop-brief.mjs",
+        "runlog.mjs",
+        "stall.mjs",
+        "build-stats.mjs",
+        "motion.mjs"
+      ],
+      "successLooksLike": "Simulating a launch failure (run the loop with a claude stub that exits 1 in 1 s) leaves current-brief.json claimed and RUNLOG.jsonl carries a row with kind 'launch-failed' that stall.mjs --report neither counts as a worker iteration nor as a verdict; the existing #34–36 rows are re-tagged the same way and the report reads shipped=7 for the last 7. motion.mjs prints rises and falls separately with the baseline regenerated.",
+      "avoid": "Do not touch courtyard.html. Do not delete the three synthetic rows — retag them; the archive is never edited away. Do not make the fix a retry loop inside run_claude: the runner already backs off on failure, the bug is only which brief the retry gets.",
+      "budgetMin": 20,
+      "risk": "low"
     },
     {
       "id": "b36",
-      "at": "2026-08-28T11:19:50.561Z"
+      "domain": "Sky, light & weather",
+      "kind": "Deepen",
+      "brief": "Every lit window in the town switches on in the same frame and off in the same frame. drawWindow() decides `lit` as `nightF > 0.3 && hash(sa*3, sb*7+day) > 0.42`, so roughly 58% of windows burn from dusk to dawn and nobody in this town goes to bed. Give each window its own hour: over a night the lit set should thin — early sleepers out by mid-evening, a few burning into the small hours, one or two coming on before dawn — so that 22.00 and 03.00 are visibly different pictures. Sky is ten iterations back and Sky x Polish is marked saturated; this is the deepening the domain actually wants. NOTE: this brief was issued at #34 and consumed by a harness fault before any worker ran (see b38) — there is no prior attempt to read.",
+      "seams": [
+        "drawWindow",
+        "LIT",
+        "nightF",
+        "hour",
+        "sunUp",
+        "sunDown",
+        "hash"
+      ],
+      "successLooksLike": "A filmstrip cropped to the buildings across one night shows the lit count falling from an evening peak to a small-hours floor and lifting again before dawn, with no frame in which more than a couple of windows change at once. At nightF <= 0.3 nothing is lit, exactly as now, and the daytime frame is byte-identical to HEAD.",
+      "avoid": "LIT[] feeds the night glow pass — one predicate, one definition: whatever decides `lit` must be the same thing that pushes into LIT, or the glow and the pane disagree and only a crop will show it. Per-window variance comes from hash(), never R(): this runs in the renderer, and the renderer draws from the seeded stream. Match the grain — a window here is addressed per BUILDING per DAY, so a per-cell term is a silent no-op across a facade. And do not make it a second global scalar with a threshold; that is the switch you are replacing.",
+      "budgetMin": 22,
+      "risk": "medium"
     },
     {
       "id": "b32",
-      "at": "2026-08-28T11:20:51.576Z"
+      "domain": "Plaza & quay",
+      "kind": "Deepen",
+      "brief": "Nine systems read season() and every one of them is west of the bridge or in the sky. The plaza is identical in February and August — the exact position the market was in before #29. The fountain is the plaza’s landmark and has no seasonal reader at all. Give it the year: what the water does, what the basin looks like, and who is willing to stand near it should not be the same in midwinter as in midsummer. NOTE: issued at #35 and consumed by a harness fault before any worker ran — no prior attempt exists. Since #32 the bandstand DOES read the year (bandChance off warmth), so the plaza is now the only east-of-bridge place that does not.",
+      "seams": [
+        "FOUNTAIN",
+        "waterBox",
+        "riverRun",
+        "crumbSpot",
+        "PAVING.plaza",
+        "season",
+        "seasonPhase"
+      ],
+      "successLooksLike": "A pinned midwinter and a pinned midsummer plaza differ visibly in the wide shot, and the difference is continuous — a probe over a folded year shows no step in the fountain terms at any phase, and every term reduces exactly to today’s constant at SEASON_START.",
+      "avoid": "riverRun() already exists for the water and reads the same year — read it or a sibling of it; do not re-derive a second water-season term (one predicate, one definition). Do not let a global scalar approach zero without per-cell variance or it reads as a switch. And check what the fountain was tuned against before making its constants variable: crumbSpot’s keep-rect reads waterBox off the grid, and #24 put 22 birds in the basin the last time two places evaluated the same geometry.",
+      "budgetMin": 28,
+      "risk": "medium"
     },
     {
       "id": "b33",
-      "at": "2026-08-28T11:22:53.318Z"
+      "domain": "Cross street & allotments",
+      "kind": "Polish",
+      "brief": "The allotment block is a vegetable block that does not contain only vegetables. The opening scatter seeds ornamentals into the plots — seed 42 opens with a fern in the block, seed 7 with a fern and a lavender — because speciesFor() filters only NEW sowing, not the initial scatter. Since #29 that matters in a way it did not before: harvestPlot() pays its cells into produce[], stockMarket() lays them out, and the town can now put a fern on a market stall as something a gardener grew to sell. Make the block vegetables from the first frame. NOTE: issued at #36 and consumed by a harness fault before any worker ran — no prior attempt exists.",
+      "seams": [
+        "speciesFor",
+        "plotCrop",
+        "inAllotment",
+        "harvestPlot",
+        "produce",
+        "mkShelf",
+        "SPECIES"
+      ],
+      "successLooksLike": "Over ten seeds, no non-vegetable species ever occupies an allotment plot at t=0 or reaches mkShelf at any point in a folded year, and the courtyard beds are unchanged — the same eleven species in the same proportions as HEAD, proven against a stashed baseline.",
+      "avoid": "Do not fix it by filtering at the market — that is a second predicate for what an allotment grows and it will drift from speciesFor(). Fix it where the block is populated. Expect the census to churn everywhere: any change to the opening scatter reshuffles the seeded world, so read the diff for collapse, not delta.",
+      "budgetMin": 20,
+      "risk": "low"
     },
     {
-      "id": "b37",
-      "at": "2026-08-28T11:26:55.017Z"
+      "id": "b39",
+      "domain": "The sill & the observer",
+      "kind": "Interaction/UX",
+      "brief": "nameAt(x,y) names the ground, the plants, the plots, the waters and the thirteen trees — and nothing that MOVES. Point at a walker, a duck, a swan, the sweeper, a gardener with a basket, the rowboat, the concert audience or the cat, and the sill says the paving under their feet. Since #33 the living things are the most legible part of a night frame. __entities() already carries role, act and a stable id per person, and crowns[] is the pattern for hit-testing a moving thing in SCREEN space. Give the pointer the living things, with the same NAME_SETTLE hold as everything else, and let the name say what they are DOING ('someone waiting at the door', 'a swan, upending') rather than only what they are.",
+      "seams": [
+        "nameAt",
+        "NAME_SETTLE",
+        "crowns",
+        "__entities",
+        "agents",
+        "ducks",
+        "swans",
+        "updateBoat",
+        "drawAgent",
+        "project"
+      ],
+      "successLooksLike": "probes/naming.mjs extended: over ten seeds, pointing at the screen position of any agent, duck, swan or the boat returns a living name at least 95% of the time and NEVER the paving, and pointing at a spot 2 cells clear of every entity still returns exactly what HEAD returns. A moving figure holds its name for NAME_SETTLE after it walks out from under the pointer, no flicker.",
+      "avoid": "Hit-test in screen space against the drawn footprint (project() the feet, a box of roughly 0.9 cells) — never re-derive world geometry, and never add an R() draw: the renderer walks the seeded stream. The sill is DOM and fails quietly: assert on computed text, not on the handler having run. Do not add a new invitation for it; OFFERS[] is the queue and the naming already has its hint.",
+      "budgetMin": 26,
+      "risk": "medium"
     }
   ],
   "recommendStop": null

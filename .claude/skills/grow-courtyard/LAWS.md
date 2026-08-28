@@ -10,28 +10,26 @@ of the **next** vector too; anything true only of what you just built goes in
   `state.json`'s inventory *and* grep the source before adding anything — the previous
   loop nearly shipped beach towels onto a beach that already had them.
 - **Locate before you judge, then compare against a control you ran, not a memory.**
-  Half of "this looks bad" is "this is drawn in the wrong pass". Frame time swings ±30%
-  with load, so interleave the control in the same session. Pixels are worse: when a
-  vector rides a scalar that already recolours everything (cover, season, daylight), no
-  statistic of the frame is yours — render the same pinned instant in *both* builds at
-  the same value of that scalar, and get the noise floor the same way (ref against
-  itself, twice). **A gate that fails on unmodified HEAD is not a gate.** (#22, #24)
+  Half of "this looks bad" is "drawn in the wrong pass". Frame time swings ±30% with
+  load, so interleave the control. When a vector rides a scalar that recolours everything
+  (cover, season, daylight), render the same pinned instant in *both* builds at the same
+  value of it, and get the noise floor the same way (ref against itself, twice). **A gate
+  that fails on unmodified HEAD is not a gate.** (#22, #24)
 - **One predicate, one definition — and read a footprint back off the grid, never
   re-derive it.** Two places deciding the same thing will drift, and a *geometric* test
   drifts worst: a second evaluation of the same ellipse disagreed with `buildGrid()`'s
   by 2e-16 — a whole cell — and put 22 birds in the fountain basin. (#24)
-- **The census is a regression guard, not a growth score.** `+0` everywhere after a
-  draw-only iteration is expected. Its fields are town state, never render state (a
-  per-frame accumulator is not reproducible); add one only when a system moves nothing
-  the hook reports, or you are grading your own homework.
+- **The census is a regression guard, not a growth score.** `+0` after a draw-only
+  iteration is expected. Its fields are town state, never render state; add one only
+  when a system moves nothing the hook reports, or you are grading your own homework.
 
 ## This town
 
 - **Every random draw goes through `R()`** (or `hash(x,y)` per-cell). A bare
   `Math.random()` is invisible to `?seed=` and breaks the census.
-- **Two renderer traps.** `project()` pinches on *screen* depth, not world depth —
-  reverting that reintroduces a black seam beside every wall. And roofs are emergent
-  from `buildVolumes()`, so change a building's footprint, never its roof.
+- **Two renderer traps.** `project()` pinches on *screen* depth (revert it and a black
+  seam returns beside every wall); roofs are emergent from `buildVolumes()`, so change a
+  footprint, never a roof.
 - **Any new `R()` draw reshuffles the whole seeded world** — the census churns
   everywhere, a motion gate fires on a kind you never touched. Read a census diff for
   *collapse*, not delta, and when a gate fires on something you did not build, measure
@@ -42,11 +40,12 @@ of the **next** vector too; anything true only of what you just built goes in
   ~7 s: an effect over ~2 s is state, not an event, and a round trip over ~40 s leaves
   its walker permanently present whatever cap spawned it. Caps set inflow, trip length
   sets standing population, so **a cap floor is not a population floor** — a budget cut
-  resurfaces hours later through walkers still finishing trips, in a term nobody
-  edited. Floor the arrival *rate*, and **end a population by not sending new members
-  round again**. On a channel holding exactly ONE object a rate change cannot show a
-  season at all: measure **presence**. And if you compress the clock itself, **the
-  lapse must own the frame's whole advance**. (#2, #5, #15, #19, #23, #28)
+  resurfaces hours later through walkers still finishing trips. Floor the arrival
+  *rate*, and **end a population by not sending new members round again**. On a channel
+  holding ONE object measure **presence**, not rate. If you compress the clock itself,
+  **the lapse must own the frame's whole advance**. And **price the walk before choosing
+  an address**: at 2.3 s per sim hour, a 15-cell trip is 92% of a midsummer night, so
+  where an evening place can stand is arithmetic before taste. (#2, #5, #15, #19, #23, #28, #33)
 - **A slow world scalar wants a cap, a cycle and an anchor.** Rate-cap it, so "it never
   steps" is one measurable number. Prefer a cosine of a phase to a ramp: a ramp is an
   act that ends (`maturity()` pinned the town at 1 by real minute 15), a cycle is
@@ -57,10 +56,12 @@ of the **next** vector too; anything true only of what you just built goes in
   consumer has a fixed share plus a varying one, put the scalar on the **varying** term
   only; the fixed term is then the floor by construction, and a flat peak caps your
   range. (#3, #12, #14, #18, #19, #22)
-- **Duration is not the inverse of rarity.** A slew-limited scalar reaches further the
-  longer it holds, so a symmetric ±x% on duration is a net increase in time at the
-  extreme — a change reasoned to cut rain delivered +38%. Budget the annual total on a
-  folded multi-year probe before tuning the contrast. (#21)
+- **Tune a seasonal term on a folded-time mean of its CONSUMER, never on area or duration
+  in the scalar's own units.** Duration is not the inverse of rarity — a symmetric ±x% on
+  a slew-limited scalar's hold delivered +38% rain; a step replaced by an equal-area ramp
+  is not the same year, because phase density is a cosine and time piles up at the
+  extremes; and the CA either side spends a ramp asymmetrically (climb at `growF`'s pace,
+  descent at `dieF`'s), so a cap flat to 0.06% still moved the beds +1.9%. (#21, #37)
 - **A slow thing's season is not the season it is in.** Anything carrying state across a
   phase boundary — a rate-capped scalar, an *object* whose trip is an appreciable
   fraction of the cycle, a **store that carries stock forward** — drags the previous
@@ -69,12 +70,11 @@ of the **next** vector too; anything true only of what you just built goes in
   market four days behind a block already behind the season made *spring* the thinnest
   quarter. Hysteresis, not an algebra bug — check that the shoulder **pair** averages to
   the anchor, not each alone. (#21, #23, #29)
-- **When you turn a constant into a variable, hunt what was tuned against it — and find
-  the discontinuity it now lives inside.** The rest of the file keeps reading its own
-  hard-coded number and the two disagree in a way nothing errors on. Worse, the old
-  constant was also *clear of* something: this world's day rolls at `hour 6.00`, so a
-  window a variable drags across that seam evaluates against the previous day and its
-  `day`-derived predicates go false mid-window. Not an error — a pop. (#12, #18)
+- **When you turn a constant into a variable, hunt what was tuned against it — and the
+  seam it now crosses.** The rest of the file keeps its hard-coded copy and nothing
+  errors on the disagreement. The day rolls at `hour 6.00`: a window dragged across
+  that seam evaluates against the previous day and its `day` predicates go false
+  mid-window. Not an error — a pop. (#12, #18)
 - **A ceiling is not a kill term**, and a global scalar is not a switch. If a system
   already ages out what sits at its ceiling, lowering the ceiling empties it by itself.
   Give any scalar that can approach zero per-cell variance (`hash(x, y+k) > c`), and
@@ -87,12 +87,10 @@ of the **next** vector too; anything true only of what you just built goes in
   into a heap at the box's edge, exactly where the code looks most careful. (#4, #20)
 - **A feature that exists may exist at a rate of zero — count before you build on it,
   and advertise it or nobody finds it.** A spawn band is a *share of a budget*, not a
-  rate: `spawnLaneAgent` fires ~3.3×/day, so a 4% band is one person per twelve days;
-  if it fires rarely, give it its own arrival source rather than widening a band. Same
-  law one level up is discovery: the diorama answered six kinds of click for
-  thirty-one iterations and nothing said so. A new invitation joins the existing
-  `OFFERS` queue — once ever, real clock, silent on `?pause` — it does not compete.
-  (#7, #9, #13, #31; paid 4×)
+  rate: `spawnLaneAgent` fires ~3.3×/day, so a 4% band is one person per twelve days —
+  give a rare thing its own arrival source. One level up the same law is discovery: the
+  diorama answered six kinds of click for thirty-one iterations and nothing said so. A
+  new invitation joins the `OFFERS` queue; it does not compete. (#7, #9, #13, #31; paid 4×)
 - **A per-agent trait must be a field written only at spawn.** `a.timer`, `a.greet`,
   `a.watch` all count down — read one as a stable personal threshold and it cycles the
   band several times a second: a flicker that looks like a stagger. Give the trait its

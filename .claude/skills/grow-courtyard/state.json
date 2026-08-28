@@ -1,8 +1,8 @@
 {
   "updated": "2026-08-28",
-  "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
+  "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 32,
+  "lastIteration": 37,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -160,7 +160,8 @@
         "pre28"
       ],
       "deepen": [
-        "pre21"
+        "pre21",
+        37
       ],
       "new-ca": [
         "pre",
@@ -187,6 +188,9 @@
       "connect": [
         18,
         29
+      ],
+      "scale": [
+        33
       ]
     },
     "street": {
@@ -361,8 +365,7 @@
       "EVERY sitter reads the sky — SIT_REFUSE turns a seat down, skyLifts(a) gives one up off a per-agent a.wary, umbrellas on their own band. The gate is what you are DOING, not a.street. A refused courtyard seat takes routeToExit(); a picnic pair judges once for both (a.mate). probes/seats-out.mjs",
       "__entities() carries role, act, watch and raindrops per person, with a stable id — the seam a behaviour probe reads instead of a bespoke hook",
       "yearBusy(ex) multiplies the DAYLIGHT term of capacity/laneCap/eastCap only, never their fixed share (EX_COURT/EX_LANE/EX_EAST; eastCap keeps Math.min(7,...)). POP_FLOOR + scarcity lift the three arrival RATES only. probes/season-year.mjs",
-      "the audience is the town's one STANDING crowd — spawnConcertAgent(), its own source and BAND_TICK, out of neither eastCount nor laneCount; nine claimed BAND_SLOTS hold them 1.99 cells apart for as long as they stand, and a.leaveAt thins them across the strike",
-      "spawnTapAgent() — the evening door's own arrivals, out of the courtyard south arch (a.tap, four TAP_SLOTS, off laneCount, no scarcity); tapServing() stops sending TAP_LAST hours before the shut so the pavement empties on its own timers. a.cup draws standing"
+      "two crowds with their OWN arrival source, out of neither eastCount nor laneCount: the concert audience (spawnConcertAgent, BAND_TICK, nine BAND_SLOTS 1.99 cells apart, a.leaveAt) and the evening door (spawnTapAgent, four TAP_SLOTS, a.tap, tapServing() stops sending TAP_LAST h before the shut)"
     ],
     "sill": [
       "the SILL under the canvas — #plate, #daytime (day + hour), #season, #ticker, #stats, #ctrl (Pause, 1x/3x/8x). Ticker and stats hidden under 640px except during an invitation. A ResizeObserver on the frame, because the sill BORROWS space and that resizes the picture with no resize event",
@@ -375,58 +378,22 @@
   },
   "openCues": [
     {
-      "id": "c44",
-      "note": "FRONT_DEEP lets deep-winter cover CLAMP at a saturated 1.000 for whole spells, so no drawn term has range left above ~0.95: a future how-heavy-is-this-lid signal cannot be read off cover alone.",
-      "raisedBy": 20,
-      "seenBy": 2
-    },
-    {
-      "id": "c58",
-      "note": "the picnic pair shares one sky decision but keeps two independent sit timers (each half draws its own on arrival), so the sky can no longer split a pair but an ordinary afternoon still can. a.mate.",
-      "raisedBy": 29,
-      "seenBy": 1
-    },
-    {
-      "id": "c60",
-      "note": "the offer queue bounds SPACING but not ARRIVAL: offerInvite waits for tickerFree(), so a first offer on a busy day inherits an arrival time nothing floors (17.4 s vs 30.1 s measured).",
-      "raisedBy": 30,
-      "seenBy": 1
-    },
-    {
-      "id": "c61",
+      "id": "c68",
       "note": "BAND_DUSK is a hand-computed clearance between the strike ramp and eastOpen(). Nothing ASSERTS it: move BAND_DOWN, BAND_LEN or leaveAt and the green goes back to emptying in one frame, which only an arrival series can see.",
       "raisedBy": 32,
-      "seenBy": 1
-    },
-    {
-      "id": "c62",
-      "note": "motion.mjs sums a shower’s rises and falls into one jumps figure, but only a FALL is the bug it exists for. Splitting them would make the night cell attributable instead of advisory.",
-      "raisedBy": 32,
-      "seenBy": 1
+      "seenBy": 2
     },
     {
       "id": "c63",
       "note": "birds hop a +/-0.4 random walk with no separation term (a pair measured 0.2 cells apart). #32 answered the STANDING case with claimed slots; a bird that keeps moving wants a separation term or a claimed perch.",
       "raisedBy": 32,
-      "seenBy": 1
-    },
-    {
-      "id": "c64",
-      "note": "the pointer names ground, plants and trees but not the LIVING things: walkers, ducks, swans, the sweeper, the boat all answer with the paving under their feet. __entities() has stable ids and crowns[] is the pattern. Was brief b34.",
-      "raisedBy": 33,
-      "seenBy": 0
+      "seenBy": 2
     },
     {
       "id": "c65",
       "raisedBy": 33,
-      "seenBy": 0,
-      "note": "agents.length feeds scarcity(), and a.tap agents are now inside it, so a full pavement at the door quietly damps the three night arrival RATES that POP_FLOOR exists to lift. Small at four slots; a larger evening would want the term to read a population it is not part of."
-    },
-    {
-      "id": "c66",
-      "note": "the ramp gives spring more than it takes from autumn (+1.9% blooming/yr): the CA climbs at growF pace but descends at dieF pace, so any future seasonal ceiling should be checked on the consumer's folded mean, not the scalar's",
-      "raisedBy": 37,
-      "seenBy": 0
+      "seenBy": 1,
+      "note": "agents.length feeds scarcity() and a.tap agents are inside it, so a full pavement at the door damps the three night arrival RATES that POP_FLOOR lifts. Small at four slots; a larger evening wants scarcity() to read a population it is not part of."
     }
   ],
   "watch": [
@@ -435,12 +402,12 @@
       "note": "The east half is fed by ONE spawnLaneAgent roll under one laneCap (peaks at 9). Anything out there competes for that budget — check whether your feature needs its own arrival source before concluding it is unused. Bands: market 0.24, kiosk 0.18, cafe 0.26, allotment 0.48, plaza 0.48, quay 0.53, green 0.58. spawnEastAgent adds eastCap (max 7); its arrivals RETRACE their route, so a wider cap means single file."
     },
     {
-      "since": 33,
-      "note": "THE TOWN HAS NO EVENING. Every one of the ten itinerary branches in spawnLaneAgent is gated on `sun = daylight > 0.3`, so after dark every walker falls through to the pass-through leg with no stop at all; kioskOpen, marketOpen, the band and eastOpen close too. Night is ~40% of the clock and is currently ambience (lit windows, fireflies, one cat) over a transit corridor. b35 spends this."
+      "since": 37,
+      "note": "NIGHT IS ONE DOOR. #33 gave the town its first evening place (tapOpen/TAP_SLOTS on the lane), but every itinerary branch in spawnLaneAgent is still gated on `sun` and every window burns dusk to dawn: 22.00 and 03.00 are the same picture. b36 spends the windows; the east half has no night at all."
     },
     {
       "since": 30,
-      "note": "NOTHING EAST OF THE BRIDGE READS THE YEAR. Nine systems read season() and every one is in the courtyard, the street, the lane, the sky or the water — the position the market was in before #29. b32 spends part of it."
+      "note": "NOTHING EAST OF THE BRIDGE READS THE YEAR — except the bandstand (#32, bandChance off warmth). The plaza and its fountain are still identical in February and August. b32 spends it."
     },
     {
       "since": 33,
@@ -843,6 +810,48 @@
       "seenBy": 1,
       "closedBy": 32,
       "reason": "answered for a standing crowd: BAND_SLOTS are claimed like the cafe tables, so the audience's separation is a property of the place rather than of the spawn. The birds' own random walk is untouched."
+    },
+    {
+      "id": "c44",
+      "raisedBy": 20,
+      "closedAt": 37,
+      "why": "CLOSED pass #37: no consumer wants a how-heavy-is-the-lid signal above cover 0.95 — shadowF(), greyF() and the tint all read the mid-range. Re-raise if a brief ever needs one.",
+      "note": "FRONT_DEEP lets deep-winter cover CLAMP at a saturated 1.000 for whole spells, so no drawn term has range left above ~0.95: a future how-heavy-is-this-lid signal cannot be read off cover alone."
+    },
+    {
+      "id": "c58",
+      "raisedBy": 29,
+      "closedAt": 37,
+      "why": "CLOSED pass #37: two independent sit timers on a picnic pair is the ordinary afternoon behaving like an afternoon; not worth an iteration.",
+      "note": "the picnic pair shares one sky decision but keeps two independent sit timers (each half draws its own on arrival), so the sky can no longer split a pair but an ordinary afternoon still can. a.mate."
+    },
+    {
+      "id": "c60",
+      "raisedBy": 30,
+      "closedAt": 37,
+      "why": "CLOSED pass #37: the #31 law already rules it — a wall-clock arrival for anything queued behind other state is not assertable; assert structure, not timing.",
+      "note": "the offer queue bounds SPACING but not ARRIVAL: offerInvite waits for tickerFree(), so a first offer on a busy day inherits an arrival time nothing floors (17.4 s vs 30.1 s measured)."
+    },
+    {
+      "id": "c62",
+      "raisedBy": 32,
+      "closedAt": 37,
+      "why": "PROMOTED into b38 (harness) at pass #37: motion.mjs splits rises from falls so the night cell is attributable.",
+      "note": "motion.mjs sums a shower’s rises and falls into one jumps figure, but only a FALL is the bug it exists for. Splitting them would make the night cell attributable instead of advisory."
+    },
+    {
+      "id": "c64",
+      "raisedBy": 33,
+      "closedAt": 37,
+      "why": "PROMOTED to b39 at pass #37.",
+      "note": "the pointer names ground, plants and trees but not the LIVING things: walkers, ducks, swans, the sweeper, the boat all answer with the paving under their feet. __entities() has stable ids and crowns[] is the pattern. Was brief b34."
+    },
+    {
+      "id": "c66",
+      "raisedBy": 37,
+      "closedAt": 37,
+      "why": "ABSORBED into the folded-time law (#21, #37) at pass #37.",
+      "note": "the ramp gives spring more than it takes from autumn (+1.9% blooming/yr): the CA climbs at growF pace but descends at dieF pace, so any future seasonal ceiling should be checked on the consumer's folded mean, not the scalar's"
     }
   ]
 }

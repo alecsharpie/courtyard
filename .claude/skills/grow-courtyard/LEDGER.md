@@ -40,50 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 26 — the sill names the season (2026-08-04) [Sky, light & weather × Interaction/UX]
-
-**Brief:** b25 — nine systems read `season()` and the sill never said which season it was.
-Name it, in the diorama's own register, without a second row.
-
-**Did:** `seasonLabel()` beside `timeLabel()` — same idea one scale up, the hour off the
-sun and the quarter off the phase. Eight names on `seasonPhase` (never `warmth`: 0.5 is
-both bud burst and the turn), sectors of 1/8 **centred** on their phase rather than
-starting at it, so midwinter straddles the wrap as one continuous name and `Spring` lands
-exactly on `SEASON_START`. Winter and summer get an early/mid/late apiece because a cosine
-dwells at its extremes; spring and autumn are the crossings and get one name each. New
-`#season` in the sill, serif, written by `refreshStats()`. `probes/sill-year.mjs`.
-
-**Gates:** census **PASS — every field unchanged in all 9 cells**, which is the real
-assertion here: no new `R()` draw, so a DOM-only vector must reshuffle *nothing*, and for
-once a `+0` census is a positive result rather than a blind one · visual PASS (wide +
-mobile at early summer and at midwinter: "Midwinter · Day 20 · Dusk" over a bare, dark,
-24-bloom town against "Early summer · Day 4 · Morning" over 464) · `probes/sill-year.mjs`
-**41/41** across six widths · motion skipped — nothing drawn or moving was touched.
-
-**Verdict:** shipped
-
-**Surprise:** the screenshot caught what the probe swore was fine. My first fit gate read
-`sill.scrollWidth - clientWidth` and passed at 390px; the mobile PNG showed
-"Early summer" printed straight through "Day 4". Every sill item is `white-space:nowrap`
-with default `flex-shrink:1`, so a squeezed item reports a **box that fits** while its
-glyphs run out over its neighbour — container overflow is exactly 0 and the layout is
-broken. `flex:none` on all of them made the number honest (0 → 26px over), and the gate
-had to compare *text extents* between row-mates, exempting `#ticker` as the one item that
-truncates by design. Second surprise: the fix wanted 80px the narrow row didn't have, and
-the answer was not smaller type — `#plate` already has a caption slot that is
-`display:none` on a phone, so below 640px the season moves **into** the plate and sits
-under the title for zero horizontal cost, which is also the truest museum-label form.
-Third: adding a sixth item exposed a band nobody had looked at. At 641px HEAD already gave
-`#ticker` 71px of box; the season would have overflowed it outright. `#stats` now yields
-below 860px, so that band gains a season *and* a ticker that reads better than before
-(100px at 641, 222px at 768, against HEAD's 71 and 193).
-
-**Law:** a flex row of `nowrap` items has two different fit questions and the container
-answers only one — see `LAWS.md`.
-
-**Cue:** the sill overflows at 320px on HEAD too (44px, pre-existing); 390 is the tracked
-framing so I gated there and left it.
-
 ## Iteration 27 — the pointer names what it is over (2026-08-04) [Courtyard & garden × Interaction/UX]
 
 **Brief:** b26 — 64% of the frame answers a click and the cursor says so, but nothing says
@@ -311,69 +267,46 @@ ends by things that are not the event"*. Full entry in `LEDGER-archive.md`.
 clock is a transit corridor. Give the town ONE evening place. Measure the dark first.
 
 **Did:** Measured first: the dark was **not** a clean zero — **0.21** street people standing still
-22.00–04.00 against **1.26** at midday, all of it the 3–6 s glance through the arch in the final
-`else`. A lit door at `TAP_DOOR = 26`, on the plane `drawFaceRow` already puts the terrace's own
-doors on, drawn **every** frame (a doorway that appears at half six is a pop): `tapOpen()` the
-behaviour, `tapF()` the 0..1 every draw mixes on. Its hours are the one clock here that is not the
-sun's — open `sunDown - 3` floored at `TAP_EARLIEST`, shut by the CLOCK at 03.00 — so
-**midwinter's evening is its longest**, 10.5 h against midsummer's 8.5. `spawnTapAgent()` takes
-its own budget (four `TAP_SLOTS`, min gap 1.23), comes off `laneCount`, does **not** read
-`scarcity()`, and walks out of the courtyard's south arch eight cells away.
+22.00–04.00 against **1.26** at midday, all of it the glance through the arch in the final `else`.
+A lit door at `TAP_DOOR = 26` on the plane `drawFaceRow` already draws, every frame: `tapOpen()`
+the behaviour, `tapF()` the 0..1 every draw mixes on. Hours are the one clock here that is not
+the sun's — open `sunDown - 3` floored at `TAP_EARLIEST`, shut by the CLOCK at 03.00 — so
+**midwinter's evening is its longest**. `spawnTapAgent()` has its own budget (four `TAP_SLOTS`),
+comes off `laneCount`, does **not** read `scarcity()`, and walks out of the courtyard's south arch.
 
-**Gates:** census PASS (people +15, onStreet +13 — two ladder cells sit at 21.27) · visual PASS
-(`tap-shots.mjs`) · perf PASS (+0.0%) · motion **FAIL, attributed**: `market/shower` 0→2 on
-untouched code, and `shower-jump-spread.mjs` over ten seeds gives HEAD 0..2 mean 0.40 against 0..3
-mean 0.50 here · **`evening-door.mjs`**: night STILL **0.21 → 0.98**, 17% → **77%** of midday; at
-the door 0.00 at 10h/12h/14h and 2.50 at 22h; longest life there **23.5 s** of a 40 s limit; **0**
-standing after the shut, latest 26.92 of 27.00 · **`day-control.mjs`**: `tap 0` at both midday
-instants on HEAD and here. Context budget opened OK and closes **OVER** (47.1 / 46 KB).
+**Gates:** census PASS (people +15) · visual PASS (`tap-shots.mjs`) · perf PASS · motion **FAIL,
+attributed** (`market/shower` 0→2 on untouched code; ten seeds HEAD mean 0.40 vs 0.50) ·
+**`evening-door.mjs`**: night STILL **0.21 → 0.98**, 17% → **77%** of midday; **0** standing after
+the shut · **`day-control.mjs`**: `tap 0` at both midday instants on HEAD and here.
 
 **Verdict:** shipped
 
-**Surprise:** the address was decided by arithmetic, not taste, and it took three false starts to
-see it. A sim hour is 2.3 s, so a midsummer night is 22 s of screen time, and the brief's own test
-("stopped at 22.00 in midsummer") is only satisfiable if the walk is about 3 s. Our own doorway at
-x=33.9 — which `drawOurSide` has drawn since before the loop and nothing has ever used — is 15
-cells across the lane: 6.8 s each way, first arrival 23.6, round trip 92% of the window. It had to
-move to the near side of the road for a reason with nothing to do with how it looks. Second:
-`tap-shots.mjs` photographed 190 px of the frame's left border twice, because `project()` is
-relative to the canvas **parent**. Full entry in `LEDGER-archive.md`.
-
-**Law:** the evening is bounded by ARITHMETIC before taste — at 2.3 s to the sim hour, where a new
-place can stand is set by how far its people must walk to it, and a 15-cell trip is already 92%
-of a midsummer night. Price the walk before choosing the address.
+**Surprise:** the address was decided by arithmetic, not taste. A sim hour is 2.3 s, a midsummer
+night 22 s, so "stopped at 22.00 in midsummer" is only satisfiable if the walk is ~3 s. Our own
+doorway at x=33.9 is 15 cells across the lane: 6.8 s each way, round trip 92% of the window. It
+had to move to the near side of the road. Also `tap-shots.mjs` photographed the frame's border
+twice, because `project()` is relative to the canvas **parent**. Full entry in `LEDGER-archive.md`.
 
 ## Iteration 37 — the bed ceiling comes down cell by cell, not all at once (2026-08-28) [Courtyard & garden × Deepen]
 
 **Brief:** b37 — `bloomCap()` was the town's only STEPPED seasonal term (3/2/1 at warmth 0.42/0.20);
 make it continuous without moving the year's totals.
 
-**Did:** `bloomCap()` is now a ramp `1 + 2·clamp((warmth − BLOOM_LO)/(BLOOM_HI − BLOOM_LO))`, with
-`BLOOM_HI = 0.50` = SEASON_START's warmth so the anchor is 3 by the clamp, and `BLOOM_LO = 0.12` the one
-tuned number. `bedCap(x,y)` turns the fraction into an integer with `capStep()` — the fraction is the
-SHARE of cells already allowed the next stage, by `hash(x, y+53)` in the courtyard and by
+**Did:** `bloomCap()` is now `1 + 2·clamp((warmth − BLOOM_LO)/(BLOOM_HI − BLOOM_LO))`, with
+`BLOOM_HI = 0.50` = SEASON_START's warmth (anchor 3 by the clamp) and `BLOOM_LO = 0.12` the one
+tuned number. `bedCap(x,y)` turns the fraction into an integer with `capStep()` — the fraction is
+the SHARE of cells already allowed the next stage, by `hash(x, y+53)` in the courtyard and by
 `hash(plotOrigin, +53)` in the allotments, so a plot still steps whole but not with its neighbour.
-Hardiness (`y+41`, `plotStands`) untouched. No new `R()`.
 
-**Gates:** census PASS (blooming −17, planted −25 — noise; winter cell planted 725 → 841) · visual PASS
-(early summer, cap 3 both builds — nothing to see, as expected) · motion skipped (CA state only, no
-draw or agent touched) · perf skipped · **`bloom-cap.mjs`** (folded year, 520 phases): max step in the
-courtyard's mean ceiling **0.876 → 0.038**, allotments 1.000 → 0.118 (one plot of seventeen),
-`bloomCap()` at the anchor exactly 3 both builds; year-mean of the cap 2.2577 → 2.2564 ·
-**`beds-year.mjs`** 3 seeds × 70 settled days: mean blooming **342.7 → 349.3 (+1.9%)**, planted +1.4%;
-autumn shoulder d13–15 was 534/147/53, now 512/232/56; spring d24–26 was 47/288/608, now 66/339/570;
-evenness 0.998 all three years. Context budget opened OVER (46.4 / 46 KB).
+**Gates:** census PASS (blooming −17, planted −25 — noise) · visual PASS (early summer, cap 3 both
+builds) · motion/perf skipped (CA state only) · **`bloom-cap.mjs`** (folded year): max step in the
+courtyard's mean ceiling **0.876 → 0.038**, allotments 1.000 → 0.118; anchor exactly 3 both builds;
+year-mean of the cap 2.2577 → 2.2564 · **`beds-year.mjs`** 3 seeds × 70 days: mean blooming
+**+1.9%**, evenness 0.998. Context budget opened OVER (46.4 / 46 KB).
 
 **Verdict:** shipped
 
-**Surprise:** the cap's folded mean was flat to 0.06% and the beds still came out +1.9% — the ramp gives
-the SPRING side more than it takes from autumn (d25 +51, d14 +85 vs d26 −38), because a bed under a
-rising fractional cap starts climbing the moment its cell is admitted, while a bed under a falling one
-only ages out at `dieF()`'s pace. A continuous ceiling is still asymmetric through the CA either side of
-it. Also: BLOOM_LO tuned in warmth-space came out 0.12 rather than the 0.08 the area-under-the-step
-arithmetic said, because warmth is a cosine and time piles up at the extremes, not the middle.
-
-**Law:** a step replaced by a ramp with the same area is not the same YEAR — the world's phase density
-is a cosine, so tune the ramp's one free end on a folded-time mean, never on area in the scalar's own
-units; and expect the CA on either side to spend the ramp asymmetrically (climb is rate-limited by
-growth, descent by dieback), so check the consumer's annual mean, not just the scalar's.
+**Surprise:** the cap's folded mean was flat to 0.06% and the beds still came out +1.9% — a bed
+under a rising cap climbs the moment its cell is admitted, a bed under a falling one only ages out
+at `dieF()`'s pace. And `BLOOM_LO` came out 0.12, not the 0.08 area arithmetic said, because
+warmth is a cosine and time piles up at the extremes. Full entry in `LEDGER-archive.md`.
