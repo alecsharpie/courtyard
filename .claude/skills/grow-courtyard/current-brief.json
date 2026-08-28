@@ -19,7 +19,7 @@
   "avoid": "Do not change the share of windy days (0.28) or add an R() draw — the target is the same per-day hash. Do not touch cloudCover's own rate. Do not make the wind a weather-front consumer yet; that is a later Connect.",
   "budgetMin": 30,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 58,
   "issued": "2026-08-28T22:38:27.373Z",
