@@ -1008,12 +1008,31 @@ function snowF(){ return clamp((greyF() - SNOW_G0) / SNOW_G1, 0, 1); }
 /* how much of the cover a cell of this kind takes — the trodden kinds take less, so the
  * paths and the road read dark through the white without touching the wear map */
 function snowTake(t){ return t === GRASS || t === BED || t === CBED ? 1 : t === SIDE ? 0.7 : t === PATH || t === SLOT ? 0.5 : t === ROAD ? 0.4 : 0; }
-function snowAt(x, y, t){ return snowCover > 0 ? clamp(snowCover * snowTake(t) * (0.55 + 0.45 * hash(x, y + 53)), 0, 1) : 0; }
+/* the cover also knows the wear VALUE, not just the kind: a line worn through the lawn
+ * takes SNOW_WEAR less of it (full effect by wear SNOW_WEAR_AT, where a desire path is
+ * unmistakably a path), so the paths people wear stay dark through a winter. trod[] is
+ * the short-term half of the same idea — feet on a lying cover cut it back to the
+ * ground, the sweeper's broom clears the strip he walks, and fresh snowfall buries the
+ * cuts again at SNOW_BURY per second of full snow — so a morning after a fall is one
+ * swept strip and the desire paths re-trodden from the arches inward. Both terms are
+ * inside the cover > 0 guard, so out of winter snowAt is the constant 0 it always was. */
+const SNOW_WEAR = 0.85, SNOW_WEAR_AT = 0.45, SNOW_BURY = 0.15;
+const trod = new Float32Array(GW * WH);
+function snowAt(x, y, t){
+  if (snowCover <= 0) return 0;
+  const j = y * GW + x, cut = Math.max(Math.min(wear[j] / SNOW_WEAR_AT, 1), trod[j] || 0);
+  return clamp(snowCover * snowTake(t) * (1 - SNOW_WEAR * cut) * (0.55 + 0.45 * hash(x, y + 53)), 0, 1);
+}
 function stepSnow(dt){
   const s = snowF();
   let d = -SNOW_MELT * (1 - s);
   if (raining) d += rainFall * (s * SNOW_SLEW - (1 - s) * SNOW_RAIN_THAW);
+  const was = snowCover;
   snowCover = clamp(snowCover + d * dt, 0, 1);
+  if (raining && s > 0 && snowCover > was){                 // fresh snow buries the cuts
+    const b = rainFall * s * SNOW_BURY * dt;
+    for (let i = 0; i < trod.length; i++) if (trod[i] > 0) trod[i] = Math.max(0, trod[i] - b);
+  } else if (was > 0 && snowCover <= 0) trod.fill(0);       // the cover is gone; next winter starts clean
   if (!snowAnnounced && snowCover > SNOW_SETTLE){ snowAnnounced = true;
     announce('Snow settles on the roofs and the lawn; the lane goes quiet and white.'); }
   if (snowAnnounced && snowCover <= 0) snowAnnounced = false;   // next winter gets its line too
@@ -1821,7 +1840,10 @@ function stepAgent(a, dt){
     if (grid[j]===GRASS){
       wear[j] = Math.min(1, wear[j] + (a.small?0.05:0.09) * dt * 6);
       if (daisy[j] && wear[j]>0.25){ daisy[j]=0; }
+      if (snowCover > 0) trod[j] = Math.min(1, trod[j] + (a.small?0.2:0.35) * dt * 6);   // feet cut a lying cover
       if (R()<dt*2) groundDirty = true;
+    } else if (a.broom && snowCover > 0 && trod[j] < 1){
+      trod[j] = 1; groundDirty = true;                        // the sweeper clears the strip he walks
     }
   }
   stepDog(a, sp, dt);

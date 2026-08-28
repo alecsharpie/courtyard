@@ -323,7 +323,8 @@
     "note": "What the town ALREADY contains, as nouns plus the symbols and probes a brief must name. One line per system, <=300 B, enforced by rotate-ledger.mjs. Measurements and histories belong in the ledger. Read before you build.",
     "courtyard": [
       "walled garden with a bed ring, four arch entrances (2 TUNNEL, 2 SLOT), benches, desire paths from foot wear (wear[]), daisies, ivy, a pre-dawn sweeper, one linden (drawTree, CX/CY); planting CA — 11 species, bloom stages, seeding, crowding, dieback; rain speeds growth",
-      "the beds read the YEAR — growF()/dieF() off warmth, lawn health in groundCol; bloomCap() a RAMP over warmth (BLOOM_LO 0.12 → BLOOM_HI 0.50 = anchor), a CEILING dithered per courtyard CELL / allotment PLOT by capStep() (hash y+53). probes/beds-year.mjs, bloom-cap.mjs"
+      "the beds read the YEAR — growF()/dieF() off warmth, lawn health in groundCol; bloomCap() a RAMP over warmth (BLOOM_LO 0.12 → BLOOM_HI 0.50 = anchor), a CEILING dithered per courtyard CELL / allotment PLOT by capStep() (hash y+53). probes/beds-year.mjs, bloom-cap.mjs",
+      "snow knows the paths — snowAt() takes 1-SNOW_WEAR*max(wear/SNOW_WEAR_AT, trod[]); trod[] cut by feet on GRASS and by any a.broom agent's cell, buried by fresh fall (SNOW_BURY), zeroed when cover melts out. probes/snow-wear.mjs"
     ],
     "lane": [
       "kiosk, pavement cafe with claimable tables, awnings, washing lines, planters, lamps, benches; market every 4th day, three stalls, marketRaise(i) stages each up/down as clamps on one 0..1",
@@ -418,6 +419,12 @@
     {
       "id": "c82",
       "note": "filmstrip.mjs's 0.35 s gap reads a legitimately fast sky (winter dusk daylight moves 0.04/sample, ~7 RGB) as a POP. A 'pop' gate should compare against the per-60fps-frame Δ (probes/dusk-relight-where.mjs gap 0.0167): a step is a frame far above its neighbours, not a sample far above 2.",
+      "raisedBy": 47,
+      "seenBy": 0
+    },
+    {
+      "id": "c83",
+      "note": "Snowy lawn at dawn reads pale green rather than white (cover ~0.5 mixed under the dawn tint) — the snow-wear contrast is faint at the hour the brief asked for; consider a whiter SNOW_COL floor or a higher cover before dawn shots",
       "raisedBy": 47,
       "seenBy": 0
     }

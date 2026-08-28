@@ -15,28 +15,6 @@
   "rationale": "DROPPED FROM RUNG 4 TO RUNG 2, deliberately. Passes #32, #37 and #42 held rung 4 for one reason — the town had no night — and that climb is now landed: windows keep hours (#39), the door has callers (#47), the river has lamps and a night stander (#46), and snow (#45) gave winter a wide-shot tell. The ladder says stay low while work lands, and the highest-yield move now is to COMPOUND what three rung-4 passes built rather than open a fourth world-change while the last one still has loose ends. Every brief here wires two things that already exist and ignore each other. b45 goes first because it is a defect a thirty-second viewer sees: the whole picture relights in one frame at winter dusk (5–9 whole-frame Δ on HEAD, twice what any feature produces) because the cached ground repaints on a quarter-hour bucket that is coarse exactly where the light moves fastest. b46 is snow × the one system the courtyard is famous for (desire paths) plus the sweeper who already exists — the cheapest legible winter connection, in the most starved domain. b47 gives the plaza the wind, the one scalar nothing east of the bridge reads (WATCH). b48 is the bet: the town's people leave the frame at dusk and nobody goes HOME — a walker who turns in at a door and lights the window they went to is the single thing that would make the night read as inhabited rather than decorated; it touches the cached facade layer, WINDOWS[] and routeToExit, and it can fail. b49 gives the allotments a winter (the block is empty for a quarter of the year: allotRate floors at 0.01 with ripePlots 0). Curation: coverage #43–#47 entered; c75/c76/c77 promoted (c75 re-raised as the swan half of b48's avoid), c74/c78/c79 kept (seen 1); three laws promoted from #44/#46/#47 (follower-rate as new; night cap and pathHours merged INTO the time-compress law rather than beside it; __entities extras into the instrument law; __warp-never-draws and filmstrip --page into the probe and control laws) paid for by compressing eight verbose laws — 28 laws, 12.0/12 KB, nothing cut outright; ledger rotated 12 → 8 and #45–#47 archived verbatim then condensed 3.4–3.8 → 1.8 KB each; inventory 59 → 45 entries by merging pairs, WATCH's two spent notes replaced with what is true now. Worker budget 50.5 → 43.6 KB OK.",
   "queue": [
     {
-      "id": "b46",
-      "domain": "Courtyard & garden",
-      "kind": "Connect",
-      "brief": "Snow (#45, `snowCover`, `snowAt(x,y,t)` at ~1011) and foot wear (`wear[]`, written at ~1822 by every walker step, read by `drawGround` at ~3388 for desire paths) do not know each other: a lying cover whitens the lawn evenly and the town's most-loved emergent feature — the paths people wear — vanishes for a quarter of the year. `snowAt` already takes less on trodden KINDS; extend that to the wear VALUE so a worn line through the lawn stays dark through the snow and a fresh cover is re-trodden from the arches inward over a morning. Then give the pre-dawn sweeper (~2320, `sweeper`) a winter job: the strip they sweep (their actual route) is cleared, so at dawn on a snowy day there is one swept path and the rest is white until feet cut the desire paths again.",
-      "seams": [
-        "snowAt",
-        "snowCover",
-        "snowTake",
-        "wear",
-        "drawGround",
-        "groundDirty",
-        "SNOW_REPAINT",
-        "sweeper",
-        "spawnAgent",
-        "probes/snow-year.mjs"
-      ],
-      "successLooksLike": "A winter-morning shot (seed 7, snowCover > 0.4) shows dark desire paths through a white lawn and one swept strip; the same instant on HEAD is an even white. Summer frames byte-identical to HEAD. A probe over five seed-winters: mean snow on cells with wear > 0.45 is under half the mean on cells with wear < 0.1. snow-year.mjs's cover means move less than 5%.",
-      "avoid": "Do not add a new ground kind or a new R() draw. Wear is per courtyard cell only — do not invent wear for the paved east. Keep the repaint on SNOW_REPAINT steps; a per-frame ground redraw is the one thing that would fail perf.",
-      "budgetMin": 30,
-      "risk": "medium"
-    },
-    {
       "id": "b47",
       "domain": "Plaza & quay",
       "kind": "Connect",
@@ -107,6 +85,10 @@
     {
       "id": "b45",
       "at": "2026-08-28T16:57:29.890Z"
+    },
+    {
+      "id": "b46",
+      "at": "2026-08-28T17:04:06.720Z"
     }
   ]
 }
