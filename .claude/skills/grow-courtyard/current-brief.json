@@ -19,7 +19,7 @@
   "avoid": "Do not add a new ground kind or a new R() draw. Wear is per courtyard cell only — do not invent wear for the paved east. Keep the repaint on SNOW_REPAINT steps; a per-frame ground redraw is the one thing that would fail perf.",
   "budgetMin": 30,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 49,
   "issued": "2026-08-28T17:04:06.721Z",
