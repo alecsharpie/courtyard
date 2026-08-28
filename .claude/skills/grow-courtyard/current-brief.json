@@ -22,7 +22,7 @@
   "avoid": "Do not widen laneCap or let these walkers take lane itineraries — they are going home, one leg, no stops. Do not change windowHours()'s hash or the 0.15–2 h dusk offsets; the register is the only thing that moves. Expect census churn from the new R() draws: replay over ten seeds, read for collapse only.",
   "budgetMin": 35,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 53,
   "issued": "2026-08-28T21:52:01.225Z",
