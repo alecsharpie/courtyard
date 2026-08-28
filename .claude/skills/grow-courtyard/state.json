@@ -2,7 +2,7 @@
   "updated": "2026-08-28",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 39,
+  "lastIteration": 42,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -200,7 +200,8 @@
       ],
       "polish": [
         "pre3",
-        "pre5"
+        "pre5",
+        41
       ],
       "connect": [
         "pre7"
@@ -218,7 +219,8 @@
         "pre22"
       ],
       "deepen": [
-        5
+        5,
+        40
       ],
       "polish": [
         20
@@ -295,10 +297,14 @@
     "sill": {
       "interaction": [
         26,
-        31
+        31,
+        42
       ],
       "scale": [
         28
+      ],
+      "harness": [
+        38
       ]
     }
   },
@@ -309,7 +315,7 @@
     }
   },
   "inventory": {
-    "note": "What the town ALREADY CONTAINS, in the words a brief would use. NOUNS plus the symbol names and probe files a brief must name — one line per system, 300 bytes each, ENFORCED by rotate-ledger.mjs. Measurements and histories belong in the ledger. Read this before you build: it is the antidote to the previous loop’s terminal failure, nine iterations that each surveyed the world, found everything already existed, and exited.",
+    "note": "What the town ALREADY contains, as nouns plus the symbols and probes a brief must name. One line per system, <=300 B, enforced by rotate-ledger.mjs. Measurements and histories belong in the ledger. Read before you build.",
     "courtyard": [
       "walled garden, organic bed ring, four arch entrances (2 TUNNEL, 2 SLOT), benches, desire paths from foot wear, daisies, ivy on the gatehouse, a pre-dawn sweeper, one linden (drawTree, CX/CY)",
       "planting CA — 11 species, bloom stages, seeding from mature neighbours, crowding, age dieback; rain accelerates every growth term",
@@ -338,7 +344,7 @@
       "plaza with a fountain and a paved roundel (PATH), four tree pits, benches; quay with benches along the river",
       "spawnEastAgent() — the east quarter's own arrival source (eastCap/eastRate, a.east, excluded from laneCount, eastOpen() on daylight); enters by the alley, quay head or park gate, visits one stop, leaves the way it came. census life.inEast",
       "PAVING + pavingAt(x,y) — the ONE predicate naming which paving a cell is (lane, bridge, cross street, mouth, plaza, quay, towpath, court). Each carries its crumbs line AND the box its birds land in; crumbSpot() staggers three birds clear of the basin. probes/paving-places.mjs",
-      "the FOUNTAIN reads the YEAR — fountainPlay() = 1 - FOUNT_SWING*greyF() (riverRun turned over): jets per-k threshold, height/reach, droplet count; basin via riverCol() + fountainIce() per-cell skin below FOUNT_ICE; fountainStand() sets the bench/fountain split in both spawners. probes/fountain-year.mjs, fountain-shots.mjs"
+      "the FOUNTAIN reads the YEAR — fountainPlay() = 1 - FOUNT_SWING*greyF(): jets per-k threshold, height/reach, droplets; basin via riverCol() + fountainIce() per-cell skin below FOUNT_ICE; fountainStand() sets the bench/fountain split in both spawners. probes/fountain-year.mjs"
     ],
     "river": [
       "river, one rowboat, three-arch bridge, towpath, church with tower and nave, bandstand, four orchard trees, jetty, park gate",
@@ -351,15 +357,14 @@
       "the BANDSTAND has a summer concert — bandF() stages three BAND_PLAYERS (cues 0.10/0.30/0.50) and bunting up and back down on ONE 0..1; isBandDay() is hash(day,617) vs bandChance() off warmth, so July plays and February does not. probes/bandstand-year.mjs, bandstand-shots.mjs"
     ],
     "sky": [
-      "day/night cycle (55 s day), sun and moon arc, backdrop hills, chimney smoke, a balloon; night windows: windowLit(sa,sb) — ONE predicate for pane and LIT[] glow, each window its own hours (see below)",
-      "isWindy() — wind days, read by the ticker, leaf fall, smoke drift, tree sway, washing-line swing, the morning wind announcement",
-      "cloudCover() — one slow rate-capped scalar; fronts build over ~half a day and break after rain; sun and moon veiled, stars put out, drifting banks",
+      "day/night cycle (55 s day), sun and moon arc, backdrop hills, chimney smoke, a balloon; night windows each keep their own hours (windowLit, below)",
+      "cloudCover() — one slow rate-capped scalar; fronts build over ~half a day and break after rain; sun and moon veiled, stars put out, drifting banks; isWindy() — wind days, read by ticker, leaf fall, smoke, sway, washing, the morning announcement",
       "weatherComing() — the ramped rain-is-coming predicate off cloudCover(), damped by daylight because people anticipate by looking up; three readers at their own trigger points",
       "rainFall — a 0..1 shower intensity beside the raining boolean; drops, overcast tint, pond rings, water sparkle and chimney smoke all read it",
       "season() — the YEAR. Cyclic over SEASON_LEN 26 days (~24 real min), phase 0 = midwinter, anchored at SEASON_START 0.25 where every seasoned term equals the constant it replaced. NINE READERS: day length, light, beds, trees, the working day, pop caps, weather, river, allotments. census clock.season",
       "the weather reads the year — greyF() drives front frequency, depth and spellLen() while showerRate/showerLen/showerHard move the OPPOSITE way, so summer’s rare showers are the hard ones and the annual total holds. Rain can start in the dark. probes/weather-year.mjs",
       "the ground reads the lid — shadowF() with shSpread() and shOffset(), so a cast shadow fades, widens and retracts together; eight sites, a real blur on the cached ground layer behind CAN_BLUR. probes/shadow-cover.mjs, ground-relight.mjs",
-      "windowLit(sa,sb) — per-window hours off ONE clock (hours since the dusk edge, night id nid, not day): on 0.15–2 h after dark, bedtime on+1.2+6.8h², 5% burn through, 14% early risers, all out before the dawn edge. Facades are CACHED (quarter-hour bucket): WINDOWS[] + drawLitPanes() repaint lit panes live. probes/windows-night.mjs"
+      "windowLit(sa,sb) — ONE predicate for pane and LIT[] glow, hours off the dusk edge (night id nid): lit 0.15–2 h after dark, bedtimes spread, 5% burn through, 14% early risers, out by dawn. Facades are CACHED; WINDOWS[] + drawLitPanes() repaint panes live. probes/windows-night.mjs"
     ],
     "life": [
       "walkers with itineraries, courtyard and street; eastern itineraries — plaza bench, fountain gaze, quay rail, quay bench, towpath, church green, allotment plot, bridge parapet",
@@ -381,56 +386,7 @@
       "the NAMING names the LIVING things — livingAt(p) hit-tests agents, dogs, ducks, swans, boat, cat in SCREEN space on the projected feet (box per pose); personName(a) says what they are doing off state/kind/cup/watch/greet/listen/band. probes/naming.mjs §7"
     ]
   },
-  "openCues": [
-    {
-      "id": "c68",
-      "note": "BAND_DUSK is a hand-computed clearance between the strike ramp and eastOpen(). Nothing ASSERTS it: move BAND_DOWN, BAND_LEN or leaveAt and the green goes back to emptying in one frame, which only an arrival series can see.",
-      "raisedBy": 32,
-      "seenBy": 2
-    },
-    {
-      "id": "c63",
-      "note": "birds hop a +/-0.4 random walk with no separation term (a pair measured 0.2 cells apart). #32 answered the STANDING case with claimed slots; a bird that keeps moving wants a separation term or a claimed perch.",
-      "raisedBy": 32,
-      "seenBy": 2
-    },
-    {
-      "id": "c65",
-      "raisedBy": 33,
-      "seenBy": 1,
-      "note": "agents.length feeds scarcity() and a.tap agents are inside it, so a full pavement at the door damps the three night arrival RATES that POP_FLOOR lifts. Small at four slots; a larger evening wants scarcity() to read a population it is not part of."
-    },
-    {
-      "id": "c69",
-      "note": "A worker that ran and exited non-zero (tokens>0, >30 s) still retires its brief as 'failed'; decide whether such briefs should be re-issued (iter 38 left this alone)",
-      "raisedBy": 37,
-      "seenBy": 0
-    },
-    {
-      "id": "c70",
-      "note": "filmstrip.mjs --scene night is not night: t=1230 s is hour ~14.7. Re-pin the preset to a real night instant.",
-      "raisedBy": 37,
-      "seenBy": 0
-    },
-    {
-      "id": "c71",
-      "note": "fountain jets: hash(k,23) thresholds cluster 0.58-0.70, spray goes 2->5 over ~2 sim days; respread if it reads as a step",
-      "raisedBy": 39,
-      "seenBy": 0
-    },
-    {
-      "id": "c72",
-      "note": "seed() courtyard scatter is a literal 1..4 (includes lavender, minDay 1), not speciesFor(); kept so HEAD's beds are preserved",
-      "raisedBy": 39,
-      "seenBy": 0
-    },
-    {
-      "id": "c73",
-      "note": "swans carry no behaviour state (only ph) — an upend/preen would give personName's sibling something to say",
-      "raisedBy": 39,
-      "seenBy": 0
-    }
-  ],
+  "openCues": [],
   "watch": [
     {
       "since": 0,
@@ -887,6 +843,70 @@
       "closedAt": 37,
       "why": "ABSORBED into the folded-time law (#21, #37) at pass #37.",
       "note": "the ramp gives spring more than it takes from autumn (+1.9% blooming/yr): the CA climbs at growF pace but descends at dieF pace, so any future seasonal ceiling should be checked on the consumer's folded mean, not the scalar's"
+    },
+    {
+      "id": "c69",
+      "note": "A worker that ran and exited non-zero (tokens>0, >30 s) still retires its brief as 'failed'; decide whether such briefs should be re-issued (iter 38 left this alone)",
+      "raisedBy": 37,
+      "seenBy": 0,
+      "closedBy": 42,
+      "reason": "promoted into b40 (harness): a worker that ran >30 s with tokens and exited non-zero must not retire its brief as failed"
+    },
+    {
+      "id": "c70",
+      "note": "filmstrip.mjs --scene night is not night: t=1230 s is hour ~14.7. Re-pin the preset to a real night instant.",
+      "raisedBy": 37,
+      "seenBy": 0,
+      "closedBy": 42,
+      "reason": "promoted into b40: re-pin filmstrip --scene night to a real night instant"
+    },
+    {
+      "id": "c73",
+      "note": "swans carry no behaviour state (only ph) — an upend/preen would give personName's sibling something to say",
+      "raisedBy": 39,
+      "seenBy": 0,
+      "closedBy": 42,
+      "reason": "promoted into b41: swan behaviour states"
+    },
+    {
+      "id": "c65",
+      "raisedBy": 33,
+      "seenBy": 1,
+      "note": "agents.length feeds scarcity() and a.tap agents are inside it, so a full pavement at the door damps the three night arrival RATES that POP_FLOOR lifts. Small at four slots; a larger evening wants scarcity() to read a population it is not part of.",
+      "closedBy": 42,
+      "reason": "promoted into b44: scarcity() must read a population the tap crowd is not part of"
+    },
+    {
+      "id": "c68",
+      "note": "BAND_DUSK is a hand-computed clearance between the strike ramp and eastOpen(). Nothing ASSERTS it: move BAND_DOWN, BAND_LEN or leaveAt and the green goes back to emptying in one frame, which only an arrival series can see.",
+      "raisedBy": 32,
+      "seenBy": 2,
+      "closedBy": 42,
+      "reason": "promoted into b44: assert the BAND_DUSK clearance while the bandEnd->tap walk is being built"
+    },
+    {
+      "id": "c71",
+      "note": "fountain jets: hash(k,23) thresholds cluster 0.58-0.70, spray goes 2->5 over ~2 sim days; respread if it reads as a step",
+      "raisedBy": 39,
+      "seenBy": 0,
+      "closedBy": 42,
+      "reason": "no-yield: nobody has seen the 2->5 jet step; reopen only if a viewer or a shot shows it"
+    },
+    {
+      "id": "c72",
+      "note": "seed() courtyard scatter is a literal 1..4 (includes lavender, minDay 1), not speciesFor(); kept so HEAD's beds are preserved",
+      "raisedBy": 39,
+      "seenBy": 0,
+      "closedBy": 42,
+      "reason": "deliberate and documented in the street inventory (#41); a second list, not a bug"
+    },
+    {
+      "id": "c63",
+      "note": "birds hop a +/-0.4 random walk with no separation term (a pair measured 0.2 cells apart). #32 answered the STANDING case with claimed slots; a bird that keeps moving wants a separation term or a claimed perch.",
+      "raisedBy": 32,
+      "seenBy": 2,
+      "closedBy": 42,
+      "reason": "no-yield after 2 passes: moving birds are 3 px sprites and a merge reads as a flock; the standing case (#32 slots) was the visible one"
     }
   ]
 }

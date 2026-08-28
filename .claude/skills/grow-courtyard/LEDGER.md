@@ -40,190 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 27 — the pointer names what it is over (2026-08-04) [Courtyard & garden × Interaction/UX]
-
-**Brief:** b26 — 64% of the frame answers a click and the cursor says so, but nothing says
-*what* you are pointing at. Name it, read off the grid, correct as the season changes.
-
-**Did:** one label in the sill, borrowing the **ticker's** box (upright, no full stop — the
-ticker is prose the town says, this is a label for a thing). Everything in it is read, never
-inferred: species off `bSp`, stage off `bSt` against `bedCap(x,y)` — lifted out of `caTick`
-so the ceiling has one definition now a second reader wants it — allotments named per *plot*
-off `plotCrop` at the row's best stage, paving and water off `pavingAt`/a new `WATERS` table
-that also feeds the click's three water lines. Trees are hit-tested in **screen** space
-against a `crowns[]` the draw pass records: a crown is painted cells north of its own trunk,
-and a second derivation of that geometry is exactly what drifts. Manners: one read per
-*frame* off the last pointer position, not per mousemove; `NAME_SETTLE` 0.12 s before a name
-commits (a sweep crosses fifty 9-px cells), instant to clear; yields to a live ticker line,
-never opens under `inviteHold`. A phone has no hover, so the **tap** names and holds 4.5 s.
-
-**Gates:** census **PASS — every field unchanged in all 9 cells** (no new `R()` draw, so a
-read-only vector must reshuffle nothing; `bedCap` is the old inline expression moved, and
-the census proves it exactly) · motion **PASS** vs a HEAD baseline · visual PASS
-(`probes/naming-shots.mjs`) · perf **PASS** (+0.0% day and night, 3 interleaved reps) ·
-**probe PASS** `probes/naming.mjs` 24/24: 13 crowns each naming their own tree, **0 cells**
-where `nameAt` and `answersTouch` disagree (9581 = 9581), 733 beds named with 0 wrong,
-4 linden labels round the year, blossom *and* fruit found.
-
-**Verdict:** shipped
-
-**Surprise:** a feature that reads a screen *position* found a bug that #24 shipped and
-nobody could see. The sill **borrows** space — one line where the plate was two — and that
-changes the canvas's box with no `resize` event at all: measured **+16 px at 390 px**, a 2%
-vertical stretch that is invisible in the picture and puts `unproject()` **two cells out at
-the bottom of the frame**, because it is still working in the old geometry. The invitation
-has resized the sill this way since #24; nothing read a position back then. A
-`ResizeObserver` on the frame fixes it (0 px at 1400 — a phone-only shift). Second: the
-naming waits for the ticker's line to be *read*, and `tickerAge` is bucketed off the sim's
-`dt` — so on a **paused** page it waits forever. Reading is a real-time act, so `lineAt` is
-stamped off `performance.now()`, as `TICK_DWELL` is documented to be.
-
-**Law:** read a screen coordinate → observe the **frame**, not the window; a UI element that
-borrows space resizes the picture silently. A timer a *person* races runs on the real clock.
-
-**Cue:** c53 — the naming names places and plants, not people.
-
-## Iteration 28 — the season is a button, and the year runs on (2026-08-04) [Sky, light & weather × Scale/World]
-
-**Brief:** b27 — fourteen iterations of seasonal work addressed to a viewer who would have to
-sit here 24 real minutes to see any of it. Reach another season without popping six hysteretic
-systems. The batch bet.
-
-**Did:** `#season` becomes a `<button>`; clicking it runs the town on to the next quarter as a
-**fast-forward, not a jump**. Nothing writes `seasonPhase`, `cloud`, `bSt` or a position —
-`stepSkip()` only hands `frame()` more sim seconds and `simSub()` splits them so no step exceeds
-`SKIP_SUB` 0.25 s. That is the whole safety argument: every rate cap here is per SIM second, so a
-sub-stepped advance is indistinguishable from having waited; what is compressed is REAL time. It
-lands on a **whole number of sim days** nearest a quarter-turn, so the hour survives — 7+6+7+6 =
-26 = `SEASON_LEN`, and four clicks return the identical phase *and* hour. Rate is a flat-topped
-trapezoid advanced off the profile's **exact integral**. `announce()` is deaf throughout;
-`land()` says one line. `RM` gets an honest cut behind a `#veil`. Full entry in the archive.
-
-**Gates:** census **PASS — every field unchanged in all 9 cells** (no new `R()`) · motion PASS vs
-a stashed-HEAD baseline · perf PASS +0.0% · visual PASS · `probes/season-skip.mjs` 33/33 ·
-`probes/skip-strip.mjs` against a `__warp` control at the same sim gaps: max frame-Δ 32.64 vs
-32.86, with **fewer** out-of-line frames than the control · `probes/skip-shots.mjs`: **midwinter
-19.6 real seconds** after the first click, 684 blooms → 26. Budget opened **OVER** (47.1 / 46 KB).
-
-**Verdict:** shipped
-
-**Surprise:** both hard bugs were invisible to the thing that should have caught them. (1) The
-lapse overshot by exactly its own duration — `dt * speed` kept riding on top of the profile,
-0.095 of a day per click, which no eye can see and which compounds into a year that no longer
-closes; only the four-click round trip could see it. (2) I closed the CSS comment above `#season`
-one line early, so five lines of prose parsed as a selector and **swallowed the whole rule** — it
-shipped as a grey chip. The probe passed: tag `BUTTON`, right text, handler fired. A screenshot
-caught it. (Both promoted to LAWS.md.)
-
-## Iteration 29 — the stalls sell what the plots grew (2026-08-04) [Lane & market × Connect]
-
-**Brief:** b28 — the market is the last flat system in the town. Connect it to the
-allotments, which ripen and are picked across a full year fifty feet away.
-
-**Did:** one store, `produce[]`, written by exactly one line — `harvestPlot()` pays in the
-cells it lifted, so the basket (`a.crop`) that walked out of the block for four iterations
-now goes somewhere. `stockMarket()` latches that store ONCE per market day at the first
-trestle, empties it, and lays it out as `mkShelf` (species order, so a stall sells one or
-two things). `marketRaise(i)` gates on `mkTrades(i)`: `MK_NEED [0,4,13]` units, so the
-second and third traders only set up if the plots sent enough — stall 0 always comes, but
-it can stand behind an empty board. Each pitch is a vegetable the stall was actually
-stocked with, in its own colour and size. Half of what the market cannot carry (`MK_CAP`
-18) keeps to the next one. `mkLine()` says which crop, and browsers walk to a stall that
-came out.
-
-**Gates:** census **PASS** (small reshuffle churn, no collapse; new field `planting.produce`)
-· motion **PASS** · visual PASS · filmstrip day PASS, no POP · `probes/market-year.mjs` over
-**120 markets / 5 seeds / 104 days**: midwinter **6.0 units, 1.67 stalls** vs midsummer
-**35.7, 2.96**; one stall on 24% of markets, three on 58% · `probes/market-shots.mjs`
-midsummer 3 stalls 6/6/6 vs midwinter 2 stalls 6/5/0, naming the plots the difference came
-from · `probes/market-raise.mjs` unchanged vs HEAD (seed 42's spike is pre-existing,
-stashed and confirmed). Budget opened **OVER** (48.4 / 46 KB).
-
-**Verdict:** shipped
-
-**Surprise:** two. (1) The store made the year's trough MOVE. Without carry-over winter was
-bare and spring recovering; with it, autumn's glut arrives late and **spring** becomes the
-thinnest quarter (3.8 units vs winter's 6.0) — two lags composing into a hungry gap nobody
-wrote. (2) My first probe reported a different midwinter market every run — 2.1 units, 13.6,
-22.1, 5.4 — same seed, same code, same pinned instant. **Drawing consumes `R()`**, so any
-host round-trip walks the seeded stream even with the sim stopped. One page per quarter
-fixed it. (Both promoted to LAWS.md.)
-
-## Iteration 30 — the courtyard reads the sky too (2026-08-04) [People & animals × Connect]
-
-**Brief:** b29 — the street refuses and vacates a seat under a building front; the
-courtyard sat through it, because both gates read `a.street`. Close c11.
-
-**Did:** two predicates, one definition each — `SIT_REFUSE` 0.42 (take a seat) and
-`skyLifts(a)` (give one up, 0.55..0.88 off `a.wary`). The gate is no longer `a.street` but
-**what you are doing**: on the street everyone not lying down; in the courtyard the people
-*sitting*, so the napper sleeps on and the gardener finishes their row. c11 sat open 24
-iterations because `picnic`/`sitter` are `STAYING` and reach their seat with an empty
-waypoint list, so a refusal meant `a.done` on the lawn — `routeToExit()` is the walk out
-they never had. A pair is linked both ways (`a.mate`) and judges the sky **once**. The
-blanket line moved from spawn to when the blanket is spread: a refusable seat makes an
-announcement at spawn a promise the town may break.
-
-**Gates:** census PASS (reshuffle churn, no collapse; `people` 186→182 is the feature) ·
-motion **FAIL→analysed**: only `shower` fired, untouched, and `probes/shower-jump-spread.mjs`
-puts it at 0..2 on both builds · visual PASS · filmstrip day PASS · perf skipped ·
-**`probes/seats-out.mjs`**, 8 seeds × 12 sim days, HEAD vs here: refusals **0 → 15**; under
-`cover>0.60` the courtyard sits **0.269 → 0.074** while the street holds 0.020/0.019 — it
-empties *to where the cafe already was*; under `cover<0.30` 0.439 → 0.461, a blue afternoon
-untouched; **0 vanished, 0 pair splits** · `probes/seats-shots.mjs`: blanket on the grass,
-then an empty lawn and umbrellas walking out.
-
-**Verdict:** shipped
-
-**Surprise:** the vanish test nearly shipped as a tautology. I first wrote it as "despawned
-while `act === 'sit'`" — the bug's exact *inverse*: a naive refusal sets `done` in the
-**walk** branch, so the agent disappears mid-lawn still labelled `walk` and the test reads a
-clean 0 forever. Re-anchoring on *position* made it real; the min observed despawn radius,
-**32.7** against a threshold of 16, is what turns the 0 into evidence. Second: `__warp(0.25)`
-is 7–8 sub-steps and a probe sees only the boundary, so sampling reported 3 phantom refusals
-**on HEAD**, which has no refusal path. Wrapping the one function both paths go through gave
-0. (Promoted to LAWS.md.) Context budget opened **OVER** (49.8 / 46 KB).
-
-
-## Iteration 31 — the sill says it is pressable, once, in its turn (2026-08-04) [Sky, light & weather × Interaction/UX]
-
-**Brief:** b30 — make the season button legibly pressable and say so once, without shouting
-beside the canvas hint.
-
-**Did:** (1) `#season` gains an underline that stops at the WORD — `::after` is now an
-`inline-block`, and text-decoration does not propagate into one, so the chevron stays
-punctuation. Padding is the hit area, an equal negative margin gives it back: **20→30px** wide,
-**12→29px** in the 390 caption slot, where it also takes full `--ink` instead of the `--ink-dim`
-of the subtitle it displaced. Sill and canvas byte-identical to HEAD.
-(2) `offerInvite` is an `OFFERS` queue of two, not a flag. Each carries the act that silences it
-(`touched`, `pressed`), and an offer is **spent when it comes up**, spoken or not — that is what
-makes "never twice" structural. `offerFree` (the dwell plus a 6 s staleness window) holds them
-apart. At 390 the second keeps the plate and drops the TITLE
-(`.inviting.at-season`): the offer pointing AT the season may not hide it while it speaks.
-
-**Gates:** census PASS · motion PASS · visual PASS · `touch-hint.mjs` PASS **unchanged** ·
-**`probes/season-invite.mjs` PASS, 7 FAILs on HEAD** — touch 8.0..13.7s, season 21.5..26.8s,
-**0 overlapping samples**, +28px fit, cancelled by a press, silent on `?pause`.
-
-**Verdict:** shipped
-
-**Surprise:** three, and all three were my instrument lying rather than the page. (1) I opened
-the narrow rule's rationale with no `/*`, so the whole `#season` block failed to parse, the
-caption fell back to the wide rule, and the sill grew 7px while the canvas lost 7 — **law #28
-verbatim, one iteration after it was written**, caught only by reading computed style. (2) The
-margin I added in order to "print the margin" was `clientWidth - scrollWidth`, **floored at
-zero**: `+0px` for a line with 28px to spare, and it can only ever report bad news. A range over
-the text is honest. (3) The gate then failed on `touch runs 0` after a
-press at 3 s — not a regression: a press starts a 7 s lapse, the town returns six sim days on
-with the ticker solid, and the deferred offer waits for a gap (17.4 s on HEAD, 30.1 s here). A
-wall-clock arrival for a line queued behind the news is not assertable; that it was never
-**spent in silence** is.
-
-**Law:** promoted at pass #33 → LAWS.md, *"when a gate fails, suspect the instrument first"*
-(with surprise 2, the floored margin). Full entry in `LEDGER-archive.md`.
-
----
-
 ## Iteration 32 — something is on in the bandstand, and people come and stand for it (2026-08-04) [River & far bank × New element]
 
 **Brief:** b31 — the bandstand has stood on the far bank since before the loop with nothing ever
@@ -328,8 +144,6 @@ warmth is a cosine and time piles up at the extremes. Full entry in `LEDGER-arch
 **Gates:** census PASS (unchanged everywhere) · motion PASS · perf PASS (+0.0% day and night, 3 interleaved reps) · noon frame mean pixel diff HEAD vs here **0.000** · `probes/windows-night.mjs`: lit count over a night 19→42→20→13→3→7 (summer) and 20→42→26→10→6→6→9 (winter) against HEAD's flat 72/81; largest change in one 0.25 s step 93 → 12, and 5 on the dusk ramp of the step dump · 22h vs 03h shots differ 0.58/0.61 mean px where HEAD's are the same picture · filmstrip: no POP.
 **Verdict:** shipped
 **Surprise:** the first probe showed +26/−30 oscillations across the dusk ramp and I nearly tuned the hash. It was the instrument: `LIT.length` was climbing 13 a frame with the clock frozen. The HEAD counts of 86 and the census note "LIT depends on where in the draw pass you sample" were both this leak, misread as sampling.
-**Law:** Before putting an hour on anything drawn by `drawBlocks`/`drawGround`, know it lives in the CACHED layer and updates on the light bucket (a quarter sim-hour). A per-frame truth on a cached facade needs a live overlay pass — register at cache time, repaint per frame — or it steps a dozen at a time and no gate sees it.
-**Cue:** `filmstrip.mjs --scene night` lands at hour ~14.7 (t=1230 s is day 22.4): the night preset is a day strip.
 
 ## Iteration 40 — the fountain reads the year: jets, basin and who stands at it (2026-08-28) [Plaza & quay × Deepen]
 
@@ -338,8 +152,6 @@ warmth is a cosine and time piles up at the extremes. Full entry in `LEDGER-arch
 **Gates:** census PASS (churn only — the split threshold moves off the anchor over the multi-day ladder and reroutes visitors) · visual PASS (`probes/fountain-shots.mjs`: winter basin rgb(103,134,146) vs HEAD 79,117,130, crop mean −8 g-b; summer 82,121,120 greener; east wide clean) · motion PASS · filmstrip day 0 POP · perf skipped (no new pass) · `probes/fountain-year.mjs`: basin colours and cached ground layer byte-identical to HEAD at SEASON_START; max step over a 1/400 folded year 0.009 play / 0.012 ice / 1 RGB unit.
 **Verdict:** shipped
 **Surprise:** first census run reshuffled everything at the anchor too — I had flipped the coin's polarity (`R() >= 0.5*f` puts the bench on the *other* half). Same count of draws, same thresholds, different world. `fountainPlay()` reads 1−1e-16 at t=0 because `seasonPhase` lands a hair off 0.25 after the first rAF; `riverRun()` rounds the same residue back to 1 by luck of its swing.
-**Law:** Preserving the R() *count* is not preserving the world: a threshold rewritten as its complement re-routes every draw on the other side of it. Keep the branch on the same half of [0,1) it always owned — `R() < c` stays `R() < c'` with `c' = c` at the anchor.
-**Cue:** three of five jets sit at thresholds 0.58–0.70, so the spray goes 2→5 across ~two sim days in autumn/spring; respread `hash(k,23)` (or a k-spaced ladder) if it reads as a step. Winter's stand share 0.2 is untested by count — an east-arrivals probe folded by season would show it.
 
 ## Iteration 41 — the block is vegetables from the first frame (2026-08-28) [Cross street & allotments × Polish]
 
@@ -348,8 +160,6 @@ warmth is a cosine and time piles up at the extremes. Full entry in `LEDGER-arch
 **Gates:** census PASS (churn only, no collapse; cabbages +79 because the block now opens on the hardy brassica) · motion PASS · visual PASS (east: plots read as cabbages/carrots, plaza and green untouched) · **`allot-scatter.mjs` 10 seeds × 26 days**: HEAD — 8/10 seeds open with ornamentals in the block (seed 7: lavender + fern, as the brief said), non-veg cell-steps in plots up to 1381, and *every* one of those eight puts a flower on a stall inside the year; here — 0 / 0 / none, and the courtyard scatter at t=0 has the identical species counts per seed. perf skipped (no per-frame change). Context budget opened OVER (46.3 / 46 KB) — the manager's distil call.
 **Verdict:** shipped
 **Surprise:** none in the code — the surprise was how *consistently* the bug reached the market: HEAD's stalls sold flowers in 8 of 10 seeds, not the occasional fern the brief guessed at.
-**Law:** When a rule has a "which side of the line" predicate, the OPENING state must be written by the same predicate as the running state, or the seed is a second definition that only ever disagrees at t=0 — the one instant the census ladder does see.
-**Cue:** `speciesFor()` at day 0 offers the courtyard only marigolds/poppies/ferns, but `seed()` scatters lavender (minDay 1) — the courtyard scatter is *deliberately* not `speciesFor()` to keep HEAD's beds; harmless, but it is a second list.
 
 ## Iteration 42 — the sill names the living things (2026-08-28) [The sill & the observer × Interaction/UX]
 
@@ -358,5 +168,3 @@ warmth is a cosine and time piles up at the extremes. Full entry in `LEDGER-arch
 **Gates:** census PASS (+0; render-free) · motion PASS (no new jumps/flicker any kind) · visual PASS, 4 shots + day filmstrip median Δ 0.42, no draw-order change (no draw touched) · **`naming.mjs` §7** ten seeds: **246/246** drawn living things answer a living name, **0** the ground; **12,743** lattice points 2+ cells clear of every entity: 0 differ from `nameAt`/`treeAt` alone; 13-word vocabulary in one midday · throwaway walk-out probe (`?pause` + `__warp(0.05)` ×40): label follows the figure's own state ('listening to the bell' → 'walking'), holds after it walks out, then 'The lane'; every label held ≥ 0.2 s sim, no strobe. Context budget opened **OVER** (46.3 / 46 KB).
 **Verdict:** shipped
 **Surprise:** first run missed exactly one of 242 — a napper. A lying figure is drawn 3 px tall and 4 px wider; a standing box misses it under the pointer even though the probe aimed at "mid-shin". The hit box has to be the DRAWN footprint per pose, not per entity. And the first live walk-out probe read only "The cross street": at `t=180` the ticker's dwell held the box until the walker had gone — the yield rules are upstream of the hit-test, so a live check must first wait out `lineDwell` like §6a does.
-**Law:** Hit-test a moving thing against its drawn footprint PER POSE, not per kind — a sleeper is wider than tall, a child is 0.72 of an adult; a single "figure box" reads a clean 99.6% and the miss is always the odd pose.
-**Cue:** swans have no 'upending' state to name (only `ph`); the brief's example does not exist in the sim. A swan behaviour (upend, preen) would give the label something to say.

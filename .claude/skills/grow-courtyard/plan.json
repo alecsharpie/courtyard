@@ -1,40 +1,74 @@
 {
-  "generated": "2026-08-28T11:36:44.545Z",
-  "byIteration": 37,
+  "generated": "2026-08-28T12:40:00.000Z",
+  "byIteration": 42,
   "rung": 4,
   "diagnosis": {
-    "health": "Output is healthy where a worker actually ran: #33 shipped a 193-line evening door for $18 and #37 shipped a 30-line ramp for $3.44 in five minutes on a different model (fable-5), the smallest and cheapest iteration since #15 and the brief working as written. But three iterations in the last ten are not iterations at all: #34, #35, #36 (and the manager row at #33) are 1–2 s, 0-token, rc=1 synthetic rows from the 2026-08-28 restart, with sha 'Manager: plan refresh' and model '<synthetic>' — the harness could not launch a worker, and run-loop.sh burns one brief per failed launch because pop-brief claims before the worker starts and a non-zero rc just backs off and pops the next. So the stats say 'src moved 7/10, 3 failed' when the truth is 7/7 shipped and three briefs (b36, b32, b33) were destroyed unexecuted. No stall signal fired because stall.mjs counts them as ordinary failures. Cost, once those zero rows are stripped, is $7.2/$6.0/$22.7/$11.9/$18.2/$3.4 — the two expensive ones are the two rung-4-sized builds, priced honestly this time.",
+    "health": "Healthy, and the cheapest stretch of the run. The last ten rows (#33–#42, launch failures excluded) are 9 shipped and 1 no-ship, and that one is #38 the harness brief, which by definition changes no source — runlog.mjs grades it no-ship against a selfVerdict of shipped, so the one verdict gap in ten rows is the instrument, not the worker (folded into b40). Source moved 9/10, 0 reverts, 0 briefs rejected. Cost on fable-5: $3.44 / $3.68 / $6.52 / $3.14 / $2.20 / $3.29 — a median of ~$3.4 against the run's $6.11, with 30–68-line diffs and a probe each; the expensive one (#39, $6.52) was the cached-facade discovery and paid for itself with a leak fix. Minutes 4–15. The opposite of Solvista's signature: cost falling, output flat-to-rising.",
     "signals": [
-      "queue empty (b37 was the last brief)",
-      "3 synthetic launch failures #34–36 burned briefs b36/b32/b33 with no worker run",
-      "selfVerdict==verdict on every real row; 0 reverts; 0 briefs rejected",
-      "context budget opened OVER at #33 (47.1) and #37 (46.4) — the inventory grew by two entries and the ledger by two 2.9 KB entries; fixed this pass to ~44 KB"
+      "queue empty (b39 was the last brief; all five of pass #37's briefs consumed and shipped)",
+      "no stall signal; revertStreak=0; srcFlat=1 (the harness brief, by design)",
+      "context budget opened OVER at #41 and #42 (46.3–46.4 / 46 KB) — inventory + a 2.9 KB #39 entry; fixed this pass to 43.0 KB",
+      "state.json was three iterations stale (lastIteration=39, coverage missing #38/#40/#41/#42) — recorded"
     ],
-    "balance": "Sky 14 back (the most starved domain, and Sky x Polish is saturated so what it wants is Deepen); Plaza 13 back; Street 12 back; Sill 6 back; River 5; Life 7; Lane 4; Courtyard 0. Coverage was never entered for #33 (lane x scale) or #37 (courtyard x deepen) — done now."
+    "balance": "After recording: life 12 back (#30), river 10 back (#32), lane 9 back (#33), courtyard 5, sky 3, plaza 2, street 1, sill 0. Sky had 3 of the last 12 but all Deepen/Harness, not the saturated Polish cell. This batch puts new work in life, river and lane — the three most starved — plus one sky Scale/World bet and one harness fix."
   },
-  "rationale": "HELD RUNG 4. Pass #32 climbed to it for one reason — the world exists for ~60% of its own clock — and only half of that climb has landed: #33 built the first evening place, but every window in the town still switches on and off in the same frame, and 22.00 and 03.00 are the same picture. Re-planning the same batch is the one thing the ladder forbids ONLY as a response to a stall, and this is not a stall: three briefs were destroyed by the runner before any worker saw them, so re-issuing b36/b32/b33 verbatim (with a note that no prior attempt exists, or a worker will go looking for one) is recovery, not repetition. b38 goes at the head as a harness brief because the fault will recur on the next restart and the runlog is currently lying about it: a launch failure must not consume a brief, and a 0-token row must not be counted as an iteration by stall.mjs. It also carries c62 (motion.mjs split rises from falls), which is the same file class. b39 is the batch's new work and the one most likely to fail: c64 has been open since #33 and the naming — the loop's most visible observer tool — answers with the paving under a walker's feet, so the diorama can name a fern and cannot name a swan. Three of five briefs are domains 12+ back (sky, plaza, street); the fourth is the sill; none is courtyard, lane or river. Cost expectation: b33 and b38 cheap, b36/b39 medium, b32 the expensive one. Curation this pass: closed six cues (three no-yield, two promoted, one absorbed into a law), fixed an id collision (open c61 was not closed c61 — renumbered c68), merged life's two own-source crowds into one inventory entry (life was 9/8), archived #37 verbatim and trimmed #33/#37 to 1.6 KB each, and paid for two law promotions (#33 price-the-walk into the time-compression law; #37 + the old #21 duration law merged into one folded-time-mean law) by compressing five verbose laws — laws count stays 26, 11.9/12 KB.",
-  "queue": [],
-  "recommendStop": null,
-  "consumed": [
+  "rationale": "HELD RUNG 4, for the same climb as #32 and #37 — the world only exists for ~60% of its clock — and now the second half of that climb is what is missing. The windows landed (#39: 22.00 and 03.00 are different pictures), the door landed (#33), and the two are not connected to anything: nobody walks FROM anywhere TO the door, the east half still shuts at daylight 0.16, and the river at night is the same water as noon under a blue multiply. b43 (river, the east's night) and b44 (lane, who the door's custom are) finish the night; both are Connect briefs because the pieces all exist and the loop's highest-yield move is wiring them. The batch's bet is b42: SNOW. The year has nine readers and winter is 'blooms scattered in turned earth' plus a skinned basin — a thirty-second viewer who lands in February cannot tell it is winter from the wide shot, and precipitation is the one weather kind the town has never had. It is rung-4 work (a new state of the world), it is high risk (it touches the cached ground layer and must be exactly zero at the anchor), and it is the single most visible thing the diorama lacks. b41 is the cheap life brief that pays c73 and gives #42's naming something new to say. b40 goes at the head: filmstrip's night preset is a day strip, runlog grades every harness brief no-ship, and a crashed worker still retires its brief — three small lies in the instruments, all one file class. Curation this pass: coverage entered for #38/#40/#41/#42; eight cues closed (five promoted into briefs, three no-yield: c63, c71, c72); inventory note cut from 700 B to 230 B, sky merged 9→8 entries, two 300 B+ entries trimmed; four laws promoted (#39 cached layer as a new law; #40 complement threshold into the R() law; #41 opening state into the one-predicate law; #42 per-pose hit box into the sill law), paid for by compressing six verbose laws — 27 laws, 12.0/12 KB; ledger rotated 12→8 entries, promoted Law/Cue lines cut from #39–#42. Worker budget 46.4 → 43.0 KB.",
+  "queue": [
     {
-      "id": "b38",
-      "at": "2026-08-28T11:36:55.775Z"
+      "id": "b40",
+      "domain": "The sill & the observer",
+      "kind": "Harness",
+      "brief": "Three instrument lies, one file class. (1) `filmstrip.mjs --scene night` pins t=1230 s, which is day 22.4 hour ~14.7 — the night preset is a day strip; re-pin it to a real night instant (a mid-night hour on a whole day, chosen by the same rule the other presets use) and say in the file how the number was derived. (2) `runlog.mjs` grades a Harness brief 'no-ship' because srcChanged is false — #38 shipped and the dashboard says it failed; make the verdict read the brief's kind so a harness iteration that committed and logged is 'shipped' without source movement (a harness brief that DID touch courtyard.html should still be flagged). (3) A worker that ran >30 s with tokens and exited non-zero currently retires its brief as 'failed'; decide (and document in run-loop.sh) whether it is re-issued once or retired — the cheap, honest rule is one retry, then retire with the rc in the row.",
+      "seams": ["filmstrip.mjs", "runlog.mjs", "run-loop.sh", "pop-brief.mjs", "stall.mjs"],
+      "successLooksLike": "The night filmstrip shows lit windows and lamp pools; `runlog.mjs` re-run over RUNLOG.jsonl reads #38 as shipped and no other row changes; a simulated rc=1 worker with tokens>0 is handled by the documented rule.",
+      "avoid": "Do not touch courtyard.html. Do not re-grade any row other than harness rows.",
+      "budgetMin": 15,
+      "risk": "low"
     },
     {
-      "id": "b36",
-      "at": "2026-08-28T11:41:54.015Z"
+      "id": "b41",
+      "domain": "People & animals",
+      "kind": "Deepen",
+      "brief": "The swans carry no behaviour — `updateSwans` gives each a `ph` and a wander target and nothing else, they are announced as 'a pair' but pick targets independently, and #42's naming can only say 'a swan'. Give them states the way ducks have `swimming`: a pair that holds together (the second swan targets within a few cells of the first), an UPEND (tail up, head under, a few seconds, drawn as the body tilted with no neck) and a PREEN at rest near the bank, each a state the draw reads and `personName`/`livingAt` can say ('a swan, upended', 'a swan, preening'). Rates so that in a thirty-second look at the river you usually see one of them doing something.",
+      "seams": ["updateSwans", "swans", "drawSwan", "livingAt", "personName", "updateDucks"],
+      "successLooksLike": "Over ten seeds × one day the pair's mean separation is a few cells not twenty; each swan spends a measurable share of the day upended or preening; the sill names both states; motion gate clean.",
+      "avoid": "Do not add swans (two is the pair). Any new R() draw reshuffles the world — read the census for collapse, not delta.",
+      "budgetMin": 20,
+      "risk": "low"
     },
     {
-      "id": "b32",
-      "at": "2026-08-28T11:57:23.665Z"
+      "id": "b42",
+      "domain": "Sky, light & weather",
+      "kind": "Scale/World",
+      "brief": "Winter has no snow. The year has nine readers and a viewer who lands in February sees turned earth, bare trees and a skinned basin — the sky still rains. When a shower fires with `greyF()` high enough (warmth near midwinter), it falls as SNOW: slow drifting flakes instead of drops, and a `snowCover` scalar — rate-capped, per-cell variance via `hash(x, y+k)` like `fountainIce`, grain-matched to how each region is addressed — that whitens the cached ground (lawn, paving, plots), sits on roofs and awnings in the draw pass (never in `buildVolumes`), and melts over the days after as warmth climbs. It must be EXACTLY zero at SEASON_START (the anchor) by the algebra, so the summer town is byte-identical; it must not step (the cached layer buckets a quarter-hour — see the #39 law); and rain arriving on lying snow should thin it. Advertise it: one ticker line the first time it settles.",
+      "seams": ["raining", "rainFall", "greyF", "showerRate", "groundCol", "drawGround", "fountainIce", "capStep", "shadowF", "drawBlocks", "CAN_BLUR", "announce"],
+      "successLooksLike": "A midwinter shot reads as winter from the wide view: white ground with dark paths worn through it, white roof edges, flakes instead of drops. `probes/`-style year fold shows cover 0 from spring to autumn, rising in the weeks around phase 0, max step per frame under a visible threshold; noon-at-anchor frame diff vs HEAD is 0.000; perf within noise.",
+      "avoid": "Do not add a season or change SEASON_LEN. Do not make snow a boolean switch — it is a 0..1 like rainFall. Do not let footfall/desire-path wear interact with it this iteration; that is a follow-on cue.",
+      "budgetMin": 45,
+      "risk": "high"
     },
     {
-      "id": "b33",
-      "at": "2026-08-28T12:03:14.673Z"
+      "id": "b43",
+      "domain": "River & far bank",
+      "kind": "Connect",
+      "brief": "The east half has no night: `eastOpen()` is `daylight > 0.16`, so after dark nobody crosses the bridge, and the river under `nightF` is noon water under a blue multiply while the four plaza `LAMPS` throw pools on stone and nothing on the water. Connect the night to the river: the lamps and the moon put light ON the water — a broken reflection in `drawRiverFlow` that drifts with the current, its brightness off `nightF` and the moon's height, put out by `cloudCover` like the stars are — and extend `spawnEastAgent` so that during the tap's hours (`tapOpen()`) ONE stop stays open after dark: the quay rail / parapet (`byTheWater()`), a walker who stands and looks at the lit water, then leaves the way they came. The walk is short from the quay head, so this is priced.",
+      "seams": ["eastOpen", "spawnEastAgent", "byTheWater", "drawRiverFlow", "riverCol", "LAMPS", "nightF", "sunVec", "cloudCover", "tapOpen", "boatWatch"],
+      "successLooksLike": "A 22.00 shot of the river shows lamp and moon reflections on the water where HEAD shows flat dark; over a night someone stands at the rail or parapet a measurable fraction of the tap's hours; the noon frame is byte-identical to HEAD; the east census counts at the anchor do not collapse.",
+      "avoid": "Do not open the plaza bench, fountain or church green after dark — one stop. Do not add an arrival source; widen eastOpen for that stop only. Keep the moon reflection off when the moon is below the horizon.",
+      "budgetMin": 30,
+      "risk": "medium"
     },
     {
-      "id": "b39",
-      "at": "2026-08-28T12:06:57.249Z"
+      "id": "b44",
+      "domain": "Lane & market",
+      "kind": "Connect",
+      "brief": "The evening door has custom from nowhere: `spawnTapAgent` rolls its own arrivals and nothing else in the town sends anybody there. Connect it: when the summer concert strikes (`bandEnd`, the audience's `a.leaveAt`), a share of the audience walks to the door instead of home, so on a concert night the pavement fills within the walk time; on a market day the last stallholder and the sweeper's opposite number call in. While there, fix c65: `scarcity()` reads `agents.length` and the tap crowd is inside it, so a full pavement damps the three night arrival RATES that POP_FLOOR lifts — scarcity must read a population the tap crowd is not part of. And assert c68: `BAND_DUSK` is a hand-computed clearance between the strike ramp and `eastOpen()`; add the check to `probes/bandstand-year.mjs` so moving BAND_DOWN/BAND_LEN/leaveAt fails a probe instead of emptying the green in one frame.",
+      "seams": ["spawnTapAgent", "TAP_SLOTS", "tapServing", "scarcity", "POP_FLOOR", "bandEnd", "spawnConcertAgent", "a.leaveAt", "BAND_DUSK", "eastOpen", "marketClose"],
+      "successLooksLike": "Folded over ten summer days, the door's occupancy in the hour after bandEnd on concert nights is measurably above ordinary nights, and the walkers who fill it came from BAND_SLOTS (same ids via __entities). scarcity() with four tap agents present equals scarcity() with none. The bandstand probe asserts the clearance.",
+      "avoid": "Do not add TAP_SLOTS (four; the pavement holds four at 0.9 cells). Price the walk: the bandstand-to-door trip is long — if it exceeds the tap's remaining hours on a winter concert night, send nobody rather than someone who arrives after the shut.",
+      "budgetMin": 30,
+      "risk": "medium"
     }
-  ]
+  ],
+  "recommendStop": null
 }

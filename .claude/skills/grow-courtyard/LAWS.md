@@ -18,7 +18,9 @@ of the **next** vector too; anything true only of what you just built goes in
 - **One predicate, one definition — and read a footprint back off the grid, never
   re-derive it.** Two places deciding the same thing will drift, and a *geometric* test
   drifts worst: a second evaluation of the same ellipse disagreed with `buildGrid()`'s
-  by 2e-16 — a whole cell — and put 22 birds in the fountain basin. (#24)
+  by 2e-16 — a whole cell — and put 22 birds in the fountain basin. The OPENING state
+  counts too: `seed()` must sow by the same predicate the running rule uses, or t=0 is
+  a second definition that only the census ladder sees. (#24, #41)
 - **The census is a regression guard, not a growth score.** `+0` after a draw-only
   iteration is expected. Its fields are town state, never render state; add one only
   when a system moves nothing the hook reports, or you are grading your own homework.
@@ -35,40 +37,35 @@ of the **next** vector too; anything true only of what you just built goes in
   *collapse*, not delta, and when a gate fires on something you did not build, measure
   that system on HEAD first: if it was already on a threshold, move the system, not the
   threshold. **A population count in a continuity gate is sample-sensitive and two
-  seeds is not a sample** — replay over ten. (#2, #4, #5, #23)
-- **Time-compress everything you build.** A day is 55 s, so "every third hour" is every
-  ~7 s: an effect over ~2 s is state, not an event, and a round trip over ~40 s leaves
-  its walker permanently present whatever cap spawned it. Caps set inflow, trip length
-  sets standing population, so **a cap floor is not a population floor** — a budget cut
-  resurfaces hours later through walkers still finishing trips. Floor the arrival
-  *rate*, and **end a population by not sending new members round again**. On a channel
-  holding ONE object measure **presence**, not rate. If you compress the clock itself,
-  **the lapse must own the frame's whole advance**. And **price the walk before choosing
-  an address**: at 2.3 s per sim hour, a 15-cell trip is 92% of a midsummer night, so
-  where an evening place can stand is arithmetic before taste. (#2, #5, #15, #19, #23, #28, #33)
+  seeds is not a sample** — replay over ten. Preserving the R() *count* is not
+  preserving the world: `R() < c` rewritten as its complement re-routes every draw on
+  the other side — keep each branch on the half of [0,1) it always owned. (#2, #4, #5, #23, #40)
+- **Time-compress everything you build.** A day is 55 s: an effect over ~2 s is state,
+  not an event; a round trip over ~40 s is a permanent resident. Caps set inflow, trip
+  length sets standing population, so **a cap floor is not a population floor** — floor
+  the arrival *rate*, and end a population by not sending new members round. On a
+  channel holding ONE object measure **presence**. If you compress the clock itself,
+  the lapse must own the frame's whole advance. **Price the walk before choosing an
+  address**: at 2.3 s per sim hour a 15-cell trip is 92% of a midsummer night. (#2, #5, #15, #19, #23, #28, #33)
 - **A slow world scalar wants a cap, a cycle and an anchor.** Rate-cap it, so "it never
-  steps" is one measurable number. Prefer a cosine of a phase to a ramp: a ramp is an
-  act that ends (`maturity()` pinned the town at 1 by real minute 15), a cycle is
-  continuous through its wrap. Every term it replaces must reduce *exactly* to the old
-  constant at the anchor, bought in the **algebra** not the tuning — `x * f()` and
-  `x - k*(1 - f())` are exact, while `x * (a + b*f())` leaves `a + b` a float you must
-  defend. Assert it **at** the anchor, never by scanning a day that sits on it. Where a
-  consumer has a fixed share plus a varying one, put the scalar on the **varying** term
-  only; the fixed term is then the floor by construction, and a flat peak caps your
-  range. (#3, #12, #14, #18, #19, #22)
+  steps" is one number. Prefer a cosine of a phase to a ramp (a ramp is an act that
+  ends). Every term it replaces must reduce *exactly* to the old constant at the
+  anchor, in the **algebra** not the tuning — `x * f()` and `x - k*(1 - f())` are
+  exact, `x * (a + b*f())` is a float to defend. Assert it **at** the anchor. Put the
+  scalar on a consumer's **varying** term only; the fixed term is then the floor by
+  construction. (#3, #12, #14, #18, #19, #22)
 - **Tune a seasonal term on a folded-time mean of its CONSUMER, never on area or duration
   in the scalar's own units.** Duration is not the inverse of rarity — a symmetric ±x% on
   a slew-limited scalar's hold delivered +38% rain; a step replaced by an equal-area ramp
   is not the same year, because phase density is a cosine and time piles up at the
   extremes; and the CA either side spends a ramp asymmetrically (climb at `growF`'s pace,
   descent at `dieF`'s), so a cap flat to 0.06% still moved the beds +1.9%. (#21, #37)
-- **A slow thing's season is not the season it is in.** Anything carrying state across a
-  phase boundary — a rate-capped scalar, an *object* whose trip is an appreciable
-  fraction of the cycle, a **store that carries stock forward** — drags the previous
-  quarter with it, so the phases either side of the anchor come out **unequal from code
-  symmetric by construction**. And **two lags compose into a trough nobody wrote**: a
-  market four days behind a block already behind the season made *spring* the thinnest
-  quarter. Hysteresis, not an algebra bug — check that the shoulder **pair** averages to
+- **A slow thing's season is not the season it is in.** Anything carrying state across
+  a phase boundary — a rate-capped scalar, an object whose trip is a fraction of the
+  cycle, a store carrying stock forward — drags the previous quarter with it, so the
+  shoulders come out **unequal from symmetric code**, and **two lags compose into a
+  trough nobody wrote** (a market behind a block behind the season made spring the
+  thinnest quarter). Hysteresis, not algebra — check the shoulder **pair** averages to
   the anchor, not each alone. (#21, #23, #29)
 - **When you turn a constant into a variable, hunt what was tuned against it — and the
   seam it now crosses.** The rest of the file keeps its hard-coded copy and nothing
@@ -88,9 +85,9 @@ of the **next** vector too; anything true only of what you just built goes in
 - **A feature that exists may exist at a rate of zero — count before you build on it,
   and advertise it or nobody finds it.** A spawn band is a *share of a budget*, not a
   rate: `spawnLaneAgent` fires ~3.3×/day, so a 4% band is one person per twelve days —
-  give a rare thing its own arrival source. One level up the same law is discovery: the
-  diorama answered six kinds of click for thirty-one iterations and nothing said so. A
-  new invitation joins the `OFFERS` queue; it does not compete. (#7, #9, #13, #31; paid 4×)
+  give a rare thing its own arrival source. Same law one level up: the diorama answered
+  six kinds of click for 31 iterations and nothing said so. A new invitation joins the
+  `OFFERS` queue; it does not compete. (#7, #9, #13, #31; paid 4×)
 - **A per-agent trait must be a field written only at spawn.** `a.timer`, `a.greet`,
   `a.watch` all count down — read one as a stable personal threshold and it cycles the
   band several times a second: a flicker that looks like a stagger. Give the trait its
@@ -102,24 +99,27 @@ of the **next** vector too; anything true only of what you just built goes in
   permanently translucent at rest. (#6, #8)
 - **Split a flag that gates both behaviour and drawing** — keep the boolean for
   behaviour, add a 0..1 intensity beside it that every draw site multiplies by. (#15)
+- **`drawBlocks`/`drawGround` are a CACHED layer, repainted on the light bucket (a
+  quarter sim-hour).** A per-frame truth on a facade or the ground needs a live
+  overlay — register at cache time, repaint per frame (`drawLitPanes`) — or it steps a dozen at a time and no gate sees it. Any accumulator the cache pass
+  fills (`LIT[]`) must be reset by the pass that fills it, not by a rarer one. (#39)
 - **The sill is DOM, and DOM fails quietly.** A CSS rule that fails to parse is
   *silent* — one comment closed early swallowed a whole rule twice, and the probe that
   checked tag, text and handler passed both times: **assert on computed style**. A sill
   item that *borrows* space resizes the picture with **no `resize` event**, enough to
   put `unproject()` two cells out, so anything reading a screen coordinate observes the
-  **frame**, not the window. And a timer a *person* races runs on the real clock: bucket
-  it off sim `dt` and it waits forever on `?pause`. (#27, #28, #31)
+  **frame**, not the window. Hit-test a moving thing against its drawn footprint PER
+  POSE (a sleeper is wider than tall, a child 0.72 of an adult) — one figure box reads
+  99.6% and the miss is always the odd pose. A timer a *person* races runs on the real
+  clock: bucket it off sim `dt` and it waits forever on `?pause`. (#27, #28, #31, #42)
 - **A probe's world is only as rewound as you make it.** `__reseed()` rewinds the PRNG
-  and `__setTime()` the clock; *neither* rewinds module-level latches
-  (`marketAnnounced`, `bellSeen`) or the agents already spawned. And the **renderer
-  draws from the PRNG**, so every frame the machine happens to deliver during a host
-  round-trip walks the seeded stream — `R()` read 0.110 after two drawn frames and
-  0.746 after forty on a *paused* page. Reseed before measuring, step inside ONE
-  `page.evaluate`, and take a **fresh page per measurement** if you screenshot or
-  `boundingBox()` between them. A sampled `__warp` sees only step boundaries, so wrap
-  the function both paths go through. Skip any of this and the probe doesn't error; it
-  reports a different plausible number every run. **`ls probes/` before writing one**:
-  it is seam, not read budget. (#3, #6-#9, #29, #30)
+  and `__setTime()` the clock; *neither* rewinds module-level latches or agents already
+  spawned. The **renderer draws from the PRNG**, so every frame delivered during a host
+  round-trip walks the seeded stream, even on a *paused* page. Reseed before measuring,
+  step inside ONE `page.evaluate`, fresh page per screenshot/`boundingBox()`. A sampled
+  `__warp` sees only step boundaries, so wrap the function both paths go through. Skip
+  this and the probe lies plausibly, every run differently. **`ls probes/`
+  before writing one**: it is seam, not read budget. (#3, #6-#9, #29, #30)
 - **A zero is evidence only if you show the test can be non-zero.** A negative result
   says a class of event did not happen, which is also what a broken test says. Anchor
   it on the state the **bug** would leave, not the state the feature leaves —
@@ -128,11 +128,10 @@ of the **next** vector too; anything true only of what you just built goes in
   sampling is lying to you. (#30)
 - **When a gate fails, suspect the instrument first** — three of #31's failures were
   the probe, none the page. A probe holding **its own copy of the page's strings** is a
-  bug with a delay fuse; they are top-level consts in a classic script, so
-  `evaluate()` can name them. A margin computed with a floor (`clamp(…, 0, …)`) can
-  only ever report bad news — print a **range**. And a wall-clock arrival for anything
-  queued behind other state is not assertable at all: assert what is structural (it was
-  never *spent in silence*), not when it happened. (#31)
+  bug with a delay fuse: they are top-level consts, `evaluate()` can name them. A
+  margin computed with a floor can only report bad news — print a **range**. A
+  wall-clock arrival for anything queued behind other state is not assertable: assert
+  what is structural (never *spent in silence*), not when it happened. (#31)
 - **An event its audience must WALK to is bounded at both ends by things that are not
   the event.** The trip in sets the earliest it can be full; every standing rule already
   in the file — dusk, rain, a front, a closing time — sets the latest. #32's set ran its
