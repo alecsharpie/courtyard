@@ -20,7 +20,7 @@
   "avoid": "Do not open the plaza bench, fountain or church green after dark — one stop. Do not add an arrival source; widen eastOpen for that stop only. Keep the moon reflection off when the moon is below the horizon.",
   "budgetMin": 30,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 46,
   "issued": "2026-08-28T16:30:40.636Z",
