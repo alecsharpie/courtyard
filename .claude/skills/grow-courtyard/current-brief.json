@@ -16,7 +16,7 @@
   "avoid": "Do not change how much wear a step adds or where it is read — only when the layer is told to repaint. Do not move the R() draw or change its threshold. Interleave the perf control; frame time swings ±30%.",
   "budgetMin": 20,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 56,
   "issued": "2026-08-28T22:16:10.293Z",
