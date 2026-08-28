@@ -19,85 +19,7 @@
     "balance": "The grid was lying and I fixed it. #26 (season label), #28 (season button) and #31 (season underline + offer queue) are sill iterations that were filed under Sky because the sill draws the weather word; with a `sill` domain added at rung 3 and those three re-filed, Sky is 10 iterations back, not 1, and it is the most starved domain in the town. Behind it: Plaza & quay 8, Cross street 7, Courtyard 5, Lane 3, People 2, River 0. Sky x Polish is now marked saturated at 6 entries — more than any other cell, on the best-drawn system in the town — so the Sky work in this batch is a Deepen. This queue is one brief each in Lane, Sky, Plaza, Street and Courtyard: the five domains that are not River or People, in roughly starvation order, with the two most starved carrying the two riskiest jobs."
   },
   "rationale": "Rung 4 — change the world — and the change is that the world currently only exists for about 60% of its own clock.\n\nEvery one of the ten itinerary branches in `spawnLaneAgent` opens with `sun &&`, where `sun = daylight > 0.3`. The market, the kiosk, the cafe, the lane benches, the busker, the allotment, the plaza, the quay, the church green: all ten. After dark, every walker the town spawns falls through to the final else and crosses the frame without stopping anywhere. `kioskOpen`, `marketOpen`, `bandEnd` and `eastOpen` close on the sun as well. What night ADDS is lit windows, fireflies, one cat, the moon and two ticker lines. So the diorama at 22.00 is a transit corridor with ambience painted over it, and night is ~40% of the clock — two of every five people who open the page meet the town in that state. Thirty-two iterations have made the daylight town denser and denser and not one has touched the other half of the day. That is the frontier, it is not a polish job, and no amount of rotating domains at rung 2 would have found it, because every domain looks fully served when you only ever look at it in daylight.\n\nThat is b35, and it is deliberately the hardest brief in the run so far. It is filed Lane & market x Scale/World — the first Scale/World outside Sky — because the evening place will be on the lane and because the change is to the world’s hours, not to any one system.\n\nb36 is the other half of the same observation and comes almost free. `drawWindow()` decides `lit` as `nightF > 0.3 && hash(sa*3, sb*7+day) > 0.42`: every lit window in the town switches on in one frame and off in one frame, 58% of them burn from dusk to dawn, and nobody goes to bed. It is one line, it is the most visible thing in the night frame, and giving each window its own hour makes 22.00 and 03.00 different pictures for the first time. Two night briefs in one batch is the point of a rung climb: you commit to the new ground rather than dabble at its edge.\n\nb32 and b33 carry forward from the last plan unchanged. b32 is the strongest rung-2 brief I have — the plaza and the fountain are identical in February and August, exactly where the market was before #29 — and Plaza is 8 back. b33 is a cheap correctness fix that #29 turned into a visible falsehood: the opening scatter puts ornamentals in the allotment plots, and since the harvest now walks produce to a market board the town can put a fern on a vegetable stall.\n\nb37 promotes cue c50, which has now survived three manager passes and was already flagged as the strongest cue open. `bloomCap()` is the town’s only STEPPED seasonal term in a file where every other one is a lerp, so ripeness falls off a cliff at the autumn shoulder. A cue that survives three passes is a brief or a deletion; this one is a brief.\n\nb34 from the last plan — name the people and animals under the pointer — is not in this queue. It is good work and it is now cue c64 rather than lost. It went out because it is rung 2, because People is only 2 back, and because five briefs is the cap.\n\nOn curation, the finding is the same shape for the THIRD consecutive pass and this time I think it is actually fixed. The budget opened at 47.5 KB against a 46 KB cap. Pass #30 had capped inventory entries at 300 B each and cues at 8 by COUNT — and the growth went straight into the dimension that had no byte cap, cues, which reached 3.5 KB for 9 entries at ~390 B each, each one carrying the evidence that belongs in the ledger entry that raised it. Cap one dimension, the growth moves next door: that is the Solvista failure and I have now watched it happen three times in a row on my own watch. So the fix is not another round of distilling. Every dimension of the worker-read state now has BOTH caps and rotate-ledger.mjs enforces all of them: 8 domains x 8 entries x 300 B, 8 cues x 250 B, 4 watch items x 420 B. Those multiply to a ceiling of 45.0 KB, which is a number the file cannot exceed rather than a number it happens to sit at today. If the next pass opens over budget, the cause will be something I have not thought of, not this.\n\nTwo smaller curation notes. The inventory contained two entries that stated an ABSENCE — the bandstand “has never been used” (#32 built the concert) and the fountain “is the same in February as in August”. An absence is a cue wearing the wrong hat: it goes stale the moment somebody builds the thing, and it was still being read as fact by every worker. Both moved. And LAWS lost one law outright — “read the seam, not the file” — because SKILL.md’s read table already says grep-then-Read-with-offset, in a row the worker reads before the laws. A law that duplicates the protocol is paying rent twice; the only fact it carried that SKILL.md lacked was the file’s size, and SKILL.md’s stale ~3,000 is now the true ~5,300. The two new laws are #31’s (when a gate fails, suspect the instrument first) and #32’s (an event its audience must walk to is bounded at both ends by things that are not the event); the promoted Law paragraphs were replaced in their ledger entries by one-line pointers, which is what brought those entries back under the per-entry cap without losing anything the archive does not hold.",
-  "queue": [
-    {
-      "id": "b36",
-      "domain": "Sky, light & weather",
-      "kind": "Deepen",
-      "brief": "Every lit window in the town switches on in the same frame and off in the same frame. drawWindow() decides `lit` as `nightF > 0.3 && hash(sa*3, sb*7+day) > 0.42`, so roughly 58% of windows burn from dusk to dawn and nobody in this town goes to bed. Give each window its own hour: over a night the lit set should thin — early sleepers out by mid-evening, a few burning into the small hours, one or two coming on before dawn — so that 22.00 and 03.00 are visibly different pictures. Sky is ten iterations back and Sky x Polish is marked saturated; this is the deepening the domain actually wants.",
-      "seams": [
-        "drawWindow",
-        "LIT",
-        "nightF",
-        "hour",
-        "sunUp",
-        "sunDown",
-        "hash"
-      ],
-      "successLooksLike": "A filmstrip cropped to the buildings across one night shows the lit count falling from an evening peak to a small-hours floor and lifting again before dawn, with no frame in which more than a couple of windows change at once. At nightF <= 0.3 nothing is lit, exactly as now, and the daytime frame is byte-identical to HEAD.",
-      "avoid": "LIT[] feeds the night glow pass — one predicate, one definition: whatever decides `lit` must be the same thing that pushes into LIT, or the glow and the pane disagree and only a crop will show it. Per-window variance comes from hash(), never R(): this runs in the renderer, and the renderer draws from the seeded stream. Match the grain — a window here is addressed per BUILDING per DAY, so a per-cell term is a silent no-op across a facade. And do not make it a second global scalar with a threshold; that is the switch you are replacing.",
-      "budgetMin": 22,
-      "risk": "medium"
-    },
-    {
-      "id": "b32",
-      "domain": "Plaza & quay",
-      "kind": "Deepen",
-      "brief": "Nine systems read season() and every one of them is west of the bridge or in the sky. The plaza is identical in February and August — the exact position the market was in before #29. The fountain is the plaza’s landmark and has no seasonal reader at all. Give it the year: what the water does, what the basin looks like, and who is willing to stand near it should not be the same in midwinter as in midsummer.",
-      "seams": [
-        "FOUNTAIN",
-        "waterBox",
-        "riverRun",
-        "crumbSpot",
-        "PAVING.plaza",
-        "season",
-        "seasonPhase"
-      ],
-      "successLooksLike": "A pinned midwinter and a pinned midsummer plaza differ visibly in the wide shot, and the difference is continuous — a probe over a folded year shows no step in the fountain terms at any phase, and every term reduces exactly to today’s constant at SEASON_START.",
-      "avoid": "riverRun() already exists for the water and reads the same year — read it or a sibling of it; do not re-derive a second water-season term (one predicate, one definition). Do not let a global scalar approach zero without per-cell variance or it reads as a switch. And check what the fountain was tuned against before making its constants variable: crumbSpot’s keep-rect reads waterBox off the grid, and #24 put 22 birds in the basin the last time two places evaluated the same geometry.",
-      "budgetMin": 28,
-      "risk": "medium"
-    },
-    {
-      "id": "b33",
-      "domain": "Cross street & allotments",
-      "kind": "Polish",
-      "brief": "The allotment block is a vegetable block that does not contain only vegetables. The opening scatter seeds ornamentals into the plots — seed 42 opens with a fern in the block, seed 7 with a fern and a lavender — because speciesFor() filters only NEW sowing, not the initial scatter. Since #29 that matters in a way it did not before: harvestPlot() pays its cells into produce[], stockMarket() lays them out, and the town can now put a fern on a market stall as something a gardener grew to sell. Make the block vegetables from the first frame.",
-      "seams": [
-        "speciesFor",
-        "plotCrop",
-        "inAllotment",
-        "harvestPlot",
-        "produce",
-        "mkShelf",
-        "SPECIES"
-      ],
-      "successLooksLike": "Over ten seeds, no non-vegetable species ever occupies an allotment plot at t=0 or reaches mkShelf at any point in a folded year, and the courtyard beds are unchanged — the same eleven species in the same proportions as HEAD, proven against a stashed baseline.",
-      "avoid": "Do not fix it by filtering at the market — that is a second predicate for what an allotment grows and it will drift from speciesFor(). Fix it where the block is populated. Expect the census to churn everywhere: any change to the opening scatter reshuffles the seeded world, so read the diff for collapse, not delta.",
-      "budgetMin": 20,
-      "risk": "low"
-    },
-    {
-      "id": "b37",
-      "domain": "Courtyard & garden",
-      "kind": "Deepen",
-      "brief": "bloomCap() is the town’s only STEPPED seasonal term — 3 / 2 / 1 — in a file where growF, dieF, leafCol, riverRun and greyF are all lerps. So the beds’ ripeness falls off a cliff at the autumn shoulder instead of fading: one frame the beds carry three bloom stages, the next they carry two, and every bed in the town steps together. #29’s market carry-over softened what happens downstream; the step itself has never been touched, and it has been the strongest cue open for three manager passes (was c50). Make the ceiling continuous without moving the year’s totals.",
-      "seams": [
-        "bloomCap",
-        "growF",
-        "dieF",
-        "warmth",
-        "seasonPhase",
-        "caTick",
-        "bSt",
-        "SPECIES"
-      ],
-      "successLooksLike": "A folded-year probe of bloomCap()’s effective value shows no discontinuity at any phase; the value at SEASON_START is exactly today’s; and the annual mean of blooming cells is within a few percent of a stashed HEAD baseline — the shoulder softened, not the year made warmer.",
-      "avoid": "A ceiling is not a kill term: do not add a removal term to smooth it — if the cap comes down gradually the beds age out under it by themselves. Bloom stages are integers, so a continuous cap needs per-cell variance (hash(x, y+k)) at the BED’s grain to stop a whole ring stepping in one frame; #25 is the record of what happens when an inherited rule is applied at the wrong grain. And check the shoulder PAIR averages to the anchor, not each shoulder alone.",
-      "budgetMin": 24,
-      "risk": "medium"
-    }
-  ],
+  "queue": [],
   "consumed": [
     {
       "id": "b1",
@@ -226,6 +148,22 @@
     {
       "id": "b35",
       "at": "2026-08-04T06:02:13.630Z"
+    },
+    {
+      "id": "b36",
+      "at": "2026-08-28T11:19:50.561Z"
+    },
+    {
+      "id": "b32",
+      "at": "2026-08-28T11:20:51.576Z"
+    },
+    {
+      "id": "b33",
+      "at": "2026-08-28T11:22:53.318Z"
+    },
+    {
+      "id": "b37",
+      "at": "2026-08-28T11:26:55.017Z"
     }
   ],
   "recommendStop": null

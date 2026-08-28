@@ -683,16 +683,25 @@ function richness(){ return clamp(day / 16, 0, 1); }
  * bloomCap is the load-bearing one, because of how caTick is shaped: the bed that ages
  * and dies is the bed that is AT its ceiling. So lowering the ceiling does not merely
  * withhold the flower — it turns the whole bed over, and the beds empty of their own
- * accord instead of needing a seasonal kill term bolted on beside them. It is a step
- * on a continuous scalar and that is fine: no bed changes stage when it crosses, only
- * which branch it takes next tick, so nothing pops.
+ * accord instead of needing a seasonal kill term bolted on beside them.
+ *
+ * It was a step (3 above 0.42, 2 above 0.20, else 1), and no bed changed stage when it
+ * crossed — but every bed in the town changed BRANCH in the same tick, so the ripeness
+ * of the whole garden fell off a cliff at the autumn shoulder. Now it is a ramp over
+ * warmth, 1 at BLOOM_LO up to 3 at BLOOM_HI, with the same area under it as the step;
+ * bedCap() turns the fraction into an integer per cell (or per plot) by hash, so the
+ * ceiling comes down cell by cell over ~an eighth of the year each side of winter.
+ * BLOOM_HI is SEASON_START's warmth exactly, so the anchor still reads 3 by the clamp,
+ * not by tuning; BLOOM_LO is the one tuned number, set so the folded-year mean of the
+ * ramp equals the step's (2.256 vs 2.258, probes/bloom-cap.mjs).
  *
  * All three read `warmth` and nothing else, as do the lawn and the gatehouse ivy below
  * — one scalar, so no two parts of the garden can disagree about the time of year.
  * At warmth 0.5 every one is exactly the constant it replaced. */
 function growF(){ return lerp(0.30, 1.70, warmth); }
 function dieF(){ return lerp(1.80, 0.20, warmth); }
-function bloomCap(){ return warmth > 0.42 ? 3 : warmth > 0.20 ? 2 : 1; }
+const BLOOM_LO = 0.12, BLOOM_HI = 0.50;
+function bloomCap(){ return 1 + 2 * clamp((warmth - BLOOM_LO) / (BLOOM_HI - BLOOM_LO), 0, 1); }
 /* Reader four: the canopy. Thirteen trees — the courtyard linden, four street trees,
  * four in the plaza and four in the orchard — were sized on maturity() and filled from
  * hard-coded summer greens, so deep winter had turned earth below, an 18.30 sunset
@@ -1358,10 +1367,17 @@ function plotStands(x, y){ const sp = plotCrop(x, y); return !!(sp && SPECIES[sp
    would drift the moment either is tuned. */
 function bedCap(x, y){
   const cap = bloomCap();
-  return cap === 3 ? 3
-       : inAllotment(x, y) ? (plotStands(x, y) ? 3 : cap)
-       : hash(x, y + 41) > 0.86 ? 3 : cap;
+  if (cap === 3) return 3;
+  if (inAllotment(x, y)){
+    if (plotStands(x, y)) return 3;
+    const [ox, oy] = plotOrigin(x, y);      // a plot steps whole, but not with the next plot
+    return capStep(cap, ox, oy + 53);
+  }
+  return hash(x, y + 41) > 0.86 ? 3 : capStep(cap, x, y + 53);
 }
+/* The fractional ceiling as an integer: the fraction is the SHARE of cells (or plots)
+   already allowed the next stage, decided by a hash so it is the same cells all season. */
+function capStep(cap, x, y){ const lo = Math.floor(cap); return lo + (hash(x, y) < cap - lo ? 1 : 0); }
 const FALLOW = 12;   // sim seconds a picked plot lies bare, +R()*8 — a third to a half of a 55 s day,
                        // long enough that a dug-over row is something you notice from the wide view
 let harvested = 0;     // cumulative cells picked: the one number that separates picked from died back

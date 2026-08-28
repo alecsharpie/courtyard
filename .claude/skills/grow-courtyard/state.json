@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-04",
+  "updated": "2026-08-28",
   "note": "The manager owns this file. It is structured ON PURPOSE — the previous loop kept its state as a prose header, which degenerated into a 4,000-character run-on paragraph of abbreviations that no longer carried signal. Structure resists that.",
   "phase": "expanding",
   "lastIteration": 32,
@@ -308,7 +308,8 @@
     "courtyard": [
       "walled garden, organic bed ring, four arch entrances (2 TUNNEL, 2 SLOT), benches, desire paths from foot wear, daisies, ivy on the gatehouse, a pre-dawn sweeper, one linden (drawTree, CX/CY)",
       "planting CA — 11 species, bloom stages, seeding from mature neighbours, crowding, age dieback; rain accelerates every growth term",
-      "the beds read the YEAR — growF()/dieF()/bloomCap() off warmth, lawn health in groundCol; bloomCap is a CEILING and per-cell hardiness holds ~1/7 of cells at it, so winter is blooms scattered in turned earth. probes/beds-year.mjs"
+      "the beds read the YEAR — growF()/dieF()/bloomCap() off warmth, lawn health in groundCol; bloomCap is a CEILING and per-cell hardiness holds ~1/7 of cells at it, so winter is blooms scattered in turned earth. probes/beds-year.mjs",
+      "bloomCap() is a RAMP over warmth (BLOOM_LO 0.12 -> BLOOM_HI 0.50 = the anchor); capStep() dithers it to an integer per courtyard CELL (hash y+53) / per allotment PLOT, so the ceiling comes down cell by cell. probes/bloom-cap.mjs"
     ],
     "lane": [
       "kiosk, pavement cafe with claimable tables, awnings, washing lines, planters, street lamps, benches",
@@ -420,6 +421,12 @@
       "raisedBy": 33,
       "seenBy": 0,
       "note": "agents.length feeds scarcity(), and a.tap agents are now inside it, so a full pavement at the door quietly damps the three night arrival RATES that POP_FLOOR exists to lift. Small at four slots; a larger evening would want the term to read a population it is not part of."
+    },
+    {
+      "id": "c66",
+      "note": "the ramp gives spring more than it takes from autumn (+1.9% blooming/yr): the CA climbs at growF pace but descends at dieF pace, so any future seasonal ceiling should be checked on the consumer's folded mean, not the scalar's",
+      "raisedBy": 37,
+      "seenBy": 0
     }
   ],
   "watch": [

@@ -342,3 +342,38 @@ relative to the canvas **parent**. Full entry in `LEDGER-archive.md`.
 **Law:** the evening is bounded by ARITHMETIC before taste — at 2.3 s to the sim hour, where a new
 place can stand is set by how far its people must walk to it, and a 15-cell trip is already 92%
 of a midsummer night. Price the walk before choosing the address.
+
+## Iteration 37 — the bed ceiling comes down cell by cell, not all at once (2026-08-28) [Courtyard & garden × Deepen]
+
+**Brief:** b37 — `bloomCap()` was the town's only STEPPED seasonal term (3/2/1 at warmth 0.42/0.20);
+make it continuous without moving the year's totals.
+
+**Did:** `bloomCap()` is now a ramp `1 + 2·clamp((warmth − BLOOM_LO)/(BLOOM_HI − BLOOM_LO))`, with
+`BLOOM_HI = 0.50` = SEASON_START's warmth so the anchor is 3 by the clamp, and `BLOOM_LO = 0.12` the one
+tuned number. `bedCap(x,y)` turns the fraction into an integer with `capStep()` — the fraction is the
+SHARE of cells already allowed the next stage, by `hash(x, y+53)` in the courtyard and by
+`hash(plotOrigin, +53)` in the allotments, so a plot still steps whole but not with its neighbour.
+Hardiness (`y+41`, `plotStands`) untouched. No new `R()`.
+
+**Gates:** census PASS (blooming −17, planted −25 — noise; winter cell planted 725 → 841) · visual PASS
+(early summer, cap 3 both builds — nothing to see, as expected) · motion skipped (CA state only, no
+draw or agent touched) · perf skipped · **`bloom-cap.mjs`** (folded year, 520 phases): max step in the
+courtyard's mean ceiling **0.876 → 0.038**, allotments 1.000 → 0.118 (one plot of seventeen),
+`bloomCap()` at the anchor exactly 3 both builds; year-mean of the cap 2.2577 → 2.2564 ·
+**`beds-year.mjs`** 3 seeds × 70 settled days: mean blooming **342.7 → 349.3 (+1.9%)**, planted +1.4%;
+autumn shoulder d13–15 was 534/147/53, now 512/232/56; spring d24–26 was 47/288/608, now 66/339/570;
+evenness 0.998 all three years. Context budget opened OVER (46.4 / 46 KB).
+
+**Verdict:** shipped
+
+**Surprise:** the cap's folded mean was flat to 0.06% and the beds still came out +1.9% — the ramp gives
+the SPRING side more than it takes from autumn (d25 +51, d14 +85 vs d26 −38), because a bed under a
+rising fractional cap starts climbing the moment its cell is admitted, while a bed under a falling one
+only ages out at `dieF()`'s pace. A continuous ceiling is still asymmetric through the CA either side of
+it. Also: BLOOM_LO tuned in warmth-space came out 0.12 rather than the 0.08 the area-under-the-step
+arithmetic said, because warmth is a cosine and time piles up at the extremes, not the middle.
+
+**Law:** a step replaced by a ramp with the same area is not the same YEAR — the world's phase density
+is a cosine, so tune the ramp's one free end on a folded-time mean, never on area in the scalar's own
+units; and expect the CA on either side to spend the ramp asymmetrically (climb is rate-limited by
+growth, descent by dieback), so check the consumer's annual mean, not just the scalar's.
