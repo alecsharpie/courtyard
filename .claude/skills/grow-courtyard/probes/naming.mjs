@@ -164,6 +164,66 @@ const ok = (c, s) => { console.log((c ? '  ok   ' : '  FAIL ') + s); if (!c) bad
   await p.close();
 }
 
+/* ---- 7: the living things ----------------------------------------------------
+ * Ten seeds, a grown town, one frame painted. Every walker, duck, swan and the boat
+ * (drawn ones: not inside an archway, not under the bridge) is pointed at where its
+ * feet were projected, and the sill must answer a LIVING name and never the ground.
+ * Then a lattice of points at least two cells clear of every entity must answer
+ * exactly what nameAt/treeAt alone answer — the ground is not renamed by the change.
+ * Pass `--head <file>` to compare the clear-lattice answers against another build. */
+{
+  console.log('\n7. the living things, ten seeds');
+  let total = 0, living = 0, ground = 0, clearN = 0, clearDiff = 0; const eg = [], vocab = new Set();
+  const clearAll = [];
+  for (let sd = 1; sd <= 10; sd++){
+    const p = await b.newPage({ viewport: { width: 1400, height: 900 } });
+    p.on('pageerror', e => errs.push(String(e)));
+    await p.goto(`${PAGE}?pause&seed=${sd}`);
+    await p.waitForFunction('typeof window.__census === "function"');
+    await p.evaluate(() => __warp(625 + 27.5));            // midday on a grown town: the lane is full
+    await p.waitForFunction('crowns.length > 0');
+    const r = await p.evaluate(() => {
+      const cellAt = (x, y) => grid[clamp(y|0, 0, WH-1) * GW + clamp(x|0, 0, GW-1)];
+      const rows = [];
+      const probe = (e, kind) => {
+        const q = project(e.x, e.y, e.z || 0); q[1] -= cellH * 0.5;   // mid-shin, inside the box
+        const n = lookAt(q), living = !!livingAt(q);
+        rows.push({ kind, n, living, ground: !living && !!nameAt(...cellOf(q)) });
+      };
+      for (const a of agents) if (cellAt(a.x, a.y) !== TUNNEL) probe(a, a.kind);
+      for (const d of ducks) probe(d, 'duck');
+      for (const s of swans) probe(s, 'swan');
+      if (boat && (boat.y < 64.5 || boat.y > 79)) probe(boat, 'boat');
+      // a lattice two cells clear of every entity, in world space, then named on screen
+      const ents = __entities().filter(e => e.kind !== 'raindrop' && e.kind !== 'bird' && e.kind !== 'leaf' && e.kind !== 'butterfly' && e.kind !== 'firefly');
+      const clear = [];
+      for (let y = 2; y < WH; y += 3) for (let x = 2; x < GW; x += 3){
+        if (ents.some(e => Math.abs(e.x - x) < 2.5 && Math.abs(e.y - y) < 2.5)) continue;
+        const q = project(x + 0.5, y + 0.5, 0);
+        const c = treeAt(q);
+        clear.push([x, y, lookAt(q), c ? c.name + ', ' + treeState(c.fruit) : nameAt(x, y)]);
+      }
+      return { rows, clear };
+    });
+    for (const w of r.rows){ total++; if (w.living){ living++; vocab.add(w.n); } if (w.ground){ ground++; if (eg.length < 6) eg.push([sd, w.kind, w.n]); } }
+    for (const c of r.clear){ clearN++; if (c[2] !== c[3]) clearDiff++; clearAll.push([sd, ...c]); }
+    await p.close();
+  }
+  ok(total >= 50, `${total} drawn living things pointed at over ten seeds`);
+  ok(living / total >= 0.95, `${living}/${total} = ${(100 * living / total).toFixed(1)}% answer a living name (want ≥ 95%)`);
+  ok(ground === 0, `${ground} answered the ground instead` + (eg.length ? ' e.g. ' + JSON.stringify(eg) : ''));
+  ok(clearDiff === 0, `${clearN} points 2+ cells clear of every entity: ${clearDiff} differ from nameAt/treeAt alone`);
+  console.log('         vocabulary (' + vocab.size + '): ' + [...vocab].join(' · '));
+  const headFile = arg('--head', null);
+  if (headFile){
+    const { readFileSync, writeFileSync } = await import('node:fs');
+    if (arg('--write-clear', null)){ writeFileSync(headFile, JSON.stringify(clearAll)); console.log('         wrote clear lattice to ' + headFile); }
+    else { const h = JSON.parse(readFileSync(headFile, 'utf8')); let d = 0;
+      for (let i = 0; i < Math.min(h.length, clearAll.length); i++) if (h[i][3] !== clearAll[i][3]) d++;
+      ok(h.length === clearAll.length && d === 0, `clear lattice vs HEAD: ${d} of ${clearAll.length} names differ`); }
+  }
+}
+
 /* ---- 6a: the sill on a wide screen — settle, clear, yield -------------------- */
 {
   console.log('\n6a. the sill, 1280px');

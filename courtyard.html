@@ -5143,7 +5143,57 @@ function treeAt(p){
   }
   return null;
 }
+/* The living things, hit-tested the same way — in SCREEN space, a box stood on the
+ * projected feet about 0.9 cells wide and one figure tall, painter's order so the one
+ * drawn in front wins. Since #33 a walker is the most legible thing in a night frame,
+ * and until #42 the sill answered the paving under their feet. What they are DOING is
+ * read off the state machine's own fields — `state`, `kind`, `cup`, `watch`, `greet`,
+ * `listen`, `band` — never inferred from where they stand. Nothing here draws or
+ * spends R(): it reads what the last frame put on screen. */
+function personName(a){
+  const st = a.state, k = a.kind;
+  if (k === 'sweeper') return 'the sweeper, working down the lane';
+  if (k === 'cyclist') return 'a cyclist';
+  if (st === 'lie') return 'someone lying on the grass';
+  if (st === 'kneel') return k === 'allot' ? 'an allotment holder, kneeling at the plot'
+                                           : 'the gardener, kneeling at a bed';
+  if (k === 'busker' && st === 'stand') return 'a busker, playing';
+  if (k === 'tap' && st === 'stand') return a.cup ? 'someone at the door, cup in hand' : 'someone waiting at the door';
+  if (a.band && st === 'stand') return 'someone in the audience, listening';
+  if (k === 'parapet' && st === 'stand') return 'someone leaning on the parapet';
+  if (st === 'sit') return a.cup ? 'someone at a table, with a cup' : k === 'picnic' ? 'someone on a blanket' : 'someone sitting';
+  if (a.greet > 0) return 'someone stopped for a word';
+  if (a.listen > 0) return 'someone stopped, listening to the bell';
+  if (st === 'stand') return a.watch > 0 ? 'someone watching the boat go by'
+                          : k === 'browser' ? 'someone browsing' : 'someone standing about';
+  const who = k === 'kid' ? 'a child' : k === 'dogwalker' ? 'someone with a dog' : k === 'gardener' ? 'the gardener' : 'someone';
+  if (a.umbrella) return who + ', walking under an umbrella';
+  if (a.watch > 0) return who + ', walking with an eye on the river';
+  return who + (k === 'kid' ? ', running about' : ', walking');
+}
+function livingAt(p){
+  const hw = cellW * 0.45, cellAt = (x, y) => grid[clamp(y|0, 0, WH-1) * GW + clamp(x|0, 0, GW-1)];
+  let best = null, bestY = -Infinity;
+  const hit = (x, y, z, h, sortY, name, w) => {      // h: figure height in cells above the feet
+    const [sx, sy] = project(x, y, z || 0), hx = hw * (w || 1);
+    if (p[0] < sx - hx || p[0] > sx + hx || p[1] > sy + cellH * 0.25 || p[1] < sy - cellH * h) return;
+    if (sortY > bestY){ bestY = sortY; best = name; }
+  };
+  for (const a of agents){
+    if (cellAt(a.x, a.y) !== TUNNEL)
+      hit(a.x, a.y, a.z, (a.state === 'sit' ? 1.0 : a.state === 'lie' ? 0.6 : 1.5) * (a.small ? 0.72 : 1), a.y + 0.5, personName(a),
+          a.state === 'lie' ? 1.9 : 1);   // a sleeper is drawn flat: wider than tall
+    if (a.dog && cellAt(a.dog.x, a.dog.y) !== TUNNEL) hit(a.dog.x, a.dog.y, 0, 0.6, a.dog.y + 0.4, 'a dog, at heel');
+  }
+  for (const d of ducks) hit(d.x, d.y, 0, 0.6, d.y + 0.3, d.swimming ? 'a duck, on the pond' : 'a duck, out on the bank');
+  for (const s of swans) hit(s.x, s.y, 0, 0.8, s.y + 0.3, 'a swan, on the river');
+  if (boat && (boat.y < 64.5 || boat.y > 79)) hit(boat.x, boat.y, 0, 1.4, boat.y + 0.6, 'the rowboat, going downriver');
+  if (catA) hit(catA.x, catA.y, 0, 0.6, catA.y + 0.3, 'the cat, out along the lane');
+  return best;
+}
 function lookAt(p){
+  const l = livingAt(p);
+  if (l) return l;
   const c = treeAt(p);
   if (c) return c.name + ', ' + treeState(c.fruit);
   const [x, y] = cellOf(p);

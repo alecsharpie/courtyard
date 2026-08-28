@@ -13,30 +13,7 @@
     "balance": "Sky 14 back (the most starved domain, and Sky x Polish is saturated so what it wants is Deepen); Plaza 13 back; Street 12 back; Sill 6 back; River 5; Life 7; Lane 4; Courtyard 0. Coverage was never entered for #33 (lane x scale) or #37 (courtyard x deepen) — done now."
   },
   "rationale": "HELD RUNG 4. Pass #32 climbed to it for one reason — the world exists for ~60% of its own clock — and only half of that climb has landed: #33 built the first evening place, but every window in the town still switches on and off in the same frame, and 22.00 and 03.00 are the same picture. Re-planning the same batch is the one thing the ladder forbids ONLY as a response to a stall, and this is not a stall: three briefs were destroyed by the runner before any worker saw them, so re-issuing b36/b32/b33 verbatim (with a note that no prior attempt exists, or a worker will go looking for one) is recovery, not repetition. b38 goes at the head as a harness brief because the fault will recur on the next restart and the runlog is currently lying about it: a launch failure must not consume a brief, and a 0-token row must not be counted as an iteration by stall.mjs. It also carries c62 (motion.mjs split rises from falls), which is the same file class. b39 is the batch's new work and the one most likely to fail: c64 has been open since #33 and the naming — the loop's most visible observer tool — answers with the paving under a walker's feet, so the diorama can name a fern and cannot name a swan. Three of five briefs are domains 12+ back (sky, plaza, street); the fourth is the sill; none is courtyard, lane or river. Cost expectation: b33 and b38 cheap, b36/b39 medium, b32 the expensive one. Curation this pass: closed six cues (three no-yield, two promoted, one absorbed into a law), fixed an id collision (open c61 was not closed c61 — renumbered c68), merged life's two own-source crowds into one inventory entry (life was 9/8), archived #37 verbatim and trimmed #33/#37 to 1.6 KB each, and paid for two law promotions (#33 price-the-walk into the time-compression law; #37 + the old #21 duration law merged into one folded-time-mean law) by compressing five verbose laws — laws count stays 26, 11.9/12 KB.",
-  "queue": [
-    {
-      "id": "b39",
-      "domain": "The sill & the observer",
-      "kind": "Interaction/UX",
-      "brief": "nameAt(x,y) names the ground, the plants, the plots, the waters and the thirteen trees — and nothing that MOVES. Point at a walker, a duck, a swan, the sweeper, a gardener with a basket, the rowboat, the concert audience or the cat, and the sill says the paving under their feet. Since #33 the living things are the most legible part of a night frame. __entities() already carries role, act and a stable id per person, and crowns[] is the pattern for hit-testing a moving thing in SCREEN space. Give the pointer the living things, with the same NAME_SETTLE hold as everything else, and let the name say what they are DOING ('someone waiting at the door', 'a swan, upending') rather than only what they are.",
-      "seams": [
-        "nameAt",
-        "NAME_SETTLE",
-        "crowns",
-        "__entities",
-        "agents",
-        "ducks",
-        "swans",
-        "updateBoat",
-        "drawAgent",
-        "project"
-      ],
-      "successLooksLike": "probes/naming.mjs extended: over ten seeds, pointing at the screen position of any agent, duck, swan or the boat returns a living name at least 95% of the time and NEVER the paving, and pointing at a spot 2 cells clear of every entity still returns exactly what HEAD returns. A moving figure holds its name for NAME_SETTLE after it walks out from under the pointer, no flicker.",
-      "avoid": "Hit-test in screen space against the drawn footprint (project() the feet, a box of roughly 0.9 cells) — never re-derive world geometry, and never add an R() draw: the renderer walks the seeded stream. The sill is DOM and fails quietly: assert on computed text, not on the handler having run. Do not add a new invitation for it; OFFERS[] is the queue and the naming already has its hint.",
-      "budgetMin": 26,
-      "risk": "medium"
-    }
-  ],
+  "queue": [],
   "recommendStop": null,
   "consumed": [
     {
@@ -54,6 +31,10 @@
     {
       "id": "b33",
       "at": "2026-08-28T12:03:14.673Z"
+    },
+    {
+      "id": "b39",
+      "at": "2026-08-28T12:06:57.249Z"
     }
   ]
 }
