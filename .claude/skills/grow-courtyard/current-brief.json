@@ -20,7 +20,7 @@
   "avoid": "Do not make windows an agent system. One register, one predicate: windowLit stays the ONE truth and reads the register. No R() in the renderer. Do not send the east's leavers (eastOpenFor) — their walk is priced out; lane and courtyard leavers only.",
   "budgetMin": 40,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 2,
   "nextIter": 51,
   "issued": "2026-08-28T17:17:10.925Z",
