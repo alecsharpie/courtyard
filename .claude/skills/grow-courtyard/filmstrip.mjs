@@ -22,6 +22,7 @@ import { homedir } from 'node:os';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { pops } from './pops.mjs';
 
 const PW = join(homedir(), '.claude/skills/screenshot-verify/node_modules/playwright/index.js');
 const { chromium } = (await import(pathToFileURL(PW).href)).default;
@@ -101,6 +102,8 @@ const shot = await p.evaluate(async ({ warm, gap, n, clip }) => {
  * no image library, no dependency. */
 const cols = Math.min(4, N);
 const sheet = await b.newPage({ viewport: { width: cols * 470 + 24, height: 400 } });
+const POPS = pops(shot.diffs);           // a step above its NEIGHBOURS, not above the median
+const PER_FRAME = GAP / (1 / 60);        // 60 fps frames per sample: Δ/PER_FRAME is what one frame moves
 await sheet.setContent(`<style>
   body{margin:0;background:#15130f;font:12px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;color:#e8dcc4}
   h1{font:600 14px/1.4 system-ui,sans-serif;margin:12px;color:#e8dcc4}
@@ -113,8 +116,7 @@ await sheet.setContent(`<style>
 <h1>The Courtyard — filmstrip · scene ${scene} (t=${t}s, seed ${SEED}) · ${GAP}s between frames · number after Δ is mean pixel change from the previous frame</h1>
 <div class="g">${shot.frames.map((f, i) => {
   const d = i ? shot.diffs[i - 1] : null;
-  const med = [...shot.diffs].sort((a, b) => a - b)[shot.diffs.length >> 1] || 1;
-  const hot = d != null && d > med * 3.5;
+  const hot = d != null && POPS.has(i - 1);
   return `<figure><img src="${f}"><figcaption><span>#${i} · t+${(i * GAP).toFixed(2)}s</span><span class="${hot ? 'hot' : ''}">${d == null ? '—' : 'Δ' + d.toFixed(2)}</span></figcaption></figure>`;
 }).join('')}</div>`);
 await sheet.waitForTimeout(300);
@@ -125,13 +127,14 @@ await b.close();
 const med = [...shot.diffs].sort((a, b) => a - b)[shot.diffs.length >> 1] || 0;
 console.log(`filmstrip: ${file}`);
 console.log(`  scene ${scene} (t=${t}s), seed ${SEED}, ${N} frames ${GAP}s apart\n`);
-console.log('  frame  Δ from previous');
+console.log('  frame  Δ from previous  (per 60fps frame)');
 shot.diffs.forEach((d, i) => {
   const bar = '█'.repeat(Math.min(40, Math.round(d / Math.max(med, 0.01) * 6)));
-  const flag = d > med * 3.5 ? '  ← POP: something changed far more than the frames around it' : d === 0 ? '  ← FROZEN: nothing moved at all' : '';
-  console.log(`  ${String(i + 1).padStart(5)}  ${d.toFixed(3).padStart(7)}  ${bar}${flag}`);
+  const flag = POPS.has(i) ? '  ← POP: a step — far more than the samples on either side of it' : d === 0 ? '  ← FROZEN: nothing moved at all' : '';
+  console.log(`  ${String(i + 1).padStart(5)}  ${d.toFixed(3).padStart(7)}  ${(d / PER_FRAME).toFixed(3).padStart(7)}/f  ${bar}${flag}`);
 });
-console.log(`\n  median Δ ${med.toFixed(3)}`);
+console.log(`\n  median Δ ${med.toFixed(3)} · ${PER_FRAME.toFixed(1)} frames per sample · ${POPS.size} POP`);
+console.log('  A ramp (several high samples in a row — a dusk, a snowfall) is not a pop; a step is.');
 if (errs.length) { console.error(`\n  ${errs.length} page error(s):`); errs.slice(0, 5).forEach(e => console.error('   ' + e)); }
 console.log('\n  Now LOOK at the sheet. Numbers find the suspicious frame; only your eye can');
 console.log('  say whether the thing that changed was meant to. Check the still parts too —');

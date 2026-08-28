@@ -29,6 +29,7 @@
 #   LOG          log file (default: ~/Library/Logs/courtyard-grow.log)
 #   PUSH         1 = push to origin after each landed iteration (default: 1)
 #   MANAGER_GAP  min worker iterations between stall-triggered manager runs (default: 2)
+#   DRY_RUN      1 = print the first manager decision and exit (tests the gap logic)
 #
 # Permissions: `auto` still blocks on anything .claude/settings.json does not allow,
 # and a blocked prompt in -p mode reads as a denied tool. If iterations stall on
@@ -98,7 +99,11 @@ fi
 # Never run two of these. The census is a differential measurement against a
 # baseline pinned just before an edit; two concurrent editors make every diff
 # meaningless, and the CA is chaotic enough that the damage is not obvious.
-if ! mkdir "$LOCK_DIR" 2>/dev/null; then
+DRY_RUN="${DRY_RUN:-0}"
+if [ "$DRY_RUN" = "1" ]; then
+  # No lock, no preflight, no claude: just the loop's first decision, printed.
+  LOCK_DIR="${TMPDIR:-/tmp}/courtyard-grow-dry-$$.lock"; mkdir -p "$LOCK_DIR"
+elif ! mkdir "$LOCK_DIR" 2>/dev/null; then
   if [ -f "$LOCK_DIR/pid" ] && kill -0 "$(cat "$LOCK_DIR/pid")" 2>/dev/null; then
     log "another runner is live (pid $(cat "$LOCK_DIR/pid")) — refusing to start."
     exit 1
@@ -113,7 +118,7 @@ trap 'log "interrupted — stopping after signal."; exit 0' INT TERM
 
 # ---- preflight ---------------------------------------------------------------
 cd "$REPO" || exit 1
-command -v claude >/dev/null || { log "claude not on PATH"; exit 1; }
+[ "$DRY_RUN" = "1" ] || command -v claude >/dev/null || { log "claude not on PATH"; exit 1; }
 git rev-parse --git-dir >/dev/null 2>&1 || { log "$REPO is not a git repo — the loop needs commits to revert and to measure."; exit 1; }
 
 # An iteration killed mid-flight leaves its work uncommitted. That is often a
@@ -123,7 +128,7 @@ git rev-parse --git-dir >/dev/null 2>&1 || { log "$REPO is not a git repo — th
 # diagnostic one a human does to inspect this very situation — so it is not
 # evidence of a dead iteration.
 dirty() { git -C "$REPO" status --porcelain | grep -v -e 'census-history\.jsonl$' -e '^?? shots/'; }
-if [ -n "$(dirty)" ]; then
+if [ "$DRY_RUN" != "1" ] && [ -n "$(dirty)" ]; then
   log "REFUSING: $REPO has uncommitted changes. They may be a dead iteration's"
   log "finished work, or they may be yours. Look before you start the loop:"
   log "    git -C $REPO status && git -C $REPO diff"
@@ -202,7 +207,9 @@ rate_limited() {
 # ---- the loop ----------------------------------------------------------------
 done_ok=0        # landed worker iterations — what MAX_ITERS counts
 fails=0
-last_manager=-99 # worker-iteration index of the last manager pass
+last_manager=0   # worker-iteration index of the last manager pass. Baselined at the
+                 # start, not -99: with -99 the stall check ran BEFORE the first landed
+                 # iteration whatever MANAGER_GAP said. A fresh start now honours the gap.
 
 while :; do
   if [ -f "$STOP_FILE" ]; then
@@ -224,6 +231,10 @@ while :; do
     # MANAGER_GAP so a persistent signal cannot summon a manager every iteration.
     sig="$(node "$HERE/stall.mjs" 2>/dev/null)"
     if [ -n "$sig" ] && [ "$sig" != "ok" ]; then need_manager=1; why_manager="stall signals: $sig"; fi
+  fi
+  if [ "$DRY_RUN" = "1" ]; then
+    echo "dry-run: done_ok=$done_ok last_manager=$last_manager gap=$MANAGER_GAP -> need_manager=$need_manager${why_manager:+ ($why_manager)}"
+    exit 0
   fi
 
   if [ "$need_manager" = "1" ]; then

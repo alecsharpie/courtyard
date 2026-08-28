@@ -13,24 +13,7 @@
     "balance": "After recording: sill 9 back (#43), river 6 back (#46), lane 5 back (#47), sky 4 back but its last was the rejected b45, courtyard 3, plaza 2, life 1, street 0. This batch puts the sill and the river back in play, the lane gets the night supply the last three passes have been circling, and the courtyard gets the perf fix that nobody sees until the frame rate drops."
   },
   "rationale": "HOLD RUNG 2. Work is landing cleanly and every rung-4 climb from #32–#42 (the night, snow) still has a compounding move left, so the ladder says compound, not climb. The frontier for a thirty-second viewer is still the night: #51 proved the mechanism (a person walks to a door and the window over it lights) and in the same breath proved the town is EMPTY when it fires — 6–9 agents, under one leaver a night. b50 is the batch's bet: a night ARRIVAL source (people coming home from off-frame to a HOME_DOOR, on their own budget like spawnTapAgent) so the mechanism has a supply and three to five windows a night light because somebody came in. It can fail on the R() churn and the pricing, which is why it goes first while the loop is strong. b51 pushes the wind past the fountain onto the river (river 6 back, the WATCH note's exact gap). b52 gives the observer the night — the sill names lawns, plots, trees and people, and nothing on a facade; a lit window is now a fact with a cause (HOMES, windowHours) the viewer cannot read. b53 is c81: drawGround is 9.2 ms of an 11.5 ms frame and repaints ~650×/day off the wear line, in the domain the dashboard shows 3 back. b54 fixes the two instrument lies that cost #48 its iteration (filmstrip's rate-as-pop, run-loop's MANAGER_GAP). Risk: one high, one medium, three low. Curation: coverage #48–#52 entered; eight cues resolved (six promoted/folded into b50/b51/b53/b54, two closed), four held at seen 1, one new (c89 the church has no night); ledger 8 -> 5, #50–#52 archived verbatim then condensed 2.9–3.3 -> 1.9–2.2 KB; five laws promoted (bAge-two-fields new; choice/histogram merged as one new law; #48 folded into the filmstrip and cache laws; #51 into the WALK law) paid for by compressing the four inherited laws and the seasonal-mean law — 30 laws, 12.05/12 KB. Budget 49.1 -> under cap.",
-  "queue": [
-    {
-      "id": "b54",
-      "domain": "The sill & the observer",
-      "kind": "Harness",
-      "brief": "Two instrument lies. (1) filmstrip.mjs's POP gate compares a 0.35 s-gap whole-frame Δ against a fixed 2 and so reads a legitimately fast winter dusk (daylight moves 0.04/sample, ~7 RGB) as a pop — it cost #48 a whole iteration on a false premise. Make a pop a sample far above its NEIGHBOURS (a step), not a sample far above 2, and print the per-60fps-frame rate beside it; keep HEAD's existing POP count at summer noon at 0 and winter dusk should now read 0 on HEAD. (2) run-loop.sh's MANAGER_GAP check reads last_manager=-99 on a fresh start, so the stall check runs before the first landed iteration regardless of the gap; make a first-run baseline of the current iteration.",
-      "seams": [
-        "filmstrip.mjs",
-        "probes/dusk-relight-where.mjs",
-        "run-loop.sh MANAGER_GAP",
-        "stall.mjs"
-      ],
-      "successLooksLike": "filmstrip on HEAD at winter dusk reports 0 POP where it reported 1 with a 7.0 Δ; a synthetic one-frame step of 10 RGB injected via a probe still reads as POP. run-loop.sh dry-run shows the manager gap honoured from the first iteration.",
-      "avoid": "Do not loosen the FROZEN gate. Do not touch courtyard.html — a Harness brief grades on commit+log.",
-      "budgetMin": 20,
-      "risk": "low"
-    }
-  ],
+  "queue": [],
   "recommendStop": null,
   "consumed": [
     {
@@ -48,6 +31,10 @@
     {
       "id": "b53",
       "at": "2026-08-28T22:16:10.292Z"
+    },
+    {
+      "id": "b54",
+      "at": "2026-08-28T22:26:00.701Z"
     }
   ]
 }

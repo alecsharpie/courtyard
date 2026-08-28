@@ -1,24 +1,21 @@
 {
-  "id": "b53",
-  "domain": "Courtyard & garden",
-  "kind": "Polish",
-  "brief": "drawGround() is 9.2 ms against 2.3 ms for the rest of the frame and rebuilds ~650×/sim-day in both seasons — 80% from the grass-wear line (`if (R()<dt*2) groundDirty = true` per walker on grass, courtyard.html ~1867) and the sweeper's trod line beside it, 20% the light bucket. The 'cache' is repainted every few frames. Throttle the wear-driven repaint: accumulate wear as now but set the dirty flag at most once per sim-minute (or dirty-rect the trodden cell), so a walker's path still darkens at the same rate to the eye and the layer repaints ~130–180×/day instead of ~650. Keep the R() draw where it is — removing it reshuffles the world.",
+  "id": "b54",
+  "domain": "The sill & the observer",
+  "kind": "Harness",
+  "brief": "Two instrument lies. (1) filmstrip.mjs's POP gate compares a 0.35 s-gap whole-frame Δ against a fixed 2 and so reads a legitimately fast winter dusk (daylight moves 0.04/sample, ~7 RGB) as a pop — it cost #48 a whole iteration on a false premise. Make a pop a sample far above its NEIGHBOURS (a step), not a sample far above 2, and print the per-60fps-frame rate beside it; keep HEAD's existing POP count at summer noon at 0 and winter dusk should now read 0 on HEAD. (2) run-loop.sh's MANAGER_GAP check reads last_manager=-99 on a fresh start, so the stall check runs before the first landed iteration regardless of the gap; make a first-run baseline of the current iteration.",
   "seams": [
-    "drawGround",
-    "groundDirty",
-    "wear[]",
-    "trod[]",
-    "probes/ground-rebuilds.mjs",
-    "perf.mjs",
-    "probes/snow-wear.mjs"
+    "filmstrip.mjs",
+    "probes/dusk-relight-where.mjs",
+    "run-loop.sh MANAGER_GAP",
+    "stall.mjs"
   ],
-  "successLooksLike": "`probes/ground-rebuilds.mjs` reports under 200 rebuilds/day in both seasons; `perf.mjs` frame time drops by more than half against an interleaved HEAD control; a noon frame at a bucket boundary is byte-identical to HEAD; `snow-wear.mjs` ratios unchanged within noise.",
-  "avoid": "Do not change how much wear a step adds or where it is read — only when the layer is told to repaint. Do not move the R() draw or change its threshold. Interleave the perf control; frame time swings ±30%.",
+  "successLooksLike": "filmstrip on HEAD at winter dusk reports 0 POP where it reported 1 with a 7.0 Δ; a synthetic one-frame step of 10 RGB injected via a probe still reads as POP. run-loop.sh dry-run shows the manager gap honoured from the first iteration.",
+  "avoid": "Do not loosen the FROZEN gate. Do not touch courtyard.html — a Harness brief grades on commit+log.",
   "budgetMin": 20,
   "risk": "low",
-  "status": "done",
+  "status": "active",
   "attempts": 1,
-  "nextIter": 56,
-  "issued": "2026-08-28T22:16:10.293Z",
+  "nextIter": 57,
+  "issued": "2026-08-28T22:26:00.703Z",
   "fromPlan": "2026-08-29T00:00:00.000Z"
 }

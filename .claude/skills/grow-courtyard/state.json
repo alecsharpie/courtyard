@@ -393,7 +393,8 @@
       "THE DIORAMA IS CLICKABLE and says so once — answersTouch(x,y) is the ONE predicate, read by cursor and handler: seeds, a daisy, crumbs, a coin, a pebble. Invitations are a QUEUE, OFFERS[]. probes/touch-hint.mjs",
       "the NAMING names the LIVING things — livingAt(p) hit-tests agents, dogs, ducks, swans, boat, cat in SCREEN space on the projected feet (box per pose); personName(a) says what they are doing. probes/naming.mjs §7",
       "harness: runlog --regrade; Harness verdicts graded on commit+log; crashed-worker one-retry (brief.retry); filmstrip AT(day,hour), night preset at midnight; probes/dusk-relight-where.mjs (Δ by row, cached vs live), ground-rebuilds.mjs (drawGround rebuilds/day)",
-      "the NAMING names the WINDOWS and DOORS — FACES[] screen boxes (pushFace from drawWindow/drawFrontDoor, live for rows 61-64), faceAt(); windowName() reads windowLit + windowHours/HOMES for the cause ('a lamp lit at HH.MM, somebody came home', 'burning late', 'dark: gone to bed'…), doorName(); by day 'a window'. probes/naming.mjs §8"
+      "the NAMING names the WINDOWS and DOORS — FACES[] screen boxes (pushFace from drawWindow/drawFrontDoor, live for rows 61-64), faceAt(); windowName() reads windowLit + windowHours/HOMES for the cause ('a lamp lit at HH.MM, somebody came home', 'burning late', 'dark: gone to bed'…), doorName(); by day 'a window'. probes/naming.mjs §8",
+      "pops.mjs step classifier (filmstrip POP = >3.5× larger neighbour, floor 0.02; per-frame Δ printed); run-loop.sh DRY_RUN=1 prints first manager decision; last_manager baselined at 0"
     ]
   },
   "openCues": [
@@ -454,6 +455,12 @@
     {
       "id": "c94",
       "note": "perf.mjs reads rAF cadence (16.70 ms both sides) and is blind under the 60 fps cap — fold frame-cost.mjs's draw timing into it or retire it",
+      "raisedBy": 54,
+      "seenBy": 0
+    },
+    {
+      "id": "c95",
+      "note": "filmstrip POP is blind to a step that lands mid-ramp (10 RGB on a 5/sample dusk ramp reads flat) — if it matters, test against a local linear fit instead of the max neighbour",
       "raisedBy": 54,
       "seenBy": 0
     }
