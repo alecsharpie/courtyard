@@ -1551,7 +1551,7 @@ function caTick(){
       if (daisy[i] && (wear[i] > 0.3 || R() < 0.004 * die)) daisy[i] = 0;
     }
   }
-  groundDirty = true;
+  wearDirty = true;   // slow accrual, like the feet: the tick throttles the repaint (acts stay immediate)
 }
 
 /* ============ agents ============ */
@@ -1873,9 +1873,9 @@ function stepAgent(a, dt){
       wear[j] = Math.min(1, wear[j] + (a.small?0.05:0.09) * dt * 6);
       if (daisy[j] && wear[j]>0.25){ daisy[j]=0; }
       if (snowCover > 0) trod[j] = Math.min(1, trod[j] + (a.small?0.2:0.35) * dt * 6);   // feet cut a lying cover
-      if (R()<dt*2) groundDirty = true;
+      if (R()<dt*2) wearDirty = true;                        // pending: the tick throttles the repaint
     } else if (a.broom && snowCover > 0 && trod[j] < 1){
-      trod[j] = 1; groundDirty = true;                        // the sweeper clears the strip he walks
+      trod[j] = 1; wearDirty = true;                          // the sweeper clears the strip he walks
     }
   }
   stepDog(a, sp, dt);
@@ -2821,6 +2821,13 @@ function refreshStats(){
 const gcv = document.createElement('canvas');
 const gtx = gcv.getContext('2d');
 let groundDirty = true;
+/* Feet darken wear[]/trod[] every step, but the layer is 9 ms to repaint against ~2 ms
+ * for the rest of the frame, and left to the walkers it rebuilt ~650x a day (#48). So a
+ * step only raises wearDirty; the tick promotes it to a rebuild once WEAR_REPAINT sim
+ * seconds have passed since the last one (any rebuild resets the clock). The wear itself
+ * accrues exactly as before - only the moment the eye is shown it is deferred. */
+let wearDirty = false, wearAcc = 0;
+const WEAR_REPAINT = 1.0;
 function quad(g, x, y, pad, z){
   const p = pad||0, zz = z||0;
   const a = project(x-p, y-p, zz), b = project(x+1+p, y-p, zz), c = project(x+1+p, y+1+p, zz), d = project(x-p, y+1+p, zz);
@@ -4011,7 +4018,7 @@ const LANE_LAMPS = [[5, 65.6], [28, 65.6], [37, 65.6], [60, 65.6], [82, 65.6], [
 const crowns = [];
 function drawScene(t, dt){
   ctx.setTransform(DPR,0,0,DPR,0,0);
-  if (groundDirty){ drawGround(); groundDirty = false; }
+  if (groundDirty){ drawGround(); groundDirty = false; wearDirty = false; wearAcc = 0; }
   ctx.clearRect(0, 0, W, H);
   drawSky(ctx);
   ctx.drawImage(gcv, 0, 0, W, H);
@@ -5880,6 +5887,8 @@ function simStep(sdt, dt){
   const lb = Math.floor(hour * 4) * 8 + Math.round(cloudCover() * 6);
   if (lb !== lightBucket){ lightBucket = lb; groundDirty = true; }
   if (Math.abs(snowCover - snowPainted) > SNOW_REPAINT) groundDirty = true;   // snow lies (or goes) in small steps
+  wearAcc += sdt;
+  if (wearDirty && wearAcc >= WEAR_REPAINT) groundDirty = true;               // the trodden paths, throttled
 
   caAcc += sdt;
   while (caAcc > 0.35){ caAcc -= 0.35; caTick(); }

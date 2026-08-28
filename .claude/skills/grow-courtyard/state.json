@@ -334,7 +334,8 @@
     "courtyard": [
       "walled garden with a bed ring, four arch entrances (2 TUNNEL, 2 SLOT), benches, desire paths from foot wear (wear[]), daisies, ivy, a pre-dawn sweeper, one linden (drawTree, CX/CY); planting CA — 11 species, bloom stages, seeding, crowding, dieback",
       "the beds read the YEAR — growF()/dieF() off warmth, lawn health in groundCol; bloomCap() a RAMP over warmth (BLOOM_LO → BLOOM_HI = anchor), a CEILING dithered per courtyard CELL / allotment PLOT by capStep(). probes/beds-year.mjs, bloom-cap.mjs",
-      "snow knows the paths — snowAt() discounts by max(wear/SNOW_WEAR_AT, trod[]); trod[] cut by feet on GRASS and a.broom agents, buried by SNOW_BURY. probes/snow-wear.mjs"
+      "snow knows the paths — snowAt() discounts by max(wear/SNOW_WEAR_AT, trod[]); trod[] cut by feet on GRASS and a.broom agents, buried by SNOW_BURY. probes/snow-wear.mjs",
+      "drawGround repaint throttle: wearDirty/wearAcc/WEAR_REPAINT=1.0 s; feet, sweeper trod and caTick raise wearDirty, simStep promotes; acts (harvest/plant/turn) still dirty immediately; probes/frame-cost.mjs (draw ms/frame vs HEAD), noon-identical.mjs (canvas hash vs HEAD)"
     ],
     "lane": [
       "kiosk, pavement cafe with claimable tables, awnings, washing lines (garments come in on weatherComing() thresholds and at dusk), planters, lamps, benches; market every 4th day, three stalls, marketRaise(i) stages each as clamps on one 0..1",
@@ -447,6 +448,12 @@
     {
       "id": "c93",
       "note": "HOMES is never pruned — entries from past nights accumulate forever (14 doors max, harmless, but any new reader must qualify on nid)",
+      "raisedBy": 54,
+      "seenBy": 0
+    },
+    {
+      "id": "c94",
+      "note": "perf.mjs reads rAF cadence (16.70 ms both sides) and is blind under the 60 fps cap — fold frame-cost.mjs's draw timing into it or retire it",
       "raisedBy": 54,
       "seenBy": 0
     }

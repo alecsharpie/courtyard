@@ -15,25 +15,6 @@
   "rationale": "HOLD RUNG 2. Work is landing cleanly and every rung-4 climb from #32–#42 (the night, snow) still has a compounding move left, so the ladder says compound, not climb. The frontier for a thirty-second viewer is still the night: #51 proved the mechanism (a person walks to a door and the window over it lights) and in the same breath proved the town is EMPTY when it fires — 6–9 agents, under one leaver a night. b50 is the batch's bet: a night ARRIVAL source (people coming home from off-frame to a HOME_DOOR, on their own budget like spawnTapAgent) so the mechanism has a supply and three to five windows a night light because somebody came in. It can fail on the R() churn and the pricing, which is why it goes first while the loop is strong. b51 pushes the wind past the fountain onto the river (river 6 back, the WATCH note's exact gap). b52 gives the observer the night — the sill names lawns, plots, trees and people, and nothing on a facade; a lit window is now a fact with a cause (HOMES, windowHours) the viewer cannot read. b53 is c81: drawGround is 9.2 ms of an 11.5 ms frame and repaints ~650×/day off the wear line, in the domain the dashboard shows 3 back. b54 fixes the two instrument lies that cost #48 its iteration (filmstrip's rate-as-pop, run-loop's MANAGER_GAP). Risk: one high, one medium, three low. Curation: coverage #48–#52 entered; eight cues resolved (six promoted/folded into b50/b51/b53/b54, two closed), four held at seen 1, one new (c89 the church has no night); ledger 8 -> 5, #50–#52 archived verbatim then condensed 2.9–3.3 -> 1.9–2.2 KB; five laws promoted (bAge-two-fields new; choice/histogram merged as one new law; #48 folded into the filmstrip and cache laws; #51 into the WALK law) paid for by compressing the four inherited laws and the seasonal-mean law — 30 laws, 12.05/12 KB. Budget 49.1 -> under cap.",
   "queue": [
     {
-      "id": "b53",
-      "domain": "Courtyard & garden",
-      "kind": "Polish",
-      "brief": "drawGround() is 9.2 ms against 2.3 ms for the rest of the frame and rebuilds ~650×/sim-day in both seasons — 80% from the grass-wear line (`if (R()<dt*2) groundDirty = true` per walker on grass, courtyard.html ~1867) and the sweeper's trod line beside it, 20% the light bucket. The 'cache' is repainted every few frames. Throttle the wear-driven repaint: accumulate wear as now but set the dirty flag at most once per sim-minute (or dirty-rect the trodden cell), so a walker's path still darkens at the same rate to the eye and the layer repaints ~130–180×/day instead of ~650. Keep the R() draw where it is — removing it reshuffles the world.",
-      "seams": [
-        "drawGround",
-        "groundDirty",
-        "wear[]",
-        "trod[]",
-        "probes/ground-rebuilds.mjs",
-        "perf.mjs",
-        "probes/snow-wear.mjs"
-      ],
-      "successLooksLike": "`probes/ground-rebuilds.mjs` reports under 200 rebuilds/day in both seasons; `perf.mjs` frame time drops by more than half against an interleaved HEAD control; a noon frame at a bucket boundary is byte-identical to HEAD; `snow-wear.mjs` ratios unchanged within noise.",
-      "avoid": "Do not change how much wear a step adds or where it is read — only when the layer is told to repaint. Do not move the R() draw or change its threshold. Interleave the perf control; frame time swings ±30%.",
-      "budgetMin": 20,
-      "risk": "low"
-    },
-    {
       "id": "b54",
       "domain": "The sill & the observer",
       "kind": "Harness",
@@ -63,6 +44,10 @@
     {
       "id": "b52",
       "at": "2026-08-28T22:09:47.822Z"
+    },
+    {
+      "id": "b53",
+      "at": "2026-08-28T22:16:10.292Z"
     }
   ]
 }
