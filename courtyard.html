@@ -5181,7 +5181,13 @@ seasonEl.addEventListener('click', beginSkip);
     const x = R() * GW | 0, y = 3 + (R() * (LN_WALK_S - 3) | 0);
     const j = y*GW+x;
     if ((grid[j]===BED || grid[j]===CBED) && !bSp[j]){
-      bSp[j] = 1 + (R()*4|0); bSt[j] = 1 + (R()*2|0); planted++;
+      /* ONE draw either way, so the courtyard's opening beds are the same world they
+       * always were. A plot in the block reads speciesFor() — the predicate every later
+       * sowing uses — because harvestPlot() pays whatever stands here into produce[],
+       * and a fern the scatter dropped in a plot would otherwise end up on a stall. */
+      const r = R(), opts = speciesFor(x, y);
+      bSp[j] = inAllotment(x, y) ? SPECIES.indexOf(opts[(r * opts.length) | 0]) + 1 : 1 + (r*4|0);
+      bSt[j] = 1 + (R()*2|0); planted++;
     }
   }
   for (let y = 50; y < 58; y++) for (let x = 30; x < 35; x++){

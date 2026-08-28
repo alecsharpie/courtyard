@@ -331,7 +331,8 @@
       "spawnAllotAgent() — the allotments' own arrival source, rate on ripePlots(); gardeners walk out carrying a basket (a.crop)",
       "seasonal canopy on all 13 trees — leafOut/leafFresh/leafDeep/leafTurn/leafShed + leafCol(base,k) off seasonPhase, bare in winter behind drawBoughs(); leafFallF() drives falling leaves. probes/canopy-year.mjs, year-strip.mjs",
       "orchard year on the fruit:1 flag — blossomF() (white crown, out ahead of the leaves) and fruitF() (green->red, gone before the tree is bare)",
-      "winter hardiness grain-matched to the PLOT — SPECIES.hardy:1 (cabbages), plotStands(x,y) off plotCrop(); which plots stand rotates with the harvest. probes/allot-year.mjs, allot-shots.mjs"
+      "winter hardiness grain-matched to the PLOT — SPECIES.hardy:1 (cabbages), plotStands(x,y) off plotCrop(); which plots stand rotates with the harvest. probes/allot-year.mjs, allot-shots.mjs",
+      "opening scatter in seed() sows the allotment block through speciesFor() — vegetables from t=0, one R() draw per cell, courtyard scatter unchanged. probes/allot-scatter.mjs"
     ],
     "plaza": [
       "plaza with a fountain and a paved roundel (PATH), four tree pits, benches; quay with benches along the river",
@@ -413,6 +414,12 @@
     {
       "id": "c71",
       "note": "fountain jets: hash(k,23) thresholds cluster 0.58-0.70, spray goes 2->5 over ~2 sim days; respread if it reads as a step",
+      "raisedBy": 39,
+      "seenBy": 0
+    },
+    {
+      "id": "c72",
+      "note": "seed() courtyard scatter is a literal 1..4 (includes lavender, minDay 1), not speciesFor(); kept so HEAD's beds are preserved",
       "raisedBy": 39,
       "seenBy": 0
     }
