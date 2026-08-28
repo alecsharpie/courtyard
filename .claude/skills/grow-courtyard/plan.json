@@ -15,30 +15,6 @@
   "rationale": "HELD RUNG 4, for the same climb as #32 and #37 — the world only exists for ~60% of its clock — and now the second half of that climb is what is missing. The windows landed (#39: 22.00 and 03.00 are different pictures), the door landed (#33), and the two are not connected to anything: nobody walks FROM anywhere TO the door, the east half still shuts at daylight 0.16, and the river at night is the same water as noon under a blue multiply. b43 (river, the east's night) and b44 (lane, who the door's custom are) finish the night; both are Connect briefs because the pieces all exist and the loop's highest-yield move is wiring them. The batch's bet is b42: SNOW. The year has nine readers and winter is 'blooms scattered in turned earth' plus a skinned basin — a thirty-second viewer who lands in February cannot tell it is winter from the wide shot, and precipitation is the one weather kind the town has never had. It is rung-4 work (a new state of the world), it is high risk (it touches the cached ground layer and must be exactly zero at the anchor), and it is the single most visible thing the diorama lacks. b41 is the cheap life brief that pays c73 and gives #42's naming something new to say. b40 goes at the head: filmstrip's night preset is a day strip, runlog grades every harness brief no-ship, and a crashed worker still retires its brief — three small lies in the instruments, all one file class. Curation this pass: coverage entered for #38/#40/#41/#42; eight cues closed (five promoted into briefs, three no-yield: c63, c71, c72); inventory note cut from 700 B to 230 B, sky merged 9→8 entries, two 300 B+ entries trimmed; four laws promoted (#39 cached layer as a new law; #40 complement threshold into the R() law; #41 opening state into the one-predicate law; #42 per-pose hit box into the sill law), paid for by compressing six verbose laws — 27 laws, 12.0/12 KB; ledger rotated 12→8 entries, promoted Law/Cue lines cut from #39–#42. Worker budget 46.4 → 43.0 KB.",
   "queue": [
     {
-      "id": "b42",
-      "domain": "Sky, light & weather",
-      "kind": "Scale/World",
-      "brief": "Winter has no snow. The year has nine readers and a viewer who lands in February sees turned earth, bare trees and a skinned basin — the sky still rains. When a shower fires with `greyF()` high enough (warmth near midwinter), it falls as SNOW: slow drifting flakes instead of drops, and a `snowCover` scalar — rate-capped, per-cell variance via `hash(x, y+k)` like `fountainIce`, grain-matched to how each region is addressed — that whitens the cached ground (lawn, paving, plots), sits on roofs and awnings in the draw pass (never in `buildVolumes`), and melts over the days after as warmth climbs. It must be EXACTLY zero at SEASON_START (the anchor) by the algebra, so the summer town is byte-identical; it must not step (the cached layer buckets a quarter-hour — see the #39 law); and rain arriving on lying snow should thin it. Advertise it: one ticker line the first time it settles.",
-      "seams": [
-        "raining",
-        "rainFall",
-        "greyF",
-        "showerRate",
-        "groundCol",
-        "drawGround",
-        "fountainIce",
-        "capStep",
-        "shadowF",
-        "drawBlocks",
-        "CAN_BLUR",
-        "announce"
-      ],
-      "successLooksLike": "A midwinter shot reads as winter from the wide view: white ground with dark paths worn through it, white roof edges, flakes instead of drops. `probes/`-style year fold shows cover 0 from spring to autumn, rising in the weeks around phase 0, max step per frame under a visible threshold; noon-at-anchor frame diff vs HEAD is 0.000; perf within noise.",
-      "avoid": "Do not add a season or change SEASON_LEN. Do not make snow a boolean switch — it is a 0..1 like rainFall. Do not let footfall/desire-path wear interact with it this iteration; that is a follow-on cue.",
-      "budgetMin": 45,
-      "risk": "high"
-    },
-    {
       "id": "b43",
       "domain": "River & far bank",
       "kind": "Connect",
@@ -94,6 +70,10 @@
     {
       "id": "b41",
       "at": "2026-08-28T12:28:04.653Z"
+    },
+    {
+      "id": "b42",
+      "at": "2026-08-28T12:33:16.497Z"
     }
   ]
 }

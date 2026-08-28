@@ -982,6 +982,42 @@ function fountainLine(){
                            : 'Someone trails a hand through the fountain and flicks it dry.';
 }
 function fountainStand(){ return clamp(fountainPlay(), 0, 1.4); }   // the share willing to stand at it, x0.5
+/* ---- snow: what the sky's rain becomes when the year is cold enough ------------
+ * Nine readers of the year and the sky still rained in February. snowF() is the share
+ * of a shower that falls as flakes — 0 until greyF() passes SNOW_G0 (warmth 0.225,
+ * about four days either side of midwinter), 1 by SNOW_G0 + SNOW_G1 — read per DROP
+ * against a hash of the drop's slot, so a shower turns to sleet and then to snow drop
+ * by drop as the cold deepens, never as a switch. snowCover is the second slow world
+ * scalar with a cap, a cycle and an anchor: it rises at most SNOW_SLEW per second of
+ * snowfall, is thinned by the rain share of any shower (SNOW_RAIN_THAW), and melts at
+ * most SNOW_MELT per second scaled by how far the cold has lifted — so it lies
+ * through the deepest weeks and is gone within two days of the last flake. It starts
+ * at 0 and cannot move while snowF() is 0, so at SEASON_START every consumer below is
+ * the constant it replaced BY THE ALGEBRA (every draw site is guarded on cover > 0,
+ * because mix() re-serialises a colour even at t = 0). The cached ground layer
+ * repaints whenever cover has moved SNOW_REPAINT since it was last painted, so the
+ * whitening arrives in steps no larger than the light bucket's own. */
+const SNOW_G0 = 0.55, SNOW_G1 = 0.35;         // flakes from greyF 0.55; all of it snow by 0.90
+const SNOW_SLEW = 0.02;                       // cover per second of full snowfall (~+0.3 a shower)
+const SNOW_MELT = 0.012;                      // per second once the cold has lifted (~1.5 days)
+const SNOW_RAIN_THAW = 0.03;                  // rain on lying snow, per second of full rain
+const SNOW_REPAINT = 0.03, SNOW_SETTLE = 0.15;
+const SNOW_COL = '#e6eaee';
+let snowCover = 0, snowPainted = 0, snowAnnounced = false;
+function snowF(){ return clamp((greyF() - SNOW_G0) / SNOW_G1, 0, 1); }
+/* how much of the cover a cell of this kind takes — the trodden kinds take less, so the
+ * paths and the road read dark through the white without touching the wear map */
+function snowTake(t){ return t === GRASS || t === BED || t === CBED ? 1 : t === SIDE ? 0.7 : t === PATH || t === SLOT ? 0.5 : t === ROAD ? 0.4 : 0; }
+function snowAt(x, y, t){ return snowCover > 0 ? clamp(snowCover * snowTake(t) * (0.55 + 0.45 * hash(x, y + 53)), 0, 1) : 0; }
+function stepSnow(dt){
+  const s = snowF();
+  let d = -SNOW_MELT * (1 - s);
+  if (raining) d += rainFall * (s * SNOW_SLEW - (1 - s) * SNOW_RAIN_THAW);
+  snowCover = clamp(snowCover + d * dt, 0, 1);
+  if (!snowAnnounced && snowCover > SNOW_SETTLE){ snowAnnounced = true;
+    announce('Snow settles on the roofs and the lawn; the lane goes quiet and white.'); }
+  if (snowAnnounced && snowCover <= 0) snowAnnounced = false;   // next winter gets its line too
+}
 
 /* ============ the band on the green ============ */
 /* The bandstand has stood on the far bank since before the loop and nothing has ever
@@ -2466,10 +2502,13 @@ function updateWildlife(dt){
      * still falling while the sheen comes up and the grey lifts off the frame. */
     rainFall = clamp(rainLeft / RAIN_TAIL, 0, 1);
     const want = Math.round((RM ? 40 : 110) * rainFall * showerHard());
-    while (raindrops.length < want) raindrops.push({x:R()*W, y:R()*H, v:520+R()*260});
+    // f is the drop's slot, hashed once — a drop is a flake while f < snowF()
+    while (raindrops.length < want) raindrops.push({x:R()*W, y:R()*H, v:520+R()*260, f:hash(raindrops.length, 97)});
     let k = 0;
+    const sf = snowF();
     for (const r of raindrops){
-      r.y += r.v*dt; r.x -= r.v*dt*0.12;
+      if (r.f < sf){ r.y += r.v*dt*0.11; r.x += Math.sin(simT*1.6 + r.v)*14*dt; }   // a flake drifts
+      else { r.y += r.v*dt; r.x -= r.v*dt*0.12; }
       if (r.y>H){ if (k >= want) continue; r.y=-12; r.x=R()*(W*1.15); }
       raindrops[k++] = r;
     }
@@ -2484,7 +2523,7 @@ function updateWildlife(dt){
              && R() < dt * 0.10 * (cloudCover() - 0.66) / 0.34 * showerRate() * nightDamp()){
     raining = true; rainLeft = (10 + R() * 9) * showerLen();
     cloudTgt = 0.92; frontLeft = Math.max(frontLeft, 24);
-    announce('Rain drifts in across the rooftops.');
+    announce(snowF() > 0.5 ? 'Snow drifts in over the rooftops, fat and slow.' : 'Rain drifts in across the rooftops.');
     // no sweep here any more: whoever was going to put one up already has, on the way in
   }
 }
@@ -2729,13 +2768,14 @@ function drawRoofRow(g, y){
     const dz = solidC(x, y + 1) ? 0 : SLOPE * 0.3;
     const t = clamp(amb + 0.8 * lam * key + hv * 0.08 - 0.04, 0, 1);
     let col = mix('#6f4a39', '#cd9268', t);
+    if (snowCover > 0) col = mix(col, SNOW_COL, snowCover * (0.6 + 0.4 * hv) * (0.75 + 0.25 * lam));
     if (out) col = mix(col, HAZE, 0.55);
     g.fillStyle = col;
     const a = project(x, y, r[1]), b = project(x + 1, y, r[2]);
     const c = project(x + 1, sy, r[3] - dz), d = project(x, sy, r[4] - dz);
     poly(g, [a, b, c, d]); g.fill();
     if (out) continue;
-    g.strokeStyle = 'rgba(48,29,21,' + (0.13 + 0.14 * lam) + ')'; g.lineWidth = 0.8;
+    g.strokeStyle = 'rgba(48,29,21,' + (0.13 + 0.14 * lam) * (1 - 0.8 * snowCover) + ')'; g.lineWidth = 0.8;
     g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]);
     g.moveTo(a[0], a[1]); g.lineTo(d[0], d[1]); g.stroke();
     if (dz){                                                     // shadow the wall under the eaves
@@ -3232,6 +3272,11 @@ function drawSouthBand(){
   }
 }
 function groundCol(x, y, t, hv, m){
+  const c = groundBase(x, y, t, hv, m);
+  const sn = t === WATER ? 0 : snowAt(x, y, t);
+  return sn > 0 ? mix(c, SNOW_COL, sn) : c;
+}
+function groundBase(x, y, t, hv, m){
   if (t === PATH) return mix('#c3b18c', '#cfbd98', hv);
   if (t === SLOT) return mix('#9d8f73', '#ab9d80', hv);
   if (t === GRASS){
@@ -3294,6 +3339,7 @@ function drawGround(){
   gcv.width = W * DPR; gcv.height = H * DPR;
   gtx.setTransform(DPR, 0, 0, DPR, 0, 0);
   SUN = sunVec(); LIT.length = 0; WINDOWS.length = 0; HAZE = skyCols()[1];
+  snowPainted = snowCover;
   const m = maturity();
   // the sky is *not* baked in here — it is painted fresh every frame underneath this
   // layer, so the sun crosses smoothly instead of hopping when the layer is rebuilt
@@ -3308,6 +3354,7 @@ function drawGround(){
     gtx.fillStyle = groundCol(gx, y, t, hv, m);
     quad(gtx, x, y, 0.03); gtx.fill();
     if (x !== gx) continue;                              // detailing only inside the real world
+    if (snowAt(gx, y, t) > 0.5) continue;                // joints and setts are under the snow
     if ((t === PATH || t === SLOT) && hv > 0.4){
       gtx.strokeStyle = 'rgba(90,75,50,.25)'; gtx.lineWidth = 0.7;
       quad(gtx, x, y, -0.06); gtx.stroke();
@@ -3554,6 +3601,10 @@ function drawOurSide(g){
     g.fillStyle = '#d8cbb2';
     for (let sx = a[0]; sx < b[0]; sx += 14) g.fillRect(sx, yTop - 2, 7, 18);
     g.restore();
+    if (snowCover > 0){                                  // a cap of snow along the canvas
+      g.fillStyle = 'rgba(236,240,244,' + (0.9 * snowCover) + ')';
+      poly(g, [[a[0] + 4, yTop], [b[0] - 4, yTop], [b[0] - 2, yTop + 4], [a[0] + 2, yTop + 4]]); g.fill();
+    }
     g.fillStyle = 'rgba(24,18,12,.4)';
     poly(g, [[a[0], yBot], [b[0], yBot], [b[0], yBot + 3], [a[0], yBot + 3]]); g.fill();
   }
@@ -3849,10 +3900,16 @@ function drawScene(t, dt){
   drawBalloon(t);                 // the balloon rides above every ground light
 
   if (raining){
+    const sf = snowF();
     ctx.strokeStyle='rgba(200,215,235,.45)'; ctx.lineWidth=1;
     ctx.beginPath();
-    for (const r of raindrops){ ctx.moveTo(r.x,r.y); ctx.lineTo(r.x-2.4,r.y+11); }
+    for (const r of raindrops){ if (r.f < sf) continue; ctx.moveTo(r.x,r.y); ctx.lineTo(r.x-2.4,r.y+11); }
     ctx.stroke();
+    if (sf > 0){
+      ctx.fillStyle='rgba(240,244,248,.85)'; ctx.beginPath();
+      for (const r of raindrops){ if (r.f >= sf) continue; ctx.moveTo(r.x+1.7,r.y); ctx.arc(r.x,r.y,1.7,0,7); }
+      ctx.fill();
+    }
   }
 }
 function drawSmoke(t){
@@ -4814,7 +4871,8 @@ function applyLight(t){
     ctx.globalCompositeOperation = 'source-over';
   }
   if (rainFall > 0){
-    ctx.fillStyle = 'rgba(90,105,125,' + (0.16 * rainFall) + ')';
+    const sf = snowF();   // a snow sky is paler than a rain sky
+    ctx.fillStyle = 'rgba(' + (lerp(90,150,sf)|0) + ',' + (lerp(105,158,sf)|0) + ',' + (lerp(125,170,sf)|0) + ',' + (0.16 * rainFall) + ')';
     ctx.fillRect(0, 0, W, H);
   }
 }
@@ -5375,10 +5433,12 @@ function simStep(sdt, dt){
   }
   wet = Math.max(0, wet - sdt);
   stepClouds(sdt);
+  stepSnow(sdt);
   // sun moves, cover thickens: relight the static layer now and then. Cover rides
   // the same bucket rather than its own, so it costs no extra rebuilds.
   const lb = Math.floor(hour * 4) * 8 + Math.round(cloudCover() * 6);
   if (lb !== lightBucket){ lightBucket = lb; groundDirty = true; }
+  if (Math.abs(snowCover - snowPainted) > SNOW_REPAINT) groundDirty = true;   // snow lies (or goes) in small steps
 
   caAcc += sdt;
   while (caAcc > 0.35){ caAcc -= 0.35; caTick(); }
@@ -5696,7 +5756,7 @@ window.__census = function(){
     world: { GW, WH, cells: GW * WH },
     clock: { simT: +simT.toFixed(3), day, hour: +hour.toFixed(3),
              marketDay: isMarketDay(), windy: isWindy(), raining: !!raining,
-             cloud: +cloudCover().toFixed(3), season: +season().toFixed(4),
+             cloud: +cloudCover().toFixed(3), snow: +snowCover.toFixed(3), season: +season().toFixed(4),
              maturity: +maturity().toFixed(4), richness: +richness().toFixed(4) },
     tiles, life, structure,
     /* `harvested` is the one thing bySpecies cannot show: a veg count falling is

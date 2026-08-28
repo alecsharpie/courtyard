@@ -365,7 +365,8 @@
       "season() — the YEAR. Cyclic over SEASON_LEN 26 days (~24 real min), phase 0 = midwinter, anchored at SEASON_START 0.25 where every seasoned term equals the constant it replaced. NINE READERS: day length, light, beds, trees, the working day, pop caps, weather, river, allotments. census clock.season",
       "the weather reads the year — greyF() drives front frequency, depth and spellLen() while showerRate/showerLen/showerHard move the OPPOSITE way, so summer’s rare showers are the hard ones and the annual total holds. Rain can start in the dark. probes/weather-year.mjs",
       "the ground reads the lid — shadowF() with shSpread() and shOffset(), so a cast shadow fades, widens and retracts together; eight sites, a real blur on the cached ground layer behind CAN_BLUR. probes/shadow-cover.mjs, ground-relight.mjs",
-      "windowLit(sa,sb) — ONE predicate for pane and LIT[] glow, hours off the dusk edge (night id nid): lit 0.15–2 h after dark, bedtimes spread, 5% burn through, 14% early risers, out by dawn. Facades are CACHED; WINDOWS[] + drawLitPanes() repaint panes live. probes/windows-night.mjs"
+      "windowLit(sa,sb) — ONE predicate for pane and LIT[] glow, hours off the dusk edge (night id nid): lit 0.15–2 h after dark, bedtimes spread, 5% burn through, 14% early risers, out by dawn. Facades are CACHED; WINDOWS[] + drawLitPanes() repaint panes live. probes/windows-night.mjs",
+      "snow: snowF() turns showers to flakes past greyF 0.55; snowCover 0..1 (rate-capped, per-cell hash) whitens cached ground/roofs/awnings, melts as warmth lifts, rain thins it; census clock.snow"
     ],
     "life": [
       "walkers with itineraries, courtyard and street; eastern itineraries — plaza bench, fountain gaze, quay rail, quay bench, towpath, church green, allotment plot, bridge parapet",
@@ -398,6 +399,18 @@
     {
       "id": "c75",
       "note": "swans have no night behaviour — ducks slow at nightF > 0.6, swans keep daytime rates and never rest on the bank",
+      "raisedBy": 42,
+      "seenBy": 0
+    },
+    {
+      "id": "c76",
+      "note": "Winter sunset relight POPs 5-9 mean-Δ in one frame on HEAD (light bucket vs compressed dusk) — live overlay or finer bucket near sunUp/sunDown",
+      "raisedBy": 42,
+      "seenBy": 0
+    },
+    {
+      "id": "c77",
+      "note": "Snow × footfall: desire paths worn dark through lying snow (b42's named follow-on)",
       "raisedBy": 42,
       "seenBy": 0
     }
