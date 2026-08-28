@@ -15,26 +15,6 @@
   "rationale": "DROPPED FROM RUNG 4 TO RUNG 2, deliberately. Passes #32, #37 and #42 held rung 4 for one reason — the town had no night — and that climb is now landed: windows keep hours (#39), the door has callers (#47), the river has lamps and a night stander (#46), and snow (#45) gave winter a wide-shot tell. The ladder says stay low while work lands, and the highest-yield move now is to COMPOUND what three rung-4 passes built rather than open a fourth world-change while the last one still has loose ends. Every brief here wires two things that already exist and ignore each other. b45 goes first because it is a defect a thirty-second viewer sees: the whole picture relights in one frame at winter dusk (5–9 whole-frame Δ on HEAD, twice what any feature produces) because the cached ground repaints on a quarter-hour bucket that is coarse exactly where the light moves fastest. b46 is snow × the one system the courtyard is famous for (desire paths) plus the sweeper who already exists — the cheapest legible winter connection, in the most starved domain. b47 gives the plaza the wind, the one scalar nothing east of the bridge reads (WATCH). b48 is the bet: the town's people leave the frame at dusk and nobody goes HOME — a walker who turns in at a door and lights the window they went to is the single thing that would make the night read as inhabited rather than decorated; it touches the cached facade layer, WINDOWS[] and routeToExit, and it can fail. b49 gives the allotments a winter (the block is empty for a quarter of the year: allotRate floors at 0.01 with ripePlots 0). Curation: coverage #43–#47 entered; c75/c76/c77 promoted (c75 re-raised as the swan half of b48's avoid), c74/c78/c79 kept (seen 1); three laws promoted from #44/#46/#47 (follower-rate as new; night cap and pathHours merged INTO the time-compress law rather than beside it; __entities extras into the instrument law; __warp-never-draws and filmstrip --page into the probe and control laws) paid for by compressing eight verbose laws — 28 laws, 12.0/12 KB, nothing cut outright; ledger rotated 12 → 8 and #45–#47 archived verbatim then condensed 3.4–3.8 → 1.8 KB each; inventory 59 → 45 entries by merging pairs, WATCH's two spent notes replaced with what is true now. Worker budget 50.5 → 43.6 KB OK.",
   "queue": [
     {
-      "id": "b47",
-      "domain": "Plaza & quay",
-      "kind": "Connect",
-      "brief": "`isWindy()` (~842) moves washing, smoke, leaves, tree sway and the morning ticker line — all west of the bridge. The fountain (`drawFountain` ~4404) sprays five symmetric jets in a gale. Make the plaza read a windy day: the jets lean and their droplets carry downwind (there is a `windT`/`sway` already at ~3815 to phase off), the lee side of the basin gets a visible drift of spray, and `fountainStand()` (the share willing to stand at it, read by both spawners) drops on windy days so people take the benches instead of the wet side. If budget allows, the bandstand bunting (`bandF`) flutters on the same days.",
-      "seams": [
-        "isWindy",
-        "windT",
-        "drawFountain",
-        "fountainPlay",
-        "fountainStand",
-        "spawnEastAgent",
-        "FOUNTAIN",
-        "probes/fountain-year.mjs"
-      ],
-      "successLooksLike": "Two shots at the same pinned instant, one windy day and one calm (pick days by hash(day,99)): the windy plume visibly leans one way and the calm one is symmetric. fountain-year.mjs still passes at the anchor. Over ten windy days, standers at the fountain are measurably fewer than on ten calm days, with the bench share up by the same amount (the east's arrivals are unchanged).",
-      "avoid": "No new R() draws in the renderer — lean and drift are hash()+clock. Do not change eastCap/eastRate; move the SPLIT, not the arrivals. Do not touch the river streaks (they drift on riverRun and that is the river's job).",
-      "budgetMin": 25,
-      "risk": "medium"
-    },
-    {
       "id": "b48",
       "domain": "People & animals",
       "kind": "Connect",
@@ -89,6 +69,10 @@
     {
       "id": "b46",
       "at": "2026-08-28T17:04:06.720Z"
+    },
+    {
+      "id": "b47",
+      "at": "2026-08-28T17:10:08.737Z"
     }
   ]
 }

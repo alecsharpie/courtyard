@@ -345,7 +345,8 @@
       "plaza with a fountain and a paved roundel (PATH), four tree pits, benches; quay with benches along the river",
       "spawnEastAgent() — the east quarter's own arrival source (eastCap/eastRate, a.east, eastOpen() on daylight); enters by alley, quay head or park gate, one stop, leaves the way it came. census life.inEast",
       "PAVING + pavingAt(x,y) — the ONE predicate naming a cell's paving (lane, bridge, cross street, mouth, plaza, quay, towpath, court), each with its crumbs line and bird box; crumbSpot() keeps three birds clear of the basin. probes/paving-places.mjs",
-      "the FOUNTAIN reads the YEAR — fountainPlay() = 1 - FOUNT_SWING*greyF(): jets, height/reach, droplets; basin via riverCol() + fountainIce() below FOUNT_ICE; fountainStand() sets the bench/fountain split in both spawners. probes/fountain-year.mjs"
+      "the FOUNTAIN reads the YEAR — fountainPlay() = 1 - FOUNT_SWING*greyF(): jets, height/reach, droplets; basin via riverCol() + fountainIce() below FOUNT_ICE; fountainStand() sets the bench/fountain split in both spawners. probes/fountain-year.mjs",
+      "wind on the plaza: windF() 0..1 beside isWindy(); fountain jets/droplets lean +x on windT with a lee spray drift, fountainStand() drops by FOUNT_WIND_SHY on windy days (bench share up, arrivals unchanged), bandstand bunting flutters. probes/fountain-wind.mjs, fountain-wind-shots.mjs"
     ],
     "river": [
       "river, one rowboat, three-arch bridge, towpath, church with tower and nave, bandstand, four orchard trees, jetty, park gate; pigeons flush off the belfry when the bell rings, from a finite roost",
@@ -425,6 +426,12 @@
     {
       "id": "c83",
       "note": "Snowy lawn at dawn reads pale green rather than white (cover ~0.5 mixed under the dawn tint) — the snow-wear contrast is faint at the hour the brief asked for; consider a whiter SNOW_COL floor or a higher cover before dawn shots",
+      "raisedBy": 47,
+      "seenBy": 0
+    },
+    {
+      "id": "c84",
+      "note": "bunting flags ~3px at 1x — flutter only reads on a contact sheet; consider larger flags",
       "raisedBy": 47,
       "seenBy": 0
     }
