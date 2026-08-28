@@ -19,7 +19,7 @@
   "avoid": "Hit-test in screen space against the drawn footprint (project() the feet, a box of roughly 0.9 cells) — never re-derive world geometry, and never add an R() draw: the renderer walks the seeded stream. The sill is DOM and fails quietly: assert on computed text, not on the handler having run. Do not add a new invitation for it; OFFERS[] is the queue and the naming already has its hint.",
   "budgetMin": 26,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 42,
   "issued": "2026-08-28T12:06:57.250Z",
