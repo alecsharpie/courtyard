@@ -14,7 +14,7 @@
   "avoid": "Do not touch courtyard.html. Do not re-grade any row other than harness rows.",
   "budgetMin": 15,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 43,
   "issued": "2026-08-28T12:18:53.531Z",
