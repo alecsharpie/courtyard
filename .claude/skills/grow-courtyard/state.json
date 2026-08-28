@@ -336,7 +336,8 @@
     "plaza": [
       "plaza with a fountain and a paved roundel (PATH), four tree pits, benches; quay with benches along the river",
       "spawnEastAgent() — the east quarter's own arrival source (eastCap/eastRate, a.east, excluded from laneCount, eastOpen() on daylight); enters by the alley, quay head or park gate, visits one stop, leaves the way it came. census life.inEast",
-      "PAVING + pavingAt(x,y) — the ONE predicate naming which paving a cell is (lane, bridge, cross street, mouth, plaza, quay, towpath, court). Each carries its crumbs line AND the box its birds land in; crumbSpot() staggers three birds clear of the basin. probes/paving-places.mjs"
+      "PAVING + pavingAt(x,y) — the ONE predicate naming which paving a cell is (lane, bridge, cross street, mouth, plaza, quay, towpath, court). Each carries its crumbs line AND the box its birds land in; crumbSpot() staggers three birds clear of the basin. probes/paving-places.mjs",
+      "the FOUNTAIN reads the YEAR — fountainPlay() = 1 - FOUNT_SWING*greyF() (riverRun turned over): jets per-k threshold, height/reach, droplet count; basin via riverCol() + fountainIce() per-cell skin below FOUNT_ICE; fountainStand() sets the bench/fountain split in both spawners. probes/fountain-year.mjs, fountain-shots.mjs"
     ],
     "river": [
       "river, one rowboat, three-arch bridge, towpath, church with tower and nave, bandstand, four orchard trees, jetty, park gate",
@@ -407,6 +408,12 @@
       "id": "c70",
       "note": "filmstrip.mjs --scene night is not night: t=1230 s is hour ~14.7. Re-pin the preset to a real night instant.",
       "raisedBy": 37,
+      "seenBy": 0
+    },
+    {
+      "id": "c71",
+      "note": "fountain jets: hash(k,23) thresholds cluster 0.58-0.70, spray goes 2->5 over ~2 sim days; respread if it reads as a step",
+      "raisedBy": 39,
       "seenBy": 0
     }
   ],

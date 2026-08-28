@@ -15,25 +15,6 @@
   "rationale": "HELD RUNG 4. Pass #32 climbed to it for one reason — the world exists for ~60% of its own clock — and only half of that climb has landed: #33 built the first evening place, but every window in the town still switches on and off in the same frame, and 22.00 and 03.00 are the same picture. Re-planning the same batch is the one thing the ladder forbids ONLY as a response to a stall, and this is not a stall: three briefs were destroyed by the runner before any worker saw them, so re-issuing b36/b32/b33 verbatim (with a note that no prior attempt exists, or a worker will go looking for one) is recovery, not repetition. b38 goes at the head as a harness brief because the fault will recur on the next restart and the runlog is currently lying about it: a launch failure must not consume a brief, and a 0-token row must not be counted as an iteration by stall.mjs. It also carries c62 (motion.mjs split rises from falls), which is the same file class. b39 is the batch's new work and the one most likely to fail: c64 has been open since #33 and the naming — the loop's most visible observer tool — answers with the paving under a walker's feet, so the diorama can name a fern and cannot name a swan. Three of five briefs are domains 12+ back (sky, plaza, street); the fourth is the sill; none is courtyard, lane or river. Cost expectation: b33 and b38 cheap, b36/b39 medium, b32 the expensive one. Curation this pass: closed six cues (three no-yield, two promoted, one absorbed into a law), fixed an id collision (open c61 was not closed c61 — renumbered c68), merged life's two own-source crowds into one inventory entry (life was 9/8), archived #37 verbatim and trimmed #33/#37 to 1.6 KB each, and paid for two law promotions (#33 price-the-walk into the time-compression law; #37 + the old #21 duration law merged into one folded-time-mean law) by compressing five verbose laws — laws count stays 26, 11.9/12 KB.",
   "queue": [
     {
-      "id": "b32",
-      "domain": "Plaza & quay",
-      "kind": "Deepen",
-      "brief": "Nine systems read season() and every one of them is west of the bridge or in the sky. The plaza is identical in February and August — the exact position the market was in before #29. The fountain is the plaza’s landmark and has no seasonal reader at all. Give it the year: what the water does, what the basin looks like, and who is willing to stand near it should not be the same in midwinter as in midsummer. NOTE: issued at #35 and consumed by a harness fault before any worker ran — no prior attempt exists. Since #32 the bandstand DOES read the year (bandChance off warmth), so the plaza is now the only east-of-bridge place that does not.",
-      "seams": [
-        "FOUNTAIN",
-        "waterBox",
-        "riverRun",
-        "crumbSpot",
-        "PAVING.plaza",
-        "season",
-        "seasonPhase"
-      ],
-      "successLooksLike": "A pinned midwinter and a pinned midsummer plaza differ visibly in the wide shot, and the difference is continuous — a probe over a folded year shows no step in the fountain terms at any phase, and every term reduces exactly to today’s constant at SEASON_START.",
-      "avoid": "riverRun() already exists for the water and reads the same year — read it or a sibling of it; do not re-derive a second water-season term (one predicate, one definition). Do not let a global scalar approach zero without per-cell variance or it reads as a switch. And check what the fountain was tuned against before making its constants variable: crumbSpot’s keep-rect reads waterBox off the grid, and #24 put 22 birds in the basin the last time two places evaluated the same geometry.",
-      "budgetMin": 28,
-      "risk": "medium"
-    },
-    {
       "id": "b33",
       "domain": "Cross street & allotments",
       "kind": "Polish",
@@ -84,6 +65,10 @@
     {
       "id": "b36",
       "at": "2026-08-28T11:41:54.015Z"
+    },
+    {
+      "id": "b32",
+      "at": "2026-08-28T11:57:23.665Z"
     }
   ]
 }

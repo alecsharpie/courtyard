@@ -961,6 +961,27 @@ const BOAT_SWING = 0.75, BOAT_FLOOR = 0.0065;  // thinned, then floored — neve
 const BOAT_DRIFT = 0.24;                       // the share of the current the hull takes
 function boatRate(){ return Math.max(BOAT_FLOOR, BOAT_RATE * (1 - BOAT_SWING * greyF())); }
 function boatSpeed(){ return 1.05 * (1 + BOAT_DRIFT * greyF()); }
+/* ---- the fountain, the plaza's one reader of the year -------------------------
+ * The plaza was the last place east of the bridge with no season in it: five jets at
+ * one height, a basin one colour, and a coin-flip on whether a visitor stands at the
+ * water or takes a bench, February and August alike. fountainPlay() is the ONE term:
+ * how hard the fountain is running. It is riverRun()'s year turned over — the same
+ * greyF() the sky already decides, read the other way, because a fountain is a
+ * fair-weather thing that is turned down for the frost: 1 - swing at midwinter,
+ * 1 + swing at midsummer, EXACTLY 1 at SEASON_START so the jets, the droplets, the
+ * basin colour and the stand/bench split all reduce to the constants they replaced.
+ * Below FOUNT_ICE the basin skins over, per cell (hash y+71) so it comes in cell by
+ * cell and never reads as a switch. The basin's water colour goes through riverCol()
+ * — one definition of what still water looks like this month. */
+const FOUNT_SWING = 0.6;                       // 0.4 in January, 1.6 in July
+const FOUNT_ICE = 0.7;                         // below this the basin starts to skin over
+function fountainPlay(){ return 1 - FOUNT_SWING * greyF(); }
+function fountainIce(){ return clamp((FOUNT_ICE - fountainPlay()) / FOUNT_ICE, 0, 1); }
+function fountainLine(){
+  return fountainIce() > 0 ? 'Someone stands at the skinned-over basin, breath showing, and does not touch it.'
+                           : 'Someone trails a hand through the fountain and flicks it dry.';
+}
+function fountainStand(){ return clamp(fountainPlay(), 0, 1.4); }   // the share willing to stand at it, x0.5
 
 /* ============ the band on the green ============ */
 /* The bandstand has stood on the far bank since before the loop and nothing has ever
@@ -1929,12 +1950,12 @@ function spawnLaneAgent(){
     a.kind = 'plaza';
     const ex2 = 104 + R() * 2;
     a.wp.push([ex2, LANE_N_Y], [ex2, 62.2]);
-    if (R() < 0.5){
+    if (R() < 1 - 0.5 * fountainStand()){   // a bench, unless the fountain is worth standing at
       const b = pick(PLAZA_BENCHES);
       a.stop = {x:b.x + 0.5, y:b.y + 1.0, act:'sit', dur:12 + R() * 12};
     } else {
       a.stop = {x:FOUNTAIN.x - 2.4 + R() * 1.6, y:FOUNTAIN.y + 3.1, act:'stand', dur:6 + R() * 6,
-        say: R() < 0.3 ? 'Someone trails a hand through the fountain and flicks it dry.' : null};
+        say: R() < 0.3 ? fountainLine() : null};
     }
     a.wp.push([a.stop.x, a.stop.y], [ex2, 62.2], [ex2, LANE_N_Y], [toX, LANE_N_Y]);
   } else if (sun && roll < 0.53){
@@ -2115,12 +2136,12 @@ function spawnEastAgent(){
   let gate, lead;
   if (roll < 0.32){                          // into the plaza: a bench, or the fountain
     a.kind = 'plaza';
-    if (R() < 0.5){
+    if (R() < 1 - 0.5 * fountainStand()){
       const b = pick(PLAZA_BENCHES);
       a.stop = {x:b.x + 0.5, y:b.y + 1.0, act:'sit', dur:9 + R() * 9};
     } else {
       a.stop = {x:FOUNTAIN.x - 2.4 + R() * 1.6, y:FOUNTAIN.y + 3.1, act:'stand', dur:5 + R() * 5,
-        say: R() < 0.12 ? 'Someone trails a hand through the fountain and flicks it dry.' : null};
+        say: R() < 0.12 ? fountainLine() : null};
     }
     gate = EAST_GATE_A; lead = [[99.8, ALLEY_Y + 0.4]];
   } else if (roll < 0.62){                   // along the quay: a bench, or the rail
@@ -3195,7 +3216,13 @@ function groundCol(x, y, t, hv, m){
       return riverCol(mix(mix('#5d7a84', '#546f7c', hv * 0.6), '#3f5a68',
                           clamp(mid * riverRun(), 0, 1)));
     }
-    if (x >= PLAZA_X0 && x < PLAZA_X1) return mix('#527a86', '#4a6f7c', hv * 0.5);
+    if (x >= PLAZA_X0 && x < PLAZA_X1){
+      // the basin: the river's colour for the month, then a skin of ice that comes in
+      // cell by cell below FOUNT_ICE — both identities at the anchor
+      const c = riverCol(mix('#527a86', '#4a6f7c', hv * 0.5));
+      const ice = fountainIce() * (0.45 + 0.55 * hash(x, y + 71));
+      return ice > 0 ? mix(c, '#b4c3c6', ice) : c;
+    }
     const depth = 1 - Math.hypot((x + .5 - POND.x) / POND.rx, (y + .5 - POND.y) / POND.ry);
     return mix('#7a948e', '#4f7580', clamp(depth * 1.8, 0, 1));
   }
@@ -4177,17 +4204,23 @@ function drawFountain(it, t){
   ctx.fillStyle = '#9a9184';
   ctx.beginPath(); ctx.ellipse(px2, py2, cellW * 0.7, cellH * 0.5, 0, 0, 7); ctx.fill();
   // spray
+  const play = fountainPlay();
   if (!RM || true){
-    ctx.strokeStyle = 'rgba(220,240,245,.55)'; ctx.lineWidth = 1;
+    // jets: each keeps its own threshold (hash k,23) against play, so the winter
+    // fountain is two or three jets not five dim ones; height and reach ride play
+    const rise = Math.min(play, 1.4), reach = Math.min(play, 1.2);
+    ctx.strokeStyle = 'rgba(220,240,245,' + (0.55 * Math.min(1, 0.6 + 0.4 * play)).toFixed(3) + ')'; ctx.lineWidth = 1;
     for (let k = 0; k < 5; k++){
+      if (hash(k, 23) >= play) continue;
       const ang = k / 5 * Math.PI * 2 + t * 0.3;
-      const sx2 = Math.cos(ang) * cellW * 1.1, sy2 = Math.sin(ang) * cellH * 1.1;
+      const sx2 = Math.cos(ang) * cellW * 1.1 * reach, sy2 = Math.sin(ang) * cellH * 1.1 * reach;
       ctx.beginPath();
       ctx.moveTo(px2, py2 - 3);
-      ctx.quadraticCurveTo(px2 + sx2 * 0.7, py2 - 10 - Math.sin(t * 3 + k) * 2, px2 + sx2, cy2 + sy2 * 0.5);
+      ctx.quadraticCurveTo(px2 + sx2 * 0.7, py2 - 10 * rise - Math.sin(t * 3 + k) * 2, px2 + sx2, cy2 + sy2 * 0.5);
       ctx.stroke();
     }
-    for (let k = 0; k < 4; k++){
+    // droplets: 4 at the anchor, 1-2 in the frost, 6-7 in July
+    for (let k = 0; k < 4 * play; k++){
       const al = Math.max(0, Math.sin(t * 2.4 + k * 1.9)) * 0.5;
       if (al < 0.08) continue;
       ctx.fillStyle = 'rgba(230,245,248,' + al + ')';
