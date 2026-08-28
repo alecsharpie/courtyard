@@ -28,3 +28,9 @@ Probes resolve the artifact as `../../../../courtyard.html`. (moved at #11)
   staircase than the one `lightBucket` already imposes? Rides a front up on the real
   slew and sizes every rebuild jump, plus the ms cost of one relight. Reusable by any
   future ground-layer vector. (#22)
+
+- `dusk-relight-where.mjs` — the filmstrip's dusk Δ split by screen row and by the cached
+  ground layer alone (composited through any fade), at any gap down to one 60 fps frame.
+  Localises a whole-frame number before anyone names a cause. (#48)
+- `ground-rebuilds.mjs` — counts `drawGround()` rebuilds per sim day, summer and winter,
+  attributed to light bucket / snow / other. (#48: ~650/day, 80% from grass wear)

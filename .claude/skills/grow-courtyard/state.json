@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-29",
+  "updated": "2026-08-28",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
   "lastIteration": 47,
@@ -406,6 +406,18 @@
     {
       "id": "c80",
       "note": "swans have no night behaviour — ducks slow at nightF > 0.6, swans keep daytime rates and never rest on the bank",
+      "raisedBy": 47,
+      "seenBy": 0
+    },
+    {
+      "id": "c81",
+      "note": "drawGround() is 9.2 ms against 2.3 ms for the rest of the frame, and rebuilds ~650×/sim-day in BOTH seasons — 80% from the grass-wear line (R()<dt*2 per walker on grass, courtyard.html ~1824), 20% the light bucket. The 'cache' is repainted every few frames. Throttle wear repaints (one dirty flag per N sim-seconds, or a dirty-rect for the trodden cell) and perf.mjs should drop hard; measure with probes/ground-rebuilds.mjs + perf.mjs.",
+      "raisedBy": 47,
+      "seenBy": 0
+    },
+    {
+      "id": "c82",
+      "note": "filmstrip.mjs's 0.35 s gap reads a legitimately fast sky (winter dusk daylight moves 0.04/sample, ~7 RGB) as a POP. A 'pop' gate should compare against the per-60fps-frame Δ (probes/dusk-relight-where.mjs gap 0.0167): a step is a frame far above its neighbours, not a sample far above 2.",
       "raisedBy": 47,
       "seenBy": 0
     }
