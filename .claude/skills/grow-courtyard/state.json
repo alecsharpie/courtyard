@@ -1,8 +1,8 @@
 {
-  "updated": "2026-08-28",
+  "updated": "2026-08-29",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 42,
+  "lastIteration": 47,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -187,7 +187,8 @@
       ],
       "connect": [
         18,
-        29
+        29,
+        47
       ],
       "scale": [
         33
@@ -239,7 +240,8 @@
         "pre31"
       ],
       "connect": [
-        2
+        2,
+        46
       ],
       "deepen": [
         9,
@@ -269,7 +271,8 @@
         6
       ],
       "scale": [
-        12
+        12,
+        45
       ],
       "harness": [
         16,
@@ -283,7 +286,8 @@
       ],
       "deepen": [
         "pre13",
-        19
+        19,
+        44
       ],
       "polish": [
         "pre9",
@@ -304,7 +308,8 @@
         28
       ],
       "harness": [
-        38
+        38,
+        43
       ]
     }
   },
@@ -317,103 +322,72 @@
   "inventory": {
     "note": "What the town ALREADY contains, as nouns plus the symbols and probes a brief must name. One line per system, <=300 B, enforced by rotate-ledger.mjs. Measurements and histories belong in the ledger. Read before you build.",
     "courtyard": [
-      "walled garden, organic bed ring, four arch entrances (2 TUNNEL, 2 SLOT), benches, desire paths from foot wear, daisies, ivy on the gatehouse, a pre-dawn sweeper, one linden (drawTree, CX/CY)",
-      "planting CA — 11 species, bloom stages, seeding from mature neighbours, crowding, age dieback; rain accelerates every growth term",
-      "the beds read the YEAR — growF()/dieF()/bloomCap() off warmth, lawn health in groundCol; bloomCap is a CEILING and per-cell hardiness holds ~1/7 of cells at it, so winter is blooms scattered in turned earth. probes/beds-year.mjs",
-      "bloomCap() is a RAMP over warmth (BLOOM_LO 0.12 -> BLOOM_HI 0.50 = the anchor); capStep() dithers it to an integer per courtyard CELL (hash y+53) / per allotment PLOT, so the ceiling comes down cell by cell. probes/bloom-cap.mjs"
+      "walled garden with a bed ring, four arch entrances (2 TUNNEL, 2 SLOT), benches, desire paths from foot wear (wear[]), daisies, ivy, a pre-dawn sweeper, one linden (drawTree, CX/CY); planting CA — 11 species, bloom stages, seeding, crowding, dieback; rain speeds growth",
+      "the beds read the YEAR — growF()/dieF() off warmth, lawn health in groundCol; bloomCap() a RAMP over warmth (BLOOM_LO 0.12 → BLOOM_HI 0.50 = anchor), a CEILING dithered per courtyard CELL / allotment PLOT by capStep() (hash y+53). probes/beds-year.mjs, bloom-cap.mjs"
     ],
     "lane": [
-      "kiosk, pavement cafe with claimable tables, awnings, washing lines, planters, street lamps, benches",
-      "market day every 4th day, three stalls; marketRaise(i) stages each stall up and down as clamps on one 0..1 progress",
-      "washing comes in before the rain — per-garment thresholds on weatherComing(), plus a dusk ramp; never all in one frame",
-      "the working day hangs off the SUN — kioskOpen/marketOpen/marketClose/marketRaise/sweeper/wind announcement are offsets from sunUp/sunDown; MK_MIN_SPAN floors winter, MK_EARLIEST holds the summer raise. probes/working-day.mjs",
-      "the stalls sell what the plots grew — produce[] written only by harvestPlot(); stockMarket() latches it once per market day into mkShelf; marketRaise(i) gates on mkTrades(i) (MK_NEED) so a thin year raises fewer stalls. Pitches are real vegetables, MK_CAP carries over. probes/market-year.mjs",
-      "the town's ONE evening place — a lit door in the gatehouse front (TAP_DOOR, drawTapDoor). tapOpen() opens on sunDown-3 floored at TAP_EARLIEST and shuts by the CLOCK at 03.00, so WINTER's evening is the longest; tapF() is the 0..1 every draw mixes on. probes/evening-door.mjs",
-      "callIn(a, pts, durMin, durMax) — the ONE re-route onto TAP_SLOTS, priced by pathHours()/tapFits() (arrival + drink + 0.6 h inside TAP_SHUT, door open at arrival). Sources: tapCallers() on market days — the last stall's trader when it folds, an evening sweeper (kind sweeper, eve:true) 62→40 on LANE_S_Y — and the audience's a.toTap, which is priced OUT (25–41 h from the green). scarcity reads agents.length − tapNow. probes/tap-callers.mjs; bandstand-year.mjs §5 asserts BAND_DUSK clearance"
+      "kiosk, pavement cafe with claimable tables, awnings, washing lines, planters, lamps, benches; market every 4th day, three stalls, marketRaise(i) stages each up/down as clamps on one 0..1",
+      "washing comes in before the rain — per-garment thresholds on weatherComing(), plus a dusk ramp",
+      "the working day hangs off the SUN — kioskOpen/marketOpen/marketClose/marketRaise/sweeper are offsets from sunUp/sunDown; MK_MIN_SPAN floors winter, MK_EARLIEST holds summer. probes/working-day.mjs",
+      "the stalls sell what the plots grew — produce[] written only by harvestPlot(); stockMarket() latches it into mkShelf per market day; marketRaise(i) gates on mkTrades(i) (MK_NEED): a thin year raises fewer stalls. probes/market-year.mjs",
+      "the town's ONE evening place — a lit door in the gatehouse front (TAP_DOOR, drawTapDoor). tapOpen() opens sunDown-3 floored at TAP_EARLIEST, shuts by the CLOCK at 03.00 (winter's evening is longest); tapF() is the 0..1 draws mix on. probes/evening-door.mjs",
+      "callIn(a,pts,dur…) — the ONE re-route onto TAP_SLOTS, priced by pathHours()/tapFits() against TAP_SHUT. Sources: tapCallers() on market days (last stall's trader, an evening sweeper eve:true); the audience's a.toTap is priced OUT. scarcity = agents.length − tapNow. probes/tap-callers.mjs"
     ],
     "street": [
-      "cross street with two footways, roadway, curbs, street lamps, four street trees in stone pits (TREE_PITS, drawLaneTree)",
-      "allotment block of 17 plots, timber fence, gates, shed, an alley cut through the block",
-      "harvest cycle — harvestPlot() lifts a mature 3x2 bed whole, bAge doubles as a fallow clock, then re-sown as a row under plotCrop(). census planting.harvested",
-      "spawnAllotAgent() — the allotments' own arrival source, rate on ripePlots(); gardeners walk out carrying a basket (a.crop)",
-      "seasonal canopy on all 13 trees — leafOut/leafFresh/leafDeep/leafTurn/leafShed + leafCol(base,k) off seasonPhase, bare in winter behind drawBoughs(); leafFallF() drives falling leaves. probes/canopy-year.mjs, year-strip.mjs",
-      "orchard year on the fruit:1 flag — blossomF() (white crown, out ahead of the leaves) and fruitF() (green->red, gone before the tree is bare)",
-      "winter hardiness grain-matched to the PLOT — SPECIES.hardy:1 (cabbages), plotStands(x,y) off plotCrop(); which plots stand rotates with the harvest. probes/allot-year.mjs, allot-shots.mjs",
-      "opening scatter in seed() sows the allotment block through speciesFor() — vegetables from t=0, one R() draw per cell, courtyard scatter unchanged. probes/allot-scatter.mjs"
+      "cross street with two footways, roadway, curbs, lamps, four street trees in pits (TREE_PITS, drawLaneTree); allotment block of 17 plots, timber fence, gates, shed, an alley cut through the block",
+      "harvest cycle — harvestPlot() lifts a mature 3x2 bed whole, bAge doubles as a fallow clock, re-sown as a row under plotCrop(). census planting.harvested",
+      "spawnAllotAgent() — the allotments' own arrival source, rate on ripePlots(); gardeners leave carrying a basket (a.crop)",
+      "seasonal canopy on all 13 trees — leafOut/Fresh/Deep/Turn/Shed + leafCol() off seasonPhase, bare in winter behind drawBoughs(); leafFallF() drives falling leaves; fruit:1 trees add blossomF()/fruitF(). probes/canopy-year.mjs, year-strip.mjs",
+      "winter hardiness grain-matched to the PLOT — SPECIES.hardy:1 (cabbages), plotStands(x,y) off plotCrop(); seed() sows the block through speciesFor() so it is vegetables from t=0. probes/allot-year.mjs, allot-scatter.mjs"
     ],
     "plaza": [
       "plaza with a fountain and a paved roundel (PATH), four tree pits, benches; quay with benches along the river",
-      "spawnEastAgent() — the east quarter's own arrival source (eastCap/eastRate, a.east, excluded from laneCount, eastOpen() on daylight); enters by the alley, quay head or park gate, visits one stop, leaves the way it came. census life.inEast",
-      "PAVING + pavingAt(x,y) — the ONE predicate naming which paving a cell is (lane, bridge, cross street, mouth, plaza, quay, towpath, court). Each carries its crumbs line AND the box its birds land in; crumbSpot() staggers three birds clear of the basin. probes/paving-places.mjs",
-      "the FOUNTAIN reads the YEAR — fountainPlay() = 1 - FOUNT_SWING*greyF(): jets per-k threshold, height/reach, droplets; basin via riverCol() + fountainIce() per-cell skin below FOUNT_ICE; fountainStand() sets the bench/fountain split in both spawners. probes/fountain-year.mjs"
+      "spawnEastAgent() — the east quarter's own arrival source (eastCap/eastRate, a.east, eastOpen() on daylight); enters by alley, quay head or park gate, one stop, leaves the way it came. census life.inEast",
+      "PAVING + pavingAt(x,y) — the ONE predicate naming a cell's paving (lane, bridge, cross street, mouth, plaza, quay, towpath, court), each with its crumbs line and bird box; crumbSpot() keeps three birds clear of the basin. probes/paving-places.mjs",
+      "the FOUNTAIN reads the YEAR — fountainPlay() = 1 - FOUNT_SWING*greyF(): jets, height/reach, droplets; basin via riverCol() + fountainIce() below FOUNT_ICE; fountainStand() sets the bench/fountain split in both spawners. probes/fountain-year.mjs"
     ],
     "river": [
-      "river, one rowboat, three-arch bridge, towpath, church with tower and nave, bandstand, four orchard trees, jetty, park gate",
-      "pigeons that flush off the belfry when the bell rings, from a finite roost that refills",
-      "byTheWater() — the ONE predicate for the three places a person can see the river (quay and rail, bridge deck, towpath); boatWatch() is its only reader, a future river event should read it rather than re-derive it",
-      "boatWatch() — one glance per passing boat (a.watch, ticked at the top of stepAgent so it never holds anybody)",
-      "a parapet stop mid-span (PARAPET_Y, PARAPET_Z), served mainly from spawnEastAgent",
-      "the water reads the YEAR — riverRun() drives drawRiverFlow(t): drift speed, streak count and length, channel colour (riverCol -> RIVER_COLD/RIVER_GREEN), width of the deep mid-channel. probes/river-year.mjs, river-shots.mjs",
-      "the rowboat is a fair-weather thing — boatRate() thins as the water rises (BOAT_SWING, BOAT_FLOOR binding through winter), boatSpeed() takes BOAT_DRIFT of the current. ONE boat, so its year reads as PRESENCE not boats/day",
-      "the BANDSTAND has a summer concert — bandF() stages three BAND_PLAYERS (cues 0.10/0.30/0.50) and bunting up and back down on ONE 0..1; isBandDay() is hash(day,617) vs bandChance() off warmth, so July plays and February does not. probes/bandstand-year.mjs, bandstand-shots.mjs",
-      "swans are a PAIR with states — s.state swim|upend|preen + s.hold intensity; cob (swans[0]) picks the stretch, pen re-reads it every 2.5–5.5 s at 1.3–3 cells, 0.9-cell give-way; SWAN_UPEND/SWAN_PREEN/SWAN_BANK; drawSwan tilts on hold, livingAt names both poses. probes/swan-pair.mjs",
-      "the NIGHT on the water — drawRiverLights() in the night screen pass: broken bar columns under RIVER_LAMPS (waterside LANE_LAMPS) and a moon column crossing the river with moonArc(), × nightF × (1 − cloudCover()); noon untouched. probes/river-night.mjs",
-      "eastOpenFor(a) — the far side's ONE after-dark exception: a.nightRail stands at the north end of the quay rail while tapOpen(), ONE at a time (nightRailFree, NIGHT_RAIL_RATE), outside eastCap"
+      "river, one rowboat, three-arch bridge, towpath, church with tower and nave, bandstand, four orchard trees, jetty, park gate; pigeons flush off the belfry when the bell rings, from a finite roost",
+      "byTheWater() — the ONE predicate for the three river-facing places (quay/rail, bridge deck, towpath); boatWatch() its only reader (a.watch, one glance per boat). A parapet stop mid-span (PARAPET_Y/Z) served from spawnEastAgent",
+      "the water reads the YEAR — riverRun() drives drawRiverFlow(t): drift, streak count/length, channel colour (riverCol -> RIVER_COLD/RIVER_GREEN), mid-channel width. probes/river-year.mjs, river-shots.mjs",
+      "ONE rowboat, fair-weather — boatRate() thins as the water rises (BOAT_SWING, BOAT_FLOOR), boatSpeed() takes BOAT_DRIFT of the current; its year reads as PRESENCE",
+      "the BANDSTAND has a summer concert — bandF() stages three BAND_PLAYERS and bunting up and down on ONE 0..1; isBandDay() is hash(day,617) vs bandChance() off warmth, so July plays and February does not. probes/bandstand-year.mjs, bandstand-shots.mjs",
+      "swans are a PAIR with states — s.state swim|upend|preen + s.hold; cob (swans[0]) picks the stretch, pen re-reads it every 2.5–5.5 s, 0.9-cell give-way; SWAN_UPEND/SWAN_PREEN/SWAN_BANK; drawSwan tilts on hold. probes/swan-pair.mjs",
+      "the NIGHT on the water — drawRiverLights() in the night screen pass: bar columns under RIVER_LAMPS, a moon column via moonArc(), × nightF × (1 − cloudCover()). eastOpenFor(a): a.nightRail stands at the rail's north end while tapOpen(), ONE at a time, outside eastCap. probes/river-night.mjs"
     ],
     "sky": [
-      "day/night cycle (55 s day), sun and moon arc, backdrop hills, chimney smoke, a balloon; night windows each keep their own hours (windowLit, below)",
-      "cloudCover() — one slow rate-capped scalar; fronts build over ~half a day and break after rain; sun and moon veiled, stars put out, drifting banks; isWindy() — wind days, read by ticker, leaf fall, smoke, sway, washing, the morning announcement",
-      "weatherComing() — the ramped rain-is-coming predicate off cloudCover(), damped by daylight because people anticipate by looking up; three readers at their own trigger points",
+      "day/night cycle (55 s day), sun and moon arc, backdrop hills, chimney smoke, a balloon; windows keep their own hours (windowLit)",
+      "cloudCover() — one slow rate-capped scalar; fronts build over ~half a day and break after rain; sun/moon veiled, stars out. weatherComing() is the ramped rain-is-coming predicate off it, damped by daylight. isWindy() — wind days: ticker, leaf fall, smoke, sway, washing",
       "rainFall — a 0..1 shower intensity beside the raining boolean; drops, overcast tint, pond rings, water sparkle and chimney smoke all read it",
-      "season() — the YEAR. Cyclic over SEASON_LEN 26 days (~24 real min), phase 0 = midwinter, anchored at SEASON_START 0.25 where every seasoned term equals the constant it replaced. NINE READERS: day length, light, beds, trees, the working day, pop caps, weather, river, allotments. census clock.season",
-      "the weather reads the year — greyF() drives front frequency, depth and spellLen() while showerRate/showerLen/showerHard move the OPPOSITE way, so summer’s rare showers are the hard ones and the annual total holds. Rain can start in the dark. probes/weather-year.mjs",
-      "the ground reads the lid — shadowF() with shSpread() and shOffset(), so a cast shadow fades, widens and retracts together; eight sites, a real blur on the cached ground layer behind CAN_BLUR. probes/shadow-cover.mjs, ground-relight.mjs",
-      "windowLit(sa,sb) — ONE predicate for pane and LIT[] glow, hours off the dusk edge (night id nid): lit 0.15–2 h after dark, bedtimes spread, 5% burn through, 14% early risers, out by dawn. Facades are CACHED; WINDOWS[] + drawLitPanes() repaint panes live. probes/windows-night.mjs",
-      "snow: snowF() turns showers to flakes past greyF 0.55; snowCover 0..1 (rate-capped, per-cell hash) whitens cached ground/roofs/awnings, melts as warmth lifts, rain thins it; census clock.snow"
+      "season() — the YEAR over SEASON_LEN 26 days (~24 real min), phase 0 = midwinter, anchor SEASON_START 0.25 where every seasoned term equals the constant it replaced. Readers: light, beds, trees, working day, pop caps, weather, river, allotments, fountain, snow",
+      "the weather reads the year — greyF() drives front frequency, depth and spellLen() while showerRate/showerLen/showerHard move the OPPOSITE way, so summer's rare showers are the hard ones. Rain can start in the dark. probes/weather-year.mjs",
+      "the ground reads the lid — shadowF() with shSpread()/shOffset(): cast shadows fade, widen and retract together, eight sites, blurred on the cached ground behind CAN_BLUR. probes/shadow-cover.mjs",
+      "windowLit(sa,sb) — ONE predicate for pane and LIT[] glow, hours off the dusk edge (nid): lit 0.15–2 h after dark, bedtimes spread, 5% burn through, 14% early risers. Facades CACHED; WINDOWS[] + drawLitPanes() repaint panes live. probes/windows-night.mjs",
+      "snow — snowF() turns showers to flakes past greyF 0.55; snowCover 0..1 (rate-capped, snowAt per cell, trodden kinds take less) whitens cached ground/roofs/awnings, melts as warmth lifts; census clock.snow. probes/snow-year.mjs"
     ],
     "life": [
-      "walkers with itineraries, courtyard and street; eastern itineraries — plaza bench, fountain gaze, quay rail, quay bench, towpath, church green, allotment plot, bridge parapet",
-      "cafe sitters who claim and release a table; market and kiosk browsers; ducks, swans, butterflies, fireflies, birds, one night cat, falling leaves",
-      "a clock that strikes and a church bell that answers it at nine and eighteen from day 2; walkers break stride and look up while it rings (a.listen)",
-      "greetPass — two passing within 0.9-1.6 cells may stop, turn and talk (a.greet, chatCool)",
-      "EVERY sitter reads the sky — SIT_REFUSE turns a seat down, skyLifts(a) gives one up off a per-agent a.wary, umbrellas on their own band. The gate is what you are DOING, not a.street. A refused courtyard seat takes routeToExit(); a picnic pair judges once for both (a.mate). probes/seats-out.mjs",
-      "__entities() carries role, act, watch and raindrops per person, with a stable id — the seam a behaviour probe reads instead of a bespoke hook",
-      "yearBusy(ex) multiplies the DAYLIGHT term of capacity/laneCap/eastCap only, never their fixed share (EX_COURT/EX_LANE/EX_EAST; eastCap keeps Math.min(7,...)). POP_FLOOR + scarcity lift the three arrival RATES only. probes/season-year.mjs",
-      "two crowds with their OWN arrival source, out of neither eastCount nor laneCount: the concert audience (spawnConcertAgent, BAND_TICK, nine BAND_SLOTS 1.99 cells apart, a.leaveAt) and the evening door (spawnTapAgent, four TAP_SLOTS, a.tap, tapServing() stops sending TAP_LAST h before the shut)"
+      "walkers with itineraries — courtyard, street, and eastern stops (plaza bench, fountain, quay rail/bench, towpath, church green, allotment plot, parapet); cafe sitters who claim a table; market and kiosk browsers; ducks, swans, butterflies, fireflies, birds, one night cat, falling leaves",
+      "clock strikes at nine and eighteen from day 2, the church bell answers; walkers look up while it rings (a.listen)",
+      "greetPass — two passing within 0.9-1.6 cells may stop and talk (a.greet, chatCool)",
+      "EVERY sitter reads the sky — SIT_REFUSE turns a seat down, skyLifts(a) gives one up off a.wary, umbrellas on their own band. Gate on what you are DOING, not a.street; a refused seat takes routeToExit(); a pair judges once (a.mate). probes/seats-out.mjs",
+      "__entities() carries role, act, watch, raindrops and per-kind extras per person, with a stable id — the seam a behaviour probe reads instead of a bespoke hook",
+      "yearBusy(ex) multiplies the DAYLIGHT term of capacity/laneCap/eastCap only (EX_COURT/EX_LANE/EX_EAST; eastCap keeps min 7). POP_FLOOR + scarcity lift the three arrival RATES only. probes/season-year.mjs",
+      "two crowds with their OWN arrival source, outside eastCount and laneCount: the concert audience (spawnConcertAgent, BAND_TICK, nine BAND_SLOTS, a.leaveAt) and the evening door (spawnTapAgent, four TAP_SLOTS, a.tap, tapServing() stops TAP_LAST h before the shut)"
     ],
     "sill": [
-      "the SILL under the canvas — #plate, #daytime (day + hour), #season, #ticker, #stats, #ctrl (Pause, 1x/3x/8x). Ticker and stats hidden under 640px except during an invitation. A ResizeObserver on the frame, because the sill BORROWS space and that resizes the picture with no resize event",
-      "the ticker is an ordered queue, not an overwrite — TICK_DWELL 2.5 real s, cap 2, staleness cut; a follow-on enqueues only when its antecedent is DISPLAYED (lineDwell)",
-      "the sill NAMES the year — seasonLabel() on seasonPhase, eight names, sectors CENTRED on their phase; #season drops into the caption slot below 640px. probes/sill-year.mjs",
-      "the season is a BUTTON and reads as one — stepSkip()/simSub()/skipEase() run the town on a quarter as a sub-stepped fast-forward landing on a whole sim day, four clicks to the year; #season underlined, 30px/29px hit box at zero layout cost. probes/season-skip.mjs, season-invite.mjs",
-      "the NAMING — what is under the pointer is named in the sill (borrows the ticker box; a TAP names on a phone). bSp/bSt vs bedCap(x,y), plots off plotCrop, places off pavingAt/WATERS, 13 trees hit-tested in SCREEN space vs crowns[]. NAME_SETTLE. probes/naming.mjs",
-      "THE DIORAMA IS CLICKABLE and says so once — answersTouch(x,y) is the ONE predicate (~64% of the frame), read by both cursor and handler: seeds, a daisy, crumbs, a coin, a pebble. Invitations are a QUEUE, OFFERS[] of two, each spent when it comes up. probes/touch-hint.mjs",
-      "the NAMING names the LIVING things — livingAt(p) hit-tests agents, dogs, ducks, swans, boat, cat in SCREEN space on the projected feet (box per pose); personName(a) says what they are doing off state/kind/cup/watch/greet/listen/band. probes/naming.mjs §7",
-      "runlog --regrade (verdicts recomputed from stored evidence); Harness verdict graded on commit+log, harnessTouchedSrc flag; crashed-worker one-retry rule (brief.retry); filmstrip AT(day,hour) helper, night preset at midnight"
+      "the SILL under the canvas — #plate, #daytime, #season, #ticker (an ordered queue: TICK_DWELL 2.5 real s, cap 2, follow-ons wait for lineDwell), #stats, #ctrl; hidden under 640px except during an invitation. A ResizeObserver on the frame — the sill BORROWS space with no resize event",
+      "the sill NAMES the year — seasonLabel() on seasonPhase, eight names, sectors CENTRED on their phase. probes/sill-year.mjs",
+      "the season is a BUTTON — stepSkip()/simSub()/skipEase() fast-forward the town a quarter, landing on a whole sim day, four clicks to the year; #season underlined. probes/season-skip.mjs, season-invite.mjs",
+      "the NAMING — what is under the pointer is named in the sill (borrows the ticker box; a TAP names on a phone). bSp/bSt vs bedCap, plots off plotCrop, places off pavingAt/WATERS, 13 trees hit-tested in SCREEN space vs crowns[]. NAME_SETTLE. probes/naming.mjs",
+      "THE DIORAMA IS CLICKABLE and says so once — answersTouch(x,y) is the ONE predicate, read by cursor and handler: seeds, a daisy, crumbs, a coin, a pebble. Invitations are a QUEUE, OFFERS[] of two. probes/touch-hint.mjs",
+      "the NAMING names the LIVING things — livingAt(p) hit-tests agents, dogs, ducks, swans, boat, cat in SCREEN space on the projected feet (box per pose); personName(a) says what they are doing. probes/naming.mjs §7",
+      "harness: runlog --regrade; Harness verdicts graded on commit+log (harnessTouchedSrc); crashed-worker one-retry rule (brief.retry); filmstrip AT(day,hour), night preset at midnight"
     ]
   },
   "openCues": [
     {
       "id": "c74",
       "note": "run-loop.sh: MANAGER_GAP vs last_manager=-99 means the stall check runs before the first landed iteration regardless of the gap",
-      "raisedBy": 42,
-      "seenBy": 0
-    },
-    {
-      "id": "c75",
-      "note": "swans have no night behaviour — ducks slow at nightF > 0.6, swans keep daytime rates and never rest on the bank",
-      "raisedBy": 42,
-      "seenBy": 0
-    },
-    {
-      "id": "c76",
-      "note": "Winter sunset relight POPs 5-9 mean-Δ in one frame on HEAD (light bucket vs compressed dusk) — live overlay or finer bucket near sunUp/sunDown",
-      "raisedBy": 42,
-      "seenBy": 0
-    },
-    {
-      "id": "c77",
-      "note": "Snow × footfall: desire paths worn dark through lying snow (b42's named follow-on)",
       "raisedBy": 42,
       "seenBy": 0
     },
@@ -428,6 +402,12 @@
       "note": "callIn: a trader from stall 0 (x 45, 19 cells nearer) would reach the door in spring/autumn too; today only warmth ≤ 0.43 market days call in",
       "raisedBy": 42,
       "seenBy": 0
+    },
+    {
+      "id": "c80",
+      "note": "swans have no night behaviour — ducks slow at nightF > 0.6, swans keep daytime rates and never rest on the bank",
+      "raisedBy": 47,
+      "seenBy": 0
     }
   ],
   "watch": [
@@ -436,12 +416,12 @@
       "note": "The east half is fed by ONE spawnLaneAgent roll under one laneCap (peaks at 9). Anything out there competes for that budget — check whether your feature needs its own arrival source before concluding it is unused. Bands: market 0.24, kiosk 0.18, cafe 0.26, allotment 0.48, plaza 0.48, quay 0.53, green 0.58. spawnEastAgent adds eastCap (max 7); its arrivals RETRACE their route, so a wider cap means single file."
     },
     {
-      "since": 37,
-      "note": "NIGHT IS ONE DOOR. #33 gave the town its first evening place (tapOpen/TAP_SLOTS on the lane), but every itinerary branch in spawnLaneAgent is still gated on `sun` and every window burns dusk to dawn: 22.00 and 03.00 are the same picture. b36 spends the windows; the east half has no night at all."
+      "since": 47,
+      "note": "THE NIGHT IS BUILT, NOT WIRED TO THE DAY. Windows keep hours (#39), the door (#33) has callers (#47), the river has lamps and one rail stander (#46). But nobody who leaves the frame at dusk GOES anywhere — routeToExit() walks them off; no window lights because someone came home. Plaza and church have no night at all beyond eastOpenFor."
     },
     {
-      "since": 30,
-      "note": "NOTHING EAST OF THE BRIDGE READS THE YEAR — except the bandstand (#32, bandChance off warmth). The plaza and its fountain are still identical in February and August. b32 spends it."
+      "since": 47,
+      "note": "THE YEAR IS READ EVERYWHERE BUT THE WIND IS READ NOWHERE EAST OF THE BRIDGE — isWindy() moves washing, smoke, leaves and sway on the lane; the fountain, the river, the bandstand bunting and the far bank ignore it. Snow whitens the ground but nothing walks through it differently (snowAt already takes less on trodden kinds — build on that, not beside it)."
     },
     {
       "since": 33,
@@ -950,6 +930,30 @@
       "seenBy": 2,
       "closedBy": 42,
       "reason": "no-yield after 2 passes: moving birds are 3 px sprites and a merge reads as a flock; the standing case (#32 slots) was the visible one"
+    },
+    {
+      "id": "c76",
+      "note": "Winter sunset relight POPs 5-9 mean-Δ in one frame on HEAD (light bucket vs compressed dusk) — live overlay or finer bucket near sunUp/sunDown",
+      "raisedBy": 42,
+      "seenBy": 0,
+      "closedBy": 47,
+      "reason": "promoted to brief b45 (sky x deepen: the dusk relight step)"
+    },
+    {
+      "id": "c77",
+      "note": "Snow × footfall: desire paths worn dark through lying snow (b42's named follow-on)",
+      "raisedBy": 42,
+      "seenBy": 0,
+      "closedBy": 47,
+      "reason": "promoted to brief b46 (courtyard x connect: snow x footfall)"
+    },
+    {
+      "id": "c75",
+      "note": "swans have no night behaviour — ducks slow at nightF > 0.6, swans keep daytime rates and never rest on the bank",
+      "raisedBy": 42,
+      "seenBy": 0,
+      "closedBy": 47,
+      "reason": "promoted to brief b49's twin cue; folded into b48's avoid — swans at night ride the next life brief"
     }
   ]
 }

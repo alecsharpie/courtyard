@@ -2532,3 +2532,101 @@ ends by things that are not the event"*. Full entry in `LEDGER-archive.md`.
 
 ---
 
+## Iteration 33 — a door on the lane that keeps hours after dark (2026-08-04) [Lane & market × Scale/World]
+
+**Brief:** b35 — every `stop` branch in `spawnLaneAgent` opens with `sun &&`, so ~45% of the
+clock is a transit corridor. Give the town ONE evening place. Measure the dark first.
+
+**Did:** Measured first: the dark was **not** a clean zero — **0.21** street people standing still
+22.00–04.00 against **1.26** at midday, all of it the glance through the arch in the final `else`.
+A lit door at `TAP_DOOR = 26` on the plane `drawFaceRow` already draws, every frame: `tapOpen()`
+the behaviour, `tapF()` the 0..1 every draw mixes on. Hours are the one clock here that is not
+the sun's — open `sunDown - 3` floored at `TAP_EARLIEST`, shut by the CLOCK at 03.00 — so
+**midwinter's evening is its longest**. `spawnTapAgent()` has its own budget (four `TAP_SLOTS`),
+comes off `laneCount`, does **not** read `scarcity()`, and walks out of the courtyard's south arch.
+
+**Gates:** census PASS (people +15) · visual PASS (`tap-shots.mjs`) · perf PASS · motion **FAIL,
+attributed** (`market/shower` 0→2 on untouched code; ten seeds HEAD mean 0.40 vs 0.50) ·
+**`evening-door.mjs`**: night STILL **0.21 → 0.98**, 17% → **77%** of midday; **0** standing after
+the shut · **`day-control.mjs`**: `tap 0` at both midday instants on HEAD and here.
+
+**Verdict:** shipped
+
+**Surprise:** the address was decided by arithmetic, not taste. A sim hour is 2.3 s, a midsummer
+night 22 s, so "stopped at 22.00 in midsummer" is only satisfiable if the walk is ~3 s. Our own
+doorway at x=33.9 is 15 cells across the lane: 6.8 s each way, round trip 92% of the window. It
+had to move to the near side of the road. Also `tap-shots.mjs` photographed the frame's border
+twice, because `project()` is relative to the canvas **parent**. Full entry in `LEDGER-archive.md`.
+
+## Iteration 37 — the bed ceiling comes down cell by cell, not all at once (2026-08-28) [Courtyard & garden × Deepen]
+
+**Brief:** b37 — `bloomCap()` was the town's only STEPPED seasonal term (3/2/1 at warmth 0.42/0.20);
+make it continuous without moving the year's totals.
+
+**Did:** `bloomCap()` is now `1 + 2·clamp((warmth − BLOOM_LO)/(BLOOM_HI − BLOOM_LO))`, with
+`BLOOM_HI = 0.50` = SEASON_START's warmth (anchor 3 by the clamp) and `BLOOM_LO = 0.12` the one
+tuned number. `bedCap(x,y)` turns the fraction into an integer with `capStep()` — the fraction is
+the SHARE of cells already allowed the next stage, by `hash(x, y+53)` in the courtyard and by
+`hash(plotOrigin, +53)` in the allotments, so a plot still steps whole but not with its neighbour.
+
+**Gates:** census PASS (blooming −17, planted −25 — noise) · visual PASS (early summer, cap 3 both
+builds) · motion/perf skipped (CA state only) · **`bloom-cap.mjs`** (folded year): max step in the
+courtyard's mean ceiling **0.876 → 0.038**, allotments 1.000 → 0.118; anchor exactly 3 both builds;
+year-mean of the cap 2.2577 → 2.2564 · **`beds-year.mjs`** 3 seeds × 70 days: mean blooming
+**+1.9%**, evenness 0.998. Context budget opened OVER (46.4 / 46 KB).
+
+**Verdict:** shipped
+
+**Surprise:** the cap's folded mean was flat to 0.06% and the beds still came out +1.9% — a bed
+under a rising cap climbs the moment its cell is admitted, a bed under a falling one only ages out
+at `dieF()`'s pace. And `BLOOM_LO` came out 0.12, not the 0.08 area arithmetic said, because
+warmth is a cosine and time piles up at the extremes. Full entry in `LEDGER-archive.md`.
+
+## Iteration 38 — a launch failure no longer burns its brief (2026-08-28) [The sill & the observer × Harness]
+
+**Brief:** b38 — make a CLI launch failure leave the brief claimed and stop counting as a worker iteration; split motion's shower `jumps` into rises/falls.
+**Did:** The burn was one line: `runlog.mjs` retired the brief (`status: 'done'`) unconditionally, so `pop-brief.mjs`'s re-issue path — written for exactly this case — was unreachable. `runlog.mjs` now classifies a worker row as `kind: 'launch-failed'` when `rc≠0` and (token sum is 0 or elapsed < 30 s), gives it verdict `launch-failed` (mark ⚡), and leaves the brief `active`. `run-loop.sh` logs "never launched … brief stays claimed" when the brief is still active after runlog. `pop-brief.mjs` skips launch-failed rows when computing `nextIter`, so a failure does not consume an iteration number. `stall.mjs` and `build-stats.mjs` exclude the kind alongside manager rows (stats gets a "launch failures" hero figure only when there are any). Rows #34–36 retagged in place with a `retagged` note; nothing deleted. `motion.mjs`: shower rows carry `rises` and `falls` (`jumps` stays the sum); the shower gate now fails on `falls` only. Baseline regenerated.
+**Gates:** census PASS (+0 everywhere — `courtyard.html` untouched) · visual skipped (no draw change) · motion PASS after re-baseline: every shower jump in day/dusk/night/market is a rise, 0 falls — the night cell (c62) was three showers *starting* · harness proof: cloned repo + a `claude` stub that exits 1 after 1 s, `MAX_FAILS=2`: b38 re-issued attempt 2 → 3, `current-brief.json` still active, two ⚡ rows, `stall.mjs --report` reads 33 workers + 5 launch failures, last 20 verdicts `shipped=19 no-ship=1`, `src moved 10/10`.
+**Verdict:** shipped
+**Surprise:** The first clone run happened to run the *old* code (an interactive `cp` alias refused to overwrite) and reproduced the bug perfectly — two briefs burned in 3 s. Then the fixed code threw a TDZ error (`KIND` used before its new definition) and the loop *still* behaved correctly, because a crashing runlog never retires the brief either. The fix was right for the wrong reason for one run; only the ⚡ row in the log proved it.
+**Law:** A harness fix needs a stub-driven end-to-end run, not a unit check: the runner, runlog and pop-brief each hold half of "is this brief done", and a fault in any one of them looks like success in the others. A 1-second `claude` stub on `PATH` in a throwaway clone exercises all three for free.
+**Cue:** a worker that really ran and then exited non-zero (rc≠0, tokens > 0, > 30 s) still retires its brief as `failed`. Probably right — the work may be half-done on disk — but nobody has decided.
+
+## Iteration 39 — every window keeps its own hours (2026-08-28) [Sky, light & weather × Deepen]
+
+**Brief:** b36 — `drawWindow()` lit every window with one `nightF > 0.3 && hash(house, day) > 0.42`, so 58% of the town burned dusk to dawn and switched in one frame.
+**Did:** `windowLit(sa, sb)` is the ONE predicate (pane fill and `LIT[]` glow both read it). Hours run off a single clock, `t` = hours since the dusk edge (`sunDown − NIGHT_K·dayHours`, NIGHT_K = asin(0.4375)/π = where nightF crosses 0.3), addressed by `nid` — the night, not `day`, because the day rolls at 06.00 in the dark. Per window (hash, never R): on at 0.15–2 h after the edge, bedtime `on + 1.2 + 6.8·h²` (most out by mid-evening, a squared tail into the small hours, one in twenty burning through), 14% early risers back on 0.6–2.2 h before the dawn edge, and everything still lit goes out one by one in the last hour so nothing switches AT the edge. Then the real find: `drawBlocks()` draws rows 0–60 INTO the cached ground layer, which rebuilds on the quarter-hour light bucket — so per-window hours would have flipped ~12 windows per rebuild. `drawWindow()` now registers into `WINDOWS[]` when drawing to `gtx` and paints the pane dark; `drawLitPanes()` repaints lit panes live every frame after the ground blit. That also fixed a pre-existing leak: `LIT` was reset only in `drawGround()`, so the south band's 13 live windows stacked into it every frame for a quarter-hour and the halo pass drew hundreds of gradients over each other (a frozen page read 28, 41, 54, 67… per frame).
+**Gates:** census PASS (unchanged everywhere) · motion PASS · perf PASS (+0.0% day and night, 3 interleaved reps) · noon frame mean pixel diff HEAD vs here **0.000** · `probes/windows-night.mjs`: lit count over a night 19→42→20→13→3→7 (summer) and 20→42→26→10→6→6→9 (winter) against HEAD's flat 72/81; largest change in one 0.25 s step 93 → 12, and 5 on the dusk ramp of the step dump · 22h vs 03h shots differ 0.58/0.61 mean px where HEAD's are the same picture · filmstrip: no POP.
+**Verdict:** shipped
+**Surprise:** the first probe showed +26/−30 oscillations across the dusk ramp and I nearly tuned the hash. It was the instrument: `LIT.length` was climbing 13 a frame with the clock frozen. The HEAD counts of 86 and the census note "LIT depends on where in the draw pass you sample" were both this leak, misread as sampling.
+
+
+<!-- archived verbatim by the manager pass from #47, before condensing in LEDGER.md -->
+## Iteration 45 — winter gets snow: flakes, a lying cover, and a melt (2026-08-29) [Sky, light & weather × Scale/World]
+
+**Brief:** b42, attempt 2 — attempt 1 died mid-run with the build ~90% in the working tree; this run picked it up rather than rebuilding, checked every seam, finished the gates.
+**Did:** `snowF()` = share of a shower that falls as flakes: 0 until `greyF()` 0.55, 1 by 0.90, read PER DROP against a `hash(slot, 97)` on the drop so a shower turns to sleet then snow drop by drop, never as a switch. `snowCover` is the second slow world scalar with a cap, a cycle and an anchor: `stepSnow(dt)` adds `rainFall·snowF·SNOW_SLEW` (0.02/s), thins by the rain share (`SNOW_RAIN_THAW` 0.03/s), melts at `SNOW_MELT·(1−snowF)` (0.012/s); starts 0 and cannot move while `snowF()` is 0, so at SEASON_START every consumer is the old constant BY THE ALGEBRA (all draw sites guarded `snowCover > 0` because `mix()` re-serialises a colour even at t=0). `snowAt(x,y,t)` = cover × `snowTake(t)` (grass/beds 1, side 0.7, path/slot 0.5, road 0.4, else 0) × per-CELL `hash(x, y+53)` — the paths and road read dark through the white without touching the wear map. `groundCol` wraps `groundBase` and whitens; joints/setts skipped under > 0.5 cover; roofs whiten in `drawRoofRow` (draw pass, not `buildVolumes`) with the ridge stroke fading; canvas awnings get a cap in `drawOurSide`; flakes drift at 0.11× drop speed with a sine wobble and draw as 1.7 px discs; the rain tint pales toward a snow sky; the cached ground repaints when cover has moved `SNOW_REPAINT` (0.03) since last painted; announce on the shower ('Snow drifts in over the rooftops, fat and slow.') and once when cover first passes 0.15. `__census().clock.snow` added (town state, like `cloud`).
+**Gates:** census PASS (churn only; `snow` field new) · motion PASS (shower kind: rises/falls −1, the seed-42 drop count step is HEAD's) · **noon-at-anchor vs HEAD: 233 px differ of 6.08 M, and the working copy against ITSELF differs by 797 px** — below the noise floor, the summer town is unchanged · **`probes/snow-year.mjs`** 5 seeds × 2 years: cover mean winter 0.255 (on 69% of samples, max 0.86), spring 0.019 (7.8% — the lag tail into early spring, the shoulder law), summer 0, autumn 0; by phase-week peaks 0.55 at week 4 after midwinter, exactly 0 weeks 9–46; **max |Δcover| per 0.25 s = 0.012**; first cover>0 at phase 0.91–0.03; 10 settle announcements in 10 seed-years · winter shots (seed 7, t 1183 dusk; t 1175 afternoon shower): white lawn/plots/green, dark paths and road, white eaves, pale sky — reads winter from the wide view · flake probe: 85 flakes → 989 px brighter vs the same frame with the drops removed · day filmstrip median Δ 0.465, no POP (same as #44) · filmstrip at 1175/seed 7: POP at frames 10–11 (6.4/5.7) — **HEAD at the same instant POPs 4.8/4.2 there and 9.0 at frame 5**: it is the winter sunset's light bucket, not the snow; ours is larger because the relit ground is whiter · perf PASS 16.70 vs 16.70 ms day and night. Context budget opened **OVER** (46.1 / 46 KB).
+**Verdict:** shipped
+**Surprise:** `__warp` never draws, so `snowPainted` stays 0 through a warped probe and `groundDirty` is set every step — harmless in a probe, but any "did the cache repaint" assertion must drive a frame itself (`drawScene(simT, 0)` from `evaluate`, as the flake probe does). And `filmstrip.mjs` takes no `--page`: it silently ran the working copy under a HEAD label until I swapped the file in. A control that returns the candidate's exact numbers is not a control.
+**Cue:** the winter-sunset relight steps 5–9 mean-Δ in one frame on HEAD (light bucket at 2.3 s/hour with a compressed dusk); worth a live overlay or a finer bucket near sunUp/sunDown. Snow × footfall (paths worn through lying snow) is the follow-on the brief named.
+
+## Iteration 46 — the night reaches the river: lamp and moon reflections, one rail stop after dark (2026-08-29) [River & far bank × Connect]
+
+**Brief:** b43. Not a duplicate: `grep` found no light on the water after dark and `eastOpen()` was the far side's only clock.
+**Did:** `drawRiverLights(t)` — for each waterside lamp (`RIVER_LAMPS`, the LANE_LAMPS within 2 cells of a river edge: the quay lamp at 112.7, both bridge ends, both far-bank lamps) a column of 14 short bars under it, each on its own downstream phase off the streaks' clock (`t·FLOW_SPEED·riverRun()`) so the column breaks and re-forms rather than sliding as one; the moon gets a 40-bar column that crosses the river east→west with `moonArc()` (factored out of `drawSunMoon` so disc and reflection agree), brightness × `sin(π·ma)`, off at ma 0/1. Both × `nightF` × `(1 − cloudCover())`, the stars' own veil. Drawn in the night **screen** pass beside the lamp pools, not inside `drawRiverFlow` as the brief said — under the multiply a warm bar comes out blue. hash()+clock only, no R(). `eastOpenFor(a)` = `eastOpen() || (a.nightRail && tapOpen())` replaces the three `eastOpen()` reads on agents; `spawnEastAgent(true)` sends ONE night stander (`nightRailFree()`) to the north end of the rail (y 5–11, 4–7 s each way, stand 5–9 s) at `NIGHT_RAIL_RATE` 0.22/s while `!eastOpen() && tapOpen()`, outside `eastCap` — which is 1 after dark and held by the people walking home, so the first cut spawned 4 in ten nights and none reached the rail. Its own sill line.
+**Gates:** census first read **FAIL people 210→185**; `probes/census-noise.mjs` showed it was the reshuffle — seeds 7 and 1234 now rain at the @900 rung, over 8 seeds −1.6% — and after the repricing pass it reads PASS · motion PASS (raindrop churn only) · **`probes/river-night.mjs`**: 22.00 river box, working copy vs ITSELF with `drawRiverLights` stubbed (same world): bright px **307 → 993**, mean 46.6 → 48.2; HEAD 296 · **noon t=13.75 whole-frame hash identical to HEAD** · rail after dark over 10 seed-nights: standing **26.6%** of dark-tap samples (14 s of dark per night; 0–48% by seed), 11 visits, 1 sample standing past the shut · night filmstrip median Δ 0.214, no POP · perf 16.70 vs 16.70 ms day and night · night-east shot: warm bars under three lamps, a pale broken moon column mid-river; day east shot unchanged. Context budget opened **OVER** (47.9 / 46 KB).
+**Verdict:** shipped
+**Surprise:** `t = 27.5` is **18.00**, not noon — `nightF` 0.29 there, so the "noon byte-identical" test at the anchor would have shown a difference that was the feature working. Noon on day 0 is `t = 13.75`. And the after-dark cap is the thing that prices a night visitor, not the walk: `eastCap` falls to 1 with the light and the walkers going home hold it, so a night arrival gated by it never fires — a night stop needs its own presence bound (ONE), not the day's cap.
+**Law:** A cap sized on daylight is CLOSED after dark whatever it reads — anyone still walking home holds it. A night visitor must be bounded by its own presence rule, not the day's cap.
+**Cue:** `probe: 1 sample standing past the tap shut` — the send-home check and the arrival can land on the same step; harmless. The bridge-end lamp columns only show south of the deck (fy 79.5+), so the deck's shadow on the water is an implicit edge worth drawing. The boat has no reflection.
+
+## Iteration 47 — the door gets callers: the market's last trader and an evening sweeper, the audience priced out (2026-08-29) [Lane & market × Connect]
+
+**Brief:** b44. Not a duplicate: `grep` found no path into `TAP_SLOTS` except `spawnTapAgent`, and `scarcity` read `agents.length` whole.
+**Did:** `callIn(a, pts, durMin, durMax)` — the ONE way an agent already on its feet is re-routed to the pavement: takes the first free `TAP_SLOT` (not `pick`, so a refusal spends no R()), prices the polyline from where they stand at their speed in sim hours (`pathHours`, `HOURS_PER_S = 24/DAY_LEN`), and `tapFits` demands the door open at arrival and arrival + drink + 0.6 h inside `TAP_SHUT`; refused = walk home as before. Three sources: the concert audience (`a.toTap` written at spawn, 40%; priced at the strike) and, in `tapCallers()` on market days, a trader who leaves the LAST stall when it is folded (`marketClose() + MK_STAGGER·2 + MK_RAISE`, needs `mkTrades`) and an evening sweeper (`kind:'sweeper', eve:true`, 62 → 40 along LANE_S_Y then to the door, otherwise off west). `scarcity` now reads `agents.length − tapNow` (c65). `__entities` carries `tap`/`caller` on walkers AND sweepers. `personName` names both sweepers.
+**Gates:** census PASS (reshuffle churn: `toTap` is an R() on every concert spawn; fireflies −24 on one rung) · motion PASS, sweeper spawns +1 in night and market scenes · **`probes/tap-callers.mjs`**: 13 market days over two years — callers reach the pavement on **5/13**, all with warmth ≤ 0.43 (sweeper ×4, trader ×2); 19 concert nights — the priced walk from the green is **25–41 sim hours** against a shut 9 h off, so `callIn` refuses **19/19** and 0 band ids ever become tap ids · **`probes/bandstand-year.mjs` §5** (c68): scans `eastOpen()` itself every day of a year — clearance between the slowest listener leaving and the light's edge is **0.81..1.79 h**, PASS on a 0.5 h floor · night filmstrip median Δ 0.247, no POP · winter market-night shot: sweeper standing at the door 01.39 with three of the door's own. Perf not run: `tapCallers` is three predicates per frame.
+**Verdict:** shipped, with the brief's headline half priced to zero — "concert-night occupancy above ordinary nights" is **false** and the code says why.
+**Surprise:** the *market* callers also read 0/13 on the first run. The last stall is 38 cells from the door (I had guessed 20): 7.1 h at 2.4 cells/s, and my 4–6 s drink put even the winter arrival 0.4 h past the shut. A 3–4.5 s drink turned 0 into 5. Then the probe still showed only 2: the sweeper's `take()` in `__entities` had no `extra`, so a sweeper at the door was invisible to the instrument. Two zeros, neither the feature.
+**Law:** A walk priced in your head is wrong by 2×; price it with the constants (`pathHours`) *before* choosing who is sent, and when a caller's window is minutes, the DRINK is the term that decides, not the walk. And `__entities` exposes per-kind `extra`s — a new field on one `take()` is a blind spot on every other kind that can carry it.
+**Cue:** the trader's stall is 38 cells off; a caller from stall 0 (x 45) would fit spring/autumn too. `scarcity` still counts the band crowd (9 on the green at 17.00 — daytime, so harmless). Summer market evenings never call in — the door's midsummer shut binds; that is a fact about the year, not a bug, but it means the connection reads only in the cold half.

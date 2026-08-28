@@ -1,40 +1,130 @@
 {
-  "generated": "2026-08-28T12:40:00.000Z",
-  "byIteration": 42,
-  "rung": 4,
+  "generated": "2026-08-28T16:55:17.700Z",
+  "byIteration": 47,
+  "rung": 2,
   "diagnosis": {
-    "health": "Healthy, and the cheapest stretch of the run. The last ten rows (#33–#42, launch failures excluded) are 9 shipped and 1 no-ship, and that one is #38 the harness brief, which by definition changes no source — runlog.mjs grades it no-ship against a selfVerdict of shipped, so the one verdict gap in ten rows is the instrument, not the worker (folded into b40). Source moved 9/10, 0 reverts, 0 briefs rejected. Cost on fable-5: $3.44 / $3.68 / $6.52 / $3.14 / $2.20 / $3.29 — a median of ~$3.4 against the run's $6.11, with 30–68-line diffs and a probe each; the expensive one (#39, $6.52) was the cached-facade discovery and paid for itself with a leak fix. Minutes 4–15. The opposite of Solvista's signature: cost falling, output flat-to-rising.",
+    "health": "Healthy and the best stretch of the run: the last 20 real rows are 20 shipped, 0 reverts, 0 briefs rejected, selfVerdict == verdict on every one, source moved 8/10 (the two flat rows are #43 the harness brief and a manager row). Last 10 average 8 min and $3.87 — #45–#47 ran $4.0–4.7 with 74–95-line diffs and a new probe each, so cost is rising WITH output, not without it. The one fault is mine again: the worker budget opened OVER on #45, #46 and #47 (46.1 → 47.9 → 50.5 KB) because three consecutive workers each wrote a 3.4–3.8 KB entry and there was no manager pass between them; fixed this pass to 43.7 KB (ledger last-3 10.5 → 5.5 KB, inventory 11.8 → 9.4 KB, WATCH rewritten). The loop is LEARNING, not repeating: #46 and #47 each produced a law that is new (the daylight cap is closed after dark; price the walk with pathHours, the drink decides) and neither is a restatement of anything in LAWS.md.",
     "signals": [
-      "queue empty (b39 was the last brief; all five of pass #37's briefs consumed and shipped)",
-      "no stall signal; revertStreak=0; srcFlat=1 (the harness brief, by design)",
-      "context budget opened OVER at #41 and #42 (46.3–46.4 / 46 KB) — inventory + a 2.9 KB #39 entry; fixed this pass to 43.0 KB",
-      "state.json was three iterations stale (lastIteration=39, coverage missing #38/#40/#41/#42) — recorded"
+      "queue empty (all five of pass #42's briefs consumed and shipped)",
+      "no stall signal; revertStreak=0; srcFlat=1 (harness, by design)",
+      "context budget OVER three iterations running (50.5/46 KB at #47) — fixed this pass",
+      "state.json five iterations stale (coverage missing #43–#47) — recorded"
     ],
-    "balance": "After recording: life 12 back (#30), river 10 back (#32), lane 9 back (#33), courtyard 5, sky 3, plaza 2, street 1, sill 0. Sky had 3 of the last 12 but all Deepen/Harness, not the saturated Polish cell. This batch puts new work in life, river and lane — the three most starved — plus one sky Scale/World bet and one harness fix."
+    "balance": "After recording: courtyard 10 back (#37), plaza 7 back (#40), street 6 back (#41), sill 4, life 3, sky 2, river 1, lane 0. Sky × Polish stays saturated. The last five workers all sat in the four domains the night climb needed; this batch puts three of five in courtyard, plaza and street, and the two that are not are a visible defect (sky) and the batch's bet (life)."
   },
-  "rationale": "HELD RUNG 4, for the same climb as #32 and #37 — the world only exists for ~60% of its clock — and now the second half of that climb is what is missing. The windows landed (#39: 22.00 and 03.00 are different pictures), the door landed (#33), and the two are not connected to anything: nobody walks FROM anywhere TO the door, the east half still shuts at daylight 0.16, and the river at night is the same water as noon under a blue multiply. b43 (river, the east's night) and b44 (lane, who the door's custom are) finish the night; both are Connect briefs because the pieces all exist and the loop's highest-yield move is wiring them. The batch's bet is b42: SNOW. The year has nine readers and winter is 'blooms scattered in turned earth' plus a skinned basin — a thirty-second viewer who lands in February cannot tell it is winter from the wide shot, and precipitation is the one weather kind the town has never had. It is rung-4 work (a new state of the world), it is high risk (it touches the cached ground layer and must be exactly zero at the anchor), and it is the single most visible thing the diorama lacks. b41 is the cheap life brief that pays c73 and gives #42's naming something new to say. b40 goes at the head: filmstrip's night preset is a day strip, runlog grades every harness brief no-ship, and a crashed worker still retires its brief — three small lies in the instruments, all one file class. Curation this pass: coverage entered for #38/#40/#41/#42; eight cues closed (five promoted into briefs, three no-yield: c63, c71, c72); inventory note cut from 700 B to 230 B, sky merged 9→8 entries, two 300 B+ entries trimmed; four laws promoted (#39 cached layer as a new law; #40 complement threshold into the R() law; #41 opening state into the one-predicate law; #42 per-pose hit box into the sill law), paid for by compressing six verbose laws — 27 laws, 12.0/12 KB; ledger rotated 12→8 entries, promoted Law/Cue lines cut from #39–#42. Worker budget 46.4 → 43.0 KB.",
-  "queue": [],
-  "recommendStop": null,
-  "consumed": [
+  "rationale": "DROPPED FROM RUNG 4 TO RUNG 2, deliberately. Passes #32, #37 and #42 held rung 4 for one reason — the town had no night — and that climb is now landed: windows keep hours (#39), the door has callers (#47), the river has lamps and a night stander (#46), and snow (#45) gave winter a wide-shot tell. The ladder says stay low while work lands, and the highest-yield move now is to COMPOUND what three rung-4 passes built rather than open a fourth world-change while the last one still has loose ends. Every brief here wires two things that already exist and ignore each other. b45 goes first because it is a defect a thirty-second viewer sees: the whole picture relights in one frame at winter dusk (5–9 whole-frame Δ on HEAD, twice what any feature produces) because the cached ground repaints on a quarter-hour bucket that is coarse exactly where the light moves fastest. b46 is snow × the one system the courtyard is famous for (desire paths) plus the sweeper who already exists — the cheapest legible winter connection, in the most starved domain. b47 gives the plaza the wind, the one scalar nothing east of the bridge reads (WATCH). b48 is the bet: the town's people leave the frame at dusk and nobody goes HOME — a walker who turns in at a door and lights the window they went to is the single thing that would make the night read as inhabited rather than decorated; it touches the cached facade layer, WINDOWS[] and routeToExit, and it can fail. b49 gives the allotments a winter (the block is empty for a quarter of the year: allotRate floors at 0.01 with ripePlots 0). Curation: coverage #43–#47 entered; c75/c76/c77 promoted (c75 re-raised as the swan half of b48's avoid), c74/c78/c79 kept (seen 1); three laws promoted from #44/#46/#47 (follower-rate as new; night cap and pathHours merged INTO the time-compress law rather than beside it; __entities extras into the instrument law; __warp-never-draws and filmstrip --page into the probe and control laws) paid for by compressing eight verbose laws — 28 laws, 12.0/12 KB, nothing cut outright; ledger rotated 12 → 8 and #45–#47 archived verbatim then condensed 3.4–3.8 → 1.8 KB each; inventory 59 → 45 entries by merging pairs, WATCH's two spent notes replaced with what is true now. Worker budget 50.5 → 43.6 KB OK.",
+  "queue": [
     {
-      "id": "b40",
-      "at": "2026-08-28T12:18:53.530Z"
+      "id": "b45",
+      "domain": "Sky, light & weather",
+      "kind": "Deepen",
+      "brief": "The cached ground/facade layer (`drawGround`, repainted when `lightBucket` changes at `courtyard.html` ~5584: `lb = floor(hour*4)*8 + round(cloudCover()*6)`) steps a quarter sim-hour at a time. Near sunUp/sunDown that is where the light changes fastest, so on a winter afternoon the WHOLE picture relights in one frame — `filmstrip.mjs` reads 5–9 whole-frame mean-Δ at winter dusk on HEAD (#45 measured it; no feature in this town produces more than ~2). Make the dusk and dawn relight continuous to the eye: either a finer bucket only within ~1.5 h of the sun's edges (rebuild cost is the constraint — measure it with `perf.mjs`), or a live screen-space tint over the cached layer between buckets so each bucket step lands on a picture already most of the way there. The noon bucket cadence must not change.",
+      "seams": [
+        "lightBucket",
+        "groundDirty",
+        "drawGround",
+        "drawBlocks",
+        "sunUp",
+        "sunDown",
+        "daylight",
+        "nightF",
+        "filmstrip.mjs",
+        "perf.mjs",
+        "probes/ground-relight.mjs"
+      ],
+      "successLooksLike": "`filmstrip.mjs` at winter dusk (seed 7, t≈1183) and summer dusk: max single-frame Δ under 3 on both, HEAD's 5–9 reproduced first as the control. perf.mjs within noise of HEAD across a whole day (no more than +10% rebuilds per sim day). Noon frame at the anchor byte-identical to HEAD.",
+      "avoid": "Do not shrink the bucket everywhere — the rebuild is the cost and midday does not need it. Do not touch drawLitPanes (it already repaints live). This is not Polish: it is a cache cadence, so it is Deepen, and Sky × Polish is saturated.",
+      "budgetMin": 25,
+      "risk": "low"
     },
     {
-      "id": "b41",
-      "at": "2026-08-28T12:28:04.653Z"
+      "id": "b46",
+      "domain": "Courtyard & garden",
+      "kind": "Connect",
+      "brief": "Snow (#45, `snowCover`, `snowAt(x,y,t)` at ~1011) and foot wear (`wear[]`, written at ~1822 by every walker step, read by `drawGround` at ~3388 for desire paths) do not know each other: a lying cover whitens the lawn evenly and the town's most-loved emergent feature — the paths people wear — vanishes for a quarter of the year. `snowAt` already takes less on trodden KINDS; extend that to the wear VALUE so a worn line through the lawn stays dark through the snow and a fresh cover is re-trodden from the arches inward over a morning. Then give the pre-dawn sweeper (~2320, `sweeper`) a winter job: the strip they sweep (their actual route) is cleared, so at dawn on a snowy day there is one swept path and the rest is white until feet cut the desire paths again.",
+      "seams": [
+        "snowAt",
+        "snowCover",
+        "snowTake",
+        "wear",
+        "drawGround",
+        "groundDirty",
+        "SNOW_REPAINT",
+        "sweeper",
+        "spawnAgent",
+        "probes/snow-year.mjs"
+      ],
+      "successLooksLike": "A winter-morning shot (seed 7, snowCover > 0.4) shows dark desire paths through a white lawn and one swept strip; the same instant on HEAD is an even white. Summer frames byte-identical to HEAD. A probe over five seed-winters: mean snow on cells with wear > 0.45 is under half the mean on cells with wear < 0.1. snow-year.mjs's cover means move less than 5%.",
+      "avoid": "Do not add a new ground kind or a new R() draw. Wear is per courtyard cell only — do not invent wear for the paved east. Keep the repaint on SNOW_REPAINT steps; a per-frame ground redraw is the one thing that would fail perf.",
+      "budgetMin": 30,
+      "risk": "medium"
     },
     {
-      "id": "b42",
-      "at": "2026-08-28T12:33:16.497Z"
+      "id": "b47",
+      "domain": "Plaza & quay",
+      "kind": "Connect",
+      "brief": "`isWindy()` (~842) moves washing, smoke, leaves, tree sway and the morning ticker line — all west of the bridge. The fountain (`drawFountain` ~4404) sprays five symmetric jets in a gale. Make the plaza read a windy day: the jets lean and their droplets carry downwind (there is a `windT`/`sway` already at ~3815 to phase off), the lee side of the basin gets a visible drift of spray, and `fountainStand()` (the share willing to stand at it, read by both spawners) drops on windy days so people take the benches instead of the wet side. If budget allows, the bandstand bunting (`bandF`) flutters on the same days.",
+      "seams": [
+        "isWindy",
+        "windT",
+        "drawFountain",
+        "fountainPlay",
+        "fountainStand",
+        "spawnEastAgent",
+        "FOUNTAIN",
+        "probes/fountain-year.mjs"
+      ],
+      "successLooksLike": "Two shots at the same pinned instant, one windy day and one calm (pick days by hash(day,99)): the windy plume visibly leans one way and the calm one is symmetric. fountain-year.mjs still passes at the anchor. Over ten windy days, standers at the fountain are measurably fewer than on ten calm days, with the bench share up by the same amount (the east's arrivals are unchanged).",
+      "avoid": "No new R() draws in the renderer — lean and drift are hash()+clock. Do not change eastCap/eastRate; move the SPLIT, not the arrivals. Do not touch the river streaks (they drift on riverRun and that is the river's job).",
+      "budgetMin": 25,
+      "risk": "medium"
     },
     {
-      "id": "b43",
-      "at": "2026-08-28T16:30:40.634Z"
+      "id": "b48",
+      "domain": "People & animals",
+      "kind": "Connect",
+      "brief": "Nobody in this town goes home. `routeToExit()` (~1677) walks every leaver off the frame, and the windows (`windowLit` ~2942, hash-only, per night) light on their own with no one behind them. Connect them: a share of the walkers who leave after dusk (nightF > 0.3) instead walk to a DOOR on a cached facade that has a window above it, vanish into it, and THAT window's pane lights at that moment (a small live register keyed by (sa,sb), read by windowLit alongside its hash, repainted by drawLitPanes which already runs per frame) and keeps that window's normal bedtime. The evening door (`TAP_DOOR`, `drawTapDoor`) is the pattern for a door on `drawFaceRow`; pick 4–8 doors along the lane and the courtyard's own facades, each with a window over it. Price the walk with pathHours() first — a walker who cannot reach the door before their window's own `on` hour goes off-frame as now.",
+      "seams": [
+        "routeToExit",
+        "windowLit",
+        "WINDOWS",
+        "drawLitPanes",
+        "LIT",
+        "drawFaceRow",
+        "TAP_DOOR",
+        "pathHours",
+        "nightF",
+        "__entities",
+        "probes/windows-night.mjs"
+      ],
+      "successLooksLike": "On a night filmstrip a figure walks to a door, disappears, and a window above it lights in the same second — visible at 1x. Over ten seed-nights at least a third of dusk leavers go to a door, and every window lit by an arrival is one windowLit would have allowed that night (no window lit that is 'nobody home'). windows-night.mjs's lit fractions move under 10%. personName says 'heading home'. The swans, while there: rest on the bank at nightF > 0.6 (cue c75) — one line in updateSwans, not a system.",
+      "avoid": "Do not make windows an agent system. One register, one predicate: windowLit stays the ONE truth and reads the register. No R() in the renderer. Do not send the east's leavers (eastOpenFor) — their walk is priced out; lane and courtyard leavers only.",
+      "budgetMin": 40,
+      "risk": "high"
     },
     {
-      "id": "b44",
-      "at": "2026-08-28T16:39:19.089Z"
+      "id": "b49",
+      "domain": "Cross street & allotments",
+      "kind": "Deepen",
+      "brief": "The allotment block is empty for a quarter of the year: `allotRate = (0.01 + 0.16*ripePlots()/17) * (raining ? 0.2 : 1)` (~5630) and ripePlots() is 0 all winter, so the 0.01 floor sends nobody for ~six sim days and the plots sit under snow with nothing happening in them. Give the block a winter: on mild, dry, daylit winter days (warmth low, !raining, snowCover < 0.3) a gardener comes to a FALLOW plot (bAge as the fallow clock, `harvestPlot`, `plotCrop`) and turns it — an `act:'dig'` stop of a few seconds — and the plot reads as freshly turned earth (a darker, rowless state through `groundCol`/the plot draw) until the spring sowing. Hardy cabbages (`plotStands`) stand through it as they do now.",
+      "seams": [
+        "spawnAllotAgent",
+        "allotRate",
+        "ripePlots",
+        "harvestPlot",
+        "plotCrop",
+        "plotStands",
+        "bAge",
+        "groundCol",
+        "snowCover",
+        "probes/allot-year.mjs"
+      ],
+      "successLooksLike": "allot-year.mjs folded over two years: gardener visits in winter weeks go from ~0 to a small steady rate (1–3 per sim day on dry mild days, 0 in snow or rain), with the summer rate unchanged. A late-winter shot shows two or three dark turned plots among the white/fallow ones; the same instant on HEAD is uniform. Census planting.harvested unchanged.",
+      "avoid": "Do not change ripePlots() or the harvest cycle. Keep the winter gardener on spawnAllotAgent's own source (it exists so the block does not compete for laneCap). One new per-plot state at most.",
+      "budgetMin": 30,
+      "risk": "medium"
     }
-  ]
+  ],
+  "recommendStop": null,
+  "consumed": []
 }
