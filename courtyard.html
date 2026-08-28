@@ -3171,6 +3171,15 @@ function windowLit(sa, sb){
  * dozen others. WINDOWS[] is the register the live pass reads, filled by the cached
  * pass. The south band (rows 61-64) is drawn on ctx every frame and stays as it was. */
 const WINDOWS = [];                              // [wx, wy, zTop, hgt, sa, sb] per cached window
+/* #55: the same windows, and the front doors, as SCREEN boxes for the sill's naming —
+ * one entry per pane drawn, painter's order, `live` for the south band (rows 61-64),
+ * which drawSouthBand paints on ctx every frame and so re-registers every frame; the
+ * cached ones are refilled with WINDOWS[] on a ground rebuild. Read by faceAt(). */
+const FACES = [];                                // {x0,x1,y0,y1, sa,sb, door, live}
+function pushFace(g, wx, wy, zTop, zBot, hw, sa, sb, door){
+  const a = project(wx - hw, wy, zTop), c = project(wx + hw, wy, zBot);
+  FACES.push({ x0: a[0], x1: c[0], y0: a[1], y1: c[1], sa, sb, door, live: g !== gtx });
+}
 function drawPane(g, wx, wy, zTop, hgt, lit){
   const w = 0.32, p = 0.76;
   const iA = project(wx - w * p, wy, zTop - hgt * 0.11), iB = project(wx + w * p, wy, zTop - hgt * 0.11);
@@ -3195,6 +3204,7 @@ function drawWindow(g, wx, wy, zTop, hgt, sa, sb){
   g.fillStyle = 'rgba(240,233,216,.85)'; poly(g, [a, b, c, d]); g.fill();
   const cached = g === gtx;
   if (cached) WINDOWS.push([wx, wy, zTop, hgt, sa, sb]);
+  pushFace(g, wx, wy, zTop, zTop - hgt, w, sa, sb, false);
   drawPane(g, wx, wy, zTop, hgt, !cached && windowLit(sa, sb));
   const s1 = project(wx - w * 1.2, wy, zTop - hgt), s2 = project(wx + w * 1.2, wy, zTop - hgt);
   const s3 = project(wx + w * 1.2, wy, zTop - hgt - 0.14), s4 = project(wx - w * 1.2, wy, zTop - hgt - 0.14);
@@ -3239,14 +3249,15 @@ function drawFaceRow(g, y){
     if ((slot === 1 || slot === 4) && hash(gx, y * 7) > 0.12){
       drawWindow(g, x + 0.5, y + 1, e * 0.86, e * 0.30, gx, y);
       if (e > 4.2 && hash(gx, y * 9) > 0.2) drawWindow(g, x + 0.5, y + 1, e * 0.48, e * 0.28, gx, y + 40);
-      if (homeDoorAt(gx, y)) drawFrontDoor(g, x, y, e * 0.34 * 0.86);   // the door somebody comes home to
+      if (homeDoorAt(gx, y)) drawFrontDoor(g, x, y, e * 0.34 * 0.86, gx, y);   // the door somebody comes home to
     } else if (slot === 6 && hash(gx, y * 13) > 0.45){
-      drawFrontDoor(g, x, y, e * 0.34);
+      drawFrontDoor(g, x, y, e * 0.34, -1, -1);
     }
   }
 }
-function drawFrontDoor(g, x, y, dh){
+function drawFrontDoor(g, x, y, dh, sa, sb){
   const dw = 0.34;
+  pushFace(g, x + 0.5, y + 1, dh, 0, dw, sa, sb, true);
   const p1 = project(x + 0.5 - dw, y + 1, dh), p2 = project(x + 0.5 + dw, y + 1, dh);
   const p3 = project(x + 0.5 + dw, y + 1, 0), p4 = project(x + 0.5 - dw, y + 1, 0);
   g.fillStyle = 'rgba(238,231,214,.75)'; poly(g, [p1, p2, p3, p4]); g.fill();
@@ -3563,6 +3574,7 @@ function drawTapDoor(){
   ctx.fillStyle = '#2e2820'; poly(ctx, [h1, h2, h3, h4]); ctx.fill();   // its little hood
 }
 function drawSouthBand(){
+  for (let i = FACES.length - 1; i >= 0; i--) if (FACES[i].live) FACES.splice(i, 1);   // re-registered this frame
   for (let y = 61; y <= 64; y++){
     drawFaceRow(ctx, y); drawRoofRow(ctx, y); drawCrests(ctx, y);
   }
@@ -3652,6 +3664,7 @@ function drawGround(){
   gcv.width = W * DPR; gcv.height = H * DPR;
   gtx.setTransform(DPR, 0, 0, DPR, 0, 0);
   SUN = sunVec(); LIT.length = 0; WINDOWS.length = 0; HAZE = skyCols()[1];
+  FACES.length = 0;                                // the cached faces are re-registered below; the live ones every frame
   snowPainted = snowCover;
   const m = maturity();
   // the sky is *not* baked in here — it is painted fresh every frame underneath this
@@ -5697,10 +5710,47 @@ function livingAt(p){
   if (catA) hit(catA.x, catA.y, 0, 0.6, catA.y + 0.3, 'the cat, out along the lane');
   return best;
 }
+/* The windows and front doors, hit-tested in SCREEN space against FACES[] — painter's
+ * order again, and asked AFTER the living things, so a person stood in front of a
+ * window wins the hit. By day a window is a window. After dark it is the most legible
+ * thing on screen, and the line says what the register says: windowLit() decides IF,
+ * windowHours()/HOMES say WHY — nothing about lit-ness is re-derived here. */
+function faceAt(p){
+  for (let i = FACES.length - 1; i >= 0; i--){
+    const f = FACES[i];
+    if (p[0] >= f.x0 && p[0] <= f.x1 && p[1] >= f.y0 && p[1] <= f.y1) return f;
+  }
+  return null;
+}
+function clockOf(t){                             // hours since the dusk edge -> 'HH.MM' on the town's clock
+  const h = (sunDown - NIGHT_K * dayHours + t + 24) % 24;
+  return (h | 0) + '.' + String(Math.round((h % 1) * 60)).padStart(2, '0');
+}
+function windowName(sa, sb){
+  if (nightF <= 0.3) return 'a window';
+  const w = windowHours(sa, sb);
+  if (!w) return 'a window, dark: nobody home tonight';
+  const home = HOMES.get(sa * 1000 + sb), tonight = home && home.nid === w.nid ? home : null;
+  if (windowLit(sa, sb)){
+    if (tonight && tonight.t !== null) return 'a lamp lit at ' + clockOf(tonight.t) + ', somebody came home';
+    if (w.t >= w.on && w.t < w.off) return w.off === w.last ? 'a lamp burning through the night'
+                                        : w.t > w.on + 4 ? 'a lamp burning late' : 'a lamp lit, somebody in';
+    return 'a lamp lit: an early riser';
+  }
+  if (tonight && tonight.t === null) return 'a window, dark: somebody on their way home';
+  if (w.t < w.on) return 'a window, dark: not in yet';
+  return 'a window, dark: gone to bed';
+}
+function doorName(f){
+  if (f.sa < 0) return 'a front door';
+  if (nightF <= 0.3) return 'a front door, with a window over it';
+  return 'a front door; the lamp over it is ' + (windowLit(f.sa, f.sb) ? 'lit' : 'dark');
+}
 function lookAt(p){
   const l = livingAt(p);
   if (l) return l;
-  const c = treeAt(p);
+  const f = faceAt(p), c = treeAt(p);        // crowns paint over the cached facades; the live band over the crowns
+  if (f && (f.live || !c)) return f.door ? doorName(f) : windowName(f.sa, f.sb);
   if (c) return c.name + ', ' + treeState(c.fruit);
   const [x, y] = cellOf(p);
   return nameAt(x, y);

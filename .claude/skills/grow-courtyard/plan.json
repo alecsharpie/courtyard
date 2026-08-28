@@ -15,30 +15,6 @@
   "rationale": "HOLD RUNG 2. Work is landing cleanly and every rung-4 climb from #32–#42 (the night, snow) still has a compounding move left, so the ladder says compound, not climb. The frontier for a thirty-second viewer is still the night: #51 proved the mechanism (a person walks to a door and the window over it lights) and in the same breath proved the town is EMPTY when it fires — 6–9 agents, under one leaver a night. b50 is the batch's bet: a night ARRIVAL source (people coming home from off-frame to a HOME_DOOR, on their own budget like spawnTapAgent) so the mechanism has a supply and three to five windows a night light because somebody came in. It can fail on the R() churn and the pricing, which is why it goes first while the loop is strong. b51 pushes the wind past the fountain onto the river (river 6 back, the WATCH note's exact gap). b52 gives the observer the night — the sill names lawns, plots, trees and people, and nothing on a facade; a lit window is now a fact with a cause (HOMES, windowHours) the viewer cannot read. b53 is c81: drawGround is 9.2 ms of an 11.5 ms frame and repaints ~650×/day off the wear line, in the domain the dashboard shows 3 back. b54 fixes the two instrument lies that cost #48 its iteration (filmstrip's rate-as-pop, run-loop's MANAGER_GAP). Risk: one high, one medium, three low. Curation: coverage #48–#52 entered; eight cues resolved (six promoted/folded into b50/b51/b53/b54, two closed), four held at seen 1, one new (c89 the church has no night); ledger 8 -> 5, #50–#52 archived verbatim then condensed 2.9–3.3 -> 1.9–2.2 KB; five laws promoted (bAge-two-fields new; choice/histogram merged as one new law; #48 folded into the filmstrip and cache laws; #51 into the WALK law) paid for by compressing the four inherited laws and the seasonal-mean law — 30 laws, 12.05/12 KB. Budget 49.1 -> under cap.",
   "queue": [
     {
-      "id": "b52",
-      "domain": "The sill & the observer",
-      "kind": "Interaction/UX",
-      "brief": "The naming answers lawns, plots, water, paving, trees and living things, and returns '' for every wall — so at night, when the most legible things on screen are lit windows, the sill has nothing to say about any of them. Make a window under the pointer name itself and its cause: hit-test `WINDOWS[]` (and the row-64 live panes) in screen space the way `treeAt`/`livingAt` do, then read `windowLit`/`windowHours`/`HOMES` for the line — 'a lamp lit at 19.40, somebody came home', 'burning late', 'an early riser', 'dark: nobody home tonight', 'dark: gone to bed'. A front door gets its own line ('a front door; the lamp over it is lit'). Day-time the same window says 'a window' and nothing more.",
-      "seams": [
-        "nameAt",
-        "treeAt",
-        "livingAt",
-        "personName",
-        "WINDOWS",
-        "HOME_DOORS",
-        "HOMES",
-        "windowLit",
-        "windowHours",
-        "nightAt",
-        "NAME_SETTLE",
-        "probes/naming.mjs"
-      ],
-      "successLooksLike": "`probes/naming.mjs` gains a §8: at a midnight instant, hovering a pane that `windowLit` says is lit returns a line containing the cause; a dark pane returns the dark line; noon returns 'a window'. Nothing named today loses its name (the tree/living/paving cases in §1–§7 still pass).",
-      "avoid": "Do not add a hint or an OFFERS entry — this rides the existing naming, which already has its invitation. Painter's order matters: a person standing in front of a window wins the hit. Read the register; never re-derive lit-ness in the sill.",
-      "budgetMin": 25,
-      "risk": "low"
-    },
-    {
       "id": "b53",
       "domain": "Courtyard & garden",
       "kind": "Polish",
@@ -83,6 +59,10 @@
     {
       "id": "b51",
       "at": "2026-08-28T22:01:04.454Z"
+    },
+    {
+      "id": "b52",
+      "at": "2026-08-28T22:09:47.822Z"
     }
   ]
 }

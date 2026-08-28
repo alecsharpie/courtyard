@@ -391,7 +391,8 @@
       "the NAMING — what is under the pointer is named in the sill (a TAP names on a phone): beds vs bedCap, plots off plotCrop, places off pavingAt/WATERS, 13 trees hit-tested in SCREEN space vs crowns[]. NAME_SETTLE. probes/naming.mjs",
       "THE DIORAMA IS CLICKABLE and says so once — answersTouch(x,y) is the ONE predicate, read by cursor and handler: seeds, a daisy, crumbs, a coin, a pebble. Invitations are a QUEUE, OFFERS[]. probes/touch-hint.mjs",
       "the NAMING names the LIVING things — livingAt(p) hit-tests agents, dogs, ducks, swans, boat, cat in SCREEN space on the projected feet (box per pose); personName(a) says what they are doing. probes/naming.mjs §7",
-      "harness: runlog --regrade; Harness verdicts graded on commit+log; crashed-worker one-retry (brief.retry); filmstrip AT(day,hour), night preset at midnight; probes/dusk-relight-where.mjs (Δ by row, cached vs live), ground-rebuilds.mjs (drawGround rebuilds/day)"
+      "harness: runlog --regrade; Harness verdicts graded on commit+log; crashed-worker one-retry (brief.retry); filmstrip AT(day,hour), night preset at midnight; probes/dusk-relight-where.mjs (Δ by row, cached vs live), ground-rebuilds.mjs (drawGround rebuilds/day)",
+      "the NAMING names the WINDOWS and DOORS — FACES[] screen boxes (pushFace from drawWindow/drawFrontDoor, live for rows 61-64), faceAt(); windowName() reads windowLit + windowHours/HOMES for the cause ('a lamp lit at HH.MM, somebody came home', 'burning late', 'dark: gone to bed'…), doorName(); by day 'a window'. probes/naming.mjs §8"
     ]
   },
   "openCues": [
@@ -441,6 +442,12 @@
       "id": "c92",
       "note": "c78 is half false: the bridge already lays a shadow on the water (drawBridge). A boat reflection after dark needs a lantern on the boat first — dark on dark reads as nothing",
       "raisedBy": 52,
+      "seenBy": 0
+    },
+    {
+      "id": "c93",
+      "note": "HOMES is never pruned — entries from past nights accumulate forever (14 doors max, harmless, but any new reader must qualify on nid)",
+      "raisedBy": 54,
       "seenBy": 0
     }
   ],

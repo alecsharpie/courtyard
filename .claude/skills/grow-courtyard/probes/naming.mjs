@@ -200,8 +200,9 @@ const ok = (c, s) => { console.log((c ? '  ok   ' : '  FAIL ') + s); if (!c) bad
       for (let y = 2; y < WH; y += 3) for (let x = 2; x < GW; x += 3){
         if (ents.some(e => Math.abs(e.x - x) < 2.5 && Math.abs(e.y - y) < 2.5)) continue;
         const q = project(x + 0.5, y + 0.5, 0);
-        const c = treeAt(q);
-        clear.push([x, y, lookAt(q), c ? c.name + ', ' + treeState(c.fruit) : nameAt(x, y)]);
+        const c = treeAt(q), f = faceAt(q);        // #55: a window or a door answers before the ground
+        clear.push([x, y, lookAt(q), f && (f.live || !c) ? (f.door ? doorName(f) : windowName(f.sa, f.sb))
+                                   : c ? c.name + ', ' + treeState(c.fruit) : nameAt(x, y)]);
       }
       return { rows, clear };
     });
@@ -212,7 +213,7 @@ const ok = (c, s) => { console.log((c ? '  ok   ' : '  FAIL ') + s); if (!c) bad
   ok(total >= 50, `${total} drawn living things pointed at over ten seeds`);
   ok(living / total >= 0.95, `${living}/${total} = ${(100 * living / total).toFixed(1)}% answer a living name (want ≥ 95%)`);
   ok(ground === 0, `${ground} answered the ground instead` + (eg.length ? ' e.g. ' + JSON.stringify(eg) : ''));
-  ok(clearDiff === 0, `${clearN} points 2+ cells clear of every entity: ${clearDiff} differ from nameAt/treeAt alone`);
+  ok(clearDiff === 0, `${clearN} points 2+ cells clear of every entity: ${clearDiff} differ from nameAt/treeAt/faceAt alone`);
   console.log('         vocabulary (' + vocab.size + '): ' + [...vocab].join(' · '));
   const headFile = arg('--head', null);
   if (headFile){
@@ -366,6 +367,58 @@ const ok = (c, s) => { console.log((c ? '  ok   ' : '  FAIL ') + s); if (!c) bad
   }));
   ok(!back.on && back.plate !== 'none', 'the sill comes back on its own after NAME_HELD');
   await ctx.close();
+}
+
+/* ---- 8: the windows and doors, by night and by day (#55) -----------------------
+ * At a midnight instant every registered pane names itself, the lit ones with a cause,
+ * the dark ones with theirs; at noon the same panes say 'a window' and nothing more. The
+ * line is checked against windowLit() — the ONE predicate — never re-derived here, and
+ * the register's own arrival (HOMES, t set) is tested when the seed produced one. */
+{
+  console.log('\n8. the windows, at midnight and at noon');
+  const p = await b.newPage({ viewport: { width: 1400, height: 900 } });
+  p.on('pageerror', e => errs.push(String(e)));
+  await p.goto(`${PAGE}?pause&seed=${seed}`);
+  await p.waitForFunction('typeof window.__census === "function"');
+  // day 11 midnight: t = 11*55 + (24-6)/24*55 -> hour 0.00 of day 11's night (day rolls at 06.00)
+  const night = await p.evaluate(() => {
+    __warp(11 * 55 + 18 / 24 * 55); drawScene(); drawScene();
+    const rows = FACES.map(f => {
+      const c = [(f.x0 + f.x1) / 2, (f.y0 + f.y1) / 2];
+      return { door: f.door, live: f.live, sa: f.sa, sb: f.sb, name: lookAt(c),
+               nid: nightAt().nid, lit: !f.door && windowLit(f.sa, f.sb), home: !f.door && (HOMES.get(f.sa * 1000 + f.sb) || null) };
+    });
+    return { hour: +hour.toFixed(2), nightF: +nightF.toFixed(2), rows, n: FACES.length };
+  });
+  ok(night.nightF > 0.3 && night.hour < 1, `pinned at hour ${night.hour}, nightF ${night.nightF}`);
+  const wins = night.rows.filter(r => !r.door), doors = night.rows.filter(r => r.door);
+  ok(wins.length > 40 && wins.some(r => r.live) && wins.some(r => !r.live),
+    `${wins.length} panes registered (${wins.filter(r => r.live).length} live in the south band), ${doors.length} doors`);
+  // a person standing in front wins the hit, so only judge the panes whose line is a window line
+  const winLines = wins.filter(r => /window|lamp/.test(r.name));
+  ok(winLines.length >= wins.length * 0.8, `${winLines.length}/${wins.length} pane centres answer as a window (the rest are people in front)`);
+  const lit = winLines.filter(r => r.lit), dark = winLines.filter(r => !r.lit);
+  ok(lit.length > 0 && lit.every(r => r.name.startsWith('a lamp')),
+    `${lit.length} lit panes all say 'a lamp …' → e.g. "${lit[0] && lit[0].name}"`);
+  ok(dark.length > 0 && dark.every(r => /^a window, dark: /.test(r.name)),
+    `${dark.length} dark panes all say why → e.g. "${dark[0] && dark[0].name}"`);
+  const causes = {};
+  for (const r of winLines) causes[r.name.replace(/\d+\.\d\d/, 'HH.MM')] = (causes[r.name.replace(/\d+\.\d\d/, 'HH.MM')] || 0) + 1;
+  console.log('       ' + Object.entries(causes).map(([k, v]) => `${v}x ${k}`).join(' · '));
+  const came = winLines.filter(r => r.lit && r.home && r.home.nid === r.nid && r.home.t !== null);
+  ok(came.every(r => /came home/.test(r.name)),
+    `${came.length} lit windows somebody came home to TONIGHT say so (the register holds older nights too)`);
+  ok(doors.every(r => /^a front door/.test(r.name) || !/window|lamp|door/.test(r.name)),
+    `doors name themselves → "${(doors.find(r => /door/.test(r.name)) || {}).name}"`);
+  const day = await p.evaluate(() => {
+    __warp(12 / 24 * 55); drawScene(); drawScene();          // noon of the next day
+    return { hour: +hour.toFixed(2), nightF: +nightF.toFixed(2),
+             names: FACES.filter(f => !f.door).map(f => lookAt([(f.x0 + f.x1) / 2, (f.y0 + f.y1) / 2])) };
+  });
+  const dayWin = day.names.filter(n => /window|lamp/.test(n));
+  ok(day.nightF <= 0.3 && dayWin.length > 0 && dayWin.every(n => n === 'a window'),
+    `at hour ${day.hour} the same panes say only 'a window' (${dayWin.length} of them)`);
+  await p.close();
 }
 
 console.log('');
