@@ -2290,11 +2290,16 @@ function callIn(a, pts, durMin, durMax){
 const HOME_SHARE = 0.6;                          // of dusk leavers who would rather go home than off-frame
 const HOME_MIN = 1.2;                            // hours a window must have left to burn after they are in, before the dawn edge
 const HOME_LATE = 3;                             // hours past the priced arrival a window stays dark for them (a greet or two on the way)
-const HOME_DOORS = [4, 22, 36, 43, 53, 60, 88, 99].map(x => ({ x, y: 64, sa: x, sb: 64, nid: -1 }));
+// #53: six more within reach of the edges (8, 15 west; 92, 95, 109 and 130 on the far
+// bank east) — priced from an edge only 4, 43 and 99 fitted a 12 h night, and the pool
+// of doors, not the rate, was the bound on how many come home; the bridge puts the
+// east edge 45 cells (9 h) from door 95
+const HOME_DOORS = [4, 8, 15, 22, 36, 43, 53, 60, 88, 92, 95, 99, 109, 130].map(x => ({ x, y: 64, sa: x, sb: 64, nid: -1 }));
 function homeDoorAt(gx, y){ return y === 64 && HOME_DOORS.some(d => d.x === gx); }
-function goHome(a){
-  if (nightF <= 0.3) return false;
-  if (hash(Math.round(a.speed * 1e4), 53) >= HOME_SHARE) return false;
+/* The ONE pricing of a walk home, shared by the leaver (goHome) and the night's own
+ * arrival (spawnHomeAgent): the nearest door that is unused tonight, whose window is
+ * home tonight, and whose priced arrival is HOME_MIN before the dawn edge. No R(). */
+function homeDoor(x, y, speed){
   const n = nightAt();
   let best = null, bestH = Infinity;
   for (const d of HOME_DOORS){
@@ -2302,14 +2307,24 @@ function goHome(a){
     const w = windowHours(d.sa, d.sb);
     if (!w) continue;                             // nobody home tonight: an arrival would light an empty house
     const path = [[d.x + 0.5, LANE_N_Y], [d.x + 0.5, 65.35]];
-    const h = pathHours(a.x, a.y, path, a.speed);
+    const h = pathHours(x, y, path, speed);
     const at = w.t + h;
     if (at + HOME_MIN >= w.last) continue;        // too far: the night would be over before their lamp had burned
     if (h < bestH){ bestH = h; best = { d, path, at }; }
   }
-  if (!best) return false;
+  return best;
+}
+function claimHome(best){                        // the register goes dark for them from this frame
+  const n = nightAt();
   best.d.nid = n.nid;
   HOMES.set(best.d.sa * 1000 + best.d.sb, { nid: n.nid, t: null, due: best.at });
+}
+function goHome(a){
+  if (nightF <= 0.3) return false;
+  if (hash(Math.round(a.speed * 1e4), 53) >= HOME_SHARE) return false;
+  const best = homeDoor(a.x, a.y, a.speed);
+  if (!best) return false;
+  claimHome(best);
   a.home = best.d; a.wp = best.path; a.i = 0; a.state = 'walk';
   if (a.slot){ a.slot.taken = 0; a.slot = null; }
   return true;
@@ -2318,6 +2333,34 @@ function arriveHome(a){                          // at the door: in they go, and
   const n = nightAt();
   HOMES.set(a.home.sa * 1000 + a.home.sb, { nid: n.nid, t: n.t, due: n.t });
   a.home = null;
+}
+/* ---- the night's own arrivals (#53) ----
+ * #51 asked the leavers, and after dark there are two or three of them on the whole
+ * frame: under one went home a night. The lane is empty after dark because every
+ * arrival source reads daylight, so this one does not. While nightF > 0.3 somebody
+ * comes IN from a lane edge and walks straight to a door — one leg, no stops, never a
+ * lane itinerary. Modelled on spawnTapAgent: its own rate, its own presence bound
+ * (HOME_WAY on the way at once), outside laneCap and outside the count scarcity()
+ * reads (a lane full of people walking home would otherwise damp the night rates
+ * POP_FLOOR lifts). The door is homeDoor()'s, priced from the edge they enter by: the
+ * lane is ~25 h wide against a night of 8–14, so the far half of the doors never
+ * fits from either end, and the nearest fitting one is the honest choice. The edge and
+ * the speed are drawn BEFORE the pricing so a refusal spends the same two draws. */
+const HOME_WAY = 2;                              // at most this many on their way home at once
+function homeRate(){ return 0.3 * (raining ? 0.4 : 1); }
+function homeCount(){ return agents.filter(a => a.homer).length; }
+function spawnHomeAgent(){
+  let ex = laneEdge(); const speed = 1.9 + R() * 0.5;
+  let best = homeDoor(ex, LANE_N_Y, speed);
+  if (!best){ ex = -ex + GW; best = homeDoor(ex, LANE_N_Y, speed); }   // nothing fits from this end: the other
+  if (!best) return;
+  claimHome(best);
+  const a = {
+    kind:'homer', street:true, homer:true, homeAsked:true, home:best.d,
+    x:ex, y:LANE_N_Y, wp:best.path, i:0, speed, state:'walk', timer:0,
+    shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9, wary:R(),
+  };
+  agents.push(a);
 }
 /* The trader: when the LAST stall is folded, one figure walks from that pitch to the
  * door — once per market, and only if the walk fits. The sweeper's opposite number:
@@ -5614,7 +5657,7 @@ function personName(a){
   if (st === 'stand') return a.watch > 0 ? 'someone watching the boat go by'
                           : k === 'browser' ? 'someone browsing' : 'someone standing about';
   const who = k === 'kid' ? 'a child' : k === 'dogwalker' ? 'someone with a dog' : k === 'gardener' ? 'the gardener' : 'someone';
-  if (a.home) return who + ', heading home';
+  if (a.home) return who + (a.homer ? ', coming home late' : ', heading home');
   if (a.umbrella) return who + ', walking under an umbrella';
   if (a.watch > 0) return who + ', walking with an eye on the river';
   return who + (k === 'kid' ? ', running about' : ', walking');
@@ -5785,7 +5828,8 @@ function simStep(sdt, dt){
   const eastCount = agents.filter(a => a.east && !a.band).length;
   // the evening's custom comes off its own budget for the same reason the audience does
   const tapNow = tapCount();
-  const laneCount = agents.length - courtyardCount - eastCount - bandCount - tapNow;
+  const homeNow = homeCount();                   // the night's own arrivals: never a share of laneCap
+  const laneCount = agents.length - courtyardCount - eastCount - bandCount - tapNow - homeNow;
   /* Each cap is its old expression with the multiply-out done, so the fixed share is
    * visible as a number and the year rides the daylight term alone (see yearBusy).
    * At the anchor, warmth 0.5, all three are algebraically identical to what they
@@ -5808,7 +5852,7 @@ function simStep(sdt, dt){
    * they arrive on their own budget and stand on one pavement, so four of them would
    * otherwise damp the three night rates POP_FLOOR exists to lift — a full door
    * emptying the rest of the town. */
-  const scarcity = 1 + 0.8 * clamp(POP_FLOOR - (agents.length - tapNow), 0, 6);
+  const scarcity = 1 + 0.8 * clamp(POP_FLOOR - (agents.length - tapNow - homeNow), 0, 6);
   const rate = (0.05 + maturity() * 0.42) * (0.12 + daylight) * (raining ? 0.25 : 1) * scarcity;
   const laneRate = (0.08 + maturity() * 0.5) * (0.15 + daylight) * (raining ? 0.3 : 1) * (marketActive() ? 1.7 : 1) * scarcity;
   const eastRate = (0.15 + maturity() * 0.6) * (0.1 + daylight) * (raining ? 0.25 : 1) * scarcity;
@@ -5828,6 +5872,9 @@ function simStep(sdt, dt){
     // tapServing() is false on every hour that is not an evening, so this roll exists
     // only in the window it is spending
     if (tapServing() && tapNow < TAP_SLOTS.length && R() < tapRate()) spawnTapAgent();
+    // the night's own arrivals: this roll exists only after the dusk edge, so no
+    // daylight census cell sees it
+    if (nightF > 0.3 && homeNow < HOME_WAY && R() < homeRate()) spawnHomeAgent();
     if (agents.length === 0 && day === 0 && simT > 6 && !window._first){ window._first = true; spawnAgent();
       announce('The first neighbour wanders in through the archway.'); }
   }
@@ -6033,6 +6080,7 @@ window.__entities = function(){
        (o, a) => { o.act = a.state; o.role = a.kind; o.watch = a.watch > 0 ? 1 : 0;
                    if (a.tap){ o.tap = 1; if (a.caller) o.caller = 1; }
                    if (a.home) o.home = 1;
+                   if (a.homer) o.homer = 1;
                    if (a.dig) o.dig = 1;
                    // the audience on the green. A probe has to tell a listener from a
                    // passer-by, and a listener standing AT its claimed place from one

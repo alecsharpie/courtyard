@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-29",
+  "updated": "2026-08-28",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
   "lastIteration": 52,
@@ -340,7 +340,8 @@
       "the working day hangs off the SUN — kioskOpen/marketOpen/marketClose/marketRaise/sweeper are offsets from sunUp/sunDown; MK_MIN_SPAN floors winter. probes/working-day.mjs",
       "the stalls sell what the plots grew — produce[] written only by harvestPlot(); stockMarket() latches it into mkShelf per market day; marketRaise(i) gates on mkTrades(i): a thin year raises fewer stalls. probes/market-year.mjs",
       "the town's ONE evening place — a lit door in the gatehouse front (TAP_DOOR, drawTapDoor). tapOpen() opens sunDown-3 floored at TAP_EARLIEST, shuts by the CLOCK at 03.00; tapF() is the 0..1 draws mix on. probes/evening-door.mjs",
-      "callIn(a,pts,dur…) — the ONE re-route onto TAP_SLOTS, priced by pathHours()/tapFits() against TAP_SHUT. Sources: tapCallers() on market days (last trader, an evening sweeper); the audience is priced OUT. probes/tap-callers.mjs"
+      "callIn(a,pts,dur…) — the ONE re-route onto TAP_SLOTS, priced by pathHours()/tapFits() against TAP_SHUT. Sources: tapCallers() on market days (last trader, an evening sweeper); the audience is priced OUT. probes/tap-callers.mjs",
+      "the NIGHT'S OWN ARRIVALS — spawnHomeAgent() rolls homeRate() while nightF > 0.3, HOME_WAY 2 on the way, a.homer outside laneCap and scarcity; homeDoor()/claimHome() the ONE pricing shared with goHome; HOME_DOORS 14 (8, 15, 92, 95, 109, 130 added). probes/home-arrivals.mjs, homer-shots.mjs, pane-warmth.mjs"
     ],
     "street": [
       "cross street with two footways, roadway, curbs, lamps, four street trees in pits (TREE_PITS, drawLaneTree); allotment block of 17 plots, timber fence, gates, shed, an alley cut through the block",
@@ -419,6 +420,18 @@
     {
       "id": "c89",
       "note": "the church has no night beyond eastOpenFor — no lit window, no bell after dark, no one on the green; the far bank after dusk is lamps on water and nothing else",
+      "raisedBy": 52,
+      "seenBy": 0
+    },
+    {
+      "id": "c90",
+      "note": "greets stall a walker home 0.4–4.5 h (two passing words beat HOME_LATE 3 h and the hash lights the window before they are in) — exclude a.home from chatty() or lengthen HOME_LATE",
+      "raisedBy": 52,
+      "seenBy": 0
+    },
+    {
+      "id": "c91",
+      "note": "every lit pane reads ~(105,100,110) at midnight, grey-warm: drawLitPanes runs BEFORE applyLight's 0.8 multiply (pane-warmth.mjs). If windows should glow warm, draw the lit panes after the tint; c87's 'half warmth' was this, not a row-64 fault",
       "raisedBy": 52,
       "seenBy": 0
     }
