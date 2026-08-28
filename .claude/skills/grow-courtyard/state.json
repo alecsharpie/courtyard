@@ -2,7 +2,7 @@
   "updated": "2026-08-28",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 52,
+  "lastIteration": 54,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -248,7 +248,8 @@
       ],
       "connect": [
         2,
-        46
+        46,
+        54
       ],
       "deepen": [
         9,
@@ -362,7 +363,8 @@
       "the water reads the YEAR — riverRun() drives drawRiverFlow(t): drift, streak count/length, channel colour (riverCol -> RIVER_COLD/RIVER_GREEN). probes/river-year.mjs, river-shots.mjs",
       "the BANDSTAND has a summer concert — bandF() stages three BAND_PLAYERS and bunting on ONE 0..1; isBandDay() is hash(day,617) vs bandChance() off warmth. probes/bandstand-year.mjs, bandstand-shots.mjs",
       "swans are a PAIR with states — s.state swim|upend|preen + s.hold; cob (swans[0]) picks the stretch, pen re-reads it every 2.5–5.5 s, 0.9-cell give-way; SWAN_UPEND/SWAN_PREEN/SWAN_BANK; drawSwan tilts on hold. probes/swan-pair.mjs",
-      "the NIGHT on the water — drawRiverLights() in the night screen pass: bar columns under RIVER_LAMPS, a moon column via moonArc(), × nightF × (1 − cloudCover()). eastOpenFor(a): a.nightRail stands at the rail while tapOpen(), ONE at a time, outside eastCap. probes/river-night.mjs"
+      "the NIGHT on the water — drawRiverLights() in the night screen pass: bar columns under RIVER_LAMPS, a moon column via moonArc(), × nightF × (1 − cloudCover()). eastOpenFor(a): a.nightRail stands at the rail while tapOpen(), ONE at a time, outside eastCap. probes/river-night.mjs",
+      "WIND on the water: drawRiverFlow streaks x1.6 as many, 0.6 as long, tail blown +x on windT (WIND_FLOW_N/LEN/LEAN); drawRiverLights bars 0.55 wide and wandering (WIND_CHOP); boatRate x0.5 / boatSpeed x0.7 into it (BOAT_WIND_SHY/SLOW). All exact at windF() 0. probes/river-wind.mjs, boat-wind.mjs"
     ],
     "sky": [
       "day/night cycle (55 s day), sun and moon arc, backdrop hills, chimney smoke, a balloon; windowLit(sa,sb) — ONE predicate for pane and LIT[] glow, hours off the dusk edge (nid), bedtimes spread; facades CACHED, WINDOWS[] + drawLitPanes() live. probes/windows-night.mjs",
@@ -432,6 +434,12 @@
     {
       "id": "c91",
       "note": "every lit pane reads ~(105,100,110) at midnight, grey-warm: drawLitPanes runs BEFORE applyLight's 0.8 multiply (pane-warmth.mjs). If windows should glow warm, draw the lit panes after the tint; c87's 'half warmth' was this, not a row-64 fault",
+      "raisedBy": 52,
+      "seenBy": 0
+    },
+    {
+      "id": "c92",
+      "note": "c78 is half false: the bridge already lays a shadow on the water (drawBridge). A boat reflection after dark needs a lantern on the boat first — dark on dark reads as nothing",
       "raisedBy": 52,
       "seenBy": 0
     }

@@ -951,6 +951,15 @@ const RIVER_SWING = 0.45;                      // channel: x1.45 in January, x0.
 const RIVER_TINT = 0.30;                       // how far its colour travels from the anchor
 const RIVER_COLD = '#43647a', RIVER_GREEN = '#5c8462';
 const FLOW_N = 12, FLOW_SPEED = 1.7;           // the streaks, as they have always been
+/* WIND on the water. The river was the one surface that read the same on a gale as
+ * on a still day. Every term below multiplies by windF() so a calm day is the old
+ * algebra exactly: more and shorter streaks that lean crosswise on windT, the night
+ * reflections chopped into shorter, jittering bars, and the rowboat rarer and slower
+ * into it. Wind is direction; rain stays dots. */
+const WIND_FLOW_N = 0.6, WIND_FLOW_LEN = 0.4;  // streaks: x1.6 as many, 0.6 as long
+const WIND_FLOW_LEAN = 5.0;                    // screen px a streak's tail is blown +x
+const WIND_CHOP = 0.45;                        // night bars 0.55 as wide, and they wander
+const BOAT_WIND_SHY = 0.5, BOAT_WIND_SLOW = 0.3;
 function riverRun(){ return 1 + RIVER_SWING * greyF(); }
 /* The channel's own colour, applied on top of whatever groundCol() already decided,
  * so the anchor is neutral as an identity: at greyF() 0 the mix amount is 0 and the
@@ -962,8 +971,8 @@ function riverCol(c){
 const BOAT_RATE = 0.012;                       // the flat rate the boat always arrived at
 const BOAT_SWING = 0.75, BOAT_FLOOR = 0.0065;  // thinned, then floored — never a dead river
 const BOAT_DRIFT = 0.24;                       // the share of the current the hull takes
-function boatRate(){ return Math.max(BOAT_FLOOR, BOAT_RATE * (1 - BOAT_SWING * greyF())); }
-function boatSpeed(){ return 1.05 * (1 + BOAT_DRIFT * greyF()); }
+function boatRate(){ return Math.max(BOAT_FLOOR, BOAT_RATE * (1 - BOAT_SWING * greyF())) * (1 - BOAT_WIND_SHY * windF()); }
+function boatSpeed(){ return 1.05 * (1 + BOAT_DRIFT * greyF()) * (1 - BOAT_WIND_SLOW * windF()); }
 /* ---- the fountain, the plaza's one reader of the year -------------------------
  * The plaza was the last place east of the bridge with no season in it: five jets at
  * one height, a basin one colour, and a coin-flip on whether a visitor stands at the
@@ -4693,14 +4702,18 @@ function drawRiverFlow(t){
                     (cold ? 0.22 * glow * 2 : 0.3 * glow) + ')';
   ctx.lineWidth = 1;
   ctx.beginPath();
-  const n = Math.round(FLOW_N * run);
+  const wf = windF();
+  const n = Math.round(FLOW_N * run * (1 + WIND_FLOW_N * wf));
+  const len = 4.5 * run * (1 - WIND_FLOW_LEN * wf);
+  // the tail is blown crosswise, gusting on windT the way the fountain's spray does
+  const lean = wf * (RM ? 0.6 : 0.65 + 0.35 * Math.sin(windT * 2.2 + 0.7)) * WIND_FLOW_LEAN;
   for (let k = 0; k < n; k++){
     const fy = ((t * FLOW_SPEED * run * (0.7 + hash(k, 21) * 0.6)) + k * 7.7) % WH;
     if (fy > 63.5 && fy < 79.5) continue;
     const fx = RIVER_X0 + 0.8 + hash(k, 17) * (GW - RIVER_X0 - 1.8);
     if (fy > 79 && fx < QUAY_X0 + 1) continue;
     const [sx, sy] = project(fx, fy, 0);
-    ctx.moveTo(sx, sy); ctx.lineTo(sx - 1.2, sy + 4.5 * run);
+    ctx.moveTo(sx, sy); ctx.lineTo(sx - 1.2 + lean, sy + len);
   }
   ctx.stroke();
 }
@@ -4717,7 +4730,7 @@ const RIVER_LAMPS = LANE_LAMPS.filter(L => Math.abs(L[0] - RIVER_X0) < 2 || Math
 function drawRiverLights(t){
   const veil = 1 - cloudCover();
   if (nightF < 0.03 || veil < 0.05) return;
-  const run = riverRun();
+  const run = riverRun(), wf = windF();
   const slide = t * FLOW_SPEED * run;
   ctx.lineWidth = 1.5;
   const column = (lx, ly, len, col, al, spread, n) => {
@@ -4727,10 +4740,11 @@ function drawRiverLights(t){
     for (let k = 0; k < n; k++){
       // each bar has its own downstream phase, so the column never moves as one
       const ph = (slide * (0.5 + hash(k, 47) * 0.7) + hash(k, 53) * len) % len;
-      const fy = ly + 0.4 + ph, fx = fx0 + (hash(k, 59) - 0.5) * spread;
+      const fy = ly + 0.4 + ph,
+            fx = fx0 + (hash(k, 59) - 0.5) * spread + wf * Math.sin(windT * 3.1 + k * 2.3) * 0.35;
       if (fy > WH - 0.5 || (fy > 63.5 && fy < 79.5)) continue;
       if (fy > 79 && fx < QUAY_X0 + 1) continue;
-      const w = 0.35 + hash(k, 61) * 0.5;
+      const w = (0.35 + hash(k, 61) * 0.5) * (1 - WIND_CHOP * wf);
       const [sx, sy] = project(fx - w, fy, 0), [ex, ey] = project(fx + w, fy, 0);
       ctx.moveTo(sx, sy); ctx.lineTo(ex, ey);
     }

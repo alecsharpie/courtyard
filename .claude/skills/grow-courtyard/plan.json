@@ -15,31 +15,6 @@
   "rationale": "HOLD RUNG 2. Work is landing cleanly and every rung-4 climb from #32–#42 (the night, snow) still has a compounding move left, so the ladder says compound, not climb. The frontier for a thirty-second viewer is still the night: #51 proved the mechanism (a person walks to a door and the window over it lights) and in the same breath proved the town is EMPTY when it fires — 6–9 agents, under one leaver a night. b50 is the batch's bet: a night ARRIVAL source (people coming home from off-frame to a HOME_DOOR, on their own budget like spawnTapAgent) so the mechanism has a supply and three to five windows a night light because somebody came in. It can fail on the R() churn and the pricing, which is why it goes first while the loop is strong. b51 pushes the wind past the fountain onto the river (river 6 back, the WATCH note's exact gap). b52 gives the observer the night — the sill names lawns, plots, trees and people, and nothing on a facade; a lit window is now a fact with a cause (HOMES, windowHours) the viewer cannot read. b53 is c81: drawGround is 9.2 ms of an 11.5 ms frame and repaints ~650×/day off the wear line, in the domain the dashboard shows 3 back. b54 fixes the two instrument lies that cost #48 its iteration (filmstrip's rate-as-pop, run-loop's MANAGER_GAP). Risk: one high, one medium, three low. Curation: coverage #48–#52 entered; eight cues resolved (six promoted/folded into b50/b51/b53/b54, two closed), four held at seen 1, one new (c89 the church has no night); ledger 8 -> 5, #50–#52 archived verbatim then condensed 2.9–3.3 -> 1.9–2.2 KB; five laws promoted (bAge-two-fields new; choice/histogram merged as one new law; #48 folded into the filmstrip and cache laws; #51 into the WALK law) paid for by compressing the four inherited laws and the seasonal-mean law — 30 laws, 12.05/12 KB. Budget 49.1 -> under cap.",
   "queue": [
     {
-      "id": "b51",
-      "domain": "River & far bank",
-      "kind": "Connect",
-      "brief": "The wind now reaches the fountain and stops there. The river is the largest surface in the picture and reads the same on a gale as on a still day: `drawRiverFlow()` draws FLOW_N streaks off `riverRun()` alone, `drawRiverLights()` breaks its lamp and moon columns on a fixed chop, and `updateBoat`/`boatRate()` row the same in any weather. Make a windy day legible on the water from the east wide shot — more, shorter, crosswise-slanted streaks and a rougher chop on the reflections when `windF()` is 1, the rowboat rarer and slower into the wind — with every term exact at `windF() = 0` so the calm day and the anchor are byte-identical. Take c78 with it: the rowboat has no reflection after dark and the bridge deck casts no shadow on the water; add both only if they fall out of the same pass.",
-      "seams": [
-        "drawRiverFlow",
-        "drawRiverLights",
-        "windF",
-        "isWindy",
-        "riverRun",
-        "boatRate",
-        "updateBoat",
-        "FLOW_N",
-        "FLOW_SPEED",
-        "RIVER_LAMPS",
-        "probes/river-year.mjs",
-        "probes/river-shots.mjs",
-        "probes/river-night.mjs"
-      ],
-      "successLooksLike": "A calm-day noon east shot is byte-identical to HEAD; a windy-day shot at the same instant has visibly more and shorter streaks with a lean, and a night windy shot breaks the lamp columns into shorter bars. `river-year.mjs` anchor EXACT; boat presence over ten seeds drops only on windy days.",
-      "avoid": "Do not touch riverRun()'s seasonal algebra or RIVER_COLD/RIVER_GREEN. No new R() draws in the draw pass — hash() and windT only. Do not make the water read as rain: rainFall already has its sparkle; wind is direction, rain is dots.",
-      "budgetMin": 25,
-      "risk": "medium"
-    },
-    {
       "id": "b52",
       "domain": "The sill & the observer",
       "kind": "Interaction/UX",
@@ -104,6 +79,10 @@
     {
       "id": "b50",
       "at": "2026-08-28T21:52:01.224Z"
+    },
+    {
+      "id": "b51",
+      "at": "2026-08-28T22:01:04.454Z"
     }
   ]
 }
