@@ -1,40 +1,74 @@
 {
-  "generated": "2026-08-28T16:55:17.700Z",
-  "byIteration": 47,
+  "generated": "2026-08-29T00:00:00.000Z",
+  "byIteration": 52,
   "rung": 2,
   "diagnosis": {
-    "health": "Healthy and the best stretch of the run: the last 20 real rows are 20 shipped, 0 reverts, 0 briefs rejected, selfVerdict == verdict on every one, source moved 8/10 (the two flat rows are #43 the harness brief and a manager row). Last 10 average 8 min and $3.87 — #45–#47 ran $4.0–4.7 with 74–95-line diffs and a new probe each, so cost is rising WITH output, not without it. The one fault is mine again: the worker budget opened OVER on #45, #46 and #47 (46.1 → 47.9 → 50.5 KB) because three consecutive workers each wrote a 3.4–3.8 KB entry and there was no manager pass between them; fixed this pass to 43.7 KB (ledger last-3 10.5 → 5.5 KB, inventory 11.8 → 9.4 KB, WATCH rewritten). The loop is LEARNING, not repeating: #46 and #47 each produced a law that is new (the daylight cap is closed after dark; price the walk with pathHours, the drink decides) and neither is a restatement of anything in LAWS.md.",
+    "health": "Healthy: the last 20 real rows are 19 shipped and 1 rejected-brief, 0 reverts, selfVerdict == verdict on every row, source moved 8/10, last 10 averaging 8 min and $4.25. The one non-ship (#48) was MY fault, not the worker's: b45 was priced off a filmstrip POP that the instrument's 0.35 s gap manufactures from a smooth sine, and the worker correctly rejected it and left two probes behind — the loop refusing a bad brief is the loop working. Cost is rising WITH output (#51 $7.15 for 131 lines over two attempts, a new arrival mechanism and two probes) not without it. The repeat fault is again the worker budget: OVER at 49.1/46 KB on #52 because five workers ran with no manager pass between them (#48–#52 each added a 2.9–3.3 KB entry and three cues over 250 B); state.json was five iterations stale. Both fixed this pass. The loop is LEARNING: #48–#52 produced five laws none of which LAWS.md held (rate-not-step, histogram-before-threshold, measure-at-the-choice, count-the-dusk-audience, two-fields-sharing-a-name).",
     "signals": [
-      "queue empty (all five of pass #42's briefs consumed and shipped)",
-      "no stall signal; revertStreak=0; srcFlat=1 (harness, by design)",
-      "context budget OVER three iterations running (50.5/46 KB at #47) — fixed this pass",
-      "state.json five iterations stale (coverage missing #43–#47) — recorded"
+      "queue empty (all five of pass #47's briefs consumed: 4 shipped, 1 rejected-brief)",
+      "no stall signal; revertStreak=0",
+      "context budget OVER (49.1/46 KB at #52) — fixed this pass",
+      "state.json five iterations stale (coverage missing #48–#52) — recorded"
     ],
-    "balance": "After recording: courtyard 10 back (#37), plaza 7 back (#40), street 6 back (#41), sill 4, life 3, sky 2, river 1, lane 0. Sky × Polish stays saturated. The last five workers all sat in the four domains the night climb needed; this batch puts three of five in courtyard, plaza and street, and the two that are not are a visible defect (sky) and the batch's bet (life)."
+    "balance": "After recording: sill 9 back (#43), river 6 back (#46), lane 5 back (#47), sky 4 back but its last was the rejected b45, courtyard 3, plaza 2, life 1, street 0. This batch puts the sill and the river back in play, the lane gets the night supply the last three passes have been circling, and the courtyard gets the perf fix that nobody sees until the frame rate drops."
   },
-  "rationale": "DROPPED FROM RUNG 4 TO RUNG 2, deliberately. Passes #32, #37 and #42 held rung 4 for one reason — the town had no night — and that climb is now landed: windows keep hours (#39), the door has callers (#47), the river has lamps and a night stander (#46), and snow (#45) gave winter a wide-shot tell. The ladder says stay low while work lands, and the highest-yield move now is to COMPOUND what three rung-4 passes built rather than open a fourth world-change while the last one still has loose ends. Every brief here wires two things that already exist and ignore each other. b45 goes first because it is a defect a thirty-second viewer sees: the whole picture relights in one frame at winter dusk (5–9 whole-frame Δ on HEAD, twice what any feature produces) because the cached ground repaints on a quarter-hour bucket that is coarse exactly where the light moves fastest. b46 is snow × the one system the courtyard is famous for (desire paths) plus the sweeper who already exists — the cheapest legible winter connection, in the most starved domain. b47 gives the plaza the wind, the one scalar nothing east of the bridge reads (WATCH). b48 is the bet: the town's people leave the frame at dusk and nobody goes HOME — a walker who turns in at a door and lights the window they went to is the single thing that would make the night read as inhabited rather than decorated; it touches the cached facade layer, WINDOWS[] and routeToExit, and it can fail. b49 gives the allotments a winter (the block is empty for a quarter of the year: allotRate floors at 0.01 with ripePlots 0). Curation: coverage #43–#47 entered; c75/c76/c77 promoted (c75 re-raised as the swan half of b48's avoid), c74/c78/c79 kept (seen 1); three laws promoted from #44/#46/#47 (follower-rate as new; night cap and pathHours merged INTO the time-compress law rather than beside it; __entities extras into the instrument law; __warp-never-draws and filmstrip --page into the probe and control laws) paid for by compressing eight verbose laws — 28 laws, 12.0/12 KB, nothing cut outright; ledger rotated 12 → 8 and #45–#47 archived verbatim then condensed 3.4–3.8 → 1.8 KB each; inventory 59 → 45 entries by merging pairs, WATCH's two spent notes replaced with what is true now. Worker budget 50.5 → 43.6 KB OK.",
-  "queue": [],
-  "recommendStop": null,
-  "consumed": [
+  "rationale": "HOLD RUNG 2. Work is landing cleanly and every rung-4 climb from #32–#42 (the night, snow) still has a compounding move left, so the ladder says compound, not climb. The frontier for a thirty-second viewer is still the night: #51 proved the mechanism (a person walks to a door and the window over it lights) and in the same breath proved the town is EMPTY when it fires — 6–9 agents, under one leaver a night. b50 is the batch's bet: a night ARRIVAL source (people coming home from off-frame to a HOME_DOOR, on their own budget like spawnTapAgent) so the mechanism has a supply and three to five windows a night light because somebody came in. It can fail on the R() churn and the pricing, which is why it goes first while the loop is strong. b51 pushes the wind past the fountain onto the river (river 6 back, the WATCH note's exact gap). b52 gives the observer the night — the sill names lawns, plots, trees and people, and nothing on a facade; a lit window is now a fact with a cause (HOMES, windowHours) the viewer cannot read. b53 is c81: drawGround is 9.2 ms of an 11.5 ms frame and repaints ~650×/day off the wear line, in the domain the dashboard shows 3 back. b54 fixes the two instrument lies that cost #48 its iteration (filmstrip's rate-as-pop, run-loop's MANAGER_GAP). Risk: one high, one medium, three low. Curation: coverage #48–#52 entered; eight cues resolved (six promoted/folded into b50/b51/b53/b54, two closed), four held at seen 1, one new (c89 the church has no night); ledger 8 -> 5, #50–#52 archived verbatim then condensed 2.9–3.3 -> 1.9–2.2 KB; five laws promoted (bAge-two-fields new; choice/histogram merged as one new law; #48 folded into the filmstrip and cache laws; #51 into the WALK law) paid for by compressing the four inherited laws and the seasonal-mean law — 30 laws, 12.05/12 KB. Budget 49.1 -> under cap.",
+  "queue": [
     {
-      "id": "b45",
-      "at": "2026-08-28T16:57:29.890Z"
+      "id": "b50",
+      "domain": "Lane & market",
+      "kind": "New element",
+      "brief": "The town is empty after dark, so #51's going-home mechanism fires under once a night. Give the night its own arrival source: `spawnHomeAgent()` sends a walker in from a lane edge after `nightF > 0.3` who walks straight to an unused `HOME_DOORS` entry whose `windowHours()` says somebody is home tonight and whose priced `pathHours()` arrival fits before `HOME_MIN` of the dawn edge, then goes in through `arriveHome()` so the window over that door lights the frame they enter. Model it on `spawnTapAgent`: its own rate and its own presence bound (at most two on the way at once), excluded from the count `scarcity` reads, never a share of `laneCap`. Also fix c87 while you are in `drawFaceRow`: a row-64 pane over a home door is drawn live and then night-tinted, so it lands at half the warmth of a cached pane — a window someone just came home to must read as warm as the rest.",
+      "seams": ["HOME_DOORS", "HOMES", "goHome", "arriveHome", "windowHours", "windowLit", "spawnTapAgent", "pathHours", "scarcity", "drawFaceRow", "drawLitPanes", "probes/going-home.mjs", "probes/windows-night.mjs"],
+      "successLooksLike": "Over ten seed-nights `probes/going-home.mjs` counts 3–5 arrivals a night (from under 1), every one inside its window's hours, and `windows-night.mjs` total lit counts stay within noise of HEAD because the register only moves WHEN a window lights, not whether. A midnight wide shot shows a figure on the lane walking toward a door; the pane over it goes from dark to full warmth the frame they vanish.",
+      "avoid": "Do not widen laneCap or let these walkers take lane itineraries — they are going home, one leg, no stops. Do not change windowHours()'s hash or the 0.15–2 h dusk offsets; the register is the only thing that moves. Expect census churn from the new R() draws: replay over ten seeds, read for collapse only.",
+      "budgetMin": 35,
+      "risk": "high"
     },
     {
-      "id": "b46",
-      "at": "2026-08-28T17:04:06.720Z"
+      "id": "b51",
+      "domain": "River & far bank",
+      "kind": "Connect",
+      "brief": "The wind now reaches the fountain and stops there. The river is the largest surface in the picture and reads the same on a gale as on a still day: `drawRiverFlow()` draws FLOW_N streaks off `riverRun()` alone, `drawRiverLights()` breaks its lamp and moon columns on a fixed chop, and `updateBoat`/`boatRate()` row the same in any weather. Make a windy day legible on the water from the east wide shot — more, shorter, crosswise-slanted streaks and a rougher chop on the reflections when `windF()` is 1, the rowboat rarer and slower into the wind — with every term exact at `windF() = 0` so the calm day and the anchor are byte-identical. Take c78 with it: the rowboat has no reflection after dark and the bridge deck casts no shadow on the water; add both only if they fall out of the same pass.",
+      "seams": ["drawRiverFlow", "drawRiverLights", "windF", "isWindy", "riverRun", "boatRate", "updateBoat", "FLOW_N", "FLOW_SPEED", "RIVER_LAMPS", "probes/river-year.mjs", "probes/river-shots.mjs", "probes/river-night.mjs"],
+      "successLooksLike": "A calm-day noon east shot is byte-identical to HEAD; a windy-day shot at the same instant has visibly more and shorter streaks with a lean, and a night windy shot breaks the lamp columns into shorter bars. `river-year.mjs` anchor EXACT; boat presence over ten seeds drops only on windy days.",
+      "avoid": "Do not touch riverRun()'s seasonal algebra or RIVER_COLD/RIVER_GREEN. No new R() draws in the draw pass — hash() and windT only. Do not make the water read as rain: rainFall already has its sparkle; wind is direction, rain is dots.",
+      "budgetMin": 25,
+      "risk": "medium"
     },
     {
-      "id": "b47",
-      "at": "2026-08-28T17:10:08.737Z"
+      "id": "b52",
+      "domain": "The sill & the observer",
+      "kind": "Interaction/UX",
+      "brief": "The naming answers lawns, plots, water, paving, trees and living things, and returns '' for every wall — so at night, when the most legible things on screen are lit windows, the sill has nothing to say about any of them. Make a window under the pointer name itself and its cause: hit-test `WINDOWS[]` (and the row-64 live panes) in screen space the way `treeAt`/`livingAt` do, then read `windowLit`/`windowHours`/`HOMES` for the line — 'a lamp lit at 19.40, somebody came home', 'burning late', 'an early riser', 'dark: nobody home tonight', 'dark: gone to bed'. A front door gets its own line ('a front door; the lamp over it is lit'). Day-time the same window says 'a window' and nothing more.",
+      "seams": ["nameAt", "treeAt", "livingAt", "personName", "WINDOWS", "HOME_DOORS", "HOMES", "windowLit", "windowHours", "nightAt", "NAME_SETTLE", "probes/naming.mjs"],
+      "successLooksLike": "`probes/naming.mjs` gains a §8: at a midnight instant, hovering a pane that `windowLit` says is lit returns a line containing the cause; a dark pane returns the dark line; noon returns 'a window'. Nothing named today loses its name (the tree/living/paving cases in §1–§7 still pass).",
+      "avoid": "Do not add a hint or an OFFERS entry — this rides the existing naming, which already has its invitation. Painter's order matters: a person standing in front of a window wins the hit. Read the register; never re-derive lit-ness in the sill.",
+      "budgetMin": 25,
+      "risk": "low"
     },
     {
-      "id": "b48",
-      "at": "2026-08-28T17:17:10.923Z"
+      "id": "b53",
+      "domain": "Courtyard & garden",
+      "kind": "Polish",
+      "brief": "drawGround() is 9.2 ms against 2.3 ms for the rest of the frame and rebuilds ~650×/sim-day in both seasons — 80% from the grass-wear line (`if (R()<dt*2) groundDirty = true` per walker on grass, courtyard.html ~1867) and the sweeper's trod line beside it, 20% the light bucket. The 'cache' is repainted every few frames. Throttle the wear-driven repaint: accumulate wear as now but set the dirty flag at most once per sim-minute (or dirty-rect the trodden cell), so a walker's path still darkens at the same rate to the eye and the layer repaints ~130–180×/day instead of ~650. Keep the R() draw where it is — removing it reshuffles the world.",
+      "seams": ["drawGround", "groundDirty", "wear[]", "trod[]", "probes/ground-rebuilds.mjs", "perf.mjs", "probes/snow-wear.mjs"],
+      "successLooksLike": "`probes/ground-rebuilds.mjs` reports under 200 rebuilds/day in both seasons; `perf.mjs` frame time drops by more than half against an interleaved HEAD control; a noon frame at a bucket boundary is byte-identical to HEAD; `snow-wear.mjs` ratios unchanged within noise.",
+      "avoid": "Do not change how much wear a step adds or where it is read — only when the layer is told to repaint. Do not move the R() draw or change its threshold. Interleave the perf control; frame time swings ±30%.",
+      "budgetMin": 20,
+      "risk": "low"
     },
     {
-      "id": "b49",
-      "at": "2026-08-28T21:33:25.047Z"
+      "id": "b54",
+      "domain": "The sill & the observer",
+      "kind": "Harness",
+      "brief": "Two instrument lies. (1) filmstrip.mjs's POP gate compares a 0.35 s-gap whole-frame Δ against a fixed 2 and so reads a legitimately fast winter dusk (daylight moves 0.04/sample, ~7 RGB) as a pop — it cost #48 a whole iteration on a false premise. Make a pop a sample far above its NEIGHBOURS (a step), not a sample far above 2, and print the per-60fps-frame rate beside it; keep HEAD's existing POP count at summer noon at 0 and winter dusk should now read 0 on HEAD. (2) run-loop.sh's MANAGER_GAP check reads last_manager=-99 on a fresh start, so the stall check runs before the first landed iteration regardless of the gap; make a first-run baseline of the current iteration.",
+      "seams": ["filmstrip.mjs", "probes/dusk-relight-where.mjs", "run-loop.sh MANAGER_GAP", "stall.mjs"],
+      "successLooksLike": "filmstrip on HEAD at winter dusk reports 0 POP where it reported 1 with a 7.0 Δ; a synthetic one-frame step of 10 RGB injected via a probe still reads as POP. run-loop.sh dry-run shows the manager gap honoured from the first iteration.",
+      "avoid": "Do not loosen the FROZEN gate. Do not touch courtyard.html — a Harness brief grades on commit+log.",
+      "budgetMin": 20,
+      "risk": "low"
     }
-  ]
+  ],
+  "recommendStop": null
 }
