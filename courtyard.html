@@ -2727,16 +2727,48 @@ function drawChimney(g, x, y){
     g.beginPath(); g.moveTo(p1[0], p1[1]); g.lineTo(p2[0], p2[1]); g.stroke();
   }
 }
-function drawWindow(g, wx, wy, zTop, hgt, sa, sb){
-  const w = 0.32;
-  const a = project(wx - w, wy, zTop), b = project(wx + w, wy, zTop);
-  const c = project(wx + w, wy, zTop - hgt), d = project(wx - w, wy, zTop - hgt);
-  g.fillStyle = 'rgba(240,233,216,.85)'; poly(g, [a, b, c, d]); g.fill();
-  const p = 0.76;
+/* Who is up. Every window used to switch on and off in the same frame — `nightF > 0.3`
+ * plus one hash per house per day — so 58% of the town burned from dusk to dawn and
+ * nobody went to bed. Now each window keeps its own hours, all read off ONE clock:
+ * `t` = hours since the dusk edge (the instant nightF crosses 0.3, sunDown minus
+ * NIGHT_K*dayHours), running to the dawn edge at `span`. A window comes on within the
+ * first two hours of dark, goes out at its own bedtime (most by mid-evening, the tail
+ * squared into the small hours, one in twenty burning through), and a few early risers
+ * come back on in the hour or so before dawn. The night is addressed by `nid`, not
+ * `day`: the day rolls at 06.00, which in every season is still dark, and a night hashed
+ * on `day` re-rolls every window at that seam. Nothing lit at nightF <= 0.3, exactly as
+ * before; daytime frames are unchanged. windowLit() is the ONE predicate — the pane
+ * fill and the LIT[] glow both read it. Variance is hash(), never R(): this is the
+ * renderer. */
+const NIGHT_K = Math.asin(0.4375) / Math.PI;       // nightF 0.3 = 1 - 1.6*daylight -> daylight 0.4375
+function windowLit(sa, sb){
+  if (nightF <= 0.3) return false;
+  const duskAt = sunDown - NIGHT_K * dayHours;
+  const span = 24 - dayHours + 2 * NIGHT_K * dayHours;   // dusk edge -> dawn edge, hours
+  const nid = (hour >= 6 && hour < duskAt) ? day - 1 : day;
+  if (hash(sa * 3, sb * 7 + nid) <= 0.42) return false;   // nobody home tonight
+  const t = (hour - duskAt + 24) % 24;
+  const hOn = hash(sa * 5 + 1, sb * 11 + nid), hBed = hash(sa * 7 + 2, sb * 13 + nid);
+  const on = 0.15 + 1.85 * hOn;                           // lamps go on as it darkens
+  const last = span - 0.05 - 0.9 * hOn;                   // and out again, one by one, before the edge
+  const off = hBed > 0.95 ? last : on + 1.2 + 6.8 * hBed * hBed;   // bedtime; a few burn through
+  if (t >= on && t < off) return true;
+  const hRise = hash(sa * 11 + 3, sb * 17 + nid);
+  if (hRise < 0.14 && t >= span - 0.6 - 1.6 * hRise / 0.14 && t < last) return true;  // early risers
+  return false;
+}
+/* The pane and its mullions, drawn twice over: once dark into the cached ground layer
+ * (drawBlocks runs inside drawGround, which only rebuilds on the quarter-hour light
+ * bucket), and again LIVE by drawLitPanes() every frame the window is lit — so a
+ * window can go out in the very frame its hour comes, not at the next rebuild with a
+ * dozen others. WINDOWS[] is the register the live pass reads, filled by the cached
+ * pass. The south band (rows 61-64) is drawn on ctx every frame and stays as it was. */
+const WINDOWS = [];                              // [wx, wy, zTop, hgt, sa, sb] per cached window
+function drawPane(g, wx, wy, zTop, hgt, lit){
+  const w = 0.32, p = 0.76;
   const iA = project(wx - w * p, wy, zTop - hgt * 0.11), iB = project(wx + w * p, wy, zTop - hgt * 0.11);
   const iC = project(wx + w * p, wy, zTop - hgt * 0.9), iD = project(wx - w * p, wy, zTop - hgt * 0.9);
-  const lit = nightF > 0.3 && hash(sa * 3, sb * 7 + day) > 0.42;
-  g.fillStyle = lit ? 'rgba(255,208,140,.95)' : mix('#242a33', '#7d94a6', 0.18 + 0.5 * daylight);
+  g.fillStyle = lit ? 'rgb(254,209,144)' : mix('#242a33', '#7d94a6', 0.18 + 0.5 * daylight);
   poly(g, [iA, iB, iC, iD]); g.fill();
   if (lit) LIT.push([(iA[0] + iC[0]) / 2, (iA[1] + iC[1]) / 2]);
   g.strokeStyle = 'rgba(244,238,224,.7)'; g.lineWidth = 1;
@@ -2744,6 +2776,19 @@ function drawWindow(g, wx, wy, zTop, hgt, sa, sb){
   const h1 = project(wx - w * p, wy, zTop - hgt * 0.5), h2 = project(wx + w * p, wy, zTop - hgt * 0.5);
   g.beginPath(); g.moveTo(m1[0], m1[1]); g.lineTo(m2[0], m2[1]);
   g.moveTo(h1[0], h1[1]); g.lineTo(h2[0], h2[1]); g.stroke();
+}
+function drawLitPanes(){
+  if (nightF <= 0.3) return;                     // daytime: nothing here, byte for byte
+  for (const [wx, wy, zTop, hgt, sa, sb] of WINDOWS) if (windowLit(sa, sb)) drawPane(ctx, wx, wy, zTop, hgt, true);
+}
+function drawWindow(g, wx, wy, zTop, hgt, sa, sb){
+  const w = 0.32;
+  const a = project(wx - w, wy, zTop), b = project(wx + w, wy, zTop);
+  const c = project(wx + w, wy, zTop - hgt), d = project(wx - w, wy, zTop - hgt);
+  g.fillStyle = 'rgba(240,233,216,.85)'; poly(g, [a, b, c, d]); g.fill();
+  const cached = g === gtx;
+  if (cached) WINDOWS.push([wx, wy, zTop, hgt, sa, sb]);
+  drawPane(g, wx, wy, zTop, hgt, !cached && windowLit(sa, sb));
   const s1 = project(wx - w * 1.2, wy, zTop - hgt), s2 = project(wx + w * 1.2, wy, zTop - hgt);
   const s3 = project(wx + w * 1.2, wy, zTop - hgt - 0.14), s4 = project(wx - w * 1.2, wy, zTop - hgt - 0.14);
   g.fillStyle = 'rgba(232,224,206,.9)'; poly(g, [s1, s2, s3, s4]); g.fill();
@@ -3183,7 +3228,7 @@ function drawShadows(g){
 function drawGround(){
   gcv.width = W * DPR; gcv.height = H * DPR;
   gtx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  SUN = sunVec(); LIT.length = 0; HAZE = skyCols()[1];
+  SUN = sunVec(); LIT.length = 0; WINDOWS.length = 0; HAZE = skyCols()[1];
   const m = maturity();
   // the sky is *not* baked in here — it is painted fresh every frame underneath this
   // layer, so the sun crosses smoothly instead of hopping when the layer is rebuilt
@@ -3528,6 +3573,11 @@ function drawScene(t, dt){
   ctx.clearRect(0, 0, W, H);
   drawSky(ctx);
   ctx.drawImage(gcv, 0, 0, W, H);
+  // LIT is a per-FRAME accumulator. It used to be reset only on a ground rebuild, so
+  // the south band's live windows stacked into it ~13 a frame for a quarter-hour and
+  // the glow pass drew hundreds of halos on top of each other.
+  LIT.length = 0;
+  drawLitPanes();
 
   // wet sheen on the streets after rain
   if (wet > 0){

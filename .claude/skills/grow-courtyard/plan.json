@@ -15,25 +15,6 @@
   "rationale": "HELD RUNG 4. Pass #32 climbed to it for one reason — the world exists for ~60% of its own clock — and only half of that climb has landed: #33 built the first evening place, but every window in the town still switches on and off in the same frame, and 22.00 and 03.00 are the same picture. Re-planning the same batch is the one thing the ladder forbids ONLY as a response to a stall, and this is not a stall: three briefs were destroyed by the runner before any worker saw them, so re-issuing b36/b32/b33 verbatim (with a note that no prior attempt exists, or a worker will go looking for one) is recovery, not repetition. b38 goes at the head as a harness brief because the fault will recur on the next restart and the runlog is currently lying about it: a launch failure must not consume a brief, and a 0-token row must not be counted as an iteration by stall.mjs. It also carries c62 (motion.mjs split rises from falls), which is the same file class. b39 is the batch's new work and the one most likely to fail: c64 has been open since #33 and the naming — the loop's most visible observer tool — answers with the paving under a walker's feet, so the diorama can name a fern and cannot name a swan. Three of five briefs are domains 12+ back (sky, plaza, street); the fourth is the sill; none is courtyard, lane or river. Cost expectation: b33 and b38 cheap, b36/b39 medium, b32 the expensive one. Curation this pass: closed six cues (three no-yield, two promoted, one absorbed into a law), fixed an id collision (open c61 was not closed c61 — renumbered c68), merged life's two own-source crowds into one inventory entry (life was 9/8), archived #37 verbatim and trimmed #33/#37 to 1.6 KB each, and paid for two law promotions (#33 price-the-walk into the time-compression law; #37 + the old #21 duration law merged into one folded-time-mean law) by compressing five verbose laws — laws count stays 26, 11.9/12 KB.",
   "queue": [
     {
-      "id": "b36",
-      "domain": "Sky, light & weather",
-      "kind": "Deepen",
-      "brief": "Every lit window in the town switches on in the same frame and off in the same frame. drawWindow() decides `lit` as `nightF > 0.3 && hash(sa*3, sb*7+day) > 0.42`, so roughly 58% of windows burn from dusk to dawn and nobody in this town goes to bed. Give each window its own hour: over a night the lit set should thin — early sleepers out by mid-evening, a few burning into the small hours, one or two coming on before dawn — so that 22.00 and 03.00 are visibly different pictures. Sky is ten iterations back and Sky x Polish is marked saturated; this is the deepening the domain actually wants. NOTE: this brief was issued at #34 and consumed by a harness fault before any worker ran (see b38) — there is no prior attempt to read.",
-      "seams": [
-        "drawWindow",
-        "LIT",
-        "nightF",
-        "hour",
-        "sunUp",
-        "sunDown",
-        "hash"
-      ],
-      "successLooksLike": "A filmstrip cropped to the buildings across one night shows the lit count falling from an evening peak to a small-hours floor and lifting again before dawn, with no frame in which more than a couple of windows change at once. At nightF <= 0.3 nothing is lit, exactly as now, and the daytime frame is byte-identical to HEAD.",
-      "avoid": "LIT[] feeds the night glow pass — one predicate, one definition: whatever decides `lit` must be the same thing that pushes into LIT, or the glow and the pane disagree and only a crop will show it. Per-window variance comes from hash(), never R(): this runs in the renderer, and the renderer draws from the seeded stream. Match the grain — a window here is addressed per BUILDING per DAY, so a per-cell term is a silent no-op across a facade. And do not make it a second global scalar with a threshold; that is the switch you are replacing.",
-      "budgetMin": 22,
-      "risk": "medium"
-    },
-    {
       "id": "b32",
       "domain": "Plaza & quay",
       "kind": "Deepen",
@@ -99,6 +80,10 @@
     {
       "id": "b38",
       "at": "2026-08-28T11:36:55.775Z"
+    },
+    {
+      "id": "b36",
+      "at": "2026-08-28T11:41:54.015Z"
     }
   ]
 }
