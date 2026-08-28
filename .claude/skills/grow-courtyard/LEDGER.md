@@ -40,15 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 50 — the plaza reads a windy day (2026-08-29) [Plaza & quay × Connect]
-
-**Brief:** b47 — nothing east of the bridge read `isWindy()`; lean the fountain, drift the spray, drop `fountainStand()` on windy days, flutter the bunting.
-**Did:** `windF()` (0..1) beside `isWindy()`. `drawFountain`: a `lean` term off `windT` shifts each jet's control point and landing +x, droplets pushed downwind, six faint lee dots walk 2–4.4 cells past the rim and fade. `fountainStand()` = `clamp(play * (1 - FOUNT_WIND_SHY*windF()))`, SHY 0.5 — exact at calm. Bunting tips swing on `windT` × windF. No new R() draws; river untouched.
-**Gates:** census FAIL people −10% at two cells → replayed 10 seeds × 20 days (`probes/fountain-wind.mjs`): −1%, churn. Stand share at spawn: calm 0.579→0.599, windy 0.578→**0.275**. `fountain-year.mjs` anchor EXACT · motion PASS · `fountain-wind-shots.mjs` windy noon: 20 spray px at +2.6 vs HEAD 4 px at −0.1 · filmstrip 0 POP · perf skipped.
-**Verdict:** shipped.
-**Surprise:** a presence-sampled probe said calm days had moved too (0.536→0.351) — sitters dwell 2× longer than standers and stops straddle the day roll, so presence smears windy days into calm ones. Counting at spawn gave the clean split. `day` on the page is one ahead of `hash(d,99)` from t=0 — the clock rolls at hour 6.
-**Law:** promoted (measure a choice at the choice). **Cue:** c84.
-
 ## Iteration 51 — somebody goes home, and the window over the door lights as they go in (2026-08-29) [People & animals × Connect]
 
 **Brief:** b48 (third attempt; the second left an unlanded diff this one inherited) — after-dusk leavers walk to a front door under a window and THAT window lights; `windowLit` stays the one truth; swans rest after dark.
@@ -109,3 +100,12 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Gates:** HEAD's gate was `d > median×3.5` (not a fixed 2) and the plateau after the ramp set the median, so all three ramp samples flagged; new gate winter dusk **0 POP** (was 3), day 0, dusk 0 · `probes/filmstrip-pop.mjs` recorded series: ramp 0, flat 0, noise 0, injected 10 RGB step → found · `DRY_RUN=1` at gap 2/1/0 prints the right decision.
 **Verdict:** shipped.
 **Surprise:** the brief's "fixed 2" never existed. Known blind spot: a 10 RGB step laid ON a ramp is not a pop by the neighbour test (15.7 vs 5.3 < 3.5×) — acceptable, the ramp is what the eye looks at then.
+
+## Iteration 58 — the wind becomes a scalar: windF() ramps over 2.5 h instead of stepping at the hour-6 roll (2026-08-29) [Sky, light & weather × Deepen]
+
+**Brief:** b55 — `windF()` was the day's coin (0/1), a STEP at the roll; make it a rate-capped 0..1 like `cloudCover()`, move the four magnitude consumers onto it, carry c90.
+**Did:** `windyDay()` keeps the hash (0.28, no new R()); `wind` stepped by `stepWind(sdt)` in `simStep`, last step lands ON the target (exact at 0/1); page load snaps to the day's target so `?t=` probes still open at 0/1; `isWindy() = windF() > 0.5` stays the behaviour boolean. Consumers → `windF()`: `windT` rate `(1+1.4f)`, sway `(1+0.7f)`, washing `(1.8+3.2f)`, smoke `(1+1.6f)`. Clouds drifted on `simT × (windy ? 3.4 : 1.4)` — a POSITION step on HEAD — now `(simT + windX) × 1.4`, `windX` accumulated. Announce and census `windy` read `windyDay()`. `chatty()` excludes `a.homer` (c90).
+**Gates:** `wind-year.mjs`: ramp `0.09 0.27 0.46 0.65 0.83 1`, max slope 0.43/h (cap 0.40, __warp grain), windy-day mean 0.960 / calm 0.027, 0 samples off 0/1 four hours past a roll. Census FAIL `people −10.6%` on 3 seeds = the reshuffle: `census-noise.mjs` over 8 seeds reads HERE **+8.2%**, HEAD's own spread 6%. Motion PASS. Anchors: `fountain-year.mjs` unchanged (play 1 / stand 1 / basin colour identical); `boat-wind.mjs` calm 0.306→0.311 launches/day, windy 0.171→0.187, speeds 0.939/0.689→0.933/0.695 — the windy CLASS now holds the ramp's half-wind hours, so its mean moves; the 0/1 algebra does not; `river-year.mjs` riverRun 1.405/1.000/0.595 identical, boats/day 0.242→0.253. Inventory is 9.7/9.5 KB after my one sky line — manager's cut. Filmstrip across the day-5 roll (seed 7, t=274): 0 POP, HEAD control 0 POP — whole-frame Δ is the dawn. Shots clean.
+**Verdict:** shipped, with the census reading noted above.
+**Surprise:** the step this brief priced is *invisible on screen at the roll*: a 240×220 fountain crop across HEAD's own hour-6 snap reads Δ 5.12 vs 3.92 either side, HERE 5.18 — the dawn relight swamps it. A day-hash wind always starts at hour 6, the one hour nobody can see a step. The scalar is right; its VISIBLE payoff waits for wind rising mid-day off a front (c96).
+**Law:** a pop is only worth pricing where the light is flat — a step inside the dawn/dusk relight is measured by a crop, not the eye, and may be worth nothing on screen. Check the hour a switch fires before building a ramp for it.

@@ -1,132 +1,116 @@
 {
- "generated": "2026-08-29T01:30:00.000Z",
- "byIteration": 57,
- "rung": 2,
- "diagnosis": {
-  "health": "Healthy and getting cheaper: the last 20 real rows are 19 shipped and 1 rejected-brief (#48, my brief, the worker was right), 0 reverts, selfVerdict == verdict on every row, source moved 8/10, last 10 averaging 8 min and $4.06 with the last two at $2.66 and $2.07 for a 3x draw-cost cut and a harness fix. Cost is FALLING with output held — the inverse of the Solvista signature. The one recurring fault is mine for the fourth pass running: the worker budget opened OVER on #56 and #57 (46.7 / 46.5 KB) and state.json was three iterations stale, with #53 (lane, b50) never entered in coverage at all — the loop had lane at '4 back' when it was really 10. Fixed this pass: laws 30 → 32 with #53/#55 promoted and #54/#56/#57 folded into existing laws, ten laws compressed to pay (12.0/12 KB); #55–#57 archived verbatim and condensed 2.5/2.2/2.1 → 1.3/1.2/1.2 KB; inventory 49 → 48 entries, three over-cap lines rewritten; ten cues resolved (5 promoted to briefs, 2 to laws, 3 closed), one held.",
-  "signals": [
-   "queue empty (all five of pass #52's briefs consumed: 5 shipped, 0 rejected, 0 reverted)",
-   "no stall signal; revertStreak=0",
-   "context budget OVER two iterations running (46.7/46 KB) — fixed this pass",
-   "state.json three iterations stale, #53 lane never entered — recorded",
-   "windF() is a 0/1 coin: every wind consumer built since #50 (fountain, bunting, river, boat) inherits a step at the hour-6 roll"
+  "generated": "2026-08-29T01:30:00.000Z",
+  "byIteration": 57,
+  "rung": 2,
+  "diagnosis": {
+    "health": "Healthy and getting cheaper: the last 20 real rows are 19 shipped and 1 rejected-brief (#48, my brief, the worker was right), 0 reverts, selfVerdict == verdict on every row, source moved 8/10, last 10 averaging 8 min and $4.06 with the last two at $2.66 and $2.07 for a 3x draw-cost cut and a harness fix. Cost is FALLING with output held — the inverse of the Solvista signature. The one recurring fault is mine for the fourth pass running: the worker budget opened OVER on #56 and #57 (46.7 / 46.5 KB) and state.json was three iterations stale, with #53 (lane, b50) never entered in coverage at all — the loop had lane at '4 back' when it was really 10. Fixed this pass: laws 30 → 32 with #53/#55 promoted and #54/#56/#57 folded into existing laws, ten laws compressed to pay (12.0/12 KB); #55–#57 archived verbatim and condensed 2.5/2.2/2.1 → 1.3/1.2/1.2 KB; inventory 49 → 48 entries, three over-cap lines rewritten; ten cues resolved (5 promoted to briefs, 2 to laws, 3 closed), one held.",
+    "signals": [
+      "queue empty (all five of pass #52's briefs consumed: 5 shipped, 0 rejected, 0 reverted)",
+      "no stall signal; revertStreak=0",
+      "context budget OVER two iterations running (46.7/46 KB) — fixed this pass",
+      "state.json three iterations stale, #53 lane never entered — recorded",
+      "windF() is a 0/1 coin: every wind consumer built since #50 (fountain, bunting, river, boat) inherits a step at the hour-6 roll"
+    ],
+    "balance": "After recording: sky 12 back (its last LANDED work is #45 — #48 rejected), plaza 7, life 6, street 5, lane 4, river 3, courtyard 1, sill 0. Sky, plaza and life get one each; the sill sits this batch out (three of the last five); street takes the four-cue polish; river the lantern. The empty cell life × interaction gets its first entry."
+  },
+  "rationale": "HOLD RUNG 2, with one brief that is a rung-5 probe. The compounding moves are not exhausted and two of them are DEFECTS a thirty-second viewer sees: (1) the wind is a per-day coin, so a windy day begins as a step at 06:00 with the washing, bunting, fountain and river all snapping together — three passes have been hanging consumers on windF() and every one inherits that step (b55, sky, 12 back); (2) every lit pane at midnight is grey (105,100,110) because drawLitPanes runs before applyLight's 0.8 multiply — the night the loop spent #32–#53 building glows grey-warm at best (in b58). The bet is b57, and it is the ladder's rung 5 tried early rather than a climb: the town now has ~50 behaviours per person (itineraries, seats, greetings, the door, going home, the plots) and no way for a viewer to READ one person's day — a tap names them, then they walk off and are lost in the crowd. Let the observer follow one. If it lands, the sill has a third instrument (name, season, follow) and every behaviour the loop has built becomes legible in sequence; if it fails, it fails on hit-testing and DOM, which the laws already cover. b56 puts weather on the ground (wet paving darkens and reflects lamps after rain — the plaza and quay have had wind, now rain), b59 closes c92 with a lantern on the night boat. Risk: b55 medium (touches ~8 consumers, anchor algebra), b56 medium-high (cached ground layer, rebuild count), b57 high, b58 low, b59 medium.",
+  "queue": [
+    {
+      "id": "b56",
+      "domain": "Plaza & quay",
+      "kind": "Connect",
+      "brief": "Rain leaves no trace. `rainFall` drives drops, an overcast tint, pond rings and sparkle; the moment it stops the plaza, quay and cross street are dry. Add a `wetness` 0..1 world scalar (rate-capped: rises with `rainFall`, dries with daylight and warmth, slower in winter) and make the PAVED ground read it — `pavingAt(x,y)` cells in `groundBase`/`drawGround` darken and cool by wetness, and after dark the night screen pass lays lamp reflections on wet paving the way `drawRiverLights` lays them on water (a faint bar under each lamp, × wetness × nightF). The cached ground layer must not repaint every frame for this: bucket wetness the way the light bucket is bucketed, count rebuilds.",
+      "seams": [
+        "rainFall",
+        "raining",
+        "pavingAt",
+        "PAVING",
+        "groundBase",
+        "drawGround",
+        "groundDirty",
+        "drawRiverLights",
+        "RIVER_LAMPS",
+        "nightF",
+        "warmth"
+      ],
+      "successLooksLike": "A seed-pinned plaza crop an hour after a summer shower ends is visibly darker than HEAD and dries back to byte-identical within ~3 sim hours; a night crop after rain shows a lamp bar on the plaza and quay paving; `probes/ground-rebuilds.mjs` within +20/day of #56's 137/130; `frame-cost.mjs` within 0.5 ms of HEAD; census unchanged (draw-only).",
+      "avoid": "Do not wet grass, beds or the allotments — paving only, so the town's places read differently from its ground. Do not add an R() draw. Do not give people umbrellas twice or change any behaviour: this is the ground, not the walkers.",
+      "budgetMin": 35,
+      "risk": "medium-high"
+    },
+    {
+      "id": "b57",
+      "domain": "People & animals",
+      "kind": "Interaction/UX",
+      "brief": "The observer can NAME a person (`livingAt`, `personName`) but cannot follow one: a tap says 'a walker, heading for the quay' and two seconds later they are one of nine figures. Let a tap on a person FOLLOW them — the sill line stays on that agent (their `__entities` id) and rewrites as their act changes ('sitting at the cafe' → 'off to the market' → 'talking to somebody' → 'going home, lamp lit at 22.14'), a small marker rides under their feet in screen space, and the line ends with what happened to them ('left by the lane' / 'went in at the door') when they despawn. A second tap on the same figure or a tap on nothing releases. The town's own OFFERS[] queue gets the invitation ('tap someone to follow them') — it does not get a hint of its own.",
+      "seams": [
+        "livingAt",
+        "personName",
+        "nameAt",
+        "NAME_SETTLE",
+        "OFFERS",
+        "answersTouch",
+        "__entities",
+        "announce",
+        "#plate",
+        "drawPerson",
+        "routeToExit"
+      ],
+      "successLooksLike": "`probes/follow.mjs`: tap a seed-pinned walker, warp 6 sim hours, the sill reported ≥3 distinct acts in order and a closing line on despawn; the marker's screen box tracks the projected feet within a cell per pose; NAME_SETTLE behaviour for un-followed pointing unchanged (naming §1–§8 still pass); on a 640px phone the follow line is the one thing shown.",
+      "avoid": "Do not add a camera or zoom — the frame stays where it is. Do not change any agent behaviour or add an R() draw; following reads, it never writes. Do not add a second invitation mechanism.",
+      "budgetMin": 35,
+      "risk": "high"
+    },
+    {
+      "id": "b58",
+      "domain": "Cross street & allotments",
+      "kind": "Polish",
+      "brief": "Four things the last five iterations built that the viewer cannot see at 1x, each with a cue and a number. (c91) every lit pane at midnight reads grey (105,100,110): `drawLitPanes()` runs at ~4029, `applyLight` at ~4232 — draw the lit panes (and their LIT[] glow) AFTER the tint so windows glow warm, and check the rose window and TAP_DOOR get the same treatment. (c88) turned earth (`turned[]`, #3d2d1c) is dark brown on brown from the wide shot — give a turned cell a furrow texture or a colder, more saturated tint. (c84) bunting flags are ~3 px at 1x so the flutter #50 built only reads on a contact sheet — larger flags, fewer if needed. (c83) the snowy lawn at dawn reads pale green: a whiter `SNOW_COL` floor under the dawn tint, or a cover floor for the mixed range. One commit, four crops vs HEAD at the same pinned instants.",
+      "seams": [
+        "drawLitPanes",
+        "applyLight",
+        "LIT",
+        "drawChurchFront",
+        "turned",
+        "groundBase",
+        "drawBandFlags",
+        "SNOW_COL",
+        "snowAt",
+        "daylight"
+      ],
+      "successLooksLike": "Pane-warmth probe (`probes/pane-warmth.mjs`) reports a lit pane at midnight with R − B ≥ 40 (HEAD −5); a seed-7 midwinter noon crop shows the turned plots as a distinct value from a fallow one by ≥ 25 luminance; flags ≥ 5 px at 1x; the seed-7 winter dawn crop's snowed lawn mean has B ≥ G. Census unchanged; noon summer frame byte-identical to HEAD (nothing here fires in summer daylight).",
+      "avoid": "No behaviour change, no new R() draw, no new ground kind. If the pane reorder pulls a reflection or glow out of the night pass, fix the order, not the colour constant.",
+      "budgetMin": 25,
+      "risk": "low"
+    },
+    {
+      "id": "b59",
+      "domain": "River & far bank",
+      "kind": "Deepen",
+      "brief": "The rowboat rows after dark unlit (c92: a reflection would be dark on dark). Hang a lantern on it: when `nightF > 0.3` and the boat is out, `drawBoat` adds a small warm lamp at the bow pushed to LIT[]/the night glow, and `drawRiverLights` lays a moving column under it beside the fixed RIVER_LAMPS bars (same chop, same wind terms from #54, so it shivers on a windy night). Then decide, with `boatRate()`, whether night launches should be RARER (a lantern is an event, not a resident) — price against `boatSpeed()` so a trip that starts at dusk is still out by 22:00.",
+      "seams": [
+        "updateBoat",
+        "boatRate",
+        "boatSpeed",
+        "drawBoat",
+        "drawRiverLights",
+        "RIVER_LAMPS",
+        "LIT",
+        "nightF",
+        "windF",
+        "byTheWater"
+      ],
+      "successLooksLike": "A seed where the boat is out at 22:00 shows a bow lamp and a reflection column moving with it (crop vs HEAD, same pinned instant); `river-year.mjs` and `boat-wind.mjs` anchors unchanged; the night filmstrip preset 0 POP; the boat's presence after dark counted across 20 seeds and stated in the ledger, whichever way the rate decision went.",
+      "avoid": "Do not add a second boat or a boatman behaviour. Do not add an R() draw. Do not touch the bridge shadow — it is already there (`drawBridge`, c78 was half false).",
+      "budgetMin": 25,
+      "risk": "medium"
+    }
   ],
-  "balance": "After recording: sky 12 back (its last LANDED work is #45 — #48 rejected), plaza 7, life 6, street 5, lane 4, river 3, courtyard 1, sill 0. Sky, plaza and life get one each; the sill sits this batch out (three of the last five); street takes the four-cue polish; river the lantern. The empty cell life × interaction gets its first entry."
- },
- "rationale": "HOLD RUNG 2, with one brief that is a rung-5 probe. The compounding moves are not exhausted and two of them are DEFECTS a thirty-second viewer sees: (1) the wind is a per-day coin, so a windy day begins as a step at 06:00 with the washing, bunting, fountain and river all snapping together — three passes have been hanging consumers on windF() and every one inherits that step (b55, sky, 12 back); (2) every lit pane at midnight is grey (105,100,110) because drawLitPanes runs before applyLight's 0.8 multiply — the night the loop spent #32–#53 building glows grey-warm at best (in b58). The bet is b57, and it is the ladder's rung 5 tried early rather than a climb: the town now has ~50 behaviours per person (itineraries, seats, greetings, the door, going home, the plots) and no way for a viewer to READ one person's day — a tap names them, then they walk off and are lost in the crowd. Let the observer follow one. If it lands, the sill has a third instrument (name, season, follow) and every behaviour the loop has built becomes legible in sequence; if it fails, it fails on hit-testing and DOM, which the laws already cover. b56 puts weather on the ground (wet paving darkens and reflects lamps after rain — the plaza and quay have had wind, now rain), b59 closes c92 with a lantern on the night boat. Risk: b55 medium (touches ~8 consumers, anchor algebra), b56 medium-high (cached ground layer, rebuild count), b57 high, b58 low, b59 medium.",
- "queue": [
-  {
-   "id": "b55",
-   "domain": "Sky, light & weather",
-   "kind": "Deepen",
-   "brief": "The wind is a coin. `isWindy()` is `hash(day, 99) < 0.28` and `windF()` returns 0 or 1, so a windy day begins as a STEP at the hour-6 day roll — washing, chimney smoke, tree sway, bunting, the fountain's lean, the river streaks and the boat all snap at once, and snap back the next morning. Make `windF()` a slow 0..1 scalar: rate-capped like `cloudCover()` (a `wind` state stepped in `simStep`, target from the day's hash, building over ~2–3 sim hours and dying the same way, with a gust term already on `windT` for the fast part). `isWindy()` stays the behaviour boolean (e.g. `windF() > 0.5`), every draw site keeps multiplying by `windF()`, and the four consumers that still read the boolean for a MAGNITUDE (`windT` rate line ~4049, `sway` ~4050, the washing swing ~4188, the sky's smoke) move onto `windF()`. Exact at 0 and at 1 in the algebra. Carry c90 while in the agent step: exclude `a.homer` from `chatty()` so a greeting cannot stall a night arrival past HOME_LATE.",
-   "seams": [
-    "isWindy",
-    "windF",
-    "windT",
-    "stepClouds",
-    "cloudCover",
-    "simStep",
-    "drawFountain",
-    "drawRiverFlow",
-    "chatty",
-    "a.homer"
-   ],
-   "successLooksLike": "A filmstrip across the hour-6 roll on a seed where day N is calm and N+1 windy shows 0 POP and the washing, bunting and fountain lean rising over the morning; a per-day probe (`probes/wind-year.mjs`) prints windF's mean on windy vs calm days and its max slope per sim hour; `fountain-year.mjs`, `river-year.mjs` and `boat-wind.mjs` anchors unchanged at windF 0 and 1.",
-   "avoid": "Do not change the share of windy days (0.28) or add an R() draw — the target is the same per-day hash. Do not touch cloudCover's own rate. Do not make the wind a weather-front consumer yet; that is a later Connect.",
-   "budgetMin": 30,
-   "risk": "medium"
-  },
-  {
-   "id": "b56",
-   "domain": "Plaza & quay",
-   "kind": "Connect",
-   "brief": "Rain leaves no trace. `rainFall` drives drops, an overcast tint, pond rings and sparkle; the moment it stops the plaza, quay and cross street are dry. Add a `wetness` 0..1 world scalar (rate-capped: rises with `rainFall`, dries with daylight and warmth, slower in winter) and make the PAVED ground read it — `pavingAt(x,y)` cells in `groundBase`/`drawGround` darken and cool by wetness, and after dark the night screen pass lays lamp reflections on wet paving the way `drawRiverLights` lays them on water (a faint bar under each lamp, × wetness × nightF). The cached ground layer must not repaint every frame for this: bucket wetness the way the light bucket is bucketed, count rebuilds.",
-   "seams": [
-    "rainFall",
-    "raining",
-    "pavingAt",
-    "PAVING",
-    "groundBase",
-    "drawGround",
-    "groundDirty",
-    "drawRiverLights",
-    "RIVER_LAMPS",
-    "nightF",
-    "warmth"
-   ],
-   "successLooksLike": "A seed-pinned plaza crop an hour after a summer shower ends is visibly darker than HEAD and dries back to byte-identical within ~3 sim hours; a night crop after rain shows a lamp bar on the plaza and quay paving; `probes/ground-rebuilds.mjs` within +20/day of #56's 137/130; `frame-cost.mjs` within 0.5 ms of HEAD; census unchanged (draw-only).",
-   "avoid": "Do not wet grass, beds or the allotments — paving only, so the town's places read differently from its ground. Do not add an R() draw. Do not give people umbrellas twice or change any behaviour: this is the ground, not the walkers.",
-   "budgetMin": 35,
-   "risk": "medium-high"
-  },
-  {
-   "id": "b57",
-   "domain": "People & animals",
-   "kind": "Interaction/UX",
-   "brief": "The observer can NAME a person (`livingAt`, `personName`) but cannot follow one: a tap says 'a walker, heading for the quay' and two seconds later they are one of nine figures. Let a tap on a person FOLLOW them — the sill line stays on that agent (their `__entities` id) and rewrites as their act changes ('sitting at the cafe' → 'off to the market' → 'talking to somebody' → 'going home, lamp lit at 22.14'), a small marker rides under their feet in screen space, and the line ends with what happened to them ('left by the lane' / 'went in at the door') when they despawn. A second tap on the same figure or a tap on nothing releases. The town's own OFFERS[] queue gets the invitation ('tap someone to follow them') — it does not get a hint of its own.",
-   "seams": [
-    "livingAt",
-    "personName",
-    "nameAt",
-    "NAME_SETTLE",
-    "OFFERS",
-    "answersTouch",
-    "__entities",
-    "announce",
-    "#plate",
-    "drawPerson",
-    "routeToExit"
-   ],
-   "successLooksLike": "`probes/follow.mjs`: tap a seed-pinned walker, warp 6 sim hours, the sill reported ≥3 distinct acts in order and a closing line on despawn; the marker's screen box tracks the projected feet within a cell per pose; NAME_SETTLE behaviour for un-followed pointing unchanged (naming §1–§8 still pass); on a 640px phone the follow line is the one thing shown.",
-   "avoid": "Do not add a camera or zoom — the frame stays where it is. Do not change any agent behaviour or add an R() draw; following reads, it never writes. Do not add a second invitation mechanism.",
-   "budgetMin": 35,
-   "risk": "high"
-  },
-  {
-   "id": "b58",
-   "domain": "Cross street & allotments",
-   "kind": "Polish",
-   "brief": "Four things the last five iterations built that the viewer cannot see at 1x, each with a cue and a number. (c91) every lit pane at midnight reads grey (105,100,110): `drawLitPanes()` runs at ~4029, `applyLight` at ~4232 — draw the lit panes (and their LIT[] glow) AFTER the tint so windows glow warm, and check the rose window and TAP_DOOR get the same treatment. (c88) turned earth (`turned[]`, #3d2d1c) is dark brown on brown from the wide shot — give a turned cell a furrow texture or a colder, more saturated tint. (c84) bunting flags are ~3 px at 1x so the flutter #50 built only reads on a contact sheet — larger flags, fewer if needed. (c83) the snowy lawn at dawn reads pale green: a whiter `SNOW_COL` floor under the dawn tint, or a cover floor for the mixed range. One commit, four crops vs HEAD at the same pinned instants.",
-   "seams": [
-    "drawLitPanes",
-    "applyLight",
-    "LIT",
-    "drawChurchFront",
-    "turned",
-    "groundBase",
-    "drawBandFlags",
-    "SNOW_COL",
-    "snowAt",
-    "daylight"
-   ],
-   "successLooksLike": "Pane-warmth probe (`probes/pane-warmth.mjs`) reports a lit pane at midnight with R − B ≥ 40 (HEAD −5); a seed-7 midwinter noon crop shows the turned plots as a distinct value from a fallow one by ≥ 25 luminance; flags ≥ 5 px at 1x; the seed-7 winter dawn crop's snowed lawn mean has B ≥ G. Census unchanged; noon summer frame byte-identical to HEAD (nothing here fires in summer daylight).",
-   "avoid": "No behaviour change, no new R() draw, no new ground kind. If the pane reorder pulls a reflection or glow out of the night pass, fix the order, not the colour constant.",
-   "budgetMin": 25,
-   "risk": "low"
-  },
-  {
-   "id": "b59",
-   "domain": "River & far bank",
-   "kind": "Deepen",
-   "brief": "The rowboat rows after dark unlit (c92: a reflection would be dark on dark). Hang a lantern on it: when `nightF > 0.3` and the boat is out, `drawBoat` adds a small warm lamp at the bow pushed to LIT[]/the night glow, and `drawRiverLights` lays a moving column under it beside the fixed RIVER_LAMPS bars (same chop, same wind terms from #54, so it shivers on a windy night). Then decide, with `boatRate()`, whether night launches should be RARER (a lantern is an event, not a resident) — price against `boatSpeed()` so a trip that starts at dusk is still out by 22:00.",
-   "seams": [
-    "updateBoat",
-    "boatRate",
-    "boatSpeed",
-    "drawBoat",
-    "drawRiverLights",
-    "RIVER_LAMPS",
-    "LIT",
-    "nightF",
-    "windF",
-    "byTheWater"
-   ],
-   "successLooksLike": "A seed where the boat is out at 22:00 shows a bow lamp and a reflection column moving with it (crop vs HEAD, same pinned instant); `river-year.mjs` and `boat-wind.mjs` anchors unchanged; the night filmstrip preset 0 POP; the boat's presence after dark counted across 20 seeds and stated in the ledger, whichever way the rate decision went.",
-   "avoid": "Do not add a second boat or a boatman behaviour. Do not add an R() draw. Do not touch the bridge shadow — it is already there (`drawBridge`, c78 was half false).",
-   "budgetMin": 25,
-   "risk": "medium"
-  }
- ],
- "recommendStop": null
+  "recommendStop": null,
+  "consumed": [
+    {
+      "id": "b55",
+      "at": "2026-08-28T22:38:27.372Z"
+    }
+  ]
 }

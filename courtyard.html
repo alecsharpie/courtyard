@@ -840,8 +840,28 @@ function seasonLabel(){ return SEASON_NAMES[Math.floor(seasonPhase * 8 + 0.5) % 
  * the old table; anything a gate catches is about the new range, not new algebra. */
 function kioskOpen(){ return day >= 2 && hour >= sunUp + 2 && hour < sunDown - 1.5; }
 function isMarketDay(){ return day > 0 && day % 4 === 2; }
-function isWindy(){ return hash(day, 99) < 0.28; }
-function windF(){ return isWindy() ? 1 : 0; }   // the 0..1 beside the boolean — draw sites multiply by it
+/* The wind — the day's hash decides WHETHER (windyDay, the same 0.28 share it always
+ * was), a rate-capped scalar decides HOW MUCH. It used to be the coin itself: windF()
+ * read 0 or 1 straight off the hash, so a windy day began as a STEP at the hour-6 roll
+ * — washing, smoke, sway, bunting, the fountain's lean, the river streaks and the boat
+ * all snapped at once, and snapped back the next morning. Now `wind` is stepped in
+ * simStep like cloudCover(): it climbs to the day's target over WIND_RISE_H sim hours
+ * and dies the same way, exact at 0 and at 1 (the last step lands ON the target, no
+ * float residue). isWindy() is the behaviour boolean the agents and the leaves read;
+ * every draw site multiplies by windF(); the gust is already on windT. windX is the
+ * extra cloud drift the wind has accumulated, so cloud position is continuous too. */
+function windyDay(){ return hash(day, 99) < 0.28; }
+const WIND_RISE_H = 2.5;                       // sim hours from calm to full, and back
+let wind = -1, windX = 0;                      // -1: not yet initialised — take the day's target at first step
+function windF(){ return wind < 0 ? (windyDay() ? 1 : 0) : wind; }
+function isWindy(){ return windF() > 0.5; }
+function stepWind(dt){
+  const tgt = windyDay() ? 1 : 0;
+  if (wind < 0){ wind = tgt; return; }
+  const r = dt * 24 / (WIND_RISE_H * DAY_LEN);
+  wind = Math.abs(tgt - wind) <= r ? tgt : wind + (tgt > wind ? r : -r);
+  windX += dt * windF() * (2.0 / 1.4);         // drawClouds: drift 1.4*(simT + windX) -> 3.4 x simT at full wind
+}
 
 /* Cloud cover — ONE slow scalar the whole sky reads, on the same footing as
  * isWindy(). Weather is a front that builds and breaks over most of a day, not a
@@ -1903,7 +1923,7 @@ const GREET_DT = 0.5, GREET_R = 1.6, GREET_MIN = 0.9, GREET_P = 0.17;
 let greetAcc = 0;
 function chatty(a){
   return a.state === 'walk' && !a.small && !(a.listen > 0) && !(a.greet > 0) && !(a.chatCool > 0)
-      && a.kind !== 'sweeper' && a.kind !== 'picnic';   // the sweeper is working; picnic pairs arrive together
+      && a.kind !== 'sweeper' && a.kind !== 'picnic' && !a.homer;   // the sweeper is working; picnic pairs arrive together; a homer is priced to a door (c90)
 }
 function greetPass(){
   const free = [];
@@ -2918,7 +2938,7 @@ function drawSky(g){
 function drawClouds(g, hz){
   const c = cloudCover();
   if (c < 0.04) return;
-  const drift = simT * (isWindy() ? 3.4 : 1.4) * (RM ? 0.12 : 1);
+  const drift = (simT + windX) * 1.4 * (RM ? 0.12 : 1);   // calm: exactly the old simT * 1.4
   const span = W + cellW * 36;
   const pale = mix('#ffffff', '#8a919d', clamp((c - 0.34) * 1.5, 0, 1));
   const dark = mix('#3b4358', '#161c2c', clamp((c - 0.4) * 1.4, 0, 1));
@@ -4046,8 +4066,8 @@ function drawScene(t, dt){
     }
   }
 
-  windT += dt * (RM ? 0.15 : 0.6) * (isWindy() ? 2.4 : 1);
-  const sway = RM ? 0 : (Math.sin(windT) * 0.14 + Math.sin(windT*2.7)*0.05) * (isWindy() ? 1.7 : 1);
+  windT += dt * (RM ? 0.15 : 0.6) * (1 + 1.4 * windF());
+  const sway = RM ? 0 : (Math.sin(windT) * 0.14 + Math.sin(windT*2.7)*0.05) * (1 + 0.7 * windF());
   const m = maturity();
   const treeR = 4.0 + m * 4.6, treeH = 6 + m * 3.8;
   const sunX = lerp(1.6, -1.6, clamp((hour - 6) / 14, 0, 1)) * daylight;
@@ -4185,7 +4205,7 @@ function drawScene(t, dt){
         const tt = 0.14 + k * 0.18;
         const gx2 = lerp(lerp(p1[0], midx, tt), lerp(midx, p2[0], tt), tt);
         const gy2 = lerp(lerp(p1[1], midy, tt), lerp(midy, p2[1], tt), tt);
-        const swg = Math.sin(windT * 2.2 + k * 1.7 + seed) * (isWindy() ? 5 : 1.8);
+        const swg = Math.sin(windT * 2.2 + k * 1.7 + seed) * (1.8 + 3.2 * windF());
         const hv2 = hash(k + seed, day);
         const w2 = cellW * (0.5 + hv2 * 0.45), h2 = cellH * (1.5 + hv2 * 1.6);
         ctx.save();
@@ -4250,7 +4270,7 @@ function drawSmoke(t){
   const cold = clamp(1 - Math.abs(hour - 7) / 3.5, 0, 1) + rainFall * 0.7 +
                clamp((hour - 18.5) / 2, 0, 1) * 0.8;
   if (cold <= 0.05 || RM) return;
-  const drift = isWindy() ? 2.6 : 1;
+  const drift = 1 + 1.6 * windF();
   for (let k = 0; k < CHIMNEYS.length; k++){
     const [cx, cy] = CHIMNEYS[k];
     if (hash(cx, cy + day * 7) > clamp(cold, 0, 1) * 0.75) continue;
@@ -5875,11 +5895,12 @@ function simStep(sdt, dt){
     marketClosed = day;
     announce('Market’s end; the canvas rolls shut and the lane is left to the sparrows.');
   }
-  if (isWindy() && windAnnounced !== day && hour > sunUp + 1.5 && hour < sunUp + 3.5){
+  if (windyDay() && windAnnounced !== day && hour > sunUp + 1.5 && hour < sunUp + 3.5){
     windAnnounced = day;
     announce('A brisk wind combs the block; everything that can flutter, does.');
   }
   wet = Math.max(0, wet - sdt);
+  stepWind(sdt);
   stepClouds(sdt);
   stepSnow(sdt);
   // sun moves, cover thickens: relight the static layer now and then. Cover rides
@@ -6221,7 +6242,7 @@ window.__census = function(){
   return {
     world: { GW, WH, cells: GW * WH },
     clock: { simT: +simT.toFixed(3), day, hour: +hour.toFixed(3),
-             marketDay: isMarketDay(), windy: isWindy(), raining: !!raining,
+             marketDay: isMarketDay(), windy: windyDay(), raining: !!raining,
              cloud: +cloudCover().toFixed(3), snow: +snowCover.toFixed(3), season: +season().toFixed(4),
              maturity: +maturity().toFixed(4), richness: +richness().toFixed(4) },
     tiles, life, structure,

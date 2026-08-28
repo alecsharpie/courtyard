@@ -2778,3 +2778,12 @@ warmth is a cosine and time piles up at the extremes. Full entry in `LEDGER-arch
 **Verdict:** shipped. Context budget read OVER (46.5/46 KB) at the start.
 **Surprise:** the brief's "fixed 2" never existed; the actual defect was the median being set by the plateau AFTER the ramp. A neighbour test is blind to a step that lands mid-ramp — acceptable, since the ramp itself is what the eye then looks at.
 **Law:** grade a time series against its neighbours, not its median — a median gate on a series with a regime change flags the whole shorter regime as anomalous.
+## Iteration 50 — the plaza reads a windy day (2026-08-29) [Plaza & quay × Connect]
+
+**Brief:** b47 — nothing east of the bridge read `isWindy()`; lean the fountain, drift the spray, drop `fountainStand()` on windy days, flutter the bunting.
+**Did:** `windF()` (0..1) beside `isWindy()`. `drawFountain`: a `lean` term off `windT` shifts each jet's control point and landing +x, droplets pushed downwind, six faint lee dots walk 2–4.4 cells past the rim and fade. `fountainStand()` = `clamp(play * (1 - FOUNT_WIND_SHY*windF()))`, SHY 0.5 — exact at calm. Bunting tips swing on `windT` × windF. No new R() draws; river untouched.
+**Gates:** census FAIL people −10% at two cells → replayed 10 seeds × 20 days (`probes/fountain-wind.mjs`): −1%, churn. Stand share at spawn: calm 0.579→0.599, windy 0.578→**0.275**. `fountain-year.mjs` anchor EXACT · motion PASS · `fountain-wind-shots.mjs` windy noon: 20 spray px at +2.6 vs HEAD 4 px at −0.1 · filmstrip 0 POP · perf skipped.
+**Verdict:** shipped.
+**Surprise:** a presence-sampled probe said calm days had moved too (0.536→0.351) — sitters dwell 2× longer than standers and stops straddle the day roll, so presence smears windy days into calm ones. Counting at spawn gave the clean split. `day` on the page is one ahead of `hash(d,99)` from t=0 — the clock rolls at hour 6.
+**Law:** promoted (measure a choice at the choice). **Cue:** c84.
+
