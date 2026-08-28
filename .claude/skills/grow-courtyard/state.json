@@ -328,7 +328,8 @@
       "washing comes in before the rain — per-garment thresholds on weatherComing(), plus a dusk ramp; never all in one frame",
       "the working day hangs off the SUN — kioskOpen/marketOpen/marketClose/marketRaise/sweeper/wind announcement are offsets from sunUp/sunDown; MK_MIN_SPAN floors winter, MK_EARLIEST holds the summer raise. probes/working-day.mjs",
       "the stalls sell what the plots grew — produce[] written only by harvestPlot(); stockMarket() latches it once per market day into mkShelf; marketRaise(i) gates on mkTrades(i) (MK_NEED) so a thin year raises fewer stalls. Pitches are real vegetables, MK_CAP carries over. probes/market-year.mjs",
-      "the town's ONE evening place — a lit door in the gatehouse front (TAP_DOOR, drawTapDoor). tapOpen() opens on sunDown-3 floored at TAP_EARLIEST and shuts by the CLOCK at 03.00, so WINTER's evening is the longest; tapF() is the 0..1 every draw mixes on. probes/evening-door.mjs"
+      "the town's ONE evening place — a lit door in the gatehouse front (TAP_DOOR, drawTapDoor). tapOpen() opens on sunDown-3 floored at TAP_EARLIEST and shuts by the CLOCK at 03.00, so WINTER's evening is the longest; tapF() is the 0..1 every draw mixes on. probes/evening-door.mjs",
+      "callIn(a, pts, durMin, durMax) — the ONE re-route onto TAP_SLOTS, priced by pathHours()/tapFits() (arrival + drink + 0.6 h inside TAP_SHUT, door open at arrival). Sources: tapCallers() on market days — the last stall's trader when it folds, an evening sweeper (kind sweeper, eve:true) 62→40 on LANE_S_Y — and the audience's a.toTap, which is priced OUT (25–41 h from the green). scarcity reads agents.length − tapNow. probes/tap-callers.mjs; bandstand-year.mjs §5 asserts BAND_DUSK clearance"
     ],
     "street": [
       "cross street with two footways, roadway, curbs, street lamps, four street trees in stone pits (TREE_PITS, drawLaneTree)",
@@ -419,6 +420,12 @@
     {
       "id": "c78",
       "note": "bridge-end lamp reflections only show south of the deck; the deck's shadow on the water is an implicit edge worth drawing. The rowboat has no reflection after dark.",
+      "raisedBy": 42,
+      "seenBy": 0
+    },
+    {
+      "id": "c79",
+      "note": "callIn: a trader from stall 0 (x 45, 19 cells nearer) would reach the door in spring/autumn too; today only warmth ≤ 0.43 market days call in",
       "raisedBy": 42,
       "seenBy": 0
     }

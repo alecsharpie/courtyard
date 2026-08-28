@@ -1117,6 +1117,9 @@ function spawnConcertAgent(){
        away on — so the green thins across the strike instead of emptying in a frame.
        A field written once at spawn, never a countdown read as a threshold. */
     leaveAt:0.35 + R() * 0.5,
+    // would rather call in at the door than go straight home — a trait, not a
+    // countdown. Priced at the strike by callIn(), and priced out: see tapCallers().
+    toTap:R() < 0.4,
   };
   a.stop = {x:s.x, y:s.y, act:'stand', dur:90};      // the set ends them, not a timer
   a.wp.push([PARK_GATE, 60.5], [FAR_WALK, 57], [s.x, s.y],
@@ -1720,6 +1723,9 @@ function stepAgent(a, dt){
         || (a.east && !eastOpenFor(a))
         || (a.tap && !tapOpen())
         || (a.band && (bandF() <= 0 || (a.heard && bandF() < a.leaveAt)))){
+      // a listener who would call in at the door on the way home: the walk is priced
+      // and, from the green, it never fits — see tapCallers(). The branch is the proof.
+      if (a.band && a.toTap && callIn(a, a.wp.slice(a.i).concat([[PARK_GATE, LANE_N_Y]]), 4, 6)) return;
       if (a.blanket){ a.blanket = false; }
       if (a.tableRef){ a.tableRef.taken = 0; a.tableRef = null; a.cup = false; }
       // the place at the door goes back the moment they step away from it, not when
@@ -2142,6 +2148,80 @@ function tapNews(){
   announce(pick(['The lamp over the door on the lane is lit, and the room behind it is open.',
     'A door opens on the lane and lets out a bar of warm light and some noise.',
     'Somebody props the lane door open; the evening has somewhere to be.']));
+}
+/* ---- who else calls in (#47) ----
+ * Until now the door's only custom rolled out of spawnTapAgent(): nothing that
+ * happened elsewhere in the town ever sent anybody here. callIn(a, path, dur) is the
+ * ONE way an agent already on its feet is re-routed to the pavement, and it PRICES the
+ * walk before it claims the place: the polyline from where they are to the slot, at
+ * their speed, in sim hours, plus the drink, plus the step back off the slot, all of
+ * it inside TAP_SHUT, with the door open by the time they reach it. Nobody is sent who
+ * would arrive after the shut — they walk home instead, which is what they were doing.
+ *
+ * The concert audience is wired through this and, priced, it comes to NOTHING: the
+ * green is 108 cells from the door along the lane (PARK_GATE 134 -> x 26), 47–72 s of
+ * walking against a serving window of 7 s on a midsummer night and a shut 18 s off.
+ * The branch stays — it is the honest answer to "why does no listener call in", and
+ * the probe asserts it — but the custom the door actually gains is what stands within
+ * ~40 cells of it after dark: the market's last trader, and the evening's sweeper. */
+const HOURS_PER_S = 24 / DAY_LEN;
+function pathHours(x, y, pts, speed){
+  let d = 0, px = x, py = y;
+  for (const p of pts){ d += Math.hypot(p[0] - px, p[1] - py); px = p[0]; py = p[1]; }
+  return d / speed * HOURS_PER_S;
+}
+function tapFits(x, y, pts, speed, dur){
+  if (!tapOpen()) return false;
+  const arrive = hourEve() + pathHours(x, y, pts, speed);
+  return arrive >= tapUp() && arrive + dur * HOURS_PER_S + 0.6 < TAP_SHUT;
+}
+function callIn(a, pts, durMin, durMax){
+  // the first free place, not pick(): a refusal must not spend an R() draw, or every
+  // concert strike would reshuffle the seeded world for a walk that never fits
+  const s = TAP_SLOTS.find(s => !s.taken);
+  if (!s) return false;
+  const path = pts.concat([[s.x, s.y]]);
+  if (!tapFits(a.x, a.y, path, a.speed, durMax)) return false;
+  if (a.slot) a.slot.taken = 0;                   // the place on the green goes back now
+  s.taken = 1;
+  a.tap = true; a.caller = true; a.slot = s; a.band = false; a.east = false; a.stopped = false;
+  a.stop = {x:s.x, y:s.y, act:'stand', dur:durMin + R() * (durMax - durMin), cup:true};
+  a.wp = path.concat([[laneEdge(), LANE_N_Y]]); a.i = 0; a.state = 'walk';
+  return true;
+}
+/* The trader: when the LAST stall is folded, one figure walks from that pitch to the
+ * door — once per market, and only if the walk fits. The sweeper's opposite number:
+ * the dawn sweeper works the lane before the town wakes; after a market this one works
+ * it once the traders have gone, east to west past the pitches, and calls in on the
+ * way home if the door is still serving by the time the broom is done. Both are the
+ * market day reaching the evening, which is the connection the door never had. */
+let traderDay = -1, eveSweeper = null, eveSweeperDay = -1;
+function tapCallers(){
+  if (!isMarketDay()) return;
+  const last = MARKET_STALLS.length - 1;
+  const packed = marketClose() + MK_STAGGER * last + MK_RAISE;   // the last stall away
+  if (traderDay !== day && hour >= packed && mkTrades(last)){
+    traderDay = day;
+    const st = MARKET_STALLS[last];
+    const a = {
+      kind:'tap', street:true, x:st.x - 1.6, y:st.y + 0.6, wp:[], i:0,
+      speed:2.2 + R() * 0.4, state:'walk', timer:0,
+      shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9, wary:R(),
+    };
+    if (callIn(a, [[st.x - 3, LANE_N_Y]], 3, 4.5)) agents.push(a);
+    else { a.wp.push([st.x - 3, LANE_N_Y], [-2.5, LANE_N_Y]); agents.push(a); }
+  }
+  if (!eveSweeper && eveSweeperDay !== day && hour >= packed + 0.3 && !raining){
+    eveSweeperDay = day;
+    const a = {
+      kind:'sweeper', street:true, x:62, y:LANE_S_Y, wp:[[40, LANE_S_Y]], i:0,
+      speed:2.9, state:'walk', timer:0, shirt:'#5a6c46', pants:'#3a3a44', skin:pick(SKIN),
+      phase:0, broom:true, eve:true,
+    };
+    if (!callIn(a, [[40, LANE_S_Y], [30, LANE_N_Y]], 3, 4)) a.wp.push([-2.5, LANE_S_Y]);
+    eveSweeper = a; agents.push(a);
+  }
+  if (eveSweeper && eveSweeper.done) eveSweeper = null;
 }
 
 /* ============ the eastern quarter ============ *
@@ -5331,7 +5411,8 @@ function treeAt(p){
  * spends R(): it reads what the last frame put on screen. */
 function personName(a){
   const st = a.state, k = a.kind;
-  if (k === 'sweeper') return 'the sweeper, working down the lane';
+  if (k === 'sweeper') return a.tap && st === 'stand' ? 'the evening sweeper, calling in at the door'
+                            : a.eve ? 'the evening sweeper, clearing up after the market' : 'the sweeper, working down the lane';
   if (k === 'cyclist') return 'a cyclist';
   if (st === 'lie') return 'someone lying on the grass';
   if (st === 'kneel') return k === 'allot' ? 'an allotment holder, kneeling at the plot'
@@ -5535,8 +5616,11 @@ function simStep(sdt, dt){
    * another — and the caps still decide where it settles, so a rainy January night
    * converges on the 5 + 3 the two night budgets have always allowed instead of
    * drifting below it. Exactly 1 at POP_FLOOR people and above, so a normal day
-   * never sees this term at all. */
-  const scarcity = 1 + 0.8 * clamp(POP_FLOOR - agents.length, 0, 6);
+   * never sees this term at all. The tap crowd is NOT in the count it reads (c65):
+   * they arrive on their own budget and stand on one pavement, so four of them would
+   * otherwise damp the three night rates POP_FLOOR exists to lift — a full door
+   * emptying the rest of the town. */
+  const scarcity = 1 + 0.8 * clamp(POP_FLOOR - (agents.length - tapNow), 0, 6);
   const rate = (0.05 + maturity() * 0.42) * (0.12 + daylight) * (raining ? 0.25 : 1) * scarcity;
   const laneRate = (0.08 + maturity() * 0.5) * (0.15 + daylight) * (raining ? 0.3 : 1) * (marketActive() ? 1.7 : 1) * scarcity;
   const eastRate = (0.15 + maturity() * 0.6) * (0.1 + daylight) * (raining ? 0.25 : 1) * scarcity;
@@ -5580,6 +5664,7 @@ function simStep(sdt, dt){
   updateSweeper();
   bandNews();
   tapNews();
+  tapCallers();
   updateWildlife(sdt);
   updateDucks(sdt);
   updateSwans(sdt);
@@ -5757,12 +5842,14 @@ window.__entities = function(){
   // probe can measure behaviour without a bespoke hook per feature
   take(agents.filter(a => a.kind !== 'sweeper'), 'walker',
        (o, a) => { o.act = a.state; o.role = a.kind; o.watch = a.watch > 0 ? 1 : 0;
+                   if (a.tap){ o.tap = 1; if (a.caller) o.caller = 1; }
                    // the audience on the green. A probe has to tell a listener from a
                    // passer-by, and a listener standing AT its claimed place from one
                    // that drifted off it — which is the exact inverse of cue c49's bug.
                    if (a.band){ o.band = 1;
                      o.slotD = +Math.hypot(a.x - a.slot.x, a.y - a.slot.y).toFixed(2); } });
-  take(agents.filter(a => a.kind === 'sweeper'), 'sweeper');
+  take(agents.filter(a => a.kind === 'sweeper'), 'sweeper',
+       (o, a) => { o.act = a.state; if (a.tap){ o.tap = 1; if (a.caller) o.caller = 1; } });
   take(ducks, 'duck'); take(swans, 'swan', (o, s) => { o.act = s.state; });
   take(butterflies, 'butterfly'); take(fireflies, 'firefly');
   take(birds, 'bird'); take(leaves, 'leaf');

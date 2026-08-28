@@ -139,4 +139,35 @@ console.log(`   off-slot standers: ${run.ghosts}   ${run.ghosts === 0 ? 'PASS' :
 console.log(`\n   WOULD-CATCH: (2) fails if the audience spawns at its slot instead of walking;` +
             `\n   (3) fails at 0.2 cells, which is what the birds measure after a 1.8 s random walk (c49);` +
             `\n   (4) fails if a listener is routed to the exit from where it is not standing.`);
+
+/* ---- 5. BAND_DUSK is a clearance, not a constant (cue c68) ----
+ * The slowest listener is off their feet at bandEnd() + BAND_DOWN * (1 - 0.35) — leaveAt
+ * bottoms out at 0.35 of the strike — and eastOpen() must still hold then, or the rule
+ * that sends the far side home clears the green in ONE frame (the first cut's bug).
+ * The light's edge is MEASURED here by scanning eastOpen() itself, so moving BAND_DOWN,
+ * BAND_LEN, leaveAt's floor, BAND_DUSK or the daylight curve all land on this line. */
+const p3 = await page();
+const dusk = await p3.evaluate(() => {
+  window.__reseed();
+  const rows = [];
+  for (let d = 2; d < 28; d++){                       // one whole year, every day
+    __setTime(d * DAY_LEN + 0.5 * DAY_LEN);
+    const last = bandEnd() + BAND_DOWN * (1 - 0.35);
+    let edge = null;
+    for (let h = bandEnd(); h < 30 && edge === null; h += 0.02){
+      __setTime(d * DAY_LEN + (h - 6) / 24 * DAY_LEN);
+      if (!eastOpen()) edge = h;
+    }
+    rows.push({d, warm:+warmth.toFixed(2), last:+last.toFixed(2), edge:+edge.toFixed(2), clr:+(edge - last).toFixed(2)});
+  }
+  return rows;
+});
+await p3.close();
+const worstD = dusk.reduce((w, r) => r.clr < w.clr ? r : w);
+const bestD = dusk.reduce((w, r) => r.clr > w.clr ? r : w);
+console.log(`\n5. BAND_DUSK CLEARANCE: last listener off their feet vs the light's edge, every day of a year`);
+console.log(`   tightest day ${worstD.d} (warm ${worstD.warm}): last leaves ${worstD.last}, eastOpen() ends ${worstD.edge} -> ${worstD.clr} h`);
+console.log(`   widest   day ${bestD.d} (warm ${bestD.warm}): ${bestD.clr} h`);
+console.log(`   -> clearance range ${worstD.clr}..${bestD.clr} h   ${worstD.clr >= 0.5 ? 'PASS' : 'FAIL'}  (margin ${(worstD.clr - 0.5).toFixed(2)} over the 0.5 h floor)`);
+console.log(`   WOULD-CATCH: BAND_DUSK 2.3 or BAND_DOWN 3.3 puts the tightest day under 0.5; BAND_DUSK 1.5 sends it negative, which is the one-frame clearance.`);
 await b.close();
