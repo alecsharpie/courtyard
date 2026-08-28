@@ -21,7 +21,7 @@
   "avoid": "Do not add a season or change SEASON_LEN. Do not make snow a boolean switch — it is a 0..1 like rainFall. Do not let footfall/desire-path wear interact with it this iteration; that is a follow-on cue.",
   "budgetMin": 45,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 2,
   "nextIter": 45,
   "issued": "2026-08-28T12:33:16.499Z",
