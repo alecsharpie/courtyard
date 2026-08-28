@@ -16,7 +16,7 @@
   "avoid": "riverRun() already exists for the water and reads the same year — read it or a sibling of it; do not re-derive a second water-season term (one predicate, one definition). Do not let a global scalar approach zero without per-cell variance or it reads as a switch. And check what the fountain was tuned against before making its constants variable: crumbSpot’s keep-rect reads waterBox off the grid, and #24 put 22 birds in the basin the last time two places evaluated the same geometry.",
   "budgetMin": 28,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 40,
   "issued": "2026-08-28T11:57:23.667Z",
