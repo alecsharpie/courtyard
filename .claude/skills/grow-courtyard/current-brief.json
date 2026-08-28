@@ -19,7 +19,7 @@
   "avoid": "Do not change ripePlots() or the harvest cycle. Keep the winter gardener on spawnAllotAgent's own source (it exists so the block does not compete for laneCap). One new per-plot state at most.",
   "budgetMin": 30,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 52,
   "issued": "2026-08-28T21:33:25.048Z",
