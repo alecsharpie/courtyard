@@ -16,7 +16,7 @@
   "avoid": "LIT[] feeds the night glow pass — one predicate, one definition: whatever decides `lit` must be the same thing that pushes into LIT, or the glow and the pane disagree and only a crop will show it. Per-window variance comes from hash(), never R(): this runs in the renderer, and the renderer draws from the seeded stream. Match the grain — a window here is addressed per BUILDING per DAY, so a per-cell term is a silent no-op across a facade. And do not make it a second global scalar with a threshold; that is the switch you are replacing.",
   "budgetMin": 22,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 39,
   "issued": "2026-08-28T11:41:54.016Z",
