@@ -17,7 +17,7 @@
   "avoid": "A ceiling is not a kill term: do not add a removal term to smooth it — if the cap comes down gradually the beds age out under it by themselves. Bloom stages are integers, so a continuous cap needs per-cell variance (hash(x, y+k)) at the BED’s grain to stop a whole ring stepping in one frame; #25 is the record of what happens when an inherited rule is applied at the wrong grain. And check the shoulder PAIR averages to the anchor, not each shoulder alone.",
   "budgetMin": 24,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 37,
   "issued": "2026-08-28T11:26:55.021Z",
