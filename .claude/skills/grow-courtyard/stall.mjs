@@ -41,7 +41,10 @@ const all = existsSync(RUNLOG)
  * looking exactly like the failure these signals were written to catch. It also
  * drags the last-10 pace and cost averages toward a run that did no building.
  * (Rows with no `kind` predate the field and were all workers.) */
-const rows = all.filter(r => r.kind !== 'manager');
+/* `launch-failed` rows are runs where the CLI itself died before a worker read
+ * the brief (0 tokens, seconds long). They are not iterations of anything. */
+const rows = all.filter(r => r.kind !== 'manager' && r.kind !== 'launch-failed');
+const launchFails = all.filter(r => r.kind === 'launch-failed');
 const managers = all.filter(r => r.kind === 'manager');
 
 const plan = existsSync(PLAN) ? JSON.parse(readFileSync(PLAN, 'utf8')) : null;
@@ -112,7 +115,7 @@ const verdictCounts = {};
 for (const r of last(20)) if (r.verdict) verdictCounts[r.verdict] = (verdictCounts[r.verdict] || 0) + 1;
 
 if (report) {
-  console.log(`stall: ${rows.length} worker iterations logged (+ ${managers.length} manager passes, excluded from everything below).`);
+  console.log(`stall: ${rows.length} worker iterations logged (+ ${managers.length} manager passes and ${launchFails.length} launch failures, excluded from everything below).`);
   if (!rows.length) { console.log('  (no runs yet — plan the opening batch)'); }
   else {
     const l = rows[rows.length - 1];
@@ -132,7 +135,7 @@ if (report) {
     console.log('  do not re-plan the same rung with different words.');
   }
 } else if (asJson) {
-  console.log(JSON.stringify({ iterations: rows.length, managerPasses: managers.length, signals, verdictCounts }, null, 1));
+  console.log(JSON.stringify({ iterations: rows.length, managerPasses: managers.length, launchFailures: launchFails.length, signals, verdictCounts }, null, 1));
 } else {
   console.log(signals.length ? signals.map(s => s.id).join(',') : 'ok');
 }

@@ -1,25 +1,23 @@
 {
-  "id": "b37",
-  "domain": "Courtyard & garden",
-  "kind": "Deepen",
-  "brief": "bloomCap() is the town’s only STEPPED seasonal term — 3 / 2 / 1 — in a file where growF, dieF, leafCol, riverRun and greyF are all lerps. So the beds’ ripeness falls off a cliff at the autumn shoulder instead of fading: one frame the beds carry three bloom stages, the next they carry two, and every bed in the town steps together. #29’s market carry-over softened what happens downstream; the step itself has never been touched, and it has been the strongest cue open for three manager passes (was c50). Make the ceiling continuous without moving the year’s totals.",
+  "id": "b38",
+  "domain": "The sill & the observer",
+  "kind": "Harness",
+  "brief": "On the 2026-08-28 restart the runner failed to launch a worker three times in a row (#34, #35, #36: 1–2 s, 0 tokens, rc=1, model '<synthetic>') and each failure BURNED a brief: run-loop.sh pops the brief before the worker starts, and on rc≠0 it backs off and pops the next one. Three planned briefs were destroyed without a worker ever reading them, and runlog/stall count the rows as ordinary failed iterations, so the dashboard reports 'src moved 7/10' for a run that shipped 7/7. Make a launch failure (rc≠0 with 0 tokens / no raw stream, or elapsed under ~30 s) leave the brief claimed and re-issue it on the next loop, and make stall.mjs and build-stats.mjs exclude such rows from verdict counts the way they already exclude manager rows. Second, smaller: motion.mjs sums a shower's rises and falls into one `jumps` figure, but only a FALL is the bug it exists for — split them so the night cell is attributable (was c62).",
   "seams": [
-    "bloomCap",
-    "growF",
-    "dieF",
-    "warmth",
-    "seasonPhase",
-    "caTick",
-    "bSt",
-    "SPECIES"
+    "run-loop.sh (claim/pop order, rc handling)",
+    "pop-brief.mjs",
+    "runlog.mjs",
+    "stall.mjs",
+    "build-stats.mjs",
+    "motion.mjs"
   ],
-  "successLooksLike": "A folded-year probe of bloomCap()’s effective value shows no discontinuity at any phase; the value at SEASON_START is exactly today’s; and the annual mean of blooming cells is within a few percent of a stashed HEAD baseline — the shoulder softened, not the year made warmer.",
-  "avoid": "A ceiling is not a kill term: do not add a removal term to smooth it — if the cap comes down gradually the beds age out under it by themselves. Bloom stages are integers, so a continuous cap needs per-cell variance (hash(x, y+k)) at the BED’s grain to stop a whole ring stepping in one frame; #25 is the record of what happens when an inherited rule is applied at the wrong grain. And check the shoulder PAIR averages to the anchor, not each shoulder alone.",
-  "budgetMin": 24,
-  "risk": "medium",
-  "status": "done",
+  "successLooksLike": "Simulating a launch failure (run the loop with a claude stub that exits 1 in 1 s) leaves current-brief.json claimed and RUNLOG.jsonl carries a row with kind 'launch-failed' that stall.mjs --report neither counts as a worker iteration nor as a verdict; the existing #34–36 rows are re-tagged the same way and the report reads shipped=7 for the last 7. motion.mjs prints rises and falls separately with the baseline regenerated.",
+  "avoid": "Do not touch courtyard.html. Do not delete the three synthetic rows — retag them; the archive is never edited away. Do not make the fix a retry loop inside run_claude: the runner already backs off on failure, the bug is only which brief the retry gets.",
+  "budgetMin": 20,
+  "risk": "low",
+  "status": "active",
   "attempts": 1,
-  "nextIter": 37,
-  "issued": "2026-08-28T11:26:55.021Z",
-  "fromPlan": "2026-08-04T18:20:00Z"
+  "nextIter": 38,
+  "issued": "2026-08-28T11:36:55.776Z",
+  "fromPlan": "2026-08-28T11:36:44.545Z"
 }

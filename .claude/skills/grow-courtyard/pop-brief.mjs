@@ -54,7 +54,9 @@ function nextIter() {
   if (!existsSync(RUNLOG)) return 1;
   const lines = readFileSync(RUNLOG, 'utf8').trim().split('\n').filter(Boolean);
   let max = 0;
-  for (const l of lines) { try { max = Math.max(max, JSON.parse(l).iter || 0); } catch { /* skip */ } }
+  /* A launch failure (the CLI died before a worker read the brief) is not an
+   * iteration, so it does not consume a number: the re-issued brief keeps it. */
+  for (const l of lines) { try { const r = JSON.parse(l); if (r.kind !== 'launch-failed') max = Math.max(max, r.iter || 0); } catch { /* skip */ } }
   return max + 1;
 }
 

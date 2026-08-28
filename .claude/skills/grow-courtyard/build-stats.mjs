@@ -29,7 +29,10 @@ const readJsonl = f => (existsSync(f) ? readFileSync(f, 'utf8').trim().split('\n
   .map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean) : []);
 
 const all = readJsonl(join(HERE, 'RUNLOG.jsonl'));
-const rows = all.filter(r => r.kind !== 'manager');
+/* `launch-failed` rows are runs where the CLI itself died before a worker read
+ * the brief (0 tokens, seconds long). They are not iterations of anything. */
+const rows = all.filter(r => r.kind !== 'manager' && r.kind !== 'launch-failed');
+const launchFails = all.filter(r => r.kind === 'launch-failed');
 const managers = all.filter(r => r.kind === 'manager');
 
 /* No runs yet. Write a real placeholder rather than exiting — exiting would leave
@@ -287,6 +290,7 @@ footer a{color:var(--s1)}
   <div class="herofig">
     <div><span class="big">${maxIter}</span><span class="unit">worker iterations</span></div>
     <div><span class="big">${managers.length}</span><span class="unit">manager passes</span></div>
+    ${launchFails.length ? `<div><span class="big">${launchFails.length}</span><span class="unit">launch failures (CLI died before a worker started; not counted)</span></div>` : ''}
     <div><span class="big">${totalHours.toFixed(0)}<span class="sm">h</span></span><span class="unit">of autonomous compute</span></div>
     <div><span class="big">${fmt$(totalCost)}</span><span class="unit">would-be API cost</span></div>
     ${townGrowth != null ? `<div><span class="big">+${townGrowth}<span class="sm">%</span></span><span class="unit">more in the town than when the loop started</span></div>` : ''}

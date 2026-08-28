@@ -102,6 +102,9 @@ function analyse(frames, screen) {
   const stats = {};
   const examples = [];
   const K = () => ({ jumps: 0, nan: 0, oob: 0, flicker: 0, spawns: 0, despawns: 0, samples: 0 });
+  /* The shower alone also carries `rises` / `falls`: a rise is how rain STARTS by
+   * design, a fall in one step is the bug #15 fixed. `jumps` stays their sum. */
+  const KS = () => ({ ...K(), rises: 0, falls: 0 });
 
   /* The shower, as a population. Frame 0 is the starting level, not an arrival, so
    * only the changes after it are counted — warping into an existing shower must
@@ -117,7 +120,7 @@ function analyse(frames, screen) {
    * expected and sits in the baseline; a second one means the ending broke too. */
   const rain = frames.map(f => f.rain).filter(Number.isFinite);
   if (rain.length) {
-    const s = (stats.shower ||= K());
+    const s = (stats.shower ||= KS());
     const peak = Math.max(...rain);
     for (let i = 0; i < rain.length; i++) {
       s.samples += rain[i];
@@ -125,7 +128,7 @@ function analyse(frames, screen) {
       const d = rain[i] - rain[i - 1];
       if (d > 0) s.spawns += d; else if (d < 0) s.despawns += -d;
       if (peak >= 8 && Math.abs(d) > peak * 0.5) {
-        s.jumps++;
+        s.jumps++; if (d > 0) s.rises++; else s.falls++;
         if (examples.length < 12) examples.push(`raindrops stepped ${d > 0 ? '+' : ''}${d} in one ${STEP}s step (peak ${peak})`);
       }
     }
@@ -196,7 +199,7 @@ for (const [name, t] of scenes) {
     const a = analyse(frames, screen);
     for (const k in a.stats) {
       const m = (merged[k] ||= { jumps: 0, nan: 0, oob: 0, flicker: 0, spawns: 0, despawns: 0, samples: 0 });
-      for (const f in a.stats[k]) m[f] += a.stats[k][f];
+      for (const f in a.stats[k]) m[f] = (m[f] || 0) + a.stats[k][f];
     }
     ex.push(...a.examples.map(e => `[seed ${seed}] ${e}`));
   }
@@ -210,11 +213,12 @@ if (save) {
 }
 
 const base = !save && existsSync(baseFile) ? JSON.parse(readFileSync(baseFile, 'utf8')) : null;
-const FIELDS = ['jumps', 'nan', 'oob', 'flicker', 'spawns', 'despawns'];
+const FIELDS = ['jumps', 'rises', 'falls', 'nan', 'oob', 'flicker', 'spawns', 'despawns'];
 /* Fields a kind is not measured on. Printing 0 here would claim a check that was
- * never run — the rain is counted, not identified. */
+ * never run — the rain is counted, not identified, and only the shower has a
+ * rise/fall shape. */
 const UNTRACKED = { shower: ['nan', 'oob', 'flicker'] };
-const tracked = (kind, f) => !(UNTRACKED[kind] || []).includes(f);
+const tracked = (kind, f) => !(UNTRACKED[kind] || []).includes(f) && (kind === 'shower' || !['rises', 'falls'].includes(f));
 let fail = [];
 
 for (const [name, sc] of Object.entries(result.scenes)) {
@@ -235,7 +239,11 @@ for (const [name, sc] of Object.entries(result.scenes)) {
     if (row.nan && tracked(k, 'nan')) fail.push(`${name}/${k}: ${row.nan} NaN positions`);
     if (row.oob && tracked(k, 'oob')) fail.push(`${name}/${k}: ${row.oob} positions outside the world`);
     if (bs && bs[k]) {
-      if (tracked(k, 'jumps') && row.jumps > bs[k].jumps) fail.push(`${name}/${k}: jumps ${bs[k].jumps} -> ${row.jumps}`);
+      /* The shower is gated on FALLS only: a rise is how rain begins by design, and
+       * an extra shower in a churned seed used to fail the gate for the wrong reason. */
+      if (k === 'shower' && bs[k].falls != null) {
+        if (row.falls > bs[k].falls) fail.push(`${name}/${k}: falls ${bs[k].falls} -> ${row.falls} (a shower ended in one step)`);
+      } else if (tracked(k, 'jumps') && row.jumps > bs[k].jumps) fail.push(`${name}/${k}: jumps ${bs[k].jumps} -> ${row.jumps}`);
       if (tracked(k, 'flicker') && row.flicker > bs[k].flicker) fail.push(`${name}/${k}: flicker ${bs[k].flicker} -> ${row.flicker}`);
     } else if (!bs && (row.jumps || row.flicker)) {
       console.log(`    note: ${row.jumps} jumps, ${row.flicker} flickers — no baseline to compare against yet`);

@@ -274,7 +274,15 @@ while :; do
 
   if [ "$rc" -ne 0 ]; then
     fails=$((fails + 1))
-    log "--- iteration $((done_ok + 1)) FAILED (exit $rc) after ${elapsed}s [$fails/$MAX_FAILS] ---"
+    # runlog.mjs decides whether a worker ever STARTED (rc!=0 with no tokens, or
+    # seconds long = the CLI died, not the worker). In that case it leaves the
+    # brief `active` and the pop at the top of the next loop re-issues the SAME
+    # brief; only a worker that actually ran and failed retires its brief.
+    if grep -q '"status": "active"' "$HERE/current-brief.json" 2>/dev/null; then
+      log "--- iteration $((done_ok + 1)) never launched (exit $rc after ${elapsed}s) — brief stays claimed, re-issued next loop [$fails/$MAX_FAILS] ---"
+    else
+      log "--- iteration $((done_ok + 1)) FAILED (exit $rc) after ${elapsed}s [$fails/$MAX_FAILS] ---"
+    fi
     if [ "$fails" -ge "$MAX_FAILS" ]; then log "$MAX_FAILS consecutive failures — giving up. Check $LOG."; exit 1; fi
     backoff=$(( BACKOFF_BASE * (1 << (fails - 1)) ))
     [ "$backoff" -gt "$BACKOFF_CAP" ] && backoff=$BACKOFF_CAP

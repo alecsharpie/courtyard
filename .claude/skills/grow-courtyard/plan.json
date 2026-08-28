@@ -15,24 +15,6 @@
   "rationale": "HELD RUNG 4. Pass #32 climbed to it for one reason — the world exists for ~60% of its own clock — and only half of that climb has landed: #33 built the first evening place, but every window in the town still switches on and off in the same frame, and 22.00 and 03.00 are the same picture. Re-planning the same batch is the one thing the ladder forbids ONLY as a response to a stall, and this is not a stall: three briefs were destroyed by the runner before any worker saw them, so re-issuing b36/b32/b33 verbatim (with a note that no prior attempt exists, or a worker will go looking for one) is recovery, not repetition. b38 goes at the head as a harness brief because the fault will recur on the next restart and the runlog is currently lying about it: a launch failure must not consume a brief, and a 0-token row must not be counted as an iteration by stall.mjs. It also carries c62 (motion.mjs split rises from falls), which is the same file class. b39 is the batch's new work and the one most likely to fail: c64 has been open since #33 and the naming — the loop's most visible observer tool — answers with the paving under a walker's feet, so the diorama can name a fern and cannot name a swan. Three of five briefs are domains 12+ back (sky, plaza, street); the fourth is the sill; none is courtyard, lane or river. Cost expectation: b33 and b38 cheap, b36/b39 medium, b32 the expensive one. Curation this pass: closed six cues (three no-yield, two promoted, one absorbed into a law), fixed an id collision (open c61 was not closed c61 — renumbered c68), merged life's two own-source crowds into one inventory entry (life was 9/8), archived #37 verbatim and trimmed #33/#37 to 1.6 KB each, and paid for two law promotions (#33 price-the-walk into the time-compression law; #37 + the old #21 duration law merged into one folded-time-mean law) by compressing five verbose laws — laws count stays 26, 11.9/12 KB.",
   "queue": [
     {
-      "id": "b38",
-      "domain": "The sill & the observer",
-      "kind": "Harness",
-      "brief": "On the 2026-08-28 restart the runner failed to launch a worker three times in a row (#34, #35, #36: 1–2 s, 0 tokens, rc=1, model '<synthetic>') and each failure BURNED a brief: run-loop.sh pops the brief before the worker starts, and on rc≠0 it backs off and pops the next one. Three planned briefs were destroyed without a worker ever reading them, and runlog/stall count the rows as ordinary failed iterations, so the dashboard reports 'src moved 7/10' for a run that shipped 7/7. Make a launch failure (rc≠0 with 0 tokens / no raw stream, or elapsed under ~30 s) leave the brief claimed and re-issue it on the next loop, and make stall.mjs and build-stats.mjs exclude such rows from verdict counts the way they already exclude manager rows. Second, smaller: motion.mjs sums a shower's rises and falls into one `jumps` figure, but only a FALL is the bug it exists for — split them so the night cell is attributable (was c62).",
-      "seams": [
-        "run-loop.sh (claim/pop order, rc handling)",
-        "pop-brief.mjs",
-        "runlog.mjs",
-        "stall.mjs",
-        "build-stats.mjs",
-        "motion.mjs"
-      ],
-      "successLooksLike": "Simulating a launch failure (run the loop with a claude stub that exits 1 in 1 s) leaves current-brief.json claimed and RUNLOG.jsonl carries a row with kind 'launch-failed' that stall.mjs --report neither counts as a worker iteration nor as a verdict; the existing #34–36 rows are re-tagged the same way and the report reads shipped=7 for the last 7. motion.mjs prints rises and falls separately with the baseline regenerated.",
-      "avoid": "Do not touch courtyard.html. Do not delete the three synthetic rows — retag them; the archive is never edited away. Do not make the fix a retry loop inside run_claude: the runner already backs off on failure, the bug is only which brief the retry gets.",
-      "budgetMin": 20,
-      "risk": "low"
-    },
-    {
       "id": "b36",
       "domain": "Sky, light & weather",
       "kind": "Deepen",
@@ -112,5 +94,11 @@
       "risk": "medium"
     }
   ],
-  "recommendStop": null
+  "recommendStop": null,
+  "consumed": [
+    {
+      "id": "b38",
+      "at": "2026-08-28T11:36:55.775Z"
+    }
+  ]
 }

@@ -44,7 +44,38 @@ const ELAPSED = parseInt(arg('--elapsed', '0'), 10) || 0;
 const PRE_BLOB = arg('--pre-blob', '');
 const RAW = arg('--raw', null);
 const RC = parseInt(arg('--rc', '0'), 10) || 0;
-const KIND = arg('--kind', 'worker');            // worker | manager
+const KIND_ARG = arg('--kind', 'worker');        // worker | manager
+
+/* --- cost, from the raw stream -------------------------------------------- */
+let costUsd = 0, turns = 0, tokens = null, model = null;
+if (RAW && existsSync(RAW)) {
+  for (const line of readFileSync(RAW, 'utf8').split('\n')) {
+    if (!line.startsWith('{')) continue;
+    let j; try { j = JSON.parse(line); } catch { continue; }
+    if (j.type === 'result') {
+      costUsd = j.total_cost_usd || costUsd;
+      turns = j.num_turns || turns;
+      if (j.usage) tokens = {
+        in: j.usage.input_tokens || 0, out: j.usage.output_tokens || 0,
+        cacheRead: j.usage.cache_read_input_tokens || 0, cacheWrite: j.usage.cache_creation_input_tokens || 0,
+      };
+    }
+    if (j.type === 'assistant' && j.message && j.message.model) model = j.message.model;
+  }
+}
+
+/* --- did a worker even start? --------------------------------------------
+ * On 2026-08-28 the CLI failed to launch three times in a row (1-2 s, 0 tokens,
+ * model '<synthetic>', rc=1). Each was logged as an ordinary failed worker
+ * iteration AND retired its brief, so three planned briefs were destroyed without
+ * a worker ever reading them. A launch failure is a fact about the machine, not
+ * about the brief: it gets its own `kind`, the brief stays `active` so the next
+ * pop re-issues it, and stall.mjs / build-stats.mjs exclude the row the way they
+ * already exclude manager rows. */
+const tokenSum = tokens ? tokens.in + tokens.out + tokens.cacheRead + tokens.cacheWrite : 0;
+const launchFailed = KIND_ARG === 'worker' && RC !== 0 && (tokenSum === 0 || ELAPSED < 30);
+const KIND = launchFailed ? 'launch-failed' : KIND_ARG;
+
 
 const RUNLOG = join(HERE, 'RUNLOG.jsonl');
 const CUR = join(HERE, 'current-brief.json');
@@ -73,7 +104,7 @@ const iter = (brief && brief.nextIter) || (rows.length ? rows[rows.length - 1].i
  * So: a second call MERGES. Each field takes the more informative of the two
  * values, and the verdict is recomputed from the merged evidence. The row is
  * replaced in place, never duplicated. */
-const priorIdx = parsed.findLastIndex(r => r && r.iter === iter && r.kind === KIND);
+const priorIdx = parsed.findLastIndex(r => r && r.iter === iter && r.kind === KIND_ARG);
 const prior = priorIdx === -1 ? null : parsed[priorIdx];
 
 const sha = git('rev-parse', '--short', 'HEAD');
@@ -146,30 +177,13 @@ if (entryLine) {
 /* A pure function of the evidence, so a merge can recompute it from the MERGED
  * evidence rather than from whichever call happened to run last. */
 const verdictOf = (r) => {
+  if (r.kind === 'launch-failed') return 'launch-failed';
   if (r.briefRejected) return 'rejected-brief';
   if (r.evidence.rc !== 0) return 'failed';
   if (r.evidence.srcChanged && r.evidence.reverted) return 'reverted';
   if (r.evidence.srcChanged) return 'shipped';
   return 'no-ship';
 };
-
-/* --- cost, from the raw stream -------------------------------------------- */
-let costUsd = 0, turns = 0, tokens = null, model = null;
-if (RAW && existsSync(RAW)) {
-  for (const line of readFileSync(RAW, 'utf8').split('\n')) {
-    if (!line.startsWith('{')) continue;
-    let j; try { j = JSON.parse(line); } catch { continue; }
-    if (j.type === 'result') {
-      costUsd = j.total_cost_usd || costUsd;
-      turns = j.num_turns || turns;
-      if (j.usage) tokens = {
-        in: j.usage.input_tokens || 0, out: j.usage.output_tokens || 0,
-        cacheRead: j.usage.cache_read_input_tokens || 0, cacheWrite: j.usage.cache_creation_input_tokens || 0,
-      };
-    }
-    if (j.type === 'assistant' && j.message && j.message.model) model = j.message.model;
-  }
-}
 
 /* --- census position ------------------------------------------------------ */
 let census = null, censusDelta = null;
@@ -264,12 +278,13 @@ if (prior) {
   appendFileSync(RUNLOG, JSON.stringify(row) + '\n');
 }
 
-/* Retire the brief so the next pop takes fresh work. */
-if (brief && brief.status === 'active') { brief.status = 'done'; writeFileSync(CUR, JSON.stringify(brief, null, 2) + '\n'); }
+/* Retire the brief so the next pop takes fresh work — unless no worker ever read
+ * it, in which case it stays claimed and pop-brief re-issues it. */
+if (brief && brief.status === 'active' && !launchFailed) { brief.status = 'done'; writeFileSync(CUR, JSON.stringify(brief, null, 2) + '\n'); }
 
 /* Report the MERGED row, not this call's slice of it. */
 const verdict = row.verdict, self = row.selfVerdict, ev = row.evidence;
 const mm = String(Math.floor(row.secs / 60)), ss = String(row.secs % 60).padStart(2, '0');
-const mark = { shipped: '✔', reverted: '↩', 'no-ship': '○', failed: '✗', 'rejected-brief': '⊘' }[verdict] || '?';
+const mark = { shipped: '✔', reverted: '↩', 'no-ship': '○', failed: '✗', 'rejected-brief': '⊘', 'launch-failed': '⚡' }[verdict] || '?';
 const claim = self && self.replace(/[^a-z]/g, '') !== verdict.replace(/[^a-z]/g, '') ? `  (claimed: ${self})` : '';
-console.log(`${mark} Iter ${String(iter).padEnd(4)} ${String((row.domain || '—') + ' x ' + (row.changeKind || '—')).padEnd(34)} ${verdict.padEnd(15)} ${mm}m${ss}s  $${row.costUsd.toFixed(2)}  ${ev.srcLines ? `${ev.srcLines}L` : '0L'}  ${ev.sha}${prior ? `  [merged +${row.merges}]` : ''}${claim}`);
+console.log(`${mark} Iter ${String(iter).padEnd(4)} ${String((row.domain || '—') + ' x ' + (row.changeKind || '—')).padEnd(34)} ${verdict.padEnd(15)} ${mm}m${ss}s  $${row.costUsd.toFixed(2)}  ${ev.srcLines ? `${ev.srcLines}L` : '0L'}  ${ev.sha}${prior ? `  [merged +${row.merges}]` : ''}${claim}${launchFailed ? `  (no worker started — brief ${brief ? brief.id : '?'} stays claimed)` : ''}`);
