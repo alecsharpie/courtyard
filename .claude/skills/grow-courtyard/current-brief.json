@@ -17,7 +17,7 @@
   "avoid": "No new R() draws in the renderer — lean and drift are hash()+clock. Do not change eastCap/eastRate; move the SPLIT, not the arrivals. Do not touch the river streaks (they drift on riverRun and that is the river's job).",
   "budgetMin": 25,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 50,
   "issued": "2026-08-28T17:10:08.738Z",
