@@ -22,7 +22,7 @@
   "avoid": "Do not touch riverRun()'s seasonal algebra or RIVER_COLD/RIVER_GREEN. No new R() draws in the draw pass — hash() and windT only. Do not make the water read as rain: rainFall already has its sparkle; wind is direction, rain is dots.",
   "budgetMin": 25,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 54,
   "issued": "2026-08-28T22:01:04.456Z",
