@@ -40,43 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 32 — something is on in the bandstand, and people come and stand for it (2026-08-04) [River & far bank × New element]
-
-**Brief:** b31 — the bandstand has stood on the far bank since before the loop with nothing ever
-happening in it, and the east side has no gathering of any kind. Put a concert on in summer.
-
-**Did:** `bandF()` — one 0..1 over set-up/set/strike, `marketRaise()`'s shape — with three
-`BAND_PLAYERS` at cues 0.10/0.30/0.50 and bunting at 0.72, so they step up one at a time and pack
-away in reverse. Players are plain records handed to `drawPerson()` (which now reads `a.z`), drawn
-between the back and front posts inside `drawBandstand()`: the sorted item list can only put them
-wholly in front of or behind the structure. The day is `hash(day, 617) < bandChance()` off
-`warmth` — no `R()`, so most days pay nothing. Audience: `spawnConcertAgent()`, own source, own
-`BAND_TICK` (the shared 1 Hz tick cannot fill nine places in a seven-second window), subtracted
-from **both** `eastCount` and `laneCount`, each claiming one of nine `BAND_SLOTS`.
-
-**Gates:** census PASS (people +7, inEast +2 — the audience lands in fields that already exist) ·
-visual PASS · perf PASS · motion **FAIL, attributed**: night/shower jumps 1→2 on a kind I did not
-touch; over twelve seeds the rises are 0/1/2 on HEAD *and* here and the falls are 0 in both, so it
-is two shower onsets, not a broken ending · **`probes/bandstand-year.mjs` PASS ×4** — 18 concert
-days at midsummer vs **0** at midwinter over three folded years; peak 7 standing over 14.5 s,
-worst single step 43% of peak; min separation while standing **1.68 cells**; 0 teleports · a
-filmstrip cropped to the green shows no POP at raise or strike.
-
-**Verdict:** shipped
-
-**Surprise:** the first cut ended the set at 19.2 and every gate was green — the year folded
-right, nobody teleported, the separation held. Then the arrival series showed six of nine
-listeners leaving in one 0.25 s step. Not my code: `eastOpen()` is `daylight > 0.16`, i.e.
-`sunDown - 0.05*dayHours`, and the strike ramp ran straight through it, so the existing rule that
-sends the far side home at dusk cleared the green wholesale. Nothing errored, and no still frame
-could have shown it. I sized the set against the walk in and forgot to size its *end* against
-the light.
-
-**Law:** promoted at pass #33 → LAWS.md, *"an event its audience must WALK to is bounded at both
-ends by things that are not the event"*. Full entry in `LEDGER-archive.md`.
-
----
-
 ## Iteration 33 — a door on the lane that keeps hours after dark (2026-08-04) [Lane & market × Scale/World]
 
 **Brief:** b35 — every `stop` branch in `spawnLaneAgent` opens with `sun &&`, so ~45% of the
@@ -168,3 +131,12 @@ warmth is a cosine and time piles up at the extremes. Full entry in `LEDGER-arch
 **Gates:** census PASS (+0; render-free) · motion PASS (no new jumps/flicker any kind) · visual PASS, 4 shots + day filmstrip median Δ 0.42, no draw-order change (no draw touched) · **`naming.mjs` §7** ten seeds: **246/246** drawn living things answer a living name, **0** the ground; **12,743** lattice points 2+ cells clear of every entity: 0 differ from `nameAt`/`treeAt` alone; 13-word vocabulary in one midday · throwaway walk-out probe (`?pause` + `__warp(0.05)` ×40): label follows the figure's own state ('listening to the bell' → 'walking'), holds after it walks out, then 'The lane'; every label held ≥ 0.2 s sim, no strobe. Context budget opened **OVER** (46.3 / 46 KB).
 **Verdict:** shipped
 **Surprise:** first run missed exactly one of 242 — a napper. A lying figure is drawn 3 px tall and 4 px wider; a standing box misses it under the pointer even though the probe aimed at "mid-shin". The hit box has to be the DRAWN footprint per pose, not per entity. And the first live walk-out probe read only "The cross street": at `t=180` the ticker's dwell held the box until the walker had gone — the yield rules are upstream of the hit-test, so a live check must first wait out `lineDwell` like §6a does.
+
+## Iteration 43 — three instrument lies: the night strip, the harness verdict, the crashed worker (2026-08-28) [The sill & the observer × Harness]
+
+**Brief:** b40 — `filmstrip --scene night` pinned a daytime instant; `runlog.mjs` graded shipped harness work `no-ship`; a worker that ran and died had no retry rule.
+**Did:** (1) `filmstrip.mjs`: `AT(day, h) = day*55 + 55*((h−6+24)%24)/24` — the page's clock inverted (the day rolls at 06:00) — and `night: AT(22, 0)` = 1251.25 s, midnight on the same day the old 1230 (= 14:44) sat on; the other four presets are unchanged but now annotated with the hour they actually are (`rain` 430 is 01:38 — already a night). (2) `runlog.mjs`: `verdictOf` reads `changeKind` — a Harness row that committed AND logged is `shipped` without source movement; a Harness row that DID move `courtyard.html` stays `shipped` but carries `harnessTouchedSrc: true` and a ⚠ in the report line. New `--regrade` mode recomputes every row from stored evidence and rewrites only rows whose verdict changed (note in `regraded`). Run: **#16 and #38 no-ship → shipped, nothing else**, idempotent. Also found and fixed: rows before #11 carry no `rc`, and `rc !== 0` read `undefined` as a crash — the first regrade turned twelve shipped rows `failed`. (3) The rule: **one retry, then retire.** `runlog.mjs` leaves a crashed worker's brief `active` with a `retry` note when `attempts < 2`; `pop-brief.mjs` re-issues it as attempt 2 under a fresh iteration (the crash was a real run, keeps its row, verdict `failed`, rc in the row); a second crash retires it. Documented in `run-loop.sh`, which now logs three distinct cases.
+**Gates:** census PASS (+0, `courtyard.html` untouched) · night filmstrip: 8 frames at t=1251.25 — dark sky, lamp pools on lane and quay, lit windows, Δ 0.06–0.08, no POP · `--regrade` diff against a copy of the log: 2 rows, verdict field only · `stall.mjs`: last 20 verdicts shipped=20 · **stub run** (clone + a `claude` that emits tokens, sleeps 32 s, exits 1; `MAX_FAILS=3`): #43 b40 `failed` "re-issued once" → pop-brief attempt 2 → #44 b40 `failed`, brief retired → b41 popped as #45. Exactly the documented sequence.
+**Verdict:** shipped
+**Surprise:** the regrade's first pass flipped iterations 1–10 to `failed`. Nothing in the rule I wrote touched them — `verdictOf` had always read a missing `rc` as non-zero, and the bug was invisible because those rows were graded once, by an older `verdictOf`, and never re-read. A regrade is the first time the verdict function meets its own history; it found a latent fault in the rule before it found the one I came for. And the `cp` alias trap from #38 bit again (`cp` prompted, the shell hung two minutes) — use `cat >` in this shell.
+**Cue:** `MANAGER_GAP` is compared against `done_ok − last_manager` with `last_manager = −99`, so any value ≤ 99 lets the stall check run before the first landed iteration; harmless, but "gap" is not what it does on the first loop.

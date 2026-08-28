@@ -2495,3 +2495,40 @@ wall-clock arrival for a line queued behind the news is not assertable; that it 
 
 ---
 
+## Iteration 32 — something is on in the bandstand, and people come and stand for it (2026-08-04) [River & far bank × New element]
+
+**Brief:** b31 — the bandstand has stood on the far bank since before the loop with nothing ever
+happening in it, and the east side has no gathering of any kind. Put a concert on in summer.
+
+**Did:** `bandF()` — one 0..1 over set-up/set/strike, `marketRaise()`'s shape — with three
+`BAND_PLAYERS` at cues 0.10/0.30/0.50 and bunting at 0.72, so they step up one at a time and pack
+away in reverse. Players are plain records handed to `drawPerson()` (which now reads `a.z`), drawn
+between the back and front posts inside `drawBandstand()`: the sorted item list can only put them
+wholly in front of or behind the structure. The day is `hash(day, 617) < bandChance()` off
+`warmth` — no `R()`, so most days pay nothing. Audience: `spawnConcertAgent()`, own source, own
+`BAND_TICK` (the shared 1 Hz tick cannot fill nine places in a seven-second window), subtracted
+from **both** `eastCount` and `laneCount`, each claiming one of nine `BAND_SLOTS`.
+
+**Gates:** census PASS (people +7, inEast +2 — the audience lands in fields that already exist) ·
+visual PASS · perf PASS · motion **FAIL, attributed**: night/shower jumps 1→2 on a kind I did not
+touch; over twelve seeds the rises are 0/1/2 on HEAD *and* here and the falls are 0 in both, so it
+is two shower onsets, not a broken ending · **`probes/bandstand-year.mjs` PASS ×4** — 18 concert
+days at midsummer vs **0** at midwinter over three folded years; peak 7 standing over 14.5 s,
+worst single step 43% of peak; min separation while standing **1.68 cells**; 0 teleports · a
+filmstrip cropped to the green shows no POP at raise or strike.
+
+**Verdict:** shipped
+
+**Surprise:** the first cut ended the set at 19.2 and every gate was green — the year folded
+right, nobody teleported, the separation held. Then the arrival series showed six of nine
+listeners leaving in one 0.25 s step. Not my code: `eastOpen()` is `daylight > 0.16`, i.e.
+`sunDown - 0.05*dayHours`, and the strike ramp ran straight through it, so the existing rule that
+sends the far side home at dusk cleared the green wholesale. Nothing errored, and no still frame
+could have shown it. I sized the set against the walk in and forgot to size its *end* against
+the light.
+
+**Law:** promoted at pass #33 → LAWS.md, *"an event its audience must WALK to is bounded at both
+ends by things that are not the event"*. Full entry in `LEDGER-archive.md`.
+
+---
+

@@ -71,6 +71,7 @@ if (peek) {
 if (cur && cur.status === 'active') {
   cur.attempts = (cur.attempts || 1) + 1;
   cur.nextIter = nextIter();
+  delete cur.retry;   // runlog.mjs's "re-issued once" note; the count now lives in attempts
   writeFileSync(CUR, JSON.stringify(cur, null, 2) + '\n');
   console.log(`pop-brief: re-issuing ${cur.id} (attempt ${cur.attempts}) — the previous try left it unfinished.`);
   process.exit(0);

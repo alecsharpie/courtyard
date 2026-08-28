@@ -383,10 +383,18 @@
       "the season is a BUTTON and reads as one — stepSkip()/simSub()/skipEase() run the town on a quarter as a sub-stepped fast-forward landing on a whole sim day, four clicks to the year; #season underlined, 30px/29px hit box at zero layout cost. probes/season-skip.mjs, season-invite.mjs",
       "the NAMING — what is under the pointer is named in the sill (borrows the ticker box; a TAP names on a phone). bSp/bSt vs bedCap(x,y), plots off plotCrop, places off pavingAt/WATERS, 13 trees hit-tested in SCREEN space vs crowns[]. NAME_SETTLE. probes/naming.mjs",
       "THE DIORAMA IS CLICKABLE and says so once — answersTouch(x,y) is the ONE predicate (~64% of the frame), read by both cursor and handler: seeds, a daisy, crumbs, a coin, a pebble. Invitations are a QUEUE, OFFERS[] of two, each spent when it comes up. probes/touch-hint.mjs",
-      "the NAMING names the LIVING things — livingAt(p) hit-tests agents, dogs, ducks, swans, boat, cat in SCREEN space on the projected feet (box per pose); personName(a) says what they are doing off state/kind/cup/watch/greet/listen/band. probes/naming.mjs §7"
+      "the NAMING names the LIVING things — livingAt(p) hit-tests agents, dogs, ducks, swans, boat, cat in SCREEN space on the projected feet (box per pose); personName(a) says what they are doing off state/kind/cup/watch/greet/listen/band. probes/naming.mjs §7",
+      "runlog --regrade (verdicts recomputed from stored evidence); Harness verdict graded on commit+log, harnessTouchedSrc flag; crashed-worker one-retry rule (brief.retry); filmstrip AT(day,hour) helper, night preset at midnight"
     ]
   },
-  "openCues": [],
+  "openCues": [
+    {
+      "id": "c74",
+      "note": "run-loop.sh: MANAGER_GAP vs last_manager=-99 means the stall check runs before the first landed iteration regardless of the gap",
+      "raisedBy": 42,
+      "seenBy": 0
+    }
+  ],
   "watch": [
     {
       "since": 0,

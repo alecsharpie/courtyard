@@ -30,7 +30,15 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(HERE, '../../..');
 const arg = (n, d) => { const i = process.argv.indexOf(n); return i !== -1 && process.argv[i + 1] ? process.argv[i + 1] : d; };
 
-const SCENES = { day: 175, dusk: 1080, night: 1230, market: 605, rain: 430 };
+/* A preset is an instant = a whole day plus an hour of it. The page's clock is
+ * `hour = (6 + (t % 55) / 55 * 24) % 24` — the day ROLLS at 06:00, so hour h on day d
+ * is `d*55 + 55*((h - 6 + 24) % 24)/24`. Read the legacy numbers through that:
+ * day 175 = d3 10:22, dusk 1080 = d19 21:16, market 605 = d11 06:00 (the opening),
+ * rain 430 = d7 01:38. `night` used to be 1230 = d22 14:44 — a day strip wearing a
+ * night label; it is now derived: day 22 at 00:00 (dayHours ≈ 12.4 there, sunDown
+ * ≈ 19.0, so midnight is five hours into full dark). */
+const AT = (day, h) => day * 55 + 55 * (((h - 6) + 24) % 24) / 24;
+const SCENES = { day: 175, dusk: 1080, night: AT(22, 0), market: 605, rain: 430 };
 const scene = arg('--scene', 'day');
 const t = SCENES[scene] ?? +scene;
 const N = +arg('--n', '12');

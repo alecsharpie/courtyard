@@ -278,10 +278,23 @@ while :; do
     # seconds long = the CLI died, not the worker). In that case it leaves the
     # brief `active` and the pop at the top of the next loop re-issues the SAME
     # brief; only a worker that actually ran and failed retires its brief.
+    #
+    # A worker that DID run (tokens > 0, > 30 s) and exited non-zero is the third
+    # case. The rule, decided at #43: ONE retry, then retire. runlog.mjs leaves the
+    # brief `active` with a `retry` note on attempt 1 (pop-brief re-issues it as
+    # attempt 2, under a fresh iteration number — the crash was a real run and
+    # keeps its row, verdict `failed`, rc in the row); on attempt 2 it retires the
+    # brief. Half-done work on disk is the retry's problem: it starts from a tree
+    # the crashed run may have left dirty, which is what the worker's "check the
+    # brief against reality" step is for.
     if grep -q '"status": "active"' "$HERE/current-brief.json" 2>/dev/null; then
-      log "--- iteration $((done_ok + 1)) never launched (exit $rc after ${elapsed}s) — brief stays claimed, re-issued next loop [$fails/$MAX_FAILS] ---"
+      if grep -q '"retry":' "$HERE/current-brief.json" 2>/dev/null; then
+        log "--- iteration $((done_ok + 1)) FAILED (exit $rc) after ${elapsed}s — worker ran; brief re-issued ONCE [$fails/$MAX_FAILS] ---"
+      else
+        log "--- iteration $((done_ok + 1)) never launched (exit $rc after ${elapsed}s) — brief stays claimed, re-issued next loop [$fails/$MAX_FAILS] ---"
+      fi
     else
-      log "--- iteration $((done_ok + 1)) FAILED (exit $rc) after ${elapsed}s [$fails/$MAX_FAILS] ---"
+      log "--- iteration $((done_ok + 1)) FAILED (exit $rc) after ${elapsed}s — brief retired (second attempt, or launch check said the worker ran) [$fails/$MAX_FAILS] ---"
     fi
     if [ "$fails" -ge "$MAX_FAILS" ]; then log "$MAX_FAILS consecutive failures — giving up. Check $LOG."; exit 1; fi
     backoff=$(( BACKOFF_BASE * (1 << (fails - 1)) ))

@@ -173,17 +173,47 @@ if (entryLine) {
   if (selfVerdict) selfVerdict = selfVerdict.toLowerCase().replace(/\s+/g, '-');
 }
 
+const now = new Date().toISOString();
+
 /* --- the verdict ---------------------------------------------------------- */
 /* A pure function of the evidence, so a merge can recompute it from the MERGED
  * evidence rather than from whichever call happened to run last. */
 const verdictOf = (r) => {
   if (r.kind === 'launch-failed') return 'launch-failed';
   if (r.briefRejected) return 'rejected-brief';
-  if (r.evidence.rc !== 0) return 'failed';
+  if ((r.evidence.rc || 0) !== 0) return 'failed';   // rows before #11 carry no rc; absent is not non-zero
   if (r.evidence.srcChanged && r.evidence.reverted) return 'reverted';
   if (r.evidence.srcChanged) return 'shipped';
+  /* A Harness brief's deliverable is the tooling, not courtyard.html — for it,
+   * "the source did not move" is the brief being obeyed, not a no-ship. #16 and
+   * #38 both committed and logged real harness work and were graded no-ship for
+   * it; the dashboard read two shipped iterations as failures. Committed AND
+   * logged is the evidence bar here (a run that vanished still reads no-ship).
+   * The mirror case — a harness brief that DID move courtyard.html — is flagged
+   * by `harnessTouchedSrc` in the row rather than re-graded: the source moved,
+   * so it is shipped, but it is a brief overstep the manager should see. */
+  if (r.changeKind === 'Harness' && r.evidence.committed && r.evidence.logged) return 'shipped';
   return 'no-ship';
 };
+const harnessTouchedSrc = (r) => r.changeKind === 'Harness' && !!(r.evidence && r.evidence.srcChanged);
+
+/* --regrade: recompute every row's verdict from its stored evidence with the rule
+ * above, rewrite only the rows whose verdict changes (note kept in `regraded`), and
+ * exit. This is how a rule change reaches history without hand-editing the log. */
+if (process.argv.includes('--regrade')) {
+  let changed = 0;
+  parsed.forEach((r, i) => {
+    if (!r || !r.evidence) return;
+    const v = verdictOf(r);
+    if (v === r.verdict) return;
+    lines[i] = JSON.stringify({ ...r, verdict: v, regraded: `${r.verdict}->${v} on ${now.slice(0, 10)}` });
+    console.log(`  #${r.iter} ${r.kind} ${r.changeKind}: ${r.verdict} -> ${v}`);
+    changed++;
+  });
+  if (changed) writeFileSync(RUNLOG, lines.join('\n') + '\n');
+  console.log(`runlog --regrade: ${changed} row(s) changed of ${rows.length}.`);
+  process.exit(0);
+}
 
 /* --- census position ------------------------------------------------------ */
 let census = null, censusDelta = null;
@@ -204,7 +234,6 @@ if (existsSync(HIST)) {
   }
 }
 
-const now = new Date().toISOString();
 let row = {
   iter, kind: KIND,
   when: now,
@@ -270,6 +299,7 @@ if (prior) {
   };
 }
 row.verdict = verdictOf(row);
+if (harnessTouchedSrc(row)) row.harnessTouchedSrc = true;
 
 if (prior) {
   lines[priorIdx] = JSON.stringify(row);
@@ -279,12 +309,24 @@ if (prior) {
 }
 
 /* Retire the brief so the next pop takes fresh work — unless no worker ever read
- * it, in which case it stays claimed and pop-brief re-issues it. */
-if (brief && brief.status === 'active' && !launchFailed) { brief.status = 'done'; writeFileSync(CUR, JSON.stringify(brief, null, 2) + '\n'); }
+ * it (launch failure: stays claimed, pop-brief re-issues it), or a worker really
+ * ran and died (rc≠0 with tokens, > 30 s). That second case gets ONE retry: a
+ * crash mid-iteration is usually a rate limit, a hung gate or a bad tool call,
+ * not a bad brief — but two crashes on the same brief is the brief, so the
+ * second attempt retires it with the rc in its row. `attempts` is bumped by
+ * pop-brief when it re-issues, so the rule is read off the brief, not counted
+ * here. The runner reads `retry` back to log which case it was. */
+const workerCrashed = KIND === 'worker' && RC !== 0;
+const retryOnce = workerCrashed && (brief ? brief.attempts || 1 : 1) < 2;
+if (brief && brief.status === 'active' && !launchFailed) {
+  if (retryOnce) { brief.retry = `crashed rc=${RC} on attempt ${brief.attempts || 1}; re-issued once`; }
+  else { brief.status = 'done'; delete brief.retry; }
+  writeFileSync(CUR, JSON.stringify(brief, null, 2) + '\n');
+}
 
 /* Report the MERGED row, not this call's slice of it. */
 const verdict = row.verdict, self = row.selfVerdict, ev = row.evidence;
 const mm = String(Math.floor(row.secs / 60)), ss = String(row.secs % 60).padStart(2, '0');
 const mark = { shipped: '✔', reverted: '↩', 'no-ship': '○', failed: '✗', 'rejected-brief': '⊘', 'launch-failed': '⚡' }[verdict] || '?';
 const claim = self && self.replace(/[^a-z]/g, '') !== verdict.replace(/[^a-z]/g, '') ? `  (claimed: ${self})` : '';
-console.log(`${mark} Iter ${String(iter).padEnd(4)} ${String((row.domain || '—') + ' x ' + (row.changeKind || '—')).padEnd(34)} ${verdict.padEnd(15)} ${mm}m${ss}s  $${row.costUsd.toFixed(2)}  ${ev.srcLines ? `${ev.srcLines}L` : '0L'}  ${ev.sha}${prior ? `  [merged +${row.merges}]` : ''}${claim}${launchFailed ? `  (no worker started — brief ${brief ? brief.id : '?'} stays claimed)` : ''}`);
+console.log(`${mark} Iter ${String(iter).padEnd(4)} ${String((row.domain || '—') + ' x ' + (row.changeKind || '—')).padEnd(34)} ${verdict.padEnd(15)} ${mm}m${ss}s  $${row.costUsd.toFixed(2)}  ${ev.srcLines ? `${ev.srcLines}L` : '0L'}  ${ev.sha}${prior ? `  [merged +${row.merges}]` : ''}${claim}${launchFailed ? `  (no worker started — brief ${brief ? brief.id : '?'} stays claimed)` : ''}${retryOnce ? `  (worker crashed — brief ${brief ? brief.id : '?'} re-issued once)` : ''}${row.harnessTouchedSrc ? '  ⚠ harness brief moved courtyard.html' : ''}`);

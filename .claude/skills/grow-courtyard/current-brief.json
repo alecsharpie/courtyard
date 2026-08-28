@@ -1,27 +1,22 @@
 {
-  "id": "b39",
+  "id": "b40",
   "domain": "The sill & the observer",
-  "kind": "Interaction/UX",
-  "brief": "nameAt(x,y) names the ground, the plants, the plots, the waters and the thirteen trees — and nothing that MOVES. Point at a walker, a duck, a swan, the sweeper, a gardener with a basket, the rowboat, the concert audience or the cat, and the sill says the paving under their feet. Since #33 the living things are the most legible part of a night frame. __entities() already carries role, act and a stable id per person, and crowns[] is the pattern for hit-testing a moving thing in SCREEN space. Give the pointer the living things, with the same NAME_SETTLE hold as everything else, and let the name say what they are DOING ('someone waiting at the door', 'a swan, upending') rather than only what they are.",
+  "kind": "Harness",
+  "brief": "Three instrument lies, one file class. (1) `filmstrip.mjs --scene night` pins t=1230 s, which is day 22.4 hour ~14.7 — the night preset is a day strip; re-pin it to a real night instant (a mid-night hour on a whole day, chosen by the same rule the other presets use) and say in the file how the number was derived. (2) `runlog.mjs` grades a Harness brief 'no-ship' because srcChanged is false — #38 shipped and the dashboard says it failed; make the verdict read the brief's kind so a harness iteration that committed and logged is 'shipped' without source movement (a harness brief that DID touch courtyard.html should still be flagged). (3) A worker that ran >30 s with tokens and exited non-zero currently retires its brief as 'failed'; decide (and document in run-loop.sh) whether it is re-issued once or retired — the cheap, honest rule is one retry, then retire with the rc in the row.",
   "seams": [
-    "nameAt",
-    "NAME_SETTLE",
-    "crowns",
-    "__entities",
-    "agents",
-    "ducks",
-    "swans",
-    "updateBoat",
-    "drawAgent",
-    "project"
+    "filmstrip.mjs",
+    "runlog.mjs",
+    "run-loop.sh",
+    "pop-brief.mjs",
+    "stall.mjs"
   ],
-  "successLooksLike": "probes/naming.mjs extended: over ten seeds, pointing at the screen position of any agent, duck, swan or the boat returns a living name at least 95% of the time and NEVER the paving, and pointing at a spot 2 cells clear of every entity still returns exactly what HEAD returns. A moving figure holds its name for NAME_SETTLE after it walks out from under the pointer, no flicker.",
-  "avoid": "Hit-test in screen space against the drawn footprint (project() the feet, a box of roughly 0.9 cells) — never re-derive world geometry, and never add an R() draw: the renderer walks the seeded stream. The sill is DOM and fails quietly: assert on computed text, not on the handler having run. Do not add a new invitation for it; OFFERS[] is the queue and the naming already has its hint.",
-  "budgetMin": 26,
-  "risk": "medium",
-  "status": "done",
+  "successLooksLike": "The night filmstrip shows lit windows and lamp pools; `runlog.mjs` re-run over RUNLOG.jsonl reads #38 as shipped and no other row changes; a simulated rc=1 worker with tokens>0 is handled by the documented rule.",
+  "avoid": "Do not touch courtyard.html. Do not re-grade any row other than harness rows.",
+  "budgetMin": 15,
+  "risk": "low",
+  "status": "active",
   "attempts": 1,
-  "nextIter": 42,
-  "issued": "2026-08-28T12:06:57.250Z",
-  "fromPlan": "2026-08-28T11:36:44.545Z"
+  "nextIter": 43,
+  "issued": "2026-08-28T12:18:53.531Z",
+  "fromPlan": "2026-08-28T12:40:00.000Z"
 }
