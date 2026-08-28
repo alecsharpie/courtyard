@@ -20,7 +20,7 @@
   "avoid": "Do not add TAP_SLOTS (four; the pavement holds four at 0.9 cells). Price the walk: the bandstand-to-door trip is long — if it exceeds the tap's remaining hours on a winter concert night, send nobody rather than someone who arrives after the shut.",
   "budgetMin": 30,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 47,
   "issued": "2026-08-28T16:39:19.090Z",
