@@ -19,7 +19,7 @@
   "avoid": "Do not start from HEAD and rewrite the lantern. Do not add an R() draw. Do not touch the bridge shadow.",
   "budgetMin": 15,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 63,
   "issued": "2026-08-29T03:01:08.411Z",
