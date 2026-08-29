@@ -98,7 +98,23 @@
   #veil{ position:absolute; inset:0; pointer-events:none; background:var(--room);
     opacity:0; transition:opacity .38s ease; }
   #veil.on{ opacity:1; }
-  #daytime{ flex:none; font-variant-numeric:tabular-nums; white-space:nowrap; min-width:12ch; }
+  /* The clock is the season's idea one scale DOWN. The season button reaches the next
+     quarter; nobody arriving at noon would find the night on their own (dusk is ~35 real
+     seconds off, and the only fast-forward skipped a quarter-year), so the hour is a
+     button too and reaches this evening — then the next dawn. Same underline, same
+     chevron, same hit-area trick; but it keeps the clock's sans and tabular figures,
+     because it is still the thing in the row that COUNTS. 13ch holds the longest label
+     plus the chevron so nothing beside it slides when the hour turns. */
+  #daytime{ flex:none; font-variant-numeric:tabular-nums; white-space:nowrap; min-width:13ch;
+    font:inherit; color:var(--ink); background:transparent; border:0; padding:5px 0; margin:-5px 0;
+    text-align:left; cursor:pointer; transition:color .25s;
+    text-decoration:underline; text-decoration-color:var(--ink-dim);
+    text-decoration-thickness:1px; text-underline-offset:3px; }
+  #daytime::after{ content:'\2009\203A'; display:inline-block; opacity:.6; }
+  #daytime:hover{ text-decoration-color:var(--accent); }
+  #daytime:hover, #daytime:hover::after{ color:var(--accent); opacity:1; }
+  #daytime:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:3px; }
+  #daytime[disabled]{ cursor:default; opacity:.55; }
   #ticker{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
     font-family:"Iowan Old Style", Palatino, Georgia, serif; font-style:italic; font-size:14px;
     color:var(--ink); opacity:.9; transition:opacity .6s; }
@@ -172,6 +188,8 @@
        here a first-time viewer has already read. */
     #sill.inviting.at-season #plate{ display:block; }
     #sill.inviting.at-season #title{ display:none; }
+    /* ...and the evening offer keeps the CLOCK it is naming, the same way. */
+    #sill.inviting.at-clock #daytime{ display:block; }
     /* A phone has no cursor to follow, so the name arrives on the TAP that also acts
        and borrows the sill the same way, for a few real seconds. #naming is already
        display:block under .naming above — the ticker's hiding rule does not reach it —
@@ -194,7 +212,8 @@
   <div id="sill">
     <div id="plate"><span id="title">The Courtyard<small>a cellular block</small></span><button id="season" type="button"
       title="Run on to the next season" aria-label="Run on to the next season">Spring</button></div>
-    <div id="daytime">Day 1 &middot; Dawn</div>
+    <button id="daytime" type="button" title="Run on to this evening"
+      aria-label="Run on to this evening">Day 1 &middot; Dawn</button>
     <div id="ticker">The courtyard is quiet. Not much here yet.</div>
     <div id="naming"></div>
     <div id="stats">0 people &middot; 0 blooms</div>
@@ -5762,17 +5781,24 @@ const SEASON_WIDE = 'The year here runs twenty-four minutes — press the season
 const SEASON_NARROW = 'Tap it — the year runs on.';
 const FOLLOW_WIDE = 'Tap on somebody and the sill will keep an eye on them for you.';
 const FOLLOW_NARROW = 'Tap someone to follow them.';
+/* The night is where twenty iterations went and a noon visitor never sees it: the
+ * clock is the way there. It is the LAST offer — the picture, then the year, then a
+ * person, then the hour — and, like the others, it is never said if they found it. */
+const EVENING_WIDE = 'Press the hour and the town runs on to this evening.';
+const EVENING_NARROW = 'Tap the hour — evening comes.';
 const sillEl = document.getElementById('sill');
 const seasonEl = document.getElementById('season');
+const daytimeEl = document.getElementById('daytime');
 const veilEl = document.getElementById('veil');
 const DRIVEN = location.search.indexOf('pause') >= 0;   // the harness, not a viewer
-let touched = DRIVEN, pressed = DRIVEN;
+let touched = DRIVEN, pressed = DRIVEN, clockPressed = DRIVEN;
 /* In the order a first-time viewer needs them. Each carries the act that makes it
  * unnecessary: do the thing and it is never said. */
 const OFFERS = [
   { id:'touch',  wide: INVITE_WIDE, narrow: INVITE_NARROW, found: () => touched },
   { id:'season', wide: SEASON_WIDE, narrow: SEASON_NARROW, found: () => pressed },
   { id:'follow', wide: FOLLOW_WIDE, narrow: FOLLOW_NARROW, found: () => followedEver },
+  { id:'clock',  wide: EVENING_WIDE, narrow: EVENING_NARROW, found: () => clockPressed },
 ];
 let offerN = 0, offerFree = INVITE_AT, inviteHold = 0, inviteTxt = '';
 function offerInvite(now){
@@ -5786,13 +5812,14 @@ function offerInvite(now){
   if (innerWidth > 640) return;
   sillEl.classList.add('inviting');
   sillEl.classList.toggle('at-season', o.id === 'season');
+  sillEl.classList.toggle('at-clock', o.id === 'clock');
   inviteHold = now + INVITE_HOLD;
 }
 // the borrowed sill goes back the moment the hold runs out or the news moves on
 function endInvite(now){
   if (now < inviteHold && tickerEl.textContent === inviteTxt) return;
   inviteHold = 0;
-  sillEl.classList.remove('inviting', 'at-season');
+  sillEl.classList.remove('inviting', 'at-season', 'at-clock');
 }
 
 /* ============ the naming ============
@@ -6059,6 +6086,8 @@ document.getElementById('speed').addEventListener('click', e => {
 // the season names itself and, being the only fact in the sill you would want to
 // change, offers itself as the way to change it
 seasonEl.addEventListener('click', beginSkip);
+// ...and the hour offers the one thing the season cannot: tonight, and then tomorrow
+daytimeEl.addEventListener('click', beginEvening);
 
 /* ============ opening state ============ */
 (function seed(){
@@ -6304,7 +6333,7 @@ const SKIP_RATE = 1.0;      // sim DAYS per real second, mean across the lapse. 
 const SKIP_SHOULDER = 0.2;  // the fraction of it spent easing in, and again easing out
 const SKIP_MIN = 0.09;      // never aim at a boundary nearer than this in phase
 const VEIL_MS = 420;        // the reduced-motion cut, ~one transition plus a frame
-let skipSpan = 0, skipSecs = 0, skipAt = 0, skipLanded = false;
+let skipSpan = 0, skipSecs = 0, skipAt = 0, skipLanded = false, skipSay = '';
 function skipping(){ return skipSpan > 0; }
 /* The cumulative profile: monotone 0..1, flat-topped, zero slope at both ends.
  * smoothstep(x) = 3x^2 - 2x^3 integrates to x^3 - x^4/2, which is all this needs. */
@@ -6331,10 +6360,49 @@ function simSub(sdt, dt){
 function beginSkip(){
   if (skipping()) return;
   pressed = true;             // found without being told — the offer stands down unsaid
-  skipSpan = skipDays() * DAY_LEN;
+  beginLapse(skipDays() * DAY_LEN, () => 'The year runs on: ' + seasonLabel().toLowerCase() + ' over the block now.');
+}
+/* The clock's lapse: the SAME mechanism aimed at an hour instead of a quarter. By day
+ * it reaches an hour past sundown — the door is open, the lamps are lit, the homers
+ * are on the lane; from that hour on it reaches half an hour past the next sunrise.
+ * `hour` runs 6 → 24 → 0 → 6 (the day rolls at 06.00), so "tonight" is the half-open
+ * band [sunUp+0.5, sunDown+1) and everything else is night. EVE_MIN_H keeps the span
+ * above skipSecs at 1x so the profile's bump term stays positive — a tap made a few
+ * minutes short of the target goes to the dawn after it rather than nowhere. */
+const EVE_AFTER_H = 1.0, DAWN_AFTER_H = 0.5, EVE_MIN_H = 1.5;
+/* The sun at another instant, read the way updateClock() reads it and writing nothing.
+ * Needed because the target is an hour OF THE SUN, and the sun moves during the lapse:
+ * at the equinox sunDown shifts ~0.5 h a day, so a target fixed at tap time lands a
+ * quarter-hour off "an hour after sundown" once the lapse has crossed the roll. */
+function sunAt(t){
+  const w = 0.5 - 0.5 * Math.cos(2 * Math.PI * ((SEASON_START + t / (SEASON_LEN * DAY_LEN)) % 1));
+  const dh = lerp(WINTER_HOURS, SUMMER_HOURS, w);
+  return { up: SOLAR_NOON - dh / 2, down: SOLAR_NOON + dh / 2 };
+}
+function eveningTarget(){
+  const evening = hour >= sunUp + DAWN_AFTER_H && hour < sunDown + EVE_AFTER_H - EVE_MIN_H;
+  let hours = 0;
+  for (let k = 0; k < 3; k++){                 // fixed point on the sun at ARRIVAL; converges in two
+    const s = sunAt(simT + hours / 24 * DAY_LEN);
+    const eve = s.down + EVE_AFTER_H, dawn = s.up + DAWN_AFTER_H;
+    // after sundown `hour` runs on past 24; in the small hours it is under six
+    hours = evening ? eve - hour : hour >= dawn ? 24 - hour + dawn : dawn - hour;
+  }
+  return { hours, evening };
+}
+function beginEvening(){
+  if (skipping()) return;
+  clockPressed = true;
+  const to = eveningTarget();
+  beginLapse(to.hours / 24 * DAY_LEN, () => to.evening
+    ? 'Evening comes on over the block: lamps lit, the door open.'
+    : 'Morning comes round again over the block.');
+}
+function beginLapse(span, say){
+  skipSpan = span;
   skipSecs = clamp(skipSpan / DAY_LEN / SKIP_RATE, 2.4, 7.2);
-  skipAt = 0;
-  seasonEl.disabled = true;
+  skipAt = 0; skipSay = say;
+  seasonEl.disabled = true; daytimeEl.disabled = true;   // one lapse at a time, and both say so
   if (!RM) return;
   veilEl.classList.add('on');
   setTimeout(() => {                       // behind an opaque veil, so a hitch is nobody's
@@ -6368,9 +6436,9 @@ function stepSkip(rdt){
  * wind would arrive as a stack of stale news the moment it ended. */
 function land(){
   skipLanded = false;
-  seasonEl.disabled = false;
+  seasonEl.disabled = false; daytimeEl.disabled = false;
   refreshStats();
-  announce('The year runs on: ' + seasonLabel().toLowerCase() + ' over the block now.');
+  announce(skipSay());
 }
 function frame(ts){
   requestAnimationFrame(frame);

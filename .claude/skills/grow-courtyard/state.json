@@ -402,7 +402,8 @@
       "the NAMING — what is under the pointer (a TAP on a phone) is named in the sill: beds, plots, places off pavingAt/WATERS, 13 trees vs crowns[]; the LIVING via livingAt()/personName(a); WINDOWS/DOORS via FACES[]/faceAt(), windowName() reads windowLit + windowHours/HOMES. probes/naming.mjs",
       "THE DIORAMA IS CLICKABLE and says so once — answersTouch(x,y) is the ONE predicate read by cursor and handler: seeds, a daisy, crumbs, a coin, a pebble. Invitations are a QUEUE, OFFERS[]. probes/touch-hint.mjs",
       "harness: runlog --regrade; Harness verdicts graded on commit+log; crashed-worker retry; filmstrip AT(day,hour), night preset, pops.mjs (POP = >3.5× larger neighbour); run-loop.sh DRY_RUN=1; probes/dusk-relight-where.mjs, ground-rebuilds.mjs, frame-cost.mjs",
-      "FOLLOWS a person — a tap holds a walker: followLine() on the sill via updateNaming (outranks pointer + ticker), drawFollowMark() ring on the feet, followLost() closes with door/lane/street/east/west on despawn; OFFERS follow; __follow(). probes/follow.mjs"
+      "FOLLOWS a person — a tap holds a walker: followLine() on the sill via updateNaming (outranks pointer + ticker), drawFollowMark() ring on the feet, followLost() closes with door/lane/street/east/west on despawn; OFFERS follow; __follow(). probes/follow.mjs",
+      "the CLOCK is a button — #daytime → beginEvening(): the season's lapse (beginLapse(span, say), ONE mechanism) aimed at sunDown+1 h by day / sunUp+0.5 h at night, solved at the arrival instant via sunAt(t); both buttons disable through either lapse; 'clock' is the 4th OFFER (clockPressed); probes/evening-skip.mjs, evening-skip-weather.mjs"
     ]
   },
   "openCues": [
@@ -421,6 +422,12 @@
     {
       "id": "c102",
       "note": "leaf litter always heaps EAST of a tree (leaf vx is always positive); tie drift direction to the wind's sign",
+      "raisedBy": 63,
+      "seenBy": 0
+    },
+    {
+      "id": "c103",
+      "note": "the evening offer is 4th in OFFERS, after follow — a visitor who never taps a person hears it ~30 s in; rank it second?",
       "raisedBy": 63,
       "seenBy": 0
     }
