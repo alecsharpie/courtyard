@@ -36,7 +36,8 @@ for (const seed of SEEDS) {
       o.slope = Math.max(o.slope, Math.abs(w - prev) / hoursPerStep);
       if (day !== prevDay) { if (o.roll === null && prevDay >= 0 && !prevWd && wd) o.roll = { day, t: +(simT).toFixed(2) }; prevDay = day; settle = 0; }
       settle += hoursPerStep;
-      if (settle > 4 && w !== (wd ? 1 : 0)) o.off++;           // 4 h past the roll it must sit exactly on the target
+      const tg = typeof windTarget === 'function' ? windTarget() : (wd ? 1 : 0);   // #65: a front is the second target
+      if (settle > 4 && w !== tg && (w === 0 || w === 1)) o.off++;   // 4 h past the roll a wind SITTING on an anchor must be the target's (a ramp between is a front rising or dying)
       if (o.roll && day === o.roll.day && o.ramp.length < 40 && i % 4 === 0) o.ramp.push(+w.toFixed(2));
       prev = w; var prevWd = wd;
     }

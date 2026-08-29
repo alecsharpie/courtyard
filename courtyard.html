@@ -852,11 +852,24 @@ function isMarketDay(){ return day > 0 && day % 4 === 2; }
  * extra cloud drift the wind has accumulated, so cloud position is continuous too. */
 function windyDay(){ return hash(day, 99) < 0.28; }
 const WIND_RISE_H = 2.5;                       // sim hours from calm to full, and back
+/* The wind's second cause (#65): a building FRONT. The day hash fires at the hour-6
+ * roll, inside the dawn relight, so the ramp #58 built was never seen. A front is
+ * visible: cloudCover() climbs over ~half a day before rain, so the wind's target
+ * rises with the cover, from weatherComing()'s knee (0.46) to a heavy front's floor
+ * (0.76) — the washing, bunting, fountain, river and smoke pick up as the sky darkens
+ * — and BREAKS with the rain: `frontSpent` latches at the first drop and holds until
+ * the next front moves in (stepClouds), so a wet aftermath is grey and still. The day
+ * hash stays as the other source (a dry windy day still exists); stepWind's rate cap
+ * still owns the slope, so nothing steps. */
+const WIND_FRONT_LO = 0.46, WIND_FRONT_HI = 0.76;
+let frontSpent = false;
+function frontWind(){ return raining || frontSpent ? 0 : clamp((cloud - WIND_FRONT_LO) / (WIND_FRONT_HI - WIND_FRONT_LO), 0, 1); }
+function windTarget(){ return Math.max(windyDay() ? 1 : 0, frontWind()); }
 let wind = -1, windX = 0;                      // -1: not yet initialised — take the day's target at first step
 function windF(){ return wind < 0 ? (windyDay() ? 1 : 0) : wind; }
 function isWindy(){ return windF() > 0.5; }
 function stepWind(dt){
-  const tgt = windyDay() ? 1 : 0;
+  const tgt = windTarget();
   if (wind < 0){ wind = tgt; return; }
   const r = dt * 24 / (WIND_RISE_H * DAY_LEN);
   wind = Math.abs(tgt - wind) <= r ? tgt : wind + (tgt > wind ? r : -r);
@@ -895,6 +908,7 @@ function cloudCover(){ return cloud; }
 function stepClouds(dt){
   frontLeft -= dt;
   if (frontLeft <= 0){                          // the next front moves in
+    frontSpent = false;                         // and it can raise a wind of its own again
     const g = greyF();
     const heavy = day >= 1 && R() < FRONT_HEAVY + FRONT_HEAVY_SWING * g;
     cloudTgt = heavy ? clamp(0.76 + FRONT_DEEP * g + R() * 0.24, 0, 1) : R() * R() * 0.5;
@@ -2853,6 +2867,7 @@ function updateWildlife(dt){
   } else if (cloudCover() > 0.66 && day >= 1
              && R() < dt * 0.10 * (cloudCover() - 0.66) / 0.34 * showerRate() * nightDamp()){
     raining = true; rainLeft = (10 + R() * 9) * showerLen();
+    frontSpent = true;                          // the front has broken: its wind drops (stepWind)
     cloudTgt = 0.92; frontLeft = Math.max(frontLeft, 24);
     announce(snowF() > 0.5 ? 'Snow drifts in over the rooftops, fat and slow.' : 'Rain drifts in across the rooftops.');
     // no sweep here any more: whoever was going to put one up already has, on the way in

@@ -384,7 +384,8 @@
       "snow — snowF() turns showers to flakes past greyF 0.55; snowCover 0..1 (rate-capped, snowAt per cell, trodden kinds take less) whitens cached ground/roofs/awnings, melts as warmth lifts; census clock.snow. probes/snow-year.mjs",
       "wind is a SCALAR — windyDay() the day hash (0.28); wind stepped by stepWind() in simStep over WIND_RISE_H 2.5 h, exact at 0/1; windF() 0..1, isWindy() = windF() > 0.5 the behaviour boolean; windX = cloud drift. probes/wind-year.mjs",
       "wetness 0..1 — wetF()/stepWet(): rain soaks paving, dries by daylight×warmth, lands on 0. Cached ground reads wetPainted (5 buckets) via wetCol() on PATH/SIDE/ROAD; lane sheen 0.16×wetness; drawWetLights() lamp bars on WET_LAMPS × wetness × nightF. probes/wet-year.mjs, wet-shots.mjs",
-      "night warmth is put BACK after applyLight: LIT_PANES[] (per frame) and ROSE (cache time) screen-filled at 0.7·nightF before the LIT halos; turned[] furrowed; bunting 5 px; GRASS snow mix 1−(1−sn)^1.8. probes/polish-1x.mjs, polish-crops.mjs"
+      "night warmth is put BACK after applyLight: LIT_PANES[] (per frame) and ROSE (cache time) screen-filled at 0.7·nightF before the LIT halos; turned[] furrowed; bunting 5 px; GRASS snow mix 1−(1−sn)^1.8. probes/polish-1x.mjs, polish-crops.mjs",
+      "wind has TWO causes — windTarget() = max(windyDay() hash, frontWind()); frontWind() ramps on cloud 0.46→0.76 (WIND_FRONT_LO/HI), 0 while raining and while frontSpent (latched at rain start, cleared by the next front in stepClouds). probes/wind-front.mjs"
     ],
     "life": [
       "walkers with itineraries — courtyard, street and eastern stops; cafe sitters; market and kiosk browsers; dogs on leads; ducks, swans, butterflies, fireflies, birds, one night cat, falling leaves",
@@ -407,6 +408,12 @@
     {
       "id": "c100",
       "note": "picnic pairs refuse a wet lawn via the same paving wetness — decide whether grass should dry on its own clock",
+      "raisedBy": 63,
+      "seenBy": 0
+    },
+    {
+      "id": "c101",
+      "note": "windyDay() is hash(day,99) — seed-blind, every seed shares one windy calendar (~40% of hours in a 30-day window)",
       "raisedBy": 63,
       "seenBy": 0
     }

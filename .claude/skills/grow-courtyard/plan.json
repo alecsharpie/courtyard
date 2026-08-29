@@ -16,29 +16,6 @@
   "rationale": "HOLD RUNG 2 with a rung-5 bet at the tail. The town's biggest gap for a thirty-second viewer is now structural, not a missing feature: twenty iterations (#32–#62) built the night — windows, the door, homers, river and wet lamps, now a lantern — and a visitor landing at noon has ~35 s of daylight before dusk and no way there but a season-length skip. b64 is the bet: a tap on the sill's clock takes the town to the evening, using the skip machinery that already exists (beginSkip/simSub/skipEase, SKIP_SUB-bounded) with a shorter target — if it lands, the observer has a fourth instrument and the whole night investment becomes the first thing a viewer can choose to see. The four compounding moves are all consumers of scalars built in the last ten iterations that nothing downstream reads yet: wetness has no effect on people (b61: sitters ignore a wet seat, the lane 9 back), the wind ramp starts at the one hour nobody can see it (b62: tie the wind target to the fronts cloudCover already builds, c96), and the autumn shed produces leaves that vanish on touching the ground (b63: leaf litter on the cached ground, courtyard 6 back, the first CA-class rule since #16). b60 lands #62's lantern and takes c99 in passing. Risk: b60 low, b61 medium, b62 medium, b63 medium-high (cached ground, a new per-cell array, interacts with snow and wear), b64 high.",
   "queue": [
     {
-      "id": "b62",
-      "domain": "Sky, light & weather",
-      "kind": "Connect",
-      "brief": "The wind became a scalar at #58 and it changed nothing on screen, because `windyDay()` is a day hash and the ramp starts at the hour-6 roll — inside the dawn relight, the one hour nobody can see it (c96). Give the wind a cause: let the wind target rise with a building front — `cloudCover()` climbs over ~half a day before rain and breaks after it — so on a front day the washing, bunting, fountain, river and smoke all pick up mid-morning or mid-afternoon as the sky darkens, and drop when the rain breaks. Keep the day hash as a second source (a dry windy day still exists) and keep `stepWind`'s rate cap so nothing steps. Show it: a fountain or washing-line crop series across a front's build (flat light, hour 10–14), Δ/frame rising smoothly; `wind-year.mjs` windy-day mean and calm mean stated before and after; the windy CLASS fraction of hours before and after (it will rise — say by how much).",
-      "seams": [
-        "windyDay",
-        "windF",
-        "stepWind",
-        "wind",
-        "cloudCover",
-        "weatherComing",
-        "rainFall",
-        "windT",
-        "probes/wind-year.mjs",
-        "probes/weather-year.mjs",
-        "probes/fountain-wind.mjs"
-      ],
-      "successLooksLike": "On a seed with a mid-day front, a 4-shot crop series at hour 10–14 shows the fountain jets leaning progressively as the sky darkens; calm-day frames identical to HEAD; the boat and fountain anchors move only by the extra windy hours, and the ledger says how many.",
-      "avoid": "Do not add an R() draw. Do not touch the consumers — they read windF() and that is the point. Do not let the wind stay up through the rain itself unless you can show a shower on HEAD already has the washing brought in.",
-      "budgetMin": 25,
-      "risk": "medium"
-    },
-    {
       "id": "b63",
       "domain": "Courtyard & garden",
       "kind": "New CA rule",
@@ -106,6 +83,10 @@
     {
       "id": "b61",
       "at": "2026-08-29T03:09:02.934Z"
+    },
+    {
+      "id": "b62",
+      "at": "2026-08-29T03:18:28.488Z"
     }
   ]
 }
