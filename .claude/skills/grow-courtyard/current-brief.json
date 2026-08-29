@@ -20,7 +20,7 @@
   "avoid": "Do not add an R() draw. Do not touch the consumers — they read windF() and that is the point. Do not let the wind stay up through the rain itself unless you can show a shower on HEAD already has the washing brought in.",
   "budgetMin": 25,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 65,
   "issued": "2026-08-29T03:18:28.489Z",
