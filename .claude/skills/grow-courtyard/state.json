@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-28",
+  "updated": "2026-08-29",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
   "lastIteration": 57,
@@ -376,7 +376,8 @@
       "season() — the YEAR over SEASON_LEN 26 days, phase 0 midwinter, anchor SEASON_START 0.25 where every seasoned term equals the constant it replaced; greyF() drives the weather's year (fronts, spellLen; showers scarcer but harder in summer). probes/weather-year.mjs",
       "the ground reads the lid — shadowF() with shSpread()/shOffset(): cast shadows fade, widen and retract together, eight sites, blurred on the cached ground. probes/shadow-cover.mjs",
       "snow — snowF() turns showers to flakes past greyF 0.55; snowCover 0..1 (rate-capped, snowAt per cell, trodden kinds take less) whitens cached ground/roofs/awnings, melts as warmth lifts; census clock.snow. probes/snow-year.mjs",
-      "wind is a SCALAR — windyDay() the day hash (0.28); wind stepped by stepWind() in simStep over WIND_RISE_H 2.5 h, exact at 0/1; windF() 0..1, isWindy() = windF() > 0.5 the behaviour boolean; windX = cloud drift. probes/wind-year.mjs"
+      "wind is a SCALAR — windyDay() the day hash (0.28); wind stepped by stepWind() in simStep over WIND_RISE_H 2.5 h, exact at 0/1; windF() 0..1, isWindy() = windF() > 0.5 the behaviour boolean; windX = cloud drift. probes/wind-year.mjs",
+      "wetness 0..1 — wetF()/stepWet(): rain soaks paving over WET_RISE, dries by daylight×warmth over WET_DRY, lands on 0 exactly. Cached ground reads wetPainted (5 buckets) via wetCol() on PATH/SIDE/ROAD only; the lane sheen is 0.16×wetness; drawWetLights() lays lamp bars on WET_LAMPS (lamps over paving) × wetness × nightF. probes/wet-year.mjs, wet-shots.mjs"
     ],
     "life": [
       "walkers with itineraries — courtyard, street and eastern stops (plaza bench, fountain, quay, towpath, church green, allotment plot, parapet); cafe sitters; market and kiosk browsers; dogs on leads; ducks, swans, butterflies, fireflies, birds, one night cat, falling leaves",
@@ -407,6 +408,12 @@
       "id": "c96",
       "note": "HEAD's hour-6 wind step is invisible in a fountain crop under the dawn relight (Δ 5.12 vs 3.92): a day-hash wind starts in the one hour a step cannot be seen; the visible payoff is wind rising mid-day off a front (#58)",
       "raisedBy": 58,
+      "seenBy": 0
+    },
+    {
+      "id": "c97",
+      "note": "A winter-night wet street: wetness holds ~20 h in the cold and dark; nobody has looked at whether the sheen + lamp bars read right at ~0.3 wetness in January",
+      "raisedBy": 57,
       "seenBy": 0
     }
   ],
