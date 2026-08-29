@@ -20,7 +20,7 @@
   "avoid": "Do not add a camera or zoom — the frame stays where it is. Do not change any agent behaviour or add an R() draw; following reads, it never writes. Do not add a second invitation mechanism.",
   "budgetMin": 35,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 60,
   "issued": "2026-08-29T02:28:34.957Z",
