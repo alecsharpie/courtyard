@@ -16,29 +16,6 @@
   "rationale": "HOLD RUNG 2, with one brief that is a rung-5 probe. The compounding moves are not exhausted and two of them are DEFECTS a thirty-second viewer sees: (1) the wind is a per-day coin, so a windy day begins as a step at 06:00 with the washing, bunting, fountain and river all snapping together — three passes have been hanging consumers on windF() and every one inherits that step (b55, sky, 12 back); (2) every lit pane at midnight is grey (105,100,110) because drawLitPanes runs before applyLight's 0.8 multiply — the night the loop spent #32–#53 building glows grey-warm at best (in b58). The bet is b57, and it is the ladder's rung 5 tried early rather than a climb: the town now has ~50 behaviours per person (itineraries, seats, greetings, the door, going home, the plots) and no way for a viewer to READ one person's day — a tap names them, then they walk off and are lost in the crowd. Let the observer follow one. If it lands, the sill has a third instrument (name, season, follow) and every behaviour the loop has built becomes legible in sequence; if it fails, it fails on hit-testing and DOM, which the laws already cover. b56 puts weather on the ground (wet paving darkens and reflects lamps after rain — the plaza and quay have had wind, now rain), b59 closes c92 with a lantern on the night boat. Risk: b55 medium (touches ~8 consumers, anchor algebra), b56 medium-high (cached ground layer, rebuild count), b57 high, b58 low, b59 medium.",
   "queue": [
     {
-      "id": "b57",
-      "domain": "People & animals",
-      "kind": "Interaction/UX",
-      "brief": "The observer can NAME a person (`livingAt`, `personName`) but cannot follow one: a tap says 'a walker, heading for the quay' and two seconds later they are one of nine figures. Let a tap on a person FOLLOW them — the sill line stays on that agent (their `__entities` id) and rewrites as their act changes ('sitting at the cafe' → 'off to the market' → 'talking to somebody' → 'going home, lamp lit at 22.14'), a small marker rides under their feet in screen space, and the line ends with what happened to them ('left by the lane' / 'went in at the door') when they despawn. A second tap on the same figure or a tap on nothing releases. The town's own OFFERS[] queue gets the invitation ('tap someone to follow them') — it does not get a hint of its own.",
-      "seams": [
-        "livingAt",
-        "personName",
-        "nameAt",
-        "NAME_SETTLE",
-        "OFFERS",
-        "answersTouch",
-        "__entities",
-        "announce",
-        "#plate",
-        "drawPerson",
-        "routeToExit"
-      ],
-      "successLooksLike": "`probes/follow.mjs`: tap a seed-pinned walker, warp 6 sim hours, the sill reported ≥3 distinct acts in order and a closing line on despawn; the marker's screen box tracks the projected feet within a cell per pose; NAME_SETTLE behaviour for un-followed pointing unchanged (naming §1–§8 still pass); on a 640px phone the follow line is the one thing shown.",
-      "avoid": "Do not add a camera or zoom — the frame stays where it is. Do not change any agent behaviour or add an R() draw; following reads, it never writes. Do not add a second invitation mechanism.",
-      "budgetMin": 35,
-      "risk": "high"
-    },
-    {
       "id": "b58",
       "domain": "Cross street & allotments",
       "kind": "Polish",
@@ -92,6 +69,10 @@
     {
       "id": "b56",
       "at": "2026-08-28T22:47:49.772Z"
+    },
+    {
+      "id": "b57",
+      "at": "2026-08-29T02:28:34.956Z"
     }
   ]
 }

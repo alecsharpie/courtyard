@@ -394,7 +394,8 @@
       "THE DIORAMA IS CLICKABLE and says so once — answersTouch(x,y) is the ONE predicate read by cursor and handler: seeds, a daisy, crumbs, a coin, a pebble. Invitations are a QUEUE, OFFERS[]. probes/touch-hint.mjs",
       "the NAMING names the LIVING things — livingAt(p) hit-tests agents, dogs, ducks, swans, boat, cat in SCREEN space on the projected feet (box per pose); personName(a) says what they are doing. probes/naming.mjs §7",
       "harness: runlog --regrade; Harness verdicts graded on commit+log; crashed-worker one-retry; filmstrip AT(day,hour), night preset, pops.mjs (POP = >3.5× larger neighbour, Δ/frame); run-loop.sh DRY_RUN=1; probes/dusk-relight-where.mjs, ground-rebuilds.mjs, frame-cost.mjs",
-      "the NAMING names WINDOWS and DOORS — FACES[] screen boxes (pushFace from drawWindow/drawFrontDoor, live for rows 61–64), faceAt(); windowName() reads windowLit + windowHours/HOMES for the cause; doorName(). probes/naming.mjs §8"
+      "the NAMING names WINDOWS and DOORS — FACES[] screen boxes (pushFace from drawWindow/drawFrontDoor, live for rows 61–64), faceAt(); windowName() reads windowLit + windowHours/HOMES for the cause; doorName(). probes/naming.mjs §8",
+      "FOLLOWS a person — a tap on a walker holds them: followed/followLine() on the sill via updateNaming (outranks pointer + ticker), drawFollowMark() ring on the projected feet, followLost() closes with door (+lamp time)/lane/cross street/east/west on despawn; OFFERS 'follow'; __follow(). probes/follow.mjs"
     ]
   },
   "openCues": [
@@ -413,6 +414,12 @@
     {
       "id": "c97",
       "note": "A winter-night wet street: wetness holds ~20 h in the cold and dark; nobody has looked at whether the sheen + lamp bars read right at ~0.3 wetness in January",
+      "raisedBy": 57,
+      "seenBy": 0
+    },
+    {
+      "id": "c98",
+      "note": "the follow line hides wide-sill ticker news for the whole follow (30+ h for a resident) — should news pass through for its dwell?",
       "raisedBy": 57,
       "seenBy": 0
     }

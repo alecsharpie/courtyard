@@ -4272,6 +4272,7 @@ function drawScene(t, dt){
   drawSmoke(t);
   applyLight(t);
   drawBalloon(t);                 // the balloon rides above every ground light
+  drawFollowMark(t);
 
   if (raining){
     const sf = snowF();
@@ -5530,6 +5531,13 @@ cv.addEventListener('mouseleave', () => {
 
 cv.addEventListener('click', ev => {
   const [x, y] = cellAt(ev);
+  /* A tap on a PERSON follows them (see the following, below) and does nothing else:
+   * following reads, it never writes, so no crumbs land under the feet of whoever was
+   * tapped. A tap anywhere else releases whoever was being followed first, then goes
+   * on to do what it always did. */
+  { livingAt(evPx(ev)); const who = livingHit;
+    if (who){ touched = true; followPerson(who === followed ? null : who); return; }
+    if (followed) followPerson(null); }
   if (!answersTouch(x, y)) return;
   touched = true;              // they found it themselves; the invitation stands down
   const j = y * GW + x;
@@ -5610,6 +5618,8 @@ const INVITE_NARROW = 'Touch the picture — it answers.';
  * the 251px the touch offer gets, and the fuller sentence overran it by 11. */
 const SEASON_WIDE = 'The year here runs twenty-four minutes — press the season to reach the next one.';
 const SEASON_NARROW = 'Tap it — the year runs on.';
+const FOLLOW_WIDE = 'Tap on somebody and the sill will keep an eye on them for you.';
+const FOLLOW_NARROW = 'Tap someone to follow them.';
 const sillEl = document.getElementById('sill');
 const seasonEl = document.getElementById('season');
 const veilEl = document.getElementById('veil');
@@ -5620,6 +5630,7 @@ let touched = DRIVEN, pressed = DRIVEN;
 const OFFERS = [
   { id:'touch',  wide: INVITE_WIDE, narrow: INVITE_NARROW, found: () => touched },
   { id:'season', wide: SEASON_WIDE, narrow: SEASON_NARROW, found: () => pressed },
+  { id:'follow', wide: FOLLOW_WIDE, narrow: FOLLOW_NARROW, found: () => followedEver },
 ];
 let offerN = 0, offerFree = INVITE_AT, inviteHold = 0, inviteTxt = '';
 function offerInvite(now){
@@ -5761,18 +5772,20 @@ function personName(a){
   if (a.watch > 0) return who + ', walking with an eye on the river';
   return who + (k === 'kid' ? ', running about' : ', walking');
 }
+let livingHit = null;       // the AGENT behind livingAt()'s last answer, if it was a person
 function livingAt(p){
   const hw = cellW * 0.45, cellAt = (x, y) => grid[clamp(y|0, 0, WH-1) * GW + clamp(x|0, 0, GW-1)];
   let best = null, bestY = -Infinity;
-  const hit = (x, y, z, h, sortY, name, w) => {      // h: figure height in cells above the feet
+  livingHit = null;
+  const hit = (x, y, z, h, sortY, name, w, who) => {      // h: figure height in cells above the feet
     const [sx, sy] = project(x, y, z || 0), hx = hw * (w || 1);
     if (p[0] < sx - hx || p[0] > sx + hx || p[1] > sy + cellH * 0.25 || p[1] < sy - cellH * h) return;
-    if (sortY > bestY){ bestY = sortY; best = name; }
+    if (sortY > bestY){ bestY = sortY; best = name; livingHit = who || null; }
   };
   for (const a of agents){
     if (cellAt(a.x, a.y) !== TUNNEL)
       hit(a.x, a.y, a.z, (a.state === 'sit' ? 1.0 : a.state === 'lie' ? 0.6 : 1.5) * (a.small ? 0.72 : 1), a.y + 0.5, personName(a),
-          a.state === 'lie' ? 1.9 : 1);   // a sleeper is drawn flat: wider than tall
+          a.state === 'lie' ? 1.9 : 1, a);   // a sleeper is drawn flat: wider than tall
     if (a.dog && cellAt(a.dog.x, a.dog.y) !== TUNNEL) hit(a.dog.x, a.dog.y, 0, 0.6, a.dog.y + 0.4, 'a dog, at heel');
   }
   for (const d of ducks) hit(d.x, d.y, 0, 0.6, d.y + 0.3, d.swimming ? 'a duck, on the pond' : 'a duck, out on the bank');
@@ -5827,11 +5840,64 @@ function lookAt(p){
   const [x, y] = cellOf(p);
   return nameAt(x, y);
 }
+/* ============ the following ============
+ * A name says what somebody is doing at the instant of the tap; two seconds later
+ * they are one of nine figures again. So a tap on a person HOLDS them: the sill line
+ * stays on that one agent and rewrites as their act changes, a ring rides under their
+ * feet in screen space, and when they despawn the line closes with what became of
+ * them. Everything here is READ off the agent — personName() for the act, the exit
+ * they went by off their last position, the lamp off HOMES — and nothing about the
+ * agent is written: they do not know they are being watched.
+ *   `followed`  the agent, or null           `followHome` their door, read while it was set
+ *   `followEnd` the closing line, held on the sill for FOLLOW_CLOSE real seconds. */
+const FOLLOW_CLOSE = 6;     // real seconds the closing line stays before the sill is given back
+let followed = null, followHome = null, followEnd = '', followEndAt = 0, followedEver = false;
+function followPerson(a){
+  followed = a; followHome = a ? a.home : null; followEnd = '';
+  if (a) followedEver = true;
+}
+function followLine(now){
+  if (followed){ followHome = followed.home || followHome; return 'following ' + personName(followed); }
+  return now < followEndAt ? followEnd : '';
+}
+/* Called from the despawn, with the agent's last position: every route out passes one
+ * of four edges or ends at a door, and which one is the whole story of where they went. */
+function followLost(a){
+  let how;
+  if (a.home === null && followHome){
+    const h = HOMES.get(followHome.sa * 1000 + followHome.sb);
+    how = 'went in at the door' + (h && h.t !== null ? ', lamp lit at ' + clockOf(h.t) : '');
+  } else if (a.y >= LANE_N_Y - 1) how = 'left by the lane';
+  else if (a.y < 1) how = 'went off up the cross street';
+  else if (a.x >= GW - 1) how = 'went off east, over the river';
+  else if (a.x < 1) how = 'went off west, along the street';
+  else how = 'went in at the courtyard door';
+  followEnd = 'the one you were following ' + how;
+  followEndAt = performance.now() / 1000 + FOLLOW_CLOSE;
+  followed = null; followHome = null;
+}
+// a ring under the feet, in screen space, over everything but the weather
+function drawFollowMark(t){
+  if (!followed) return;
+  const a = followed;
+  const [sx, sy] = project(a.x, a.y, a.z || 0);
+  const br = RM ? 1 : 1 + 0.08 * Math.sin(t * 2.4);
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,226,150,0.85)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.ellipse(sx, sy + cellH * 0.12, cellW * 0.6 * br, cellH * 0.3 * br, 0, 0, 7); ctx.stroke();
+  ctx.strokeStyle = 'rgba(40,30,20,0.35)'; ctx.lineWidth = 3;
+  ctx.globalCompositeOperation = 'destination-over';
+  ctx.beginPath(); ctx.ellipse(sx, sy + cellH * 0.12, cellW * 0.6 * br, cellH * 0.3 * br, 0, 0, 7); ctx.stroke();
+  ctx.restore();
+}
 function updateNaming(now){
   let want = HOVERS ? (hoverPx ? lookAt(hoverPx) : '') : (heldTo > now ? held : '');
   // ...and never through a lapse: the label is read off a cell that is turning over
   // several times a second under it, which is the one way this label CAN be wrong
   if (want && (inviteHold || skipping() || (innerWidth > 640 && now - lineAt < lineDwell))) want = '';
+  // the one you are following outranks the pointer AND the news: the observer asked
+  // for this line, and it has to STAY to be worth anything — a lapse still clears it
+  { const f = followLine(now); if (f && !inviteHold && !skipping()) want = f; }
   if (want !== nCand){ nCand = want; nCandAt = now; }
   if (nCand && now - nCandAt < NAME_SETTLE) return;
   if (nCand === nShown) return;
@@ -6029,6 +6095,7 @@ function simStep(sdt, dt){
     stepAgent(agents[i], sdt);
     if (agents[i].done){
       const a = agents[i];
+      if (a === followed) followLost(a);
       if (a.table) a.table.taken = 0;
       if (a.tableRef) a.tableRef.taken = 0;
       if (a.slot) a.slot.taken = 0;              // the place on the green goes back
@@ -6200,6 +6267,11 @@ window.__warp = function(secs, step){
   for (let i = 0; i < n; i++) simStep(step, step);
   return { simT, day, hour };
 };
+window.__follow = function(){
+  const p = followed ? project(followed.x, followed.y, followed.z || 0) : null;
+  return { id: followed ? 'walker' + followed.__id : null, line: namingEl.textContent, want: followLine(performance.now() / 1000),
+           mark: p ? { x: p[0], y: p[1] + cellH * 0.12, rx: cellW * 0.6, ry: cellH * 0.3 } : null, ended: followEnd };
+};
 window.__setTime = function(t){ simT = t; updateClock(); return { simT, day, hour }; };
 
 /* Every moving thing, with a stable identity — the seam the motion gate reads.
@@ -6221,6 +6293,7 @@ window.__entities = function(){
                    if (a.tap){ o.tap = 1; if (a.caller) o.caller = 1; }
                    if (a.home) o.home = 1;
                    if (a.homer) o.homer = 1;
+                   if (a === followed) o.followed = 1;
                    if (a.dig) o.dig = 1;
                    // the audience on the green. A probe has to tell a listener from a
                    // passer-by, and a listener standing AT its claimed place from one
