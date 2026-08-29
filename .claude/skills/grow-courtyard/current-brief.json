@@ -20,7 +20,7 @@
   "avoid": "Do not add a second wetness. Do not touch the umbrella band. Do not make anyone already seated get up because of wetness — the rain already did that.",
   "budgetMin": 25,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 64,
   "issued": "2026-08-29T03:09:02.936Z",
