@@ -1751,7 +1751,15 @@ function finishItinerary(a){
  * their hands in a bed finishes the row.
  */
 const SIT_REFUSE = 0.42;
-function seatRefused(){ return weatherComing() > SIT_REFUSE; }
+/* A wet seat is a refused seat. The paving remembers the rain (wetF() dries over ~3 h)
+ * and until #64 the people did not: the moment a shower ended the tables refilled on
+ * paving still dark and shining. The bar is per person off a.wary — the bold sit on a
+ * damp chair at 0.75, the wary wait for it to dry below 0.35 — so the tables come back
+ * one by one over the drying hour rather than all at once. Only ARRIVALS are judged:
+ * nobody already seated gets up for wetness (the rain itself did that, via skyLifts). */
+const WET_SEAT_HI = 0.75, WET_SEAT_LO = 0.35;
+function seatWet(a){ return wetF() > WET_SEAT_HI - (a?.wary ?? 0.5) * (WET_SEAT_HI - WET_SEAT_LO); }
+function seatRefused(a){ return weatherComing() > SIT_REFUSE || seatWet(a); }
 function skyLifts(a){
   return (a.street ? a.state !== 'lie' : a.state === 'sit')
       && weatherComing() > 0.55 + (a.wary ?? 0.5) * 0.33;
@@ -1859,7 +1867,7 @@ function stepAgent(a, dt){
         // both: whoever reaches the grass first decides, and if your half is already
         // down you join them whatever the cloud is doing. (They share `a.wary` too — the
         // partner is a copy — so the release lifts them in the same frame.)
-        if (seatRefused() && !(a.mate && a.mate.state === 'sit')){ routeToExit(a); return; }
+        if (seatRefused(a) && !(a.mate && a.mate.state === 'sit')){ routeToExit(a); return; }
         a.state='sit'; a.timer=dur; a.blanket=a.lead;
         if (a.lead) announce('A blanket unfurls on the grass — picnic hour.');
         return;
@@ -1867,7 +1875,7 @@ function stepAgent(a, dt){
       if (a.kind === 'sitter' && a.benchAt){
         const dur = 12 + R() * 16;
         a.benchAt = null;
-        if (seatRefused()){ routeToExit(a); return; }
+        if (seatRefused(a)){ routeToExit(a); return; }
         a.state='sit'; a.timer=dur; a.onBench=true; return;
       }
       if (a.kind === 'allot' && a.tendPlot){
@@ -1894,9 +1902,10 @@ function stepAgent(a, dt){
     // street agents: perform their one stop when they actually reach it
     if (a.stop && !a.stopped && Math.hypot(a.x - a.stop.x, a.y - a.stop.y) < 0.6){
       a.stopped = true;
-      // and nobody new sits down under a sky that is already going. Refused at 0.42,
-      // released at 0.55+ above, so the gap guarantees no one sits and stands right up.
-      if (a.stop.act === 'sit' && weatherComing() > 0.42){
+      // and nobody new sits down under a sky that is already going, or on a seat the
+      // last shower left wet. Refused at SIT_REFUSE, released at 0.55+ above, so the gap
+      // guarantees no one sits and stands right up. (ONE predicate — seatRefused().)
+      if (a.stop.act === 'sit' && seatRefused(a)){
         if (a.table){ a.table.taken = 0; a.table = null; }
         return;                                    // walk on past the empty chair
       }

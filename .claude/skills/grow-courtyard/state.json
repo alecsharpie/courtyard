@@ -352,7 +352,8 @@
       "the working day hangs off the SUN — kioskOpen/marketOpen/marketClose/marketRaise/sweeper are offsets from sunUp/sunDown; MK_MIN_SPAN floors winter. probes/working-day.mjs",
       "the stalls sell what the plots grew — produce[] written only by harvestPlot(); stockMarket() latches it into mkShelf per market day; marketRaise(i) gates on mkTrades(i): a thin year raises fewer stalls. probes/market-year.mjs",
       "the ONE evening place — TAP_DOOR in the gatehouse front, tapOpen() sunDown-3..03.00, tapF() 0..1; callIn(a,pts,dur) the ONE re-route onto TAP_SLOTS priced by pathHours()/tapFits(); tapCallers() on market days. probes/evening-door.mjs, tap-callers.mjs",
-      "the NIGHT'S OWN ARRIVALS — spawnHomeAgent() rolls homeRate() while nightF > 0.3, HOME_WAY 2 on the way, a.homer outside laneCap/scarcity; homeDoor()/claimHome() the ONE pricing shared with goHome; HOME_DOORS 14. probes/home-arrivals.mjs, homer-shots.mjs"
+      "the NIGHT'S OWN ARRIVALS — spawnHomeAgent() rolls homeRate() while nightF > 0.3, HOME_WAY 2 on the way, a.homer outside laneCap/scarcity; homeDoor()/claimHome() the ONE pricing shared with goHome; HOME_DOORS 14. probes/home-arrivals.mjs, homer-shots.mjs",
+      "wet seats — seatRefused(a) = sky > SIT_REFUSE OR seatWet(a) (wetF() above 0.75 − a.wary·0.4); the street-stop site shares the predicate; arrivals only. probes/wet-seats.mjs (WET0=… pins wetness at a clear 10:00)"
     ],
     "street": [
       "cross street with two footways, roadway, curbs, lamps, four street trees in pits (TREE_PITS, drawLaneTree); allotment block of 17 plots, timber fence, gates, shed, an alley through the block",
@@ -402,7 +403,14 @@
       "FOLLOWS a person — a tap holds a walker: followLine() on the sill via updateNaming (outranks pointer + ticker), drawFollowMark() ring on the feet, followLost() closes with door/lane/street/east/west on despawn; OFFERS follow; __follow(). probes/follow.mjs"
     ]
   },
-  "openCues": [],
+  "openCues": [
+    {
+      "id": "c100",
+      "note": "picnic pairs refuse a wet lawn via the same paving wetness — decide whether grass should dry on its own clock",
+      "raisedBy": 63,
+      "seenBy": 0
+    }
+  ],
   "watch": [
     {
       "since": 0,

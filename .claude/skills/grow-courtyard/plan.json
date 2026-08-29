@@ -16,29 +16,6 @@
   "rationale": "HOLD RUNG 2 with a rung-5 bet at the tail. The town's biggest gap for a thirty-second viewer is now structural, not a missing feature: twenty iterations (#32–#62) built the night — windows, the door, homers, river and wet lamps, now a lantern — and a visitor landing at noon has ~35 s of daylight before dusk and no way there but a season-length skip. b64 is the bet: a tap on the sill's clock takes the town to the evening, using the skip machinery that already exists (beginSkip/simSub/skipEase, SKIP_SUB-bounded) with a shorter target — if it lands, the observer has a fourth instrument and the whole night investment becomes the first thing a viewer can choose to see. The four compounding moves are all consumers of scalars built in the last ten iterations that nothing downstream reads yet: wetness has no effect on people (b61: sitters ignore a wet seat, the lane 9 back), the wind ramp starts at the one hour nobody can see it (b62: tie the wind target to the fronts cloudCover already builds, c96), and the autumn shed produces leaves that vanish on touching the ground (b63: leaf litter on the cached ground, courtyard 6 back, the first CA-class rule since #16). b60 lands #62's lantern and takes c99 in passing. Risk: b60 low, b61 medium, b62 medium, b63 medium-high (cached ground, a new per-cell array, interacts with snow and wear), b64 high.",
   "queue": [
     {
-      "id": "b61",
-      "domain": "Lane & market",
-      "kind": "Connect",
-      "brief": "The paving remembers the rain (#59: `wetF()` 0..1 dries over ~3 h) but the people do not: `seatRefused()` reads `weatherComing()` only, so the moment a shower ends the cafe tables and benches fill again while the paving under them is still dark and shining. Make a wet seat a refused seat: a sitter arriving at a cafe table, lane bench or quay bench while `wetF()` is above a threshold turns it down the way `SIT_REFUSE` does (same `routeToExit()` path, same `a.wary` spread so the wary refuse a damp seat and the bold sit anyway), and the tables read as empty for the drying hour after rain. Count at the CHOICE per free sample across 10 seeds, on the day of a shower, and show HEAD's sitters returning at +0.2 h vs the candidate's at +1–2 h. Then look at the January night street (c97): wetness holds ~20 h in the cold and dark — check the sheen + lamp bars at ~0.3 wetness read as damp, not as a lake, and say so in the ledger.",
-      "seams": [
-        "seatRefused",
-        "skyLifts",
-        "SIT_REFUSE",
-        "wetF",
-        "a.wary",
-        "routeToExit",
-        "CAFE_TABLES",
-        "BENCH_SPOTS",
-        "QUAY_BENCHES",
-        "probes/seats-out.mjs",
-        "probes/wet-year.mjs"
-      ],
-      "successLooksLike": "A crop of the cafe 20 sim-minutes after a shower shows dark paving and empty tables; an hour later the tables refill; `seats-out.mjs` anchors unchanged on dry days; no new R() draw; the wet winter night looked at and judged.",
-      "avoid": "Do not add a second wetness. Do not touch the umbrella band. Do not make anyone already seated get up because of wetness — the rain already did that.",
-      "budgetMin": 25,
-      "risk": "medium"
-    },
-    {
       "id": "b62",
       "domain": "Sky, light & weather",
       "kind": "Connect",
@@ -125,6 +102,10 @@
     {
       "id": "b60",
       "at": "2026-08-29T03:01:08.409Z"
+    },
+    {
+      "id": "b61",
+      "at": "2026-08-29T03:09:02.934Z"
     }
   ]
 }
