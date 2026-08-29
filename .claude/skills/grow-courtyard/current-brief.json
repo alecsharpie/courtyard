@@ -20,7 +20,7 @@
   "avoid": "Do not wet grass, beds or the allotments — paving only, so the town's places read differently from its ground. Do not add an R() draw. Do not give people umbrellas twice or change any behaviour: this is the ground, not the walkers.",
   "budgetMin": 35,
   "risk": "medium-high",
-  "status": "active",
+  "status": "done",
   "attempts": 2,
   "nextIter": 59,
   "issued": "2026-08-28T22:47:49.774Z",
