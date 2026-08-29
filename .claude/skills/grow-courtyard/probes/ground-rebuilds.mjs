@@ -16,10 +16,10 @@ const out = await p.evaluate(async () => {
   const res = {};
   for (const [name, T0] of [['summer d6', 330], ['winter d21', 1155]]){
     window.__reseed(); window.__warp(T0);
-    let n = 0, why = { lb: 0, snow: 0, other: 0 }, prevLb = lightBucket, prevSnow = snowPainted;
+    let n = 0, why = { lb: 0, snow: 0, wet: 0, other: 0 }, prevLb = lightBucket, prevSnow = snowPainted;
     for (let i = 0; i < 55 / 0.05; i++){
       window.__warp(0.05);
-      if (groundDirty){ n++; if (lightBucket !== prevLb) why.lb++; else if (Math.abs(snowCover - snowPainted) > SNOW_REPAINT) why.snow++; else why.other++; prevLb = lightBucket;
+      if (groundDirty){ n++; if (lightBucket !== prevLb) why.lb++; else if (Math.abs(snowCover - snowPainted) > SNOW_REPAINT) why.snow++; else if (typeof wetBucket === 'function' && wetBucket() !== wetPainted) why.wet++; else why.other++; prevLb = lightBucket;
         drawScene(simT, 0); }
     }
     res[name] = { rebuildsPerDay: n, why, snowCover: +snowCover.toFixed(3) };

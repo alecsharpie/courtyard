@@ -16,29 +16,6 @@
   "rationale": "HOLD RUNG 2, with one brief that is a rung-5 probe. The compounding moves are not exhausted and two of them are DEFECTS a thirty-second viewer sees: (1) the wind is a per-day coin, so a windy day begins as a step at 06:00 with the washing, bunting, fountain and river all snapping together — three passes have been hanging consumers on windF() and every one inherits that step (b55, sky, 12 back); (2) every lit pane at midnight is grey (105,100,110) because drawLitPanes runs before applyLight's 0.8 multiply — the night the loop spent #32–#53 building glows grey-warm at best (in b58). The bet is b57, and it is the ladder's rung 5 tried early rather than a climb: the town now has ~50 behaviours per person (itineraries, seats, greetings, the door, going home, the plots) and no way for a viewer to READ one person's day — a tap names them, then they walk off and are lost in the crowd. Let the observer follow one. If it lands, the sill has a third instrument (name, season, follow) and every behaviour the loop has built becomes legible in sequence; if it fails, it fails on hit-testing and DOM, which the laws already cover. b56 puts weather on the ground (wet paving darkens and reflects lamps after rain — the plaza and quay have had wind, now rain), b59 closes c92 with a lantern on the night boat. Risk: b55 medium (touches ~8 consumers, anchor algebra), b56 medium-high (cached ground layer, rebuild count), b57 high, b58 low, b59 medium.",
   "queue": [
     {
-      "id": "b56",
-      "domain": "Plaza & quay",
-      "kind": "Connect",
-      "brief": "Rain leaves no trace. `rainFall` drives drops, an overcast tint, pond rings and sparkle; the moment it stops the plaza, quay and cross street are dry. Add a `wetness` 0..1 world scalar (rate-capped: rises with `rainFall`, dries with daylight and warmth, slower in winter) and make the PAVED ground read it — `pavingAt(x,y)` cells in `groundBase`/`drawGround` darken and cool by wetness, and after dark the night screen pass lays lamp reflections on wet paving the way `drawRiverLights` lays them on water (a faint bar under each lamp, × wetness × nightF). The cached ground layer must not repaint every frame for this: bucket wetness the way the light bucket is bucketed, count rebuilds.",
-      "seams": [
-        "rainFall",
-        "raining",
-        "pavingAt",
-        "PAVING",
-        "groundBase",
-        "drawGround",
-        "groundDirty",
-        "drawRiverLights",
-        "RIVER_LAMPS",
-        "nightF",
-        "warmth"
-      ],
-      "successLooksLike": "A seed-pinned plaza crop an hour after a summer shower ends is visibly darker than HEAD and dries back to byte-identical within ~3 sim hours; a night crop after rain shows a lamp bar on the plaza and quay paving; `probes/ground-rebuilds.mjs` within +20/day of #56's 137/130; `frame-cost.mjs` within 0.5 ms of HEAD; census unchanged (draw-only).",
-      "avoid": "Do not wet grass, beds or the allotments — paving only, so the town's places read differently from its ground. Do not add an R() draw. Do not give people umbrellas twice or change any behaviour: this is the ground, not the walkers.",
-      "budgetMin": 35,
-      "risk": "medium-high"
-    },
-    {
       "id": "b57",
       "domain": "People & animals",
       "kind": "Interaction/UX",
@@ -111,6 +88,10 @@
     {
       "id": "b55",
       "at": "2026-08-28T22:38:27.372Z"
+    },
+    {
+      "id": "b56",
+      "at": "2026-08-28T22:47:49.772Z"
     }
   ]
 }

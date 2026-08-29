@@ -944,7 +944,24 @@ function weatherComing(){
   return clamp((daylight - 0.10) / 0.14, 0, 1) * (day >= 1 ? 1 : 0)
        * clamp((cloud - 0.46) / 0.22, 0, 1);
 }
-let wet = 0;                                   // post-rain street sheen timer
+/* Wetness — ONE slow scalar for how wet the paving is, on the footing of cloudCover()
+ * and windF(). Rain soaks the ground up over WET_RISE (~1.3 sim hours of full rain);
+ * it dries by daylight and warmth — a summer noon has it gone in ~2.5 h, a winter
+ * night holds it most of the way to morning. The last step lands ON zero so a dry
+ * town is byte-identical to one that never saw rain. The cached ground layer reads it
+ * in WET_STEPS buckets (wetPainted), never the live value. Rate-capped: "it never
+ * steps" is WET_RISE / WET_DRY. */
+let wetness = 0, wetPainted = 0;
+const WET_RISE = 3.0, WET_DRY = 7.0, WET_STEPS = 5;
+function wetF(){ return wetness; }
+function wetBucket(){ return Math.round(wetness * WET_STEPS) / WET_STEPS; }
+function stepWet(dt){
+  if (rainFall > 0) wetness = Math.min(1, wetness + dt * rainFall / WET_RISE);
+  else if (wetness > 0){
+    const r = dt / WET_DRY * (0.3 + 0.7 * daylight) * (0.5 + 0.7 * warmth);
+    wetness = wetness <= r ? 0 : wetness - r;
+  }
+}
 /* ---- reader eight: the river ---------------------------------------------------
  * The last quarter of the town running one climate forever. The water was twelve
  * anonymous streaks drawn inline in the frame loop at one speed and one colour, and
@@ -2811,8 +2828,7 @@ function updateWildlife(dt){
       raindrops[k++] = r;
     }
     raindrops.length = k;
-    wet = Math.max(wet, 6 * (1 - rainFall));   // the street is already shining before the last drop lands
-    if (rainLeft <= 0 && !raindrops.length){ raining=false; rainFall=0; wet = 18;
+    if (rainLeft <= 0 && !raindrops.length){ raining=false; rainFall=0;
       // and the cover breaks up behind it — for a July afternoon, not for long in January
       cloudTgt = 0.1 + R() * 0.28; frontLeft = spellLen(false, 26 + R() * 26);
       for (const a of agents) a.umbrella = false;               // down they come, all at once
@@ -3627,8 +3643,13 @@ function groundCol(x, y, t, hv, m){
   const sn = t === WATER ? 0 : snowAt(x, y, t);
   return sn > 0 ? mix(c, SNOW_COL, sn) : c;
 }
+/* Wet paving is darker and bluer — the SAME colour the dry cell has, pulled toward a
+ * cool slate by wetPainted, so a dry town (wetPainted 0) takes the old branch exactly.
+ * Paving only: grass, beds and the plots are the town's ground, and the rain reads
+ * differently on the places people have laid than on the ground they have not. */
+function wetCol(c, hv){ return wetPainted > 0 ? mix(c, '#3f4650', wetPainted * (0.30 + 0.12 * hv)) : c; }
 function groundBase(x, y, t, hv, m){
-  if (t === PATH) return mix('#c3b18c', '#cfbd98', hv);
+  if (t === PATH) return wetCol(mix('#c3b18c', '#cfbd98', hv), hv);
   if (t === SLOT) return mix('#9d8f73', '#ab9d80', hv);
   if (t === GRASS){
     // the lawn reads the SAME warmth the beds do rather than deriving its own idea of
@@ -3641,8 +3662,8 @@ function groundBase(x, y, t, hv, m){
   }
   if (t === BED || t === CBED) return turned[y * GW + x] ? mix('#3d2d1c', '#4a3826', hv)   // dug over: darker, rowless
                                                           : mix('#5c4832', '#6b563c', hv);
-  if (t === SIDE) return mix('#b3a88f', '#bfb49b', hv);
-  if (t === ROAD) return mix('#87806f', '#8d8675', hv * 0.5);
+  if (t === SIDE) return wetCol(mix('#b3a88f', '#bfb49b', hv), hv);
+  if (t === ROAD) return wetCol(mix('#87806f', '#8d8675', hv * 0.5), hv);
   if (t === WATER){
     if (x >= RIVER_X0 - 1 && x <= RIVER_X1){
       // the deep channel is WIDER when the river runs high — the same gradient, pushed
@@ -3692,7 +3713,7 @@ function drawGround(){
   gtx.setTransform(DPR, 0, 0, DPR, 0, 0);
   SUN = sunVec(); LIT.length = 0; WINDOWS.length = 0; HAZE = skyCols()[1];
   FACES.length = 0;                                // the cached faces are re-registered below; the live ones every frame
-  snowPainted = snowCover;
+  snowPainted = snowCover; wetPainted = wetBucket();
   const m = maturity();
   // the sky is *not* baked in here — it is painted fresh every frame underneath this
   // layer, so the sun crosses smoothly instead of hopping when the layer is rebuilt
@@ -4049,8 +4070,8 @@ function drawScene(t, dt){
   drawLitPanes();
 
   // wet sheen on the streets after rain
-  if (wet > 0){
-    const al = 0.16 * clamp(wet / 6, 0, 1);
+  if (wetness > 0){
+    const al = 0.16 * wetness;
     ctx.globalCompositeOperation = 'soft-light';
     ctx.fillStyle = 'rgba(190,210,228,' + al * 3 + ')';
     const l1 = project(0, LN_WALK_N, 0), l2 = project(GW, LN_WALK_N, 0), l3 = project(GW, LN_WALK_S, 0), l4 = project(0, LN_WALK_S, 0);
@@ -4766,6 +4787,29 @@ function drawRiverFlow(t){
  * both out the way it puts the stars out. Drawn in the night 'screen' pass beside the
  * lamp pools, not in drawRiverFlow — under the multiply a warm bar comes out blue.
  * nightF is 0 by day, so the noon frame is untouched. hash() and the clock only. */
+/* Wet paving reflects a lamp the way the river does — a soft bar hanging toward the
+ * viewer under each lamp that stands on paving, × wetness × nightF, in the same
+ * 'screen' pass as the pools (under the multiply it would come out blue). Which lamps
+ * qualify is read off the GRID once, never guessed from a list. Draw path: no R(). */
+const WET_LAMPS = LAMPS.concat(LANE_LAMPS).filter(L => {
+  const t = grid[Math.floor(L[1] + 1) * GW + Math.floor(L[0])];
+  return t === SIDE || t === ROAD || t === PATH;
+});
+function drawWetLights(){
+  const wf = wetF();
+  if (wf < 0.02 || nightF < 0.03) return;
+  for (const L of WET_LAMPS){
+    const [tx, ty] = project(L[0], L[1] + 0.5, 0), [bx, by] = project(L[0], L[1] + 3.6, 0);
+    const [lx] = project(L[0] - 0.32, L[1] + 0.5, 0), [rx] = project(L[0] + 0.32, L[1] + 0.5, 0);
+    const g = ctx.createLinearGradient(tx, ty, bx, by);
+    g.addColorStop(0, 'rgba(255,200,120,' + (0.30 * wf * nightF).toFixed(3) + ')');
+    g.addColorStop(1, 'rgba(255,200,120,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(lx, ty); ctx.lineTo(rx, ty); ctx.lineTo(bx + (rx - lx) * 0.9, by); ctx.lineTo(bx - (rx - lx) * 0.9, by);
+    ctx.closePath(); ctx.fill();
+  }
+}
 const RIVER_LAMPS = LANE_LAMPS.filter(L => Math.abs(L[0] - RIVER_X0) < 2 || Math.abs(L[0] - RIVER_X1) < 2.4);
 function drawRiverLights(t){
   const veil = 1 - cloudCover();
@@ -5243,6 +5287,7 @@ function applyLight(t){
       ctx.restore();
     }
     drawRiverLights(simT);
+    drawWetLights();
     // every lit window casts a little halo onto the night
     for (const [wx, wy] of LIT){
       const g = ctx.createRadialGradient(wx, wy, 0, wx, wy, cellW * 0.9);
@@ -5899,7 +5944,7 @@ function simStep(sdt, dt){
     windAnnounced = day;
     announce('A brisk wind combs the block; everything that can flutter, does.');
   }
-  wet = Math.max(0, wet - sdt);
+  stepWet(sdt);
   stepWind(sdt);
   stepClouds(sdt);
   stepSnow(sdt);
@@ -5908,6 +5953,7 @@ function simStep(sdt, dt){
   const lb = Math.floor(hour * 4) * 8 + Math.round(cloudCover() * 6);
   if (lb !== lightBucket){ lightBucket = lb; groundDirty = true; }
   if (Math.abs(snowCover - snowPainted) > SNOW_REPAINT) groundDirty = true;   // snow lies (or goes) in small steps
+  if (wetBucket() !== wetPainted) groundDirty = true;                        // the paving soaks and dries in WET_STEPS steps
   wearAcc += sdt;
   if (wearDirty && wearAcc >= WEAR_REPAINT) groundDirty = true;               // the trodden paths, throttled
 
