@@ -16,28 +16,6 @@
   "rationale": "HOLD RUNG 2, with one brief that is a rung-5 probe. The compounding moves are not exhausted and two of them are DEFECTS a thirty-second viewer sees: (1) the wind is a per-day coin, so a windy day begins as a step at 06:00 with the washing, bunting, fountain and river all snapping together — three passes have been hanging consumers on windF() and every one inherits that step (b55, sky, 12 back); (2) every lit pane at midnight is grey (105,100,110) because drawLitPanes runs before applyLight's 0.8 multiply — the night the loop spent #32–#53 building glows grey-warm at best (in b58). The bet is b57, and it is the ladder's rung 5 tried early rather than a climb: the town now has ~50 behaviours per person (itineraries, seats, greetings, the door, going home, the plots) and no way for a viewer to READ one person's day — a tap names them, then they walk off and are lost in the crowd. Let the observer follow one. If it lands, the sill has a third instrument (name, season, follow) and every behaviour the loop has built becomes legible in sequence; if it fails, it fails on hit-testing and DOM, which the laws already cover. b56 puts weather on the ground (wet paving darkens and reflects lamps after rain — the plaza and quay have had wind, now rain), b59 closes c92 with a lantern on the night boat. Risk: b55 medium (touches ~8 consumers, anchor algebra), b56 medium-high (cached ground layer, rebuild count), b57 high, b58 low, b59 medium.",
   "queue": [
     {
-      "id": "b58",
-      "domain": "Cross street & allotments",
-      "kind": "Polish",
-      "brief": "Four things the last five iterations built that the viewer cannot see at 1x, each with a cue and a number. (c91) every lit pane at midnight reads grey (105,100,110): `drawLitPanes()` runs at ~4029, `applyLight` at ~4232 — draw the lit panes (and their LIT[] glow) AFTER the tint so windows glow warm, and check the rose window and TAP_DOOR get the same treatment. (c88) turned earth (`turned[]`, #3d2d1c) is dark brown on brown from the wide shot — give a turned cell a furrow texture or a colder, more saturated tint. (c84) bunting flags are ~3 px at 1x so the flutter #50 built only reads on a contact sheet — larger flags, fewer if needed. (c83) the snowy lawn at dawn reads pale green: a whiter `SNOW_COL` floor under the dawn tint, or a cover floor for the mixed range. One commit, four crops vs HEAD at the same pinned instants.",
-      "seams": [
-        "drawLitPanes",
-        "applyLight",
-        "LIT",
-        "drawChurchFront",
-        "turned",
-        "groundBase",
-        "drawBandFlags",
-        "SNOW_COL",
-        "snowAt",
-        "daylight"
-      ],
-      "successLooksLike": "Pane-warmth probe (`probes/pane-warmth.mjs`) reports a lit pane at midnight with R − B ≥ 40 (HEAD −5); a seed-7 midwinter noon crop shows the turned plots as a distinct value from a fallow one by ≥ 25 luminance; flags ≥ 5 px at 1x; the seed-7 winter dawn crop's snowed lawn mean has B ≥ G. Census unchanged; noon summer frame byte-identical to HEAD (nothing here fires in summer daylight).",
-      "avoid": "No behaviour change, no new R() draw, no new ground kind. If the pane reorder pulls a reflection or glow out of the night pass, fix the order, not the colour constant.",
-      "budgetMin": 25,
-      "risk": "low"
-    },
-    {
       "id": "b59",
       "domain": "River & far bank",
       "kind": "Deepen",
@@ -73,6 +51,10 @@
     {
       "id": "b57",
       "at": "2026-08-29T02:28:34.956Z"
+    },
+    {
+      "id": "b58",
+      "at": "2026-08-29T02:37:43.483Z"
     }
   ]
 }

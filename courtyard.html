@@ -1056,7 +1056,7 @@ const SNOW_SLEW = 0.02;                       // cover per second of full snowfa
 const SNOW_MELT = 0.012;                      // per second once the cold has lifted (~1.5 days)
 const SNOW_RAIN_THAW = 0.03;                  // rain on lying snow, per second of full rain
 const SNOW_REPAINT = 0.03, SNOW_SETTLE = 0.15;
-const SNOW_COL = '#e6eaee';
+const SNOW_COL = '#e2e8f2';                   // #61: colder — HEAD's #e6eaee read green over a lawn
 let snowCover = 0, snowPainted = 0, snowAnnounced = false;
 function snowF(){ return clamp((greyF() - SNOW_G0) / SNOW_G1, 0, 1); }
 /* how much of the cover a cell of this kind takes — the trodden kinds take less, so the
@@ -2877,6 +2877,13 @@ function poly(g, pts){
 /* ============ sky, sun and the far horizon ============ */
 let SUN = [0.5, 0.35, 0.79];
 const LIT = [];                                  // lit window rectangles, for the night glow pass
+/* #61: the lit panes themselves, as screen quads, so applyLight can put the warmth BACK
+ * into the glass after its multiply — every lit pane in HEAD read grey (105,100,110) at
+ * midnight, the halo warm and the window behind it slate. Per-frame, reset with LIT.
+ * ROSE is the church's rose window, written at cache time (it lives in the cached
+ * facade), relit and haloed by the same pass every night frame. */
+const LIT_PANES = [];
+let ROSE = null;
 /* Reader two: the light. A low cold sun against a high warm one. Everything the town
  * casts is SUN[0]/SUN[2] and SUN[1]/SUN[2], so raising the midsummer arc and dropping
  * the midwinter one changes every shadow in the frame from one place. */
@@ -3229,7 +3236,7 @@ function drawPane(g, wx, wy, zTop, hgt, lit){
   const iC = project(wx + w * p, wy, zTop - hgt * 0.9), iD = project(wx - w * p, wy, zTop - hgt * 0.9);
   g.fillStyle = lit ? 'rgb(254,209,144)' : mix('#242a33', '#7d94a6', 0.18 + 0.5 * daylight);
   poly(g, [iA, iB, iC, iD]); g.fill();
-  if (lit) LIT.push([(iA[0] + iC[0]) / 2, (iA[1] + iC[1]) / 2]);
+  if (lit){ LIT.push([(iA[0] + iC[0]) / 2, (iA[1] + iC[1]) / 2]); LIT_PANES.push([iA, iB, iC, iD]); }
   g.strokeStyle = 'rgba(244,238,224,.7)'; g.lineWidth = 1;
   const m1 = project(wx, wy, zTop - hgt * 0.11), m2 = project(wx, wy, zTop - hgt * 0.9);
   const h1 = project(wx - w * p, wy, zTop - hgt * 0.5), h2 = project(wx + w * p, wy, zTop - hgt * 0.5);
@@ -3445,7 +3452,7 @@ function drawChurchFront(g){
   const lit = nightF > 0.3;
   g.fillStyle = lit ? 'rgba(255,206,140,.9)' : mix('#2b3038', '#8fa2b4', 0.2 + 0.5 * daylight);
   g.beginPath(); g.arc(rx, ry, cellW * 0.74, 0, 7); g.fill();
-  if (lit) LIT.push([rx, ry]);
+  ROSE = [rx, ry, cellW * 0.74];                 // relit + haloed by applyLight (#61)
   g.strokeStyle = 'rgba(240,234,218,.7)'; g.lineWidth = 1;
   for (let k = 0; k < 6; k++){
     const th = k / 6 * Math.PI;
@@ -3641,7 +3648,12 @@ function drawSouthBand(){
 function groundCol(x, y, t, hv, m){
   const c = groundBase(x, y, t, hv, m);
   const sn = t === WATER ? 0 : snowAt(x, y, t);
-  return sn > 0 ? mix(c, SNOW_COL, sn) : c;
+  // #61: a dusted lawn whitens faster than its cover — 0.36 of cover mixed linearly is a
+  // pale green in any daylight (c83); the curve is exact at 0 and 1, so no pop as the
+  // first flakes settle and nothing changes under a full cover. Grass only: the beds,
+  // paths and road keep reading dark through it as before
+  const k = t === GRASS ? 1 - Math.pow(1 - sn, 1.8) : sn;
+  return sn > 0 ? mix(c, SNOW_COL, k) : c;
 }
 /* Wet paving is darker and bluer — the SAME colour the dry cell has, pulled toward a
  * cool slate by wetPainted, so a dry town (wetPainted 0) takes the old branch exactly.
@@ -3660,7 +3672,7 @@ function groundBase(x, y, t, hv, m){
              : mix('#9aa96b', '#74a04c', health);
     return mix(g1, '#a4906a', Math.pow(wear[y * GW + x], 0.7));
   }
-  if (t === BED || t === CBED) return turned[y * GW + x] ? mix('#3d2d1c', '#4a3826', hv)   // dug over: darker, rowless
+  if (t === BED || t === CBED) return turned[y * GW + x] ? mix('#31261c', '#3e3022', hv)   // dug over: darker, colder; furrowed in drawGround
                                                           : mix('#5c4832', '#6b563c', hv);
   if (t === SIDE) return wetCol(mix('#b3a88f', '#bfb49b', hv), hv);
   if (t === ROAD) return wetCol(mix('#87806f', '#8d8675', hv * 0.5), hv);
@@ -3729,6 +3741,13 @@ function drawGround(){
     quad(gtx, x, y, 0.03); gtx.fill();
     if (x !== gx) continue;                              // detailing only inside the real world
     if (snowAt(gx, y, t) > 0.5) continue;                // joints and setts are under the snow
+    if (t === BED && turned[i]){                         // dug over: two furrows and a lit ridge across the cell
+      gtx.lineWidth = 0.8;
+      for (const [fy, col] of [[0.3, 'rgba(14,9,5,.42)'], [0.7, 'rgba(14,9,5,.42)'], [0.5, 'rgba(150,118,80,.22)']]){
+        const p1 = project(x + 0.06, y + fy, 0), p2 = project(x + 0.94, y + fy, 0);
+        gtx.strokeStyle = col; gtx.beginPath(); gtx.moveTo(p1[0], p1[1]); gtx.lineTo(p2[0], p2[1]); gtx.stroke();
+      }
+    }
     if ((t === PATH || t === SLOT) && hv > 0.4){
       gtx.strokeStyle = 'rgba(90,75,50,.25)'; gtx.lineWidth = 0.7;
       quad(gtx, x, y, -0.06); gtx.stroke();
@@ -4066,7 +4085,7 @@ function drawScene(t, dt){
   // LIT is a per-FRAME accumulator. It used to be reset only on a ground rebuild, so
   // the south band's live windows stacked into it ~13 a frame for a quarter-hour and
   // the glow pass drew hundreds of halos on top of each other.
-  LIT.length = 0;
+  LIT.length = 0; LIT_PANES.length = 0;
   drawLitPanes();
 
   // wet sheen on the streets after rain
@@ -4537,11 +4556,11 @@ function drawBandFlags(f, posts){
     const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2 + cellH * 0.45;
     ctx.strokeStyle = 'rgba(201,185,138,.8)'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(x0, y0); ctx.quadraticCurveTo(cx, cy, x1, y1); ctx.stroke();
-    for (let j = 1; j <= 3; j++){
-      const u = j / 4, v = 1 - u;
+    for (let j = 1; j <= 2; j++){                   // two a span: at 1x three of the old 3 px flags were a smear
+      const u = j / 3, v = 1 - u;
       const fx = v * v * x0 + 2 * v * u * cx + u * u * x1;
       const fy = v * v * y0 + 2 * v * u * cy + u * u * y1;
-      const w = Math.max(1.6, cellW * 0.13);
+      const w = Math.max(2.5, cellW * 0.3);           // >= 5 px wide at 1x (HEAD: 3.2)
       // the flags flutter: the tip swings downwind on windT, a little on a calm day
       // and most of its own width in a gale (same clock as the washing, no R())
       const fl = RM ? 0 : Math.sin(windT * 2.6 + k * 1.3 + j * 2.1) * w * (0.25 + 0.75 * windF()) + w * 0.5 * windF();
@@ -5289,6 +5308,19 @@ function applyLight(t){
     }
     drawRiverLights(simT);
     drawWetLights();
+    // the warmth back into the glass: the multiply above turned every lit pane the
+    // same grey as the wall (R - B was -5 at midnight); a screen fill of the pane's own
+    // quad restores it, and lights whoever stands in front of it, which is right
+    {
+      const al = 0.7 * nightF;
+      ctx.fillStyle = 'rgba(255,190,90,' + al.toFixed(3) + ')';
+      for (const q of LIT_PANES){ poly(ctx, q); ctx.fill(); }
+      if (ROSE && nightF > 0.3){
+        ctx.fillStyle = 'rgba(255,180,110,' + al.toFixed(3) + ')';
+        ctx.beginPath(); ctx.arc(ROSE[0], ROSE[1], ROSE[2], 0, 7); ctx.fill();
+        LIT.push([ROSE[0], ROSE[1]]);
+      }
+    }
     // every lit window casts a little halo onto the night
     for (const [wx, wy] of LIT){
       const g = ctx.createRadialGradient(wx, wy, 0, wx, wy, cellW * 0.9);

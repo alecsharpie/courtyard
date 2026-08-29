@@ -377,7 +377,8 @@
       "the ground reads the lid — shadowF() with shSpread()/shOffset(): cast shadows fade, widen and retract together, eight sites, blurred on the cached ground. probes/shadow-cover.mjs",
       "snow — snowF() turns showers to flakes past greyF 0.55; snowCover 0..1 (rate-capped, snowAt per cell, trodden kinds take less) whitens cached ground/roofs/awnings, melts as warmth lifts; census clock.snow. probes/snow-year.mjs",
       "wind is a SCALAR — windyDay() the day hash (0.28); wind stepped by stepWind() in simStep over WIND_RISE_H 2.5 h, exact at 0/1; windF() 0..1, isWindy() = windF() > 0.5 the behaviour boolean; windX = cloud drift. probes/wind-year.mjs",
-      "wetness 0..1 — wetF()/stepWet(): rain soaks paving over WET_RISE, dries by daylight×warmth over WET_DRY, lands on 0 exactly. Cached ground reads wetPainted (5 buckets) via wetCol() on PATH/SIDE/ROAD only; the lane sheen is 0.16×wetness; drawWetLights() lays lamp bars on WET_LAMPS (lamps over paving) × wetness × nightF. probes/wet-year.mjs, wet-shots.mjs"
+      "wetness 0..1 — wetF()/stepWet(): rain soaks paving over WET_RISE, dries by daylight×warmth over WET_DRY, lands on 0 exactly. Cached ground reads wetPainted (5 buckets) via wetCol() on PATH/SIDE/ROAD only; the lane sheen is 0.16×wetness; drawWetLights() lays lamp bars on WET_LAMPS (lamps over paving) × wetness × nightF. probes/wet-year.mjs, wet-shots.mjs",
+      "night warmth is put BACK after applyLight's multiply — LIT_PANES[] (lit pane quads, per frame) and ROSE (rose window, cache time) screen-filled at 0.7·nightF before the LIT halos; turned[] furrowed in drawGround; bunting 5 px; GRASS snow mix 1−(1−sn)^1.8, SNOW_COL #e2e8f2. probes/polish-1x.mjs, polish-crops.mjs"
     ],
     "life": [
       "walkers with itineraries — courtyard, street and eastern stops (plaza bench, fountain, quay, towpath, church green, allotment plot, parapet); cafe sitters; market and kiosk browsers; dogs on leads; ducks, swans, butterflies, fireflies, birds, one night cat, falling leaves",
@@ -420,6 +421,12 @@
     {
       "id": "c98",
       "note": "the follow line hides wide-sill ticker news for the whole follow (30+ h for a resident) — should news pass through for its dwell?",
+      "raisedBy": 57,
+      "seenBy": 0
+    },
+    {
+      "id": "c99",
+      "note": "rose window disc colour (lit) is decided at cache time in drawChurchFront; at the dusk edge it can sit grey up to a quarter-hour before the relight pass covers it",
       "raisedBy": 57,
       "seenBy": 0
     }
