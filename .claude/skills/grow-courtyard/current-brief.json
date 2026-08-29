@@ -24,7 +24,7 @@
   "avoid": "Do not make the leaves themselves persistent agents. Do not add an R() draw — land position comes from the leaf's own state, hash(x,y) for the scatter. Do not touch the canopy colour rule.",
   "budgetMin": 30,
   "risk": "medium-high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 66,
   "issued": "2026-08-29T03:24:21.157Z",
