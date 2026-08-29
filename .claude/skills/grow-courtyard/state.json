@@ -2,7 +2,7 @@
   "updated": "2026-08-29",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 61,
+  "lastIteration": 63,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -257,7 +257,8 @@
       ],
       "deepen": [
         9,
-        23
+        23,
+        63
       ]
     },
     "sky": {
@@ -372,7 +373,7 @@
       "the BANDSTAND has a summer concert — bandF() stages three BAND_PLAYERS and bunting on ONE 0..1; isBandDay() is hash(day,617) vs bandChance() off warmth. probes/bandstand-year.mjs",
       "swans are a PAIR with states — s.state swim|upend|preen + s.hold; cob (swans[0]) picks the stretch, pen re-reads it every 2.5–5.5 s, 0.9-cell give-way; SWAN_UPEND/SWAN_PREEN/SWAN_BANK; drawSwan tilts on hold. probes/swan-pair.mjs",
       "the NIGHT on the water — drawRiverLights(): bar columns under RIVER_LAMPS + a moon column, × nightF × (1 − cloudCover()); WIND on it (WIND_FLOW_*, WIND_CHOP, BOAT_WIND_SHY/SLOW), exact at windF 0; ONE a.nightRail stander while tapOpen(). probes/river-night.mjs, river-wind.mjs",
-      "the BOAT LANTERN (#62, lands via b60) — boatLampF() fades in on nightF; BOAT_LAMP set by drawBoat, relit + haloed in applyLight after the multiply, a moving column in drawRiverLights"
+      "the BOAT LANTERN (#62/#63) — boatLampF() fades in on nightF 0.3..0.45; BOAT_LAMP set by drawBoat, relit + haloed in applyLight after the multiply, a moving column in drawRiverLights; boat out 65% of dark samples, lit 84% of nights — boatRate() NOT thinned after dark. probes/boat-lantern.mjs, boat-lantern-column.mjs"
     ],
     "sky": [
       "day/night cycle (55 s day), sun and moon arc, backdrop hills, chimney smoke, a balloon; windowLit(sa,sb) — ONE predicate for pane and LIT[] glow, hours off the dusk edge (nid); facades CACHED, WINDOWS[] + drawLitPanes() live. probes/windows-night.mjs",

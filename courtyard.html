@@ -1010,6 +1010,14 @@ const BOAT_SWING = 0.75, BOAT_FLOOR = 0.0065;  // thinned, then floored — neve
 const BOAT_DRIFT = 0.24;                       // the share of the current the hull takes
 function boatRate(){ return Math.max(BOAT_FLOOR, BOAT_RATE * (1 - BOAT_SWING * greyF())) * (1 - BOAT_WIND_SHY * windF()); }
 function boatSpeed(){ return 1.05 * (1 + BOAT_DRIFT * greyF()) * (1 - BOAT_WIND_SLOW * windF()); }
+/* The boat's lantern. It rows after dark unlit until #62 — a dark hull on a dark
+ * channel, and a reflection would have been dark on dark. The lamp hangs at the bow
+ * and fades in over BOAT_LAMP_ON..+BOAT_LAMP_FADE of nightF so nothing pops at dusk;
+ * the body is drawn with the hull (and so goes slate under applyLight's multiply) and
+ * its warmth is put back in the screen pass after it, like every other night light. */
+const BOAT_LAMP_ON = 0.3, BOAT_LAMP_FADE = 0.15;
+function boatLampF(){ return boat ? clamp((nightF - BOAT_LAMP_ON) / BOAT_LAMP_FADE, 0, 1) : 0; }
+let BOAT_LAMP = null;                          // screen [x, y] of the lit lamp this frame, or null
 /* ---- the fountain, the plaza's one reader of the year -------------------------
  * The plaza was the last place east of the bridge with no season in it: five jets at
  * one height, a basin one colour, and a coin-flip on whether a visitor stands at the
@@ -4085,7 +4093,7 @@ function drawScene(t, dt){
   // LIT is a per-FRAME accumulator. It used to be reset only on a ground rebuild, so
   // the south band's live windows stacked into it ~13 a frame for a quarter-hour and
   // the glow pass drew hundreds of halos on top of each other.
-  LIT.length = 0; LIT_PANES.length = 0;
+  LIT.length = 0; LIT_PANES.length = 0; BOAT_LAMP = null;
   drawLitPanes();
 
   // wet sheen on the streets after rain
@@ -4859,6 +4867,11 @@ function drawRiverLights(t){
     // a lamp on the far bank is upstream of nothing: its column hangs off its own y
     column(L[0], L[1], 6, 'rgb(255,200,120)', 0.55 * nightF * veil, 1.2, 14);
   }
+  // the boat's lantern lays a short column that moves with the hull (and shivers on
+  // the same wind terms); the bars are on their own hashes, so it never rebuilds the fixed ones
+  if (BOAT_LAMP && boat){
+    column(boat.x + 0.3, boat.y + 0.9, 3.5, 'rgb(255,204,130)', 0.6 * boatLampF() * veil, 0.8, 8);
+  }
   const ma = moonArc(), mh = Math.sin(Math.PI * ma);
   if (nightF > 0.25 && ma > 0 && ma < 1 && mh > 0.02){
     // the moon crosses the sky east to west; its light crosses the river the same way
@@ -4942,6 +4955,16 @@ function drawBoat(it){
   ctx.beginPath(); ctx.arc(x, y - 3 * s, 3.4 * s, 0, 7); ctx.fill();
   ctx.fillStyle = '#e8c39a';
   ctx.beginPath(); ctx.arc(x, y - 6 * s, 2 * s, 0, 7); ctx.fill();
+  // the lantern: a post at the bow, lit only when the night is dark enough to want it
+  const lf = boatLampF();
+  if (lf > 0){
+    const lx = x + 1.5 * s, ly = y + 9 * s;
+    ctx.strokeStyle = '#3a2a1c'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx, ly - 7 * s); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,214,140,' + (0.9 * lf).toFixed(3) + ')';
+    ctx.beginPath(); ctx.arc(lx, ly - 7.5 * s, 1.6 * s, 0, 7); ctx.fill();
+    BOAT_LAMP = [lx, ly - 7.5 * s];
+  }
 }
 function drawKiosk(){
   const [x, y] = project(KIOSK.x, KIOSK.y + 0.9, 0);
@@ -5320,6 +5343,18 @@ function applyLight(t){
         ctx.beginPath(); ctx.arc(ROSE[0], ROSE[1], ROSE[2], 0, 7); ctx.fill();
         LIT.push([ROSE[0], ROSE[1]]);
       }
+    }
+    if (BOAT_LAMP){
+      // the lantern's warmth back over the multiply, and a halo a little brighter and
+      // tighter than a window's: a flame in the open, not a pane
+      const lf = boatLampF(), [bx, by] = BOAT_LAMP;
+      ctx.fillStyle = 'rgba(255,214,140,' + (0.8 * lf).toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(bx, by, cellW * 0.18, 0, 7); ctx.fill();
+      const g = ctx.createRadialGradient(bx, by, 0, bx, by, cellW * 1.1);
+      g.addColorStop(0, 'rgba(255,205,130,' + (0.38 * lf).toFixed(3) + ')');
+      g.addColorStop(1, 'rgba(255,205,130,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(bx, by, cellW * 1.1, 0, 7); ctx.fill();
     }
     // every lit window casts a little halo onto the night
     for (const [wx, wy] of LIT){
@@ -5823,7 +5858,7 @@ function livingAt(p){
   for (const d of ducks) hit(d.x, d.y, 0, 0.6, d.y + 0.3, d.swimming ? 'a duck, on the pond' : 'a duck, out on the bank');
   for (const s of swans) hit(s.x, s.y, 0, s.state === 'upend' ? 0.7 : 0.8, s.y + 0.3,
     s.state === 'upend' ? 'a swan, upended' : s.state === 'preen' ? 'a swan, preening' : 'a swan, on the river', 1.1);
-  if (boat && (boat.y < 64.5 || boat.y > 79)) hit(boat.x, boat.y, 0, 1.4, boat.y + 0.6, 'the rowboat, going downriver');
+  if (boat && (boat.y < 64.5 || boat.y > 79)) hit(boat.x, boat.y, 0, 1.4, boat.y + 0.6, boatLampF() > 0.5 ? 'the rowboat, going downriver by lantern' : 'the rowboat, going downriver');
   if (catA) hit(catA.x, catA.y, 0, 0.6, catA.y + 0.3, 'the cat, out along the lane');
   return best;
 }
