@@ -1,41 +1,75 @@
 {
-  "generated": "2026-08-29T01:30:00.000Z",
-  "byIteration": 57,
+  "generated": "2026-08-29T03:30:00.000Z",
+  "byIteration": 62,
   "rung": 2,
   "diagnosis": {
-    "health": "Healthy and getting cheaper: the last 20 real rows are 19 shipped and 1 rejected-brief (#48, my brief, the worker was right), 0 reverts, selfVerdict == verdict on every row, source moved 8/10, last 10 averaging 8 min and $4.06 with the last two at $2.66 and $2.07 for a 3x draw-cost cut and a harness fix. Cost is FALLING with output held — the inverse of the Solvista signature. The one recurring fault is mine for the fourth pass running: the worker budget opened OVER on #56 and #57 (46.7 / 46.5 KB) and state.json was three iterations stale, with #53 (lane, b50) never entered in coverage at all — the loop had lane at '4 back' when it was really 10. Fixed this pass: laws 30 → 32 with #53/#55 promoted and #54/#56/#57 folded into existing laws, ten laws compressed to pay (12.0/12 KB); #55–#57 archived verbatim and condensed 2.5/2.2/2.1 → 1.3/1.2/1.2 KB; inventory 49 → 48 entries, three over-cap lines rewritten; ten cues resolved (5 promoted to briefs, 2 to laws, 3 closed), one held.",
+    "health": "Healthy: the last 20 real rows are 19 shipped and 1 rejected-brief (#48), 0 reverts, selfVerdict == verdict on every row that has one, source moved 9/10, $4.18/iter at 8 min with 41–79-line diffs and a probe each. Cost is flat with output held. One loose end this pass: #62 (b59, the boat lantern) is graded 'shipped' by the runner but its 37-line diff sits UNCOMMITTED in the working tree with no ledger entry and selfVerdict null — the worker ran out of turns between verifying and landing. That is not a stall, it is a half-finished iteration, and b60 at the head of the queue lands it. Recurring fault, mine again: the worker budget opened OVER on #62 (46.8/46 KB) with #60/#61 at 2.7/3.2 KB, and state.json was four iterations stale. Fixed: coverage #58–#61 entered, #59–#61 archived verbatim then condensed to 1.3–1.7 KB, four laws promoted (#58 folded into the filmstrip law, #59 into the inventory law, #60 and #61 new) paid for by compressing twelve and merging the bAge/HOMES pair — 33 laws, 12.0/12 KB; inventory 47 → 43 entries by merging the three NAMING lines and the byTheWater/tap-door/sweeper pairs; five cues resolved (2 → briefs, 3 folded into briefs' gates/avoids), c79 closed after three passes. Budget 46.8 → 41.0 KB OK.",
     "signals": [
-      "queue empty (all five of pass #52's briefs consumed: 5 shipped, 0 rejected, 0 reverted)",
+      "queue empty (all five of pass #57's briefs consumed: 5 shipped, 0 rejected, 0 reverted)",
       "no stall signal; revertStreak=0",
-      "context budget OVER two iterations running (46.7/46 KB) — fixed this pass",
-      "state.json three iterations stale, #53 lane never entered — recorded",
-      "windF() is a 0/1 coin: every wind consumer built since #50 (fountain, bunting, river, boat) inherits a step at the hour-6 roll"
+      "#62 diff uncommitted and unlogged — runner graded it shipped on srcChanged alone",
+      "context budget OVER on #62 (46.8/46 KB) — fixed this pass",
+      "state.json four iterations stale — recorded"
     ],
-    "balance": "After recording: sky 12 back (its last LANDED work is #45 — #48 rejected), plaza 7, life 6, street 5, lane 4, river 3, courtyard 1, sill 0. Sky, plaza and life get one each; the sill sits this batch out (three of the last five); street takes the four-cue polish; river the lantern. The empty cell life × interaction gets its first entry."
+    "balance": "After recording: lane 9 back (#53), courtyard 6 (#56), sill 5 (#57), sky 4, plaza 3, life 2, street 1, river 0 (pending b60). Lane, courtyard and sill get one each; river takes the landing; sky takes c96. Life and street sit this batch out (four of the last six). courtyard × new-CA gets its third entry; nothing has been a New CA rule since #16."
   },
-  "rationale": "HOLD RUNG 2, with one brief that is a rung-5 probe. The compounding moves are not exhausted and two of them are DEFECTS a thirty-second viewer sees: (1) the wind is a per-day coin, so a windy day begins as a step at 06:00 with the washing, bunting, fountain and river all snapping together — three passes have been hanging consumers on windF() and every one inherits that step (b55, sky, 12 back); (2) every lit pane at midnight is grey (105,100,110) because drawLitPanes runs before applyLight's 0.8 multiply — the night the loop spent #32–#53 building glows grey-warm at best (in b58). The bet is b57, and it is the ladder's rung 5 tried early rather than a climb: the town now has ~50 behaviours per person (itineraries, seats, greetings, the door, going home, the plots) and no way for a viewer to READ one person's day — a tap names them, then they walk off and are lost in the crowd. Let the observer follow one. If it lands, the sill has a third instrument (name, season, follow) and every behaviour the loop has built becomes legible in sequence; if it fails, it fails on hit-testing and DOM, which the laws already cover. b56 puts weather on the ground (wet paving darkens and reflects lamps after rain — the plaza and quay have had wind, now rain), b59 closes c92 with a lantern on the night boat. Risk: b55 medium (touches ~8 consumers, anchor algebra), b56 medium-high (cached ground layer, rebuild count), b57 high, b58 low, b59 medium.",
-  "queue": [],
-  "recommendStop": null,
-  "consumed": [
+  "rationale": "HOLD RUNG 2 with a rung-5 bet at the tail. The town's biggest gap for a thirty-second viewer is now structural, not a missing feature: twenty iterations (#32–#62) built the night — windows, the door, homers, river and wet lamps, now a lantern — and a visitor landing at noon has ~35 s of daylight before dusk and no way there but a season-length skip. b64 is the bet: a tap on the sill's clock takes the town to the evening, using the skip machinery that already exists (beginSkip/simSub/skipEase, SKIP_SUB-bounded) with a shorter target — if it lands, the observer has a fourth instrument and the whole night investment becomes the first thing a viewer can choose to see. The four compounding moves are all consumers of scalars built in the last ten iterations that nothing downstream reads yet: wetness has no effect on people (b61: sitters ignore a wet seat, the lane 9 back), the wind ramp starts at the one hour nobody can see it (b62: tie the wind target to the fronts cloudCover already builds, c96), and the autumn shed produces leaves that vanish on touching the ground (b63: leaf litter on the cached ground, courtyard 6 back, the first CA-class rule since #16). b60 lands #62's lantern and takes c99 in passing. Risk: b60 low, b61 medium, b62 medium, b63 medium-high (cached ground, a new per-cell array, interacts with snow and wear), b64 high.",
+  "queue": [
     {
-      "id": "b55",
-      "at": "2026-08-28T22:38:27.372Z"
+      "id": "b60",
+      "domain": "River & far bank",
+      "kind": "Deepen",
+      "brief": "Iteration #62 built the boat's lantern (b59) and never landed it: a 37-line diff is in the working tree, uncommitted, with no ledger entry — `BOAT_LAMP_ON`/`BOAT_LAMP_FADE`, `boatLampF()`, `BOAT_LAMP` set by `drawBoat`, relit + haloed in `applyLight` after the multiply, a moving `column` in `drawRiverLights`, 'going downriver by lantern' in `livingAt`. Do NOT rebuild it. Read `git diff` first, verify it against b59's success criteria (crop at 22:00 vs HEAD at the pinned instant; `river-year.mjs` and `boat-wind.mjs` anchors unchanged; night filmstrip 0 POP), fix anything the verification finds, then decide the one thing #62 left open — whether `boatRate()` should thin after dark — state the boat's after-dark presence across 20 seeds either way, write #62's ledger entry as your own, commit. While in `drawChurchFront`'s neighbourhood: c99 — the rose window's disc colour is decided at cache time, so at the dusk edge it can sit grey for up to a quarter-hour before `ROSE`'s relight covers it; take it if it is a one-line fix, otherwise leave a cue.",
+      "seams": ["boatLampF", "BOAT_LAMP", "drawBoat", "drawRiverLights", "applyLight", "boatRate", "ROSE", "drawChurchFront", "probes/river-night.mjs", "probes/boat-wind.mjs"],
+      "successLooksLike": "A commit whose diff is the working-tree lantern (plus at most a rate decision and c99); a 22:00 crop with a bow lamp and its column moving with the hull; anchors identical; a ledger entry that records the presence number.",
+      "avoid": "Do not start from HEAD and rewrite the lantern. Do not add an R() draw. Do not touch the bridge shadow.",
+      "budgetMin": 15,
+      "risk": "low"
     },
     {
-      "id": "b56",
-      "at": "2026-08-28T22:47:49.772Z"
+      "id": "b61",
+      "domain": "Lane & market",
+      "kind": "Connect",
+      "brief": "The paving remembers the rain (#59: `wetF()` 0..1 dries over ~3 h) but the people do not: `seatRefused()` reads `weatherComing()` only, so the moment a shower ends the cafe tables and benches fill again while the paving under them is still dark and shining. Make a wet seat a refused seat: a sitter arriving at a cafe table, lane bench or quay bench while `wetF()` is above a threshold turns it down the way `SIT_REFUSE` does (same `routeToExit()` path, same `a.wary` spread so the wary refuse a damp seat and the bold sit anyway), and the tables read as empty for the drying hour after rain. Count at the CHOICE per free sample across 10 seeds, on the day of a shower, and show HEAD's sitters returning at +0.2 h vs the candidate's at +1–2 h. Then look at the January night street (c97): wetness holds ~20 h in the cold and dark — check the sheen + lamp bars at ~0.3 wetness read as damp, not as a lake, and say so in the ledger.",
+      "seams": ["seatRefused", "skyLifts", "SIT_REFUSE", "wetF", "a.wary", "routeToExit", "CAFE_TABLES", "BENCH_SPOTS", "QUAY_BENCHES", "probes/seats-out.mjs", "probes/wet-year.mjs"],
+      "successLooksLike": "A crop of the cafe 20 sim-minutes after a shower shows dark paving and empty tables; an hour later the tables refill; `seats-out.mjs` anchors unchanged on dry days; no new R() draw; the wet winter night looked at and judged.",
+      "avoid": "Do not add a second wetness. Do not touch the umbrella band. Do not make anyone already seated get up because of wetness — the rain already did that.",
+      "budgetMin": 25,
+      "risk": "medium"
     },
     {
-      "id": "b57",
-      "at": "2026-08-29T02:28:34.956Z"
+      "id": "b62",
+      "domain": "Sky, light & weather",
+      "kind": "Connect",
+      "brief": "The wind became a scalar at #58 and it changed nothing on screen, because `windyDay()` is a day hash and the ramp starts at the hour-6 roll — inside the dawn relight, the one hour nobody can see it (c96). Give the wind a cause: let the wind target rise with a building front — `cloudCover()` climbs over ~half a day before rain and breaks after it — so on a front day the washing, bunting, fountain, river and smoke all pick up mid-morning or mid-afternoon as the sky darkens, and drop when the rain breaks. Keep the day hash as a second source (a dry windy day still exists) and keep `stepWind`'s rate cap so nothing steps. Show it: a fountain or washing-line crop series across a front's build (flat light, hour 10–14), Δ/frame rising smoothly; `wind-year.mjs` windy-day mean and calm mean stated before and after; the windy CLASS fraction of hours before and after (it will rise — say by how much).",
+      "seams": ["windyDay", "windF", "stepWind", "wind", "cloudCover", "weatherComing", "rainFall", "windT", "probes/wind-year.mjs", "probes/weather-year.mjs", "probes/fountain-wind.mjs"],
+      "successLooksLike": "On a seed with a mid-day front, a 4-shot crop series at hour 10–14 shows the fountain jets leaning progressively as the sky darkens; calm-day frames identical to HEAD; the boat and fountain anchors move only by the extra windy hours, and the ledger says how many.",
+      "avoid": "Do not add an R() draw. Do not touch the consumers — they read windF() and that is the point. Do not let the wind stay up through the rain itself unless you can show a shower on HEAD already has the washing brought in.",
+      "budgetMin": 25,
+      "risk": "medium"
     },
     {
-      "id": "b58",
-      "at": "2026-08-29T02:37:43.483Z"
+      "id": "b63",
+      "domain": "Courtyard & garden",
+      "kind": "New CA rule",
+      "brief": "The autumn shed is a spawner: `leafFallF()` sends leaves off the thirteen trees and they vanish on touching the ground, so at 1x in October the lawns and paving under the canopy are exactly as clean as in June. Let leaves land: a per-cell `litter[]` (Uint8, like `turned[]`/`trod[]`) that a landing leaf raises under its tree, that `drawGround` paints as a warm brown-orange scatter on GRASS and paving in the cached layer (bucketed, so rebuilds stay in the light budget), that feet and the sweeper's broom cut the way `trod[]` is cut, and that decays by itself over a few days once the shed ends — so drifts build under the linden, the street trees and the orchard in autumn and are gone by midwinter (and under snow). Exact at zero: a summer ground hash must equal HEAD's. Show a seed-7 late-autumn courtyard crop vs HEAD, `ground-rebuilds.mjs` on an autumn day, and litter cells per day across the year on 3 seeds.",
+      "seams": ["leafFallF", "leafShed", "leaves", "trod", "turned", "drawGround", "groundBase", "wearDirty", "snowAt", "a.broom", "crowns", "TREE_PITS", "probes/canopy-year.mjs", "probes/ground-rebuilds.mjs", "probes/snow-wear.mjs"],
+      "successLooksLike": "An October wide shot reads autumn from the ground, not only the canopy; the lawn under the linden shows a brown drift the sweeper's line cuts through; June ground hash identical to HEAD; rebuilds per autumn day within +20 of HEAD; litter 0 by midwinter.",
+      "avoid": "Do not make the leaves themselves persistent agents. Do not add an R() draw — land position comes from the leaf's own state, hash(x,y) for the scatter. Do not touch the canopy colour rule.",
+      "budgetMin": 30,
+      "risk": "medium-high"
     },
     {
-      "id": "b59",
-      "at": "2026-08-29T02:47:08.772Z"
+      "id": "b64",
+      "domain": "The sill & the observer",
+      "kind": "Interaction/UX",
+      "brief": "THE BET. Twenty iterations built the night and a visitor landing at noon never sees it: the day is 55 s, dusk is ~35 s away, and the only fast-forward is the season button, which skips a quarter-YEAR. Make the sill's clock (`#daytime`) a button too: a tap takes the town to this evening — the same `beginSkip`/`simSub`/`skipEase` lapse the season button uses (SKIP_SUB-bounded, so the argument that no step is too long still holds), aimed at `sunDown + ~1 h` of the current day instead of a season boundary, over 2–3 real seconds behind the same veil in RM. Tap again at night → the next dawn. It joins `OFFERS` as the next invitation and does not get a hint of its own. Prove the lapse leaves the town honest: window hours and homers behave as if the evening arrived at 1x (`windows-night.mjs` lit counts within the usual spread of a 1x run to the same instant), agents mid-route are where a 1x run would put them, `stepWind`/`stepWet`/`cloudCover` are continuous across it, and the night filmstrip after a tap reads 0 POP.",
+      "seams": ["#daytime", "seasonEl", "beginSkip", "skipDays", "skipSpan", "skipSecs", "skipEase", "simSub", "stepSkip", "SKIP_SUB", "SKIP_RATE", "sunDown", "nightF", "OFFERS", "veilEl", "RM", "probes/season-skip.mjs", "probes/season-invite.mjs", "probes/windows-night.mjs"],
+      "successLooksLike": "A fresh page at noon, one tap on the clock, and 3 s later it is a lamp-lit evening with the door open and the river lamps on; a second tap and it is morning; `season-skip.mjs` still passes for the season button; `naming.mjs` all pass; phone 390px layout unchanged; the follow line (c98) is released or preserved deliberately — say which and why.",
+      "avoid": "Do not build a second lapse mechanism — extend the one that exists with a different target. Do not let the two buttons run at once. Do not make the ticker carry a hint for it.",
+      "budgetMin": 35,
+      "risk": "high"
     }
-  ]
+  ],
+  "recommendStop": null
 }
