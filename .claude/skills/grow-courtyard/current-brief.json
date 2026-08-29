@@ -19,7 +19,7 @@
   "avoid": "No behaviour change, no new R() draw, no new ground kind. If the pane reorder pulls a reflection or glow out of the night pass, fix the order, not the colour constant.",
   "budgetMin": 25,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 61,
   "issued": "2026-08-29T02:37:43.485Z",
