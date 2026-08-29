@@ -1094,6 +1094,39 @@ function snowTake(t){ return t === GRASS || t === BED || t === CBED ? 1 : t === 
  * inside the cover > 0 guard, so out of winter snowAt is the constant 0 it always was. */
 const SNOW_WEAR = 0.85, SNOW_WEAR_AT = 0.45, SNOW_BURY = 0.15;
 const trod = new Float32Array(GW * WH);
+/* #66: leaf litter. leafFallF() sends leaves off the trees and they vanished on touching
+ * the ground, so the lawn under the linden in October was as clean as in June. Now a
+ * landing leaf (not a petal) raises litter[] under itself by LITTER_LAND on any open
+ * ground; feet cut it the way they cut trod[], the sweeper's broom clears the strip he
+ * walks, and it decays by itself in stepLitter() - a batch of LITTER_DECAY every
+ * LITTER_BATCH caTicks, slowed while the shed is still on, so ~3 days after the last
+ * leaf a drift is gone. A lying cover buries it: cleared when snow settles. Painted in
+ * drawGround as a tint plus a hash-placed scatter, bucketed to LITTER_BUCKET levels so
+ * the decay only dirties the cache when a drawn level can have changed. Uint8: 0 is
+ * exactly the town as it was, every read is guarded on it. */
+const litter = new Uint8Array(GW * WH);
+const LITTER_LAND = 40, LITTER_DECAY = 16, LITTER_BATCH = 32, LITTER_BUCKET = 32;
+let litterTicks = 0, litterAny = false;
+function litterTake(t){ return t === GRASS || t === PATH || t === SIDE || t === SLOT || t === ROAD; }
+function landLeaf(l){
+  if (!l.leaf || leafShed() <= 0) return;                   // a petal, not a leaf; the summer drift is too thin to lie (June ground exact)
+  const x = Math.floor(l.x), y = Math.floor(l.y);
+  if (x < 0 || y < 0 || x >= GW || y >= WH) return;
+  const j = y * GW + x;
+  if (!litterTake(grid[j])) return;
+  const was = litter[j]; litter[j] = Math.min(255, was + LITTER_LAND); litterAny = true;
+  if ((litter[j] / LITTER_BUCKET | 0) !== (was / LITTER_BUCKET | 0)) wearDirty = true;   // throttled like the feet
+}
+function stepLitter(){                                      // called once per caTick
+  if (!litterAny) return;
+  if (snowCover > 0){ litter.fill(0); litterAny = false; wearDirty = true; return; }   // buried until spring
+  if (++litterTicks < LITTER_BATCH) return;
+  litterTicks = 0;
+  const d = Math.round(LITTER_DECAY * (1 - 0.75 * leafShed()));
+  let any = false;
+  for (let i = 0; i < litter.length; i++) if (litter[i]){ litter[i] = litter[i] > d ? litter[i] - d : 0; any = true; }
+  litterAny = any; wearDirty = true;
+}
 function snowAt(x, y, t){
   if (snowCover <= 0) return 0;
   const j = y * GW + x, cut = Math.max(Math.min(wear[j] / SNOW_WEAR_AT, 1), trod[j] || 0);
@@ -1563,6 +1596,7 @@ function harvestPlot(a){
   return took;
 }
 function caTick(){
+  stepLitter();
   const m = maturity(), boost = raining ? 3 : 1;
   const vig = growF(), die = dieF();          // the ceiling is per-cell now: bedCap(x, y)
   const availF = SPECIES.filter(s => s.minDay <= day && !s.veg);
@@ -1941,9 +1975,12 @@ function stepAgent(a, dt){
       wear[j] = Math.min(1, wear[j] + (a.small?0.05:0.09) * dt * 6);
       if (daisy[j] && wear[j]>0.25){ daisy[j]=0; }
       if (snowCover > 0) trod[j] = Math.min(1, trod[j] + (a.small?0.2:0.35) * dt * 6);   // feet cut a lying cover
+      if (litter[j]) litter[j] = Math.max(0, litter[j] - Math.ceil(dt * (a.small ? 60 : 120)));   // and scuff the leaves (~2 s standing clears a cell)
       if (R()<dt*2) wearDirty = true;                        // pending: the tick throttles the repaint
     } else if (a.broom && snowCover > 0 && trod[j] < 1){
       trod[j] = 1; wearDirty = true;                          // the sweeper clears the strip he walks
+    } else if (a.broom && litter[j]){
+      litter[j] = 0; wearDirty = true;                        // and sweeps the leaves off the paving
     }
   }
   stepDog(a, sp, dt);
@@ -2811,10 +2848,10 @@ function updateWildlife(dt){
     const petalCut = 0.75 - 0.30 * Math.max(leafFresh(), blossomF());
     if (src < petalCut*(2/3)){          // from the courtyard linden
       leaves.push({x:CX+(R()-0.5)*6, y:CY+(R()-0.5)*6, z:5.5+R()*2, vx:0.6+R()*0.8+(gusty?1.2:0), ph:R()*9,
-        col:leafCol(pick([[168,133,60],[138,154,68],[176,111,56]]), 0)});
+        col:leafCol(pick([[168,133,60],[138,154,68],[176,111,56]]), 0), leaf:1});
     } else if (src < petalCut){  // from a street tree
       leaves.push({x:pick(TREE_PITS)+0.5, y:66.9, z:3.5+R(), vx:0.8+R()+(gusty?1.2:0), ph:R()*9,
-        col:leafCol(pick([[138,154,68],[168,133,60]]), 1)});
+        col:leafCol(pick([[138,154,68],[168,133,60]]), 1), leaf:1});
     } else {                 // a petal snatched off a bed
       leaves.push({x:6+R()*52, y:5+R()*3, z:1+R(), vx:1+R()+(gusty?1.4:0), ph:R()*9,
         col:pick(['#e8a0b0','#f3b04e','#c9a0e2','#e8dfc8'])});
@@ -2822,7 +2859,7 @@ function updateWildlife(dt){
   }
   for (let i=leaves.length-1;i>=0;i--){ const l=leaves[i];
     l.ph+=dt*3; l.x+=l.vx*dt+Math.sin(l.ph)*dt*1.4; l.y+=dt*0.5; l.z-=dt*0.55;
-    if (l.z<=0) leaves.splice(i,1); }
+    if (l.z<=0){ landLeaf(l); leaves.splice(i,1); } }
   if (!catA && nightF > 0.5 && day >= 2){ catA = {x:-2, y:LANE_N_Y - 0.5, dir:1}; }
   if (catA){
     catA.x += catA.dir * dt * 1.6;
@@ -3685,7 +3722,20 @@ function groundCol(x, y, t, hv, m){
   // first flakes settle and nothing changes under a full cover. Grass only: the beds,
   // paths and road keep reading dark through it as before
   const k = t === GRASS ? 1 - Math.pow(1 - sn, 1.8) : sn;
-  return sn > 0 ? mix(c, SNOW_COL, k) : c;
+  const lt = litter[y * GW + x];
+  const cl = lt ? mix(c, '#8a5a2c', 0.10 + 0.32 * (lt / LITTER_BUCKET | 0) / 7) : c;   // #66: leaf litter warms the ground it lies on
+  return sn > 0 ? mix(cl, SNOW_COL, k) : cl;
+}
+const LITTER_COLS = ['#b8742e', '#a55a24', '#c98b3a', '#8f4f22', '#d2a04a'];
+function drawLitter(g, x, y, lt){                            // hash-placed leaves, more with the level; no R()
+  const n = 2 + 2 * (lt / LITTER_BUCKET | 0);                // 2..16 per cell, bucketed like the tint
+  for (let k = 0; k < n; k++){
+    const h1 = hash(x * 7 + k, y * 3 + 71), h2 = hash(x * 5 + k, y * 11 + 37);
+    const p = project(x + 0.08 + 0.84 * h1, y + 0.08 + 0.84 * h2, 0);
+    g.fillStyle = LITTER_COLS[(h1 * 5 + k) % 5 | 0];
+    g.save(); g.translate(p[0], p[1]); g.rotate(h2 * 6.3);
+    g.fillRect(-1.6, -0.9, 3.2, 1.8); g.restore();
+  }
 }
 /* Wet paving is darker and bluer — the SAME colour the dry cell has, pulled toward a
  * cool slate by wetPainted, so a dry town (wetPainted 0) takes the old branch exactly.
@@ -3773,6 +3823,7 @@ function drawGround(){
     quad(gtx, x, y, 0.03); gtx.fill();
     if (x !== gx) continue;                              // detailing only inside the real world
     if (snowAt(gx, y, t) > 0.5) continue;                // joints and setts are under the snow
+    if (litter[i]) drawLitter(gtx, x, y, litter[i]);         // #66: the autumn drift, on top of the cell
     if (t === BED && turned[i]){                         // dug over: two furrows and a lit ridge across the cell
       gtx.lineWidth = 0.8;
       for (const [fy, col] of [[0.3, 'rgba(14,9,5,.42)'], [0.7, 'rgba(14,9,5,.42)'], [0.5, 'rgba(150,118,80,.22)']]){

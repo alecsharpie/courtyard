@@ -16,33 +16,6 @@
   "rationale": "HOLD RUNG 2 with a rung-5 bet at the tail. The town's biggest gap for a thirty-second viewer is now structural, not a missing feature: twenty iterations (#32–#62) built the night — windows, the door, homers, river and wet lamps, now a lantern — and a visitor landing at noon has ~35 s of daylight before dusk and no way there but a season-length skip. b64 is the bet: a tap on the sill's clock takes the town to the evening, using the skip machinery that already exists (beginSkip/simSub/skipEase, SKIP_SUB-bounded) with a shorter target — if it lands, the observer has a fourth instrument and the whole night investment becomes the first thing a viewer can choose to see. The four compounding moves are all consumers of scalars built in the last ten iterations that nothing downstream reads yet: wetness has no effect on people (b61: sitters ignore a wet seat, the lane 9 back), the wind ramp starts at the one hour nobody can see it (b62: tie the wind target to the fronts cloudCover already builds, c96), and the autumn shed produces leaves that vanish on touching the ground (b63: leaf litter on the cached ground, courtyard 6 back, the first CA-class rule since #16). b60 lands #62's lantern and takes c99 in passing. Risk: b60 low, b61 medium, b62 medium, b63 medium-high (cached ground, a new per-cell array, interacts with snow and wear), b64 high.",
   "queue": [
     {
-      "id": "b63",
-      "domain": "Courtyard & garden",
-      "kind": "New CA rule",
-      "brief": "The autumn shed is a spawner: `leafFallF()` sends leaves off the thirteen trees and they vanish on touching the ground, so at 1x in October the lawns and paving under the canopy are exactly as clean as in June. Let leaves land: a per-cell `litter[]` (Uint8, like `turned[]`/`trod[]`) that a landing leaf raises under its tree, that `drawGround` paints as a warm brown-orange scatter on GRASS and paving in the cached layer (bucketed, so rebuilds stay in the light budget), that feet and the sweeper's broom cut the way `trod[]` is cut, and that decays by itself over a few days once the shed ends — so drifts build under the linden, the street trees and the orchard in autumn and are gone by midwinter (and under snow). Exact at zero: a summer ground hash must equal HEAD's. Show a seed-7 late-autumn courtyard crop vs HEAD, `ground-rebuilds.mjs` on an autumn day, and litter cells per day across the year on 3 seeds.",
-      "seams": [
-        "leafFallF",
-        "leafShed",
-        "leaves",
-        "trod",
-        "turned",
-        "drawGround",
-        "groundBase",
-        "wearDirty",
-        "snowAt",
-        "a.broom",
-        "crowns",
-        "TREE_PITS",
-        "probes/canopy-year.mjs",
-        "probes/ground-rebuilds.mjs",
-        "probes/snow-wear.mjs"
-      ],
-      "successLooksLike": "An October wide shot reads autumn from the ground, not only the canopy; the lawn under the linden shows a brown drift the sweeper's line cuts through; June ground hash identical to HEAD; rebuilds per autumn day within +20 of HEAD; litter 0 by midwinter.",
-      "avoid": "Do not make the leaves themselves persistent agents. Do not add an R() draw — land position comes from the leaf's own state, hash(x,y) for the scatter. Do not touch the canopy colour rule.",
-      "budgetMin": 30,
-      "risk": "medium-high"
-    },
-    {
       "id": "b64",
       "domain": "The sill & the observer",
       "kind": "Interaction/UX",
@@ -87,6 +60,10 @@
     {
       "id": "b62",
       "at": "2026-08-29T03:18:28.488Z"
+    },
+    {
+      "id": "b63",
+      "at": "2026-08-29T03:24:21.156Z"
     }
   ]
 }

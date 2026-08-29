@@ -345,7 +345,8 @@
     "courtyard": [
       "walled garden — bed ring, four arch entrances, benches, desire paths from wear[], daisies, ivy, a pre-dawn sweeper, one linden; planting CA (11 species, bloom stages, seeding, crowding, dieback); drawGround repaint throttled by wearDirty. probes/ground-rebuilds.mjs, frame-cost.mjs",
       "the beds read the YEAR — growF()/dieF() off warmth, lawn health in groundCol; bloomCap() a RAMP over warmth (BLOOM_LO → BLOOM_HI = anchor), a CEILING dithered per cell/plot by capStep(). probes/beds-year.mjs, bloom-cap.mjs",
-      "snow knows the paths — snowAt() discounts by max(wear/SNOW_WEAR_AT, trod[]); trod[] cut by feet on GRASS and a.broom agents, buried by SNOW_BURY. probes/snow-wear.mjs"
+      "snow knows the paths — snowAt() discounts by max(wear/SNOW_WEAR_AT, trod[]); trod[] cut by feet on GRASS and a.broom agents, buried by SNOW_BURY. probes/snow-wear.mjs",
+      "litter[] (Uint8 per cell): leaf litter laid by landing shed leaves, painted in drawGround (tint + hash scatter), cut by feet/broom, batch-decayed, cleared by snow. probes/litter-year.mjs"
     ],
     "lane": [
       "kiosk, pavement cafe with claimable tables, awnings, washing lines (garments in on weatherComing() and at dusk), planters, lamps, benches; market every 4th day, three stalls, marketRaise(i) stages each on one 0..1",
@@ -414,6 +415,12 @@
     {
       "id": "c101",
       "note": "windyDay() is hash(day,99) — seed-blind, every seed shares one windy calendar (~40% of hours in a 30-day window)",
+      "raisedBy": 63,
+      "seenBy": 0
+    },
+    {
+      "id": "c102",
+      "note": "leaf litter always heaps EAST of a tree (leaf vx is always positive); tie drift direction to the wind's sign",
       "raisedBy": 63,
       "seenBy": 0
     }
