@@ -28,7 +28,7 @@
   "avoid": "Do not build a second lapse mechanism — extend the one that exists with a different target. Do not let the two buttons run at once. Do not make the ticker carry a hint for it.",
   "budgetMin": 35,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 67,
   "issued": "2026-08-29T03:29:40.122Z",
