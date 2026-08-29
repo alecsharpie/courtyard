@@ -1,41 +1,152 @@
 {
-  "generated": "2026-08-29T03:30:00.000Z",
-  "byIteration": 62,
+  "generated": "2026-08-29T03:48:18.437Z",
+  "byIteration": 67,
   "rung": 2,
   "diagnosis": {
-    "health": "Healthy: the last 20 real rows are 19 shipped and 1 rejected-brief (#48), 0 reverts, selfVerdict == verdict on every row that has one, source moved 9/10, $4.18/iter at 8 min with 41–79-line diffs and a probe each. Cost is flat with output held. One loose end this pass: #62 (b59, the boat lantern) is graded 'shipped' by the runner but its 37-line diff sits UNCOMMITTED in the working tree with no ledger entry and selfVerdict null — the worker ran out of turns between verifying and landing. That is not a stall, it is a half-finished iteration, and b60 at the head of the queue lands it. Recurring fault, mine again: the worker budget opened OVER on #62 (46.8/46 KB) with #60/#61 at 2.7/3.2 KB, and state.json was four iterations stale. Fixed: coverage #58–#61 entered, #59–#61 archived verbatim then condensed to 1.3–1.7 KB, four laws promoted (#58 folded into the filmstrip law, #59 into the inventory law, #60 and #61 new) paid for by compressing twelve and merging the bAge/HOMES pair — 33 laws, 12.0/12 KB; inventory 47 → 43 entries by merging the three NAMING lines and the byTheWater/tap-door/sweeper pairs; five cues resolved (2 → briefs, 3 folded into briefs' gates/avoids), c79 closed after three passes. Budget 46.8 → 41.0 KB OK.",
+    "health": "Healthy: of the last 20 real rows 18 shipped, 1 no-ship was #63 verifying #62's diff (a deliberate landing), 1 rejected-brief (#48); 0 reverts; selfVerdict == verdict on every row that has one; source moved 9/10; $4.25/iter at 8 min on 17–88-line diffs, each with a probe and a HEAD control. Cost is flat and #65/#66 came in at $2.9 with output held. The recurring fault is mine for the sixth pass: the worker budget opened OVER on #67 (46.1/46 KB) and state.json was four iterations stale (coverage #64–#67 unrecorded, cues raisedBy wrong). Fixed: #54–#58 rotated to the archive, #63–#67 archived verbatim then condensed 2.6–2.9 → 1.4–1.8 KB; four laws promoted (#64 → pin-the-instant, #65+#66 → the zero-is-evidence law, #67 → a new sun-at-arrival law plus a clause in the probe-world law) paid for by compressing nine — 34 laws, 12.0/12 KB; sill lapse lines merged; four cues resolved (2 → briefs, 1 folded, 1 closed), c104 raised from #63's rose-window diagnosis; WATCH: the-night-is-unseen note (false since #67) replaced by the-night-is-one-tap-away.",
     "signals": [
-      "queue empty (all five of pass #57's briefs consumed: 5 shipped, 0 rejected, 0 reverted)",
+      "queue empty (pass #62's five briefs: 4 shipped + 1 landing of #62)",
       "no stall signal; revertStreak=0",
-      "#62 diff uncommitted and unlogged — runner graded it shipped on srcChanged alone",
-      "context budget OVER on #62 (46.8/46 KB) — fixed this pass",
+      "context budget OVER on #67 (46.1/46 KB) — fixed this pass",
       "state.json four iterations stale — recorded"
     ],
-    "balance": "After recording: lane 9 back (#53), courtyard 6 (#56), sill 5 (#57), sky 4, plaza 3, life 2, street 1, river 0 (pending b60). Lane, courtyard and sill get one each; river takes the landing; sky takes c96. Life and street sit this batch out (four of the last six). courtyard × new-CA gets its third entry; nothing has been a New CA rule since #16."
+    "balance": "After recording: plaza 8 back (#59), life 7 (#60), street 6 (#61), river 4, lane 3, sky 2, courtyard 1, sill 0. Plaza, life and street each get one; sill gets a 1-hour polish for c103 (sill × polish is an empty cell); sky takes the bet because c101/c102 both point at the same missing thing. Courtyard, lane and river sit this batch out."
   },
-  "rationale": "HOLD RUNG 2 with a rung-5 bet at the tail. The town's biggest gap for a thirty-second viewer is now structural, not a missing feature: twenty iterations (#32–#62) built the night — windows, the door, homers, river and wet lamps, now a lantern — and a visitor landing at noon has ~35 s of daylight before dusk and no way there but a season-length skip. b64 is the bet: a tap on the sill's clock takes the town to the evening, using the skip machinery that already exists (beginSkip/simSub/skipEase, SKIP_SUB-bounded) with a shorter target — if it lands, the observer has a fourth instrument and the whole night investment becomes the first thing a viewer can choose to see. The four compounding moves are all consumers of scalars built in the last ten iterations that nothing downstream reads yet: wetness has no effect on people (b61: sitters ignore a wet seat, the lane 9 back), the wind ramp starts at the one hour nobody can see it (b62: tie the wind target to the fronts cloudCover already builds, c96), and the autumn shed produces leaves that vanish on touching the ground (b63: leaf litter on the cached ground, courtyard 6 back, the first CA-class rule since #16). b60 lands #62's lantern and takes c99 in passing. Risk: b60 low, b61 medium, b62 medium, b63 medium-high (cached ground, a new per-cell array, interacts with snow and wear), b64 high.",
-  "queue": [],
-  "recommendStop": null,
-  "consumed": [
+  "rationale": "HOLD RUNG 2 with one rung-3-flavoured bet. #67 changed what a viewer can see: the night is now one tap away, so the loop's twenty night iterations finally pay — and the first thing that tap exposes is a defect in the queue's own advertising (the clock offer comes fourth, after an offer that needs a tap on a person: b65, one hour, c103). The three lagging domains each have a compounding move on a scalar that already exists: the plaza's fountain KNOWS it is frozen (fountainIce, fountainLine) and, as far as the source shows, says so only in a sentence — b66 draws it; the town's people all walk alone though a.mate exists for picnic pairs — b67 sends some in twos, the first new kind of person since #53 and a thing the wide shot shows in a second; the street trees' leaves lie on the road with nobody to clear them, while the courtyard has a broom — b69 gives the street its litter day. The bet is b68: the wind has magnitude and no direction, so every consumer since #15 leans east and #66's litter heaps east under every tree in every seed; a signed wind per front (and the seed in the calendar, c101) makes a whole class of days look different from the wide shot. Risk: b65 low, b66 medium, b67 medium-high (the 0.9-cell merge law, the follower-rate law), b68 high (eight consumers, every anchor must reduce at sign +1), b69 medium.",
+  "queue": [
     {
-      "id": "b60",
-      "at": "2026-08-29T03:01:08.409Z"
+      "id": "b65",
+      "domain": "The sill & the observer",
+      "kind": "Polish",
+      "brief": "The clock became a button at #67 and joined OFFERS last, after `follow` — so a visitor who never taps a person hears 'press the hour' ~30 real s in, after the daylight they would have skipped is gone. Re-order OFFERS so the clock's offer is heard SECOND (after the first touch invitation), and make sure `found: () => clockPressed` still retires it. Check what the narrow (390 px) sill does with the order — it keeps the clock via `at-clock`. One hour; no new mechanism.",
+      "seams": [
+        "OFFERS",
+        "EVENING_WIDE",
+        "EVENING_NARROW",
+        "clockPressed",
+        "TICK_DWELL",
+        "#daytime",
+        "at-clock",
+        "probes/touch-hint.mjs",
+        "probes/season-invite.mjs",
+        "probes/evening-skip.mjs"
+      ],
+      "successLooksLike": "A fresh page with no taps hears the evening offer before ~12 real s (print the real-time each offer surfaces, HEAD vs HERE); the follow and season offers still surface and still retire on their `found`; touch-hint.mjs and season-invite.mjs pass; the 390 px sill shows the clock on the same row as the controls.",
+      "avoid": "Do not add a hint line for the clock. Do not change TICK_DWELL or the queue depth. Do not touch beginEvening().",
+      "budgetMin": 15,
+      "risk": "low"
     },
     {
-      "id": "b61",
-      "at": "2026-08-29T03:09:02.934Z"
+      "id": "b66",
+      "domain": "Plaza & quay",
+      "kind": "Deepen",
+      "brief": "The plaza already reads the year: `fountainPlay()` = 1 − FOUNT_SWING·greyF() and `fountainIce()` > 0 at midwinter, and `fountainLine()` says 'the skinned-over basin' — but confirm with grep whether anything in the DRAW reads `fountainIce()`; the manager's read is that only `fountainLine`/`fountainStand` do, so the jet is drawn playing in January while the sentence says it is frozen. Make the frozen fountain visible: as fountainIce rises the jet and spray fall to nothing, the basin's water goes from moving to a still pale skin (cached or live — the plume is live, the basin may be in the cached ground; count rebuilds), and at ice 0 every term reduces exactly to today. If the plaza's `drawFountain` already has an ice branch, deepen it instead: the sitters' `fountainStand()` share and the naming line should agree with what is drawn.",
+      "seams": [
+        "fountainPlay",
+        "fountainIce",
+        "FOUNT_ICE",
+        "FOUNT_SWING",
+        "fountainStand",
+        "fountainLine",
+        "FOUNTAIN",
+        "drawFountain",
+        "greyF",
+        "nightF",
+        "snowCover",
+        "probes/ground-rebuilds.mjs",
+        "probes/frame-cost.mjs"
+      ],
+      "successLooksLike": "Pinned midwinter noon crop of the plaza (seed 7, the frost) shows a still, skinned basin and no plume; midsummer noon crop is pixel-identical to HEAD; the lamp reflections on wet paving still work in winter; a year probe prints fountainIce and the plume's droplet count per day and the two agree; motion gate PASS; frame cost unchanged.",
+      "avoid": "Do not add a new R() draw. Do not thin plaza arrivals — fountainStand already does that. Do not touch the river ice (there is none) — the plaza only.",
+      "budgetMin": 30,
+      "risk": "medium"
     },
     {
-      "id": "b62",
-      "at": "2026-08-29T03:18:28.488Z"
+      "id": "b67",
+      "domain": "People & animals",
+      "kind": "New element",
+      "brief": "Every walker in the town arrives alone; the only pair is the picnic (`a.mate`, set at spawn, judged once). From the wide shot a town where nobody walks WITH anybody reads as a queue. Send some arrivals in twos: a lane or east spawn that, at a band, spawns a companion on the SAME itinerary a step behind, held as a pair by the follower-rate law (the follower re-targets a point beside the leader several times a second, never further than one bout's travel), sharing the leader's stops (the pair sits together, browses the stall together, and a seat refusal by one takes both — `a.mate` already does this for picnic). Companions must count under the SAME cap they came from (laneCap/eastCap), not beside it, so the population is unchanged; measure the share of arrivals that are pairs at the CHOICE and the pair's separation histogram.",
+      "seams": [
+        "spawnLaneAgent",
+        "spawnEastAgent",
+        "spawnAgent",
+        "stepAgent",
+        "a.mate",
+        "a.wp",
+        "routeToExit",
+        "seatRefused",
+        "laneCap",
+        "eastCap",
+        "greetPass",
+        "STAYING",
+        "__entities",
+        "probes/seats-out.mjs",
+        "probes/follow.mjs"
+      ],
+      "successLooksLike": "A 10-seed daylight probe prints ~15–25 % of lane/east arrivals as pairs; the separation histogram sits between 0.9 and 1.6 cells for >90 % of samples (never under 0.9 — the merge law); laneCount/eastCount peaks unchanged vs HEAD; seats-out.mjs 0 splits; a 30-min crop of the lane shows two people side by side who arrive and leave together; naming a companion says who they are with.",
+      "avoid": "Do not give pairs their own arrival source. Do not make both members pathfind independently to the same waypoint — that is the 0.9-cell failure. Do not pair kids, dogs, homers or the concert crowd this iteration.",
+      "budgetMin": 35,
+      "risk": "medium-high"
     },
     {
-      "id": "b63",
-      "at": "2026-08-29T03:24:21.156Z"
+      "id": "b68",
+      "domain": "Sky, light & weather",
+      "kind": "Deepen",
+      "brief": "THE BET. The wind is a magnitude (windF(), windTarget() = max(windyDay hash, frontWind)) with no direction: every consumer leans +x — the washing, smoke, bunting, fountain spray, river streaks, cloud drift, rain droplets, and the shed leaves' vx, which is why #66's litter heaps EAST of every tree in every seed (c102). Give the wind a SIGN: one per front / windy day (a hash of the day, latched when the target rises from calm so it cannot flip mid-blow), and make every consumer that has an x-lean multiply by it, so an east-wind day leans the whole town the other way and its litter lies west of the linden. Take c101 in the same pass: `windyDay()` is `hash(day, 99)` with no seed, so every seed shares one windy calendar — salt it with the seed. At sign +1 every consumer must reduce exactly to today.",
+      "seams": [
+        "windF",
+        "windTarget",
+        "windyDay",
+        "frontWind",
+        "stepWind",
+        "frontSpent",
+        "gust",
+        "leaves.push",
+        "landLeaf",
+        "litter",
+        "drawRiverFlow",
+        "drawRiverLights",
+        "fountainStand",
+        "stepClouds",
+        "probes/wind-front.mjs",
+        "probes/wind-year.mjs",
+        "probes/litter-year.mjs",
+        "probes/river-wind.mjs"
+      ],
+      "successLooksLike": "wind-front.mjs and wind-year.mjs anchors unchanged for magnitude; a new probe prints the sign per windy spell across 10 seeds × 30 d (roughly half each way, never flipping inside a spell); litter-year.mjs shows the linden's heap centroid west of the trunk on a west-sign autumn day and east on an east-sign one; a windy noon crop pair (sign +1 vs −1) with every lean mirrored and nothing else different; sign +1 whole-frame hash identical to HEAD at a pinned windy instant; 10 seeds no longer share the windy calendar.",
+      "avoid": "Do not add a compass or a vane — the lean IS the reading. Do not let the sign change while windF > 0.1. Do not reshuffle the seeded stream with a new R() — hash only.",
+      "budgetMin": 40,
+      "risk": "high"
     },
     {
-      "id": "b64",
-      "at": "2026-08-29T03:29:40.121Z"
+      "id": "b69",
+      "domain": "Cross street & allotments",
+      "kind": "Connect",
+      "brief": "#66's litter lands on ROAD and SIDE too — the street trees' leaves cross the footway and lie on the road (the surprise of #66) — and the only thing that clears paving is the courtyard's pre-dawn sweeper (`a.broom`), which never walks the cross street. So a street heap lasts until decay or snow while the courtyard's is scuffed clear each dawn. Connect the street to a clearing: either extend the sweeper's round to the cross street footway on some mornings, or let the road's litter be cut by the cyclists and walkers that already use it at a higher rate than grass, or both — pick the one that reads from the wide shot and say why. Also confirm the footway/road litter is DRAWN (drawLitter's tile check) and not only raised.",
+      "seams": [
+        "litter",
+        "landLeaf",
+        "stepLitter",
+        "LITTER_LAND",
+        "LITTER_BATCH",
+        "a.broom",
+        "sweeper",
+        "XS_W0",
+        "XS_WALK_W",
+        "ALLEY_Y",
+        "cyclist",
+        "TREE_PITS",
+        "drawLitter",
+        "groundCol",
+        "probes/litter-year.mjs",
+        "probes/ground-rebuilds.mjs"
+      ],
+      "successLooksLike": "An autumn-morning crop pair (day 16, 07:00 and 12:00) of the cross street shows a heap on the road that is visibly cut by midday on HERE and not on HEAD; litter-year.mjs prints per-tile-class sums (GRASS/PATH/SIDE/ROAD) and the ROAD sum on HERE falls faster than HEAD's while the courtyard sums are identical; ground rebuild count unchanged; motion gate PASS; the sweeper's courtyard round is unchanged in timing.",
+      "avoid": "Do not add a second sweeper agent under laneCap. Do not decay ROAD litter faster by constant — the clearing must be something a viewer can watch happen.",
+      "budgetMin": 30,
+      "risk": "medium"
     }
-  ]
+  ],
+  "recommendStop": null,
+  "consumed": []
 }
