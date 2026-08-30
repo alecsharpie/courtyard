@@ -19,7 +19,7 @@
   "avoid": "No new R() draw. Do not turn the vane in the CACHE (a cached vane steps at the bucket cadence — the rose window's old seam). Do not make the smoke read anything new — it is already right.",
   "budgetMin": 40,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 83,
   "issued": "2026-08-30T22:41:52.136Z",
