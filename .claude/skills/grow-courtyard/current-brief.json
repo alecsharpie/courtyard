@@ -22,7 +22,7 @@
   "avoid": "Do not put it on the lane (LANE_N_Y is a footway with tables) or over the footbridge. Do not spawn it from laneCap. Do not draw it as one item — a walker will vanish behind it or walk through its body. Do not make it a bus/van: the town is pre-motor.",
   "budgetMin": 75,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 2,
   "nextIter": 82,
   "issued": "2026-08-30T18:46:42.406Z",
