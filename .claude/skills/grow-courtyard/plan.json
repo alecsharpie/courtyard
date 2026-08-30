@@ -15,27 +15,7 @@
     "balance": "After recording: river 9 back (#63), lane 8 (#64), courtyard 6 (#66), sill 4 (#68), plaza 3 (#69), life 2, sky 1, street 0. River takes the bet (a spatial change at the river is also the plaza's and the far bank's), lane gets the cafe, courtyard gets companions, plaza a short frost polish, sky the wind's three loose consumers in one low-risk brief. Life, street and sill sit this batch out."
   },
   "rationale": "CLIMBED TO RUNG 4b, and mapFlat says which: a change in SPACE. Every rung-4 so far (#32, #37, #42) picked time — the night, the snow, the year — and all of it landed; nothing in 68 iterations has moved a tile. The single biggest thing missing from a thirty-second look is that the east half of the town is three places that never exchange anybody: the only crossing of the river is the lane bridge at the bottom of the frame, so a visitor to the church green walks in through PARK_GATE at y 60 while the plaza, the quay and the jetty at (128.4, 35) — fifteen cells apart across the water — stay strangers. b70 builds a FOOTBRIDGE at the alley's latitude (ALLEY_Y 31): a new tile kind over the water, drawn light, the rowboat passing under it, and then USED by the east spawner's routes so the deck carries people both ways. It must move tileKinds and water in the census; the WATCH note and the brief both say a re-pinned baseline is the expected outcome. It goes first, at 75 min, with a 150–300-line diff invited. Behind it, four compounding moves on things that exist at a rate of zero or read wrong: b71 the cafe drawn for nobody (#64 counted 0 arrivals in 14 seeds × 3 h — the law says give a rare thing its own supply), b73 companions for the courtyard (c107, the wide shot's pairs stop at the courtyard wall), b72 the wind's three consumers that ignore it or leave the frame (c108/c109/c110, one low-risk brief so the sign lands everywhere), b74 the basin that is frozen and does not look it (c106). Risk: b70 high, b71 medium, b73 medium, b72 low, b74 low. No more rung-2 passes are available until this one has landed a spatial change or shown why it cannot.",
-  "queue": [
-    {
-      "id": "b74",
-      "domain": "Plaza & quay",
-      "kind": "Polish",
-      "brief": "c106: the fountain basin is frozen for days 26–1 and the plume stops (#69), but the basin skin only reaches 0.19–0.43 toward ice-white because fountainIce caps at 0.43 — it reads as pale water, not ice. Let the frozen basin read frozen at a glance from the wide shot: raise the per-cell floor or let ice reach 1 on the cached ground (count rebuilds with probes/ground-rebuilds.mjs before and after; the cache must not rebuild more often). Exactly zero change anywhere fountainIce is 0.",
-      "seams": [
-        "fountainIce",
-        "FOUNT_ICE",
-        "FOUNT_STILL",
-        "riverCol",
-        "drawGround",
-        "probes/fountain-freeze.mjs",
-        "probes/ground-rebuilds.mjs"
-      ],
-      "successLooksLike": "A midwinter noon crop of the basin is unmistakably ice next to HEAD's; a summer crop is pixel-identical to HEAD; rebuild counts unchanged.",
-      "avoid": "Do not touch the river's ice or riverCol's other callers. Do not add a per-frame draw.",
-      "budgetMin": 25,
-      "risk": "low"
-    }
-  ],
+  "queue": [],
   "recommendStop": null,
   "consumed": [
     {
@@ -53,6 +33,10 @@
     {
       "id": "b72",
       "at": "2026-08-30T17:24:43.369Z"
+    },
+    {
+      "id": "b74",
+      "at": "2026-08-30T17:43:51.888Z"
     }
   ]
 }

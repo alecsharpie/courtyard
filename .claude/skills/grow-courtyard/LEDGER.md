@@ -127,3 +127,12 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Surprise:** the gutter heap was 4697 over 4 seed-days at HEAD and 7176 spread here — the spread lands MORE litter, because row 70 was the row the sweeper cleared every morning and rows 69/71 are not yet where he walks. The context budget printed OVER (47.1 / 46 KB) at the start of this iteration — for the manager.
 **Law:** A per-entity variable that must not cost a draw can be folded out of a draw the entity already made — two fractions of one uniform (`ph/9 % 1`, `ph·1.7 % 1`) sum to a triangular around the old constant, so the mean stays the anchor and the stream is untouched.
 **Cue:** the sweeper clears ONE road row; litter now spreads over 68–73 and rows 69/71 will outlast him — a two-row pass, or walk the heaviest pair.
+
+## Iteration 77 — the frozen basin reads frozen: `fountainSkin()` lifts the ice mix from 0.43 to 1 at midwinter (2026-08-31) [Plaza & quay × Polish]
+
+**Brief:** b74 — the basin skin capped at fountainIce()'s 0.43 max, so midwinter read as pale water, not ice.
+**Did:** `FOUNT_ICE_MAX = (FOUNT_ICE − (1 − FOUNT_SWING)) / FOUNT_ICE` (0.43, the phase's real ceiling); `fountainSkin()` = ice/that, eased `k(2−k)`, 0 → 0 exactly. In `groundCol` the basin returns `c` untouched when skin ≤ 0, else `mix(c, mix('#b4c3c6','#e4ebec', skin), skin·(0.7 + 0.3·hash))` — per-cell floor 0.7 so no cell stays water. fountainIce/fountainJet/riverCol untouched; cached ground only, no per-frame draw.
+**Gates:** census PASS (unchanged everywhere — draw-only) · visual PASS (`shots/b74-winter-east.png` vs `b74-head-winter-east.png`: white basin vs pale blue; summer wide unchanged) · motion PASS · perf skipped (cached layer). `probes/ground-rebuilds.mjs`: 133 / 130 per day before and after. gcv basin crop at summer noon hash-identical to HEAD; winter meanL 135 → 144 (crop includes rim/paving).
+**Verdict:** shipped
+**Surprise:** `probes/fountain-freeze.mjs`'s *summer* crop hash differs between two runs of the SAME file (the live plume/droplets sit inside it) — only its winter hash is a usable identity check. Hashing `gcv` (the cache the change lives on) was exact both ways.
+**Cue:** fountain-freeze.mjs summer crop should read `gcv`, not `cv`, for the identity half.

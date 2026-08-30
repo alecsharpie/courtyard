@@ -380,7 +380,8 @@
       "plaza with a fountain and paved roundel, four tree pits, benches; quay benches. pavingAt(x,y) the ONE predicate naming a cell's paving, each with a crumbs line and bird box; crumbSpot() keeps birds off the basin. probes/paving-places.mjs",
       "spawnEastAgent() — the east quarter's own arrival source (eastCap/eastRate, a.east, eastOpen() on daylight); enters by alley, quay head or park gate, one stop, leaves the way it came (EAST_GATE_A/Q/P)",
       "the FOUNTAIN reads the YEAR — fountainPlay() = 1 - FOUNT_SWING*greyF(): jets, reach, droplets; basin via riverCol() + fountainIce() below FOUNT_ICE; fountainStand() sets the bench/fountain split in both spawners. probes/fountain-year.mjs",
-      "the fountain reads the WIND and the FROST — jets/droplets/lee spray lean windSign·windF(), fountainStand() drops FOUNT_WIND_SHY on windy days, bunting flutters; fountainJet() = 1 − fountainIce()/FOUNT_STILL stills the plume on the frozen basin. probes/fountain-wind.mjs, fountain-freeze.mjs"
+      "the fountain reads the WIND and the FROST — jets/droplets/lee spray lean windSign·windF(), fountainStand() drops FOUNT_WIND_SHY on windy days, bunting flutters; fountainJet() = 1 − fountainIce()/FOUNT_STILL stills the plume on the frozen basin. probes/fountain-wind.mjs, fountain-freeze.mjs",
+      "fountainSkin() — ice-white per-cell basin skin reaching 1 at midwinter on the cached ground (#77)"
     ],
     "river": [
       "river, one rowboat, three-arch lane bridge (own shadow), towpath, church with tower, nave and rose window, bandstand, four orchard trees, jetty, park gate; pigeons flush off the belfry at the bell",
@@ -452,6 +453,12 @@
       "id": "c115",
       "note": "the sweeper clears one road row; litter now spans 68-73, rows 69/71 outlast him — a two-row pass or the heaviest pair (#76)",
       "raisedBy": 76,
+      "seenBy": 0
+    },
+    {
+      "id": "c116",
+      "note": "probes/fountain-freeze.mjs summer crop hash is noisy (live plume in crop); read gcv for identity",
+      "raisedBy": 74,
       "seenBy": 0
     }
   ],

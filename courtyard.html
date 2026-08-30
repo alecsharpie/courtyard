@@ -1112,6 +1112,13 @@ function fountainIce(){ return clamp((FOUNT_ICE - fountainPlay()) / FOUNT_ICE, 0
  * exactly today's outside the frost (x * 1). Draw-only: no R(), the plume is live. */
 const FOUNT_STILL = 0.35;                      // ice at which the plume is gone entirely
 function fountainJet(){ return clamp(1 - fountainIce() / FOUNT_STILL, 0, 1); }
+/* fountainIce() tops out at (FOUNT_ICE - (1 - FOUNT_SWING)) / FOUNT_ICE = 0.43 at midwinter
+ * — a fine phase for the plume, but as a paint MIX it never got the basin past pale
+ * water (#77). fountainSkin() is the same ice read as a SURFACE: 0 → 0 exactly (the
+ * summer basin is riverCol's, untouched), 1 when the year is coldest, eased so the
+ * skin comes in fast once it starts and the basin reads FROZEN from the wide shot. */
+const FOUNT_ICE_MAX = (FOUNT_ICE - (1 - FOUNT_SWING)) / FOUNT_ICE;
+function fountainSkin(){ const k = clamp(fountainIce() / FOUNT_ICE_MAX, 0, 1); return k * (2 - k); }
 function fountainLine(){
   return fountainIce() > 0 ? 'Someone stands at the skinned-over basin, breath showing, and does not touch it.'
                            : 'Someone trails a hand through the fountain and flicks it dry.';
@@ -3996,8 +4003,10 @@ function groundBase(x, y, t, hv, m){
       // the basin: the river's colour for the month, then a skin of ice that comes in
       // cell by cell below FOUNT_ICE — both identities at the anchor
       const c = riverCol(mix('#527a86', '#4a6f7c', hv * 0.5));
-      const ice = fountainIce() * (0.45 + 0.55 * hash(x, y + 71));
-      return ice > 0 ? mix(c, '#b4c3c6', ice) : c;
+      const skin = fountainSkin();
+      if (skin <= 0) return c;                                   // exactly riverCol's whenever ice is 0
+      const ice = skin * (0.7 + 0.3 * hash(x, y + 71));         // per-cell floor 0.7: no cell stays water
+      return mix(c, mix('#b4c3c6', '#e4ebec', skin), ice);      // pale skin → ice-white at the coldest
     }
     const depth = 1 - Math.hypot((x + .5 - POND.x) / POND.rx, (y + .5 - POND.y) / POND.ry);
     return mix('#7a948e', '#4f7580', clamp(depth * 1.8, 0, 1));
