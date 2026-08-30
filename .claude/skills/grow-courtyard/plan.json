@@ -15,33 +15,6 @@
   "rationale": "HOLD RUNG 2 with one rung-3-flavoured bet. #67 changed what a viewer can see: the night is now one tap away, so the loop's twenty night iterations finally pay — and the first thing that tap exposes is a defect in the queue's own advertising (the clock offer comes fourth, after an offer that needs a tap on a person: b65, one hour, c103). The three lagging domains each have a compounding move on a scalar that already exists: the plaza's fountain KNOWS it is frozen (fountainIce, fountainLine) and, as far as the source shows, says so only in a sentence — b66 draws it; the town's people all walk alone though a.mate exists for picnic pairs — b67 sends some in twos, the first new kind of person since #53 and a thing the wide shot shows in a second; the street trees' leaves lie on the road with nobody to clear them, while the courtyard has a broom — b69 gives the street its litter day. The bet is b68: the wind has magnitude and no direction, so every consumer since #15 leans east and #66's litter heaps east under every tree in every seed; a signed wind per front (and the seed in the calendar, c101) makes a whole class of days look different from the wide shot. Risk: b65 low, b66 medium, b67 medium-high (the 0.9-cell merge law, the follower-rate law), b68 high (eight consumers, every anchor must reduce at sign +1), b69 medium.",
   "queue": [
     {
-      "id": "b67",
-      "domain": "People & animals",
-      "kind": "New element",
-      "brief": "Every walker in the town arrives alone; the only pair is the picnic (`a.mate`, set at spawn, judged once). From the wide shot a town where nobody walks WITH anybody reads as a queue. Send some arrivals in twos: a lane or east spawn that, at a band, spawns a companion on the SAME itinerary a step behind, held as a pair by the follower-rate law (the follower re-targets a point beside the leader several times a second, never further than one bout's travel), sharing the leader's stops (the pair sits together, browses the stall together, and a seat refusal by one takes both — `a.mate` already does this for picnic). Companions must count under the SAME cap they came from (laneCap/eastCap), not beside it, so the population is unchanged; measure the share of arrivals that are pairs at the CHOICE and the pair's separation histogram.",
-      "seams": [
-        "spawnLaneAgent",
-        "spawnEastAgent",
-        "spawnAgent",
-        "stepAgent",
-        "a.mate",
-        "a.wp",
-        "routeToExit",
-        "seatRefused",
-        "laneCap",
-        "eastCap",
-        "greetPass",
-        "STAYING",
-        "__entities",
-        "probes/seats-out.mjs",
-        "probes/follow.mjs"
-      ],
-      "successLooksLike": "A 10-seed daylight probe prints ~15–25 % of lane/east arrivals as pairs; the separation histogram sits between 0.9 and 1.6 cells for >90 % of samples (never under 0.9 — the merge law); laneCount/eastCount peaks unchanged vs HEAD; seats-out.mjs 0 splits; a 30-min crop of the lane shows two people side by side who arrive and leave together; naming a companion says who they are with.",
-      "avoid": "Do not give pairs their own arrival source. Do not make both members pathfind independently to the same waypoint — that is the 0.9-cell failure. Do not pair kids, dogs, homers or the concert crowd this iteration.",
-      "budgetMin": 35,
-      "risk": "medium-high"
-    },
-    {
       "id": "b68",
       "domain": "Sky, light & weather",
       "kind": "Deepen",
@@ -109,6 +82,10 @@
     {
       "id": "b66",
       "at": "2026-08-30T16:19:34.302Z"
+    },
+    {
+      "id": "b67",
+      "at": "2026-08-30T16:24:23.146Z"
     }
   ]
 }

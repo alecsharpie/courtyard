@@ -1883,6 +1883,8 @@ function stepAgent(a, dt){
     // progress the players pack away on, and a latecomer who never heard it at all
     // leaves when the last case comes off the stand.
     if (a.band && !a.heard && bandF() > 0.98) a.heard = true;
+    // a companion keeps no clock of its own: it gets up when the leader does
+    if (a.with){ if (a.with.done || a.with.state === 'walk'){ a.state = 'walk'; a.cup = false; } return; }
     if (a.timer <= 0 || (raining && a.state !== 'lie')
         || skyLifts(a)
         || (a.east && !eastOpenFor(a))
@@ -1903,10 +1905,15 @@ function stepAgent(a, dt){
     }
     return;
   }
+  if (a.with && a.listen > 0 && !(a.with.listen > 0)) a.listen = 0;   // a companion looks up only with the leader, or is left 3 cells behind
   if (a.listen > 0){ a.listen -= dt; stepDog(a, a.speed, dt); return; }   // the bell: a beat of standing still, head back
   // a passing word: both hold still, facing each other, then walk on. Only ever a
   // countdown — nothing here can hold an agent, so `done` stays reachable.
   if (a.greet > 0){ a.greet = Math.max(0, a.greet - dt); stepDog(a, a.speed, dt); return; }
+  // a companion re-reads its place beside the leader every step (a rate, not an
+  // offset); once the leader is off the frame it walks to the last place it was asked
+  // to and is done there.
+  if (a.with){ if (a.with.done) a.with = null; else { a.wp = [pairTarget(a)]; a.i = 0; } }
   const tgt = a.i < a.wp.length ? a.wp[a.i] : null;
   if (!tgt){ a.done = true; return; }
   // the ONE place a leaver is asked home: on the lane, after dark, as the last leg (the
@@ -1914,16 +1921,20 @@ function stepAgent(a, dt){
   // plain passer-by's whole route IS that leg, so they are asked on their first step;
   // whoever is already walking out when the dusk edge crosses 0.3 is asked then.
   if (a.i === a.wp.length - 1 && !a.homeAsked && nightF > 0.3 && !a.home && !a.cycle && !a.east
-      && !a.broom && a.y > 65 && a.y < 79){ a.homeAsked = true; if (goHome(a)) return; }
+      && !a.broom && !a.with && a.y > 65 && a.y < 79){ a.homeAsked = true; if (goHome(a)) return; }
   const dx = tgt[0] - a.x, dy = tgt[1] - a.y;
   const d = Math.hypot(dx, dy);
   const sp = a.speed * (raining && !a.umbrella ? 1.5 : 1) * (a.kind === 'napper' ? 0.8 : 1)
-                     * (a.east && !eastOpenFor(a) ? 1.55 : 1);   // home before dark
+                     * (a.east && !eastOpenFor(a) ? 1.55 : 1)    // home before dark
+                     * (a.with ? 1 + clamp((d - PAIR_GAP) * 0.5, 0, 0.9) : 1);   // a companion left behind hurries
   if (d < 0.25){
     a.i++;
     // the ONE place a leaver is asked home: on the lane, after dark, as the last leg
     // (the walk off the frame) begins — every route out of the town passes this point.
     if (a.i >= a.wp.length){
+      // a companion at its place: caught up (the leader walks on, and it is re-asked next
+      // step), or at the leader's side while they sit or stand
+      if (a.with){ if (a.with.state !== 'walk'){ a.state = a.with.state; a.cup = !!a.with.cup; a.resume = true; } return; }
       if (a.home){ arriveHome(a); a.done = true; return; }   // at the door: in they go
       if (a.kind === 'gardener' && !a.planted){ a.state='kneel'; a.timer=8+R()*4; return; }
       if (a.kind === 'napper' && a.napAt){ a.state='lie'; a.timer=16+R()*14; a.napAt=null;
@@ -1991,6 +2002,14 @@ function stepAgent(a, dt){
     return;
   }
   const mv = Math.min(sp * dt, d);
+  // a companion never closes under PAIR_MIN on the leader (the two would draw as one):
+  // when the leader turns and the place beside them is THROUGH them, step away instead
+  // (the leader keeps walking, so a hold is still walked through)
+  if (a.with){ const L = a.with, nx = a.x + dx / d * mv, ny = a.y + dy / d * mv;
+    if (Math.hypot(nx - L.x, ny - L.y) < PAIR_MIN){
+      let ax = a.x - L.x, ay = a.y - L.y, ad = Math.hypot(ax, ay);
+      if (ad < 1e-6){ ax = -a.hy * a.side; ay = a.hx * a.side; ad = 1; }
+      a.x += ax / ad * mv; a.y += ay / ad * mv; a.phase += mv * 2.2; stepDog(a, sp, dt); return; } }
   a.x += dx / d * mv; a.y += dy / d * mv;
   a.faceL = dx < 0;
   a.phase += mv * 2.2;
@@ -2034,7 +2053,7 @@ const GREET_DT = 0.5, GREET_R = 1.6, GREET_MIN = 0.9, GREET_P = 0.17;
 let greetAcc = 0;
 function chatty(a){
   return a.state === 'walk' && !a.small && !(a.listen > 0) && !(a.greet > 0) && !(a.chatCool > 0)
-      && a.kind !== 'sweeper' && a.kind !== 'picnic' && !a.homer;   // the sweeper is working; picnic pairs arrive together; a homer is priced to a door (c90)
+      && a.kind !== 'sweeper' && a.kind !== 'picnic' && !a.homer && !a.with;   // a companion is already with somebody   // the sweeper is working; picnic pairs arrive together; a homer is priced to a door (c90)
 }
 function greetPass(){
   const free = [];
@@ -2153,7 +2172,7 @@ function spawnAllotAgent(){
   sendToPlot(a);
   agents.push(a);
 }
-function spawnLaneAgent(){
+function spawnLaneAgent(room){
   const fromW = R() < 0.5;
   const yLine = R() < 0.6 ? LANE_N_Y : LANE_S_Y;
   const a = {
@@ -2172,7 +2191,7 @@ function spawnLaneAgent(){
     } else {              // along the lane, then up the cross street and away
       a.wp.push([xw, yLine], [xw, -2.5]);
     }
-    agents.push(a);
+    agents.push(a); withCompanion(a, room);
     return;
   }
   const roll = R(), sun = daylight > 0.3;
@@ -2273,7 +2292,7 @@ function spawnLaneAgent(){
       a.wp.push([toX, yLine + (R() - 0.5)]);
     }
   }
-  agents.push(a);
+  agents.push(a); withCompanion(a, room);
 }
 
 /* ============ the evening ============ *
@@ -2565,7 +2584,7 @@ function eastOpen(){ return daylight > 0.16; }
 const NIGHT_RAIL_RATE = 0.22;                // per second, while nobody is at the rail
 function eastOpenFor(a){ return eastOpen() || (a.nightRail && tapOpen()); }
 function nightRailFree(){ return !agents.some(a => a.nightRail); }
-function spawnEastAgent(nightRail){
+function spawnEastAgent(nightRail, room){
   const a = {
     kind:'plaza', street:true, east:true,
     x:0, y:0, wp:[], i:0, speed:1.5 + R() * 0.8, state:'walk', timer:0,
@@ -2622,7 +2641,63 @@ function spawnEastAgent(nightRail){
   a.wp.push([a.stop.x, a.stop.y]);
   for (let i = lead.length - 1; i >= 0; i--) a.wp.push(lead[i].slice());
   a.wp.push(gate.slice());                   // and back out the way they came
-  agents.push(a);
+  agents.push(a); withCompanion(a, room && !nightRail);   // the rail is ONE
+}
+/* ============ arriving in twos ============ *
+ * Until #70 every arrival on the lane and from the east came alone; the only pair in
+ * the town was the picnic (a.mate, judged once at the blanket). From the wide shot a
+ * town where nobody walks WITH anybody reads as a queue. So at a band an arrival
+ * brings a companion on the SAME itinerary: not a second route to the same waypoints
+ * (two pathfinders converge on one point and render as one shape — the 0.9-cell law)
+ * but a FOLLOWER, re-targeted every step to a point behind-and-beside the leader
+ * (#44's law: a follower is a re-read rate, not an offset). The companion has no stop
+ * of its own: it shares the leader's — sits beside them, stands beside them, and when
+ * the leader is refused a seat it simply walks on with them. It is spent from the SAME
+ * cap the leader came out of: the caller passes `room` (one place left under
+ * laneCap/eastCap), so the population's peaks are exactly HEAD's. The roll is drawn
+ * whether or not there is room, so the seeded stream is the same either way. */
+const PAIR_P = 0.55, PAIR_BEHIND = 0.7, PAIR_BESIDE = 0.85, PAIR_GAP = 1.1, PAIR_MIN = 0.9;
+function withCompanion(a, room){
+  const roll = R();
+  if (!room || roll >= PAIR_P || a.cycle || a.dog || a.kind === 'allot' || a.kind === 'busker' || a.nightRail) return;
+  const b = Object.assign({}, a, {shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9,
+    speed:a.speed * 1.12, with:a, side:R() < 0.5 ? 1 : -1, stop:null, table:null, dog:null, wp:[], i:0, hx:1, hy:0});
+  a.pairLead = true;
+  // a bench is 1.5 cells wide and its sitter takes the middle: shift the leader half a
+  // cell left and seat the companion a cell to their right; at a cafe table the
+  // companion takes the chair across it
+  if (a.stop && a.stop.act === 'sit' && !a.stop.cup){
+    const ox = a.stop.x; a.stop.x -= 0.5;
+    for (const p of a.wp) if (p[0] === ox && p[1] === a.stop.y) p[0] = a.stop.x;
+    a.pairSeat = 1.0;
+  } else if (a.stop && a.stop.cup) a.pairSeat = -1.7;
+  const t = pairTarget(b); b.x = t[0]; b.y = t[1]; b.wp = [t];
+  agents.push(b);
+}
+/* where the companion wants to be: walking, a step behind and to one side of the
+ * leader's heading; sitting, beside them on the same bench (perpendicular to the way
+ * they came at it); standing, behind them along it (a rail, a stall, a parapet). */
+function pairTarget(b){
+  const L = b.with, t = L.i < L.wp.length ? L.wp[L.i] : null;
+  if (t && L.state === 'walk'){
+    const dx = t[0] - L.x, dy = t[1] - L.y, d = Math.hypot(dx, dy);
+    if (d > 1e-6){ b.hx = dx / d; b.hy = dy / d; }
+  }
+  const hx = b.hx, hy = b.hy, px = -hy * b.side, py = hx * b.side;
+  if (L.state === 'walk') return [L.x - hx * PAIR_BEHIND + px * PAIR_BESIDE, L.y - hy * PAIR_BEHIND + py * PAIR_BESIDE];
+  if (L.state === 'sit' && L.pairSeat) return [L.x + L.pairSeat, L.y];
+  // at a stop the place beside them must be ground to stand on: one side of a quay
+  // bench is the river, so try the other side, then behind them
+  const beside = [L.x + px * PAIR_GAP, L.y + py * PAIR_GAP], other = [L.x - px * PAIR_GAP, L.y - py * PAIR_GAP],
+        behind = [L.x - hx * PAIR_GAP, L.y - hy * PAIR_GAP];
+  const opts = L.state === 'sit' ? [beside, other, behind] : [behind, beside, other];
+  return opts.find(q => pairStands(q[0], q[1])) || behind;
+}
+function pairStands(x, y){
+  const gx = Math.round(x - .5), gy = Math.round(y - .5);
+  if (gx < 0 || gy < 0 || gx >= GW || gy >= WH) return true;   // off the frame is where they came from
+  const g = grid[gy * GW + gx];
+  return g !== WATER && g !== VOID && g !== WALL && g !== BED && g !== CBED && g !== TRUNK;
 }
 /* the dawn sweeper */
 let sweeper = null;
@@ -5927,6 +6002,10 @@ function treeAt(p){
  * `listen`, `band` — never inferred from where they stand. Nothing here draws or
  * spends R(): it reads what the last frame put on screen. */
 function personName(a){
+  const n = personName0(a);
+  return (a.with || a.pairLead) && /^someone/.test(n) ? n + (a.with ? ', with the one they came with' : ', with a friend') : n;
+}
+function personName0(a){
   const st = a.state, k = a.kind;
   if (k === 'sweeper') return a.tap && st === 'stand' ? 'the evening sweeper, calling in at the door'
                             : a.eve ? 'the evening sweeper, clearing up after the market' : 'the sweeper, working down the lane';
@@ -6249,8 +6328,8 @@ function simStep(sdt, dt){
   spawnAcc += sdt;
   if (spawnAcc > 1){ spawnAcc = 0;
     if (courtyardCount < capacity && R() < rate) spawnAgent();
-    if (laneCount < laneCap && R() < laneRate) spawnLaneAgent();
-    if (eastOpen() && eastCount < eastCap && R() < eastRate) spawnEastAgent();
+    if (laneCount < laneCap && R() < laneRate) spawnLaneAgent(laneCount + 1 < laneCap);
+    if (eastOpen() && eastCount < eastCap && R() < eastRate) spawnEastAgent(false, eastCount + 1 < eastCap);
     // not under eastCap: after dark that is 1, and the people walking home hold it
     else if (!eastOpen() && tapOpen() && nightRailFree() && R() < NIGHT_RAIL_RATE) spawnEastAgent(true);
     if (daylight > 0.3 && day >= 1 && allotCount() < 3 && R() < allotRate) spawnAllotAgent();
@@ -6512,6 +6591,8 @@ window.__entities = function(){
                    if (a.home) o.home = 1;
                    if (a.homer) o.homer = 1;
                    if (a === followed) o.followed = 1;
+                   if (a.with) o.with = 'walker' + a.with.__id;
+                   if (a.pairLead) o.lead = 1;
                    if (a.dig) o.dig = 1;
                    // the audience on the green. A probe has to tell a listener from a
                    // passer-by, and a listener standing AT its claimed place from one

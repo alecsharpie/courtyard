@@ -397,7 +397,8 @@
       "EVERY sitter reads the sky — SIT_REFUSE turns a seat down, skyLifts(a) gives one up off a.wary, umbrellas on their own band; a refused seat takes routeToExit(); a pair judges once (a.mate). probes/seats-out.mjs",
       "__entities() carries role, act, watch and per-kind extras per person with a stable id — the seam a behaviour probe reads",
       "yearBusy(ex) multiplies the DAYLIGHT term of capacity/laneCap/eastCap only; POP_FLOOR + scarcity lift the three arrival RATES only. probes/season-year.mjs",
-      "crowds with their OWN arrival source, outside eastCount/laneCount: concert (spawnConcertAgent), evening door (spawnTapAgent), homers (spawnHomeAgent, a.homer); goHome(a) sends a lane leaver to a HOME_DOOR after dusk, HOMES read by windowLit(). probes/going-home.mjs"
+      "crowds with their OWN arrival source, outside eastCount/laneCount: concert (spawnConcertAgent), evening door (spawnTapAgent), homers (spawnHomeAgent, a.homer); goHome(a) sends a lane leaver to a HOME_DOOR after dusk, HOMES read by windowLit(). probes/going-home.mjs",
+      "ARRIVALS IN TWOS — withCompanion(a, room) on spawnLaneAgent/spawnEastAgent, PAIR_P of arrivals with one place under the SAME cap; b.with follower re-targets pairTarget(b) per step (behind/beside 1.1, PAIR_MIN 0.9 step-away, a.pairSeat on benches/tables); named 'with a friend'. probes/pairs.mjs"
     ],
     "sill": [
       "the SILL under the canvas — #plate, #daytime, #season, #ticker (ordered queue, TICK_DWELL 2.5 s, cap 2), #stats, #ctrl; hidden under 640px except during an invitation. A ResizeObserver on the frame — the sill BORROWS space with no resize event",
@@ -425,6 +426,12 @@
       "id": "c106",
       "note": "c98 the frost basin skin only reaches 0.19–0.43 toward ice-white (fountainIce caps at 0.43); to read frozen at a glance raise the per-cell floor or let ice reach 1 — cached ground, count rebuilds",
       "raisedBy": 67,
+      "seenBy": 0
+    },
+    {
+      "id": "c107",
+      "note": "companions are lane/east only: courtyard spawnAgent's sitters/crossers and the concert crowd still arrive alone; a.mate (picnic) and a.with are two pair mechanisms",
+      "raisedBy": 70,
       "seenBy": 0
     }
   ],
