@@ -18,7 +18,7 @@
   "avoid": "Do not widen EVE_LEAD again. Do not add a gate source — the ledger proved the deck cannot be reached from any edge inside the window. Do not steal from eastCap's daylight budget by more than the share you counted.",
   "budgetMin": 40,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 85,
   "issued": "2026-08-30T22:56:22.107Z",
