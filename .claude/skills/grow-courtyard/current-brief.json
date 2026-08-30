@@ -26,7 +26,7 @@
   "avoid": "Do not put it under the deck or the lane bridge, and do not narrow the boat's channel — trace one boat spawn → despawn on ten seeds and show 0 boat frames inside the footprint. Do not route walkers onto it (no waypoint set may name it — the waypoints law). Do not add a second R() draw per frame for the fronds: hash per frond.",
   "budgetMin": 75,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 87,
   "issued": "2026-08-30T23:29:20.627Z",
