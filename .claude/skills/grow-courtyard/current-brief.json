@@ -16,7 +16,7 @@
   "avoid": "No new draws in a branch that already has room decided — keep the roll unconditional as #70 did. Do not touch the concert or the picnic.",
   "budgetMin": 35,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 75,
   "issued": "2026-08-30T17:18:57.948Z",
