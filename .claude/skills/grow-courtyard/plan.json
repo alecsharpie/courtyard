@@ -15,22 +15,27 @@
   "rationale": "RUNG 4, both halves, because smallDiff fires and the ladder says a firing signal is a spent rung — the last batch's cart and sundial were structural and still the batch's median was polish-sized. Thirty seconds at the wide shot, seed 42, early-summer noon: the river runs the full height of the frame through its centre and is a flat blue slab with faint streaks — one rowboat sometimes, two swans; the far-bank lawn and the plaza are empty at noon; the sky is plain blue with three clouds and has never been anything but clear, raining or snowing. So b85 THE BET (4b, river × Scale/World, 75 min, a 150–300-line diff invited): an EYOT — an island in the river's east half with a willow, a shingle bank and reeds, the boat's channel kept clear on the west, the swans given a third bank, ducks nesting on it in spring; WATER cells become a new tile, speciesKinds and tileKinds move and the baseline is re-pinned. b86 (4a, sky × Scale/World, 60 min, high): RIVER MIST — a rate-capped mistF() that rises off the water on still, clear mornings after a wet or cold night, thickest over the river and the low east ground at sunUp, gone by mid-morning; the backdrop's HAZE is already a consumer (drawRoofRow mixes 0.55 into it) and the morning tap (sunUp + 0.5) lands a visitor inside it. b87 c125: the concert audience walks round the bandstand to the deck (life × Connect, medium) — 290 of 418 far-side evening retirements were the audience, and #85 showed the deck's evening needs people already on the far side. b88 c122: the lane's east end becomes a real end (lane × Connect, medium-low) — nothing has ever left or arrived by x 138 in 86 iterations. b89 c123: weathercocks and lookAt names them (roofs × Polish, low). Order: bet first, mist second, so both are built while the plan is fresh.",
   "queue": [
     {
-      "id": "b85",
-      "domain": "River & far bank",
-      "kind": "Scale/World",
-      "brief": "THE BET — rung 4b. Put an EYOT in the river: a small island in the river's EAST half (the boat's channel is x 116.5–121.5 and must stay clear; the deck is rows 30–32 and the lane bridge 64–66, so site it between, roughly x 122.5–126 × y 40–52, or wherever your own read of the water says), with a shingle bank, reeds at its edges and ONE willow whose fronds hang over the water and lean with windDir(). It is land: WATER cells become a new tile (EYOT or BANK — add it to buildGrid(), the census TN list and groundCol), the swans' SWAN_BANK logic gets a third bank, the river streaks in drawRiverFlow part around it, and ducks nest on it in spring (a seasonal thing on it, priced with a probe, is welcome). The census MUST move — water down, tileKinds +1, speciesKinds +1 if the willow is a new species — re-pin the baseline and say so. A 150–300-line diff is expected and welcome: this is the first landform the river has ever had and it is in the centre of every wide shot.",
-      "seams": ["buildGrid", "RIVER_X0", "RIVER_X1", "WATER", "groundCol", "drawRiverFlow", "riverRun", "updateBoat", "boat.x", "updateSwans", "SWAN_BANK", "updateDucks", "POND", "windDir", "drawBoughs", "nameAt", "WATERS"],
-      "successLooksLike": "From the wide shot at noon the river has an island with a willow on it; the rowboat passes it on the west; a swan preens against its bank; at 3x on the Far bank quarter the reeds and the willow's fronds are legible; naming says 'the eyot' / 'the willow on the eyot'; the census shows water reduced by the footprint and a new tile kind.",
-      "avoid": "Do not put it under the deck or the lane bridge, and do not narrow the boat's channel — trace one boat spawn → despawn on ten seeds and show 0 boat frames inside the footprint. Do not route walkers onto it (no waypoint set may name it — the waypoints law). Do not add a second R() draw per frame for the fronds: hash per frond.",
-      "budgetMin": 75,
-      "risk": "high"
-    },
-    {
       "id": "b86",
       "domain": "Sky, light & weather",
       "kind": "Scale/World",
       "brief": "Rung 4a — a weather nobody has seen. RIVER MIST on still, clear mornings: a rate-capped scalar mistF() 0..1 in the cloudCover()/wetF() family that rises off the water around sunUp when the night was cold or wet (warmth < ~0.65, windF() < 0.3, cloudCover() low, wetF() > 0.3 OR warmth < 0.4 — price the rule with a probe so it opens on roughly a third of shoulder-season mornings and few midsummer ones) and burns off by ~sunUp + 3 h with the sun's height. Consumers, live not cached: a veil pass in drawScene() over the river columns and the low east ground (the far bank, the plaza's quay side) whose alpha falls with distance from the water — pale, desaturating, so the mill and the church tower stand out of it; HAZE (the backdrop's tint, already read by drawRoofRow at 0.55) mixes toward the mist colour; lamp halos in applyLight() widen while mistF() > 0; the sill names it ('mist on the river' in the ticker/nameAt when the pointer is over the water). The morning lapse (sunUp + 0.5) must land INSIDE it on a mist morning, so a visitor's second clock tap can show it.",
-      "seams": ["cloudCover", "stepWet", "wetF", "windF", "warmth", "sunUp", "HAZE", "skyCols", "drawRoofRow", "drawScene", "applyLight", "nightF", "beginEvening", "announce", "nameAt"],
+      "seams": [
+        "cloudCover",
+        "stepWet",
+        "wetF",
+        "windF",
+        "warmth",
+        "sunUp",
+        "HAZE",
+        "skyCols",
+        "drawRoofRow",
+        "drawScene",
+        "applyLight",
+        "nightF",
+        "beginEvening",
+        "announce",
+        "nameAt"
+      ],
       "successLooksLike": "On a mist morning the wide shot at sunUp + 0.5 h shows the river and far bank softened to pale grey with the towers and the mill's lamp standing clear, the near lane sharp; by 09:30 it is gone with no frame the filmstrip's pops.mjs flags; probes/mist-year.mjs shows the fraction of mornings it opens by season and that it never opens in wind or rain.",
       "avoid": "Do not put the veil in the ground cache (it changes every frame) and do not step it — it is a rate-capped scalar with a cap, a cycle and an anchor (the law): mistF() = 0 must reproduce HEAD's pixels exactly. Do not add a mist to the night: the veil reads daylight, and nightF's multiply must stay last (the night-colour law). Do not open it after 09:00 or while it is raining.",
       "budgetMin": 60,
@@ -41,7 +46,21 @@
       "domain": "People & animals",
       "kind": "Connect",
       "brief": "c125. The concert audience is the deck's biggest unused evening source: #85's probe found 324 of 418 far-side evening retirements were a.band listeners, and 290 of them stand SOUTH of the bandstand with no route north but through it. When the concert ends inside eveWeather() (the same predicate stayOn() reads), route a share of the audience round the bandstand — a leg from their BAND_SLOT round the platform's edge to [FAR_WALK, y] then up to [FAR_WALK, DECK_WALK] and onto the deck's east-end posts (stay:1) by stayOn()'s own pricing (arrival + EVE_STAND before eveEnd()), the rest home as now. The audience becomes the deck's evening on concert nights.",
-      "seams": ["BAND_SLOTS", "bandF", "isBandDay", "spawnConcertAgent", "stayOn", "deckWay", "EVE_SPOTS", "eveWeather", "eveEnd", "FAR_WALK", "TOW_WALK", "DECK_WALK", "skyLifts"],
+      "seams": [
+        "BAND_SLOTS",
+        "bandF",
+        "isBandDay",
+        "spawnConcertAgent",
+        "stayOn",
+        "deckWay",
+        "EVE_SPOTS",
+        "eveWeather",
+        "eveEnd",
+        "FAR_WALK",
+        "TOW_WALK",
+        "DECK_WALK",
+        "skyLifts"
+      ],
       "successLooksLike": "probes/evening-stay-price.mjs extended: on concert evenings that end inside eveWeather(), a deck post is stood on in most of them (was 58% of all open evenings with 0 from the audience); a follow on a listener shows the walk round the bandstand and up to the rail, not through the platform; motion gate clean on the far bank.",
       "avoid": "Do not route through the bandstand's platform cells (the waypoints law: name the corner points). Do not let the audience count against EVE_CAP or eastCount (the stayer model: a.stay). Measure the share at the CHOICE, not by presence.",
       "budgetMin": 40,
@@ -52,7 +71,19 @@
       "domain": "Lane & market",
       "kind": "Connect",
       "brief": "c122 — the lane 12 iterations back, its longest gap. In 86 iterations nothing has ever arrived or left by the lane's EAST end (x 138, past PARK_GATE): spawnLaneAgent enters at x −2.5 only, every exit goes west or up an alley, the cart goes west or back north. Make the east end a real end: a share of lane arrivals (measured at the choice) enter from the east and walk WEST along the lane, and lane leavers whose last stop is east of the cross street (x > ~64) leave by the east end instead of walking the whole lane back — a routeToExit() that picks the nearer end. On market days a share of the cart's departures could go east too. The observable outcome is two-way traffic on the lane bridge and people appearing from behind the far-bank gatehouse.",
-      "seams": ["spawnLaneAgent", "LANE_N_Y", "LANE_S_Y", "routeToExit", "PARK_GATE", "TUNNEL", "GW", "goHome", "laneCap", "stepCart", "CART_TROT"],
+      "seams": [
+        "spawnLaneAgent",
+        "LANE_N_Y",
+        "LANE_S_Y",
+        "routeToExit",
+        "PARK_GATE",
+        "TUNNEL",
+        "GW",
+        "goHome",
+        "laneCap",
+        "stepCart",
+        "CART_TROT"
+      ],
       "successLooksLike": "A 10-seed × 4-day probe counts lane entries and exits by END: east end non-zero for both, west still the majority; a wide shot at 10:00 on some seed shows someone walking west over the lane bridge; nobody spawns or despawns inside the frame (the tunnel/GW edge hides them).",
       "avoid": "Do not add an arrival source — this is a SHARE of laneCap's existing roll (WATCH note) and the share is measured at spawn. Do not send east-end leavers through the far-bank gate routes the concert uses. Keep a.east's retrace untouched.",
       "budgetMin": 35,
@@ -63,7 +94,16 @@
       "domain": "Roofs & skyline",
       "kind": "Polish",
       "brief": "c123. The church vane sits on the rod under the cross and goes edge-on to a 1-px sliver whenever the heading passes north, and neither vane is named. Give each VANES[] entry a silhouette that reads at every heading — a weathercock on the church (a cock's body reads from the side and as a blob edge-on), the clock tower's arrow kept but with a tail and a cross-bar of N/S/E/W letters that never foreshortens — and make lookAt() name them with their state ('the weathercock, into a west wind' / 'the vane, idle in the calm').",
-      "seams": ["VANES", "drawVanes", "vaneAngle", "vaneWob", "lookAt", "windSign", "windF", "drawClockTower"],
+      "seams": [
+        "VANES",
+        "drawVanes",
+        "vaneAngle",
+        "vaneWob",
+        "lookAt",
+        "windSign",
+        "windF",
+        "drawClockTower"
+      ],
       "successLooksLike": "probes/vane.mjs extended: at heading north each vane's drawn bounding box is ≥ 4 px wide (was 1); lookAt() over either tower returns a vane name in three wind states; the wide shot at noon shows both vanes legibly.",
       "avoid": "Do not move the vanes back into the cache. No R() in the draw. Keep vaneAngle()'s mirror test passing.",
       "budgetMin": 25,
@@ -71,5 +111,10 @@
     }
   ],
   "recommendStop": null,
-  "consumed": []
+  "consumed": [
+    {
+      "id": "b85",
+      "at": "2026-08-30T23:29:20.626Z"
+    }
+  ]
 }

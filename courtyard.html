@@ -275,8 +275,35 @@ const WALL = 0, PATH = 1, GRASS = 2, BED = 3, CBED = 4, TRUNK = 5, SIDE = 6, ROA
       SLOT = 11,               // open passage cut through a block — seen from above
       DECK = 12,               // the footbridge: river cells carried over by a timber span — water
                                // to the ground cache, paving to a walker, drawn live in two halves
-      DIAL = 13;               // the sundial's plinth: one cell of the inner lawn nobody stands on —
+      DIAL = 13,               // the sundial's plinth: one cell of the inner lawn nobody stands on —
                                // lawn to the ground cache, not ground to a companion, drawn live
+      EYOT = 14;               // the island in the river (#87): turf with a shingle rim, land to
+                               // the census and the swans, nobody's waypoint; a willow stands on it
+/* the eyot: ONE ellipse, evaluated once in buildGrid() — everything else (the swans' third
+ * bank, the ducks' nest, the streaks that part round it) reads the tile back off the grid.
+ * Sited in the river's east half, clear of the boat's channel (x 116.5–121.5, hull ±0.5) by
+ * half a cell, south of the jetty (y 35) and north of the lane bridge (64). */
+const EYOT_AT = {x:124.3, y:46, rx:1.75, ry:5.0};
+function eyotAt(x, y){ const dx = (x + .5 - EYOT_AT.x) / EYOT_AT.rx, dy = (y + .5 - EYOT_AT.y) / EYOT_AT.ry; return dx * dx + dy * dy < 1; }
+function onEyot(x, y){ const gx = x | 0, gy = y | 0; return gx >= 0 && gy >= 0 && gx < GW && gy < WH && grid[gy * GW + gx] === EYOT; }
+/* push a point on the water off the island, along the ray from the eyot's centre, until it
+ * is `m` clear of the tile — a swan or a duck never sits on the turf by accident */
+function offEyot(x, y, m){
+  if (!onEyot(x, y)) return [x, y];
+  let dx = x - EYOT_AT.x, dy = (y - EYOT_AT.y) * EYOT_AT.rx / EYOT_AT.ry, L = Math.hypot(dx, dy) || 0.01;
+  dx /= L; dy /= L;
+  for (let k = 0; k < 60 && onEyot(x, y); k++){ x += dx * 0.1; y += dy * 0.1 * EYOT_AT.ry / EYOT_AT.rx; }
+  return [x + dx * m, y + dy * m * EYOT_AT.ry / EYOT_AT.rx];
+}
+/* the nearest point of the eyot's shore from (x, y): step toward the centre until the tile
+ * is under foot; the step before that is the shore. [sx, sy, dist] */
+function eyotShore(x, y){
+  let dx = EYOT_AT.x - x, dy = EYOT_AT.y - y; const L = Math.hypot(dx, dy) || 0.01; dx /= L; dy /= L;
+  let px = x, py = y;
+  for (let k = 0; k < 120; k++){ const nx = px + dx * 0.1, ny = py + dy * 0.1; if (onEyot(nx, ny)) break; px = nx; py = ny; }
+  return [px, py, Math.hypot(px - x, py - y)];
+}
+const WILLOW = {x:124.15, y:47.6};        // its foot on the island's south-west turf, over the channel side
 const POND = {x:90, y:49.5, rx:4.2, ry:3.1};
 const CX = 32, CY = 32.5;
 const SUNDIAL = {x:32, y:35, h:0.85};   // the cell, and the gnomon's tip above the grass (a person is ~1.3)
@@ -411,7 +438,7 @@ const QUARTERS = [
   { name:'Courtyard',  x0:1,    x1:63,  y0:1, y1:63 },
   { name:'Street',     x0:63.5, x1:98,  y0:0, y1:64 },
   { name:'Plaza',      x0:98,   x1:128, y0:2, y1:58 },
-  { name:'Far bank',   x0:125,  x1:138, y0:0, y1:50, share:0.3 },   // #86: rose window to bandstand; ≥ 30% of a wide frame
+  { name:'Far bank',   x0:122,  x1:138, y0:0, y1:53, share:0.3 },   // #86: rose window to bandstand, ≥ 30% of a wide frame; #87: and the eyot (x 122.5–126, y 41–51) — a desktop shows rows 1.5–48 at 2.6x, a phone 0–51 at 3.3x
 ];
 const VIEW_SECS = 0.9, VIEW_SMAX = 3.6;
 let whereN = 0, whereEver = false;
@@ -611,7 +638,7 @@ function buildGrid(){
           }
         }
         else if (x < RIVER_X0){ grid[i] = SIDE; }      // the quay runs the full height
-        else if (x < RIVER_X1){ grid[i] = (y >= DECK_Y0 && y < DECK_Y1) ? DECK : WATER; }   // the river, and the footbridge over it
+        else if (x < RIVER_X1){ grid[i] = (y >= DECK_Y0 && y < DECK_Y1) ? DECK : eyotAt(x, y) ? EYOT : WATER; }   // the river, the footbridge over it, the eyot in it
         else if (x < FAR_X0){ grid[i] = y < 3 ? WALL : SIDE; }         // the towpath on the far bank
         else if (y < 3) grid[i] = WALL;                                // the church green
         else if (y >= 61) grid[i] = Math.abs(x + .5 - PARK_GATE) < 1.75 ? TUNNEL : WALL;
@@ -1283,7 +1310,7 @@ let snowCover = 0, snowPainted = 0, snowAnnounced = false;
 function snowF(){ return clamp((greyF() - SNOW_G0) / SNOW_G1, 0, 1); }
 /* how much of the cover a cell of this kind takes — the trodden kinds take less, so the
  * paths and the road read dark through the white without touching the wear map */
-function snowTake(t){ return t === GRASS || t === BED || t === CBED ? 1 : t === SIDE ? 0.7 : t === PATH || t === SLOT ? 0.5 : t === ROAD ? 0.4 : 0; }
+function snowTake(t){ return t === GRASS || t === BED || t === CBED || t === EYOT ? 1 : t === SIDE ? 0.7 : t === PATH || t === SLOT ? 0.5 : t === ROAD ? 0.4 : 0; }
 /* the cover also knows the wear VALUE, not just the kind: a line worn through the lawn
  * takes SNOW_WEAR less of it (full effect by wear SNOW_WEAR_AT, where a desire path is
  * unmistakably a path), so the paths people wear stay dark through a winter. trod[] is
@@ -3173,7 +3200,7 @@ function pairStands(x, y){
   const gx = Math.round(x - .5), gy = Math.round(y - .5);
   if (gx < 0 || gy < 0 || gx >= GW || gy >= WH) return true;   // off the frame is where they came from
   const g = grid[gy * GW + gx];
-  return g !== WATER && g !== VOID && g !== WALL && g !== BED && g !== CBED && g !== TRUNK && g !== DIAL;
+  return g !== WATER && g !== VOID && g !== WALL && g !== BED && g !== CBED && g !== TRUNK && g !== DIAL && g !== EYOT;
 }
 /* the dawn sweeper */
 let sweeper = null;
@@ -3252,28 +3279,51 @@ function drawBalloon(t){
   ctx.fillStyle = '#7a5b3c';
   ctx.fillRect(bx - 5, bskY + 8, 10, 7);
 }
+/* the eyot's nesting pair (#87): two ducks whose home is the island, not the pond, for the
+ * nesting window of the year — in on the spring flush, gone by early summer; 1 at the
+ * anchor. They feed in the water EAST of the eyot (never in the boat's channel) and sit
+ * up on the turf: the pond's ducks are on the water at night, these are on the nest. */
+function nestF(){ const p = seasonPhase; return clamp((p - 0.16) / 0.04, 0, 1) * clamp((0.44 - p) / 0.06, 0, 1); }
+function eyotWater(th, k){          // a point on the water off the eyot's east shore at scale k of the ellipse
+  const x = Math.min(EYOT_AT.x + Math.cos(th) * EYOT_AT.rx * k, RIVER_X1 - 0.35), y = EYOT_AT.y + Math.sin(th) * EYOT_AT.ry * k;
+  return offEyot(x, y, 0.3);
+}
 function updateDucks(dt){
-  const want = day >= 2 ? 3 : 0;
-  while (ducks.length < want){
+  const wantPond = day >= 2 ? 3 : 0, wantEyot = day >= 2 && nestF() > 0 ? 2 : 0;
+  while (ducks.filter(d => !d.eyot).length < wantPond){
     const th = R() * Math.PI * 2;
     ducks.push({x:POND.x + Math.cos(th) * POND.rx * 0.5, y:POND.y + Math.sin(th) * POND.ry * 0.5,
       ph:R() * 9, t:0, tx:POND.x, ty:POND.y, drake:R() < 0.5});
   }
-  while (ducks.length > want) ducks.pop();
+  while (ducks.filter(d => d.eyot).length < wantEyot){
+    const th = (R() - 0.5) * Math.PI, [x, y] = eyotWater(th, 1.25);
+    ducks.push({x, y, ph:R() * 9, t:0, tx:x, ty:y, drake:R() < 0.5, eyot:1});
+  }
+  for (let k = ducks.length - 1; k >= 0; k--){
+    const d = ducks[k], n = ducks.filter(e => !!e.eyot === !!d.eyot).length;
+    if (n > (d.eyot ? wantEyot : wantPond)) ducks.splice(k, 1);
+  }
   for (const d of ducks){
     d.ph += dt * 2;
     d.t -= dt;
     if (d.t <= 0){
       d.t = 3 + R() * 5;
-      const th = R() * Math.PI * 2, rr = R();
-      if (nightF > 0.6 || R() < 0.75){   // stay on (or return to) the water
+      const th = R() * Math.PI * 2, rr = R(), r3 = R();
+      if (d.eyot){
+        if (nightF > 0.6 || r3 < 0.45){   // up on the nest (always after dark)
+          d.tx = EYOT_AT.x + Math.cos(th) * EYOT_AT.rx * 0.55 * rr;
+          d.ty = EYOT_AT.y + Math.sin(th) * EYOT_AT.ry * 0.6 * rr;
+        } else {                           // feeding off the east shore
+          [d.tx, d.ty] = eyotWater((th / (Math.PI * 2) - 0.5) * Math.PI, 1.15 + rr * 0.25);
+        }
+      } else if (nightF > 0.6 || r3 < 0.75){   // stay on (or return to) the water
         d.tx = POND.x + Math.cos(th) * POND.rx * 0.75 * rr;
         d.ty = POND.y + Math.sin(th) * POND.ry * 0.75 * rr;
       } else {                            // waddle out onto the bank
         d.tx = POND.x + Math.cos(th) * (POND.rx + 1.6);
         d.ty = POND.y + Math.sin(th) * (POND.ry + 1.3);
       }
-      if (R() < 0.02) announce('The ducks argue briefly about nothing at all.');
+      if (R() < 0.02) announce(d.eyot ? 'On the eyot, a duck settles back onto the nest under the willow.' : 'The ducks argue briefly about nothing at all.');
     }
     const dd = Math.hypot(d.tx - d.x, d.ty - d.y);
     if (dd > 0.1){
@@ -3281,7 +3331,7 @@ function updateDucks(dt){
       d.x += (d.tx - d.x) / dd * Math.min(sp, dd);
       d.y += (d.ty - d.y) / dd * Math.min(sp, dd);
     }
-    d.swimming = Math.hypot((d.x - POND.x) / POND.rx, (d.y - POND.y) / POND.ry) < 1;
+    d.swimming = d.eyot ? !onEyot(d.x, d.y) : Math.hypot((d.x - POND.x) / POND.rx, (d.y - POND.y) / POND.ry) < 1;
   }
 }
 // The swans are a PAIR with three states the draw and the sill both read:
@@ -3294,6 +3344,7 @@ function updateDucks(dt){
 // the default, the two new states take a slice each; a swan too far out to preen swims
 // to the bank instead, so 'preen' is what happens NEXT when it gets there.
 const SWAN_BANK = 2.2, SWAN_UPEND = 0.22, SWAN_PREEN = 0.20;
+const SWAN_EYOT_PULL = 4.0;   // #87: a swan within this much FURTHER from the eyot than from a bank still makes for the eyot
 function updateSwans(dt){
   const want = day >= 1 ? 2 : 0;
   while (swans.length < want){
@@ -3310,7 +3361,8 @@ function updateSwans(dt){
     s.t -= dt;
     if (s.t <= 0){
       let r = s.state === 'swim' ? R() : 1;     // a pose is always followed by a swim
-      const nearBank = Math.min(s.x - x0, x1 - s.x) < SWAN_BANK;
+      const shore = eyotShore(s.x, s.y);        // the eyot is the third bank (#87)
+      const nearBank = Math.min(s.x - x0, x1 - s.x, shore[2]) < SWAN_BANK;
       if (nightF > 0.6) r = SWAN_UPEND + 1e-3;   // after dark: rest by the bank (preen there, or swim to it)
       if (r < SWAN_UPEND){                                   // upend where it floats
         s.state = 'upend'; s.t = 3 + R() * 2; s.tx = s.x; s.ty = s.y;
@@ -3318,9 +3370,15 @@ function updateSwans(dt){
         s.state = 'preen'; s.t = 5 + R() * 3; s.tx = s.x; s.ty = s.y;
       } else {
         s.state = 'swim'; s.t = i === 0 ? 6 + R() * 8 : 2.5 + R() * 3;   // the pen re-reads the cob often
-        if (r < SWAN_UPEND + SWAN_PREEN && r < 1){                     // wanted to preen: make for the near bank
-          s.tx = s.x - x0 < x1 - s.x ? x0 + R() * 1.2 : x1 - R() * 1.2;
-          s.ty = clamp(s.y + (R() - 0.5) * 6, 5, 58);
+        if (r < SWAN_UPEND + SWAN_PREEN && r < 1){                     // wanted to preen: make for the near bank — west, east, or the eyot's shore
+          const r1 = R(), r2 = R(), dw = s.x - x0, de = x1 - s.x;
+          if (shore[2] < Math.min(dw, de) + SWAN_EYOT_PULL){   // the island's shore is the bank a swan prefers when it is anywhere near
+            const [ex, ey] = offEyot(shore[0] + (EYOT_AT.x - shore[0]) * 0.05, shore[1] + (EYOT_AT.y - shore[1]) * 0.05, 0.25 + r1 * 0.5);
+            s.tx = clamp(ex, x0, x1); s.ty = clamp(ey + (r2 - 0.5) * 1.5, 5, 58);
+          } else {
+            s.tx = dw < de ? x0 + r1 * 1.2 : x1 - r1 * 1.2;
+            s.ty = clamp(s.y + (r2 - 0.5) * 6, 5, 58);
+          }
         } else if (i === 0){                                  // the cob chooses the stretch
           s.tx = x0 + R() * (x1 - x0);
           s.ty = clamp(s.y + (R() - 0.5) * 18, 5, 58);
@@ -3329,6 +3387,7 @@ function updateSwans(dt){
           s.tx = clamp(c.tx + Math.cos(th) * rr, x0, x1);
           s.ty = clamp(c.ty + Math.sin(th) * rr, 5, 58);
         }
+        if (onEyot(s.tx, s.ty)){ const o = offEyot(s.tx, s.ty, 0.4); s.tx = clamp(o[0], x0, x1); s.ty = clamp(o[1], 5, 58); }   // a target on the turf is a target at its shore
         if (R() < 0.03) announce('A pair of swans work their way up the river, unhurried.');
       }
     }
@@ -3339,10 +3398,12 @@ function updateSwans(dt){
       const sp = (i === 0 ? 0.42 : 0.5) * dt;
       s.x += (s.tx - s.x) / d * Math.min(sp, d);
       s.y += (s.ty - s.y) / d * Math.min(sp, d);
+      if (onEyot(s.x, s.y)) [s.x, s.y] = offEyot(s.x, s.y, 0.15);   // a swan swims round the island, not over it
     }
     if (i === 1){   // two shapes nearer than 0.9 cells read as one: the pen gives way
       const c = swans[0], dx = s.x - c.x, dy = s.y - c.y, dd = Math.hypot(dx, dy) || 0.01;
-      if (dd < 0.9){ s.x = clamp(c.x + dx / dd * 0.9, x0, x1); s.y = clamp(c.y + dy / dd * 0.9, 5, 58); }
+      if (dd < 0.9){ s.x = clamp(c.x + dx / dd * 0.9, x0, x1); s.y = clamp(c.y + dy / dd * 0.9, 5, 58);
+                     if (onEyot(s.x, s.y)) [s.x, s.y] = offEyot(s.x, s.y, 0.15); }   // and never onto the turf
     }
   }
 }
@@ -4395,6 +4456,12 @@ function groundBase(x, y, t, hv, m){
   if (t === BED || t === CBED) return turned[y * GW + x] ? mix('#31261c', '#3e3022', hv)   // dug over: darker, colder; furrowed in drawGround
                                                           : mix('#5c4832', '#6b563c', hv);
   if (t === SIDE) return wetCol(mix('#b3a88f', '#bfb49b', hv), hv);
+  if (t === EYOT){                                     // the island's turf: rougher and paler than the green, shingle where it meets the water
+    let shore = 0;
+    for (const d of [-1, 1, -GW, GW]) if (grid[y * GW + x + d] === WATER) shore++;
+    const turf = mix('#9db06e', '#7d9a56', 0.5 + 0.5 * hash(x, y + 5) - 0.25 * (1 - m));
+    return shore ? mix(turf, mix('#b9ae93', '#cbc2ac', hv), 0.35 + 0.25 * shore) : turf;
+  }
   if (t === ROAD) return wetCol(mix('#87806f', '#8d8675', hv * 0.5), hv);
   if (t === WATER){
     if (x >= RIVER_X0 - 1 && x <= RIVER_X1){
@@ -4442,6 +4509,38 @@ function drawShadows(g){
   if (blur > 0.3){ g.save(); g.filter = 'blur(' + blur.toFixed(2) + 'px)'; g.fill(); g.restore(); }
   else g.fill();
 }
+/* the eyot in the ground cache (#87): the grid holds EYOT per cell (census, swans, ducks,
+ * naming), but a 3 x 10 cell ellipse painted by the cell is a rectangle — so the island is
+ * painted WHOLE, on top of the water: a wet shingle margin, the shingle, the turf inside it,
+ * reeds round the rim. Every term is hash() — no R(). */
+function eyotRing(k, n){
+  const pts = [];
+  for (let i = 0; i < n; i++){
+    const a = i / n * Math.PI * 2, w = 1 + 0.06 * Math.sin(a * 3 + 1.1) + 0.04 * Math.sin(a * 5 + 2.6);   // not a compass ellipse
+    pts.push(project(EYOT_AT.x + Math.cos(a) * EYOT_AT.rx * k * w, EYOT_AT.y + Math.sin(a) * EYOT_AT.ry * k * w, 0));
+  }
+  return pts;
+}
+function drawEyot(g, m){
+  const sn = snowCover > 0 ? snowAt(EYOT_AT.x | 0, EYOT_AT.y | 0, EYOT) : 0;
+  g.fillStyle = 'rgba(70,92,96,.35)';  poly(g, eyotRing(1.16, 28)); g.fill();       // the shallows: a darker wet margin
+  g.fillStyle = mix('#bfb59b', SNOW_COL, sn);  poly(g, eyotRing(1.04, 28)); g.fill();   // shingle
+  g.fillStyle = mix(mix('#9db06e', '#7d9a56', 0.35 + 0.4 * m), SNOW_COL, sn);
+  poly(g, eyotRing(0.8, 28)); g.fill();                                                 // turf
+  if (sn < 0.5){                                                                       // tussocks and reeds on the rim
+    const rs = cellW / 13;
+    g.strokeStyle = '#5d7a42'; g.lineWidth = Math.max(0.8, rs);
+    for (let k = 0; k < 26; k++){
+      const a = k / 26 * Math.PI * 2 + hash(k, 131) * 0.2, kk = 0.86 + hash(k, 137) * 0.22;
+      if (Math.cos(a) < -0.6 && hash(k, 139) < 0.5) continue;                          // thinner on the channel side
+      const [rx2, ry2] = project(EYOT_AT.x + Math.cos(a) * EYOT_AT.rx * kk, EYOT_AT.y + Math.sin(a) * EYOT_AT.ry * kk, 0);
+      for (let j = 0; j < 3; j++){
+        g.beginPath(); g.moveTo(rx2 + (j - 1) * 1.2 * rs, ry2);
+        g.lineTo(rx2 + (j - 1) * 2.2 * rs, ry2 - (4 + hash(k, j + 141) * 4) * rs); g.stroke();
+      }
+    }
+  }
+}
 function drawGround(){
   const pad = gpadWant;
   gcv.width = (W + 2 * pad) * DPR; gcv.height = H * DPR;
@@ -4456,7 +4555,7 @@ function drawGround(){
   // ground, drawn well past the frame so the town never stops in mid-air
   for (let y = 0; y < WH; y++) for (let x = XLO; x < XHI; x++){
     const gx = clamp(x, 0, GW - 1);
-    const i = y * GW + gx, t = grid[i] === DECK ? WATER : grid[i] === DIAL ? GRASS : grid[i], hv = hash(gx, y);   // the cache sees the water under the deck, the lawn under the sundial
+    const i = y * GW + gx, t = grid[i] === DECK || grid[i] === EYOT ? WATER : grid[i] === DIAL ? GRASS : grid[i], hv = hash(gx, y);   // the cache sees the water under the deck AND under the eyot (painted whole below), the lawn under the sundial
     if (t === WALL || t === VOID) continue;
     if (t === TUNNEL){                                   // floor of a roofed passage
       gtx.fillStyle = '#241d16'; quad(gtx, x, y, 0.03); gtx.fill(); continue;
@@ -4498,7 +4597,7 @@ function drawGround(){
         gtx.beginPath(); gtx.ellipse(sx, sy, cellW * 0.3, cellH * 0.26, 0, 0, 7); gtx.fill();
       }
     }
-    if (t === GRASS && x >= ALT_X0){                     // reeds where bank meets water
+    if (t === GRASS && x >= ALT_X0){                     // reeds where bank meets water (the eyot's are drawn with the island below)
       let nearWater = false;
       for (const d of [-1, 1, -GW, GW]) if (grid[i + d] === WATER) nearWater = true;
       if (nearWater){
@@ -4559,6 +4658,7 @@ function drawGround(){
       for (let k = 0; k < n; k++){
         const rx = RIVER_X0 + 0.8 + hash(ry | 0, k * 7) * (RIVER_X1 - RIVER_X0 - 2.4);
         const len = 0.8 + hash(k, ry | 0) * 2.2;
+        if (onEyot(rx, ry) || onEyot(rx + len, ry) || onEyot(rx + len / 2, ry)) continue;   // no ripple across the turf
         const p1 = project(rx, ry, 0), p2 = project(rx + len, ry, 0);
         gtx.moveTo(p1[0], p1[1]); gtx.lineTo(p2[0], p2[1]);
       }
@@ -4572,6 +4672,7 @@ function drawGround(){
     poly(gtx, [project(RIVER_X0, 3, 0), project(RIVER_X1, 3, 0),
                project(RIVER_X1, 12, 0), project(RIVER_X0, 12, 0)]); gtx.fill();
   }
+  drawEyot(gtx, m);
   drawShadows(gtx);
   // raised kerbs, so the footways sit above the roadway
   for (const [yy, col] of [[LN_ROAD0, 'rgba(150,142,124,.7)'], [LN_ROAD1, 'rgba(92,86,74,.45)']]){
@@ -4872,6 +4973,7 @@ function drawScene(t, dt){
   for (const px of TREE_PITS) items.push({y:66.9, f:drawLaneTree, px, pit:1, tname:'a street tree'});
   for (const [ppx, ppy] of PLAZA_PITS) items.push({y:ppy + 0.4, f:drawLaneTree, px:ppx - 0.5, py:ppy + 0.4, pit:1, tname:'a plaza tree'});
   for (const [ox, oy] of ORCHARD) items.push({y:oy + 0.4, f:drawLaneTree, px:ox - 0.5, py:oy + 0.4, fruit:1, tname:'an orchard tree'});
+  items.push({y:WILLOW.y + 0.4, f:drawWillow, tname:'the willow on the eyot'});
   for (const b of PLAZA_BENCHES) items.push({y:b.y + 0.2, f:drawBench, b});
   for (const b of QUAY_BENCHES) items.push({y:b.y + 0.2, f:drawBench, b});
   for (const b of FAR_BENCHES) items.push({y:b.y + 0.2, f:drawBench, b});
@@ -5179,6 +5281,75 @@ function drawTree(it, t){
     ctx.fillStyle = 'rgba(190,220,140,' + 0.18*daylight*out + ')';
     const [hx, hy] = project(CX - treeR*0.3 + sway, CY, treeH + treeR*0.5);
     ctx.beginPath(); ctx.ellipse(hx, hy, treeR*cellW*0.34*out, treeR*cellH*0.4*out, 0, 0, 7); ctx.fill();
+  }
+}
+/* the willow on the eyot (#87). A trunk leaning out over the channel, a low crown, and a
+ * curtain of fronds that hang from the crown's rim to the water — each frond is hash(k)
+ * placed (no R()), swings with the wind on the SAME term the river's streaks lean on
+ * (windSign·windF(), gusting on windT) and ripples faintly in calm. The canopy rides
+ * leafOut/leafCol like every other tree, so in winter the fronds are bare whips. */
+const WILLOW_H = 3.1, WILLOW_R = 1.55, WILLOW_LEAN = -0.55, WILLOW_FRONDS = 22;
+function drawWillow(it){
+  const px = WILLOW.x, py = WILLOW.y, m = maturity();
+  const h = WILLOW_H * (0.7 + 0.3 * m), r = WILLOW_R * (0.75 + 0.25 * m), out = leafOut();
+  const [bx, by] = project(px, py, 0);
+  const wf = windF();
+  const gust = RM ? 0.6 : 0.65 + 0.35 * Math.sin(windT * 2.2 + 0.7);
+  const lean = windSign * wf * gust;                         // cells of x-lean at the frond's tip
+  const sw = RM ? 0 : Math.sin(windT * 1.4 + 2.1) * 0.10 * (1 - wf);   // the calm ripple
+  // shadow on the turf and the water
+  const shOff = shOffset(), shSp = shSpread();
+  ctx.fillStyle = 'rgba(25,32,18,' + 0.22 * daylight * (0.40 + 0.60 * out) * shadowF() + ')';
+  const shx = -SUN[0] / SUN[2] * h * cellW * 0.55 * shOff;
+  ctx.beginPath(); ctx.ellipse(bx + shx + WILLOW_LEAN * cellW * 0.5, by - h * cellH * 0.28 * shOff, r * cellW * 0.9 * shSp, r * cellH * 0.55 * shSp, 0, 0, 7); ctx.fill();
+  // the trunk leans over the channel
+  const [tx2, ty2] = project(px + WILLOW_LEAN, py, h * 0.55);
+  const tw = cellW * 0.15;
+  ctx.fillStyle = '#5a4634';
+  ctx.beginPath();
+  ctx.moveTo(bx - tw * 1.8, by); ctx.quadraticCurveTo(bx - tw * 0.6 + WILLOW_LEAN * cellW * 0.3, (by + ty2) / 2, tx2 - tw * 0.55, ty2);
+  ctx.lineTo(tx2 + tw * 0.55, ty2); ctx.quadraticCurveTo(bx + tw * 0.7 + WILLOW_LEAN * cellW * 0.3, (by + ty2) / 2, bx + tw * 1.8, by);
+  ctx.closePath(); ctx.fill();
+  const cx0 = px + WILLOW_LEAN + sw * 0.5;
+  const [kx, ky] = project(cx0, py, h);
+  crowns.push({x:kx, y:ky, rx:r * cellW * 0.95, ry:r * cellH * 0.75 + h * cellH * 0.35, name:it.tname});
+  const blobs = [[0, 0, 1], [-0.55, -0.2, 0.7], [0.5, -0.22, 0.68], [-0.15, 0.4, 0.6]];
+  const LTH = [0, 0.22, 0.28, 0.46];
+  if (out < 0.92){                                            // the boughs, seen through a thin crown
+    ctx.save();
+    ctx.globalAlpha = clamp((0.92 - out) / 0.55, 0, 1);
+    ctx.fillStyle = '#553f31'; ctx.strokeStyle = '#553f31';
+    drawBoughs(tx2, ty2, blobs.slice(1).map(([ox, oz]) => project(cx0 + ox * r * 0.8, py, h + oz * r * 0.6)), Math.max(1, cellW * 0.06));
+    ctx.restore();
+  }
+  // the fronds: from the crown's rim down past the trunk's foot, the tip over the water
+  const bare = 1 - clamp(out / 0.35, 0, 1);                   // whips only, in winter
+  const fw = Math.max(0.8, cellW * 0.055);
+  ctx.lineCap = 'round';
+  for (let k = 0; k < WILLOW_FRONDS; k++){
+    const a = (k + 0.5) / WILLOW_FRONDS * Math.PI * 2 + hash(k, 91) * 0.25;
+    const rr = r * (0.55 + 0.45 * hash(k, 93)), drop = h * (0.75 + 0.5 * hash(k, 97));
+    const fx0 = cx0 + Math.cos(a) * rr, fy0 = py + Math.sin(a) * rr * 0.55, fz0 = h + Math.sin(a) * 0.15 * r - 0.25 * r;
+    const tip = lean * (0.8 + 0.4 * hash(k, 99)) + sw * (0.6 + hash(k, 101));
+    const top = project(fx0, fy0, fz0), mid = project(fx0 + tip * 0.45, fy0, fz0 - drop * 0.5), end = project(fx0 + tip, fy0, fz0 - drop);
+    const g = leafCol([118, 152, 92], k);
+    ctx.strokeStyle = bare > 0 ? mix(g, '#6b5238', bare) : g;
+    ctx.lineWidth = fw * (0.8 + 0.5 * hash(k, 103)) * (1 - 0.45 * bare);
+    ctx.beginPath(); ctx.moveTo(top[0], top[1]); ctx.quadraticCurveTo(mid[0], mid[1], end[0], end[1]); ctx.stroke();
+  }
+  const cols = [[112, 148, 90], [126, 160, 98], [102, 138, 82], [120, 156, 96]];
+  for (let k = 0; k < blobs.length; k++){
+    const pk = clamp((out - LTH[k]) / (1 - LTH[k]), 0, 1);
+    if (pk <= 0) continue;
+    const [ox, oz, s] = blobs[k];
+    const [cx2, cy2] = project(cx0 + ox * r, py, h + oz * r * 0.6);
+    ctx.fillStyle = leafCol(cols[k], k + 1);
+    ctx.beginPath(); ctx.ellipse(cx2, cy2, r * s * cellW * 0.5 * pk, r * s * cellW * 0.3 * pk, 0, 0, 7); ctx.fill();
+  }
+  if (daylight > 0.2 && out > 0){
+    const [hx, hy] = project(cx0 - r * 0.3, py, h + r * 0.3);
+    ctx.fillStyle = 'rgba(205,228,160,' + 0.18 * daylight * out + ')';
+    ctx.beginPath(); ctx.ellipse(hx, hy, r * cellW * 0.3 * out, r * cellH * 0.26 * out, 0, 0, 7); ctx.fill();
   }
 }
 function drawLaneTree(it){
@@ -5666,8 +5837,12 @@ function drawRiverFlow(t){
   for (let k = 0; k < n; k++){
     const fy = ((t * FLOW_SPEED * run * (0.7 + hash(k, 21) * 0.6)) + k * 7.7) % WH;
     if (fy > 63.5 && fy < 79.5) continue;
-    const fx = RIVER_X0 + 0.8 + hash(k, 17) * (GW - RIVER_X0 - 1.8);
+    let fx = RIVER_X0 + 0.8 + hash(k, 17) * (GW - RIVER_X0 - 1.8);
     if (fy > 79 && fx < QUAY_X0 + 1) continue;
+    if (onEyot(fx, fy) || onEyot(fx, fy + 1)){          // the current parts round the eyot: the streak slides to the nearer shore
+      [fx] = offEyot(fx, onEyot(fx, fy) ? fy : fy + 1, 0.45);
+      if (fx < RIVER_X0 + 0.5 || fx > RIVER_X1 - 0.5) continue;
+    }
     const [sx, sy] = project(fx, fy, 0);
     ctx.moveTo(sx, sy); ctx.lineTo(sx - 1.2 + lean, sy + len);
   }
@@ -5739,6 +5914,7 @@ function drawRiverLights(t){
             fx = fx0 + (hash(k, 59) - 0.5) * spread + wf * Math.sin(windT * 3.1 + k * 2.3) * 0.35;
       if (fy > WH - 0.5 || (fy > 63.5 && fy < 79.5)) continue;
       if (fy > 79 && fx < QUAY_X0 + 1) continue;
+      if (onEyot(fx, fy)) continue;                        // no light lies on the turf
       const w = (0.35 + hash(k, 61) * 0.5) * (1 - WIND_CHOP * wf);
       const [sx, sy] = project(fx - w, fy, 0), [ex, ey] = project(fx + w, fy, 0);
       ctx.moveTo(sx, sy); ctx.lineTo(ex, ey);
@@ -6868,6 +7044,7 @@ function nameAt(x, y){
   if (g === GRASS) return daisy[j] ? 'the lawn, daisies in it'
                  : wear[j] > 0.45 ? 'the lawn, worn to a path' : 'the lawn';
   if (g === WATER) return waterAt(x).what;
+  if (g === EYOT) return 'the eyot';
   if (g === DECK) return 'the footbridge';
   if (g === DIAL) return sundialName();
   if (g === SIDE || g === ROAD || g === PATH) return pavingAt(x, y).what;
@@ -6953,7 +7130,8 @@ function livingAt(p){
           a.state === 'lie' ? 1.9 : 1, a);   // a sleeper is drawn flat: wider than tall
     if (a.dog && cellAt(a.dog.x, a.dog.y) !== TUNNEL) hit(a.dog.x, a.dog.y, 0, 0.6, a.dog.y + 0.4, 'a dog, at heel');
   }
-  for (const d of ducks) hit(d.x, d.y, 0, 0.6, d.y + 0.3, d.swimming ? 'a duck, on the pond' : 'a duck, out on the bank');
+  for (const d of ducks) hit(d.x, d.y, 0, 0.6, d.y + 0.3, d.eyot ? (d.swimming ? 'a duck, off the eyot' : 'a duck, nesting on the eyot')
+                                                               : d.swimming ? 'a duck, on the pond' : 'a duck, out on the bank');
   for (const s of swans) hit(s.x, s.y, 0, s.state === 'upend' ? 0.7 : 0.8, s.y + 0.3,
     s.state === 'upend' ? 'a swan, upended' : s.state === 'preen' ? 'a swan, preening' : 'a swan, on the river', 1.1);
   if (cart) hit(cart.x + cart.hx * 1.2, cart.y + cart.hy * 1.2, 0, 1.8, Math.max(cart.y, cart.y + cart.hy * 2.3) + 0.6, cartName(), 3.2);
@@ -7552,7 +7730,7 @@ window.__entities = function(){
   return out;
 };
 window.__census = function(){
-  const tiles = {}, TN = ['WALL','PATH','GRASS','BED','CBED','TRUNK','SIDE','ROAD','VOID','WATER','TUNNEL','SLOT','DECK','DIAL'];
+  const tiles = {}, TN = ['WALL','PATH','GRASS','BED','CBED','TRUNK','SIDE','ROAD','VOID','WATER','TUNNEL','SLOT','DECK','DIAL','EYOT'];
   for (let i = 0; i < GW * WH; i++){ const n = TN[grid[i]] || ('T' + grid[i]); tiles[n] = (tiles[n] || 0) + 1; }
 
   /* planting CA: how much of the beds is actually growing, and how far along */

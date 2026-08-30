@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-31",
+  "updated": "2026-08-30",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
   "lastIteration": 86,
@@ -425,7 +425,8 @@
       "swans are a PAIR with states — s.state swim|upend|preen + s.hold; cob picks the stretch, pen re-reads it, 0.9-cell give-way; SWAN_BANK",
       "the NIGHT on the water — drawRiverLights() under RIVER_LAMPS + moon × nightF × (1 − cloudCover()); ONE a.nightRail stander; boatLampF() lantern; the rose window lit LIVE by roseLit(). probes/river-night.mjs",
       "FOOTBRIDGE (#73) — DECK tile rows DECK_Y0..Y1 at ALLEY_Y; drawDeckSpan/drawDeckFront two items, boatUnderDeck(); agentZ()/deckZAt(); DECK_LEAD_A/Q route east arrivals over it. probes/deck-crossings.mjs",
-      "WATERMILL (#78) — MILL footprint 130..133×19..24 (roof emergent); MILL_WHEEL over the water, millAng off millSpin() = riverRun()·(1−fountainSkin()); two draw items; tail-race; MILL_WIN lit all night. probes/mill-shots.mjs"
+      "WATERMILL (#78) — MILL footprint 130..133×19..24 (roof emergent); MILL_WHEEL over the water, millAng off millSpin() = riverRun()·(1−fountainSkin()); two draw items; tail-race; MILL_WIN lit all night. probes/mill-shots.mjs",
+      "the EYOT (#87) — EYOT tile, EYOT_AT ellipse evaluated once in buildGrid; onEyot/offEyot/eyotShore read the grid; drawEyot in the cache, drawWillow live (22 hashed fronds on windSign·windF); swans' third bank (SWAN_EYOT_PULL); nestF() → 2 d.eyot ducks in spring. probes/eyot.mjs, eyot-shots.mjs"
     ],
     "sky": [
       "day/night cycle (55 s day), sun and moon arc, hills hazed by HAZE (= skyCols()[1]; beyond-the-frame roofs mixed 0.55 into it), chimney smoke, a balloon; windowLit(sa,sb) the ONE predicate for pane + LIT[] glow; facades CACHED; LIT_PANES relit AFTER applyLight",
@@ -480,6 +481,18 @@
     {
       "id": "c127",
       "note": "the plaza is EMPTY at noon on the wide shot (seed 42, early summer): count plaza presence by hour on HEAD before the next plaza brief — the east half is one laneCap roll plus eastCap 7 (#86, manager)",
+      "raisedBy": 86,
+      "seenBy": 0
+    },
+    {
+      "id": "c128",
+      "note": "the eyot is a place nobody can reach: a punt from the jetty (JETTY 128.4,35) is the only way onto it — a rung-5 vector (#87)",
+      "raisedBy": 86,
+      "seenBy": 0
+    },
+    {
+      "id": "c129",
+      "note": "the willow's fronds hang below the foreground sill strip in the Far bank quarter on a desktop (rows 48+ are under the strip at 2.6x); a phone shows rows 0–51 (#87)",
       "raisedBy": 86,
       "seenBy": 0
     }
