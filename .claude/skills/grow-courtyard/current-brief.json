@@ -24,7 +24,7 @@
   "avoid": "Do not give pairs their own arrival source. Do not make both members pathfind independently to the same waypoint — that is the 0.9-cell failure. Do not pair kids, dogs, homers or the concert crowd this iteration.",
   "budgetMin": 35,
   "risk": "medium-high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 70,
   "issued": "2026-08-30T16:24:23.147Z",
