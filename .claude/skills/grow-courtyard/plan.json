@@ -1,40 +1,76 @@
 {
-  "generated": "2026-08-29T03:48:18.437Z",
-  "byIteration": 67,
-  "rung": 2,
+  "generated": "2026-08-31T00:00:00.000Z",
+  "byIteration": 72,
+  "rung": "4b",
   "diagnosis": {
-    "health": "Healthy: of the last 20 real rows 18 shipped, 1 no-ship was #63 verifying #62's diff (a deliberate landing), 1 rejected-brief (#48); 0 reverts; selfVerdict == verdict on every row that has one; source moved 9/10; $4.25/iter at 8 min on 17–88-line diffs, each with a probe and a HEAD control. Cost is flat and #65/#66 came in at $2.9 with output held. The recurring fault is mine for the sixth pass: the worker budget opened OVER on #67 (46.1/46 KB) and state.json was four iterations stale (coverage #64–#67 unrecorded, cues raisedBy wrong). Fixed: #54–#58 rotated to the archive, #63–#67 archived verbatim then condensed 2.6–2.9 → 1.4–1.8 KB; four laws promoted (#64 → pin-the-instant, #65+#66 → the zero-is-evidence law, #67 → a new sun-at-arrival law plus a clause in the probe-world law) paid for by compressing nine — 34 laws, 12.0/12 KB; sill lapse lines merged; four cues resolved (2 → briefs, 1 folded, 1 closed), c104 raised from #63's rose-window diagnosis; WATCH: the-night-is-unseen note (false since #67) replaced by the-night-is-one-tap-away.",
+    "health": "Healthy on every row-level number and stalled on the one that matters. Of the last 20 real rows 19 shipped, the one no-ship is #63 landing #62's diff; 0 reverts, 0 rejected briefs, selfVerdict == verdict on every row that has one (#69 wrote none — it also wrote no ledger entry, c111); src moved 9/10; $3.88/iter at 9 min, the two dearest rows (#67 $5.88, #70 $7.19) are the two biggest diffs (88 and 101 lines), so cost is still buying output. But the median diff of the last five shipped is 24 lines (7/15/101/44/24) and the seven structural census scalars have sat at their #2 values for 68 iterations: three manager passes in a row held rung 2 with a good local argument each time and the loop has become a very well-run polish shop. The recurring fault is mine for the seventh pass: worker budget OVER at 47.5/46 KB on #72's open, state.json five iterations stale. Fixed this pass: #60/#61/#63 rotated; #70–#72 archived verbatim then condensed 2.9/2.8/2.6 → 1.6/1.5/1.5 KB; three laws promoted (#70 merged INTO the follower law, #72 INTO the histogram law, #71 a new anchor-vs-history law) paid for by compressing six and cutting the census-is-a-guard law (it restates the worker protocol) — 34 laws under 12 KB; inventory 48 → 45 by merging the two wind lines, the two plaza fountain lines, the two river night lines; six cues resolved (5 → briefs, c105 closed), c111 raised; WATCH gains the map-has-not-changed note so a worker knows a moved baseline is expected, not a fault.",
     "signals": [
-      "queue empty (pass #62's five briefs: 4 shipped + 1 landing of #62)",
-      "no stall signal; revertStreak=0",
-      "context budget OVER on #67 (46.1/46 KB) — fixed this pass",
-      "state.json four iterations stale — recorded"
+      "~ smallDiff: median diff of the last 5 shipped = 24 lines",
+      "~ mapFlat: developed/green/water/passages/structures/tileKinds/speciesKinds unchanged for 68 iterations — binds this pass to rung 4b",
+      "~ rungHeld: passes from #52/#57/#62/#67 all sat on rung 2",
+      "context budget OVER 47.5/46 KB on #72 — fixed this pass",
+      "state.json five iterations stale (#68–#72) — recorded",
+      "#69 shipped with no ledger entry and selfVerdict null (c111)"
     ],
-    "balance": "After recording: plaza 8 back (#59), life 7 (#60), street 6 (#61), river 4, lane 3, sky 2, courtyard 1, sill 0. Plaza, life and street each get one; sill gets a 1-hour polish for c103 (sill × polish is an empty cell); sky takes the bet because c101/c102 both point at the same missing thing. Courtyard, lane and river sit this batch out."
+    "balance": "After recording: river 9 back (#63), lane 8 (#64), courtyard 6 (#66), sill 4 (#68), plaza 3 (#69), life 2, sky 1, street 0. River takes the bet (a spatial change at the river is also the plaza's and the far bank's), lane gets the cafe, courtyard gets companions, plaza a short frost polish, sky the wind's three loose consumers in one low-risk brief. Life, street and sill sit this batch out."
   },
-  "rationale": "HOLD RUNG 2 with one rung-3-flavoured bet. #67 changed what a viewer can see: the night is now one tap away, so the loop's twenty night iterations finally pay — and the first thing that tap exposes is a defect in the queue's own advertising (the clock offer comes fourth, after an offer that needs a tap on a person: b65, one hour, c103). The three lagging domains each have a compounding move on a scalar that already exists: the plaza's fountain KNOWS it is frozen (fountainIce, fountainLine) and, as far as the source shows, says so only in a sentence — b66 draws it; the town's people all walk alone though a.mate exists for picnic pairs — b67 sends some in twos, the first new kind of person since #53 and a thing the wide shot shows in a second; the street trees' leaves lie on the road with nobody to clear them, while the courtyard has a broom — b69 gives the street its litter day. The bet is b68: the wind has magnitude and no direction, so every consumer since #15 leans east and #66's litter heaps east under every tree in every seed; a signed wind per front (and the seed in the calendar, c101) makes a whole class of days look different from the wide shot. Risk: b65 low, b66 medium, b67 medium-high (the 0.9-cell merge law, the follower-rate law), b68 high (eight consumers, every anchor must reduce at sign +1), b69 medium.",
-  "queue": [],
-  "recommendStop": null,
-  "consumed": [
+  "rationale": "CLIMBED TO RUNG 4b, and mapFlat says which: a change in SPACE. Every rung-4 so far (#32, #37, #42) picked time — the night, the snow, the year — and all of it landed; nothing in 68 iterations has moved a tile. The single biggest thing missing from a thirty-second look is that the east half of the town is three places that never exchange anybody: the only crossing of the river is the lane bridge at the bottom of the frame, so a visitor to the church green walks in through PARK_GATE at y 60 while the plaza, the quay and the jetty at (128.4, 35) — fifteen cells apart across the water — stay strangers. b70 builds a FOOTBRIDGE at the alley's latitude (ALLEY_Y 31): a new tile kind over the water, drawn light, the rowboat passing under it, and then USED by the east spawner's routes so the deck carries people both ways. It must move tileKinds and water in the census; the WATCH note and the brief both say a re-pinned baseline is the expected outcome. It goes first, at 75 min, with a 150–300-line diff invited. Behind it, four compounding moves on things that exist at a rate of zero or read wrong: b71 the cafe drawn for nobody (#64 counted 0 arrivals in 14 seeds × 3 h — the law says give a rare thing its own supply), b73 companions for the courtyard (c107, the wide shot's pairs stop at the courtyard wall), b72 the wind's three consumers that ignore it or leave the frame (c108/c109/c110, one low-risk brief so the sign lands everywhere), b74 the basin that is frozen and does not look it (c106). Risk: b70 high, b71 medium, b73 medium, b72 low, b74 low. No more rung-2 passes are available until this one has landed a spatial change or shown why it cannot.",
+  "queue": [
     {
-      "id": "b65",
-      "at": "2026-08-30T16:06:21.376Z"
+      "id": "b70",
+      "domain": "River & far bank",
+      "kind": "Scale/World",
+      "brief": "THE BET — a 150–300-line diff is expected and welcome. The map's shape has not changed in 68 iterations, and the only way across the river is the lane bridge at the bottom of the frame: every east arrival bound for the far bank enters by EAST_GATE_P / PARK_GATE at y 60, so the plaza, the quay and the jetty at JETTY (128.4, 35) never exchange anybody. Build a FOOTBRIDGE across the river at the alley's latitude (ALLEY_Y 31), so alley → plaza → quay → deck → towpath at the jetty is one straight line across the east half. A NEW tile kind (DECK = 12, add it to __census's TN[]) over the WATER cells x RIVER_X0..RIVER_X1 for two or three rows in buildGrid; drawn as a light timber or iron span with handrails and its own shadow on the water, high enough that the rowboat passes UNDER it (updateBoat runs y −7 → 93 at x 116.5–121.5 — draw the deck after the boat when the boat is under it, and give the moment its own announce line like the lane bridge's boatUnder). Then USE it: the towpath/green/bandstand branches of spawnEastAgent (roll 0.62–1.0) all lead [[PARK_GATE, 60.5], …]; let those who start from the town side (EAST_GATE_A) cross the deck instead, and let a share of plaza/quay visitors walk over to the jetty and back, so the deck carries people in both directions through the day. Add the deck to byTheWater() so crossers watch the boat. Price the routes with pathHours() and print alley→jetty before and after. This brief MUST move tileKinds (11 → 12) and water in the census: run the gate, read it for collapse only, then pin the new baseline with census.mjs --save-baseline and say so in the entry.",
+      "seams": ["buildGrid", "RIVER_X0", "RIVER_X1", "ALLEY_Y", "JETTY", "TOW_WALK", "EAST_GATE_A", "EAST_GATE_Q", "EAST_GATE_P", "spawnEastAgent", "updateBoat", "boatUnder", "drawBridge", "byTheWater", "pathHours", "__census"],
+      "successLooksLike": "From the wide shot a second, lighter crossing sits a third of the way down the river with people on it in both directions inside the first minute; the rowboat passes under it and the sill says so; the census reads tileKinds 12 and water down by the deck's cells, the baseline re-pinned on purpose; alley→jetty pathHours falls from most of a day to a few hours; lanePk/eastPk unchanged.",
+      "avoid": "Do not reuse drawBridge — it is a stone three-arch at the frame edge; this is a footbridge and should look like one. Do not route the boat around it or stop it. Do not add a new arrival source or widen eastCap — this is a ROUTE change on the existing east budget (its arrivals retrace, so a deck crossing is walked both ways for free). Do not put the deck at the jetty's exact row if that hides the jetty.",
+      "budgetMin": 75,
+      "risk": "high"
     },
     {
-      "id": "b66",
-      "at": "2026-08-30T16:19:34.302Z"
+      "id": "b71",
+      "domain": "Lane & market",
+      "kind": "Deepen",
+      "brief": "The pavement cafe — CAFE_TABLES with claimable chairs, the umbrella logic, seatWet, the chair-across for a companion — is drawn for nobody: #64 counted 0 cafe arrivals in 14 seeds × 3 daylight hours, because the cafe is a 0.26 band of a spawnLaneAgent roll that fires ~3.3×/day and then loses to laneCap. Count first, AT THE CHOICE, over 10 seeds × 5 days: cafe sitters per day and table-hours, kiosk and market counts beside them. Then give the cafe real supply — per the law, a rare thing gets its own arrival source with its own presence bound (a small cafeCap on cafeOpen() hung off the sun like kioskOpen, spawnTapAgent is the model), not a bigger slice of laneCap. A companion at the chair across should follow for free through withCompanion.",
+      "seams": ["spawnLaneAgent", "CAFE_TABLES", "kioskOpen", "laneCap", "seatRefused", "withCompanion", "spawnTapAgent", "probes/wet-seats.mjs", "seats-out.mjs"],
+      "successLooksLike": "At a clear daylit noon in most seeds someone is sitting at a cafe table (print the presence fraction, before and after); kiosk/market counts and lanePk unchanged; nobody sits in the rain (seatRefused still governs).",
+      "avoid": "Do not rebalance the itinerary bands blind — measure at the choice first. Do not touch the market or the kiosk. Do not draw anything new.",
+      "budgetMin": 35,
+      "risk": "medium"
     },
     {
-      "id": "b67",
-      "at": "2026-08-30T16:24:23.146Z"
+      "id": "b73",
+      "domain": "Courtyard & garden",
+      "kind": "Connect",
+      "brief": "c107: arrivals come in twos on the lane and from the east since #70, but the courtyard's own spawnAgent still sends every sitter and crosser alone, so from the wide shot the pairs stop at the courtyard wall. Call withCompanion(a, room) from spawnAgent with the courtyard's own cap (capacity) as the room test, and make pairTarget's bench case work on BENCH_SPOTS (the courtyard bench is the same 1.5 cells — shift the leader, seat the companion). Leave the concert crowd alone (its own source, nine claimed slots) and leave a.mate (the picnic) as it is — but say in the entry whether a.mate and a.with should become one mechanism.",
+      "seams": ["spawnAgent", "withCompanion", "pairTarget", "capacity", "BENCH_SPOTS", "a.mate", "probes/pairs.mjs"],
+      "successLooksLike": "probes/pairs.mjs extended to the courtyard: a quarter of courtyard arrivals with room bring a companion, separation in [0.9, 1.6], both on the bench; courtyard peak population unchanged.",
+      "avoid": "No new draws in a branch that already has room decided — keep the roll unconditional as #70 did. Do not touch the concert or the picnic.",
+      "budgetMin": 35,
+      "risk": "medium"
     },
     {
-      "id": "b68",
-      "at": "2026-08-30T16:34:53.851Z"
+      "id": "b72",
+      "domain": "Sky, light & weather",
+      "kind": "Connect",
+      "brief": "The wind has a sign since #71 and three consumers still do not know. c108: rain drops slant −x on every day (r.x -= v·dt·0.12 in the shower step, drawn as a −2.4 px line) — the one weather consumer that ignores windSign; put the slant on windDir() so an east wind blows the rain east. c109: leaves from the west street tree (pit x=8) blow off-world under a negative sign (l.x < −10 in 7/10 seeds; motion gate 'leaf oob' fires on HEAD) — kill them at the frame edge. c110: every lane leaf lands in road row 70 because fall y-drift is a constant 0.5/s; give each leaf a small per-leaf y term at spawn so the drift spreads across gutter and crown (then #72's sweeper.gutter row choice is a real choice).",
+      "seams": ["windDir", "windSign", "raindrops", "leaves", "leafFallF", "landLeaf", "sweeper.gutter", "probes/wind-sign.mjs", "probes/street-clear.mjs", "motion.mjs"],
+      "successLooksLike": "Rain slants with the sign in a crop at each sign; the motion gate's leaf-oob fault is gone on ten seeds; road litter spans 3+ rows with row 70 still the heaviest; every #71/#72 anchor identical at sign +1.",
+      "avoid": "No new R() draws in the shower step (the rain is a population). Do not change leaf counts or fall speed.",
+      "budgetMin": 30,
+      "risk": "low"
     },
     {
-      "id": "b69",
-      "at": "2026-08-30T16:45:59.709Z"
+      "id": "b74",
+      "domain": "Plaza & quay",
+      "kind": "Polish",
+      "brief": "c106: the fountain basin is frozen for days 26–1 and the plume stops (#69), but the basin skin only reaches 0.19–0.43 toward ice-white because fountainIce caps at 0.43 — it reads as pale water, not ice. Let the frozen basin read frozen at a glance from the wide shot: raise the per-cell floor or let ice reach 1 on the cached ground (count rebuilds with probes/ground-rebuilds.mjs before and after; the cache must not rebuild more often). Exactly zero change anywhere fountainIce is 0.",
+      "seams": ["fountainIce", "FOUNT_ICE", "FOUNT_STILL", "riverCol", "drawGround", "probes/fountain-freeze.mjs", "probes/ground-rebuilds.mjs"],
+      "successLooksLike": "A midwinter noon crop of the basin is unmistakably ice next to HEAD's; a summer crop is pixel-identical to HEAD; rebuild counts unchanged.",
+      "avoid": "Do not touch the river's ice or riverCol's other callers. Do not add a per-frame draw.",
+      "budgetMin": 25,
+      "risk": "low"
     }
-  ]
+  ],
+  "recommendStop": null
 }
