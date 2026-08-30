@@ -27,7 +27,7 @@
   "avoid": "Do not add a compass or a vane — the lean IS the reading. Do not let the sign change while windF > 0.1. Do not reshuffle the seeded stream with a new R() — hash only.",
   "budgetMin": 40,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 71,
   "issued": "2026-08-30T16:34:53.853Z",
