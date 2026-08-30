@@ -55,7 +55,11 @@ const median = a => { if (!a.length) return 0; const s = [...a].sort((x, y) => x
 const mean = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
 
 const signals = [];
-const add = (id, detail, rung) => signals.push({ id, detail, suggestRung: rung });
+/* `trigger: false` marks an ADVISORY signal: it is the manager's business at its
+ * next pass (it must climb — see SKILL.md) but it does not fire the manager early,
+ * because it describes a chronic condition that would otherwise re-fire the
+ * manager every MANAGER_GAP iterations until the town's whole shape changed. */
+const add = (id, detail, rung, trigger = true) => signals.push({ id, detail, suggestRung: rung, trigger });
 
 /* --- the shapes ---------------------------------------------------------- */
 
@@ -78,6 +82,45 @@ if (l8.length >= 6) {
  * whatever the ledger says happened, the town did not change. */
 const flat = streak(r => !r.evidence || !r.evidence.srcChanged);
 if (flat >= 2) add('srcFlat', `courtyard.html unchanged for ${flat} iterations`, 3);
+
+/* --- the shapes THIS run made (found at #67, not in Solvista's log) --------
+ * Everything above catches a loop that fails loudly. This loop failed quietly:
+ * 100% ship rate, 0 reverts, cost FALLING — and diffs shrinking from a mean of
+ * +93 lines (#2–33) to +49 (#37–67) while every structural census scalar sat at
+ * its #2 value. A loop that ships something tiny every time trips nothing above. */
+
+/* Diffs shrinking. Median source lines over the last 5 iterations that moved the
+ * source at all; rows that predate srcLines (all 0) are skipped. */
+const sized = rows.filter(r => r.evidence && r.evidence.srcChanged && r.evidence.srcLines > 0);
+const l5 = sized.slice(-5).map(r => r.evidence.srcLines);
+if (l5.length >= 5) {
+  const med = median(l5);
+  if (med < 40) add('smallDiff', `median diff over the last 5 shipped iterations is ${med} lines (${l5.join('/')}); the loop is shipping polish`, 4, false);
+}
+
+/* The map itself has not changed. These census scalars only move when ground,
+ * water, buildings, passages or the species/tile catalogue change — i.e. when the
+ * town gains SPACE, not behaviour. Rung-4 work that only ever picks time (a year,
+ * an evening, snow) leaves every one of them where the loop found it. */
+const STRUCT = ['developed', 'green', 'water', 'passages', 'structures', 'tileKinds', 'speciesKinds'];
+const censused = rows.filter(r => r.census && r.census.scalars);
+if (censused.length >= 15) {
+  const key = r => STRUCT.map(k => r.census.scalars[k]).join('/');
+  const now = key(censused[censused.length - 1]);
+  let flatMap = 0;
+  for (let i = censused.length - 1; i >= 0 && key(censused[i]) === now; i--) flatMap++;
+  if (flatMap >= 15) add('mapFlat', `the map's shape (${STRUCT.join(', ')}) is unchanged for ${flatMap} iterations — nothing spatial has been built`, 4, false);
+}
+
+/* The manager has held the same low rung for three passes running. Success is
+ * also a reason to climb: the ladder was written to be climbed on failure, and a
+ * clean run therefore never left rung 2 (#47–#67: five passes, all rung 2). */
+const MLOG = join(HERE, 'MANAGER-LOG.md');
+const rungs = existsSync(MLOG)
+  ? [...readFileSync(MLOG, 'utf8').matchAll(/^- .*planned from #\d+, rung (\d)/gm)].map(m => +m[1])
+  : [];
+const lastRungs = rungs.slice(-3);
+if (lastRungs.length === 3 && lastRungs.every(r => r <= 2)) add('rungHeld', `the last 3 manager passes all sat on rung ${lastRungs.join('/')}; the next pass must climb`, 4, false);
 
 /* One corner of the town getting all the attention. */
 const doms = last(4).map(r => r.domain).filter(Boolean);
@@ -129,15 +172,17 @@ if (report) {
   }
   console.log(`\n  plan: ${plan ? `${(plan.queue || []).length} briefs queued, written at #${plan.byIteration} (rung ${plan.rung ?? '?'})` : 'none'}`);
   console.log(signals.length ? '\nSIGNALS FIRING' : '\nNo stall signals.');
-  for (const s of signals) console.log(`  ! ${s.id.padEnd(14)} ${s.detail}   → consider ladder rung ${s.suggestRung}+`);
+  for (const s of signals) console.log(`  ${s.trigger ? '!' : '~'} ${s.id.padEnd(14)} ${s.detail}   → ${s.trigger ? 'consider' : 'REQUIRED:'} ladder rung ${s.suggestRung}+`);
   if (signals.length) {
     console.log('\n  A firing signal means the CURRENT RUNG IS SPENT. Climb the ladder;');
     console.log('  do not re-plan the same rung with different words.');
+    if (signals.some(s => !s.trigger)) console.log('  (~ = advisory: did not wake the manager early, but binds THIS pass — see the ladder rules.)');
   }
 } else if (asJson) {
   console.log(JSON.stringify({ iterations: rows.length, managerPasses: managers.length, launchFailures: launchFails.length, signals, verdictCounts }, null, 1));
 } else {
-  console.log(signals.length ? signals.map(s => s.id).join(',') : 'ok');
+  const firing = signals.filter(s => s.trigger);
+  console.log(firing.length ? firing.map(s => s.id).join(',') : 'ok');
 }
 
-process.exit(signals.length ? 2 : 0);
+process.exit(signals.some(s => s.trigger) ? 2 : 0);

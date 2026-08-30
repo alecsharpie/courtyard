@@ -83,15 +83,17 @@ Do not skip to the queue.
 
 ## The escalation ladder
 
-When work is landing cleanly, stay on rung 1–2. When a stall signal fires, you must
-move **up** the ladder. You may not respond to a stall by re-planning the same rung.
+When work is landing cleanly, rung 1–2 is the default — but **not the permanent
+address.** When a stall signal fires, you must move **up** the ladder. You may not
+respond to a stall by re-planning the same rung.
 
 | # | Move | Use when |
 | --- | --- | --- |
 | 1 | **Rotate** — different domain × kind | routine; balance the coverage grid |
 | 2 | **Deepen / interconnect** — compound systems that already exist | the basics are in place; usually the highest-yield move |
 | 3 | **Widen the menu** — add a new *domain* or a new *kind* to `state.json` | the existing menu's cells are all attempted |
-| 4 | **Change the world** — extend the map, add a season, a longer cycle, weather, a new quarter | the current world has been fully mined |
+| 4a | **Change the world in time** — a season, a longer cycle, weather, an hour nobody has seen | the current world has been fully mined |
+| 4b | **Change the world in space** — extend the map: a new quarter, a second lane, a canal, a hall, a new kind of tile or species; something that moves `developed` / `structures` / `tileKinds` in the census | the map's shape has not changed; every rung-4 so far picked time |
 | 5 | **Change the observer** — new framing, camera, time of day, interaction, a way to *read* the town | the town is rich but only one view of it exists |
 | 6 | **Retire and rebuild** — take the weakest existing system and redo it properly | polish has diminishing returns everywhere |
 
@@ -99,6 +101,23 @@ The menu lives in `state.json`, not in a skill file, **precisely so that you can
 extend it.** The previous loop could not: its domains and kinds were hardcoded
 prose, so once every cell was attempted it had nowhere left to go and spent its
 last thirty iterations proving that.
+
+### Success is also a reason to climb
+
+The ladder above was written to be climbed on *failure*, and the first 67
+iterations proved that a run which never fails never leaves rung 2: five passes
+running held rung 2 with a good local argument each time, diffs shrank from a mean
+of +93 lines to +49, and the seven structural census scalars sat at their #2 values
+throughout. `stall.mjs` now reports that shape as **advisory** signals — `~` in the
+report, `smallDiff`, `mapFlat`, `rungHeld` — which do not wake you early but
+**bind the pass you are in**:
+
+- If any advisory signal is showing, this batch's rung is **at least** the one it
+  names. "HELD RUNG 2 because …" is not an available sentence while one shows.
+- Regardless of signals: **no more than two consecutive passes on rung ≤ 2.** The
+  third climbs to 3 or higher and says so in the log.
+- `mapFlat` means rung **4b** specifically — a spatial change. A season or an
+  evening does not clear it; only the census does.
 
 ### The rule that makes this work
 
@@ -155,7 +174,18 @@ nothing downstream reads it on the lane; make the awnings and washing lines resp
 so a windy day is legible from the wide shot" is a brief.
 
 **Vary risk deliberately.** A queue of five low-risk polish jobs is how a loop
-grinds to a halt in comfort. Include at least one brief that could fail.
+grinds to a halt in comfort. Include at least one brief that could fail — **the
+bet** — and give it room to be big:
+
+- `risk: "high"`, `budgetMin` **≥ 60**, and put it **first or second** in the queue,
+  not last, so it is built while the plan is fresh rather than after four polish
+  jobs have shifted the ground under it.
+- Say in the brief that a 150–300-line diff is expected and welcome. The worker's
+  skill tells it to take the swing when the brief says so; a bet whose brief reads
+  like a polish job will be built like one (#58, #64, #65: the "bet" shipped at
+  +31, +15 and +16 lines).
+- A bet that adds a scalar or a sign to a scalar is not a bet. It is rung 2. A bet
+  changes what a visitor sees from the wide shot within the first ten seconds.
 
 ---
 
