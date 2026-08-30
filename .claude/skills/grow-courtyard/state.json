@@ -371,7 +371,8 @@
       "plaza with a fountain and a paved roundel, four tree pits, benches; quay benches. PAVING + pavingAt(x,y) the ONE predicate naming a cell's paving, each with a crumbs line and bird box; crumbSpot() keeps birds off the basin. probes/paving-places.mjs",
       "spawnEastAgent() — the east quarter's own arrival source (eastCap/eastRate, a.east, eastOpen() on daylight); enters by alley, quay head or park gate, one stop, leaves the way it came",
       "the FOUNTAIN reads the YEAR — fountainPlay() = 1 - FOUNT_SWING*greyF(): jets, reach, droplets; basin via riverCol() + fountainIce() below FOUNT_ICE; fountainStand() sets the bench/fountain split in both spawners. probes/fountain-year.mjs",
-      "wind on the plaza: windF() 0..1 beside isWindy(); fountain jets/droplets lean +x on windT with a lee spray drift, fountainStand() drops by FOUNT_WIND_SHY on windy days, bunting flutters. probes/fountain-wind.mjs"
+      "wind on the plaza: windF() 0..1 beside isWindy(); fountain jets/droplets lean +x on windT with a lee spray drift, fountainStand() drops by FOUNT_WIND_SHY on windy days, bunting flutters. probes/fountain-wind.mjs",
+      "the plume freezes with the basin: fountainJet() = 1 - fountainIce()/FOUNT_STILL gates jets, droplets, lee spray in drawFountain; 0 for ice ≥ 0.35 (days 26–1), 1 wherever ice is 0. probes/fountain-freeze.mjs"
     ],
     "river": [
       "river, one rowboat, three-arch bridge (lays its own shadow), towpath, church with tower, nave and a rose window lit at night, bandstand, four orchard trees, jetty, park gate; pigeons flush off the belfry when the bell rings",
@@ -417,6 +418,12 @@
     {
       "id": "c105",
       "note": "follow is the fourth OFFER (~48 real s in) since #68; question whether it earns a slot — stats, not the queue (offer-order.mjs prints the real time each offer surfaces)",
+      "raisedBy": 67,
+      "seenBy": 0
+    },
+    {
+      "id": "c106",
+      "note": "c98 the frost basin skin only reaches 0.19–0.43 toward ice-white (fountainIce caps at 0.43); to read frozen at a glance raise the per-cell floor or let ice reach 1 — cached ground, count rebuilds",
       "raisedBy": 67,
       "seenBy": 0
     }

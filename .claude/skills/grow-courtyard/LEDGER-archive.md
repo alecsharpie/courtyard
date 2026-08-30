@@ -2949,3 +2949,22 @@ warmth is a cosine and time piles up at the extremes. Full entry in `LEDGER-arch
 **Surprise:** span delivery was exact to 1e-13 and the landings were still 0.13–0.26 h off — the SUN moves during the lapse (sunDown +0.36 h/day at the equinox), so a target fixed at tap time is stale by arrival. `sunAt(t)` + a 3-pass fixed point lands on the sun as it is at arrival. The season probe's 0.02-day tolerance (0.48 h) could never see this.
 **Law:** a target that is an hour OF THE SUN must be solved at the arrival instant, not the departure — anything read off `sunUp`/`sunDown` across more than an hour or two of sim time drifts by the day's share of the seasonal swing. Also: `?pause` + `__reseed` + `__setTime` world ≠ a live page started at `?t=` (cloud 0.56 vs 0.17 at one instant); to pick an instant for a live test, warp the live page.
 **Cue:** `EVENING_WIDE` is the 4th offer and comes after `follow`, so a visitor who never taps a person hears it ~30 real s in; consider ranking it second.
+## Iteration 69 — the frozen fountain: the plume falls to nothing as the basin skins over (2026-08-31) [Plaza & quay × Deepen]
+
+**Brief:** b66 — the basin already skins over below FOUNT_ICE (cached ground, hash y+71) and `fountainLine()` says "skinned-over", but `drawFountain` read only `fountainPlay()` — in January it drew 1 jet + 1 droplet over the ice. Make the freeze visible in the plume.
+**Did:** `FOUNT_STILL = 0.35`, `fountainJet() = clamp(1 - fountainIce()/FOUNT_STILL, 0, 1)`. In `drawFountain` the drawn `play` is `fountainPlay() * jet`, the jet-stroke alpha and the lee-spray weight are `× jet`, and the whole plume is behind `if (jet > 0)`. Basin colour, `fountainStand`, spawners untouched. No R().
+**Gates:** census PASS (+0, draw-only) · motion PASS · perf `frame-cost.mjs` 2.85 ms both, rebuilds 102 = 102 · filmstrip day 0 POP · `fountain-year.mjs` anchor EXACT, ground IDENTICAL · `probes/fountain-freeze.mjs`: per day jets/drops HEAD 1/1 → here 0/0 for days 26–1 (ice ≥ 0.34), 5/3 identical to HEAD for every ice-0 day; crops `fountain-winter-{head,here}.png` show the lone jet gone.
+**Verdict:** shipped.
+**Surprise:** the pixel hash of a plaza crop differs HEAD-vs-HEAD (two runs, same seed, same warped instant) — the live page walks the PRNG through the round-trip — so "pixel-identical" was proved by the draw-call count and the algebra (`x * 1`), not by pixels. The winter basin skin is faint: ice caps at 0.43, so the mix toward `#b4c3c6` never passes 0.43 — reads as a paler blue, not white.
+**Cue:** c98 — the frost's basin is skinned only 0.19–0.43 toward ice-white; if the plaza should read *frozen* at a glance, either raise the per-cell skin (`0.45 + 0.55·hash` → a higher floor) or let `fountainIce` reach 1 at midwinter; count rebuilds first (cached ground).
+
+---
+
+## Iteration 59 — the paving remembers the rain: wetness, a rate-capped scalar the cached ground and the night lamps read (2026-08-29) [Plaza & quay × Connect]
+
+**Brief:** b56 — a `wetness` 0..1 world scalar; PAVED cells darken in the cached ground, bucketed; lamp bars on wet paving at night.
+**Did:** HEAD already had `wet`, an 18 s countdown driving a live sheen on the lane — replaced by `wetness`/`wetF()`: `stepWet()` rises `rainFall/WET_RISE` (3 s), dries `1/WET_DRY` (7 s) × daylight × warmth, lands ON 0. Sheen = `0.16 × wetness`. `wetCol()` pulls PATH/SIDE/ROAD toward `#3f4650` by `wetPainted` (5 buckets, set in `drawGround`, `simStep` dirties on a bucket change). `WET_LAMPS` = 22 lamps over paving; `drawWetLights()` after `drawRiverLights`, `0.30 × wetness × nightF`. No R().
+**Gates:** census PASS · motion PASS · `wet-year.mjs`: shower ends at 0.90, dry in 3.14 h; +3.5 h ground hash identical to HEAD · `ground-rebuilds.mjs` dry days = HEAD, rainy +9 · `frame-cost.mjs` unchanged · filmstrip 0 POP · `wet-shots.mjs` crops.
+**Verdict:** shipped.
+**Surprise:** at +3.5 h the lane still differed from HEAD by 15 levels on an identical ground hash — HEAD's `wet` sheen outlasted the rain by ~8 sim hours. The sheen now ends when the paving dries; on a winter night it hangs on longer than HEAD's did (c97).
+

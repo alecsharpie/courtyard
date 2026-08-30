@@ -15,31 +15,6 @@
   "rationale": "HOLD RUNG 2 with one rung-3-flavoured bet. #67 changed what a viewer can see: the night is now one tap away, so the loop's twenty night iterations finally pay — and the first thing that tap exposes is a defect in the queue's own advertising (the clock offer comes fourth, after an offer that needs a tap on a person: b65, one hour, c103). The three lagging domains each have a compounding move on a scalar that already exists: the plaza's fountain KNOWS it is frozen (fountainIce, fountainLine) and, as far as the source shows, says so only in a sentence — b66 draws it; the town's people all walk alone though a.mate exists for picnic pairs — b67 sends some in twos, the first new kind of person since #53 and a thing the wide shot shows in a second; the street trees' leaves lie on the road with nobody to clear them, while the courtyard has a broom — b69 gives the street its litter day. The bet is b68: the wind has magnitude and no direction, so every consumer since #15 leans east and #66's litter heaps east under every tree in every seed; a signed wind per front (and the seed in the calendar, c101) makes a whole class of days look different from the wide shot. Risk: b65 low, b66 medium, b67 medium-high (the 0.9-cell merge law, the follower-rate law), b68 high (eight consumers, every anchor must reduce at sign +1), b69 medium.",
   "queue": [
     {
-      "id": "b66",
-      "domain": "Plaza & quay",
-      "kind": "Deepen",
-      "brief": "The plaza already reads the year: `fountainPlay()` = 1 − FOUNT_SWING·greyF() and `fountainIce()` > 0 at midwinter, and `fountainLine()` says 'the skinned-over basin' — but confirm with grep whether anything in the DRAW reads `fountainIce()`; the manager's read is that only `fountainLine`/`fountainStand` do, so the jet is drawn playing in January while the sentence says it is frozen. Make the frozen fountain visible: as fountainIce rises the jet and spray fall to nothing, the basin's water goes from moving to a still pale skin (cached or live — the plume is live, the basin may be in the cached ground; count rebuilds), and at ice 0 every term reduces exactly to today. If the plaza's `drawFountain` already has an ice branch, deepen it instead: the sitters' `fountainStand()` share and the naming line should agree with what is drawn.",
-      "seams": [
-        "fountainPlay",
-        "fountainIce",
-        "FOUNT_ICE",
-        "FOUNT_SWING",
-        "fountainStand",
-        "fountainLine",
-        "FOUNTAIN",
-        "drawFountain",
-        "greyF",
-        "nightF",
-        "snowCover",
-        "probes/ground-rebuilds.mjs",
-        "probes/frame-cost.mjs"
-      ],
-      "successLooksLike": "Pinned midwinter noon crop of the plaza (seed 7, the frost) shows a still, skinned basin and no plume; midsummer noon crop is pixel-identical to HEAD; the lamp reflections on wet paving still work in winter; a year probe prints fountainIce and the plume's droplet count per day and the two agree; motion gate PASS; frame cost unchanged.",
-      "avoid": "Do not add a new R() draw. Do not thin plaza arrivals — fountainStand already does that. Do not touch the river ice (there is none) — the plaza only.",
-      "budgetMin": 30,
-      "risk": "medium"
-    },
-    {
       "id": "b67",
       "domain": "People & animals",
       "kind": "New element",
@@ -130,6 +105,10 @@
     {
       "id": "b65",
       "at": "2026-08-30T16:06:21.376Z"
+    },
+    {
+      "id": "b66",
+      "at": "2026-08-30T16:19:34.302Z"
     }
   ]
 }

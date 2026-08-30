@@ -1067,6 +1067,13 @@ const FOUNT_SWING = 0.6;                       // 0.4 in January, 1.6 in July
 const FOUNT_ICE = 0.7;                         // below this the basin starts to skin over
 function fountainPlay(){ return 1 - FOUNT_SWING * greyF(); }
 function fountainIce(){ return clamp((FOUNT_ICE - fountainPlay()) / FOUNT_ICE, 0, 1); }
+/* The plume is the basin's ice read the other way: as the skin comes in the jets and the
+ * droplets fall to nothing, and by FOUNT_STILL of ice (play ~0.45, most of the frost)
+ * the fountain stands still over a pale basin — the sentence fountainLine() has said
+ * since #59. fountainJet() is 1 whenever ice is 0, so every term it multiplies is
+ * exactly today's outside the frost (x * 1). Draw-only: no R(), the plume is live. */
+const FOUNT_STILL = 0.35;                      // ice at which the plume is gone entirely
+function fountainJet(){ return clamp(1 - fountainIce() / FOUNT_STILL, 0, 1); }
 function fountainLine(){
   return fountainIce() > 0 ? 'Someone stands at the skinned-over basin, breath showing, and does not touch it.'
                            : 'Someone trails a hand through the fountain and flicks it dry.';
@@ -4816,8 +4823,8 @@ function drawFountain(it, t){
   ctx.fillStyle = '#9a9184';
   ctx.beginPath(); ctx.ellipse(px2, py2, cellW * 0.7, cellH * 0.5, 0, 0, 7); ctx.fill();
   // spray
-  const play = fountainPlay();
-  if (!RM || true){
+  const jet = fountainJet(), play = fountainPlay() * jet;   // play is what is DRAWN: 0 once the basin has skinned
+  if (jet > 0){
     // jets: each keeps its own threshold (hash k,23) against play, so the winter
     // fountain is two or three jets not five dim ones; height and reach ride play
     const rise = Math.min(play, 1.4), reach = Math.min(play, 1.2);
@@ -4826,7 +4833,7 @@ function drawFountain(it, t){
        carry the same way and further. lean is 0 on a calm day, so every term below
        reduces to the constant it replaced. hash() and the clock only — no R(). */
     const lean = windF() * (RM ? 0.6 : 0.65 + 0.35 * Math.sin(windT * 2.2 + 0.7)) * cellW * 0.9;
-    ctx.strokeStyle = 'rgba(220,240,245,' + (0.55 * Math.min(1, 0.6 + 0.4 * play)).toFixed(3) + ')'; ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(220,240,245,' + (0.55 * jet * Math.min(1, 0.6 + 0.4 * play)).toFixed(3) + ')'; ctx.lineWidth = 1;
     for (let k = 0; k < 5; k++){
       if (hash(k, 23) >= play) continue;
       const ang = k / 5 * Math.PI * 2 + t * 0.3;
@@ -4850,7 +4857,7 @@ function drawFountain(it, t){
     // the lee side: spray carried past the rim onto the paving, 6 faint dots that
     // walk downwind on windT and fade as they go. Nothing on a calm day.
     if (lean > 0){
-      const w = windF() * Math.min(1, 0.6 + 0.4 * play);
+      const w = windF() * jet * Math.min(1, 0.6 + 0.4 * play);
       for (let k = 0; k < 6; k++){
         const ph = (windT * 0.9 + hash(k, 41)) % 1;
         const al = w * 0.42 * (1 - ph) * Math.max(0, Math.sin(t * 1.7 + k * 2.1) * 0.5 + 0.5);
