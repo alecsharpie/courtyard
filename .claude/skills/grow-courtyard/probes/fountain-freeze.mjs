@@ -43,7 +43,8 @@ for (const [label, file] of Object.entries(FILES)){
       window.__reseed(); window.__setTime(0); window.__warp(t);
       await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
       const a = project(FOUNTAIN.x - 7, FOUNTAIN.y - 8, 0), b = project(FOUNTAIN.x + 7, FOUNTAIN.y + 9, 0);
-      const d = cv.getContext('2d').getImageData(a[0]*DPR, a[1]*DPR, (b[0]-a[0])*DPR, (b[1]-a[1])*DPR).data;
+      // gcv, not cv: the live plume sits in this crop and made the summer hash noisy (#77, c116); the cache is what the skin lives on
+      const d = gcv.getContext("2d").getImageData((a[0] + (typeof gview === "undefined" ? 0 : gview.pad)) * DPR, a[1] * DPR, (b[0]-a[0])*DPR, (b[1]-a[1])*DPR).data;
       let s = 0; for (let i = 0; i < d.length; i += 7) s = (s * 31 + d[i]) >>> 0;
       return { hash: s, ice: +fountainIce().toFixed(3), hour: +__census().clock.hour.toFixed(2), wind: +windF().toFixed(2) };
     }, day * 55 + 13.75);

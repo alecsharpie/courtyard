@@ -13,28 +13,7 @@
     "balance": "After recording: sill 9 back (#68), life 7 (#70), street 5 (#72), river 4 (#73), lane 3, courtyard 2, sky 1, plaza 0. The two starved domains take the two big briefs: life gets the evening (b77) and the sill gets the camera (b78, rung 5). The bet is at the river again because the river and the far bank are the only place the map has room — the thing that has never existed in the town is a building that MOVES. Plaza and sky sit this batch out; courtyard × New element is still an empty cell and is noted for the next pass."
   },
   "rationale": "STAYS ON RUNG 4b for one more pass, and climbs to 5 inside the same batch. smallDiff is the binding signal and it fires because four of the last five briefs were priced as polish; the answer is not another polish batch with a spatial bet on top, it is a batch where three of the four briefs are structural. From a thirty-second look at the wide shot (noon and 03:00, seed 42): the far bank is a strip where nothing moves but the band three days in a summer; the night holds one person in the whole town; and at 390 px the whole 138-cell world is a thumb-wide strip nobody can read. So: b76 THE MILL — the first structure since #2 and the first building that moves: a mill house on the far bank with an undershot wheel in the river turning on riverRun(), stilled by the frost, a lit window at night, its footprint through buildVolumes() so developed/structures move and the baseline is re-pinned again. b77 THE EVENING — life's own arrival source for the warm dry evening: strollers who come in through the park gate or the quay head, cross the new deck, lean at the rail and sit on the quay, so the clock-tap lands a viewer in a town that is out of doors after dark. b78 THE QUARTERS (rung 5) — a phone visitor can look at ONE quarter: a sill control that eases the camera (originX/cellW/cellH inside project()) onto courtyard, street, plaza & river or far bank, and back; all hit-testing already goes through project() so naming and touch keep working. b79 the rose window's dusk seam (c104, three passes old: a brief or a deletion — a brief). Risk: b76 high (first, 75 min, 200-line diff invited), b77 medium (60), b78 medium-high (60, rung 5), b79 low (25).",
-  "queue": [
-    {
-      "id": "b79",
-      "domain": "River & far bank",
-      "kind": "Polish",
-      "brief": "c104, three manager passes old: the church's rose window has a two-sided dusk seam — the cached disc steps at cache time and the relight is a 0.7·nightF screen pass, so at the dusk hour the disc changes in a step while its glow ramps. #63 diagnosed it; nobody fixed it. Draw the disc live after applyLight (the ROSE relight pass is already there) so one 0..1 (nightF) sets both the disc and its glow, and remove the cached copy. Prove it with a dusk filmstrip crop on the tower (probes/filmstrip AT a dusk hour, pops.mjs graded against neighbours) and a gcv hash showing the ground cache is untouched. While there, fix the instrument in c116: fountain-freeze.mjs's summer identity half should hash gcv, not cv.",
-      "seams": [
-        "ROSE",
-        "LIT_PANES",
-        "applyLight",
-        "drawLitPanes",
-        "CHURCH",
-        "nightF",
-        "probes/dusk-relight-where.mjs",
-        "probes/fountain-freeze.mjs"
-      ],
-      "successLooksLike": "A dusk filmstrip crop on the tower shows the rose window brightening in one smooth ramp with no step; the night wide shot is unchanged; ground rebuild count unchanged.",
-      "avoid": "Do not touch the pane relight for the ordinary windows. Do not widen the crossfade past the threshold it already has (the staged-appearance law).",
-      "budgetMin": 25,
-      "risk": "low"
-    }
-  ],
+  "queue": [],
   "recommendStop": null,
   "consumed": [
     {
@@ -48,6 +27,10 @@
     {
       "id": "b78",
       "at": "2026-08-30T18:20:10.754Z"
+    },
+    {
+      "id": "b79",
+      "at": "2026-08-30T18:34:07.099Z"
     }
   ]
 }

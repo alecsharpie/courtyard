@@ -3371,10 +3371,15 @@ const LIT = [];                                  // lit window rectangles, for t
 /* #61: the lit panes themselves, as screen quads, so applyLight can put the warmth BACK
  * into the glass after its multiply — every lit pane in HEAD read grey (105,100,110) at
  * midnight, the halo warm and the window behind it slate. Per-frame, reset with LIT.
- * ROSE is the church's rose window, written at cache time (it lives in the cached
- * facade), relit and haloed by the same pass every night frame. */
+ * The church's rose window is NOT here: the cache holds only its unlit glass and
+ * applyLight draws the lit disc live (roseLit), so one ramp off nightF sets the glass
+ * and its glow together — the cached copy used to step at cache time while the glow
+ * ramped, a two-sided dusk seam (#63, #81). */
 const LIT_PANES = [];
-let ROSE = null;
+/* 0..1: how lit the rose window is. 0 until nightF reaches ROSE_ON (the threshold the
+ * staged appearance always had), then an ease to 1 over ROSE_RAMP of nightF. */
+const ROSE_ON = 0.3, ROSE_RAMP = 0.25;
+function roseLit(){ const k = clamp((nightF - ROSE_ON) / ROSE_RAMP, 0, 1); return k * k * (3 - 2 * k); }
 /* Reader two: the light. A low cold sun against a high warm one. Everything the town
  * casts is SUN[0]/SUN[2] and SUN[1]/SUN[2], so raising the midsummer arc and dropping
  * the midwinter one changes every shadow in the frame from one place. */
@@ -3947,10 +3952,8 @@ function drawChurchFront(g){
   const yF = CHURCH.ny1, mx = (CHURCH.nx0 + CHURCH.nx1) / 2;
   const [rx, ry] = project(mx, yF, 5.4);
   g.fillStyle = '#7d735f'; g.beginPath(); g.arc(rx, ry, cellW * 0.95, 0, 7); g.fill();
-  const lit = nightF > 0.3;
-  g.fillStyle = lit ? 'rgba(255,206,140,.9)' : mix('#2b3038', '#8fa2b4', 0.2 + 0.5 * daylight);
+  g.fillStyle = mix('#2b3038', '#8fa2b4', 0.2 + 0.5 * daylight);   // unlit glass; lit live by applyLight (#81)
   g.beginPath(); g.arc(rx, ry, cellW * 0.74, 0, 7); g.fill();
-  ROSE = [rx, ry, cellW * 0.74];                 // relit + haloed by applyLight (#61)
   g.strokeStyle = 'rgba(240,234,218,.7)'; g.lineWidth = 1;
   for (let k = 0; k < 6; k++){
     const th = k / 6 * Math.PI;
@@ -6011,10 +6014,29 @@ function applyLight(t){
       const al = 0.7 * nightF;
       ctx.fillStyle = 'rgba(255,190,90,' + al.toFixed(3) + ')';
       for (const q of LIT_PANES){ poly(ctx, q); ctx.fill(); }
-      if (ROSE && nightF > 0.3){
-        ctx.fillStyle = 'rgba(255,180,110,' + al.toFixed(3) + ')';
-        ctx.beginPath(); ctx.arc(ROSE[0], ROSE[1], ROSE[2], 0, 7); ctx.fill();
-        LIT.push([ROSE[0], ROSE[1]]);
+    }
+    // the rose window, live: the lit glass over the cached unlit disc, the night multiply
+    // put back on it (so at full night it is what the cached copy was), then the same
+    // screen as the panes — one ramp (roseLit) for glass and glow, no step at cache time
+    {
+      const k = roseLit();
+      if (k > 0){
+        const mx = (CHURCH.nx0 + CHURCH.nx1) / 2, [rx, ry] = project(mx, CHURCH.ny1, 5.4), rr = cellW * 0.74;
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = 'rgba(255,206,140,' + (0.9 * k).toFixed(3) + ')';
+        ctx.beginPath(); ctx.arc(rx, ry, rr, 0, 7); ctx.fill();
+        ctx.strokeStyle = 'rgba(240,234,218,' + (0.7 * k).toFixed(3) + ')'; ctx.lineWidth = 1;   // the mullions, over the glass
+        for (let j = 0; j < 6; j++){
+          const th = j / 6 * Math.PI, cx = Math.cos(th) * rr, cy = Math.sin(th) * rr;
+          ctx.beginPath(); ctx.moveTo(rx - cx, ry - cy); ctx.lineTo(rx + cx, ry + cy); ctx.stroke();
+        }
+        ctx.globalCompositeOperation = 'multiply';
+        ctx.fillStyle = 'rgba(' + (44 - 16*nightF|0) + ',' + (56 - 12*nightF|0) + ',112,' + (0.8 * nightF * k).toFixed(3) + ')';
+        ctx.beginPath(); ctx.arc(rx, ry, rr, 0, 7); ctx.fill();
+        ctx.globalCompositeOperation = 'screen';
+        ctx.fillStyle = 'rgba(255,180,110,' + (0.7 * nightF * k).toFixed(3) + ')';
+        ctx.beginPath(); ctx.arc(rx, ry, rr, 0, 7); ctx.fill();
+        LIT.push([rx, ry]);
       }
     }
     if (BOAT_LAMP){
