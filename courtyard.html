@@ -874,6 +874,8 @@ function seasonLabel(){ return SEASON_NAMES[Math.floor(seasonPhase * 8 + 0.5) % 
  * sunDown 20.00) it reduces EXACTLY to the constant it replaces. Day one is provably
  * the old table; anything a gate catches is about the new range, not new algebra. */
 function kioskOpen(){ return day >= 2 && hour >= sunUp + 2 && hour < sunDown - 1.5; }
+// the cafe's own hours: from first light, because the west edge is ~4 h from the tables
+function cafeOpen(){ return day >= 2 && hour >= sunUp - 0.5 && hour < sunDown - 7; }
 function isMarketDay(){ return day > 0 && day % 4 === 2; }
 /* The wind — the day's hash decides WHETHER (windyDay, the same 0.28 share it always
  * was), a rate-capped scalar decides HOW MUCH. It used to be the coin itself: windF()
@@ -2425,6 +2427,33 @@ function spawnTapAgent(){
   a.stop = {x:s.x, y:s.y, act:'stand', dur:4.5 + R() * 3.5, cup:true};
   a.wp.push(TAP_MOUTH.slice(), [s.x, s.y], TAP_MOUTH.slice(), TAP_IN.slice());
   agents.push(a);
+}
+/* ---- the cafe's own custom (#74) ----
+ * The pavement cafe was a 0.26 band of spawnLaneAgent()'s roll, behind the market's
+ * and the kiosk's: 14 sitters in 10 seeds x 5 days, someone at a table at noon on 1 day
+ * in 70. Modelled on spawnTapAgent: its own rate, its own presence bound (CAFE_WAY on
+ * the way or seated), outside laneCap and outside scarcity(). Always from the WEST
+ * edge, the nearest fitting one (~6 h at a brisk walk, measured); they leave the way
+ * they came. A visit is a coffee (3.5–7 h), not the lane band's 6–11 h residence, and the
+ * hours close 7 h before sunset so the last cup is drunk in daylight.
+ * The seat is still judged at the chair by seatRefused() — nobody sits in the rain. */
+const CAFE_WAY = 2;                             // at most this many inbound or seated at once
+function cafeRate(){ return (0.12 + 0.08 * maturity()) * (raining ? 0.2 : 1); }
+function cafeCount(){ return agents.filter(a => a.cafe && !(a.with || a).stopped).length; }
+function spawnCafeAgent(room){
+  if (!CAFE_TABLES.some(tb => !tb.taken)) return;
+  const tb = pick(CAFE_TABLES.filter(t => !t.taken));
+  tb.taken = 1;
+  const a = {
+    kind:'cafe', street:true, cafe:true, table:tb,
+    x:-2.5, y:LANE_S_Y + (R() - 0.5), wp:[], i:0, speed:2.2 + R() * 0.6, state:'walk', timer:0,
+    shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9, wary:R(),
+  };
+  a.stop = {x:tb.x + 0.85, y:tb.y + 0.15, act:'sit', dur:8 + R() * 8, cup:true};
+  a.wp.push([a.stop.x, a.stop.y], [-2.5, LANE_S_Y]);
+  if (R() < 0.35) announce(pick(['Coffee smell drifts out from under the green awning.',
+    'A cup and saucer clink at the pavement tables.']));
+  agents.push(a); withCompanion(a, room);
 }
 /* Nothing in the sill ever said this was here, and a feature nobody finds is a feature
  * at a rate of zero. Once a day, when the lamp is up and the dark is real. */
@@ -6447,7 +6476,8 @@ function simStep(sdt, dt){
   // the evening's custom comes off its own budget for the same reason the audience does
   const tapNow = tapCount();
   const homeNow = homeCount();                   // the night's own arrivals: never a share of laneCap
-  const laneCount = agents.length - courtyardCount - eastCount - bandCount - tapNow - homeNow;
+  const cafeAll = agents.filter(a => a.cafe).length, cafeNow = cafeCount();   // the cafe's own custom (#74)
+  const laneCount = agents.length - courtyardCount - eastCount - bandCount - tapNow - homeNow - cafeAll;
   /* Each cap is its old expression with the multiply-out done, so the fixed share is
    * visible as a number and the year rides the daylight term alone (see yearBusy).
    * At the anchor, warmth 0.5, all three are algebraically identical to what they
@@ -6490,6 +6520,8 @@ function simStep(sdt, dt){
     // tapServing() is false on every hour that is not an evening, so this roll exists
     // only in the window it is spending
     if (tapServing() && tapNow < TAP_SLOTS.length && R() < tapRate()) spawnTapAgent();
+    // the cafe's own roll, drawn only in its hours
+    if (cafeOpen() && cafeNow < CAFE_WAY && R() < cafeRate()) spawnCafeAgent(cafeNow + 1 < CAFE_WAY);
     // the night's own arrivals: this roll exists only after the dusk edge, so no
     // daylight census cell sees it
     if (nightF > 0.3 && homeNow < HOME_WAY && R() < homeRate()) spawnHomeAgent();

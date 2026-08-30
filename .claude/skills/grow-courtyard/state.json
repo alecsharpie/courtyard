@@ -2,7 +2,7 @@
   "updated": "2026-08-30",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 72,
+  "lastIteration": 74,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -186,7 +186,8 @@
       ],
       "deepen": [
         "pre13",
-        8
+        8,
+        74
       ],
       "polish": [
         "pre17"
@@ -363,7 +364,8 @@
       "the ONE evening place — TAP_DOOR in the gatehouse front, tapOpen() sunDown-3..03.00, tapF() 0..1; callIn(a,pts,dur) the ONE re-route onto TAP_SLOTS priced by pathHours()/tapFits(); tapCallers() on market days. probes/evening-door.mjs",
       "the NIGHT'S OWN ARRIVALS — spawnHomeAgent() rolls homeRate() while nightF > 0.3, a.homer outside laneCap; homeDoor()/claimHome() the ONE pricing shared with goHome; HOME_DOORS 14. probes/home-arrivals.mjs",
       "wet seats — seatRefused(a) = sky > SIT_REFUSE OR seatWet(a) (wetF() above 0.75 − a.wary·0.4); the street-stop site shares the predicate; arrivals only. probes/wet-seats.mjs (WET0=… pins wetness at a clear 10:00)",
-      "the working day hangs off the SUN — kioskOpen/marketOpen/marketClose/marketRaise/sweeper offsets from sunUp/sunDown; the stalls sell what the plots grew: produce[] from harvestPlot(), stockMarket() → mkShelf, marketRaise(i) on mkTrades(i). probes/working-day.mjs, market-year.mjs"
+      "the working day hangs off the SUN — kioskOpen/marketOpen/marketClose/marketRaise/sweeper offsets from sunUp/sunDown; the stalls sell what the plots grew: produce[] from harvestPlot(), stockMarket() → mkShelf, marketRaise(i) on mkTrades(i). probes/working-day.mjs, market-year.mjs",
+      "cafe's own arrival source (#74): cafeOpen()/cafeRate()/spawnCafeAgent() under CAFE_WAY=2, west edge, 3.5–7 h visit, companion across the table; probes/cafe-supply.mjs, cafe-hours.mjs"
     ],
     "street": [
       "cross street: two footways, roadway, curbs, lamps, four street trees in pits (TREE_PITS, drawLaneTree); allotment block of 17 plots, timber fence, gates, shed, an alley through the block",
@@ -429,6 +431,12 @@
     {
       "id": "c112",
       "note": "motion.mjs leaf oob is stream-luck: leaves cull only on landing, a westward gust off the street tree at x 8 exits the world (x -12) before z hits 0 — cull at the frame edge or exempt the kind (#73)",
+      "raisedBy": 72,
+      "seenBy": 0
+    },
+    {
+      "id": "c113",
+      "note": "cafe walkers set out under a clear sky and are refused at a wet chair 6 h later (26/144 in #74) — no departure-time sky check",
       "raisedBy": 72,
       "seenBy": 0
     }
