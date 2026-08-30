@@ -19,7 +19,7 @@
   "avoid": "No new R() draws in the shower step (the rain is a population). Do not change leaf counts or fall speed.",
   "budgetMin": 30,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 2,
   "nextIter": 76,
   "issued": "2026-08-30T17:24:43.370Z",
