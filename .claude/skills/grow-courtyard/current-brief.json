@@ -17,7 +17,7 @@
   "avoid": "Do not touch the pane relight for the ordinary windows. Do not widen the crossfade past the threshold it already has (the staged-appearance law).",
   "budgetMin": 25,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 81,
   "issued": "2026-08-30T18:34:07.100Z",
