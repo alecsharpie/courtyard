@@ -16,7 +16,7 @@
   "avoid": "Do not touch the river's ice or riverCol's other callers. Do not add a per-frame draw.",
   "budgetMin": 25,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 77,
   "issued": "2026-08-30T17:43:51.889Z",
