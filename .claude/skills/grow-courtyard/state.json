@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-31",
+  "updated": "2026-08-30",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
   "lastIteration": 72,
@@ -384,7 +384,8 @@
       "byTheWater() the ONE predicate for river-facing places, boatWatch() its reader, a parapet stop (PARAPET_Y/Z); ONE fair-weather rowboat, boatRate()/boatSpeed() — PRESENCE. riverRun() drives drawRiverFlow(t), riverCol(). probes/river-year.mjs",
       "the BANDSTAND has a summer concert — bandF() stages three BAND_PLAYERS and bunting on ONE 0..1; isBandDay() is hash(day,617) vs bandChance() off warmth. probes/bandstand-year.mjs",
       "swans are a PAIR with states — s.state swim|upend|preen + s.hold; cob picks the stretch, pen re-reads it every 2.5–5.5 s, 0.9-cell give-way; SWAN_UPEND/SWAN_PREEN/SWAN_BANK. probes/swan-pair.mjs",
-      "the NIGHT on the water — drawRiverLights() bar columns under RIVER_LAMPS + moon, × nightF × (1 − cloudCover()), wind-chopped; ONE a.nightRail stander; boatLampF() lantern relit after applyLight with a bar under the hull, boatRate() NOT thinned at night. probes/river-night.mjs, boat-lantern.mjs"
+      "the NIGHT on the water — drawRiverLights() bar columns under RIVER_LAMPS + moon, × nightF × (1 − cloudCover()), wind-chopped; ONE a.nightRail stander; boatLampF() lantern relit after applyLight with a bar under the hull, boatRate() NOT thinned at night. probes/river-night.mjs, boat-lantern.mjs",
+      "FOOTBRIDGE (#73) — DECK=12 rows DECK_Y0..DECK_Y1 over the river at ALLEY_Y; drawDeckSpan/drawDeckFront (two items round the walkers), boatUnderDeck()+boat.deck announce; agentZ()/deckZAt() lift walkers; DECK_LEAD_A/Q, DECK_SHARE, DECK_REACH route east arrivals over it, a.jetty standers. probes/deck-crossings.mjs, deck-shots.mjs"
     ],
     "sky": [
       "day/night cycle (55 s day), sun and moon arc, hills, chimney smoke, a balloon; windowLit(sa,sb) the ONE predicate for pane + LIT[] glow (hours off nid); facades CACHED; LIT_PANES/ROSE relit by a screen pass AFTER applyLight. probes/windows-night.mjs, polish-1x.mjs",
@@ -423,6 +424,12 @@
       "id": "c111",
       "note": "#69 (b66, the frozen plume) shipped 15 lines with NO ledger entry — the inventory line was written from the diff; if the frost work in b74 finds a surprise there, write #69's up in a line too",
       "raisedBy": 69,
+      "seenBy": 0
+    },
+    {
+      "id": "c112",
+      "note": "motion.mjs leaf oob is stream-luck: leaves cull only on landing, a westward gust off the street tree at x 8 exits the world (x -12) before z hits 0 — cull at the frame edge or exempt the kind (#73)",
+      "raisedBy": 72,
       "seenBy": 0
     }
   ],

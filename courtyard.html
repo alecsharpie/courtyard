@@ -238,7 +238,9 @@ const GW = 138;                // full world width: courtyard, cross street, all
 const WH = 88;                 // full world height incl. the lane below
 const WALL = 0, PATH = 1, GRASS = 2, BED = 3, CBED = 4, TRUNK = 5, SIDE = 6, ROAD = 7, VOID = 8, WATER = 9,
       TUNNEL = 10,             // roofed passage under a building — seen through an arch
-      SLOT = 11;               // open passage cut through a block — seen from above
+      SLOT = 11,               // open passage cut through a block — seen from above
+      DECK = 12;               // the footbridge: river cells carried over by a timber span — water
+                               // to the ground cache, paving to a walker, drawn live in two halves
 const POND = {x:90, y:49.5, rx:4.2, ry:3.1};
 const CX = 32, CY = 32.5;
 const WALL_H = 5.6;
@@ -278,6 +280,20 @@ const JETTY = {x:128.4, y:35};
 const TOW_WALK = 128.6, FAR_WALK = 133.2;
 /* the alley cut through the terrace between the allotments and the plaza */
 const ALLEY_Y = 31;
+/* the footbridge (#73): two rows of DECK across the river at the alley's latitude, so
+ * alley → plaza → quay → deck → towpath is one straight line. DECK_Z is above the rower's
+ * head, so the boat goes UNDER; DECK_RAMP is how far past each bank a walker climbs. */
+const DECK_Y0 = 30, DECK_Y1 = 32, DECK_Z = 1.7, DECK_RAMP = 1.5, DECK_WALK = ALLEY_Y + 0.4;
+function deckZAt(x, y){
+  if (y < DECK_Y0 - 0.3 || y >= DECK_Y1 + 0.3) return 0;
+  const lo = RIVER_X0 - DECK_RAMP, hi = RIVER_X1 + DECK_RAMP;
+  if (x <= lo || x >= hi) return 0;
+  return DECK_Z * Math.min(1, (x - lo) / (DECK_RAMP + 0.5), (hi - x) / (DECK_RAMP + 0.5));
+}
+function onJetty(x, y){ return x > JETTY.x - 2.6 && x < JETTY.x + 0.4 && y > JETTY.y - 0.7 && y < JETTY.y + 0.7; }
+// z is 0 for everybody who walks on the ground; the band's platform, the jetty and the
+// footbridge lift whoever stands on them — read off the place, never written at spawn
+function agentZ(a){ return a.z || (onJetty(a.x, a.y) ? 0.5 : deckZAt(a.x, a.y)); }
 
 let W = 0, H = 0, DPR = 1, cellW = 12, cellH = 8, topPad = 40, originX = 0;
 const PINCH = 0.11;
@@ -467,7 +483,7 @@ function buildGrid(){
           }
         }
         else if (x < RIVER_X0){ grid[i] = SIDE; }      // the quay runs the full height
-        else if (x < RIVER_X1){ grid[i] = WATER; }     // the river
+        else if (x < RIVER_X1){ grid[i] = (y >= DECK_Y0 && y < DECK_Y1) ? DECK : WATER; }   // the river, and the footbridge over it
         else if (x < FAR_X0){ grid[i] = y < 3 ? WALL : SIDE; }         // the towpath on the far bank
         else if (y < 3) grid[i] = WALL;                                // the church green
         else if (y >= 61) grid[i] = Math.abs(x + .5 - PARK_GATE) < 1.75 ? TUNNEL : WALL;
@@ -2613,6 +2629,23 @@ function eastOpen(){ return daylight > 0.16; }
 const NIGHT_RAIL_RATE = 0.22;                // per second, while nobody is at the rail
 function eastOpenFor(a){ return eastOpen() || (a.nightRail && tapOpen()); }
 function nightRailFree(){ return !agents.some(a => a.nightRail); }
+/* The footbridge (#73) is a ROUTE, not a source: the same eastCap, the same rolls. The
+ * plaza crossing skirts the fountain basin on its south side. Anyone bound for the
+ * north half of the far bank (stop.y < DECK_REACH) comes in by the alley and over the
+ * deck instead of round by the park gate — priced with pathHours(): alley → jetty was
+ * ~20 h by the lane bridge and is ~4 h over the deck. A share (a.wary, a field written
+ * at spawn — no new R() draw) of the plaza and quay visitors walk on over to the jetty
+ * and stand on it, keeping the stop's own duration; their retrace crosses back. */
+const DECK_SHARE = 0.2, DECK_REACH = 45;
+const DECK_LEAD_A = [[99.8, ALLEY_Y + 0.4], [102.4, FOUNTAIN.y + 3.6], [108.6, FOUNTAIN.y + 3.6],
+                     [111.3, DECK_WALK], [TOW_WALK, DECK_WALK]];
+const DECK_LEAD_Q = [[112.9, 7], [112.9, DECK_WALK], [TOW_WALK, DECK_WALK]];
+function overDeck(a, lead0, gate){
+  a.jetty = true;
+  a.stop = {x:JETTY.x - 1.3, y:JETTY.y, act:'stand', dur:a.stop.dur,
+    say: a.wary < 0.03 ? 'Somebody has walked out to the end of the jetty and is looking down at the river.' : null};
+  return a.lead = lead0.concat([[TOW_WALK, JETTY.y + 1.3]]);
+}
 function spawnEastAgent(nightRail, room){
   const a = {
     kind:'plaza', street:true, east:true,
@@ -2636,17 +2669,20 @@ function spawnEastAgent(nightRail, room){
         say: R() < 0.12 ? fountainLine() : null};
     }
     gate = EAST_GATE_A; lead = [[99.8, ALLEY_Y + 0.4]];
+    if (a.wary < DECK_SHARE) overDeck(a, DECK_LEAD_A, gate);   // and one in five walks on, over the footbridge to the jetty
   } else if (roll < 0.62){                   // along the quay: a bench, or the rail
     a.kind = 'quay';
     if (R() < 0.5){ const b = pick(QUAY_BENCHES); a.stop = {x:b.x + 0.5, y:b.y + 1.0, act:'sit', dur:9 + R() * 9}; }
     else a.stop = {x:112.9, y:10 + R() * 32, act:'stand', dur:5 + R() * 6,
       say: R() < 0.12 ? 'Someone leans on the quay rail, watching the river go about its business.' : null};
     gate = EAST_GATE_Q; lead = [[112.9, 7]];
-  } else if (roll < 0.72){                   // down the steps onto the towpath
+    if (a.wary < DECK_SHARE) overDeck(a, DECK_LEAD_Q, gate);
+  } else if (roll < 0.72){                   // onto the towpath: over the footbridge, or down the park steps
     a.kind = 'green';
     a.stop = {x:TOW_WALK, y:22 + R() * 33, act:'stand', dur:6 + R() * 6,
       say: R() < 0.1 ? 'Someone walks the towpath on the far bank, hands behind their back.' : null};
-    gate = EAST_GATE_P; lead = [[PARK_GATE, 60.5], [TOW_WALK, 59]];
+    if (a.stop.y < DECK_REACH){ gate = EAST_GATE_A; lead = DECK_LEAD_A.slice(); }
+    else { gate = EAST_GATE_P; lead = [[PARK_GATE, 60.5], [TOW_WALK, 59]]; }
   } else if (roll < 0.85){                   // out onto the bridge, to lean on the parapet
     // the lane branch does this too, but the lane spawner is the wrong budget for
     // it — measured over twelve days it put ONE person on the bridge. The far side
@@ -2663,8 +2699,10 @@ function spawnEastAgent(nightRail, room){
     a.stop = b ? {x:b.x + 0.5, y:b.y + 1.0, act:'sit', dur:10 + R() * 10}
                : {x:BANDSTAND.x + 2.7, y:BANDSTAND.y + 2.4, act:'stand', dur:6 + R() * 6,
                   say: R() < 0.1 ? 'Someone stops by the bandstand to listen to nothing in particular.' : null};
-    gate = EAST_GATE_P; lead = [[PARK_GATE, 60.5], [FAR_WALK, 57]];
+    if (a.stop.y < DECK_REACH){ gate = EAST_GATE_A; lead = DECK_LEAD_A.concat([[FAR_WALK, DECK_WALK]]); }
+    else { gate = EAST_GATE_P; lead = [[PARK_GATE, 60.5], [FAR_WALK, 57]]; }
   }
+  if (a.lead){ lead = a.lead; delete a.lead; }
   a.x = gate[0]; a.y = gate[1];
   for (const p of lead) a.wp.push(p.slice());
   a.wp.push([a.stop.x, a.stop.y]);
@@ -3956,7 +3994,7 @@ function drawGround(){
   // ground, drawn well past the frame so the town never stops in mid-air
   for (let y = 0; y < WH; y++) for (let x = XLO; x < XHI; x++){
     const gx = clamp(x, 0, GW - 1);
-    const i = y * GW + gx, t = grid[i], hv = hash(gx, y);
+    const i = y * GW + gx, t = grid[i] === DECK ? WATER : grid[i], hv = hash(gx, y);   // the cache sees the water under the deck
     if (t === WALL || t === VOID) continue;
     if (t === TUNNEL){                                   // floor of a roofed passage
       gtx.fillStyle = '#241d16'; quad(gtx, x, y, 0.03); gtx.fill(); continue;
@@ -4374,8 +4412,13 @@ function drawScene(t, dt){
   items.push({y:FOUNTAIN.y + 1.2, f:drawFountain});
   items.push({y:BANDSTAND.y + 1.6, f:drawBandstand});
   items.push({y:JETTY.y + 1.6, f:drawJetty});
+  // the footbridge is two items: the span and its upstream rail sort BEFORE anyone on
+  // it, the downstream rail, piers and shadow AFTER — and the boat, while it is under,
+  // is drawn by the span itself so the deck lands on top of the rower
+  items.push({y:DECK_Y0 - 0.1, f:drawDeckSpan});
+  items.push({y:DECK_Y1 + 0.6, f:drawDeckFront});
   for (const s of swans) items.push({y:s.y + 0.3, f:drawSwan, s});
-  if (boat && (boat.y < 64.5 || boat.y > 79)) items.push({y:boat.y + 0.6, f:drawBoat});
+  if (boat && (boat.y < 64.5 || boat.y > 79) && !boatUnderDeck()) items.push({y:boat.y + 0.6, f:drawBoat});
   for (const tb of CAFE_TABLES) items.push({y:tb.y + 0.45, f:drawCafeTable, tb});
   if (kioskOpen()) items.push({y:KIOSK.y + 0.8, f:drawKiosk});
   for (let i = 0; i < MARKET_STALLS.length; i++){
@@ -4889,6 +4932,69 @@ function drawJetty(){
     ctx.beginPath(); ctx.moveTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]); ctx.stroke();
   }
 }
+/* ============ the footbridge ============ *
+ * A light timber span on two trestles, handrails both sides, a ramp up off each bank.
+ * Split in two draws so the depth sort works: drawDeckSpan (the planks, the upstream
+ * rail, the boat while it is under) sorts before the walkers on it; drawDeckFront (the
+ * downstream rail, the trestles, the edge, the shadow) sorts after them. */
+const DECK_X0 = RIVER_X0 - DECK_RAMP, DECK_X1 = RIVER_X1 + DECK_RAMP;
+const DECK_N = DECK_Y0 + 0.25, DECK_S = DECK_Y1 - 0.25;   // the planked width
+function deckRail(yy, front){
+  const zr = DECK_Z + 0.95, col = front ? '#4e3d2a' : '#5e4b35';
+  ctx.strokeStyle = col; ctx.lineWidth = Math.max(1, cellW * 0.11);
+  for (let px = RIVER_X0 + 0.35; px < RIVER_X1; px += 1.15){
+    const p1 = project(px, yy, DECK_Z), p2 = project(px, yy, zr);
+    ctx.beginPath(); ctx.moveTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]); ctx.stroke();
+  }
+  ctx.lineWidth = Math.max(1.2, cellW * 0.13);
+  for (const z of [zr, DECK_Z + 0.5]){
+    const r1 = project(RIVER_X0 + 0.1, yy, z), r2 = project(RIVER_X1 - 0.1, yy, z);
+    ctx.beginPath(); ctx.moveTo(r1[0], r1[1]); ctx.lineTo(r2[0], r2[1]); ctx.stroke();
+  }
+}
+function drawDeckSpan(){
+  if (boatUnderDeck()) drawBoat();             // the rower goes under; the planks go on top
+  const hv = 0.3 + 0.55 * daylight;
+  // the ramps: a plank rising from each bank to the span
+  ctx.fillStyle = mix('#5a4632', '#a78a62', hv);
+  for (const [xa, xb] of [[DECK_X0, RIVER_X0 + 0.5], [DECK_X1, RIVER_X1 - 0.5]]){
+    poly(ctx, [project(xa, DECK_N, 0), project(xb, DECK_N, DECK_Z), project(xb, DECK_S, DECK_Z), project(xa, DECK_S, 0)]);
+    ctx.fill();
+  }
+  // the span
+  ctx.fillStyle = mix('#5e4a36', '#b3956a', hv);
+  poly(ctx, [project(RIVER_X0 + 0.5, DECK_N, DECK_Z), project(RIVER_X1 - 0.5, DECK_N, DECK_Z),
+             project(RIVER_X1 - 0.5, DECK_S, DECK_Z), project(RIVER_X0 + 0.5, DECK_S, DECK_Z)]);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(50,38,26,.45)'; ctx.lineWidth = 1;
+  for (let px = RIVER_X0 + 1; px < RIVER_X1 - 0.5; px += 0.5){
+    const p1 = project(px, DECK_N, DECK_Z), p2 = project(px, DECK_S, DECK_Z);
+    ctx.beginPath(); ctx.moveTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]); ctx.stroke();
+  }
+  deckRail(DECK_N, false);
+}
+function drawDeckFront(){
+  // the shadow on the water downstream — sky occlusion, so it takes only the sun's half
+  const hard = shadowF(), tail = 1.6 - 1.5 * (1 - shOffset());
+  ctx.fillStyle = 'rgba(18,24,26,' + (0.30 - 0.15 * (1 - hard)).toFixed(3) + ')';
+  poly(ctx, [project(RIVER_X0 + 0.3, DECK_S + 0.05, 0), project(RIVER_X1 - 0.3, DECK_S + 0.05, 0),
+             project(RIVER_X1 - 0.3, DECK_S + tail, 0), project(RIVER_X0 + 0.3, DECK_S + tail, 0)]);
+  ctx.fill();
+  // two trestles standing in the river, and a post at each bank
+  ctx.strokeStyle = '#3f3022'; ctx.lineWidth = Math.max(1.6, cellW * 0.16);
+  for (const px of [RIVER_X0 + 0.7, RIVER_X0 + 4.6, RIVER_X1 - 4.6, RIVER_X1 - 0.7]){
+    for (const yy of [DECK_N + 0.15, DECK_S - 0.15]){
+      const p1 = project(px, yy, 0), p2 = project(px, yy, DECK_Z);
+      ctx.beginPath(); ctx.moveTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]); ctx.stroke();
+    }
+  }
+  // the downstream edge of the planking, then its rail
+  ctx.fillStyle = mix('#3b2d20', '#7a6244', 0.3 + 0.5 * daylight);
+  poly(ctx, [project(RIVER_X0 + 0.5, DECK_S, DECK_Z - 0.22), project(RIVER_X1 - 0.5, DECK_S, DECK_Z - 0.22),
+             project(RIVER_X1 - 0.5, DECK_S, DECK_Z), project(RIVER_X0 + 0.5, DECK_S, DECK_Z)]);
+  ctx.fill();
+  deckRail(DECK_S, true);
+}
 function drawSwan(it){
   const s = it.s;
   const [x, y] = project(s.x, s.y, 0);
@@ -5098,12 +5204,17 @@ function drawRiverLights(t){
   ctx.globalAlpha = 1;
 }
 let boat = null, boatUnder = false, boatSeq = 0;
+function boatUnderDeck(){ return !!boat && boat.y > DECK_Y0 - 1.3 && boat.y < DECK_Y1 + 1.0; }
 function updateBoat(dt){
   if (!boat && day >= 1 && R() < dt * boatRate()){
     boat = {x:116.5 + R() * 5, y:-7, ph:R() * 9, id:++boatSeq, hailed:false};
   }
   if (boat){
     boat.y += dt * boatSpeed(); boat.ph += dt * 2.6;
+    if (!boat.deck && boat.y > DECK_Y0 - 1 && boat.y < DECK_Y1){
+      boat.deck = true;                        // hashed off the boat's id: no new R() draw in the stream
+      if (hash(boat.id, 313) < 0.7) announce('The rowboat slides under the footbridge, oars drawn in, and out into the sun again.');
+    }
     if (!boatUnder && boat.y > 62 && boat.y < 66){
       boatUnder = true;
       if (R() < 0.7) announce('A rowboat slips under the bridge and out the other side.');
@@ -5127,7 +5238,7 @@ function updateBoat(dt){
  * tick of them.
  */
 function byTheWater(a){
-  return (a.x > QUAY_X0 - 1.6 && a.x < RIVER_X1 + 0.6)   // quay, its rail, and the bridge deck
+  return (a.x > QUAY_X0 - 1.6 && a.x < RIVER_X1 + 0.6)   // quay, its rail, the bridge deck and the footbridge
       || (a.x > TOW_X0 && a.x < FAR_X0 + 0.4);           // the towpath on the far bank
 }
 function boatWatch(){
@@ -5378,7 +5489,7 @@ function drawPerson(it, t){
   const bob = walking ? Math.abs(Math.sin(a.phase)) * 1.6 : 0;
   // z is 0 for everybody who walks on the ground, which is everybody except the band:
   // they stand on the bandstand's platform, half a world-unit up
-  const [x, y] = project(a.x, a.y, a.z || 0);
+  const [x, y] = project(a.x, a.y, agentZ(a));
   const hgt = (a.state==='sit'? 8 : a.state==='kneel'? 7 : a.state==='lie'? 3 : 12) * scale * (cellH/8);
   /* A person's patch is thrown nowhere — it is the contact under the feet, which is
    * occlusion rather than sun, so it takes only part of the lid: fade it the whole
@@ -6011,6 +6122,7 @@ function nameAt(x, y){
   if (g === GRASS) return daisy[j] ? 'the lawn, daisies in it'
                  : wear[j] > 0.45 ? 'the lawn, worn to a path' : 'the lawn';
   if (g === WATER) return waterAt(x).what;
+  if (g === DECK) return 'the footbridge';
   if (g === SIDE || g === ROAD || g === PATH) return pavingAt(x, y).what;
   return '';                       // a wall, a roof, the inside of an archway: no name
 }
@@ -6082,7 +6194,7 @@ function livingAt(p){
   };
   for (const a of agents){
     if (cellAt(a.x, a.y) !== TUNNEL)
-      hit(a.x, a.y, a.z, (a.state === 'sit' ? 1.0 : a.state === 'lie' ? 0.6 : 1.5) * (a.small ? 0.72 : 1), a.y + 0.5, personName(a),
+      hit(a.x, a.y, agentZ(a), (a.state === 'sit' ? 1.0 : a.state === 'lie' ? 0.6 : 1.5) * (a.small ? 0.72 : 1), a.y + 0.5, personName(a),
           a.state === 'lie' ? 1.9 : 1, a);   // a sleeper is drawn flat: wider than tall
     if (a.dog && cellAt(a.dog.x, a.dog.y) !== TUNNEL) hit(a.dog.x, a.dog.y, 0, 0.6, a.dog.y + 0.4, 'a dog, at heel');
   }
@@ -6178,7 +6290,7 @@ function followLost(a){
 function drawFollowMark(t){
   if (!followed) return;
   const a = followed;
-  const [sx, sy] = project(a.x, a.y, a.z || 0);
+  const [sx, sy] = project(a.x, a.y, agentZ(a));
   const br = RM ? 1 : 1 + 0.08 * Math.sin(t * 2.4);
   ctx.save();
   ctx.strokeStyle = 'rgba(255,226,150,0.85)'; ctx.lineWidth = 1.5;
@@ -6658,7 +6770,7 @@ window.__entities = function(){
   return out;
 };
 window.__census = function(){
-  const tiles = {}, TN = ['WALL','PATH','GRASS','BED','CBED','TRUNK','SIDE','ROAD','VOID','WATER','TUNNEL','SLOT'];
+  const tiles = {}, TN = ['WALL','PATH','GRASS','BED','CBED','TRUNK','SIDE','ROAD','VOID','WATER','TUNNEL','SLOT','DECK'];
   for (let i = 0; i < GW * WH; i++){ const n = TN[grid[i]] || ('T' + grid[i]); tiles[n] = (tiles[n] || 0) + 1; }
 
   /* planting CA: how much of the beds is actually growing, and how far along */
