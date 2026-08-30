@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-31",
+  "updated": "2026-08-30",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
   "lastIteration": 77,
@@ -393,7 +393,8 @@
       "the BANDSTAND has a summer concert — bandF() stages three BAND_PLAYERS and bunting on ONE 0..1; isBandDay() is hash(day,617) vs bandChance() off warmth. probes/bandstand-year.mjs",
       "swans are a PAIR with states — s.state swim|upend|preen + s.hold; cob picks the stretch, pen re-reads it, 0.9-cell give-way; SWAN_UPEND/SWAN_PREEN/SWAN_BANK. probes/swan-pair.mjs",
       "the NIGHT on the water — drawRiverLights() bar columns under RIVER_LAMPS + moon × nightF × (1 − cloudCover()), wind-chopped; ONE a.nightRail stander; boatLampF() lantern relit after applyLight; boatRate() NOT thinned at night. probes/river-night.mjs, boat-lantern.mjs",
-      "FOOTBRIDGE (#73) — DECK tile rows at ALLEY_Y over the river; drawDeckSpan/drawDeckFront two items round the walkers, boatUnderDeck(); agentZ()/deckZAt() lift walkers; DECK_LEAD_A/Q, DECK_SHARE route east arrivals over it; a.jetty standers. probes/deck-crossings.mjs, deck-shots.mjs"
+      "FOOTBRIDGE (#73) — DECK tile rows at ALLEY_Y over the river; drawDeckSpan/drawDeckFront two items round the walkers, boatUnderDeck(); agentZ()/deckZAt() lift walkers; DECK_LEAD_A/Q, DECK_SHARE route east arrivals over it; a.jetty standers. probes/deck-crossings.mjs, deck-shots.mjs",
+      "the WATERMILL (#78) — MILL footprint 130..133×19..24 WALL (roof emergent, eaveFor 4.7); MILL_WHEEL over the water x 126.35, millAng off millSpin()=riverRun()·(1−fountainSkin()); drawMillShadow/drawMillWheel two items; tail-race in drawRiverFlow; MILL_WIN lit all night; nameAt the mill. probes/mill-shots.mjs"
     ],
     "sky": [
       "day/night cycle (55 s day), sun and moon arc, hills, chimney smoke, a balloon; windowLit(sa,sb) the ONE predicate for pane + LIT[] glow; facades CACHED; LIT_PANES/ROSE relit by a screen pass AFTER applyLight. probes/windows-night.mjs, polish-1x.mjs",
@@ -438,6 +439,12 @@
       "note": "probes/fountain-freeze.mjs summer crop hash is noisy (live plume in crop); read gcv for identity",
       "raisedBy": 74,
       "seenBy": 1
+    },
+    {
+      "id": "c117",
+      "note": "a miller for the mill (#78): an agent at MILL door, sacks on the towpath — the next brief if the mill stays",
+      "raisedBy": 78,
+      "seenBy": 0
     }
   ],
   "watch": [

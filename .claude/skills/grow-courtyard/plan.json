@@ -15,34 +15,6 @@
   "rationale": "STAYS ON RUNG 4b for one more pass, and climbs to 5 inside the same batch. smallDiff is the binding signal and it fires because four of the last five briefs were priced as polish; the answer is not another polish batch with a spatial bet on top, it is a batch where three of the four briefs are structural. From a thirty-second look at the wide shot (noon and 03:00, seed 42): the far bank is a strip where nothing moves but the band three days in a summer; the night holds one person in the whole town; and at 390 px the whole 138-cell world is a thumb-wide strip nobody can read. So: b76 THE MILL — the first structure since #2 and the first building that moves: a mill house on the far bank with an undershot wheel in the river turning on riverRun(), stilled by the frost, a lit window at night, its footprint through buildVolumes() so developed/structures move and the baseline is re-pinned again. b77 THE EVENING — life's own arrival source for the warm dry evening: strollers who come in through the park gate or the quay head, cross the new deck, lean at the rail and sit on the quay, so the clock-tap lands a viewer in a town that is out of doors after dark. b78 THE QUARTERS (rung 5) — a phone visitor can look at ONE quarter: a sill control that eases the camera (originX/cellW/cellH inside project()) onto courtyard, street, plaza & river or far bank, and back; all hit-testing already goes through project() so naming and touch keep working. b79 the rose window's dusk seam (c104, three passes old: a brief or a deletion — a brief). Risk: b76 high (first, 75 min, 200-line diff invited), b77 medium (60), b78 medium-high (60, rung 5), b79 low (25).",
   "queue": [
     {
-      "id": "b76",
-      "domain": "River & far bank",
-      "kind": "New element",
-      "brief": "THE BET, and the first new BUILDING since the loop began: a watermill on the far bank. A mill house at the towpath's edge — a real footprint in buildGrid()/solidM so buildVolumes() grows its roof and eaveFor() gives it a height — with an undershot wheel hanging over the water column beside it, turning every frame at a rate off riverRun() (faster in the grey season), slowing to a stop as the river ices (riverCol/fountainIce are the frost's existing readers; pick the one the river already uses), with a tail-race streak in drawRiverFlow(t) and a lit window at night via FACES[]/windowLit so the far bank has a light after dark. Register it in nameAt/pavingAt's family so the sill says 'the mill'. Site: the worker chooses between the north end (rows 18–22, between the nave and the first orchard tree) and the south end (rows 56–61, past the orchard) after checking what walks there — TOW_WALK 128.6, FAR_WALK 133.2, EAST_GATE_P, DECK_LEAD_Q — and where the boat runs (boat.x), because the wheel must not sit on the boat's line. The wheel and its shadow are two draw items round anything that walks the towpath (the #73 law). A 150–300-line diff is expected and welcome. developed, structures and possibly water MUST move: re-pin the census baseline with census.mjs --save-baseline and say so in the entry.",
-      "seams": [
-        "buildGrid",
-        "buildVolumes",
-        "eaveFor",
-        "solidM",
-        "riverRun",
-        "drawRiverFlow",
-        "riverCol",
-        "FACES",
-        "windowLit",
-        "nameAt",
-        "TOW_X0",
-        "FAR_X0",
-        "ORCHARD",
-        "CHURCH",
-        "updateBoat",
-        "agentZ"
-      ],
-      "successLooksLike": "From the wide shot at noon, something on the far bank is turning — all day, every day, faster after rain, still at midwinter. At 03:00 the mill has a window lit. The census baseline moves (developed, structures) and is re-pinned deliberately.",
-      "avoid": "Do not build the wheel as a cached-ground paint or a sprite on the towpath; it is live geometry sorted with the walkers. Do not add a miller agent this pass — the building is the work; a miller is the next brief if the mill lands. Do not touch the church, bandstand or footbridge routes except to route AROUND the new footprint.",
-      "budgetMin": 75,
-      "risk": "high"
-    },
-    {
       "id": "b77",
       "domain": "People & animals",
       "kind": "New element",
@@ -118,5 +90,10 @@
     }
   ],
   "recommendStop": null,
-  "consumed": []
+  "consumed": [
+    {
+      "id": "b76",
+      "at": "2026-08-30T17:57:21.022Z"
+    }
+  ]
 }

@@ -278,6 +278,21 @@ const FAR_BENCHES = [{x:131.4, y:27}, {x:136, y:48}];
 const ORCHARD = [[136.6,23],[136.8,31],[131.5,53],[136.4,55]];
 const JETTY = {x:128.4, y:35};
 const TOW_WALK = 128.6, FAR_WALK = 133.2;
+/* the watermill (#78): a mill house on the church green's north end, between the nave and
+ * the first orchard tree, where nothing walks (the park-gate routes all run rows 56-61).
+ * The footprint is WALL in buildGrid(), so buildVolumes() grows its roof and drawFaceRow()
+ * its south front; the wheel hangs over the water column west of the towpath, clear of
+ * the boat's line (x 116.5-121.5) and outside every towpath walker's x. It turns off
+ * riverRun() and stops as the basin skins over: fountainSkin() is the frost the river
+ * already reads (riverCol/greyF), 0 outside it, 1 at midwinter. */
+const MILL = {x0:130, x1:133, y0:19, y1:24};
+function millAt(x, y){ return x >= MILL.x0 && x < MILL.x1 && y >= MILL.y0 && y < MILL.y1; }
+const MILL_WHEEL = {x:126.35, y:21.3, r:1.25, hub:1.15};      // over the water, its foot in the current
+const MILL_WIN = [131, MILL.y1 - 1];                          // the window whose lamp burns all night
+const MILL_RPS = 0.9;                                         // radians per second at riverRun() 1
+let millAng = 0;
+function millSpin(){ return riverRun() * (1 - fountainSkin()); }
+function updateMill(dt){ millAng += dt * MILL_RPS * millSpin() * (RM ? 0.3 : 1); }
 /* the alley cut through the terrace between the allotments and the plaza */
 const ALLEY_Y = 31;
 /* the footbridge (#73): two rows of DECK across the river at the alley's latitude, so
@@ -487,7 +502,7 @@ function buildGrid(){
         else if (x < FAR_X0){ grid[i] = y < 3 ? WALL : SIDE; }         // the towpath on the far bank
         else if (y < 3) grid[i] = WALL;                                // the church green
         else if (y >= 61) grid[i] = Math.abs(x + .5 - PARK_GATE) < 1.75 ? TUNNEL : WALL;
-        else grid[i] = churchAt(x, y) ? WALL : GRASS;
+        else grid[i] = (churchAt(x, y) || millAt(x, y)) ? WALL : GRASS;
       } else {
         if (y < 3 || y >= 61){
           grid[i] = (y >= 61 && Math.abs(x - ALT_GATE) < 1.8) ? TUNNEL : WALL;
@@ -541,6 +556,7 @@ const VW = GW + 1, VH = WH + 1;
 const vD = new Float32Array(VW * VH), vZ = new Float32Array(VW * VH);
 function eaveFor(x, y){
   if (churchAt(x, y)) return 7.8;
+  if (millAt(x, y)) return 4.7;                        // the mill house, squat under its wheel
   if (x >= DIV_X0 && x < PLAZA_X0) return 6.6;         // the tall terrace
   if (x >= 64 && x < 66) return 6.3;                   // the sliver the clock tower stands on
   if (y >= 61) return 5.6;                             // the gatehouse row between courtyard and lane
@@ -3502,8 +3518,10 @@ function windowHours(sa, sb){                      // null = nobody home tonight
  * are hash+clock+register: no R(). If they never arrive (nothing ends a walk home but
  * the door, but defend it), the hash's hour resumes HOME_LATE past the priced arrival. */
 const HOMES = new Map();
+function millWindow(sa, sb){ return sa === MILL_WIN[0] && sb === MILL_WIN[1]; }
 function windowLit(sa, sb){
   if (nightF <= 0.3) return false;
+  if (millWindow(sa, sb)) return true;           // the miller works the night's water
   const w = windowHours(sa, sb);
   if (!w) return false;
   const home = HOMES.get(sa * 1000 + sb);
@@ -3596,6 +3614,11 @@ function drawFaceRow(g, y){
     const gl1 = project(x, y + 1, 0.16), gl2 = project(x + 1, y + 1, 0.16);
     poly(g, [gl1, gl2, b, a]); g.fill();
     const e = Math.min(zL, zR);
+    if (millAt(gx, y)){
+      if (gx === MILL_WIN[0]) drawWindow(g, x + 0.5, y + 1, e * 0.8, e * 0.3, MILL_WIN[0], MILL_WIN[1]);
+      else if (gx === MILL.x1 - 1) drawFrontDoor(g, x, y, e * 0.36, -1, -1);
+      continue;
+    }
     if (churchAt(gx, y) || e < 2.4) continue;
     const slot = ((gx % 7) + 7) % 7;
     if ((slot === 1 || slot === 4) && hash(gx, y * 7) > 0.12){
@@ -4467,6 +4490,8 @@ function drawScene(t, dt){
   items.push({y:FOUNTAIN.y + 1.2, f:drawFountain});
   items.push({y:BANDSTAND.y + 1.6, f:drawBandstand});
   items.push({y:JETTY.y + 1.6, f:drawJetty});
+  items.push({y:MILL_WHEEL.y - MILL_WHEEL.r - 0.2, f:drawMillShadow});
+  items.push({y:MILL_WHEEL.y + 0.3, f:drawMillWheel});
   // the footbridge is two items: the span and its upstream rail sort BEFORE anyone on
   // it, the downstream rail, piers and shadow AFTER — and the boat, while it is under,
   // is drawn by the span itself so the deck lands on top of the rower
@@ -4968,6 +4993,75 @@ function drawBandstand(it, t){
     ctx.restore();
   }
 }
+/* ---- the mill wheel: live geometry in the x-z plane facing the viewer, its foot in
+ * the current, sorted with the walkers. Every frame: rim, MILL_SPOKES spokes and as
+ * many paddles turned by millAng; a hub; a post on the towpath side and one in the
+ * water; foam at the foot scaled by millSpin() so a frozen wheel stands in still water.
+ * Drawn on ctx before applyLight, so it goes slate at night like every timber. */
+const MILL_SPOKES = 8;
+function wheelPt(th, rr){ return project(MILL_WHEEL.x + rr * Math.cos(th), MILL_WHEEL.y, MILL_WHEEL.hub + rr * Math.sin(th)); }
+function drawMillShadow(){
+  const {x, y, r} = MILL_WHEEL, sh = shadowF();
+  if (sh <= 0.02) return;
+  ctx.fillStyle = 'rgba(18,24,26,' + (0.28 * sh).toFixed(3) + ')';
+  const dx = -SUN[0] * 0.9;                       // the shadow lies along the sun's lean
+  poly(ctx, [project(x - r + dx, y + 0.35, 0), project(x + r + dx, y + 0.35, 0),
+             project(x + r * 0.8 + dx, y + 0.35 + r * 0.9, 0), project(x - r * 0.8 + dx, y + 0.35 + r * 0.9, 0)]);
+  ctx.fill();
+}
+function drawMillWheel(){
+  const {x, y, r, hub} = MILL_WHEEL, spin = millSpin();
+  // posts: one on the towpath's edge, one standing in the water
+  ctx.strokeStyle = '#4e3b28'; ctx.lineWidth = Math.max(1.8, cellW * 0.16);
+  for (const px of [x + r * 0.55, x - r * 0.55]){
+    const p1 = project(px, y + 0.3, px > x ? 0 : -0.15), p2 = project(px, y + 0.3, hub);
+    ctx.beginPath(); ctx.moveTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]); ctx.stroke();
+  }
+  const [ax, ay] = project(x - r * 0.55, y + 0.3, hub), [bx, by] = project(x + r * 0.55, y + 0.3, hub);
+  ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();      // the axle bearer
+  // paddles, then spokes, then the rim over both
+  ctx.fillStyle = '#8a6d4b'; ctx.strokeStyle = 'rgba(40,28,18,.6)'; ctx.lineWidth = 1;
+  for (let k = 0; k < MILL_SPOKES; k++){
+    const th = millAng + k * Math.PI * 2 / MILL_SPOKES, w = 0.18;
+    const a = wheelPt(th - w, r * 0.78), b = wheelPt(th + w, r * 0.78), c = wheelPt(th + w * 0.75, r * 1.08), d = wheelPt(th - w * 0.75, r * 1.08);
+    poly(ctx, [a, b, c, d]); ctx.fill(); ctx.stroke();
+  }
+  ctx.strokeStyle = '#5c4630'; ctx.lineWidth = Math.max(1, cellW * 0.08);
+  ctx.beginPath();
+  for (let k = 0; k < MILL_SPOKES; k++){
+    const th = millAng + k * Math.PI * 2 / MILL_SPOKES;
+    const h0 = wheelPt(th, 0), h1 = wheelPt(th, r * 0.92);
+    ctx.moveTo(h0[0], h0[1]); ctx.lineTo(h1[0], h1[1]);
+  }
+  ctx.stroke();
+  for (const rr of [r * 0.92, r * 0.72]){
+    ctx.lineWidth = Math.max(1.2, cellW * (rr > r * 0.8 ? 0.12 : 0.07));
+    ctx.beginPath();
+    for (let k = 0; k <= 28; k++){ const p = wheelPt(k / 28 * Math.PI * 2, rr); k ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); }
+    ctx.stroke();
+  }
+  const [hx, hy] = wheelPt(0, 0);
+  ctx.fillStyle = '#3b2c1d'; ctx.beginPath(); ctx.arc(hx, hy, Math.max(1.5, cellW * 0.14), 0, 7); ctx.fill();
+  // foam where the paddles break the water; still when the wheel is
+  if (spin > 0.02){
+    ctx.fillStyle = 'rgba(236,244,246,' + (0.45 * Math.min(1, spin) * Math.max(0.35, daylight)).toFixed(3) + ')';
+    for (let k = 0; k < 5; k++){
+      const fx = x - r * 0.7 + (hash(k, 91) + 0.3 * Math.sin(millAng * 3 + k)) * r * 1.4;
+      const [sx, sy] = project(fx, y + 0.55 + hash(k, 93) * 0.5, 0);
+      ctx.beginPath(); ctx.arc(sx, sy, 0.9 + hash(k, 95) * 1.2, 0, 7); ctx.fill();
+    }
+  }
+}
+function millWheelAt(p){
+  const [cx, cy] = wheelPt(0, 0), [ex] = wheelPt(0, MILL_WHEEL.r), [, ty] = wheelPt(Math.PI / 2, MILL_WHEEL.r);
+  return Math.abs(p[0] - cx) <= ex - cx + 1 && Math.abs(p[1] - cy) <= cy - ty + 1;
+}
+function millWheelName(){
+  const skin = fountainSkin(), run = riverRun();
+  return skin >= 0.98 ? 'the mill wheel, stopped in the ice' : skin > 0.25 ? 'the mill wheel, slowing as the river ices'
+       : run > 1.15 ? 'the mill wheel, turning hard on the winter water'
+       : run < 0.85 ? 'the mill wheel, turning slow on the summer river' : 'the mill wheel, turning';
+}
 function drawJetty(){
   const {x, y} = JETTY;
   ctx.fillStyle = 'rgba(18,24,26,.35)';
@@ -5184,6 +5278,22 @@ function drawRiverFlow(t){
     ctx.moveTo(sx, sy); ctx.lineTo(sx - 1.2 + lean, sy + len);
   }
   ctx.stroke();
+  // the tail-race (#78): a short white run below the mill wheel, as many streaks as the
+  // wheel is turning fast, none at all once the frost has stopped it
+  const spin = millSpin();
+  if (spin > 0.02){
+    ctx.strokeStyle = 'rgba(' + (cold ? 214 : 240) + ',' + (cold ? 226 : 246) + ',' + (cold ? 240 : 246) + ',' +
+                      (Math.min(1, spin) * (cold ? 0.35 : 0.5) * glow).toFixed(3) + ')';
+    ctx.beginPath();
+    const n2 = Math.round(6 * Math.min(1.5, spin)), race = 5.5;
+    for (let k = 0; k < n2; k++){
+      const fy = MILL_WHEEL.y + 0.7 + ((t * FLOW_SPEED * run * 1.5 * (0.8 + hash(k, 41) * 0.4)) + k * 1.9) % race;
+      const fx = MILL_WHEEL.x - MILL_WHEEL.r * 0.75 + hash(k, 43) * MILL_WHEEL.r * 1.5;
+      const [sx, sy] = project(fx, fy, 0);
+      ctx.moveTo(sx, sy); ctx.lineTo(sx - 0.6 + lean * 0.5, sy + len * 0.5);
+    }
+    ctx.stroke();
+  }
 }
 /* ============ the night on the water ============ *
  * The lamps threw pools on the stone and nothing on the river; the moon lit a sky the
@@ -6174,6 +6284,7 @@ function plotName(x, y){
 function nameAt(x, y){
   if (x < 0 || y < 0 || x >= GW || y >= WH) return '';
   const j = y * GW + x, g = grid[j];
+  if (millAt(x, y)) return 'the mill';
   if (g === BED || g === CBED) return inAllotment(x, y) ? plotName(x, y) : bedName(x, y, j);
   if (g === GRASS) return daisy[j] ? 'the lawn, daisies in it'
                  : wear[j] > 0.45 ? 'the lawn, worn to a path' : 'the lawn';
@@ -6278,6 +6389,7 @@ function clockOf(t){                             // hours since the dusk edge ->
   return (h | 0) + '.' + String(Math.round((h % 1) * 60)).padStart(2, '0');
 }
 function windowName(sa, sb){
+  if (millWindow(sa, sb)) return nightF > 0.3 ? "the mill's window, a lamp burning all night" : "the mill's window";
   if (nightF <= 0.3) return 'a window';
   const w = windowHours(sa, sb);
   if (!w) return 'a window, dark: nobody home tonight';
@@ -6300,6 +6412,7 @@ function doorName(f){
 function lookAt(p){
   const l = livingAt(p);
   if (l) return l;
+  if (millWheelAt(p)) return millWheelName();
   const f = faceAt(p), c = treeAt(p);        // crowns paint over the cached facades; the live band over the crowns
   if (f && (f.live || !c)) return f.door ? doorName(f) : windowName(f.sa, f.sb);
   if (c) return c.name + ', ' + treeState(c.fruit);
@@ -6584,6 +6697,7 @@ function simStep(sdt, dt){
   updateSwans(sdt);
   updateBalloon(sdt);
   updateBoat(sdt);
+  updateMill(sdt);
 
   statAcc += dt;
   if (statAcc > 0.5){ statAcc = 0; refreshStats(); tickTicker(); }
