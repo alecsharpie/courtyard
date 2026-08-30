@@ -389,7 +389,8 @@
       "the ground reads the lid — shadowF() with shSpread()/shOffset(): cast shadows fade, widen and retract together, eight sites, blurred on the cached ground. probes/shadow-cover.mjs",
       "snow — snowF() turns showers to flakes past greyF 0.55; snowCover 0..1 (rate-capped, snowAt per cell, trodden kinds take less) whitens cached ground/roofs/awnings, melts as warmth lifts; census clock.snow. probes/snow-year.mjs",
       "the WIND — windF() 0..1 rate-capped by stepWind(); windTarget() = max(windyDay() day hash, frontWind()); frontWind() ramps on cloud 0.46→0.76, 0 while raining/frontSpent (latched at rain start). Magnitude only. probes/wind-front.mjs, wind-year.mjs",
-      "wetness 0..1 — wetF()/stepWet(): rain soaks paving, dries by daylight×warmth. Cached ground reads wetPainted via wetCol() on PATH/SIDE/ROAD; lane sheen 0.16×wetness; drawWetLights() lamp bars on WET_LAMPS × wetness × nightF. probes/wet-year.mjs, wet-shots.mjs"
+      "wetness 0..1 — wetF()/stepWet(): rain soaks paving, dries by daylight×warmth. Cached ground reads wetPainted via wetCol() on PATH/SIDE/ROAD; lane sheen 0.16×wetness; drawWetLights() lamp bars on WET_LAMPS × wetness × nightF. probes/wet-year.mjs, wet-shots.mjs",
+      "the WIND has a SIGN — windSign ±1 per spell (signFor(day) hash, latched in stepWind while windF ≤ WIND_SIGN_CALM), windDir() the calm→sign blend; every x-lean (fountain, river streaks, bunting, smoke, leaves' vx, windX) reads it; windyDay() salted by WIND_SALT = seed. probes/wind-sign.mjs"
     ],
     "life": [
       "walkers with itineraries — courtyard, street and eastern stops; cafe sitters; market and kiosk browsers; dogs on leads; ducks, swans, butterflies, fireflies, birds, one night cat, falling leaves",
@@ -432,6 +433,12 @@
       "id": "c107",
       "note": "companions are lane/east only: courtyard spawnAgent's sitters/crossers and the concert crowd still arrive alone; a.mate (picnic) and a.with are two pair mechanisms",
       "raisedBy": 70,
+      "seenBy": 0
+    },
+    {
+      "id": "c108",
+      "note": "rain drops slant −x on every day with no wind term (r.x -= v·dt·0.12 in the shower step, drawn as a −2.4 px line): the one weather consumer that ignores windSign — give the slant windDir() or leave the rain honestly windless",
+      "raisedBy": 67,
       "seenBy": 0
     }
   ],

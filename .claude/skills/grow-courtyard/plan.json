@@ -15,36 +15,6 @@
   "rationale": "HOLD RUNG 2 with one rung-3-flavoured bet. #67 changed what a viewer can see: the night is now one tap away, so the loop's twenty night iterations finally pay — and the first thing that tap exposes is a defect in the queue's own advertising (the clock offer comes fourth, after an offer that needs a tap on a person: b65, one hour, c103). The three lagging domains each have a compounding move on a scalar that already exists: the plaza's fountain KNOWS it is frozen (fountainIce, fountainLine) and, as far as the source shows, says so only in a sentence — b66 draws it; the town's people all walk alone though a.mate exists for picnic pairs — b67 sends some in twos, the first new kind of person since #53 and a thing the wide shot shows in a second; the street trees' leaves lie on the road with nobody to clear them, while the courtyard has a broom — b69 gives the street its litter day. The bet is b68: the wind has magnitude and no direction, so every consumer since #15 leans east and #66's litter heaps east under every tree in every seed; a signed wind per front (and the seed in the calendar, c101) makes a whole class of days look different from the wide shot. Risk: b65 low, b66 medium, b67 medium-high (the 0.9-cell merge law, the follower-rate law), b68 high (eight consumers, every anchor must reduce at sign +1), b69 medium.",
   "queue": [
     {
-      "id": "b68",
-      "domain": "Sky, light & weather",
-      "kind": "Deepen",
-      "brief": "THE BET. The wind is a magnitude (windF(), windTarget() = max(windyDay hash, frontWind)) with no direction: every consumer leans +x — the washing, smoke, bunting, fountain spray, river streaks, cloud drift, rain droplets, and the shed leaves' vx, which is why #66's litter heaps EAST of every tree in every seed (c102). Give the wind a SIGN: one per front / windy day (a hash of the day, latched when the target rises from calm so it cannot flip mid-blow), and make every consumer that has an x-lean multiply by it, so an east-wind day leans the whole town the other way and its litter lies west of the linden. Take c101 in the same pass: `windyDay()` is `hash(day, 99)` with no seed, so every seed shares one windy calendar — salt it with the seed. At sign +1 every consumer must reduce exactly to today.",
-      "seams": [
-        "windF",
-        "windTarget",
-        "windyDay",
-        "frontWind",
-        "stepWind",
-        "frontSpent",
-        "gust",
-        "leaves.push",
-        "landLeaf",
-        "litter",
-        "drawRiverFlow",
-        "drawRiverLights",
-        "fountainStand",
-        "stepClouds",
-        "probes/wind-front.mjs",
-        "probes/wind-year.mjs",
-        "probes/litter-year.mjs",
-        "probes/river-wind.mjs"
-      ],
-      "successLooksLike": "wind-front.mjs and wind-year.mjs anchors unchanged for magnitude; a new probe prints the sign per windy spell across 10 seeds × 30 d (roughly half each way, never flipping inside a spell); litter-year.mjs shows the linden's heap centroid west of the trunk on a west-sign autumn day and east on an east-sign one; a windy noon crop pair (sign +1 vs −1) with every lean mirrored and nothing else different; sign +1 whole-frame hash identical to HEAD at a pinned windy instant; 10 seeds no longer share the windy calendar.",
-      "avoid": "Do not add a compass or a vane — the lean IS the reading. Do not let the sign change while windF > 0.1. Do not reshuffle the seeded stream with a new R() — hash only.",
-      "budgetMin": 40,
-      "risk": "high"
-    },
-    {
       "id": "b69",
       "domain": "Cross street & allotments",
       "kind": "Connect",
@@ -86,6 +56,10 @@
     {
       "id": "b67",
       "at": "2026-08-30T16:24:23.146Z"
+    },
+    {
+      "id": "b68",
+      "at": "2026-08-30T16:34:53.851Z"
     }
   ]
 }
