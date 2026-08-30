@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-29",
+  "updated": "2026-08-30",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
   "lastIteration": 67,
@@ -413,6 +413,12 @@
       "note": "the rose window's dusk seam is two-sided (cached disc steps at cache time, relight is a 0.7·nightF screen) — #63 diagnosed it, nobody has fixed it; a live-drawn disc after applyLight is the shape",
       "raisedBy": 63,
       "seenBy": 1
+    },
+    {
+      "id": "c105",
+      "note": "follow is the fourth OFFER (~48 real s in) since #68; question whether it earns a slot — stats, not the queue (offer-order.mjs prints the real time each offer surfaces)",
+      "raisedBy": 67,
+      "seenBy": 0
     }
   ],
   "watch": [

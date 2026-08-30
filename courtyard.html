@@ -5782,8 +5782,9 @@ const SEASON_NARROW = 'Tap it — the year runs on.';
 const FOLLOW_WIDE = 'Tap on somebody and the sill will keep an eye on them for you.';
 const FOLLOW_NARROW = 'Tap someone to follow them.';
 /* The night is where twenty iterations went and a noon visitor never sees it: the
- * clock is the way there. It is the LAST offer — the picture, then the year, then a
- * person, then the hour — and, like the others, it is never said if they found it. */
+ * clock is the way there. It is the SECOND offer — the picture, then the hour, then
+ * the year, then a person: said last it surfaced ~31 real s in, after the daylight it
+ * would have skipped was gone. Like the others, it is never said if they found it. */
 const EVENING_WIDE = 'Press the hour and the town runs on to this evening.';
 const EVENING_NARROW = 'Tap the hour — evening comes.';
 const sillEl = document.getElementById('sill');
@@ -5796,9 +5797,9 @@ let touched = DRIVEN, pressed = DRIVEN, clockPressed = DRIVEN;
  * unnecessary: do the thing and it is never said. */
 const OFFERS = [
   { id:'touch',  wide: INVITE_WIDE, narrow: INVITE_NARROW, found: () => touched },
+  { id:'clock',  wide: EVENING_WIDE, narrow: EVENING_NARROW, found: () => clockPressed },
   { id:'season', wide: SEASON_WIDE, narrow: SEASON_NARROW, found: () => pressed },
   { id:'follow', wide: FOLLOW_WIDE, narrow: FOLLOW_NARROW, found: () => followedEver },
-  { id:'clock',  wide: EVENING_WIDE, narrow: EVENING_NARROW, found: () => clockPressed },
 ];
 let offerN = 0, offerFree = INVITE_AT, inviteHold = 0, inviteTxt = '';
 function offerInvite(now){

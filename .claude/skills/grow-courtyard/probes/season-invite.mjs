@@ -154,8 +154,8 @@ const span = (s, pre) => { const h = s.filter(r => r.txt.startsWith(pre)); retur
 
 for (const [tag, vp] of [['1400', { width: 1400, height: 860 }], ['390', { width: 390, height: 844 }]]) {
   const k = tag === '390' ? 'narrow' : 'wide';
-  console.log(`\n# B. sequence @ ${tag}px (36 s)`);
-  const s = await watch({ secs: 36, viewport: vp });
+  console.log(`\n# B. sequence @ ${tag}px (48 s)`);
+  const s = await watch({ secs: 48, viewport: vp });
   const rT = runsOf(s, TOUCH[k]), rS = runsOf(s, SEASON[k]);
   const spT = span(s, TOUCH[k]), spS = span(s, SEASON[k]);
   const both = s.filter(r => r.txt.startsWith(TOUCH[k]) && r.txt.startsWith(SEASON[k])).length;
