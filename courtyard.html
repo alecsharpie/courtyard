@@ -4019,8 +4019,38 @@ function drawClockTower(g){
   const vane = project((x0 + x1) / 2, (yF + yB) / 2, top + 4.8);
   g.strokeStyle = '#2f2b26'; g.lineWidth = 1.4;
   g.beginPath(); g.moveTo(apex[0], apex[1]); g.lineTo(vane[0], vane[1]); g.stroke();
-  g.fillStyle = '#4a4238';
-  poly(g, [[vane[0] - 5, vane[1] + 1], [vane[0] + 5, vane[1] + 3], [vane[0] - 5, vane[1] + 5]]); g.fill();
+  // the arrow is LIVE — drawVanes() every frame, after the cache (#83)
+}
+
+/* ============ the weathervanes (#83) ============
+ * Two vanes, one on each tower, the whole width of the town apart, and they agree:
+ * the arrow points INTO the wind. Heading 0 is the old static arrow (east, +x on
+ * screen), which is also where an east wind (windSign -1) holds it; a west wind
+ * (windSign +1, the town's +x lean) swings it through north to the west, linearly in
+ * windF() — the same blend windDir() is, so a sign latched from calm never steps a
+ * frame and calm is exactly the old drawing. In a calm the arrow drifts a few degrees
+ * on a slow sine phased by the tower's own cell hash; a full wind pins it. The
+ * towers are in the ground cache, so the arrow is drawn live beside the clock
+ * hands (the rose window's model, #81): projected per frame, under applyLight. */
+const VANES = [
+  {x:(CT.x0 + CT.x1) / 2, y:(CT.yF + CT.yB) / 2, z:CT.top + 4.8, len:5, fin:2},
+  {x:(CHURCH.tx0 + CHURCH.tx1) / 2, y:(CHURCH.ty1 + CHURCH.ty0 + 0.2) / 2, z:13.6 + 10.3, len:4, fin:1.6},
+];
+const VANE_WOB = 0.14;                                  // ~8 degrees of calm drift
+function vaneWob(v){ return RM ? 0 : Math.sin(simT * 0.6 + hash(v.x, v.y) * 6.283) * VANE_WOB * (1 - windF()); }
+function vaneAngle(v){ return Math.PI * (windSign + 1) * 0.5 * windF() + vaneWob(v); }   // 0 east ... PI west, into the wind
+function drawVanes(){
+  for (const v of VANES){
+    const th = vaneAngle(v), c = project(v.x, v.y, v.z), cy = c[1] + 3;
+    const ex = project(v.x + 1, v.y, v.z), ey = project(v.x, v.y + 1, v.z);
+    const sx = ex[0] - c[0];                                // screen px per world x at the vane
+    // the heading in the ground plane, as seen: (cos, -sin) in world x,y -> screen
+    const ux = (Math.cos(th) * sx - Math.sin(th) * (ey[0] - c[0])) / sx;
+    const uy = (-Math.sin(th) * (ey[1] - c[1])) / sx;
+    const tx = c[0] + v.len * ux, ty = cy + v.len * uy, bx = c[0] - v.len * ux, by = cy - v.len * uy;
+    ctx.fillStyle = '#4a4238';
+    poly(ctx, [[bx, by - v.fin], [tx, ty], [bx, by + v.fin]]); ctx.fill();   // a vertical plate: fins up and down
+  }
 }
 
 /* ============ the church across the river ============ */
@@ -4943,6 +4973,7 @@ function drawScene(t, dt){
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(ccx, ccy); ctx.lineTo(ccx + Math.cos(mA) * rr * 0.78, ccy + Math.sin(mA) * rr * 0.78); ctx.stroke();
   }
+  drawVanes();                    // live, like the hands: the towers are cached, the wind is not
 
   drawSmoke(t);
   applyLight(t);

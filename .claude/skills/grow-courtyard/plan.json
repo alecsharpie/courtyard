@@ -15,28 +15,6 @@
   "rationale": "CLIMBS TO RUNG 3. Not forced — no signal fires — but chosen: seventeen passes have used rungs 2, 4, 4b and 5 and never once widened the menu, and the coverage grid says why it should now: every domain has its cells filled except the empty ones the town cannot fill (courtyard × New element, sill × everything but interaction), so the next hundred briefs from THIS menu are rotations. Thirty seconds at the wide shot, seed 42, noon then 03:00: the roofline is a third of the picture and it is inert — chimneys smoke, one vane on the clock tower points the same way in an east gale as a west one, snow whitens the slates and nothing else ever happens up there; the cross street is six cells of road with a cyclist every few minutes; the courtyard tells no time although the whole town runs on the sun. So the batch is: b80 THE CART (the bet, street, 75 min, 200-line diff invited) — a horse-drawn cart that comes down the cross street every morning, the first thing on the road bigger than a bicycle, stopping at the allotment gate to load produce and on market days at the lane end for the stalls, bringing the mill's sacks (c117) — a moving object the wide shot cannot miss. b81 THE WEATHERVANE (the new domain's first brief): the clock tower's vane turns to windSign·windF(), the chimney smoke already leans the same way, so a windy day is legible from the skyline. b82 THE SUNDIAL (courtyard × New element, the empty cell): a gnomon on the roundel whose shadow is sunVec(), so the courtyard reads the hour and the season. b83 the deck's evening (c118, life × Connect): an east arrival who stays on past eastOpen() under eveOpen() so the footbridge has somebody on it at dusk. b84 the camera's stale overlays (c119 + c120, sill × Polish). Risk: b80 high, b81 medium, b82 medium, b83 medium, b84 low.",
   "queue": [
     {
-      "id": "b81",
-      "domain": "Roofs & skyline",
-      "kind": "Deepen",
-      "brief": "First brief of a NEW domain. The clock tower's vane (drawClockTower, ~line 3897) is a static triangle drawn at `vane = project(..., top + 4.8)`; it points the same way in a west gale as an east one. Make it a weathervane: its arrow turns to a heading driven by windSign·windF() — pointing INTO the wind (the way vanes do), swinging through the blend windDir() so a latch never steps a frame, with a little calm-drift wobble folded from a hash the tower already has, not a new R(). Add the same vane to the church tower (CHURCH tx0..tx1) so two vanes agree across the whole width of the town; the chimney smoke (drawSmoke) already leans windDir() — after this the smoke, the vanes, the rain slant and the bunting all say the same wind. If the tower is CACHED (check drawBlocks/facades), the vane must become a live overlay drawn after the cache, projected per frame — the rose window (#81, roseLit) is the model.",
-      "seams": [
-        "drawClockTower",
-        "windSign",
-        "windF",
-        "windDir",
-        "drawSmoke",
-        "CHURCH",
-        "drawChurchFront",
-        "applyLight",
-        "roseLit",
-        "project"
-      ],
-      "successLooksLike": "probes/vane.mjs: force windSign +1 and −1 on a windy day and read the arrow's projected tip x on each; under calm (windF 0) the arrow sits within a few degrees of its rest heading; at windF 1 the two signs give mirror headings. Crops of the tower at the two signs in shots/. Wide-view hash IDENTICAL to HEAD when windF is forced 0 and the wobble hash is forced to its rest value.",
-      "avoid": "No new R() draw. Do not turn the vane in the CACHE (a cached vane steps at the bucket cadence — the rose window's old seam). Do not make the smoke read anything new — it is already right.",
-      "budgetMin": 40,
-      "risk": "medium"
-    },
-    {
       "id": "b82",
       "domain": "Courtyard & garden",
       "kind": "New element",
@@ -108,6 +86,10 @@
     {
       "id": "b80",
       "at": "2026-08-30T18:46:42.405Z"
+    },
+    {
+      "id": "b81",
+      "at": "2026-08-30T22:41:52.135Z"
     }
   ]
 }

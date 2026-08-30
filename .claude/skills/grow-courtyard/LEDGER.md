@@ -40,21 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 74 — the cafe gets its own custom: `cafeOpen()` / `cafeRate()` / `spawnCafeAgent()` under `CAFE_WAY`, off laneCap (2026-08-31) [Lane & market × Deepen]
-
-**Brief:** b71 — count cafe supply AT the choice, then give the cafe an arrival source of its own (spawnTapAgent the model), never a bigger slice of laneCap.
-**Did:** `cafeOpen()` (sunUp+2 .. sunDown−7), `cafeRate()` peaks at clear noon, `spawnCafeAgent()` from the west edge under `CAFE_WAY = 2`, a 3.5–7 h visit, companion across the table via withCompanion. `probes/cafe-supply.mjs` (arrivals at the choice), `cafe-hours.mjs` (presence by hour).
-**Gates:** census PASS · motion PASS · visual PASS lane noon · filmstrip 0 POP. 144 arrivals / 10 seeds × 4 d; presence peak 14:00–17:00.
-**Verdict:** shipped.
-**Surprise:** the first cut (HEAD's 14–26 s sit, close at sunDown − 3) put the presence PEAK at 17:00–04:00 and 0.0 at 09:00–12:00 — a 25-cell walk at nominal 2.2 cells/s took 6.4 h, not 4.9. The visit had to shrink to a coffee and the hours close 7 h before sunset for the tables to be empty by night; noon is still the rising edge because dawn is the earliest honest departure.
-## Iteration 75 — the courtyard's own arrivals come in twos: `spawnAgent(room)` → `withCompanion`, bench case on `a.benchAt` (2026-08-31) [Courtyard & garden × Connect]
-
-**Brief:** b73 — c107: pairs stopped at the courtyard wall; call `withCompanion(a, room)` from `spawnAgent` under `capacity`, and make the bench case work on BENCH_SPOTS.
-**Did:** `spawnAgent(room)` takes the room test the way the lane/east spawners do and calls `withCompanion(a, room)` after `agents.push`; kids, picnic (`a.mate`), gardener and napper excluded. A courtyard sitter's bench is its LAST waypoint, so `else if (a.benchAt)` shifts that waypoint −0.5 and sets `a.pairSeat = 1.0`; `b.benchAt = null`. No draw code.
-**Gates:** census PASS (people +16, reshuffle) · motion PASS · visual PASS · filmstrip 0 POP · `shots/b73-bench-pair-77.png`. `probes/pairs.mjs` 10 seeds × 2 d: 21 pairs = 26.9 % of courtyard arrivals, separation in [0.9, 1.6] 99.9 %; `sitter-pairs.mjs`: 8/8 companions sat beside a seated leader.
-**Verdict:** shipped.
-**Surprise:** the bench pair the brief pictured exists at about ONE daylit sighting per ten days — sitters are 16 % of a courtyard roll that fires ~0.7×/day, so the visible thing is the crossers and strollers walking in twos, not the bench. Five seeds of nothing looked like a bug until the counter said 8/8.
-**a.mate vs a.with:** keep them separate — `a.mate` is two EQUAL agents with their own waypoints who judge the sky once; `a.with` is a follower with no route of its own.
 ## Iteration 76 — the rain, the leaves and the gutter learn the wind's sign: rain slant on `windDir()`, leaves culled at the world edge, per-leaf fall drift (2026-08-31) [Sky, light & weather × Connect]
 
 **Brief b72.** c108 rain ignored windSign; c109 street-tree leaves left the world under an east gust; c110 every lane leaf landed in road row 70.
@@ -110,3 +95,13 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Surprise:** the "at the gate with a gardener beside it" frame did not exist: basket over the side and pull-away happened in the SAME tick. The five "inside" were one browser whose own walk step undid the shove every tick.
 **Law:** a displacement must OWN the tick — return after the shove or the walker steps back in. `nightF > 0.3` is dawn as well as dusk (0.36 at 06:30, summer): an "after dark" rule on nightF alone fires in the morning — qualify with the hour.
 **Cue:** the loader pops in/out beside a plot; a holder already kneeling with a crop could load instead. Nothing leaves by the lane's EAST end. "Slow walking pace" is 6.5 cells/s: at 5 the stalls were reached at 15:45 — dusk on a winter market day.
+
+## Iteration 83 — the weathervanes: both towers' arrows turn INTO the wind, live, on the same blend the smoke leans (2026-08-31) [Roofs & skyline × Deepen]
+
+**Brief:** b81 — first brief of the new domain: the clock tower's static vane becomes a weathervane, driven by windSign·windF() through the windDir() blend; the same vane on the church tower; live if the tower is cached.
+**Did:** both towers are in the ground cache (`drawBlocks(gtx…)`), so the cached arrow is gone and `drawVanes()` draws it live beside the live clock hands, before `drawSmoke`/`applyLight` (takes the night multiply as the cached one did). `VANES[]` two specs (CT top+4.8; the church rod between apex and cross, top+10.3). `vaneAngle(v) = π·(windSign+1)/2·windF() + vaneWob(v)`: 0 = HEAD's east arrow, which is also where an east wind (−1) holds it; a west wind (+1) swings it through north to west, linearly in windF() — a sign latched from calm steps nothing. `vaneWob()` = sin(0.6·simT + hash(v.x,v.y)·2π)·0.14 rad·(1 − windF()), 0 under RM; no R(). The arrow is a vertical plate: heading in the ground plane via the projected x/y bases at the vane, fins ±2 px in screen y, so it foreshortens edge-on when pointing north.
+**Gates:** census PASS (unchanged) · motion PASS · visual PASS (`shots/wide.png`, `east.png`, `b81-vane-{clock,church}-{calm,west,east}.png`) · day filmstrip 0 POP · perf skipped (two triangles) · `probes/vane.mjs`: windF 1 sign ±1 → tips (−5, 0)/(+5, 0) clock, (−4, 0)/(+4, 0) church (mirror PASS); calm 1.9°/6.6° off rest under a ±8° wobble (PASS); wobble live differs from HEAD (fired).
+**Verdict:** shipped (+37 lines).
+**Surprise:** "IDENTICAL to HEAD" is unreachable for a shape lifted out of a cache — HEAD hashed stable twice; here 4 tiles differed, every one at the arrow, ±1 on 12 antialiased edge pixels: the cache composites the triangle's edge over its own pixels, then over the sky; live it composites once. Zero difference anywhere else. The first identity run differed in 108 tiles all over the town: two rAF frames after `__warp` are NOT the same instant on two pages — pin with `drawScene(simT, 1/30)` inside the evaluate (`noon-identical.mjs`), never `await frame()`.
+**Law:** a probe that reads the canvas after `requestAnimationFrame` is reading a frame it did not pin — the live loop's own dt; call `drawScene()` yourself. A pixel identity gate on a shape moved between a cache and a live pass passes at ±1 on its edge pixels and nowhere else — assert the diff's LOCATION, not zero.
+**Context:** `rotate-ledger` reports the inventory OVER (11.0/9.5 KB, 48 entries; the carter line 363 B) — it was over before this iteration; a manager condense.

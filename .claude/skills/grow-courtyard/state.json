@@ -446,7 +446,8 @@
       "the quarter CAMERA (#80) — #where button cycles QUARTERS Wide→Courtyard→Street→Plaza→Far bank; viewFor()/whereGo()/stepView() on the real clock, the wide cache scaled through the ease (gview, gpadWant); OFFERS 'where'; __where(n,secs). probes/where-*.mjs"
     ],
     "roofs": [
-      "emergent roofs from buildVolumes() (footprint → volume, eaveFor); CHIMNEYS[] filled as roofs draw, drawSmoke(t) plumes lean windDir(); drawClockTower() with a STATIC vane; snowCover whitens roofs; the night cat (catA, drawCat) on the ground only"
+      "emergent roofs from buildVolumes() (footprint → volume, eaveFor); CHIMNEYS[] filled as roofs draw, drawSmoke(t) plumes lean windDir(); snowCover whitens roofs; the night cat (catA, drawCat) on the ground only",
+      "WEATHERVANES (#83) on both towers — VANES[], drawVanes() LIVE by the clock hands, vaneAngle() into the wind off windSign·windF(), vaneWob() calm drift; edge-on when pointing north. probes/vane.mjs"
     ]
   },
   "openCues": [
@@ -466,6 +467,12 @@
       "id": "c122",
       "note": "nothing ever leaves by the lane's EAST end — the cart goes west or back north; the east end is an exit nobody uses (#82)",
       "raisedBy": 81,
+      "seenBy": 0
+    },
+    {
+      "id": "c123",
+      "note": "the church vane sits on the rod under the cross and goes edge-on (a 1-px sliver) when the heading passes north — a weathercock silhouette would read at every heading; neither vane is named by lookAt() (#83)",
+      "raisedBy": 82,
       "seenBy": 0
     }
   ],

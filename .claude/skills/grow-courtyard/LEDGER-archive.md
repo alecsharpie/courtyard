@@ -3182,3 +3182,18 @@ warmth is a cosine and time piles up at the extremes. Full entry in `LEDGER-arch
 **Verdict:** shipped (+30 lines). Context budget read OVER by 0.5 KB (46.5/46) — manager's distil.
 **Surprise:** the first live disc lost the mullions — they were stroked in the cache OVER the lit glass, and a 0.9-alpha live disc buried them (midnight read 197,168,137). Anything you lift out of a cache carries what the cache drew on top of it. Also: the same seam exists at DAWN reversed (HEAD 07:00 disc 195 → 163 on the lb 229 rebuild); the ramp fixes both ends since it is one function of nightF.
 **Law:** `pops()` grades against neighbours at 3.5× — a step that lands next to a cache-bucket rebuild (Δ ~2.6) hides under it. For a small feature, print the feature's own pixel series (the disc's RGB), not the crop's Δ.
+## Iteration 74 — the cafe gets its own custom: `cafeOpen()` / `cafeRate()` / `spawnCafeAgent()` under `CAFE_WAY`, off laneCap (2026-08-31) [Lane & market × Deepen]
+
+**Brief:** b71 — count cafe supply AT the choice, then give the cafe an arrival source of its own (spawnTapAgent the model), never a bigger slice of laneCap.
+**Did:** `cafeOpen()` (sunUp+2 .. sunDown−7), `cafeRate()` peaks at clear noon, `spawnCafeAgent()` from the west edge under `CAFE_WAY = 2`, a 3.5–7 h visit, companion across the table via withCompanion. `probes/cafe-supply.mjs` (arrivals at the choice), `cafe-hours.mjs` (presence by hour).
+**Gates:** census PASS · motion PASS · visual PASS lane noon · filmstrip 0 POP. 144 arrivals / 10 seeds × 4 d; presence peak 14:00–17:00.
+**Verdict:** shipped.
+**Surprise:** the first cut (HEAD's 14–26 s sit, close at sunDown − 3) put the presence PEAK at 17:00–04:00 and 0.0 at 09:00–12:00 — a 25-cell walk at nominal 2.2 cells/s took 6.4 h, not 4.9. The visit had to shrink to a coffee and the hours close 7 h before sunset for the tables to be empty by night; noon is still the rising edge because dawn is the earliest honest departure.
+## Iteration 75 — the courtyard's own arrivals come in twos: `spawnAgent(room)` → `withCompanion`, bench case on `a.benchAt` (2026-08-31) [Courtyard & garden × Connect]
+
+**Brief:** b73 — c107: pairs stopped at the courtyard wall; call `withCompanion(a, room)` from `spawnAgent` under `capacity`, and make the bench case work on BENCH_SPOTS.
+**Did:** `spawnAgent(room)` takes the room test the way the lane/east spawners do and calls `withCompanion(a, room)` after `agents.push`; kids, picnic (`a.mate`), gardener and napper excluded. A courtyard sitter's bench is its LAST waypoint, so `else if (a.benchAt)` shifts that waypoint −0.5 and sets `a.pairSeat = 1.0`; `b.benchAt = null`. No draw code.
+**Gates:** census PASS (people +16, reshuffle) · motion PASS · visual PASS · filmstrip 0 POP · `shots/b73-bench-pair-77.png`. `probes/pairs.mjs` 10 seeds × 2 d: 21 pairs = 26.9 % of courtyard arrivals, separation in [0.9, 1.6] 99.9 %; `sitter-pairs.mjs`: 8/8 companions sat beside a seated leader.
+**Verdict:** shipped.
+**Surprise:** the bench pair the brief pictured exists at about ONE daylit sighting per ten days — sitters are 16 % of a courtyard roll that fires ~0.7×/day, so the visible thing is the crossers and strollers walking in twos, not the bench. Five seeds of nothing looked like a bug until the counter said 8/8.
+**a.mate vs a.with:** keep them separate — `a.mate` is two EQUAL agents with their own waypoints who judge the sky once; `a.with` is a follower with no route of its own.
