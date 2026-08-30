@@ -1,42 +1,122 @@
 {
-  "generated": "2026-08-31T00:00:00.000Z",
-  "byIteration": 72,
+  "generated": "2026-08-31T12:00:00.000Z",
+  "byIteration": 77,
   "rung": "4b",
   "diagnosis": {
-    "health": "Healthy on every row-level number and stalled on the one that matters. Of the last 20 real rows 19 shipped, the one no-ship is #63 landing #62's diff; 0 reverts, 0 rejected briefs, selfVerdict == verdict on every row that has one (#69 wrote none — it also wrote no ledger entry, c111); src moved 9/10; $3.88/iter at 9 min, the two dearest rows (#67 $5.88, #70 $7.19) are the two biggest diffs (88 and 101 lines), so cost is still buying output. But the median diff of the last five shipped is 24 lines (7/15/101/44/24) and the seven structural census scalars have sat at their #2 values for 68 iterations: three manager passes in a row held rung 2 with a good local argument each time and the loop has become a very well-run polish shop. The recurring fault is mine for the seventh pass: worker budget OVER at 47.5/46 KB on #72's open, state.json five iterations stale. Fixed this pass: #60/#61/#63 rotated; #70–#72 archived verbatim then condensed 2.9/2.8/2.6 → 1.6/1.5/1.5 KB; three laws promoted (#70 merged INTO the follower law, #72 INTO the histogram law, #71 a new anchor-vs-history law) paid for by compressing six and cutting the census-is-a-guard law (it restates the worker protocol) — 34 laws under 12 KB; inventory 48 → 45 by merging the two wind lines, the two plaza fountain lines, the two river night lines; six cues resolved (5 → briefs, c105 closed), c111 raised; WATCH gains the map-has-not-changed note so a worker knows a moved baseline is expected, not a fault.",
+    "health": "Healthy on every row-level number: 19 of the last 20 real rows shipped (the one no-ship is #63 landing #62's diff), 0 reverts, 0 rejected briefs, selfVerdict == verdict on every row that wrote one, src moved 10/10, $3.76/iter at 8 min with the dearest row (#70 $7.19) the second-biggest diff — cost still buys output. The last batch did what it was planned to do: #73 moved the map for the first time in the run (tileKinds 108 → 117, water −234, a re-pinned baseline), and mapFlat has cleared. But the four briefs behind the bet shipped at +34/+14/+20/+13 lines, so smallDiff fires again (median 20) and binds this pass to rung ≥ 4. The loop is learning, not repeating: #73 (two-item raised surface), #74 (effective speed 0.75·a.speed), #75 (deviceScaleFactor changes the world), #76 (fold a variable out of an existing draw) are all new and are now laws. Memory: rotated #67/#68; #73–#76 archived verbatim then condensed 2.5–3.0 → 1.2–1.6 KB; four laws promoted, paid for by cutting the last-waypoint law into qualify-every-read, the CA-coherence law into the ceiling law, the split-a-flag law into the same, and reflowing eight — 32 laws, 11.9/12 KB; inventory 47 → 43 with the three plaza fountain lines merged into one, the two wind lines into one, the shadow line into cloudCover; 4 cues closed, 1 promoted, 2 held; the map WATCH note rewritten to what is true after #73. Budget 45.6 → OK.",
     "signals": [
-      "~ smallDiff: median diff of the last 5 shipped = 24 lines",
-      "~ mapFlat: developed/green/water/passages/structures/tileKinds/speciesKinds unchanged for 68 iterations — binds this pass to rung 4b",
-      "~ rungHeld: passes from #52/#57/#62/#67 all sat on rung 2",
-      "context budget OVER 47.5/46 KB on #72 — fixed this pass",
-      "state.json five iterations stale (#68–#72) — recorded",
-      "#69 shipped with no ledger entry and selfVerdict null (c111)"
+      "~ smallDiff: median diff of the last 5 shipped = 20 lines (136/34/14/20/13) — binds this pass to rung ≥ 4",
+      "mapFlat CLEARED at #73 (tileKinds, water moved); developed/green/passages/structures/speciesKinds still at their #2 values",
+      "no revert, no rejection, no selfVerdict gap in 20 rows",
+      "state.json three iterations stale (#75–#77) — recorded this pass"
     ],
-    "balance": "After recording: river 9 back (#63), lane 8 (#64), courtyard 6 (#66), sill 4 (#68), plaza 3 (#69), life 2, sky 1, street 0. River takes the bet (a spatial change at the river is also the plaza's and the far bank's), lane gets the cafe, courtyard gets companions, plaza a short frost polish, sky the wind's three loose consumers in one low-risk brief. Life, street and sill sit this batch out."
+    "balance": "After recording: sill 9 back (#68), life 7 (#70), street 5 (#72), river 4 (#73), lane 3, courtyard 2, sky 1, plaza 0. The two starved domains take the two big briefs: life gets the evening (b77) and the sill gets the camera (b78, rung 5). The bet is at the river again because the river and the far bank are the only place the map has room — the thing that has never existed in the town is a building that MOVES. Plaza and sky sit this batch out; courtyard × New element is still an empty cell and is noted for the next pass."
   },
-  "rationale": "CLIMBED TO RUNG 4b, and mapFlat says which: a change in SPACE. Every rung-4 so far (#32, #37, #42) picked time — the night, the snow, the year — and all of it landed; nothing in 68 iterations has moved a tile. The single biggest thing missing from a thirty-second look is that the east half of the town is three places that never exchange anybody: the only crossing of the river is the lane bridge at the bottom of the frame, so a visitor to the church green walks in through PARK_GATE at y 60 while the plaza, the quay and the jetty at (128.4, 35) — fifteen cells apart across the water — stay strangers. b70 builds a FOOTBRIDGE at the alley's latitude (ALLEY_Y 31): a new tile kind over the water, drawn light, the rowboat passing under it, and then USED by the east spawner's routes so the deck carries people both ways. It must move tileKinds and water in the census; the WATCH note and the brief both say a re-pinned baseline is the expected outcome. It goes first, at 75 min, with a 150–300-line diff invited. Behind it, four compounding moves on things that exist at a rate of zero or read wrong: b71 the cafe drawn for nobody (#64 counted 0 arrivals in 14 seeds × 3 h — the law says give a rare thing its own supply), b73 companions for the courtyard (c107, the wide shot's pairs stop at the courtyard wall), b72 the wind's three consumers that ignore it or leave the frame (c108/c109/c110, one low-risk brief so the sign lands everywhere), b74 the basin that is frozen and does not look it (c106). Risk: b70 high, b71 medium, b73 medium, b72 low, b74 low. No more rung-2 passes are available until this one has landed a spatial change or shown why it cannot.",
-  "queue": [],
-  "recommendStop": null,
-  "consumed": [
+  "rationale": "STAYS ON RUNG 4b for one more pass, and climbs to 5 inside the same batch. smallDiff is the binding signal and it fires because four of the last five briefs were priced as polish; the answer is not another polish batch with a spatial bet on top, it is a batch where three of the four briefs are structural. From a thirty-second look at the wide shot (noon and 03:00, seed 42): the far bank is a strip where nothing moves but the band three days in a summer; the night holds one person in the whole town; and at 390 px the whole 138-cell world is a thumb-wide strip nobody can read. So: b76 THE MILL — the first structure since #2 and the first building that moves: a mill house on the far bank with an undershot wheel in the river turning on riverRun(), stilled by the frost, a lit window at night, its footprint through buildVolumes() so developed/structures move and the baseline is re-pinned again. b77 THE EVENING — life's own arrival source for the warm dry evening: strollers who come in through the park gate or the quay head, cross the new deck, lean at the rail and sit on the quay, so the clock-tap lands a viewer in a town that is out of doors after dark. b78 THE QUARTERS (rung 5) — a phone visitor can look at ONE quarter: a sill control that eases the camera (originX/cellW/cellH inside project()) onto courtyard, street, plaza & river or far bank, and back; all hit-testing already goes through project() so naming and touch keep working. b79 the rose window's dusk seam (c104, three passes old: a brief or a deletion — a brief). Risk: b76 high (first, 75 min, 200-line diff invited), b77 medium (60), b78 medium-high (60, rung 5), b79 low (25).",
+  "queue": [
     {
-      "id": "b70",
-      "at": "2026-08-30T17:03:47.603Z"
+      "id": "b76",
+      "domain": "River & far bank",
+      "kind": "New element",
+      "brief": "THE BET, and the first new BUILDING since the loop began: a watermill on the far bank. A mill house at the towpath's edge — a real footprint in buildGrid()/solidM so buildVolumes() grows its roof and eaveFor() gives it a height — with an undershot wheel hanging over the water column beside it, turning every frame at a rate off riverRun() (faster in the grey season), slowing to a stop as the river ices (riverCol/fountainIce are the frost's existing readers; pick the one the river already uses), with a tail-race streak in drawRiverFlow(t) and a lit window at night via FACES[]/windowLit so the far bank has a light after dark. Register it in nameAt/pavingAt's family so the sill says 'the mill'. Site: the worker chooses between the north end (rows 18–22, between the nave and the first orchard tree) and the south end (rows 56–61, past the orchard) after checking what walks there — TOW_WALK 128.6, FAR_WALK 133.2, EAST_GATE_P, DECK_LEAD_Q — and where the boat runs (boat.x), because the wheel must not sit on the boat's line. The wheel and its shadow are two draw items round anything that walks the towpath (the #73 law). A 150–300-line diff is expected and welcome. developed, structures and possibly water MUST move: re-pin the census baseline with census.mjs --save-baseline and say so in the entry.",
+      "seams": [
+        "buildGrid",
+        "buildVolumes",
+        "eaveFor",
+        "solidM",
+        "riverRun",
+        "drawRiverFlow",
+        "riverCol",
+        "FACES",
+        "windowLit",
+        "nameAt",
+        "TOW_X0",
+        "FAR_X0",
+        "ORCHARD",
+        "CHURCH",
+        "updateBoat",
+        "agentZ"
+      ],
+      "successLooksLike": "From the wide shot at noon, something on the far bank is turning — all day, every day, faster after rain, still at midwinter. At 03:00 the mill has a window lit. The census baseline moves (developed, structures) and is re-pinned deliberately.",
+      "avoid": "Do not build the wheel as a cached-ground paint or a sprite on the towpath; it is live geometry sorted with the walkers. Do not add a miller agent this pass — the building is the work; a miller is the next brief if the mill lands. Do not touch the church, bandstand or footbridge routes except to route AROUND the new footprint.",
+      "budgetMin": 75,
+      "risk": "high"
     },
     {
-      "id": "b71",
-      "at": "2026-08-30T17:11:38.555Z"
+      "id": "b77",
+      "domain": "People & animals",
+      "kind": "New element",
+      "brief": "The town has an evening door (spawnTapAgent), homers (spawnHomeAgent) and a night on the water that nobody watches: the night shot holds ONE person. Give the warm dry evening its own arrival source — spawnEveningAgent() under its own EVE_CAP, never a share of laneCap or eastCap — open from sunDown − 0.5 h to sunDown + 3 h when warmth is high, it is not raining, wetF() is low and windF() is below a stroll threshold; closed in winter. They enter by the park gate or the quay head, cross the FOOTBRIDGE (DECK_LEAD_A/Q, the #73 routes), lean at the rail (a.nightRail exists as ONE stander — widen it or give the deck its own lean spots), sit on the quay/far benches, and leave the way they came or via goHome/claimHome before the window's end (price with pathHours() against the END, the #53 law). Arrivals in twos via withCompanion. Count at the choice over 10 seeds × 4 days: arrivals per evening, presence by hour on the deck/quay/far bank, and the winter evening unchanged. An 80–150-line diff is expected.",
+      "seams": [
+        "spawnTapAgent",
+        "spawnHomeAgent",
+        "spawnEastAgent",
+        "withCompanion",
+        "DECK_LEAD_A",
+        "DECK_LEAD_Q",
+        "a.nightRail",
+        "QUAY_BENCHES",
+        "FAR_BENCHES",
+        "goHome",
+        "claimHome",
+        "pathHours",
+        "wetF",
+        "windF",
+        "warmth",
+        "sunDown"
+      ],
+      "successLooksLike": "Tap the clock on a summer day and land at sunDown + 1 h with 4–8 people out on the quay, the deck and the far bank — some in pairs, some leaning at the rail over the river lights — and by sunDown + 3.5 h they have gone. A winter or a wet evening looks as it does today.",
+      "avoid": "Not a share of an existing cap (the law: a rare thing needs its own source). Do not put them on the lane — the lane's evening is the tap door. Do not size the source by rate; size it by the places its walk reaches before the window ends.",
+      "budgetMin": 60,
+      "risk": "medium"
     },
     {
-      "id": "b73",
-      "at": "2026-08-30T17:18:57.947Z"
+      "id": "b78",
+      "domain": "The sill & the observer",
+      "kind": "Interaction/UX",
+      "brief": "RUNG 5, the observer: at 390 px wide the whole 138-cell town is a strip a thumb wide and a person is two pixels — every system built since #26 is invisible on a phone. Give the observer a way to look at ONE quarter. A control on the sill (a `#where` button next to #daytime/#season, or a double-tap on the canvas — the worker picks after reading how #daytime and OFFERS work) that eases the camera onto one of four frames — courtyard, street & allotments, plaza & river, far bank — and back to the wide view, on a real-clock ease like beginLapse's (never sim dt). The camera is originX/cellW/cellH inside resize()/project(): move the projection, not the world, and all hit-testing (nameAt, answersTouch, follow) keeps working because it already goes through project(). The cached layers (drawBlocks/drawGround) are rebuilt on resize today — measure with probes/ground-rebuilds.mjs and frame-cost.mjs what a zoom costs and whether the cache must be re-rendered or can be scaled. Join OFFERS (narrow-screen wording first: this offer matters most under 640 px). Prove it at 390 px with a shot of the plaza quarter where a person is readable.",
+      "seams": [
+        "project",
+        "resize",
+        "originX",
+        "cellW",
+        "cellH",
+        "topPad",
+        "beginLapse",
+        "OFFERS",
+        "#daytime",
+        "nameAt",
+        "answersTouch",
+        "drawBlocks",
+        "drawGround",
+        "ResizeObserver"
+      ],
+      "successLooksLike": "On a 390 px phone a visitor taps once and the plaza fills the frame — fountain, benches, people at readable size — and taps again to return to the wide view; on a 1400 px desktop the same control works and the wide view is still the default. Nothing that names or follows breaks under zoom.",
+      "avoid": "No second canvas, no CSS transform on the canvas (the sill and hit-testing read canvas coordinates). Do not let a zoom persist across a page reload. Do not re-render the ground cache per frame while easing — either rebuild once at arrival or scale the bitmap during the ease.",
+      "budgetMin": 60,
+      "risk": "medium-high"
     },
     {
-      "id": "b72",
-      "at": "2026-08-30T17:24:43.369Z"
-    },
-    {
-      "id": "b74",
-      "at": "2026-08-30T17:43:51.888Z"
+      "id": "b79",
+      "domain": "River & far bank",
+      "kind": "Polish",
+      "brief": "c104, three manager passes old: the church's rose window has a two-sided dusk seam — the cached disc steps at cache time and the relight is a 0.7·nightF screen pass, so at the dusk hour the disc changes in a step while its glow ramps. #63 diagnosed it; nobody fixed it. Draw the disc live after applyLight (the ROSE relight pass is already there) so one 0..1 (nightF) sets both the disc and its glow, and remove the cached copy. Prove it with a dusk filmstrip crop on the tower (probes/filmstrip AT a dusk hour, pops.mjs graded against neighbours) and a gcv hash showing the ground cache is untouched. While there, fix the instrument in c116: fountain-freeze.mjs's summer identity half should hash gcv, not cv.",
+      "seams": [
+        "ROSE",
+        "LIT_PANES",
+        "applyLight",
+        "drawLitPanes",
+        "CHURCH",
+        "nightF",
+        "probes/dusk-relight-where.mjs",
+        "probes/fountain-freeze.mjs"
+      ],
+      "successLooksLike": "A dusk filmstrip crop on the tower shows the rose window brightening in one smooth ramp with no step; the night wide shot is unchanged; ground rebuild count unchanged.",
+      "avoid": "Do not touch the pane relight for the ordinary windows. Do not widen the crossfade past the threshold it already has (the staged-appearance law).",
+      "budgetMin": 25,
+      "risk": "low"
     }
-  ]
+  ],
+  "recommendStop": null,
+  "consumed": []
 }
