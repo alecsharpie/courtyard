@@ -23,7 +23,7 @@
   "avoid": "No second canvas, no CSS transform on the canvas (the sill and hit-testing read canvas coordinates). Do not let a zoom persist across a page reload. Do not re-render the ground cache per frame while easing — either rebuild once at arrival or scale the bitmap during the ease.",
   "budgetMin": 60,
   "risk": "medium-high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 80,
   "issued": "2026-08-30T18:20:10.755Z",
