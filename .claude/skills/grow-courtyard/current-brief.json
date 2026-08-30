@@ -21,7 +21,7 @@
   "avoid": "Do not put it on the roundel of the plaza (that is the fountain's). Do not draw the shadow into the cached ground — it moves every frame. Do not add a clock face: the town has a clock tower; this is the courtyard's older, slower one.",
   "budgetMin": 45,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 84,
   "issued": "2026-08-30T22:48:06.334Z",
