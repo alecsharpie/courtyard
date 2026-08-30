@@ -34,3 +34,8 @@ Probes resolve the artifact as `../../../../courtyard.html`. (moved at #11)
   Localises a whole-frame number before anyone names a cause. (#48)
 - `ground-rebuilds.mjs` — counts `drawGround()` rebuilds per sim day, summer and winter,
   attributed to light bucket / snow / other. (#48: ~650/day, 80% from grass wear)
+- `where-camera.mjs` / `where-identity.mjs` / `where-live.mjs` / `where-cost.mjs` — the
+  quarter camera (#80): scale, cache view and hit-test round trip per quarter at 390 and
+  1400; whole-canvas hash identity with HEAD at the wide view before AND after a round
+  trip; the real tap path on a phone (rAF ease, naming under zoom, resize mid-quarter,
+  offer order); draw ms at rest, mid-ease and zoomed. `__where(n, secs)` is the seam.

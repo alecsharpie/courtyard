@@ -419,7 +419,8 @@
       "the NAMING — what is under the pointer (a TAP on a phone) is named in the sill: beds, plots, places off pavingAt/WATERS, trees; the LIVING via livingAt()/personName(a); WINDOWS/DOORS via FACES[]/faceAt(), windowName(). probes/naming.mjs",
       "THE DIORAMA IS CLICKABLE and says so once — answersTouch(x,y) the ONE predicate read by cursor and handler: seeds, a daisy, crumbs, a coin, a pebble. OFFERS[] queue: touch → clock → season → follow. probes/touch-hint.mjs, offer-order.mjs",
       "harness: runlog --regrade; Harness verdicts graded on commit+log; crashed-worker retry; filmstrip AT(day,hour), night preset, pops.mjs; DRY_RUN=1; __entities() (role, act, watch, with/lead, stable id) is the seam a behaviour probe reads; probes/frame-cost.mjs",
-      "FOLLOWS a person — a tap holds a walker: followLine() on the sill via updateNaming (outranks pointer + ticker), drawFollowMark() ring on the feet, followLost() closes on despawn; OFFERS follow; __follow(). probes/follow.mjs"
+      "FOLLOWS a person — a tap holds a walker: followLine() on the sill via updateNaming (outranks pointer + ticker), drawFollowMark() ring on the feet, followLost() closes on despawn; OFFERS follow; __follow(). probes/follow.mjs",
+      "the quarter CAMERA (#80) — #where button (row beside the clock; under it on a phone, #clockcol) cycles QUARTERS Wide→Courtyard→Street→Plaza→Far bank; viewFor()/whereGo()/stepView() on the real clock, cache scaled through the ease (gview, gpadWant); OFFERS 'where'. probes/where-*.mjs, __where(n,secs)"
     ]
   },
   "openCues": [
@@ -451,6 +452,18 @@
       "id": "c118",
       "note": "the deck's evening: EVE_SPOTS deck posts fit 0 times in 30 evenings (plaza crossing ~4 h) — give the deck an ALREADY-THERE source: an east arrival who stays on past eastOpen() under eveOpen()",
       "raisedBy": 79,
+      "seenBy": 0
+    },
+    {
+      "id": "c119",
+      "note": "Camera ease: FACES hit-boxes and LIT_PANES/halo overlays use cache-time screen coords for the 0.9 s ease (window glows drift at night mid-ease); apply the composite's k to the live overlays if it shows",
+      "raisedBy": 77,
+      "seenBy": 0
+    },
+    {
+      "id": "c120",
+      "note": "Desktop far-bank frame is clamped by the world's east edge into ~the plaza frame; a far-bank quarter on a wide screen wants a tighter box or a higher s",
+      "raisedBy": 77,
       "seenBy": 0
     }
   ],

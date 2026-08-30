@@ -15,32 +15,6 @@
   "rationale": "STAYS ON RUNG 4b for one more pass, and climbs to 5 inside the same batch. smallDiff is the binding signal and it fires because four of the last five briefs were priced as polish; the answer is not another polish batch with a spatial bet on top, it is a batch where three of the four briefs are structural. From a thirty-second look at the wide shot (noon and 03:00, seed 42): the far bank is a strip where nothing moves but the band three days in a summer; the night holds one person in the whole town; and at 390 px the whole 138-cell world is a thumb-wide strip nobody can read. So: b76 THE MILL — the first structure since #2 and the first building that moves: a mill house on the far bank with an undershot wheel in the river turning on riverRun(), stilled by the frost, a lit window at night, its footprint through buildVolumes() so developed/structures move and the baseline is re-pinned again. b77 THE EVENING — life's own arrival source for the warm dry evening: strollers who come in through the park gate or the quay head, cross the new deck, lean at the rail and sit on the quay, so the clock-tap lands a viewer in a town that is out of doors after dark. b78 THE QUARTERS (rung 5) — a phone visitor can look at ONE quarter: a sill control that eases the camera (originX/cellW/cellH inside project()) onto courtyard, street, plaza & river or far bank, and back; all hit-testing already goes through project() so naming and touch keep working. b79 the rose window's dusk seam (c104, three passes old: a brief or a deletion — a brief). Risk: b76 high (first, 75 min, 200-line diff invited), b77 medium (60), b78 medium-high (60, rung 5), b79 low (25).",
   "queue": [
     {
-      "id": "b78",
-      "domain": "The sill & the observer",
-      "kind": "Interaction/UX",
-      "brief": "RUNG 5, the observer: at 390 px wide the whole 138-cell town is a strip a thumb wide and a person is two pixels — every system built since #26 is invisible on a phone. Give the observer a way to look at ONE quarter. A control on the sill (a `#where` button next to #daytime/#season, or a double-tap on the canvas — the worker picks after reading how #daytime and OFFERS work) that eases the camera onto one of four frames — courtyard, street & allotments, plaza & river, far bank — and back to the wide view, on a real-clock ease like beginLapse's (never sim dt). The camera is originX/cellW/cellH inside resize()/project(): move the projection, not the world, and all hit-testing (nameAt, answersTouch, follow) keeps working because it already goes through project(). The cached layers (drawBlocks/drawGround) are rebuilt on resize today — measure with probes/ground-rebuilds.mjs and frame-cost.mjs what a zoom costs and whether the cache must be re-rendered or can be scaled. Join OFFERS (narrow-screen wording first: this offer matters most under 640 px). Prove it at 390 px with a shot of the plaza quarter where a person is readable.",
-      "seams": [
-        "project",
-        "resize",
-        "originX",
-        "cellW",
-        "cellH",
-        "topPad",
-        "beginLapse",
-        "OFFERS",
-        "#daytime",
-        "nameAt",
-        "answersTouch",
-        "drawBlocks",
-        "drawGround",
-        "ResizeObserver"
-      ],
-      "successLooksLike": "On a 390 px phone a visitor taps once and the plaza fills the frame — fountain, benches, people at readable size — and taps again to return to the wide view; on a 1400 px desktop the same control works and the wide view is still the default. Nothing that names or follows breaks under zoom.",
-      "avoid": "No second canvas, no CSS transform on the canvas (the sill and hit-testing read canvas coordinates). Do not let a zoom persist across a page reload. Do not re-render the ground cache per frame while easing — either rebuild once at arrival or scale the bitmap during the ease.",
-      "budgetMin": 60,
-      "risk": "medium-high"
-    },
-    {
       "id": "b79",
       "domain": "River & far bank",
       "kind": "Polish",
@@ -70,6 +44,10 @@
     {
       "id": "b77",
       "at": "2026-08-30T18:05:53.645Z"
+    },
+    {
+      "id": "b78",
+      "at": "2026-08-30T18:20:10.754Z"
     }
   ]
 }

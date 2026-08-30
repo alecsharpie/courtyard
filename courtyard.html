@@ -1,4 +1,5 @@
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Courtyard</title>
 <style>
   :root{
@@ -91,6 +92,23 @@
   #season:hover, #season:hover::after{ color:var(--accent); opacity:1; }
   #season:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:3px; }
   #season[disabled]{ cursor:default; opacity:.55; }
+  /* WHERE the eye is. At 390px the whole town is a strip and a person is two pixels,
+     so this is the one control that lets a phone look at ONE quarter: press it and the
+     camera eases onto the courtyard, the street, the plaza, the far bank, then back to
+     the wide view. It names the place it is showing, in the plate's serif like the
+     season (a place is prose), with the same underline and chevron. See whereGo().
+     It sits beside the clock in the row, and under it on a phone (see the media query). */
+  #clockcol{ display:contents; }
+  #where{ flex:none; font-size:14px; font-family:inherit;
+    color:var(--ink); letter-spacing:.02em; white-space:nowrap; min-width:9ch;
+    background:transparent; border:0; padding:5px 0; margin:-5px 0; text-align:left;
+    cursor:pointer; transition:color .25s;
+    text-decoration:underline; text-decoration-color:var(--ink-dim);
+    text-decoration-thickness:1px; text-underline-offset:3px; }
+  #where::after{ content:'\2009\203A'; display:inline-block; opacity:.6; }
+  #where:hover{ text-decoration-color:var(--accent); }
+  #where:hover, #where:hover::after{ color:var(--accent); opacity:1; }
+  #where:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:3px; }
   /* The reduced-motion path's honest cut: a lapse of six sunrises in six seconds is
      precisely the thing prefers-reduced-motion is asking not to be shown, so under it
      the same advance is delivered behind this instead. It is the only thing in the
@@ -174,6 +192,16 @@
       padding:7px 0 10px; margin:-6px 0 -10px;
       font-size:10px; letter-spacing:.22em; text-transform:uppercase;
       color:var(--ink); font-family:system-ui,sans-serif; text-underline-offset:4px; }
+    /* The where control goes UNDER the clock, the way the season went under the title:
+       the row has no width for a fourth item (plate 115 + clock 106 + controls 93 of
+       374, and "Early summer" takes the plate to 166) but the clock's column is one
+       line in a row that is already two lines tall. Same caption form as the season —
+       title/season, clock/where — and the same padding trick, so the sill is no taller. */
+    #clockcol{ display:block; flex:none; }
+    #where{ display:block; min-width:0;
+      padding:7px 0 10px; margin:-6px 0 -10px;
+      font-size:10px; letter-spacing:.22em; text-transform:uppercase;
+      color:var(--ink); font-family:system-ui,sans-serif; text-underline-offset:4px; }
     /* A narrow sill has no room for the ticker, so a phone has neither a cursor
        nor a text surface — the two hints that the picture answers a touch. The
        one-time invitation therefore BORROWS the sill for its few seconds: the
@@ -190,6 +218,11 @@
     #sill.inviting.at-season #title{ display:none; }
     /* ...and the evening offer keeps the CLOCK it is naming, the same way. */
     #sill.inviting.at-clock #daytime{ display:block; }
+    /* ...and the where offer keeps the WHERE control, alone on the plate. */
+    #sill.inviting #where{ display:none; }
+    #sill.inviting.at-where #clockcol{ display:block; }
+    #sill.inviting.at-where #where{ display:block; }
+    #sill.naming #where{ display:none; }
     /* A phone has no cursor to follow, so the name arrives on the TAP that also acts
        and borrows the sill the same way, for a few real seconds. #naming is already
        display:block under .naming above — the ticker's hiding rule does not reach it —
@@ -212,8 +245,9 @@
   <div id="sill">
     <div id="plate"><span id="title">The Courtyard<small>a cellular block</small></span><button id="season" type="button"
       title="Run on to the next season" aria-label="Run on to the next season">Spring</button></div>
-    <button id="daytime" type="button" title="Run on to this evening"
-      aria-label="Run on to this evening">Day 1 &middot; Dawn</button>
+    <div id="clockcol"><button id="daytime" type="button" title="Run on to this evening"
+      aria-label="Run on to this evening">Day 1 &middot; Dawn</button><button id="where" type="button"
+      title="Look closer at one quarter" aria-label="Look closer at one quarter">Wide</button></div>
     <div id="ticker">The courtyard is quiet. Not much here yet.</div>
     <div id="naming"></div>
     <div id="stats">0 people &middot; 0 blooms</div>
@@ -344,6 +378,8 @@ function resize(){
   const spare = H - (topPad + WH * cellH + 6);
   if (spare > 0) topPad += spare * (spare > 12 * cellH ? 0.5 : 0.82);
   originX = W / 2;
+  cellW0 = cellW; cellH0 = cellH; topPad0 = topPad; originX0 = originX;   // the wide view
+  viewSnap();                                     // a resize lands the camera; no ease across it
   groundDirty = true;
 }
 addEventListener('resize', resize);
@@ -356,6 +392,74 @@ addEventListener('resize', resize);
  * So the frame itself is observed. (The invitation has borrowed the sill this way since
  * #24; nothing read a screen POSITION back then, so nothing noticed.) */
 if (window.ResizeObserver) new ResizeObserver(resize).observe(cv.parentElement);
+
+/* ============ the camera ============
+ * At 390px the 138-cell town is a strip a thumb wide and a person is two pixels; the
+ * plaza and the far bank are not even IN the frame (x 21..87 of 138). So the observer
+ * can lean in on one quarter. The camera is the projection itself — a scale on cellW/
+ * cellH and a translation on originX/topPad — so everything that names, follows or
+ * hit-tests keeps working, because it all goes through project()/unproject(). FOCUS is
+ * NOT moved: with it fixed the zoomed frame is an exact scale+translate of the wide one,
+ * which is what lets the ground cache be scaled through the ease instead of repainted.
+ * Real clock, like a lapse: a deliberate act never runs on sim dt. Nothing persists. */
+let cellW0 = cellW, cellH0 = cellH, topPad0 = topPad, originX0 = originX;
+const QUARTERS = [
+  { name:'Wide' },
+  { name:'Courtyard',  x0:1,    x1:63,  y0:1, y1:63 },
+  { name:'Street',     x0:63.5, x1:98,  y0:0, y1:64 },
+  { name:'Plaza',      x0:98,   x1:128, y0:2, y1:58 },
+  { name:'Far bank',   x0:125,  x1:138, y0:0, y1:58 },
+];
+const VIEW_SECS = 0.9, VIEW_SMAX = 3.6;
+let whereN = 0, whereEver = false;
+let viewS = 1, viewFrom = null, viewTo = null, viewAt = 0;
+function viewFor(n){
+  const q = QUARTERS[n];
+  if (!q.x1) return { s:1, ox:originX0, tp:topPad0 };
+  const cx = (q.x0 + q.x1) / 2, cy = (q.y0 + q.y1) / 2, p = 1 - PINCH * (1 - cy / WH);
+  const s = clamp(Math.min(W * 0.96 / ((q.x1 - q.x0) * cellW0),
+                           H * 0.92 / ((q.y1 - q.y0) * cellH0)), 1, VIEW_SMAX);
+  // centred on the quarter, then held inside the world's east and west edges (at the
+  // bottom row, the widest): a wide desktop frame ends exactly at x = GW, and a zoomed
+  // one that ran past it showed the void beyond the far bank
+  const ox = W / 2 - (cx - FOCUS) * cellW0 * s * p;
+  const oxMin = W - (GW - FOCUS) * cellW0 * s, oxMax = FOCUS * cellW0 * s;
+  return { s, ox: oxMin <= oxMax ? clamp(ox, oxMin, oxMax) : ox, tp: H / 2 - cy * cellH0 * s };
+}
+function applyView(v){
+  viewS = v.s; cellW = cellW0 * v.s; cellH = cellH0 * v.s; originX = v.ox; topPad = v.tp;
+}
+function viewEasing(){ return viewTo !== null; }
+function viewSnap(){ viewFrom = viewTo = null; applyView(viewFor(whereN)); }
+function viewEase(u){ return u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2; }
+function whereGo(n){
+  whereN = ((n % QUARTERS.length) + QUARTERS.length) % QUARTERS.length; whereEver = true;
+  whereEl.textContent = QUARTERS[whereN].name;
+  const to = viewFor(whereN);
+  if (RM){ viewSnap(); groundDirty = true; return; }
+  // the ease scales ONE cache: the wide view, padded out to the whole world so the
+  // quarters a phone's wide frame never shows are in it. Built once here, and the
+  // destination is painted once on arrival — never per frame in between.
+  viewFrom = { s: viewS, ox: originX, tp: topPad }; viewTo = to; viewAt = 0;
+  if (gview.s !== 1 || gview.pad < groundPad()){
+    const cur = viewFrom; applyView(viewFor(0)); gpadWant = groundPad(); drawGround(); applyView(cur);
+    groundDirty = false; wearDirty = false; wearAcc = 0;
+  }
+}
+function stepView(rdt){
+  if (!viewTo) return;
+  viewAt += rdt;
+  const u = viewEase(Math.min(1, viewAt / VIEW_SECS)), a = viewFrom, b = viewTo;
+  applyView({ s: a.s + (b.s - a.s) * u, ox: a.ox + (b.ox - a.ox) * u, tp: a.tp + (b.tp - a.tp) * u });
+  if (viewAt >= VIEW_SECS){ viewFrom = viewTo = null; gpadWant = 0; groundDirty = true; }
+}
+// how far the wide world overflows the frame on either side, in px, at the wide view
+function groundPad(){
+  const left = originX0 - FOCUS * cellW0, right = originX0 + (GW - FOCUS) * cellW0;
+  return Math.ceil(Math.max(0, 2 * cellW0 - left, right + 2 * cellW0 - W));
+}
+let gpadWant = 0;
+const gview = { s:1, ox:0, tp:0, pad:0 };        // the view the ground cache was painted in
 
 /* ============ noise & utils ============ */
 function hash(x, y){
@@ -4130,8 +4234,10 @@ function drawShadows(g){
   else g.fill();
 }
 function drawGround(){
-  gcv.width = W * DPR; gcv.height = H * DPR;
-  gtx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  const pad = gpadWant;
+  gcv.width = (W + 2 * pad) * DPR; gcv.height = H * DPR;
+  gtx.setTransform(DPR, 0, 0, DPR, pad * DPR, 0);
+  gview.s = viewS; gview.ox = originX; gview.tp = topPad; gview.pad = pad;
   SUN = sunVec(); LIT.length = 0; WINDOWS.length = 0; HAZE = skyCols()[1];
   FACES.length = 0;                                // the cached faces are re-registered below; the live ones every frame
   snowPainted = snowCover; wetPainted = wetBucket();
@@ -4488,10 +4594,14 @@ const LANE_LAMPS = [[5, 65.6], [28, 65.6], [37, 65.6], [60, 65.6], [82, 65.6], [
 const crowns = [];
 function drawScene(t, dt){
   ctx.setTransform(DPR,0,0,DPR,0,0);
-  if (groundDirty){ drawGround(); groundDirty = false; wearDirty = false; wearAcc = 0; }
+  if (groundDirty && !viewEasing()){ drawGround(); groundDirty = false; wearDirty = false; wearAcc = 0; }
   ctx.clearRect(0, 0, W, H);
   drawSky(ctx);
-  ctx.drawImage(gcv, 0, 0, W, H);
+  // the cache is painted in ONE view and composited in the current one: an exact
+  // scale+translate while the camera eases, the identity (0, 0, W, H) at rest
+  { const k = viewS / gview.s;
+    ctx.drawImage(gcv, originX - k * (gview.ox + gview.pad), topPad - k * gview.tp,
+                  gcv.width / DPR * k, gcv.height / DPR * k); }
   // LIT is a per-FRAME accumulator. It used to be reset only on a ground rebuild, so
   // the south band's live windows stacked into it ~13 a frame for a quarter-hour and
   // the glow pass drew hundreds of halos on top of each other.
@@ -6250,6 +6360,12 @@ const SEASON_WIDE = 'The year here runs twenty-four minutes — press the season
 const SEASON_NARROW = 'Tap it — the year runs on.';
 const FOLLOW_WIDE = 'Tap on somebody and the sill will keep an eye on them for you.';
 const FOLLOW_NARROW = 'Tap someone to follow them.';
+/* Under 640px this is the offer that matters most: two thirds of the town is off the
+ * frame and nobody would guess the plate's caption is a camera. So it comes SECOND on
+ * a phone, straight after the touch; on a wide screen, where the whole town is already
+ * legible, it is said last. */
+const WHERE_WIDE = 'Press the place name to lean in on one quarter of the town.';
+const WHERE_NARROW = 'Tap it — come nearer.';
 /* The night is where twenty iterations went and a noon visitor never sees it: the
  * clock is the way there. It is the SECOND offer — the picture, then the hour, then
  * the year, then a person: said last it surfaced ~31 real s in, after the daylight it
@@ -6259,6 +6375,7 @@ const EVENING_NARROW = 'Tap the hour — evening comes.';
 const sillEl = document.getElementById('sill');
 const seasonEl = document.getElementById('season');
 const daytimeEl = document.getElementById('daytime');
+const whereEl = document.getElementById('where');
 const veilEl = document.getElementById('veil');
 const DRIVEN = location.search.indexOf('pause') >= 0;   // the harness, not a viewer
 let touched = DRIVEN, pressed = DRIVEN, clockPressed = DRIVEN;
@@ -6269,7 +6386,9 @@ const OFFERS = [
   { id:'clock',  wide: EVENING_WIDE, narrow: EVENING_NARROW, found: () => clockPressed },
   { id:'season', wide: SEASON_WIDE, narrow: SEASON_NARROW, found: () => pressed },
   { id:'follow', wide: FOLLOW_WIDE, narrow: FOLLOW_NARROW, found: () => followedEver },
+  { id:'where',  wide: WHERE_WIDE, narrow: WHERE_NARROW, found: () => whereEver },
 ];
+if (innerWidth <= 640) OFFERS.splice(1, 0, OFFERS.pop());
 let offerN = 0, offerFree = INVITE_AT, inviteHold = 0, inviteTxt = '';
 function offerInvite(now){
   // deferred, never spent, through a lapse: announce() is deaf and would swallow it
@@ -6283,13 +6402,14 @@ function offerInvite(now){
   sillEl.classList.add('inviting');
   sillEl.classList.toggle('at-season', o.id === 'season');
   sillEl.classList.toggle('at-clock', o.id === 'clock');
+  sillEl.classList.toggle('at-where', o.id === 'where');
   inviteHold = now + INVITE_HOLD;
 }
 // the borrowed sill goes back the moment the hold runs out or the news moves on
 function endInvite(now){
   if (now < inviteHold && tickerEl.textContent === inviteTxt) return;
   inviteHold = 0;
-  sillEl.classList.remove('inviting', 'at-season', 'at-clock');
+  sillEl.classList.remove('inviting', 'at-season', 'at-clock', 'at-where');
 }
 
 /* ============ the naming ============
@@ -6567,6 +6687,8 @@ document.getElementById('speed').addEventListener('click', e => {
 seasonEl.addEventListener('click', beginSkip);
 // ...and the hour offers the one thing the season cannot: tonight, and then tomorrow
 daytimeEl.addEventListener('click', beginEvening);
+// ...and the place name leans the camera in on the next quarter, then back out
+whereEl.addEventListener('click', () => whereGo(whereN + 1));
 
 /* ============ opening state ============ */
 (function seed(){
@@ -6940,6 +7062,7 @@ function frame(ts){
   // the ordinary path is byte-for-byte what it was — one call, same arguments — so no
   // gate and no ?fast page can tell this feature exists. Only a lapse sub-steps.
   if (lapse) simSub(sdt, rdt); else simStep(sdt, dt);
+  stepView(rdt);               // the camera, on the real clock like a lapse
   drawScene(now, sdt);
   if (skipLanded) land();
   if (inviteHold) endInvite(now);
@@ -6971,6 +7094,9 @@ window.__follow = function(){
            mark: p ? { x: p[0], y: p[1] + cellH * 0.12, rx: cellW * 0.6, ry: cellH * 0.3 } : null, ended: followEnd };
 };
 window.__setTime = function(t){ simT = t; updateClock(); return { simT, day, hour }; };
+// the camera: go to quarter n (0 = wide), step the ease by real seconds, read it back
+window.__where = function(n, secs){ if (n !== undefined) whereGo(n); if (secs) stepView(secs);
+  return { n: whereN, s: viewS, cellW, originX, topPad, easing: viewEasing(), gview: { ...gview } }; };
 
 /* Every moving thing, with a stable identity — the seam the motion gate reads.
  * A screenshot cannot see a teleport, a pop-in or a thing that flickers between
