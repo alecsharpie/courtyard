@@ -19,7 +19,7 @@
   "avoid": "Do not add a hint line for the clock. Do not change TICK_DWELL or the queue depth. Do not touch beginEvening().",
   "budgetMin": 15,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 68,
   "issued": "2026-08-30T16:06:21.382Z",
