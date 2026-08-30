@@ -2021,6 +2021,8 @@ function stepAgent(a, dt){
   // pointing — so it ticks down here, above every state branch, and a sitter on
   // the quay bench runs it out the same as a walker on the bridge.
   if (a.watch > 0) a.watch -= dt;
+  // whoever is standing or talking in the road steps aside for the horse
+  if (cart && !a.loader && (a.state === 'stand' || a.greet > 0) && cartShove(a, dt)) return;
   if (a.state === 'sit' || a.state === 'kneel' || a.state === 'lie' || a.state === 'stand'){
     if (a.state === 'kneel' && !a.planted && a.timer < 4){
       a.planted = true;
@@ -2176,6 +2178,7 @@ function stepAgent(a, dt){
     return;
   }
   const mv = Math.min(sp * dt, d);
+  if (cart && !a.loader && cartShove(a, dt)) return;   // shoved aside: the step is the shove, not the walk
   // a companion never closes under PAIR_MIN on the leader (the two would draw as one):
   // when the leader turns and the place beside them is THROUGH them, step away instead
   // (the leader keeps walking, so a hold is still walked through)
@@ -2590,6 +2593,125 @@ function spawnCafeAgent(room){
   if (R() < 0.35) announce(pick(['Coffee smell drifts out from under the green awning.',
     'A cup and saucer clink at the pavement tables.']));
   agents.push(a); withCompanion(a, room);
+}
+/* ---- the carter (#82) ----
+ * The cross street carried nothing on wheels. A horse-drawn cart comes down it from the
+ * north on most mornings — cartToday() is a hash of the day, like isBandDay() — on its
+ * own clock and its own source, never a share of laneCap. It draws up at the allotments'
+ * CROSS-STREET gate (the fence gate at row 45 the holders use in sendToPlot; the lane
+ * gate at ALT_GATE opens onto the footway with the tables, which is not a road) where a
+ * holder comes out with a basket and loads it over the side. If the market is trading as
+ * it pulls away it drives on to the lane, draws up by the stalls and leaves by the west
+ * edge at a trot; otherwise it turns and goes back the way it came. After a wet spell
+ * (wetF()) the bed carries sacks — the mill's flour, the mill's one output without a
+ * miller. At night it is not on the road: what is still out after dark hurries.
+ *
+ * Pace: a day is 55 s, so a "slow walking pace" is CART_SPEED cells/s — under the lane's
+ * cyclists (5.5–7), over the walkers (1.6–2.8) — and the way out is trotted (CART_TROT),
+ * or nothing is home before dusk. Nobody walks inside it: cartShove() moves a walker
+ * ACROSS the cart's heading, off the axle-to-nose segment, by CART_BERTH. Drawn as two
+ * items round the walkers' row (drawCartBody before, drawCartFront after), like the deck
+ * and the mill wheel. No R() anywhere in it — the loader's colours come off hash(day) —
+ * so the seeded stream is untouched on cart days and cart-less days alike. */
+const CART_P = 0.8, CART_X = XS_R0 + 3, CART_GATE_Y = 45, CART_LANE_Y = LN_ROAD0 + 2.2;
+const CART_SPEED = 6.5, CART_TROT = 1.5, CART_IN = 0.2, CART_LAST = 1.6;    // cells/s, ×trot on the way out; hours off sunUp it may set out
+const CART_BERTH = 1.7, CART_SHOVE = 3.6, CART_LEN = 2.9;                 // the axle-to-nose segment walkers keep off
+const CART_GATE_DUR = 3.0, CART_MK_DUR = 2.0, CART_LOAD_HOLD = 1.2;       // seconds; the gate also waits for the load
+let cart = null, cartDay = -1;
+function cartToday(){ return day >= 1 && hash(day, 733) < CART_P; }
+/* the window sits AFTER the 06.00 day roll: a midsummer sunUp is 04.00, and a window
+ * dragged across the roll would latch cartDay on the day that is ending and set out in
+ * the dawn dark (the seam LAWS names) */
+function cartDue(){ const h0 = Math.max(sunUp + CART_IN, 6.3);
+  return !cart && cartDay !== day && cartToday() && hour >= h0 && hour < h0 + CART_LAST - CART_IN; }
+function spawnCart(){
+  cartDay = day;
+  cart = { x:CART_X, y:-4, hx:0, hy:1, i:0, state:'drive', timer:0, ph:0, load:0, loadCol:null, at:'', out:false,
+    sacks: wetF() > 0.35, loaded:false, loader:null,
+    wp:[{x:CART_X, y:CART_GATE_Y, stop:'gate'}] };
+  announce(cart.sacks ? 'A cart comes down the cross street, sacks from the mill on its bed.'
+                      : 'Hooves on the cross street: the carter is coming down from the north.');
+}
+function cartRouteOn(){          // decided as it pulls away from the gate, off the market as it IS then
+  const c = cart;
+  if (marketActive()) c.wp.push({x:CART_X, y:CART_LANE_Y}, {x:MARKET_STALLS[1].x, y:CART_LANE_Y, stop:'market'}, {x:-4, y:CART_LANE_Y});
+  else { c.wp.push({x:CART_X, y:-4}); c.out = true; }
+}
+function cartCrop(){             // what the basket holds: the store's biggest line, or a bare vegetable
+  let sp = -1;
+  for (let s = 0; s < produce.length; s++) if (produce[s] > 0 && (sp < 0 || produce[s] > produce[sp])) sp = s;
+  return sp >= 0 ? sp + 1 : SPECIES.findIndex(q => q.veg) + 1;
+}
+function spawnLoader(){
+  const k = hash(day, 741), gy = CART_GATE_Y + 0.5, px = 81.5 + 5 * ((k * 5.9) % 1 * 3 | 0);   // a plot on the gate row
+  const a = {
+    kind:'loader', street:true, loader:true,
+    x:px, y:gy + 0.3, wp:[], i:0, speed:2.1, state:'walk', timer:0,
+    shirt:SHIRT[(k * SHIRT.length) | 0], pants:PANTS[((k * 7.3) % 1 * PANTS.length) | 0],
+    skin:SKIN[((k * 3.1) % 1 * SKIN.length) | 0], phase:k * 9, wary:k, crop:cartCrop(),
+  };
+  a.stop = {x:CART_X + 1.35, y:gy + 0.1, act:'stand', dur:1.4};
+  a.wp.push([79, gy], [XS_WALK_E, gy], [a.stop.x, a.stop.y], [XS_WALK_E, gy], [79, gy], [px, gy + 0.3]);
+  agents.push(a);
+  cart.loader = a;
+}
+function stepCart(dt){
+  if (cartDue()) spawnCart();
+  const c = cart; if (!c) return;
+  if (c.state === 'stop'){
+    c.timer -= dt;
+    const L = c.loader;
+    if (c.at === 'gate' && L && L.state === 'stand' && L.crop){   // over the side it goes
+      c.load++; c.loadCol = SPECIES[L.crop - 1].col2; L.crop = 0; c.loaded = true;
+      c.timer = Math.max(c.timer, CART_LOAD_HOLD);   // the basket is over the side; the carter sits a moment before the reins
+    }
+    if (c.timer > 0 || (c.at === 'gate' && L && !c.loaded && !L.done)) return;
+    c.state = 'drive'; c.i++;
+    if (c.at === 'gate') cartRouteOn();
+    else if (c.at === 'market'){ c.out = true; announce('The stalls take what the cart brought; the carter gathers the reins.'); }
+    c.at = '';
+  }
+  const tgt = c.wp[c.i];
+  if (!tgt){ cart = null; return; }
+  const dx = tgt.x - c.x, dy = tgt.y - c.y, d = Math.hypot(dx, dy);
+  if (d < 0.2){
+    if (tgt.stop === 'market' && !marketActive()){   // the stalls packed up while it was on the road
+      c.out = true; c.i++; announce('The cart comes along the lane too late for the stalls and does not stop.'); return; }
+    if (tgt.stop){
+      c.state = 'stop'; c.at = tgt.stop; c.timer = tgt.stop === 'gate' ? CART_GATE_DUR : CART_MK_DUR;
+      if (tgt.stop === 'gate'){ spawnLoader(); announce('The cart draws up at the allotment gate; someone comes out with a basket.'); }
+      else announce(c.load ? 'The cart pulls in by the stalls with the allotments\' picking on its bed.'
+                           : 'The cart pulls in by the stalls, its bed near enough empty.');
+    } else c.i++;
+    return;
+  }
+  // the horse pulls up for anyone still in the road ahead of it; the shove clears them
+  let held = false;
+  for (const a of agents){ if (a.loader) continue;
+    const u = (a.x - c.x) * c.hx + (a.y - c.y) * c.hy;
+    if (u > -0.5 && u < CART_LEN + 1.4 && Math.abs((a.x - c.x) * -c.hy + (a.y - c.y) * c.hx) < 1.1){ held = true; break; } }
+  const sp = CART_SPEED * (c.out ? CART_TROT : 1) * (nightF > 0.3 && hour > SOLAR_NOON ? 1.5 : 1) * (held ? 0.15 : 1);   // caught by dusk, not dawn
+  const mv = Math.min(sp * dt, d);
+  // the heading eases round a corner. A straight reversal is collinear — the eased vector
+  // shrinks along the old axis and normalises straight back to it — so it is kicked
+  // sideways and comes round through the perpendicular, a horse turning in the road.
+  let hx = c.hx + (dx / d - c.hx) * Math.min(1, dt * 5), hy = c.hy + (dy / d - c.hy) * Math.min(1, dt * 5);
+  if (c.hx * dx + c.hy * dy < -0.95 * d){ hx += -c.hy * 0.4; hy += c.hx * 0.4; }
+  const hn = Math.hypot(hx, hy) || 1;
+  c.hx = hx / hn; c.hy = hy / hn;
+  c.x += dx / d * mv; c.y += dy / d * mv; c.ph += mv;
+}
+/* a walker inside the cart's berth is moved across its heading, away from the axle-to-
+ * nose segment — the bicycle-bell dodge the announcement always described and nothing
+ * ever did. The loader is exempt: standing at the side IS the job. */
+function cartShove(a, dt){
+  const c = cart, px = a.x - c.x, py = a.y - c.y;
+  const u = clamp(px * c.hx + py * c.hy, 0, CART_LEN);
+  const qx = px - c.hx * u, qy = py - c.hy * u;
+  if (Math.hypot(qx, qy) >= CART_BERTH) return false;
+  const side = (px * -c.hy + py * c.hx) >= 0 ? 1 : -1, push = CART_SHOVE * dt;
+  a.x += -c.hy * side * push; a.y += c.hx * side * push;
+  return true;
 }
 /* Nothing in the sill ever said this was here, and a feature nobody finds is a feature
  * at a rate of zero. Once a day, when the lamp is up and the dark is real. */
@@ -4679,6 +4801,10 @@ function drawScene(t, dt){
   // is drawn by the span itself so the deck lands on top of the rower
   items.push({y:DECK_Y0 - 0.1, f:drawDeckSpan});
   items.push({y:DECK_Y1 + 0.6, f:drawDeckFront});
+  // the cart is two items round the walkers' row: bed, far wheel and the horse's back before,
+  // the near wheel, near board and near legs after (#73's rule)
+  if (cart){ items.push({y:Math.min(cart.y, cart.y + cart.hy * CART_LEN) - 0.9, f:drawCartBody});
+             items.push({y:Math.max(cart.y, cart.y + cart.hy * 2.3) + 0.6, f:drawCartFront}); }
   for (const s of swans) items.push({y:s.y + 0.3, f:drawSwan, s});
   if (boat && (boat.y < 64.5 || boat.y > 79) && !boatUnderDeck()) items.push({y:boat.y + 0.6, f:drawBoat});
   for (const tb of CAFE_TABLES) items.push({y:tb.y + 0.45, f:drawCafeTable, tb});
@@ -5642,6 +5768,93 @@ function drawBoat(it){
     BOAT_LAMP = [lx, ly - 7.5 * s];
   }
 }
+/* ---- the cart (#82): drawn in its own frame — u along the heading, v across it, z up —
+ * every point through project(), so it turns with the road and pinches with the depth.
+ * The near side (larger world y) goes in drawCartFront; everything else in drawCartBody. */
+function cartPt(c, u, v, z){ return project(c.x + c.hx * u - c.hy * v, c.y + c.hy * u + c.hx * v, z); }
+function cartQuad(c, pts, fill){
+  ctx.fillStyle = fill; ctx.beginPath();
+  pts.forEach((p, i) => { const [x, y] = cartPt(c, p[0], p[1], p[2]); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+  ctx.closePath(); ctx.fill();
+}
+function cartNear(c){ return c.hx >= 0 ? 1 : -1; }          // the v side with the larger world y
+/* a wheel: a disc in the u–z plane, the image of a circle under the two screen vectors
+ * that plane projects to. Seen from behind (heading straight down the street) the two
+ * are parallel and the disc is a sliver, which is what a wheel from behind is — a
+ * minimum rim width keeps it a wheel and not a hair. */
+function drawCartWheel(c, v, r){
+  const [cx, cy] = cartPt(c, 0, v, r), [ax, ay] = cartPt(c, r, v, r), [tx, ty] = cartPt(c, 0, v, 2 * r);
+  let e1x = ax - cx, e1y = ay - cy; const e2x = tx - cx, e2y = ty - cy;
+  const cross = Math.abs(e1x * e2y - e1y * e2x), e2n = Math.hypot(e2x, e2y) || 1;
+  if (cross < 0.35 * e2n * e2n){ const w = 0.14 * cellW; e1x += -e2y / e2n * w; e1y += e2x / e2n * w; }
+  ctx.strokeStyle = '#2e2a26'; ctx.lineWidth = 1.5; ctx.beginPath();
+  for (let k = 0; k <= 16; k++){ const an = k / 16 * Math.PI * 2, x = cx + Math.cos(an) * e1x + Math.sin(an) * e2x, y = cy + Math.cos(an) * e1y + Math.sin(an) * e2y;
+    k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+  ctx.closePath(); ctx.stroke();
+  ctx.lineWidth = 0.8;
+  for (let k = 0; k < 3; k++){ const an = c.ph * 1.7 + k * Math.PI / 3, ca = Math.cos(an), sa = Math.sin(an);
+    ctx.beginPath(); ctx.moveTo(cx - ca * e1x - sa * e2x, cy - ca * e1y - sa * e2y); ctx.lineTo(cx + ca * e1x + sa * e2x, cy + ca * e1y + sa * e2y); ctx.stroke(); }
+}
+function drawHorseLegs(c, v, swing){
+  ctx.strokeStyle = '#3a2a1c'; ctx.lineWidth = Math.max(1.2, cellW * 0.11);
+  for (const u of [1.85, 2.75]){
+    const k = (u > 2.3 ? 1 : -1) * swing;
+    const [hx, hy] = cartPt(c, u, v, 0.62), [fx, fy] = cartPt(c, u + k, v, 0);
+    ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(fx, fy); ctx.stroke();
+  }
+}
+function drawCartBody(){
+  const c = cart, near = cartNear(c), far = -near;
+  const moving = c.state === 'drive', swing = moving ? Math.sin(c.ph * 2.6) * 0.22 : 0;
+  // shadows: the contact under the cart and under the horse
+  const pHard = 1 - 0.45 * (1 - shadowF()), sp = shSpread();
+  ctx.fillStyle = 'rgba(20,25,15,' + 0.26 * pHard + ')';
+  for (const [u, ru] of [[0, 1.15], [2.3, 0.8]]){
+    const [sx, sy] = cartPt(c, u, 0, 0);
+    ctx.beginPath(); ctx.ellipse(sx, sy, ru * cellW * sp, 0.55 * cellH * sp, 0, 0, 7); ctx.fill();
+  }
+  // bed: floor, tail board, the far board
+  cartQuad(c, [[-1.0, -0.75, 0.45], [1.0, -0.75, 0.45], [1.0, 0.75, 0.45], [-1.0, 0.75, 0.45]], '#8f6b48');
+  cartQuad(c, [[-1.0, -0.75, 0.45], [-1.0, 0.75, 0.45], [-1.0, 0.75, 0.85], [-1.0, -0.75, 0.85]], '#5e4028');
+  cartQuad(c, [[-1.0, far * 0.75, 0.45], [1.0, far * 0.75, 0.45], [1.0, far * 0.75, 0.85], [-1.0, far * 0.75, 0.85]], '#6b4a30');
+  // the load: the mill's sacks, and whatever came over the side at the gate
+  if (c.sacks) for (const [u, v] of [[-0.55, -0.3], [-0.55, 0.3], [0.05, 0]]){
+    const [x, y] = cartPt(c, u, v, 0.72);
+    ctx.fillStyle = '#d9cdb0'; ctx.beginPath(); ctx.ellipse(x, y, 0.3 * cellW, 0.24 * cellH * (1 + LIFT * 0.6), 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#a89878'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(x - 0.2 * cellW, y - 0.16 * cellH); ctx.lineTo(x + 0.2 * cellW, y - 0.16 * cellH); ctx.stroke();
+  }
+  if (c.load) for (let k = 0; k < Math.min(3, c.load * 2); k++){
+    const [x, y] = cartPt(c, 0.55 - k * 0.45, (k % 2 ? 0.28 : -0.28), 0.68);
+    ctx.fillStyle = c.loadCol || '#a3b876'; ctx.beginPath(); ctx.ellipse(x, y, 0.26 * cellW, 0.2 * cellH, 0, 0, 7); ctx.fill();
+  }
+  drawCartWheel(c, far * 0.9, 0.5);
+  // the horse: far legs, far flank, back, neck and head; the near flank and legs come after
+  drawHorseLegs(c, far * 0.2, swing);
+  cartQuad(c, [[1.65, far * 0.3, 0.55], [2.95, far * 0.3, 0.55], [2.95, far * 0.3, 1.15], [1.65, far * 0.3, 1.15]], '#5a3f2a');
+  cartQuad(c, [[1.65, -0.3, 1.15], [2.95, -0.3, 1.15], [3.05, 0.3, 1.15], [1.55, 0.3, 1.15]], '#6a4a32');
+  cartQuad(c, [[2.85, -0.16, 1.05], [3.05, -0.16, 1.05], [3.5, -0.14, 1.65], [3.3, -0.14, 1.7]], '#5a3f2a');   // neck
+  const [hx, hy] = cartPt(c, 3.6, 0, 1.6);
+  ctx.fillStyle = '#4e3524'; ctx.beginPath(); ctx.ellipse(hx, hy, 0.26 * cellW, 0.2 * cellH * (1 + LIFT), Math.atan2(c.hy * 0.3, c.hx), 0, 7); ctx.fill();
+  const [tx, ty] = cartPt(c, 1.6, 0, 0.95), [tx2, ty2] = cartPt(c, 1.45, 0, 0.5);   // tail
+  ctx.strokeStyle = '#2e2018'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(tx2, ty2); ctx.stroke();
+  // the shafts: bed corners to the horse's flanks
+  ctx.strokeStyle = '#7a5a3c'; ctx.lineWidth = 1.1;
+  for (const v of [-0.55, 0.55]){ const [ax, ay] = cartPt(c, 1.0, v, 0.6), [bx, by] = cartPt(c, 1.75, v * 0.55, 0.75);
+    ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke(); }
+  // the carter, up on the seat
+  const [px, py] = cartPt(c, 0.55, 0, 0.85);
+  ctx.fillStyle = '#4a5f8a'; ctx.beginPath(); ctx.ellipse(px, py - cellH * 0.35, 0.22 * cellW, 0.45 * cellH, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#c9975f'; ctx.beginPath(); ctx.arc(px, py - cellH * 0.95, 0.13 * cellW, 0, 7); ctx.fill();
+  ctx.fillStyle = '#6b4a30'; ctx.beginPath(); ctx.ellipse(px, py - cellH * 1.05, 0.24 * cellW, 0.07 * cellH + 1, 0, 0, 7); ctx.fill();   // hat brim
+}
+function drawCartFront(){
+  const c = cart, near = cartNear(c);
+  const moving = c.state === 'drive', swing = moving ? Math.sin(c.ph * 2.6) * 0.22 : 0;
+  cartQuad(c, [[-1.0, near * 0.75, 0.45], [1.0, near * 0.75, 0.45], [1.0, near * 0.75, 0.85], [-1.0, near * 0.75, 0.85]], '#6b4a30');
+  drawCartWheel(c, near * 0.9, 0.5);
+  cartQuad(c, [[1.65, near * 0.3, 0.55], [2.95, near * 0.3, 0.55], [2.95, near * 0.3, 1.15], [1.65, near * 0.3, 1.15]], '#523823');
+  drawHorseLegs(c, near * 0.2, -swing);
+}
 function drawKiosk(){
   const [x, y] = project(KIOSK.x, KIOSK.y + 0.9, 0);
   const w = cellW * 2.4;
@@ -6532,6 +6745,11 @@ function treeAt(p){
  * read off the state machine's own fields — `state`, `kind`, `cup`, `watch`, `greet`,
  * `listen`, `band` — never inferred from where they stand. Nothing here draws or
  * spends R(): it reads what the last frame put on screen. */
+function cartName(){
+  const c = cart, what = c.sacks ? ', sacks from the mill on the bed' : c.load ? ', the allotments\' picking on the bed' : '';
+  return c.state === 'stop' ? (c.at === 'gate' ? 'the carter and his horse, waiting at the allotment gate' : 'the carter and his horse, drawn up by the stalls' + what)
+       : c.out ? 'the carter and his horse, trotting home' + what : 'the carter and his horse' + what;
+}
 function personName(a){
   const n = personName0(a);
   return (a.with || a.pairLead) && /^someone/.test(n) ? n + (a.with ? ', with the one they came with' : ', with a friend') : n;
@@ -6542,6 +6760,8 @@ function personName0(a){
                             : a.eve ? 'the evening sweeper, clearing up after the market'
                             : a.gutter ? 'the sweeper, working the gutter where the leaves lie' : 'the sweeper, working down the lane';
   if (k === 'cyclist') return 'a cyclist';
+  if (k === 'loader') return st === 'stand' ? 'an allotment holder, loading the cart'
+                     : a.crop ? 'an allotment holder, basket out to the cart' : 'an allotment holder, back from the cart';
   if (st === 'lie') return 'someone lying on the grass';
   if (st === 'kneel') return k === 'allot' ? (a.dig ? 'an allotment holder, turning a plot over' : 'an allotment holder, kneeling at the plot')
                                            : 'the gardener, kneeling at a bed';
@@ -6579,6 +6799,7 @@ function livingAt(p){
   for (const d of ducks) hit(d.x, d.y, 0, 0.6, d.y + 0.3, d.swimming ? 'a duck, on the pond' : 'a duck, out on the bank');
   for (const s of swans) hit(s.x, s.y, 0, s.state === 'upend' ? 0.7 : 0.8, s.y + 0.3,
     s.state === 'upend' ? 'a swan, upended' : s.state === 'preen' ? 'a swan, preening' : 'a swan, on the river', 1.1);
+  if (cart) hit(cart.x + cart.hx * 1.2, cart.y + cart.hy * 1.2, 0, 1.8, Math.max(cart.y, cart.y + cart.hy * 2.3) + 0.6, cartName(), 3.2);
   if (boat && (boat.y < 64.5 || boat.y > 79)) hit(boat.x, boat.y, 0, 1.4, boat.y + 0.6, boatLampF() > 0.5 ? 'the rowboat, going downriver by lantern' : 'the rowboat, going downriver');
   if (catA) hit(catA.x, catA.y, 0, 0.6, catA.y + 0.3, 'the cat, out along the lane');
   return best;
@@ -6916,6 +7137,7 @@ function simStep(sdt, dt){
   updateBalloon(sdt);
   updateBoat(sdt);
   updateMill(sdt);
+  stepCart(sdt);
 
   statAcc += dt;
   if (statAcc > 0.5){ statAcc = 0; refreshStats(); tickTicker(); }
@@ -7156,6 +7378,7 @@ window.__entities = function(){
   take(birds, 'bird'); take(leaves, 'leaf');
   if (balloon) take([balloon], 'balloon');
   if (boat) take([boat], 'boat');
+  if (cart) take([cart], 'cart', (o, c) => { o.act = c.state; o.at = c.at; o.load = c.load; o.sacks = c.sacks ? 1 : 0; o.hx = +c.hx.toFixed(2); o.hy = +c.hy.toFixed(2); });
   /* Raindrops are the one population here in SCREEN space, not world space — x,y are
    * canvas pixels, so motion.mjs must exempt this kind from the world-bounds test or
    * every drop reads as out of bounds. Until #21 the gate could only watch the shower
