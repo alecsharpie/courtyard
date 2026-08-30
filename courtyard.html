@@ -2835,6 +2835,7 @@ function updateSweeper(){
 
 /* ============ wildlife & weather ============ */
 const butterflies = [], fireflies = [], birds = [], leaves = [], raindrops = [];
+const LEAF_EDGE_W = -3, LEAF_EDGE_E = GW + 3;   // #76: a leaf past these is off the world and culled (landLeaf ignores it)
 let belfryRoost = 7;                 // pigeons currently sat on the church tower
 const ducks = [], swans = [];
 let catA = null, balloon = null;
@@ -3074,9 +3075,16 @@ function updateWildlife(dt){
         col:pick(['#e8a0b0','#f3b04e','#c9a0e2','#e8dfc8'])});
     }
   }
+  /* #76 (c110): the fall's y-drift was one constant, so every street-tree leaf (6-8 s in
+   * the air) landed in ONE road row. Each leaf now carries its own vy, folded out of the
+   * ph it already drew (two fractions of one R() -> triangular on [0.15, 0.85], peaked at
+   * the old 0.5), so the drift spreads over kerb, gutter and crown with row 70 still the
+   * heaviest. No new draw, fall time and counts unchanged. (c109): a leaf blown off the
+   * world (a westward gust off the pit at x 8) is culled at the edge, not left to fall. */
   for (let i=leaves.length-1;i>=0;i--){ const l=leaves[i];
-    l.ph+=dt*3; l.x+=l.vx*dt+Math.sin(l.ph)*dt*1.4; l.y+=dt*0.5; l.z-=dt*0.55;
-    if (l.z<=0){ landLeaf(l); leaves.splice(i,1); } }
+    if (l.vy === undefined){ const u = (l.ph / 9) % 1, v = (l.ph * 1.7) % 1; l.vy = 0.5 + 0.35 * (u + v - 1); }
+    l.ph+=dt*3; l.x+=l.vx*dt+Math.sin(l.ph)*dt*1.4; l.y+=dt*l.vy; l.z-=dt*0.55;
+    if (l.z<=0 || l.x < LEAF_EDGE_W || l.x > LEAF_EDGE_E){ landLeaf(l); leaves.splice(i,1); } }
   if (!catA && nightF > 0.5 && day >= 2){ catA = {x:-2, y:LANE_N_Y - 0.5, dir:1}; }
   if (catA){
     catA.x += catA.dir * dt * 1.6;
@@ -3108,8 +3116,9 @@ function updateWildlife(dt){
     const sf = snowF();
     for (const r of raindrops){
       if (r.f < sf){ r.y += r.v*dt*0.11; r.x += Math.sin(simT*1.6 + r.v)*14*dt; }   // a flake drifts
-      else { r.y += r.v*dt; r.x -= r.v*dt*0.12; }
-      if (r.y>H){ if (k >= want) continue; r.y=-12; r.x=R()*(W*1.15); }
+      else { r.y += r.v*dt; r.x -= r.v*dt*0.12*windDir(); }   // #76 (c108): the slant carries the wind's sign
+      // recycled across the windward edge: [0, 1.15W] under a west wind, [-0.15W, W] under an east one (exact at windDir 1, no new draw)
+      if (r.y>H){ if (k >= want) continue; r.y=-12; r.x=R()*(W*1.15) + (windDir()-1)*0.075*W; }
       raindrops[k++] = r;
     }
     raindrops.length = k;
@@ -4602,7 +4611,8 @@ function drawScene(t, dt){
     const sf = snowF();
     ctx.strokeStyle='rgba(200,215,235,.45)'; ctx.lineWidth=1;
     ctx.beginPath();
-    for (const r of raindrops){ if (r.f < sf) continue; ctx.moveTo(r.x,r.y); ctx.lineTo(r.x-2.4,r.y+11); }
+    const sl = 2.4 * windDir();   // #76: the drawn streak leans the way the drop moves
+    for (const r of raindrops){ if (r.f < sf) continue; ctx.moveTo(r.x,r.y); ctx.lineTo(r.x-sl,r.y+11); }
     ctx.stroke();
     if (sf > 0){
       ctx.fillStyle='rgba(240,244,248,.85)'; ctx.beginPath();

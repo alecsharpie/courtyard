@@ -397,7 +397,8 @@
       "the ground reads the lid — shadowF() with shSpread()/shOffset(): cast shadows fade, widen and retract together, eight sites, blurred on the cached ground. probes/shadow-cover.mjs",
       "snow — snowF() turns showers to flakes past greyF 0.55; snowCover 0..1 (rate-capped, snowAt per cell, trodden kinds take less) whitens cached ground/roofs/awnings, melts as warmth lifts; census clock.snow. probes/snow-year.mjs",
       "wetness 0..1 — wetF()/stepWet(): rain soaks paving, dries by daylight×warmth; cached ground reads wetCol() on PATH/SIDE/ROAD; lane sheen 0.16×wetness; drawWetLights() lamp bars × wetness × nightF. probes/wet-year.mjs",
-      "the WIND — windF() 0..1 rate-capped; windTarget() = max(windyDay() hash salted by WIND_SALT, frontWind() on cloud 0.46→0.76, 0 while raining/frontSpent); windSign ±1 per spell latched from calm; windDir() the calm→sign blend every x-lean reads. probes/wind-front.mjs, wind-sign.mjs"
+      "the WIND — windF() 0..1 rate-capped; windTarget() = max(windyDay() hash salted by WIND_SALT, frontWind() on cloud 0.46→0.76, 0 while raining/frontSpent); windSign ±1 per spell latched from calm; windDir() the calm→sign blend every x-lean reads. probes/wind-front.mjs, wind-sign.mjs",
+      "wind consumers complete — rain slant and recycle edge on windDir(), leaves culled at LEAF_EDGE_W/E, per-leaf l.vy fall drift folded from ph (road litter spans rows 68-73). probes/wind-consumers.mjs"
     ],
     "life": [
       "walkers with itineraries — courtyard, street and eastern stops; cafe sitters; market and kiosk browsers; dogs on leads; ducks, swans, butterflies, fireflies, birds, a night cat, falling leaves",
@@ -445,6 +446,12 @@
       "id": "c114",
       "note": "a seated courtyard bench PAIR is seen ~once per ten daylit days (sitters 16% of a ~0.7/day roll); if the bench is meant to read as shared, sitters need a bigger share or their own source — count before building",
       "raisedBy": 74,
+      "seenBy": 0
+    },
+    {
+      "id": "c115",
+      "note": "the sweeper clears one road row; litter now spans 68-73, rows 69/71 outlast him — a two-row pass or the heaviest pair (#76)",
+      "raisedBy": 76,
       "seenBy": 0
     }
   ],

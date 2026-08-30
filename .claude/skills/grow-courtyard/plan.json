@@ -17,28 +17,6 @@
   "rationale": "CLIMBED TO RUNG 4b, and mapFlat says which: a change in SPACE. Every rung-4 so far (#32, #37, #42) picked time — the night, the snow, the year — and all of it landed; nothing in 68 iterations has moved a tile. The single biggest thing missing from a thirty-second look is that the east half of the town is three places that never exchange anybody: the only crossing of the river is the lane bridge at the bottom of the frame, so a visitor to the church green walks in through PARK_GATE at y 60 while the plaza, the quay and the jetty at (128.4, 35) — fifteen cells apart across the water — stay strangers. b70 builds a FOOTBRIDGE at the alley's latitude (ALLEY_Y 31): a new tile kind over the water, drawn light, the rowboat passing under it, and then USED by the east spawner's routes so the deck carries people both ways. It must move tileKinds and water in the census; the WATCH note and the brief both say a re-pinned baseline is the expected outcome. It goes first, at 75 min, with a 150–300-line diff invited. Behind it, four compounding moves on things that exist at a rate of zero or read wrong: b71 the cafe drawn for nobody (#64 counted 0 arrivals in 14 seeds × 3 h — the law says give a rare thing its own supply), b73 companions for the courtyard (c107, the wide shot's pairs stop at the courtyard wall), b72 the wind's three consumers that ignore it or leave the frame (c108/c109/c110, one low-risk brief so the sign lands everywhere), b74 the basin that is frozen and does not look it (c106). Risk: b70 high, b71 medium, b73 medium, b72 low, b74 low. No more rung-2 passes are available until this one has landed a spatial change or shown why it cannot.",
   "queue": [
     {
-      "id": "b72",
-      "domain": "Sky, light & weather",
-      "kind": "Connect",
-      "brief": "The wind has a sign since #71 and three consumers still do not know. c108: rain drops slant −x on every day (r.x -= v·dt·0.12 in the shower step, drawn as a −2.4 px line) — the one weather consumer that ignores windSign; put the slant on windDir() so an east wind blows the rain east. c109: leaves from the west street tree (pit x=8) blow off-world under a negative sign (l.x < −10 in 7/10 seeds; motion gate 'leaf oob' fires on HEAD) — kill them at the frame edge. c110: every lane leaf lands in road row 70 because fall y-drift is a constant 0.5/s; give each leaf a small per-leaf y term at spawn so the drift spreads across gutter and crown (then #72's sweeper.gutter row choice is a real choice).",
-      "seams": [
-        "windDir",
-        "windSign",
-        "raindrops",
-        "leaves",
-        "leafFallF",
-        "landLeaf",
-        "sweeper.gutter",
-        "probes/wind-sign.mjs",
-        "probes/street-clear.mjs",
-        "motion.mjs"
-      ],
-      "successLooksLike": "Rain slants with the sign in a crop at each sign; the motion gate's leaf-oob fault is gone on ten seeds; road litter spans 3+ rows with row 70 still the heaviest; every #71/#72 anchor identical at sign +1.",
-      "avoid": "No new R() draws in the shower step (the rain is a population). Do not change leaf counts or fall speed.",
-      "budgetMin": 30,
-      "risk": "low"
-    },
-    {
       "id": "b74",
       "domain": "Plaza & quay",
       "kind": "Polish",
@@ -71,6 +49,10 @@
     {
       "id": "b73",
       "at": "2026-08-30T17:18:57.947Z"
+    },
+    {
+      "id": "b72",
+      "at": "2026-08-30T17:24:43.369Z"
     }
   ]
 }
