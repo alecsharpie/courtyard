@@ -2069,6 +2069,8 @@ function stepAgent(a, dt){
       // a listener who would call in at the door on the way home: the walk is priced
       // and, from the green, it never fits — see tapCallers(). The branch is the proof.
       if (a.band && a.toTap && callIn(a, a.wp.slice(a.i).concat([[PARK_GATE, LANE_N_Y]]), 4, 6)) return;
+      // a far-side visitor whose afternoon ends inside a warm evening stays on, at the deck rail (#85)
+      if (a.east && stayOn(a)) return;
       if (a.blanket){ a.blanket = false; }
       if (a.tableRef){ a.tableRef.taken = 0; a.tableRef = null; a.cup = false; }
       // the place at the door goes back the moment they step away from it, not when
@@ -3026,6 +3028,7 @@ const EVE_SPOTS = [
   ...[12.5, 14.5, 16.5].map(y => ({g:'Q', lead:[[112.9, 7]], x:112.9, y, act:'stand', rail:1})),
   {g:'Q', lead:[[112.9, 7]], bench:QUAY_BENCHES[0], act:'sit'},
   ...[114.5, 116.5].map(x => ({g:'A', lead:DECK_LEAD_A.slice(0, 4), x, y:DECK_Y0 + 0.5, act:'stand', deck:1})),   // by the alley, #73's route: the plaza crossing alone is ~4 h, so only the near end of the span is reached
+  ...[126.5, 124.5].map(x => ({g:'A', lead:DECK_LEAD_A.slice(0, 4), x, y:DECK_Y0 + 0.5, act:'stand', deck:1, stay:1})),   // the FAR end, mirrored: reached only by someone already over the river (stayOn, #85); far end first
   {g:'P', lead:[[PARK_GATE, 60.5], [FAR_WALK, 57]], bench:FAR_BENCHES[1], act:'sit'},
   ...[50.5, 53, 55.5].map(y => ({g:'P', lead:[[PARK_GATE, 60.5], [TOW_WALK, 59]], x:TOW_WALK, y, act:'stand', tow:1})),
 ];
@@ -3033,7 +3036,8 @@ for (const s of EVE_SPOTS){ s.taken = 0; if (s.bench){ s.x = s.bench.x + 0.5; s.
 function eveEnd(){ return sunDown + EVE_SPAN; }                 // on hourEve()'s axis
 function eveWeather(){ return warmth >= EVE_WARM && !raining && wetF() < EVE_WET && windF() < EVE_WIND; }
 function eveOpen(){ return day >= 1 && eveWeather() && hourEve() >= sunDown - EVE_LEAD && hourEve() < eveEnd(); }
-function eveCount(){ return agents.filter(a => a.dusk).length; }
+function eveCount(){ return agents.filter(a => a.dusk && !a.stay).length; }   // the gate arrivals, under EVE_CAP
+function stayCount(){ return agents.filter(a => a.stay).length; }               // the far side's own, under the two posts
 function eveGate(s){ return s.g === 'Q' ? EAST_GATE_Q : s.g === 'A' ? EAST_GATE_A : EAST_GATE_P; }
 function eveFits(s, speed){
   if (s.taken) return false;
@@ -3065,6 +3069,47 @@ function spawnEveningAgent(room){
   agents.push(a); withCompanion(a, room);
 }
 function eveRelease(a){ if (a.eveSpot && !a.with){ a.eveSpot.taken = 0; } a.eveSpot = null; }
+/* ---- the deck's evening: whoever is ALREADY over the river stays on (#85) ---- *
+ * #79 found the deck is the place the evening can least reach: the plaza crossing
+ * alone is ~4 h, so its two posts fit 0 times in 30 evenings from any gate. Counted
+ * at the choice over 10 seeds × 4 summer days: 2.35 east visitors (spawnEastAgent)
+ * a night get up from a far-bank stop in the window — the jetty, the towpath, the
+ * near far bench — and the walk from there to the WEST posts (12 cells of deck,
+ * ~2.75 h) fit once in 40 evenings; to the far end it fit 0.8 a night, on 23 of 40.
+ * So the source is the retire rule, not a gate: a visitor whose stop ends (by timer or
+ * eastOpen()'s close) while the evening is on, or will be by the time they reach the
+ * rail, is re-routed by the ONE re-route model (callIn) onto the nearest free deck
+ * post whose arrival + EVE_STAND lands inside the window — off eastCount from that
+ * step (a.east = false, as callIn does), retiring by a.dusk && !eveOpen() like the
+ * others and leaving by the alley, over the deck. The share is 1: the posts are the
+ * cap. No R(): the first post that fits, and the dwell hashed off a.speed (goHome's
+ * model). The concert audience is NOT a source: 290 of 324 stand south of the
+ * bandstand with no way north but through it (c125). */
+function deckWay(a){                             // from a far-bank stop to the deck's east end, the way they came
+  const w = a.wp.slice(a.i), k = w.findIndex(p => p[0] === TOW_WALK && p[1] === DECK_WALK);
+  if (k >= 0) return w.slice(0, k + 1);
+  if (Math.abs(a.x - TOW_WALK) < 0.3) return [[TOW_WALK, DECK_WALK]];   // on the towpath: straight up it
+  return null;
+}
+function stayOn(a){
+  if (!a.east || a.band || a.nightRail || a.x < RIVER_X1 - 1 || a.y > 60 || day < 1 || !eveWeather() || skyLifts(a)) return false;
+  const way = deckWay(a);
+  if (!way) return false;
+  for (const s of EVE_SPOTS){
+    if (!s.stay || s.taken) continue;
+    const path = way.concat([[s.x, s.y]]);
+    const arrive = hourEve() + pathHours(a.x, a.y, path, a.speed);
+    if (arrive < sunDown - EVE_LEAD || arrive + EVE_STAND >= eveEnd()) continue;
+    s.taken = 1;
+    const h = Math.round(a.speed * 1e4);
+    a.east = false; a.dusk = true; a.stay = true; a.eveSpot = s; a.stopped = false;
+    a.stop = {x:s.x, y:s.y, act:'stand', dur:4 + hash(h, 97) * 6,
+      say: hash(h, 101) < 0.15 ? 'Someone who came over for the afternoon has stopped on the footbridge instead of going back, to watch the lamps come on along the river.' : null};
+    a.wp = path.concat(s.lead.slice().reverse().map(p => p.slice()), [eveGate(s).slice()]); a.i = 0; a.state = 'walk';
+    return true;
+  }
+  return false;
+}
 /* ============ arriving in twos ============ *
  * Until #70 every arrival on the lane and from the east came alone; the only pair in
  * the town was the picnic (a.mate, judged once at the blanket). From the wide shot a
@@ -6875,6 +6920,7 @@ function personName0(a){
   if (k === 'tap' && st === 'stand') return a.cup ? 'someone at the door, cup in hand' : 'someone waiting at the door';
   if (a.band && st === 'stand') return 'someone in the audience, listening';
   if (k === 'parapet' && st === 'stand') return 'someone leaning on the parapet';
+  if (a.eveSpot && a.eveSpot.deck && st === 'stand') return a.stay ? 'someone who stayed on, leaning on the footbridge rail' : 'someone leaning on the footbridge rail';
   if (st === 'sit') return a.cup ? 'someone at a table, with a cup' : k === 'picnic' ? 'someone on a blanket' : 'someone sitting';
   if (a.greet > 0) return 'someone stopped for a word';
   if (a.listen > 0) return 'someone stopped, listening to the bell';
@@ -7156,9 +7202,9 @@ function simStep(sdt, dt){
   // the evening's custom comes off its own budget for the same reason the audience does
   const tapNow = tapCount();
   const homeNow = homeCount();                   // the night's own arrivals: never a share of laneCap
-  const eveNow = eveCount();                     // the warm evening's own arrivals (#79): likewise
+  const eveNow = eveCount(), eveAll = eveNow + stayCount();   // the warm evening's own arrivals (#79): likewise; the deck's stayers (#85) are off eastCount already
   const cafeAll = agents.filter(a => a.cafe).length, cafeNow = cafeCount();   // the cafe's own custom (#74)
-  const laneCount = agents.length - courtyardCount - eastCount - bandCount - tapNow - homeNow - cafeAll - eveNow;
+  const laneCount = agents.length - courtyardCount - eastCount - bandCount - tapNow - homeNow - cafeAll - eveAll;
   /* Each cap is its old expression with the multiply-out done, so the fixed share is
    * visible as a number and the year rides the daylight term alone (see yearBusy).
    * At the anchor, warmth 0.5, all three are algebraically identical to what they
@@ -7468,6 +7514,7 @@ window.__entities = function(){
                    if (a.home) o.home = 1;
                    if (a.homer) o.homer = 1;
                    if (a.dusk) o.dusk = 1;
+                   if (a.stay) o.stay = 1;
                    if (a === followed) o.followed = 1;
                    if (a.with) o.with = 'walker' + a.with.__id;
                    if (a.pairLead) o.lead = 1;

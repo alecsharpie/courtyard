@@ -15,27 +15,6 @@
   "rationale": "CLIMBS TO RUNG 3. Not forced — no signal fires — but chosen: seventeen passes have used rungs 2, 4, 4b and 5 and never once widened the menu, and the coverage grid says why it should now: every domain has its cells filled except the empty ones the town cannot fill (courtyard × New element, sill × everything but interaction), so the next hundred briefs from THIS menu are rotations. Thirty seconds at the wide shot, seed 42, noon then 03:00: the roofline is a third of the picture and it is inert — chimneys smoke, one vane on the clock tower points the same way in an east gale as a west one, snow whitens the slates and nothing else ever happens up there; the cross street is six cells of road with a cyclist every few minutes; the courtyard tells no time although the whole town runs on the sun. So the batch is: b80 THE CART (the bet, street, 75 min, 200-line diff invited) — a horse-drawn cart that comes down the cross street every morning, the first thing on the road bigger than a bicycle, stopping at the allotment gate to load produce and on market days at the lane end for the stalls, bringing the mill's sacks (c117) — a moving object the wide shot cannot miss. b81 THE WEATHERVANE (the new domain's first brief): the clock tower's vane turns to windSign·windF(), the chimney smoke already leans the same way, so a windy day is legible from the skyline. b82 THE SUNDIAL (courtyard × New element, the empty cell): a gnomon on the roundel whose shadow is sunVec(), so the courtyard reads the hour and the season. b83 the deck's evening (c118, life × Connect): an east arrival who stays on past eastOpen() under eveOpen() so the footbridge has somebody on it at dusk. b84 the camera's stale overlays (c119 + c120, sill × Polish). Risk: b80 high, b81 medium, b82 medium, b83 medium, b84 low.",
   "queue": [
     {
-      "id": "b83",
-      "domain": "People & animals",
-      "kind": "Connect",
-      "brief": "c118: the footbridge has an evening nobody reaches — EVE_SPOTS' two deck posts fit 0 times in 30 evenings because the plaza crossing alone is ~4 h from every gate. Give the deck an ALREADY-THERE source: when eveOpen() is true (or will be within the walk) an east arrival (spawnEastAgent, a.east) whose stop is on the far side and who would otherwise retrace at eastOpen()'s close instead STAYS ON — re-routed by the one re-route (callIn is the model) onto a free deck post under eveOpen(), leaving by the retire rule a.dusk && !eveOpen() like the others. Price it: count who is on the far side at sunDown − 2.5 h before choosing the share. Count at the CHOICE.",
-      "seams": [
-        "EVE_SPOTS",
-        "eveOpen",
-        "eveFits",
-        "spawnEastAgent",
-        "eastOpenFor",
-        "callIn",
-        "DECK_LEAD_A",
-        "a.dusk",
-        "probes/evening-arrivals.mjs"
-      ],
-      "successLooksLike": "probes/evening-arrivals.mjs extended: over 10 seeds × 4 summer days the deck posts are taken on most open evenings (>50%), total evening presence rises without the other posts losing occupancy; winter still 0. Crop at sunDown + 1 h with a figure leaning on the deck rail above the boat.",
-      "avoid": "Do not widen EVE_LEAD again. Do not add a gate source — the ledger proved the deck cannot be reached from any edge inside the window. Do not steal from eastCap's daylight budget by more than the share you counted.",
-      "budgetMin": 40,
-      "risk": "medium"
-    },
-    {
       "id": "b84",
       "domain": "The sill & the observer",
       "kind": "Polish",
@@ -70,6 +49,10 @@
     {
       "id": "b82",
       "at": "2026-08-30T22:48:06.333Z"
+    },
+    {
+      "id": "b83",
+      "at": "2026-08-30T22:56:22.106Z"
     }
   ]
 }

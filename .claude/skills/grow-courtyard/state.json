@@ -435,7 +435,8 @@
       "yearBusy(ex) multiplies the DAYLIGHT term of capacity/laneCap/eastCap only; POP_FLOOR + scarcity lift the arrival RATES only. probes/season-year.mjs",
       "crowds with their OWN arrival source, outside eastCount/laneCount: concert (spawnConcertAgent), evening door (spawnTapAgent), homers (spawnHomeAgent), cafe (spawnCafeAgent); goHome(a) sends a lane leaver to a HOME_DOOR after dusk, HOMES read by windowLit(). probes/going-home.mjs",
       "ARRIVALS IN TWOS — withCompanion(a, room) on the lane/east/courtyard/cafe spawners, PAIR_P of arrivals with room under the SAME cap; b.with follower re-targets pairTarget(b) per step (PAIR_MIN 0.9 step-away, a.pairSeat on benches/tables); named 'with a friend'. probes/pairs.mjs",
-      "the warm EVENING's own arrivals (#79) — eveOpen() (warmth ≥ 0.6, dry, calm, sunDown−2.5..+3) rolls spawnEveningAgent() under EVE_CAP; EVE_SPOTS 12 taken posts on quay rail/bench, deck rail, far bench, towpath; a.dusk; eveFits() prices ARRIVAL. probes/evening-arrivals.mjs"
+      "the warm EVENING's own arrivals (#79) — eveOpen() (warmth ≥ 0.6, dry, calm, sunDown−2.5..+3) rolls spawnEveningAgent() under EVE_CAP; EVE_SPOTS 12 taken posts on quay rail/bench, deck rail, far bench, towpath; a.dusk; eveFits() prices ARRIVAL. probes/evening-arrivals.mjs",
+      "the DECK's evening (#85) — stayOn(a) in the retire block: an a.east far-bank visitor whose stop ends inside eveWeather() takes the nearest free EAST-end deck post (EVE_SPOTS stay:1, x 126.5/124.5) if arrival+EVE_STAND fits; a.stay off eastCount and EVE_CAP; deckWay(a). probes/evening-stay-price.mjs, deck-evening-shots.mjs"
     ],
     "sill": [
       "the SILL under the canvas — #plate, #daytime, #season, #ticker (queue, TICK_DWELL 2.5 s, cap 2), #stats, #ctrl; hidden under 640px except during an invitation. A ResizeObserver on the frame — the sill BORROWS space with no resize event",
@@ -479,6 +480,12 @@
     {
       "id": "c124",
       "note": "the sundial stands inside the linden's shadow ellipse all day at maturity (the inner lawn IS the shade) — a shadow in a shadow; name it 'in the linden's shade' when the crown is out, or thin the tree's shadow where it stands (#84)",
+      "raisedBy": 82,
+      "seenBy": 0
+    },
+    {
+      "id": "c125",
+      "note": "the concert audience (324 far-side retirements/40 evenings, rel −4..−2 h) is the deck's biggest unused evening source: 290 stand SOUTH of the bandstand with no route north but through it — a BAND_SLOTS → round the bandstand → [FAR_WALK, DECK_WALK] leg would make the concert's end the deck's evening (#85)",
       "raisedBy": 82,
       "seenBy": 0
     }
