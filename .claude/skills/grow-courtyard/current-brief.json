@@ -18,7 +18,7 @@
   "avoid": "Do not rebalance the itinerary bands blind — measure at the choice first. Do not touch the market or the kiosk. Do not draw anything new.",
   "budgetMin": 35,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 74,
   "issued": "2026-08-30T17:11:38.557Z",
