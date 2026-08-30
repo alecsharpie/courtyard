@@ -1953,6 +1953,7 @@ function stepAgent(a, dt){
     if (a.timer <= 0 || (raining && a.state !== 'lie')
         || skyLifts(a)
         || (a.east && !eastOpenFor(a))
+        || (a.dusk && !eveOpen())
         || (a.tap && !tapOpen())
         || (a.band && (bandF() <= 0 || (a.heard && bandF() < a.leaveAt)))){
       // a listener who would call in at the door on the way home: the walk is priced
@@ -1964,6 +1965,9 @@ function stepAgent(a, dt){
       // they are finally off the frame: the walk home is on another line, and a slot
       // held for it would take a third off what a short summer evening can serve.
       if (a.tap && a.slot){ a.slot.taken = 0; a.slot = null; a.cup = false; }
+      // an evening arrival's post goes back as they step off it; from the quay or the
+      // far bank goHome() prices a door and mostly finds none — the retrace is the fallback
+      if (a.dusk){ eveRelease(a); if (!a.with && goHome(a)) return; }
       if (a.resume && a.i < a.wp.length){ a.state = 'walk'; a.resume = false; }
       else if (a.street){ a.state = 'walk'; }        // lane agents just continue their route
       else routeToExit(a);
@@ -1991,6 +1995,7 @@ function stepAgent(a, dt){
   const d = Math.hypot(dx, dy);
   const sp = a.speed * (raining && !a.umbrella ? 1.5 : 1) * (a.kind === 'napper' ? 0.8 : 1)
                      * (a.east && !eastOpenFor(a) ? 1.55 : 1)    // home before dark
+                     * (a.dusk && !eveOpen() ? 1.4 : 1)            // the evening is over
                      * (a.with ? 1 + clamp((d - PAIR_GAP) * 0.5, 0, 0.9) : 1);   // a companion left behind hurries
   if (d < 0.25){
     a.i++;
@@ -2766,6 +2771,70 @@ function spawnEastAgent(nightRail, room){
   a.wp.push(gate.slice());                   // and back out the way they came
   agents.push(a); withCompanion(a, room && !nightRail);   // the rail is ONE
 }
+/* ============ the evening's own arrivals (#79) ============ *
+ * The town had an evening door (spawnTapAgent), homers (spawnHomeAgent) and a night on
+ * the water that ONE person watched (a.nightRail). A warm dry evening now has its own
+ * source: its own cap, never a share of laneCap or eastCap (a rare thing needs its
+ * own source), open from sunDown − EVE_LEAD to sunDown + EVE_SPAN when it is warm,
+ * dry underfoot and not blowing — closed in winter by the warmth term alone.
+ * The window is 5.5 h ≈ 12.6 s of sim time, so the source is sized by the PLACES a walk
+ * reaches before the window's END (#53), not by a rate: every spot is priced with
+ * pathHours() — the ARRIVAL, plus EVE_STAND of standing, must land before the end;
+ * the stay itself is ended by the window closing (the retire rule below), so nobody
+ * is priced on a dwell — and the roll is spent only on the ones that fit. Priced at
+ * the brief's −0.5 h lead and the lane's 0.75·speed NOTHING fit: the nearest post is
+ * 13–15 cells from either gate, 4–5 h of walking, and at a 1.5 h lead one a night
+ * stopped. Hence the 2.5 h lead (the tap's own model: tapUp is sunDown − 3) — they
+ * walk in through the last of the light — and the deck posts reached by the alley,
+ * not the length of the quay. Open ground, priced at a.speed (probe-evening.mjs
+ * measured actual/predicted 1.13). The spots are posts along the quay rail south of the night
+ * stander's stretch (5..11), the deck's OWN lean posts on its upstream rail, the near
+ * quay bench, and from the park gate the far bench and the towpath by the steps —
+ * each `taken` so two never render as one shape (the 0.9-cell law). */
+const EVE_CAP = 6, EVE_RATE = 0.8, EVE_WARM = 0.6, EVE_WET = 0.3, EVE_WIND = 0.5, EVE_LEAD = 2.5, EVE_SPAN = 3, EVE_STAND = 1;
+const EVE_SPOTS = [
+  ...[12.5, 14.5, 16.5].map(y => ({g:'Q', lead:[[112.9, 7]], x:112.9, y, act:'stand', rail:1})),
+  {g:'Q', lead:[[112.9, 7]], bench:QUAY_BENCHES[0], act:'sit'},
+  ...[114.5, 116.5].map(x => ({g:'A', lead:DECK_LEAD_A.slice(0, 4), x, y:DECK_Y0 + 0.5, act:'stand', deck:1})),   // by the alley, #73's route: the plaza crossing alone is ~4 h, so only the near end of the span is reached
+  {g:'P', lead:[[PARK_GATE, 60.5], [FAR_WALK, 57]], bench:FAR_BENCHES[1], act:'sit'},
+  ...[50.5, 53, 55.5].map(y => ({g:'P', lead:[[PARK_GATE, 60.5], [TOW_WALK, 59]], x:TOW_WALK, y, act:'stand', tow:1})),
+];
+for (const s of EVE_SPOTS){ s.taken = 0; if (s.bench){ s.x = s.bench.x + 0.5; s.y = s.bench.y + 1.0; } }
+function eveEnd(){ return sunDown + EVE_SPAN; }                 // on hourEve()'s axis
+function eveWeather(){ return warmth >= EVE_WARM && !raining && wetF() < EVE_WET && windF() < EVE_WIND; }
+function eveOpen(){ return day >= 1 && eveWeather() && hourEve() >= sunDown - EVE_LEAD && hourEve() < eveEnd(); }
+function eveCount(){ return agents.filter(a => a.dusk).length; }
+function eveGate(s){ return s.g === 'Q' ? EAST_GATE_Q : s.g === 'A' ? EAST_GATE_A : EAST_GATE_P; }
+function eveFits(s, speed){
+  if (s.taken) return false;
+  const g = eveGate(s);
+  const arrive = hourEve() + pathHours(g[0], g[1], s.lead.concat([[s.x, s.y]]), speed);
+  return arrive + EVE_STAND < eveEnd();
+}
+function spawnEveningAgent(room){
+  const speed = 1.5 + R() * 0.8, dur = 4 + R() * 6, k = R();   // three draws whether or not a place fits: the stream is the same either way
+  const fit = EVE_SPOTS.filter(s => eveFits(s, speed));
+  if (!fit.length) return;
+  const s = fit[Math.floor(k * fit.length)]; s.taken = 1;
+  const gate = eveGate(s);
+  const a = {
+    kind:'evening', street:true, dusk:true, eveSpot:s,
+    x:gate[0], y:gate[1], wp:[], i:0, speed, state:'walk', timer:0,
+    shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9, wary:R(),
+    stop:{x:s.x, y:s.y, act:s.act, dur,
+      say: k < 0.12 ? (s.deck ? 'Someone leans on the footbridge rail in the last of the light, the river lamps coming on beneath them.'
+                     : s.rail ? 'Somebody has come down to the quay for the evening and is leaning at the rail.'
+                     : s.tow ? 'Someone strolls the towpath in the dusk and stops to look back at the town.'
+                     : 'Somebody sits out on a bench in the warm evening, in no hurry to go in.') : null},
+  };
+  for (const p of s.lead) a.wp.push(p.slice());
+  a.wp.push([s.x, s.y]);
+  for (let i = s.lead.length - 1; i >= 0; i--) a.wp.push(s.lead[i].slice());
+  a.wp.push(gate.slice());                   // and back out the way they came — unless goHome() takes them
+  a.pred = pathHours(gate[0], gate[1], s.lead.concat([[s.x, s.y]]), speed);   // the priced walk, for the probe
+  agents.push(a); withCompanion(a, room);
+}
+function eveRelease(a){ if (a.eveSpot && !a.with){ a.eveSpot.taken = 0; } a.eveSpot = null; }
 /* ============ arriving in twos ============ *
  * Until #70 every arrival on the lane and from the east came alone; the only pair in
  * the town was the picnic (a.mate, judged once at the blanket). From the wide shot a
@@ -6616,8 +6685,9 @@ function simStep(sdt, dt){
   // the evening's custom comes off its own budget for the same reason the audience does
   const tapNow = tapCount();
   const homeNow = homeCount();                   // the night's own arrivals: never a share of laneCap
+  const eveNow = eveCount();                     // the warm evening's own arrivals (#79): likewise
   const cafeAll = agents.filter(a => a.cafe).length, cafeNow = cafeCount();   // the cafe's own custom (#74)
-  const laneCount = agents.length - courtyardCount - eastCount - bandCount - tapNow - homeNow - cafeAll;
+  const laneCount = agents.length - courtyardCount - eastCount - bandCount - tapNow - homeNow - cafeAll - eveNow;
   /* Each cap is its old expression with the multiply-out done, so the fixed share is
    * visible as a number and the year rides the daylight term alone (see yearBusy).
    * At the anchor, warmth 0.5, all three are algebraically identical to what they
@@ -6640,7 +6710,7 @@ function simStep(sdt, dt){
    * they arrive on their own budget and stand on one pavement, so four of them would
    * otherwise damp the three night rates POP_FLOOR exists to lift — a full door
    * emptying the rest of the town. */
-  const scarcity = 1 + 0.8 * clamp(POP_FLOOR - (agents.length - tapNow - homeNow), 0, 6);
+  const scarcity = 1 + 0.8 * clamp(POP_FLOOR - (agents.length - tapNow - homeNow - eveNow), 0, 6);
   const rate = (0.05 + maturity() * 0.42) * (0.12 + daylight) * (raining ? 0.25 : 1) * scarcity;
   const laneRate = (0.08 + maturity() * 0.5) * (0.15 + daylight) * (raining ? 0.3 : 1) * (marketActive() ? 1.7 : 1) * scarcity;
   const eastRate = (0.15 + maturity() * 0.6) * (0.1 + daylight) * (raining ? 0.25 : 1) * scarcity;
@@ -6665,6 +6735,9 @@ function simStep(sdt, dt){
     // the night's own arrivals: this roll exists only after the dusk edge, so no
     // daylight census cell sees it
     if (nightF > 0.3 && homeNow < HOME_WAY && R() < homeRate()) spawnHomeAgent();
+    // the warm evening's own roll: eveOpen() is false on every hour outside its window
+    // and on every cold, wet or windy evening, so the draw exists only when it is spending
+    if (eveOpen() && eveNow < EVE_CAP && R() < EVE_RATE) spawnEveningAgent(eveNow + 1 < EVE_CAP);
     if (agents.length === 0 && day === 0 && simT > 6 && !window._first){ window._first = true; spawnAgent();
       announce('The first neighbour wanders in through the archway.'); }
   }
@@ -6682,6 +6755,7 @@ function simStep(sdt, dt){
       if (a === followed) followLost(a);
       if (a.table) a.table.taken = 0;
       if (a.tableRef) a.tableRef.taken = 0;
+      if (a.eveSpot && !a.with) a.eveSpot.taken = 0;   // an evening post held by someone rained off mid-walk
       if (a.slot) a.slot.taken = 0;              // the place on the green goes back
       agents.splice(i, 1);
     }
@@ -6917,6 +6991,7 @@ window.__entities = function(){
                    if (a.tap){ o.tap = 1; if (a.caller) o.caller = 1; }
                    if (a.home) o.home = 1;
                    if (a.homer) o.homer = 1;
+                   if (a.dusk) o.dusk = 1;
                    if (a === followed) o.followed = 1;
                    if (a.with) o.with = 'walker' + a.with.__id;
                    if (a.pairLead) o.lead = 1;

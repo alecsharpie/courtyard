@@ -394,7 +394,8 @@
       "swans are a PAIR with states — s.state swim|upend|preen + s.hold; cob picks the stretch, pen re-reads it, 0.9-cell give-way; SWAN_UPEND/SWAN_PREEN/SWAN_BANK. probes/swan-pair.mjs",
       "the NIGHT on the water — drawRiverLights() bar columns under RIVER_LAMPS + moon × nightF × (1 − cloudCover()), wind-chopped; ONE a.nightRail stander; boatLampF() lantern relit after applyLight; boatRate() NOT thinned at night. probes/river-night.mjs, boat-lantern.mjs",
       "FOOTBRIDGE (#73) — DECK tile rows at ALLEY_Y over the river; drawDeckSpan/drawDeckFront two items round the walkers, boatUnderDeck(); agentZ()/deckZAt() lift walkers; DECK_LEAD_A/Q, DECK_SHARE route east arrivals over it; a.jetty standers. probes/deck-crossings.mjs, deck-shots.mjs",
-      "the WATERMILL (#78) — MILL footprint 130..133×19..24 WALL (roof emergent, eaveFor 4.7); MILL_WHEEL over the water x 126.35, millAng off millSpin()=riverRun()·(1−fountainSkin()); drawMillShadow/drawMillWheel two items; tail-race in drawRiverFlow; MILL_WIN lit all night; nameAt the mill. probes/mill-shots.mjs"
+      "the WATERMILL (#78) — MILL footprint 130..133×19..24 WALL (roof emergent, eaveFor 4.7); MILL_WHEEL over the water x 126.35, millAng off millSpin()=riverRun()·(1−fountainSkin()); drawMillShadow/drawMillWheel two items; tail-race in drawRiverFlow; MILL_WIN lit all night; nameAt the mill. probes/mill-shots.mjs",
+      "the warm EVENING's own arrivals (#79) — eveOpen() (warmth ≥ 0.6, dry, wetF < 0.3, windF < 0.5, sunDown−2.5..+3) rolls spawnEveningAgent() under EVE_CAP 6; EVE_SPOTS 12 taken posts (quay rail, quay bench, deck rail, far bench, towpath); a.dusk; eveFits() prices ARRIVAL. probes/evening-arrivals.mjs"
     ],
     "sky": [
       "day/night cycle (55 s day), sun and moon arc, hills, chimney smoke, a balloon; windowLit(sa,sb) the ONE predicate for pane + LIT[] glow; facades CACHED; LIT_PANES/ROSE relit by a screen pass AFTER applyLight. probes/windows-night.mjs, polish-1x.mjs",
@@ -444,6 +445,12 @@
       "id": "c117",
       "note": "a miller for the mill (#78): an agent at MILL door, sacks on the towpath — the next brief if the mill stays",
       "raisedBy": 78,
+      "seenBy": 0
+    },
+    {
+      "id": "c118",
+      "note": "the deck's evening: EVE_SPOTS deck posts fit 0 times in 30 evenings (plaza crossing ~4 h) — give the deck an ALREADY-THERE source: an east arrival who stays on past eastOpen() under eveOpen()",
+      "raisedBy": 79,
       "seenBy": 0
     }
   ],
