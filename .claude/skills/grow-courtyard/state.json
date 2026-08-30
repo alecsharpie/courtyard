@@ -382,14 +382,13 @@
       "the BOAT LANTERN — boatLampF() fades in on nightF 0.3..0.45; BOAT_LAMP set by drawBoat, relit after applyLight with its own halo; a bar column under the hull; boatRate() NOT thinned at night (65 % of dark samples). probes/boat-lantern.mjs"
     ],
     "sky": [
-      "day/night cycle (55 s day), sun and moon arc, backdrop hills, chimney smoke, a balloon; windowLit(sa,sb) — ONE predicate for pane and LIT[] glow, hours off the dusk edge (nid); facades CACHED, drawLitPanes() live. probes/windows-night.mjs",
+      "day/night cycle (55 s day), sun and moon arc, backdrop hills, chimney smoke, a balloon; windowLit(sa,sb) — ONE predicate for pane and LIT[] glow, hours off the dusk edge (nid); facades CACHED; LIT_PANES/ROSE relit by a screen pass AFTER applyLight's multiply. probes/windows-night.mjs, polish-1x.mjs",
       "cloudCover() — one slow rate-capped scalar; fronts build ~half a day, break after rain; weatherComing() the ramped predicate off it. rainFall 0..1 beside the raining boolean: drops, overcast tint, pond rings, sparkle, smoke",
       "season() — the YEAR over SEASON_LEN 26 days, phase 0 midwinter, anchor SEASON_START 0.25 where every seasoned term equals the constant it replaced; greyF() drives the weather's year (fronts, spellLen). probes/weather-year.mjs",
       "the ground reads the lid — shadowF() with shSpread()/shOffset(): cast shadows fade, widen and retract together, eight sites, blurred on the cached ground. probes/shadow-cover.mjs",
       "snow — snowF() turns showers to flakes past greyF 0.55; snowCover 0..1 (rate-capped, snowAt per cell, trodden kinds take less) whitens cached ground/roofs/awnings, melts as warmth lifts; census clock.snow. probes/snow-year.mjs",
       "the WIND — windF() 0..1 rate-capped by stepWind(); windTarget() = max(windyDay() day hash, frontWind()); frontWind() ramps on cloud 0.46→0.76, 0 while raining/frontSpent (latched at rain start). Magnitude only. probes/wind-front.mjs, wind-year.mjs",
-      "wetness 0..1 — wetF()/stepWet(): rain soaks paving, dries by daylight×warmth. Cached ground reads wetPainted via wetCol() on PATH/SIDE/ROAD; lane sheen 0.16×wetness; drawWetLights() lamp bars on WET_LAMPS × wetness × nightF. probes/wet-year.mjs, wet-shots.mjs",
-      "night warmth is put BACK after applyLight: LIT_PANES[] (per frame) and ROSE (cache time) screen-filled at 0.7·nightF before the LIT halos; turned[] furrowed; bunting 5 px; GRASS snow mix 1−(1−sn)^1.8. probes/polish-1x.mjs, polish-crops.mjs"
+      "wetness 0..1 — wetF()/stepWet(): rain soaks paving, dries by daylight×warmth. Cached ground reads wetPainted via wetCol() on PATH/SIDE/ROAD; lane sheen 0.16×wetness; drawWetLights() lamp bars on WET_LAMPS × wetness × nightF. probes/wet-year.mjs, wet-shots.mjs"
     ],
     "life": [
       "walkers with itineraries — courtyard, street and eastern stops; cafe sitters; market and kiosk browsers; dogs on leads; ducks, swans, butterflies, fireflies, birds, one night cat, falling leaves",
