@@ -1,36 +1,132 @@
 {
-  "generated": "2026-08-31T12:00:00.000Z",
-  "byIteration": 77,
-  "rung": "4b",
+  "generated": "2026-08-31T05:10:00.000Z",
+  "byIteration": 81,
+  "rung": 3,
   "diagnosis": {
-    "health": "Healthy on every row-level number: 19 of the last 20 real rows shipped (the one no-ship is #63 landing #62's diff), 0 reverts, 0 rejected briefs, selfVerdict == verdict on every row that wrote one, src moved 10/10, $3.76/iter at 8 min with the dearest row (#70 $7.19) the second-biggest diff — cost still buys output. The last batch did what it was planned to do: #73 moved the map for the first time in the run (tileKinds 108 → 117, water −234, a re-pinned baseline), and mapFlat has cleared. But the four briefs behind the bet shipped at +34/+14/+20/+13 lines, so smallDiff fires again (median 20) and binds this pass to rung ≥ 4. The loop is learning, not repeating: #73 (two-item raised surface), #74 (effective speed 0.75·a.speed), #75 (deviceScaleFactor changes the world), #76 (fold a variable out of an existing draw) are all new and are now laws. Memory: rotated #67/#68; #73–#76 archived verbatim then condensed 2.5–3.0 → 1.2–1.6 KB; four laws promoted, paid for by cutting the last-waypoint law into qualify-every-read, the CA-coherence law into the ceiling law, the split-a-flag law into the same, and reflowing eight — 32 laws, 11.9/12 KB; inventory 47 → 43 with the three plaza fountain lines merged into one, the two wind lines into one, the shadow line into cloudCover; 4 cues closed, 1 promoted, 2 held; the map WATCH note rewritten to what is true after #73. Budget 45.6 → OK.",
+    "health": "Healthy on every row-level number and, for the first time, on the diff size too: 19 of the last 20 real rows shipped (the one no-ship is #63 landing #62's diff), 0 reverts, 0 rejected briefs, selfVerdict == verdict on every row that wrote one, src moved 10/10, $4.25/iter at 9 min. The last batch shipped at +116/+79/+140/+42 lines against the previous batch's +34/+14/+20/+13 — smallDiff has cleared, and the two big briefs were the two that changed what a viewer sees in the first ten seconds (a mill that turns, a camera that leans in). No stall signal shows. The manager's own recurring fault repeats for the eighth pass: worker budget OVER (47.2/46 KB) because #79–#81's entries came in at ~3 KB each and the inventory grew three lines of ledger text; distilled this pass (entries condensed 3.0 → 1.6 KB, verbatim copies archived; four laws promoted by MERGING into existing ones and paid for by cutting the folded-time law into the shoulder law and trimming five others — 31 laws, 12.0/12 KB; inventory offenders merged: rose window into the night-on-the-water line, the evening moved to life). Budget 47.2 → OK.",
     "signals": [
-      "~ smallDiff: median diff of the last 5 shipped = 20 lines (136/34/14/20/13) — binds this pass to rung ≥ 4",
-      "mapFlat CLEARED at #73 (tileKinds, water moved); developed/green/passages/structures/speciesKinds still at their #2 values",
-      "no revert, no rejection, no selfVerdict gap in 20 rows",
-      "state.json three iterations stale (#75–#77) — recorded this pass"
+      "none firing; smallDiff cleared (last 5 shipped: 42/140/79/116/13, median 79)",
+      "rung history: 4b, 4b — the last two passes were spatial; rung 3 (widen the menu) has never been used in 17 passes",
+      "mapFlat cleared twice (#73 tileKinds/water, #78 developed/green); passages/structures/speciesKinds still at #2 values",
+      "state.json four iterations stale (#78–#81) — recorded this pass"
     ],
-    "balance": "After recording: sill 9 back (#68), life 7 (#70), street 5 (#72), river 4 (#73), lane 3, courtyard 2, sky 1, plaza 0. The two starved domains take the two big briefs: life gets the evening (b77) and the sill gets the camera (b78, rung 5). The bet is at the river again because the river and the far bank are the only place the map has room — the thing that has never existed in the town is a building that MOVES. Plaza and sky sit this batch out; courtyard × New element is still an empty cell and is noted for the next pass."
+    "balance": "After recording: street 9 back (#72), lane 7 (#74), courtyard 6 (#75), sky 5, plaza 4, life 2, sill 1, river 0 — the river took two of the last four (mill, rose) and is DONE for this batch. Courtyard × New element is still an empty cell in the namesake quarter. The two starved domains take the two structural briefs: the street gets the bet (b80, the cart) and the courtyard its first new element since the pre-loop (b82, the sundial). Rung 3 adds a domain: Roofs & skyline — the top third of every wide shot, where roofs are emergent and nothing has ever been the subject of a brief (b81, the weathervane). Life/plaza take c118 (b83), the sill takes c119+c120 (b84)."
   },
-  "rationale": "STAYS ON RUNG 4b for one more pass, and climbs to 5 inside the same batch. smallDiff is the binding signal and it fires because four of the last five briefs were priced as polish; the answer is not another polish batch with a spatial bet on top, it is a batch where three of the four briefs are structural. From a thirty-second look at the wide shot (noon and 03:00, seed 42): the far bank is a strip where nothing moves but the band three days in a summer; the night holds one person in the whole town; and at 390 px the whole 138-cell world is a thumb-wide strip nobody can read. So: b76 THE MILL — the first structure since #2 and the first building that moves: a mill house on the far bank with an undershot wheel in the river turning on riverRun(), stilled by the frost, a lit window at night, its footprint through buildVolumes() so developed/structures move and the baseline is re-pinned again. b77 THE EVENING — life's own arrival source for the warm dry evening: strollers who come in through the park gate or the quay head, cross the new deck, lean at the rail and sit on the quay, so the clock-tap lands a viewer in a town that is out of doors after dark. b78 THE QUARTERS (rung 5) — a phone visitor can look at ONE quarter: a sill control that eases the camera (originX/cellW/cellH inside project()) onto courtyard, street, plaza & river or far bank, and back; all hit-testing already goes through project() so naming and touch keep working. b79 the rose window's dusk seam (c104, three passes old: a brief or a deletion — a brief). Risk: b76 high (first, 75 min, 200-line diff invited), b77 medium (60), b78 medium-high (60, rung 5), b79 low (25).",
-  "queue": [],
-  "recommendStop": null,
-  "consumed": [
+  "rationale": "CLIMBS TO RUNG 3. Not forced — no signal fires — but chosen: seventeen passes have used rungs 2, 4, 4b and 5 and never once widened the menu, and the coverage grid says why it should now: every domain has its cells filled except the empty ones the town cannot fill (courtyard × New element, sill × everything but interaction), so the next hundred briefs from THIS menu are rotations. Thirty seconds at the wide shot, seed 42, noon then 03:00: the roofline is a third of the picture and it is inert — chimneys smoke, one vane on the clock tower points the same way in an east gale as a west one, snow whitens the slates and nothing else ever happens up there; the cross street is six cells of road with a cyclist every few minutes; the courtyard tells no time although the whole town runs on the sun. So the batch is: b80 THE CART (the bet, street, 75 min, 200-line diff invited) — a horse-drawn cart that comes down the cross street every morning, the first thing on the road bigger than a bicycle, stopping at the allotment gate to load produce and on market days at the lane end for the stalls, bringing the mill's sacks (c117) — a moving object the wide shot cannot miss. b81 THE WEATHERVANE (the new domain's first brief): the clock tower's vane turns to windSign·windF(), the chimney smoke already leans the same way, so a windy day is legible from the skyline. b82 THE SUNDIAL (courtyard × New element, the empty cell): a gnomon on the roundel whose shadow is sunVec(), so the courtyard reads the hour and the season. b83 the deck's evening (c118, life × Connect): an east arrival who stays on past eastOpen() under eveOpen() so the footbridge has somebody on it at dusk. b84 the camera's stale overlays (c119 + c120, sill × Polish). Risk: b80 high, b81 medium, b82 medium, b83 medium, b84 low.",
+  "queue": [
     {
-      "id": "b76",
-      "at": "2026-08-30T17:57:21.022Z"
+      "id": "b80",
+      "domain": "Cross street & allotments",
+      "kind": "New element",
+      "brief": "THE BET — take the swing: a 150–300-line diff is expected and welcome. The cross street (XS_R0..XS_R1, rows 0..64) carries nothing bigger than a cyclist (`a.kind = 'cyclist'`, spawned in spawnLaneAgent ~line 2462). Add a horse-drawn cart: its own arrival source (never a share of laneCap — spawnTapAgent/spawnCafeAgent are the model), entering from the north end of the road at a morning hour off sunUp, driving south at a slow walking pace, STOPPING at the allotment gate (ALT_GATE) where a gardener with a basket (a.crop, harvestPlot) loads it, and on market days (marketActive) a second stop at the lane end where the stalls stock from it — then out by the south edge. Draw it as two items (a body drawn before the walkers' row, the near wheel and the horse's legs after — the raised-surface law) so pedestrians read as passing it. Walkers and cyclists yield: reuse the bicycle-bell dodge. One R() for whether it comes today, hashed per day like isBandDay(); it comes most days. Name it in nameAt/personName ('the carter and his horse'). At night it does not exist. The mill (MILL, c117) has no miller — if there is room, sacks on the cart's bed on the days after a wet spell are the cheapest way to give the mill an output without an agent.",
+      "seams": [
+        "XS_R0",
+        "XS_R1",
+        "XS_WALK_W",
+        "ALT_GATE",
+        "marketActive",
+        "stockMarket",
+        "harvestPlot",
+        "spawnCafeAgent",
+        "agentZ",
+        "drawDeckSpan",
+        "nameAt",
+        "isBandDay",
+        "sunUp"
+      ],
+      "successLooksLike": "From the wide shot at 09:00 on a summer day a cart and horse are on the cross street, stopped at the allotment gate with a gardener beside it; ten minutes of sim later it is gone south. probes/cart-day.mjs: 10 seeds × 4 d, arrivals per day, stop durations, and a count of walkers within 1 cell (must be 0 — nobody inside the cart).",
+      "avoid": "Do not put it on the lane (LANE_N_Y is a footway with tables) or over the footbridge. Do not spawn it from laneCap. Do not draw it as one item — a walker will vanish behind it or walk through its body. Do not make it a bus/van: the town is pre-motor.",
+      "budgetMin": 75,
+      "risk": "high"
     },
     {
-      "id": "b77",
-      "at": "2026-08-30T18:05:53.645Z"
+      "id": "b81",
+      "domain": "Roofs & skyline",
+      "kind": "Deepen",
+      "brief": "First brief of a NEW domain. The clock tower's vane (drawClockTower, ~line 3897) is a static triangle drawn at `vane = project(..., top + 4.8)`; it points the same way in a west gale as an east one. Make it a weathervane: its arrow turns to a heading driven by windSign·windF() — pointing INTO the wind (the way vanes do), swinging through the blend windDir() so a latch never steps a frame, with a little calm-drift wobble folded from a hash the tower already has, not a new R(). Add the same vane to the church tower (CHURCH tx0..tx1) so two vanes agree across the whole width of the town; the chimney smoke (drawSmoke) already leans windDir() — after this the smoke, the vanes, the rain slant and the bunting all say the same wind. If the tower is CACHED (check drawBlocks/facades), the vane must become a live overlay drawn after the cache, projected per frame — the rose window (#81, roseLit) is the model.",
+      "seams": [
+        "drawClockTower",
+        "windSign",
+        "windF",
+        "windDir",
+        "drawSmoke",
+        "CHURCH",
+        "drawChurchFront",
+        "applyLight",
+        "roseLit",
+        "project"
+      ],
+      "successLooksLike": "probes/vane.mjs: force windSign +1 and −1 on a windy day and read the arrow's projected tip x on each; under calm (windF 0) the arrow sits within a few degrees of its rest heading; at windF 1 the two signs give mirror headings. Crops of the tower at the two signs in shots/. Wide-view hash IDENTICAL to HEAD when windF is forced 0 and the wobble hash is forced to its rest value.",
+      "avoid": "No new R() draw. Do not turn the vane in the CACHE (a cached vane steps at the bucket cadence — the rose window's old seam). Do not make the smoke read anything new — it is already right.",
+      "budgetMin": 40,
+      "risk": "medium"
     },
     {
-      "id": "b78",
-      "at": "2026-08-30T18:20:10.754Z"
+      "id": "b82",
+      "domain": "Courtyard & garden",
+      "kind": "New element",
+      "brief": "The courtyard has never had a New element in the loop (the cell is empty) and the town runs on the sun (sunVec(), sunArc, warmth) but nothing in the courtyard reads the hour. Put a sundial in the courtyard — a low stone plinth and gnomon on the grass inside the bed ring (a cell off the RING at a spot with no bench, no desire path, checked against wear[] and BENCH_SPOTS), whose cast shadow is drawn per frame from sunVec() at the same hardness the cast shadows use (shadowF/shSpread), so it fades under a grey lid and vanishes at night. Its footprint goes into buildGrid() as one non-walkable cell (a new tile kind or WALL-at-ground — the census's tileKinds/structures are EXPECTED to move; re-pin the baseline and say so). Name it in nameAt with the hour it reads: 'the sundial — about ten'. Walkers already route around non-walkable cells.",
+      "seams": [
+        "sunVec",
+        "sunArc",
+        "shadowF",
+        "shSpread",
+        "buildGrid",
+        "gR",
+        "RING",
+        "BENCH_SPOTS",
+        "wear",
+        "nameAt",
+        "drawGround",
+        "project"
+      ],
+      "successLooksLike": "Warp to 08:00, 12:00 and 16:00 on one summer day and the gnomon's shadow swings from west to east across the dial in the crops; at midwinter noon it is long, at midsummer noon short; under cloudCover 1 it is gone. nameAt over the cell answers with the hour. Census: one structural scalar moved, baseline re-pinned, everything else churn.",
+      "avoid": "Do not put it on the roundel of the plaza (that is the fountain's). Do not draw the shadow into the cached ground — it moves every frame. Do not add a clock face: the town has a clock tower; this is the courtyard's older, slower one.",
+      "budgetMin": 45,
+      "risk": "medium"
     },
     {
-      "id": "b79",
-      "at": "2026-08-30T18:34:07.099Z"
+      "id": "b83",
+      "domain": "People & animals",
+      "kind": "Connect",
+      "brief": "c118: the footbridge has an evening nobody reaches — EVE_SPOTS' two deck posts fit 0 times in 30 evenings because the plaza crossing alone is ~4 h from every gate. Give the deck an ALREADY-THERE source: when eveOpen() is true (or will be within the walk) an east arrival (spawnEastAgent, a.east) whose stop is on the far side and who would otherwise retrace at eastOpen()'s close instead STAYS ON — re-routed by the one re-route (callIn is the model) onto a free deck post under eveOpen(), leaving by the retire rule a.dusk && !eveOpen() like the others. Price it: count who is on the far side at sunDown − 2.5 h before choosing the share. Count at the CHOICE.",
+      "seams": [
+        "EVE_SPOTS",
+        "eveOpen",
+        "eveFits",
+        "spawnEastAgent",
+        "eastOpenFor",
+        "callIn",
+        "DECK_LEAD_A",
+        "a.dusk",
+        "probes/evening-arrivals.mjs"
+      ],
+      "successLooksLike": "probes/evening-arrivals.mjs extended: over 10 seeds × 4 summer days the deck posts are taken on most open evenings (>50%), total evening presence rises without the other posts losing occupancy; winter still 0. Crop at sunDown + 1 h with a figure leaning on the deck rail above the boat.",
+      "avoid": "Do not widen EVE_LEAD again. Do not add a gate source — the ledger proved the deck cannot be reached from any edge inside the window. Do not steal from eastCap's daylight budget by more than the share you counted.",
+      "budgetMin": 40,
+      "risk": "medium"
+    },
+    {
+      "id": "b84",
+      "domain": "The sill & the observer",
+      "kind": "Polish",
+      "brief": "Two loose ends of the camera (#80). c119: FACES hit-boxes and the LIT_PANES/halo overlays are registered in screen space at cache time, so during the 0.9 s ease the window glows drift off their panes at night and a tap mid-ease hits the wrong face — apply the composite's k (viewS / gview.s and the origin shift) to the live overlays and the hit-test for the duration of the ease, exactly as drawScene composites gcv. c120: on a desktop the Far bank quarter is clamped by the world's east edge into nearly the plaza frame — give it a tighter box (QUARTERS[4]) or let viewFor raise s for it so the far bank fills the frame at 1400 px.",
+      "seams": [
+        "FACES",
+        "faceAt",
+        "drawLitPanes",
+        "gview",
+        "viewS",
+        "stepView",
+        "viewFor",
+        "QUARTERS",
+        "probes/where-cost.mjs"
+      ],
+      "successLooksLike": "A night filmstrip through a Wide → Far bank ease shows the pane glows on their panes on every frame (crop the church tower mid-ease, before and after). At 1400 px the Far bank quarter's s is visibly higher than the Plaza's and the mill fills a third of the frame. Wide-view hash IDENTICAL to HEAD; frame-cost unchanged.",
+      "avoid": "Do not move FOCUS. Do not repaint the ground cache per frame during the ease.",
+      "budgetMin": 30,
+      "risk": "low"
     }
-  ]
+  ],
+  "recommendStop": null
 }
