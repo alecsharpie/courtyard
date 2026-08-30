@@ -15,30 +15,6 @@
   "rationale": "CLIMBS TO RUNG 3. Not forced — no signal fires — but chosen: seventeen passes have used rungs 2, 4, 4b and 5 and never once widened the menu, and the coverage grid says why it should now: every domain has its cells filled except the empty ones the town cannot fill (courtyard × New element, sill × everything but interaction), so the next hundred briefs from THIS menu are rotations. Thirty seconds at the wide shot, seed 42, noon then 03:00: the roofline is a third of the picture and it is inert — chimneys smoke, one vane on the clock tower points the same way in an east gale as a west one, snow whitens the slates and nothing else ever happens up there; the cross street is six cells of road with a cyclist every few minutes; the courtyard tells no time although the whole town runs on the sun. So the batch is: b80 THE CART (the bet, street, 75 min, 200-line diff invited) — a horse-drawn cart that comes down the cross street every morning, the first thing on the road bigger than a bicycle, stopping at the allotment gate to load produce and on market days at the lane end for the stalls, bringing the mill's sacks (c117) — a moving object the wide shot cannot miss. b81 THE WEATHERVANE (the new domain's first brief): the clock tower's vane turns to windSign·windF(), the chimney smoke already leans the same way, so a windy day is legible from the skyline. b82 THE SUNDIAL (courtyard × New element, the empty cell): a gnomon on the roundel whose shadow is sunVec(), so the courtyard reads the hour and the season. b83 the deck's evening (c118, life × Connect): an east arrival who stays on past eastOpen() under eveOpen() so the footbridge has somebody on it at dusk. b84 the camera's stale overlays (c119 + c120, sill × Polish). Risk: b80 high, b81 medium, b82 medium, b83 medium, b84 low.",
   "queue": [
     {
-      "id": "b82",
-      "domain": "Courtyard & garden",
-      "kind": "New element",
-      "brief": "The courtyard has never had a New element in the loop (the cell is empty) and the town runs on the sun (sunVec(), sunArc, warmth) but nothing in the courtyard reads the hour. Put a sundial in the courtyard — a low stone plinth and gnomon on the grass inside the bed ring (a cell off the RING at a spot with no bench, no desire path, checked against wear[] and BENCH_SPOTS), whose cast shadow is drawn per frame from sunVec() at the same hardness the cast shadows use (shadowF/shSpread), so it fades under a grey lid and vanishes at night. Its footprint goes into buildGrid() as one non-walkable cell (a new tile kind or WALL-at-ground — the census's tileKinds/structures are EXPECTED to move; re-pin the baseline and say so). Name it in nameAt with the hour it reads: 'the sundial — about ten'. Walkers already route around non-walkable cells.",
-      "seams": [
-        "sunVec",
-        "sunArc",
-        "shadowF",
-        "shSpread",
-        "buildGrid",
-        "gR",
-        "RING",
-        "BENCH_SPOTS",
-        "wear",
-        "nameAt",
-        "drawGround",
-        "project"
-      ],
-      "successLooksLike": "Warp to 08:00, 12:00 and 16:00 on one summer day and the gnomon's shadow swings from west to east across the dial in the crops; at midwinter noon it is long, at midsummer noon short; under cloudCover 1 it is gone. nameAt over the cell answers with the hour. Census: one structural scalar moved, baseline re-pinned, everything else churn.",
-      "avoid": "Do not put it on the roundel of the plaza (that is the fountain's). Do not draw the shadow into the cached ground — it moves every frame. Do not add a clock face: the town has a clock tower; this is the courtyard's older, slower one.",
-      "budgetMin": 45,
-      "risk": "medium"
-    },
-    {
       "id": "b83",
       "domain": "People & animals",
       "kind": "Connect",
@@ -90,6 +66,10 @@
     {
       "id": "b81",
       "at": "2026-08-30T22:41:52.135Z"
+    },
+    {
+      "id": "b82",
+      "at": "2026-08-30T22:48:06.333Z"
     }
   ]
 }

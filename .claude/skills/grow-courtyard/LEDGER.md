@@ -40,13 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 76 — the rain, the leaves and the gutter learn the wind's sign: rain slant on `windDir()`, leaves culled at the world edge, per-leaf fall drift (2026-08-31) [Sky, light & weather × Connect]
-
-**Brief b72.** c108 rain ignored windSign; c109 street-tree leaves left the world under an east gust; c110 every lane leaf landed in road row 70.
-**Did:** shower step `r.x -= v·dt·0.12·windDir()` and the streak `r.x − 2.4·windDir()`; a drop recycles across the WINDWARD edge. Leaves: `LEAF_EDGE_W/E = −3 / GW+3`, culled with `landLeaf`. Each leaf gets `l.vy` on its first step, folded from the `ph` it already drew (triangular on [0.15, 0.85], peak at the old 0.5). No new `R()`.
-**Gates:** census PASS (leaves −9, reshuffle) · motion PASS, leaf spawns identical to baseline · visual PASS · filmstrip 0 POP · `wind-sign.mjs` 0 flips in-spell. `probes/wind-consumers.mjs`: leaf oob 57 → 0 samples over 10 seeds × 30 d; road litter row 70 only → rows 68–73; rain dx −7.81 at +1, +7.81 at −1; sign forced +1 over 20 d is HEAD's algebra to the bit.
-**Verdict:** shipped.
-**Surprise:** the gutter heap was 4697 over 4 seed-days at HEAD and 7176 spread here — the spread lands MORE litter, because row 70 was the row the sweeper cleared every morning and rows 69/71 are not yet where he walks.
 ## Iteration 77 — the frozen basin reads frozen: `fountainSkin()` lifts the ice mix from 0.43 to 1 at midwinter (2026-08-31) [Plaza & quay × Polish]
 
 **Brief:** b74 — the basin skin capped at fountainIce()'s 0.43 max, so midwinter read as pale water, not ice.
@@ -105,3 +98,13 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Surprise:** "IDENTICAL to HEAD" is unreachable for a shape lifted out of a cache — HEAD hashed stable twice; here 4 tiles differed, every one at the arrow, ±1 on 12 antialiased edge pixels: the cache composites the triangle's edge over its own pixels, then over the sky; live it composites once. Zero difference anywhere else. The first identity run differed in 108 tiles all over the town: two rAF frames after `__warp` are NOT the same instant on two pages — pin with `drawScene(simT, 1/30)` inside the evaluate (`noon-identical.mjs`), never `await frame()`.
 **Law:** a probe that reads the canvas after `requestAnimationFrame` is reading a frame it did not pin — the live loop's own dt; call `drawScene()` yourself. A pixel identity gate on a shape moved between a cache and a live pass passes at ±1 on its edge pixels and nowhere else — assert the diff's LOCATION, not zero.
 **Context:** `rotate-ledger` reports the inventory OVER (11.0/9.5 KB, 48 entries; the carter line 363 B) — it was over before this iteration; a manager condense.
+
+## Iteration 84 — the sundial: a stone plinth and gnomon on the inner lawn, its shadow cast live from sunVec() (2026-08-31) [Courtyard & garden × New element]
+
+**Brief:** b82 — a sundial inside the bed ring, shadow per frame off the roofs' own sun, one non-walkable cell, named with the hour.
+**Did:** `DIAL = 13`, `SUNDIAL = {x:32, y:35, h:0.85}` — inner lawn south of the linden (27 cells from a bench, 13 from the RING, wear 0 around it after four days). `buildGrid` sets it, `pairStands` refuses it, the ground cache paints it GRASS. `drawSundial` a live item at y+0.9 (after the linden): plinth shadow + the gnomon's throw on the grass, `dialThrow(h)` = −SUN·h·shOffset()/SUN[2], alpha 0.22·daylight·shadowF(), width × shSpread(); plinth, face with hour lines and the reading clipped to the plate, gnomon. `sundialName()` reads the SUN's hour (`12 + (sunArc−0.5)·dayHours`, 45 min behind the clock); night and shadowF < 0.5 say so. Census TN gets 'DIAL'. No R().
+**Gates:** census PASS — ONE structural move (tileKinds +1, DIAL +1, GRASS −1 per cell), the rest churn (the cell no longer rolls the daisy R()); **baseline re-pinned** · motion PASS · visual PASS (`shots/b82-sundial-sheet.png` 3×) · day filmstrip 0 POP · perf PASS (+0.0%) · `probes/sundial.mjs`: throw (−0.35,−0.26) 08:00 → (0,−0.22) 12:45 → (0.22,−0.24) 16:00 summer; winter noon 0.70 vs summer 0.22 cells; lid shadowF 0.2 + name flips; pixel on the throw 211 vs 230 with the draw stubbed (margin 19); all PASS.
+**Verdict:** shipped (+85 lines).
+**Surprise:** "walkers already route around non-walkable cells" is not how this town walks — routes are WAYPOINTS (RING nodes, gapPt, napAt, kids, picnics) and nobody reads the grid between them; the DIAL cell keeps a companion off it and nothing else. The inner lawn is the only grass no route crosses but the nappers' two gap lines — that chose the site. And a summer throw (0.44 cells at 08:00) is shorter than the plinth's radius: the reading lives on the face; the ground shadow shows evenings and winter (1.64 cells at a winter 08:00).
+**Law:** a "non-walkable cell" holds only where a route's ENDPOINTS are chosen — walkers never read the grid between waypoints; keep a cell out of every target set (ring nodes, spot pickers), not just out of the grid.
+**Cue:** the inner lawn is the linden's shade at maturity — the dial sits inside the tree's shadow ellipse all day, a shadow within a shadow; name it 'in the linden's shade' when the crown is out, or thin the tree's shadow there.

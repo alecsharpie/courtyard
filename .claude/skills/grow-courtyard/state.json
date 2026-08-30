@@ -386,7 +386,8 @@
       "walled garden — bed ring, four arches, benches, desire paths from wear[], daisies, ivy, a pre-dawn sweeper (a.broom), one linden; planting CA (11 species: bloom, seeding, crowding, dieback); drawGround cached, dirtied by wearDirty. probes/ground-rebuilds.mjs",
       "the beds read the YEAR — growF()/dieF() off warmth, lawn health in groundCol; bloomCap() a RAMP over warmth (BLOOM_LO → BLOOM_HI = anchor), a CEILING dithered per cell by capStep(). probes/beds-year.mjs, bloom-cap.mjs",
       "the ground remembers — trod[] (feet on GRASS) discounts snowAt(); litter[] laid by landing leaves, painted in drawGround, cut by feet/broom, decayed, cleared by snow. probes/snow-wear.mjs, litter-year.mjs",
-      "courtyard arrivals in twos (#75) — spawnAgent(room) → withCompanion under capacity; bench sitters shift −0.5 with a.pairSeat; kids/picnic/gardener/napper excluded; a seated bench pair is ~1 sighting/10 days. probes/sitter-pairs.mjs"
+      "courtyard arrivals in twos (#75) — spawnAgent(room) → withCompanion under capacity; bench sitters shift −0.5 with a.pairSeat; kids/picnic/gardener/napper excluded; a seated bench pair is ~1 sighting/10 days. probes/sitter-pairs.mjs",
+      "the SUNDIAL (#84) — DIAL cell 32,35 on the inner lawn south of the linden (SUNDIAL); drawSundial a live item, dialThrow(h) off sunVec()·shOffset(), alpha × shadowF, width × shSpread; sundialName() reads the SUN's hour (45 min behind the clock); pairStands refuses DIAL. probes/sundial.mjs"
     ],
     "lane": [
       "kiosk, pavement cafe with claimable tables, awnings, washing lines (in on weatherComing() and at dusk), planters, lamps, benches; market every 4th day, three stalls, marketRaise(i) on one 0..1",
@@ -472,6 +473,12 @@
     {
       "id": "c123",
       "note": "the church vane sits on the rod under the cross and goes edge-on (a 1-px sliver) when the heading passes north — a weathercock silhouette would read at every heading; neither vane is named by lookAt() (#83)",
+      "raisedBy": 82,
+      "seenBy": 0
+    },
+    {
+      "id": "c124",
+      "note": "the sundial stands inside the linden's shadow ellipse all day at maturity (the inner lawn IS the shade) — a shadow in a shadow; name it 'in the linden's shade' when the crown is out, or thin the tree's shadow where it stands (#84)",
       "raisedBy": 82,
       "seenBy": 0
     }

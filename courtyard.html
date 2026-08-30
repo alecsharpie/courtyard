@@ -273,10 +273,13 @@ const WH = 88;                 // full world height incl. the lane below
 const WALL = 0, PATH = 1, GRASS = 2, BED = 3, CBED = 4, TRUNK = 5, SIDE = 6, ROAD = 7, VOID = 8, WATER = 9,
       TUNNEL = 10,             // roofed passage under a building — seen through an arch
       SLOT = 11,               // open passage cut through a block — seen from above
-      DECK = 12;               // the footbridge: river cells carried over by a timber span — water
+      DECK = 12,               // the footbridge: river cells carried over by a timber span — water
                                // to the ground cache, paving to a walker, drawn live in two halves
+      DIAL = 13;               // the sundial's plinth: one cell of the inner lawn nobody stands on —
+                               // lawn to the ground cache, not ground to a companion, drawn live
 const POND = {x:90, y:49.5, rx:4.2, ry:3.1};
 const CX = 32, CY = 32.5;
+const SUNDIAL = {x:32, y:35, h:0.85};   // the cell, and the gnomon's tip above the grass (a person is ~1.3)
 const WALL_H = 5.6;
 /* the lane */
 const LN_WALK_N = 65, LN_ROAD0 = 68, LN_ROAD1 = 76, LN_WALK_S = 79; // row boundaries
@@ -571,6 +574,7 @@ function buildGrid(){
         if (r < 1.15){ grid[i] = TRUNK; continue; }
         if (r < gR(th)){
           if (r > bedIn(th) && r < bedOut(th) && !bedGap(th)) grid[i] = CBED;
+          else if (x === SUNDIAL.x && y === SUNDIAL.y) grid[i] = DIAL;
           else grid[i] = GRASS;
           continue;
         }
@@ -3119,7 +3123,7 @@ function pairStands(x, y){
   const gx = Math.round(x - .5), gy = Math.round(y - .5);
   if (gx < 0 || gy < 0 || gx >= GW || gy >= WH) return true;   // off the frame is where they came from
   const g = grid[gy * GW + gx];
-  return g !== WATER && g !== VOID && g !== WALL && g !== BED && g !== CBED && g !== TRUNK;
+  return g !== WATER && g !== VOID && g !== WALL && g !== BED && g !== CBED && g !== TRUNK && g !== DIAL;
 }
 /* the dawn sweeper */
 let sweeper = null;
@@ -4402,7 +4406,7 @@ function drawGround(){
   // ground, drawn well past the frame so the town never stops in mid-air
   for (let y = 0; y < WH; y++) for (let x = XLO; x < XHI; x++){
     const gx = clamp(x, 0, GW - 1);
-    const i = y * GW + gx, t = grid[i] === DECK ? WATER : grid[i], hv = hash(gx, y);   // the cache sees the water under the deck
+    const i = y * GW + gx, t = grid[i] === DECK ? WATER : grid[i] === DIAL ? GRASS : grid[i], hv = hash(gx, y);   // the cache sees the water under the deck, the lawn under the sundial
     if (t === WALL || t === VOID) continue;
     if (t === TUNNEL){                                   // floor of a roofed passage
       gtx.fillStyle = '#241d16'; quad(gtx, x, y, 0.03); gtx.fill(); continue;
@@ -4859,6 +4863,7 @@ function drawScene(t, dt){
   for (const A of ARCHES) items.push({y: A.yF === 3 ? 3.06 : 65.3, f:drawArch, A});
   items.push({y:6.6, f:drawShed});
   items.push({y:CY+0.6, f:drawTree, sway, treeR, treeH, tname:'the linden'});
+  items.push({y:SUNDIAL.y + 0.9, f:drawSundial});
   items.sort((p,q)=>p.y-q.y);
   for (const it of items) it.f(it, t);
 
@@ -6052,6 +6057,75 @@ function drawShed(){
   ctx.fillStyle = '#5d6e5d';
   ctx.beginPath(); ctx.ellipse(wbx, wby - cellH * 2.0, cellW * 0.32, cellW * 0.16, 0, 0, 7); ctx.fill();
 }
+/* ---- the sundial ------------------------------------------------------------------
+ * The town runs on the sun (sunVec(), sunArc) and nothing in the courtyard read the hour
+ * until now. A low stone plinth on the inner lawn south of the linden — one DIAL cell, so
+ * a companion never stands on it, and the ground cache paints lawn under it — with a gnomon
+ * whose shadow is cast EVERY FRAME from the same vector every roof shadow takes: west at
+ * sunrise, north at noon, east by evening; long at a winter noon, short at a summer one;
+ * and it fades, widens and pulls in under a grey lid at exactly shadowF()/shSpread()/
+ * shOffset(), like the eight shadows before it. Never in the cache: it moves as the sun
+ * does. No R(). The clock over the lane keeps SOLAR_NOON at 12.75, so the dial reads
+ * three quarters of an hour behind it — the courtyard's older, slower clock. */
+const DIAL_PH = 0.42;                 // the plinth's height in z; the gnomon stands SUNDIAL.h − DIAL_PH above the face
+function dialThrow(h){                // where a point h above the dial's foot lands on the ground, in cells
+  const S = sunVec(), k = h * shOffset() / S[2];
+  return [-S[0] * k, -S[1] * k];
+}
+function sundialName(){
+  if (daylight <= 0.05) return 'the sundial, nothing on it till morning';
+  if (shadowF() < 0.5) return 'the sundial, no shadow to read under this sky';
+  const h = 12 + (sunArc - 0.5) * dayHours;                 // the SUN's hour, not the clock's
+  const k = Math.round(h * 2) / 2, hi = Math.floor(k), w = hi === 12 ? 'noon' : HOUR_WORDS[hi % 12];
+  return 'the sundial — ' + (k !== hi ? 'half past ' : 'about ') + w;
+}
+function drawSundial(){
+  const cx = SUNDIAL.x + 0.5, cy = SUNDIAL.y + 0.5;
+  const [bx, by] = project(cx, cy, 0), [tx, ty] = project(cx, cy, DIAL_PH);
+  const rw = cellW * 0.5, rh = cellH * 0.34, hard = shadowF(), sp = shSpread();
+  const sun = daylight > 0.05;
+  let gx = tx, gy = ty;                                      // the gnomon's shadow on the face, if any
+  if (sun){
+    ctx.fillStyle = 'rgba(30,42,22,' + (0.22 * daylight * hard).toFixed(3) + ')';
+    // the plinth's shadow: its footprint carried down-sun by its own height
+    const [px, py] = dialThrow(DIAL_PH), [sx, sy] = project(cx + px, cy + py, 0);
+    ctx.beginPath(); ctx.ellipse((bx + sx) / 2, (by + sy) / 2 + 1, rw * sp + Math.abs(sx - bx) / 2, rh * sp + Math.abs(sy - by) / 2, 0, 0, 7); ctx.fill();
+    // the gnomon's, from the foot of the plinth to where the tip lands on the grass
+    const [qx, qy] = dialThrow(SUNDIAL.h), [ex, ey] = project(cx + qx, cy + qy, 0);
+    ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = Math.max(1.2, cellW * 0.12) * sp; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(ex, ey); ctx.stroke();
+    const [fx, fy] = dialThrow(SUNDIAL.h - DIAL_PH);         // and across the face, from the gnomon's own foot
+    [gx, gy] = project(cx + fx, cy + fy, DIAL_PH);
+  }
+  // the plinth: base, side, top — the stone the fountain is cut from
+  ctx.fillStyle = '#7d766b';
+  ctx.beginPath(); ctx.ellipse(bx, by, rw, rh, 0, 0, 7); ctx.fill();
+  ctx.fillRect(bx - rw, ty, rw * 2, by - ty);
+  ctx.fillStyle = '#948d80';
+  ctx.beginPath(); ctx.ellipse(tx, ty, rw, rh, 0, 0, 7); ctx.fill();
+  // the face: a paler plate with the hour lines fanned toward the north, whitened under snow
+  const face = snowCover > 0 ? mix('#b3ab9c', SNOW_COL, Math.min(1, snowCover * 1.2)) : '#b3ab9c';
+  ctx.fillStyle = face;
+  ctx.beginPath(); ctx.ellipse(tx, ty, rw * 0.8, rh * 0.8, 0, 0, 7); ctx.fill();
+  ctx.strokeStyle = 'rgba(50,45,40,.55)'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let k = -3; k <= 3; k++){
+    const a = -Math.PI / 2 + k * 0.42, ca = Math.cos(a), sa = Math.sin(a);
+    ctx.moveTo(tx + ca * rw * 0.55, ty + sa * rh * 0.55); ctx.lineTo(tx + ca * rw * 0.78, ty + sa * rh * 0.78);
+  }
+  ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(tx, ty, rw * 0.8, rh * 0.8, 0, 0, 7); ctx.stroke();
+  if (sun){                                                  // the reading: the shadow the gnomon lays across the plate
+    ctx.save(); ctx.beginPath(); ctx.ellipse(tx, ty, rw * 0.8, rh * 0.8, 0, 0, 7); ctx.clip();
+    ctx.strokeStyle = 'rgba(30,42,22,' + (0.5 * daylight * hard).toFixed(3) + ')'; ctx.lineWidth = Math.max(1, cellW * 0.08) * sp;
+    ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(gx, gy); ctx.stroke();
+    ctx.restore();
+  }
+  // the gnomon: a wedge with its foot at the plate's centre and its tip leaning north
+  const [nx, ny] = project(cx, cy - 0.22, SUNDIAL.h);
+  ctx.fillStyle = '#4a443c';
+  ctx.beginPath(); ctx.moveTo(tx, ty + rh * 0.3); ctx.lineTo(nx, ny); ctx.lineTo(tx, ty - rh * 0.55); ctx.closePath(); ctx.fill();
+}
 function drawBench(it){
   const b = it.b;
   const [x, y] = project(b.x + 0.5, b.y + 0.8, 0);
@@ -6745,6 +6819,7 @@ function nameAt(x, y){
                  : wear[j] > 0.45 ? 'the lawn, worn to a path' : 'the lawn';
   if (g === WATER) return waterAt(x).what;
   if (g === DECK) return 'the footbridge';
+  if (g === DIAL) return sundialName();
   if (g === SIDE || g === ROAD || g === PATH) return pavingAt(x, y).what;
   return '';                       // a wall, a roof, the inside of an archway: no name
 }
@@ -7420,7 +7495,7 @@ window.__entities = function(){
   return out;
 };
 window.__census = function(){
-  const tiles = {}, TN = ['WALL','PATH','GRASS','BED','CBED','TRUNK','SIDE','ROAD','VOID','WATER','TUNNEL','SLOT','DECK'];
+  const tiles = {}, TN = ['WALL','PATH','GRASS','BED','CBED','TRUNK','SIDE','ROAD','VOID','WATER','TUNNEL','SLOT','DECK','DIAL'];
   for (let i = 0; i < GW * WH; i++){ const n = TN[grid[i]] || ('T' + grid[i]); tiles[n] = (tiles[n] || 0) + 1; }
 
   /* planting CA: how much of the beds is actually growing, and how far along */
