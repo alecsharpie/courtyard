@@ -15,34 +15,6 @@
   "rationale": "STAYS ON RUNG 4b for one more pass, and climbs to 5 inside the same batch. smallDiff is the binding signal and it fires because four of the last five briefs were priced as polish; the answer is not another polish batch with a spatial bet on top, it is a batch where three of the four briefs are structural. From a thirty-second look at the wide shot (noon and 03:00, seed 42): the far bank is a strip where nothing moves but the band three days in a summer; the night holds one person in the whole town; and at 390 px the whole 138-cell world is a thumb-wide strip nobody can read. So: b76 THE MILL — the first structure since #2 and the first building that moves: a mill house on the far bank with an undershot wheel in the river turning on riverRun(), stilled by the frost, a lit window at night, its footprint through buildVolumes() so developed/structures move and the baseline is re-pinned again. b77 THE EVENING — life's own arrival source for the warm dry evening: strollers who come in through the park gate or the quay head, cross the new deck, lean at the rail and sit on the quay, so the clock-tap lands a viewer in a town that is out of doors after dark. b78 THE QUARTERS (rung 5) — a phone visitor can look at ONE quarter: a sill control that eases the camera (originX/cellW/cellH inside project()) onto courtyard, street, plaza & river or far bank, and back; all hit-testing already goes through project() so naming and touch keep working. b79 the rose window's dusk seam (c104, three passes old: a brief or a deletion — a brief). Risk: b76 high (first, 75 min, 200-line diff invited), b77 medium (60), b78 medium-high (60, rung 5), b79 low (25).",
   "queue": [
     {
-      "id": "b77",
-      "domain": "People & animals",
-      "kind": "New element",
-      "brief": "The town has an evening door (spawnTapAgent), homers (spawnHomeAgent) and a night on the water that nobody watches: the night shot holds ONE person. Give the warm dry evening its own arrival source — spawnEveningAgent() under its own EVE_CAP, never a share of laneCap or eastCap — open from sunDown − 0.5 h to sunDown + 3 h when warmth is high, it is not raining, wetF() is low and windF() is below a stroll threshold; closed in winter. They enter by the park gate or the quay head, cross the FOOTBRIDGE (DECK_LEAD_A/Q, the #73 routes), lean at the rail (a.nightRail exists as ONE stander — widen it or give the deck its own lean spots), sit on the quay/far benches, and leave the way they came or via goHome/claimHome before the window's end (price with pathHours() against the END, the #53 law). Arrivals in twos via withCompanion. Count at the choice over 10 seeds × 4 days: arrivals per evening, presence by hour on the deck/quay/far bank, and the winter evening unchanged. An 80–150-line diff is expected.",
-      "seams": [
-        "spawnTapAgent",
-        "spawnHomeAgent",
-        "spawnEastAgent",
-        "withCompanion",
-        "DECK_LEAD_A",
-        "DECK_LEAD_Q",
-        "a.nightRail",
-        "QUAY_BENCHES",
-        "FAR_BENCHES",
-        "goHome",
-        "claimHome",
-        "pathHours",
-        "wetF",
-        "windF",
-        "warmth",
-        "sunDown"
-      ],
-      "successLooksLike": "Tap the clock on a summer day and land at sunDown + 1 h with 4–8 people out on the quay, the deck and the far bank — some in pairs, some leaning at the rail over the river lights — and by sunDown + 3.5 h they have gone. A winter or a wet evening looks as it does today.",
-      "avoid": "Not a share of an existing cap (the law: a rare thing needs its own source). Do not put them on the lane — the lane's evening is the tap door. Do not size the source by rate; size it by the places its walk reaches before the window ends.",
-      "budgetMin": 60,
-      "risk": "medium"
-    },
-    {
       "id": "b78",
       "domain": "The sill & the observer",
       "kind": "Interaction/UX",
@@ -94,6 +66,10 @@
     {
       "id": "b76",
       "at": "2026-08-30T17:57:21.022Z"
+    },
+    {
+      "id": "b77",
+      "at": "2026-08-30T18:05:53.645Z"
     }
   ]
 }
