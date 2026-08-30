@@ -357,7 +357,8 @@
     "courtyard": [
       "walled garden — bed ring, four arches, benches, desire paths from wear[], daisies, ivy, a pre-dawn sweeper (a.broom), one linden; planting CA (11 species: bloom, seeding, crowding, dieback); drawGround cached, dirtied by wearDirty. probes/ground-rebuilds.mjs",
       "the beds read the YEAR — growF()/dieF() off warmth, lawn health in groundCol; bloomCap() a RAMP over warmth (BLOOM_LO → BLOOM_HI = anchor), a CEILING dithered per cell/plot by capStep(). probes/beds-year.mjs, bloom-cap.mjs",
-      "the ground remembers — trod[] (feet on GRASS, a.broom) discounts snowAt() with wear/SNOW_WEAR_AT; litter[] (Uint8) laid by landing shed leaves, painted in drawGround, cut by feet/broom, batch-decayed, cleared by snow. probes/snow-wear.mjs, litter-year.mjs"
+      "the ground remembers — trod[] (feet on GRASS, a.broom) discounts snowAt() with wear/SNOW_WEAR_AT; litter[] (Uint8) laid by landing shed leaves, painted in drawGround, cut by feet/broom, batch-decayed, cleared by snow. probes/snow-wear.mjs, litter-year.mjs",
+      "courtyard arrivals in twos (#75): spawnAgent(room) → withCompanion under capacity; bench case on a.benchAt shifts the sitter's last waypoint −0.5, companion at pairSeat 1.0; kids/picnic/gardener/napper excluded. probes/sitter-pairs.mjs"
     ],
     "lane": [
       "kiosk, pavement cafe with claimable tables, awnings, washing lines (in on weatherComing() and at dusk), planters, lamps, benches; market every 4th day, three stalls, marketRaise(i) on one 0..1",
@@ -438,6 +439,12 @@
       "id": "c113",
       "note": "cafe walkers set out under a clear sky and are refused at a wet chair 6 h later (26/144 in #74) — no departure-time sky check",
       "raisedBy": 72,
+      "seenBy": 0
+    },
+    {
+      "id": "c114",
+      "note": "a seated courtyard bench PAIR is seen ~once per ten daylit days (sitters 16% of a ~0.7/day roll); if the bench is meant to read as shared, sitters need a bigger share or their own source — count before building",
+      "raisedBy": 74,
       "seenBy": 0
     }
   ],

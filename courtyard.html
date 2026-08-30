@@ -1754,7 +1754,7 @@ function pickEntrance(){
   const bag = [ENTR[0], ENTR[1], ENTR[1], ENTR[2], ENTR[3]];
   return pick(bag);
 }
-function spawnAgent(){
+function spawnAgent(room){
   const m = maturity();
   const e = pickEntrance();
   const ex = pick(ENTR.filter(x => x !== e));
@@ -1840,6 +1840,10 @@ function spawnAgent(){
   }
   finishItinerary(a);
   agents.push(a);
+  // #75: the courtyard's own arrivals come in twos too — the same follower, spent from
+  // `capacity` (the caller passes whether one place is left). Kids and the picnic
+  // already bring their own second; a gardener works alone and a napper lies alone.
+  withCompanion(a, room);
 }
 const STAYING = {gardener:1, napper:1, picnic:1, sitter:1};
 function finishItinerary(a){
@@ -2755,7 +2759,8 @@ function spawnEastAgent(nightRail, room){
 const PAIR_P = 0.55, PAIR_BEHIND = 0.7, PAIR_BESIDE = 0.85, PAIR_GAP = 1.1, PAIR_MIN = 0.9;
 function withCompanion(a, room){
   const roll = R();
-  if (!room || roll >= PAIR_P || a.cycle || a.dog || a.kind === 'allot' || a.kind === 'busker' || a.nightRail) return;
+  if (!room || roll >= PAIR_P || a.cycle || a.dog || a.kind === 'allot' || a.kind === 'busker' || a.nightRail
+      || a.kind === 'kid' || a.kind === 'picnic' || a.kind === 'gardener' || a.kind === 'napper') return;
   const b = Object.assign({}, a, {shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9,
     speed:a.speed * 1.12, with:a, side:R() < 0.5 ? 1 : -1, stop:null, table:null, dog:null, wp:[], i:0, hx:1, hy:0});
   a.pairLead = true;
@@ -2767,6 +2772,9 @@ function withCompanion(a, room){
     for (const p of a.wp) if (p[0] === ox && p[1] === a.stop.y) p[0] = a.stop.x;
     a.pairSeat = 1.0;
   } else if (a.stop && a.stop.cup) a.pairSeat = -1.7;
+  else if (a.benchAt){   // a courtyard sitter: the bench is its LAST waypoint, the same 1.5 cells
+    const w = a.wp[a.wp.length - 1]; w[0] -= 0.5; a.pairSeat = 1.0; b.benchAt = null;
+  }
   const t = pairTarget(b); b.x = t[0]; b.y = t[1]; b.wp = [t];
   agents.push(b);
 }
@@ -6511,7 +6519,7 @@ function simStep(sdt, dt){
   const allotRate = (0.01 + 0.16 * ripePlots() / 17 + (digWeather() && fallowPlots().length ? DIG_RATE : 0)) * (raining ? 0.2 : 1);
   spawnAcc += sdt;
   if (spawnAcc > 1){ spawnAcc = 0;
-    if (courtyardCount < capacity && R() < rate) spawnAgent();
+    if (courtyardCount < capacity && R() < rate) spawnAgent(courtyardCount + 1 < capacity);
     if (laneCount < laneCap && R() < laneRate) spawnLaneAgent(laneCount + 1 < laneCap);
     if (eastOpen() && eastCount < eastCap && R() < eastRate) spawnEastAgent(false, eastCount + 1 < eastCap);
     // not under eastCap: after dark that is 1, and the people walking home hold it

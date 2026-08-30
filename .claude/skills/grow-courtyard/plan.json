@@ -17,25 +17,6 @@
   "rationale": "CLIMBED TO RUNG 4b, and mapFlat says which: a change in SPACE. Every rung-4 so far (#32, #37, #42) picked time — the night, the snow, the year — and all of it landed; nothing in 68 iterations has moved a tile. The single biggest thing missing from a thirty-second look is that the east half of the town is three places that never exchange anybody: the only crossing of the river is the lane bridge at the bottom of the frame, so a visitor to the church green walks in through PARK_GATE at y 60 while the plaza, the quay and the jetty at (128.4, 35) — fifteen cells apart across the water — stay strangers. b70 builds a FOOTBRIDGE at the alley's latitude (ALLEY_Y 31): a new tile kind over the water, drawn light, the rowboat passing under it, and then USED by the east spawner's routes so the deck carries people both ways. It must move tileKinds and water in the census; the WATCH note and the brief both say a re-pinned baseline is the expected outcome. It goes first, at 75 min, with a 150–300-line diff invited. Behind it, four compounding moves on things that exist at a rate of zero or read wrong: b71 the cafe drawn for nobody (#64 counted 0 arrivals in 14 seeds × 3 h — the law says give a rare thing its own supply), b73 companions for the courtyard (c107, the wide shot's pairs stop at the courtyard wall), b72 the wind's three consumers that ignore it or leave the frame (c108/c109/c110, one low-risk brief so the sign lands everywhere), b74 the basin that is frozen and does not look it (c106). Risk: b70 high, b71 medium, b73 medium, b72 low, b74 low. No more rung-2 passes are available until this one has landed a spatial change or shown why it cannot.",
   "queue": [
     {
-      "id": "b73",
-      "domain": "Courtyard & garden",
-      "kind": "Connect",
-      "brief": "c107: arrivals come in twos on the lane and from the east since #70, but the courtyard's own spawnAgent still sends every sitter and crosser alone, so from the wide shot the pairs stop at the courtyard wall. Call withCompanion(a, room) from spawnAgent with the courtyard's own cap (capacity) as the room test, and make pairTarget's bench case work on BENCH_SPOTS (the courtyard bench is the same 1.5 cells — shift the leader, seat the companion). Leave the concert crowd alone (its own source, nine claimed slots) and leave a.mate (the picnic) as it is — but say in the entry whether a.mate and a.with should become one mechanism.",
-      "seams": [
-        "spawnAgent",
-        "withCompanion",
-        "pairTarget",
-        "capacity",
-        "BENCH_SPOTS",
-        "a.mate",
-        "probes/pairs.mjs"
-      ],
-      "successLooksLike": "probes/pairs.mjs extended to the courtyard: a quarter of courtyard arrivals with room bring a companion, separation in [0.9, 1.6], both on the bench; courtyard peak population unchanged.",
-      "avoid": "No new draws in a branch that already has room decided — keep the roll unconditional as #70 did. Do not touch the concert or the picnic.",
-      "budgetMin": 35,
-      "risk": "medium"
-    },
-    {
       "id": "b72",
       "domain": "Sky, light & weather",
       "kind": "Connect",
@@ -86,6 +67,10 @@
     {
       "id": "b71",
       "at": "2026-08-30T17:11:38.555Z"
+    },
+    {
+      "id": "b73",
+      "at": "2026-08-30T17:18:57.947Z"
     }
   ]
 }

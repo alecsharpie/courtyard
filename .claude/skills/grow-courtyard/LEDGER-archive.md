@@ -3023,3 +3023,29 @@ warmth is a cosine and time piles up at the extremes. Full entry in `LEDGER-arch
 **Verdict:** shipped.
 **Law:** *A "cut by traffic" rule is only as strong as the traffic that crosses the CELL.* Before pricing a wear/clear rule off a kind's rate, histogram where the deposit lands by ROW and count that kind's crossings of those rows over the window — the lane's road is 8 rows and the whole heap sits in one of them.
 **Context budget:** `context-budget.mjs` reads OVER (46.3 / 46 KB) at the start of this iteration.
+## Iteration 64 — a wet seat is a refused seat: `seatRefused(a)` reads `wetF()` through a per-person `a.wary` bar (2026-08-29) [Lane & market × Connect]
+
+**Brief b61.** The paving dried over ~3 h (#59) while the tables refilled the moment a shower stopped.
+**Did:** `WET_SEAT_HI 0.75 / LO 0.35`; `seatWet(a)` = wetF() > HI − wary·(HI−LO); `seatRefused(a)` = sky > SIT_REFUSE **or** seatWet(a). Three call sites pass `a`: picnic, courtyard sitter, and the street stop (~L1908), which had its own literal `weatherComing() > 0.42` and now goes through the ONE predicate. Arrivals only; nobody seated is touched. No new `R()`, no draw code.
+**Gates:** census PASS (life churn, no collapse) · motion PASS · `seats-out.mjs` 0 vanished, 0 splits · `probes/wet-seats.mjs` 10 seeds, pinned clear 10:00 with `wetness = 1`, counted AT the stop: taken 17 → 14, refused 2 → 4; seat-hours 33.9 → 27.1; median first seat +1.0 h → +2.6 h; `WET0=0` control == HEAD to every digit. Crops `shots/b61-plaza-{head,tree}-30min.png`.
+**Winter night (c97):** seed 7 d17 22:00, wetness 0.31 → sheen ≈ 5 %, damp slate not a lake. Fine; no change.
+**Verdict:** shipped.
+**Surprise:** natural showers in 10 seeds all ended between 21:00 and 02:00, so a "day of a shower" probe measured nothing on either build — the first 0 was the instrument. Also: the cafe band is so rare (0 arrivals in 14 seeds × 3 h) that the cafe crop is a plaza-bench crop.
+
+## Iteration 65 — the wind has a cause: a building front raises `windTarget()` with the cover and breaks with the rain (2026-08-29) [Sky, light & weather × Connect]
+
+**Brief b62.** #58's wind ramp fired at the hour-6 roll, inside the dawn relight, so nobody saw it rise.
+**Did:** `frontWind()` = clamp((cloud − 0.46)/(0.76 − 0.46)) — weatherComing()'s knee to a heavy front's floor — zeroed by `raining` and by a `frontSpent` latch set at the first drop and cleared when the next front moves in (`stepClouds`). `windTarget()` = max(day hash, frontWind()); `stepWind` reads it under the same `WIND_RISE_H` cap. Consumers untouched; no `R()`, no draw code. Light fronts (cover ≤ 0.5) give ≤ 0.13 — a breeze, never the windy class.
+**Gates:** census PASS (life churn only) · motion PASS · day filmstrip 0 POP.
+**Numbers** (`probes/wind-front.mjs`, 10 seeds × 30 d): windy-day mean 0.960 → 0.972, calm-day mean 0.027 → 0.176, windy CLASS 40.6 % → 49.9 % of samples — the extra hours the boat and fountain anchors move by. Max slope 0.427/h both (the cap). `wind-year.mjs` off-anchor 4/26400 (one-sample lag: rain starts later in `simStep` than `stepWind`). Crops `shots/b62-front-sheet.png`: seed 11 d2, cover 0.47 → 0.65 over 10–14 h, HEAD jets symmetric, HERE windF 0.03 → 0.65 and the jets lean progressively from ~12:40.
+**Verdict:** shipped.
+**Surprise:** HEAD's "windy class" is 40 % of hours, not 28 % of days — `hash(day, 99)` has no seed in it, so every seed shares one windy calendar and a 30-day window holds 12 of them.
+
+## Iteration 66 — leaves land: `litter[]` (Uint8) raised under a landing leaf, painted in the cached ground, cut by feet and the broom, decayed in batches, buried by snow (2026-08-29) [Courtyard & garden × New CA rule]
+
+**Brief b63.** `leafFallF()` shed leaves that vanished on touching the ground; October lawns were as clean as June's.
+**Did:** `litter = new Uint8Array(GW*WH)` beside `trod`. `landLeaf(l)` at the `l.z<=0` splice: leaves carry `leaf:1` from spawn (petals don't), gated on `leafShed() > 0` so the summer drift lies nothing; +`LITTER_LAND` 40 on GRASS/PATH/SIDE/SLOT/ROAD. Feet cut `ceil(dt·120)`; the sweeper on paving zeroes it. `stepLitter()` from `caTick`: every `LITTER_BATCH` 32 ticks subtract `16·(1 − 0.75·leafShed())`; `snowCover > 0` → `fill(0)`. Draw: `groundCol` mixes toward `#8a5a2c` by a bucketed level; `drawLitter` lays 2..16 hash-placed rects per cell. Dirtying rides `wearDirty` only when a drawn bucket changes. No `R()`, no per-frame draw.
+**Gates:** census PASS (unchanged) · motion PASS · `ground-rebuilds` autumn d16 seed 7: 142 HEAD / 142 HERE · `probes/litter-year.mjs hash`: summer d6 ground hash identical to HEAD, autumn d17.4 differs (84 cells) · `litter-year.mjs year` 3 seeds: 0 through d11, peak 82–97 cells at d16, 0 from d19 (snow) · crops `shots/b63-autumn-{courtyard,wide}-{head,here}.png`.
+**Verdict:** shipped.
+**Surprise:** the drift is not *under* the linden — leaves carry vx 0.6–1.4 for 6–14 s of fall, so it heaps 8–12 cells EAST on the lawn edge and the paving, and the street trees' leaves cross the footway and lie on the road. "Under the canopy" in the brief was a guess about where a falling leaf ends. The first year probe read 0 everywhere because `typeof col === 'string'` silently killed every leaf — the anchor check was green for the wrong reason.
+
