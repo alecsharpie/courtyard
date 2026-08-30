@@ -365,7 +365,8 @@
       "harvest cycle — harvestPlot() lifts a mature 3x2 bed whole, bAge doubles as the fallow clock (only when !bSp), re-sown under plotCrop(); spawnAllotAgent() the allotments' own arrivals, rate on ripePlots(); gardeners leave with a basket (a.crop)",
       "seasonal canopy on all 13 trees — leafOut/Fresh/Deep/Turn/Shed + leafCol() off seasonPhase, bare in winter behind drawBoughs(); leafFallF() drives falling leaves; fruit trees add blossomF()/fruitF(). probes/canopy-year.mjs",
       "winter hardiness grain-matched to the PLOT — SPECIES.hardy:1 (cabbages), plotStands(x,y) off plotCrop(); seed() sows the block through speciesFor() so it is vegetables from t=0. probes/allot-year.mjs, allot-scatter.mjs",
-      "the allotments' WINTER — digWeather() (cold, dry, little snow) adds DIG_RATE to allotRate; fallowPlots() = stalled non-hardy plots; a.dig holder turnPlot()s them: turned[] cells dark, unsown until warmth returns. probes/allot-year.mjs"
+      "the allotments' WINTER — digWeather() (cold, dry, little snow) adds DIG_RATE to allotRate; fallowPlots() = stalled non-hardy plots; a.dig holder turnPlot()s them: turned[] cells dark, unsown until warmth returns. probes/allot-year.mjs",
+      "#72 street litter clears: feet/wheels cut litter on SIDE/ROAD (cyclists 480/s); dawn sweeper walks the heaviest ROAD row (sweeper.gutter) when road litter > footway; probes/street-clear.mjs"
     ],
     "plaza": [
       "plaza with a fountain and a paved roundel, four tree pits, benches; quay benches. PAVING + pavingAt(x,y) the ONE predicate naming a cell's paving, each with a crumbs line and bird box; crumbSpot() keeps birds off the basin. probes/paving-places.mjs",
@@ -438,6 +439,18 @@
     {
       "id": "c108",
       "note": "rain drops slant −x on every day with no wind term (r.x -= v·dt·0.12 in the shower step, drawn as a −2.4 px line): the one weather consumer that ignores windSign — give the slant windDir() or leave the rain honestly windless",
+      "raisedBy": 67,
+      "seenBy": 0
+    },
+    {
+      "id": "c109",
+      "note": "leaves from the west street tree (pit x=8) blow off-world west under #71's negative windSign (l.x < -10 in 7/10 seeds on HEAD; motion gate 'leaf oob') — clamp or kill at the frame edge",
+      "raisedBy": 67,
+      "seenBy": 0
+    },
+    {
+      "id": "c110",
+      "note": "all lane litter lands on ONE road row (row 70): leaf fall y-drift is a constant 0.5/s; a per-leaf y term would spread the drift across gutter and crown",
       "raisedBy": 67,
       "seenBy": 0
     }

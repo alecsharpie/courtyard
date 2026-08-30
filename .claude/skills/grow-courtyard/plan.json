@@ -13,36 +13,7 @@
     "balance": "After recording: plaza 8 back (#59), life 7 (#60), street 6 (#61), river 4, lane 3, sky 2, courtyard 1, sill 0. Plaza, life and street each get one; sill gets a 1-hour polish for c103 (sill × polish is an empty cell); sky takes the bet because c101/c102 both point at the same missing thing. Courtyard, lane and river sit this batch out."
   },
   "rationale": "HOLD RUNG 2 with one rung-3-flavoured bet. #67 changed what a viewer can see: the night is now one tap away, so the loop's twenty night iterations finally pay — and the first thing that tap exposes is a defect in the queue's own advertising (the clock offer comes fourth, after an offer that needs a tap on a person: b65, one hour, c103). The three lagging domains each have a compounding move on a scalar that already exists: the plaza's fountain KNOWS it is frozen (fountainIce, fountainLine) and, as far as the source shows, says so only in a sentence — b66 draws it; the town's people all walk alone though a.mate exists for picnic pairs — b67 sends some in twos, the first new kind of person since #53 and a thing the wide shot shows in a second; the street trees' leaves lie on the road with nobody to clear them, while the courtyard has a broom — b69 gives the street its litter day. The bet is b68: the wind has magnitude and no direction, so every consumer since #15 leans east and #66's litter heaps east under every tree in every seed; a signed wind per front (and the seed in the calendar, c101) makes a whole class of days look different from the wide shot. Risk: b65 low, b66 medium, b67 medium-high (the 0.9-cell merge law, the follower-rate law), b68 high (eight consumers, every anchor must reduce at sign +1), b69 medium.",
-  "queue": [
-    {
-      "id": "b69",
-      "domain": "Cross street & allotments",
-      "kind": "Connect",
-      "brief": "#66's litter lands on ROAD and SIDE too — the street trees' leaves cross the footway and lie on the road (the surprise of #66) — and the only thing that clears paving is the courtyard's pre-dawn sweeper (`a.broom`), which never walks the cross street. So a street heap lasts until decay or snow while the courtyard's is scuffed clear each dawn. Connect the street to a clearing: either extend the sweeper's round to the cross street footway on some mornings, or let the road's litter be cut by the cyclists and walkers that already use it at a higher rate than grass, or both — pick the one that reads from the wide shot and say why. Also confirm the footway/road litter is DRAWN (drawLitter's tile check) and not only raised.",
-      "seams": [
-        "litter",
-        "landLeaf",
-        "stepLitter",
-        "LITTER_LAND",
-        "LITTER_BATCH",
-        "a.broom",
-        "sweeper",
-        "XS_W0",
-        "XS_WALK_W",
-        "ALLEY_Y",
-        "cyclist",
-        "TREE_PITS",
-        "drawLitter",
-        "groundCol",
-        "probes/litter-year.mjs",
-        "probes/ground-rebuilds.mjs"
-      ],
-      "successLooksLike": "An autumn-morning crop pair (day 16, 07:00 and 12:00) of the cross street shows a heap on the road that is visibly cut by midday on HERE and not on HEAD; litter-year.mjs prints per-tile-class sums (GRASS/PATH/SIDE/ROAD) and the ROAD sum on HERE falls faster than HEAD's while the courtyard sums are identical; ground rebuild count unchanged; motion gate PASS; the sweeper's courtyard round is unchanged in timing.",
-      "avoid": "Do not add a second sweeper agent under laneCap. Do not decay ROAD litter faster by constant — the clearing must be something a viewer can watch happen.",
-      "budgetMin": 30,
-      "risk": "medium"
-    }
-  ],
+  "queue": [],
   "recommendStop": null,
   "consumed": [
     {
@@ -60,6 +31,10 @@
     {
       "id": "b68",
       "at": "2026-08-30T16:34:53.851Z"
+    },
+    {
+      "id": "b69",
+      "at": "2026-08-30T16:45:59.709Z"
     }
   ]
 }

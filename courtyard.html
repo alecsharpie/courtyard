@@ -2046,6 +2046,15 @@ function stepAgent(a, dt){
       trod[j] = 1; wearDirty = true;                          // the sweeper clears the strip he walks
     } else if (a.broom && litter[j]){
       litter[j] = 0; wearDirty = true;                        // and sweeps the leaves off the paving
+    } else if (litter[j] && (grid[j] === ROAD || grid[j] === SIDE)){
+      // #72: the street clears itself. A heap on the road or the footway is cut by the
+      // traffic that uses it — faster than the lawn's scuff, and a wheel scatters what a
+      // foot only treads (a cyclist crosses a cell in ~0.17 s and takes a whole leaf with
+      // him). The courtyard's PATH is left to the broom, so its sums do not move. No R():
+      // the repaint is asked for on a drawn-bucket change, the way landLeaf() asks
+      const was = litter[j];
+      litter[j] = Math.max(0, was - Math.ceil(dt * (a.cycle ? 480 : a.small ? 90 : 180)));
+      if ((litter[j] / LITTER_BUCKET | 0) !== (was / LITTER_BUCKET | 0)) wearDirty = true;
     }
   }
   stepDog(a, sp, dt);
@@ -2731,6 +2740,18 @@ function updateSweeper(){
       speed:2.6, state:'walk', timer:0, shirt:'#5a6c46', pants:'#3a3a44', skin:pick(SKIN),
       phase:0, broom:true,
     };
+    // #72: he goes where the drift lies. The street trees' leaves fall 6-8 s with the wind
+    // and land in ONE row of the road (the gutter under the north kerb, ~row 70), where no
+    // walker ever treads and a cyclist passes once a morning at most; the footway clears
+    // itself under feet. So when the road holds more litter than the footway he works the
+    // heaviest road row instead - same x span, same speed, so the round's timing is the
+    // same; read off litter[], no R(). Every other morning: the footway, as before
+    let walkSum = 0, best = -1, bestSum = 0;
+    for (let y = LN_WALK_N; y < LN_WALK_S; y++){
+      let row = 0; for (let x = 0; x < XS_W0; x++) row += litter[y * GW + x];
+      if (y >= LN_ROAD0 && y < LN_ROAD1){ if (row > bestSum){ bestSum = row; best = y; } } else walkSum += row;
+    }
+    if (best >= 0 && bestSum > walkSum){ sweeper.y = best + 0.5; sweeper.wp[0][1] = best + 0.5; sweeper.gutter = true; }
     agents.push(sweeper);
     announce('A sweeper works the lane before the town wakes.');
   }
@@ -6028,7 +6049,8 @@ function personName(a){
 function personName0(a){
   const st = a.state, k = a.kind;
   if (k === 'sweeper') return a.tap && st === 'stand' ? 'the evening sweeper, calling in at the door'
-                            : a.eve ? 'the evening sweeper, clearing up after the market' : 'the sweeper, working down the lane';
+                            : a.eve ? 'the evening sweeper, clearing up after the market'
+                            : a.gutter ? 'the sweeper, working the gutter where the leaves lie' : 'the sweeper, working down the lane';
   if (k === 'cyclist') return 'a cyclist';
   if (st === 'lie') return 'someone lying on the grass';
   if (st === 'kneel') return k === 'allot' ? (a.dig ? 'an allotment holder, turning a plot over' : 'an allotment holder, kneeling at the plot')
