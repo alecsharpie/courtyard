@@ -18,7 +18,7 @@
   "avoid": "Do not move FOCUS. Do not repaint the ground cache per frame during the ease.",
   "budgetMin": 30,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 86,
   "issued": "2026-08-30T23:10:03.205Z",
