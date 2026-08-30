@@ -445,7 +445,7 @@
       "THE DIORAMA IS CLICKABLE and says so once — answersTouch(x,y) the ONE predicate read by cursor and handler: seeds, a daisy, crumbs, a coin, a pebble. OFFERS[] queue: touch → clock → season → follow. probes/touch-hint.mjs, offer-order.mjs",
       "harness: runlog --regrade; Harness verdicts graded on commit+log; crashed-worker retry; filmstrip AT(day,hour), night preset, pops.mjs; DRY_RUN=1; __entities() (role, act, watch, with/lead, stable id) is the seam a behaviour probe reads; probes/frame-cost.mjs",
       "FOLLOWS a person — a tap holds a walker: followLine() on the sill via updateNaming (outranks pointer + ticker), drawFollowMark() ring on the feet, followLost() closes on despawn; OFFERS follow; __follow(). probes/follow.mjs",
-      "the quarter CAMERA (#80) — #where button cycles QUARTERS Wide→Courtyard→Street→Plaza→Far bank; viewFor()/whereGo()/stepView() on the real clock, the wide cache scaled through the ease (gview, gpadWant); OFFERS 'where'; __where(n,secs). probes/where-*.mjs"
+      "the quarter CAMERA (#80, #86) — #where cycles QUARTERS Wide→Courtyard→Street→Plaza→Far bank; viewFor()/whereGo()/stepView(), the wide cache scaled through the ease (gview); q.share = min share of frame WIDTH (Far bank 0.3, y 0..50); faceAt() maps cached FACES through k. probes/where-*.mjs"
     ],
     "roofs": [
       "emergent roofs from buildVolumes() (footprint → volume, eaveFor); CHIMNEYS[] filled as roofs draw, drawSmoke(t) plumes lean windDir(); snowCover whitens roofs; the night cat (catA, drawCat) on the ground only",
@@ -486,6 +486,12 @@
     {
       "id": "c125",
       "note": "the concert audience (324 far-side retirements/40 evenings, rel −4..−2 h) is the deck's biggest unused evening source: 290 stand SOUTH of the bandstand with no route north but through it — a BAND_SLOTS → round the bandstand → [FAR_WALK, DECK_WALK] leg would make the concert's end the deck's evening (#85)",
+      "raisedBy": 82,
+      "seenBy": 0
+    },
+    {
+      "id": "c126",
+      "note": "viewFor's east clamp is priced at the bottom row (p = 1): the far bank frame's right edge at d 43 is x 142, four cells past GW — hidden by the cache's over-paint here, but a quarter box near the top of the world would show void; Plaza could take share ≥ 0.5 at 1400 px (#86)",
       "raisedBy": 82,
       "seenBy": 0
     }

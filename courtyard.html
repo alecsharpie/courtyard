@@ -411,7 +411,7 @@ const QUARTERS = [
   { name:'Courtyard',  x0:1,    x1:63,  y0:1, y1:63 },
   { name:'Street',     x0:63.5, x1:98,  y0:0, y1:64 },
   { name:'Plaza',      x0:98,   x1:128, y0:2, y1:58 },
-  { name:'Far bank',   x0:125,  x1:138, y0:0, y1:58 },
+  { name:'Far bank',   x0:125,  x1:138, y0:0, y1:50, share:0.3 },   // #86: rose window to bandstand; ≥ 30% of a wide frame
 ];
 const VIEW_SECS = 0.9, VIEW_SMAX = 3.6;
 let whereN = 0, whereEver = false;
@@ -420,8 +420,13 @@ function viewFor(n){
   const q = QUARTERS[n];
   if (!q.x1) return { s:1, ox:originX0, tp:topPad0 };
   const cx = (q.x0 + q.x1) / 2, cy = (q.y0 + q.y1) / 2, p = 1 - PINCH * (1 - cy / WH);
-  const s = clamp(Math.min(W * 0.96 / ((q.x1 - q.x0) * cellW0),
-                           H * 0.92 / ((q.y1 - q.y0) * cellH0)), 1, VIEW_SMAX);
+  let s = clamp(Math.min(W * 0.96 / ((q.x1 - q.x0) * cellW0),
+                         H * 0.92 / ((q.y1 - q.y0) * cellH0)), 1, VIEW_SMAX);
+  // #86: a quarter at the world's edge on a wide frame — the height fit left the far bank
+  // a 13-cell sliver at the side of a frame the east clamp then filled with the plaza, so
+  // a desktop's Far bank WAS the Plaza. A quarter may ask for a share of the frame's
+  // WIDTH; s rises to meet it (a phone's tall frame meets it already, so nothing moves there)
+  if (q.share) s = clamp(Math.max(s, W * q.share / ((q.x1 - q.x0) * cellW0)), 1, VIEW_SMAX);
   // centred on the quarter, then held inside the world's east and west edges (at the
   // bottom row, the widest): a wide desktop frame ends exactly at x = GW, and a zoomed
   // one that ran past it showed the void beyond the far bank
@@ -6962,9 +6967,14 @@ function livingAt(p){
  * thing on screen, and the line says what the register says: windowLit() decides IF,
  * windowHours()/HOMES say WHY — nothing about lit-ness is re-derived here. */
 function faceAt(p){
+  // #86: a cached face was registered in the view the ground cache was painted in (gview);
+  // through the ease, and on the arrival frame before the rebuild, the picture is that
+  // cache composited by drawScene's k — so the same scale+shift puts the box under the pane
+  const k = viewS / gview.s, dx = originX - k * gview.ox, dy = topPad - k * gview.tp;
   for (let i = FACES.length - 1; i >= 0; i--){
     const f = FACES[i];
-    if (p[0] >= f.x0 && p[0] <= f.x1 && p[1] >= f.y0 && p[1] <= f.y1) return f;
+    if (f.live){ if (p[0] >= f.x0 && p[0] <= f.x1 && p[1] >= f.y0 && p[1] <= f.y1) return f; continue; }
+    if (p[0] >= dx + k * f.x0 && p[0] <= dx + k * f.x1 && p[1] >= dy + k * f.y0 && p[1] <= dy + k * f.y1) return f;
   }
   return null;
 }
