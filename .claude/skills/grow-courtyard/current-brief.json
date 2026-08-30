@@ -25,7 +25,7 @@
   "avoid": "Do not reuse drawBridge — it is a stone three-arch at the frame edge; this is a footbridge and should look like one. Do not route the boat around it or stop it. Do not add a new arrival source or widen eastCap — this is a ROUTE change on the existing east budget (its arrivals retrace, so a deck crossing is walked both ways for free). Do not put the deck at the jetty's exact row if that hides the jetty.",
   "budgetMin": 75,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 73,
   "issued": "2026-08-30T17:03:47.605Z",
