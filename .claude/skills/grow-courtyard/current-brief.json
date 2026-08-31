@@ -30,7 +30,7 @@
   "avoid": "Do not raise `rate`/`capacity` and call it done — that puts more walkers on the ring, not people on the lawn (the counts already say the ring is busy and the lawn empty). Do not touch laneCap/eastCap/POP_FLOOR or the night floor. Do not add a sixth kind of person — the five exist; give them a source. Do not leave the old staying branches in spawnAgent alongside the new source.",
   "budgetMin": 75,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 2,
   "nextIter": 95,
   "issued": "2026-08-31T15:31:20.940Z",
