@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-30",
+  "updated": "2026-08-31",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
   "lastIteration": 86,
@@ -434,7 +434,8 @@
       "season() — the YEAR over SEASON_LEN 26 days, phase 0 midwinter, anchor SEASON_START 0.25 where every seasoned term equals its old constant; warmth a cosine of the phase; greyF() drives the weather's year. probes/weather-year.mjs",
       "snow — snowF() past greyF 0.55; snowCover 0..1 rate-capped, snowAt per cell, whitens cached ground/roofs/awnings, melts as warmth lifts",
       "wetness 0..1 — wetF()/stepWet(): rain soaks paving, dries by daylight×warmth; wetCol() on PATH/SIDE/ROAD; lane sheen; drawWetLights() lamp bars × wetness × nightF",
-      "the WIND — windF() 0..1 rate-capped off windyDay() and frontWind(), 0 while raining; windSign ±1 per spell latched from calm; windDir() the blend EVERY x-lean reads: rain, leaves, fountain, smoke, boat, vanes. probes/wind-*.mjs"
+      "the WIND — windF() 0..1 rate-capped off windyDay() and frontWind(), 0 while raining; windSign ±1 per spell latched from calm; windDir() the blend EVERY x-lean reads: rain, leaves, fountain, smoke, boat, vanes. probes/wind-*.mjs",
+      "RIVER MIST (#88) — mistF() ONE rate-capped scalar (stepMist; still, clear, cold-or-wet mornings sunUp−1..+2.2, never past 09:00, burnt off by sun/wind); mistAt(x) the weight; drawMist() live veil before applyLight; HAZE + lamp halos read it; nameAt 'mist on the river'. probes/mist-*.mjs"
     ],
     "life": [
       "walkers with itineraries — courtyard, street and eastern stops; cafe sitters; market and kiosk browsers; dogs on leads; ducks (POND), swans, butterflies, fireflies, birds, a night cat, falling leaves; drawPerson() 12 px figures, legs swing on a.phase",
@@ -493,6 +494,12 @@
     {
       "id": "c129",
       "note": "the willow's fronds hang below the foreground sill strip in the Far bank quarter on a desktop (rows 48+ are under the strip at 2.6x); a phone shows rows 0–51 (#87)",
+      "raisedBy": 86,
+      "seenBy": 0
+    },
+    {
+      "id": "c130",
+      "note": "mist-year.mjs samples at sunUp+0.5: 3/34 mist mornings read mist 0.3-0.76 in windF 0.44-0.61 because a windy day's wind rises from the 06:00 roll after the mist formed — sample the 'never in wind' assertion at the OPEN (sunUp−1) (#88)",
       "raisedBy": 86,
       "seenBy": 0
     }

@@ -1189,6 +1189,47 @@ function stepWet(dt){
     wetness = wetness <= r ? 0 : wetness - r;
   }
 }
+/* River mist (#88) — a weather nobody had seen. ONE slow scalar in the cloudCover()/
+ * wetF() family: it rises off the water in the hour before sunrise when the night was
+ * cold or wet and the air is still and clear, holds while the sun is low, and burns off
+ * with the sun's height. Every term is live — no day hash: wind, cover, wetness and
+ * warmth are themselves rate-capped, so the target flips rarely and the scalar's own
+ * cap (MIST_RISE_H up, MIST_BURN_H down at full daylight) owns the slope. Priced with
+ * probe-mist-price.mjs over 8 seeds x a year, sampled at sunUp + 0.5: the brief's
+ * literal rule (cloud < 0.4, wind < 0.3, wet > 0.3 OR warmth < 0.4) opened 18% of
+ * shoulder mornings; this one opens 33% of shoulder, 16% of winter, 0 of summer
+ * mornings, and never in rain or wind. It never opens after 09:00. mist 0 is HEAD's
+ * frame exactly: every consumer is `x * mistF()` or guarded on it. */
+const MIST_RISE_H = 0.8, MIST_BURN_H = 1.0;                       // sim hours: to full, and to gone at full daylight
+const MIST_CALM = 0.35, MIST_CLEAR = 0.5, MIST_WARM = 0.65, MIST_COLD = 0.55, MIST_DAMP = 0.2;
+const MIST_LEAD_H = 1.0, MIST_HOLD_H = 2.2, MIST_LAST_H = 9.0;    // opens sunUp - 1, holds to sunUp + 2.2, never past 09:00
+let mist = 0, mistSaid = false;
+function mistF(){ return mist; }
+function mistTarget(){
+  if (raining || windF() >= MIST_CALM || cloudCover() >= MIST_CLEAR || warmth >= MIST_WARM) return 0;
+  if (!(wetF() > MIST_DAMP || warmth < MIST_COLD)) return 0;           // the night was neither wet nor cold
+  return hour >= sunUp - MIST_LEAD_H && hour < Math.min(sunUp + MIST_HOLD_H, MIST_LAST_H) ? 1 : 0;
+}
+function stepMist(dt){
+  const tgt = mistTarget();
+  if (tgt > mist){
+    const r = dt * 24 / (MIST_RISE_H * DAY_LEN);
+    mist = Math.min(1, mist + r);
+    if (mist >= 0.5 && !mistSaid){ mistSaid = true; announce('Mist lies on the river at first light; the far bank comes and goes in it.'); }
+  } else if (tgt < mist){
+    const r = dt * 24 / (MIST_BURN_H * DAY_LEN) * (0.3 + 1.4 * daylight + 1.5 * windF() + (raining ? 1.5 : 0));   // the sun burns it off, a wind or a shower clears it; a dark calm hour barely thins it
+    mist = mist <= r ? 0 : mist - r;
+    if (mist === 0) mistSaid = false;
+  }
+}
+/* The veil's weight at a world x: full over the water, gone MIST_REACH cells inland on
+ * either side — read by the veil's gradient and by the lamp halos that widen in it. */
+const MIST_REACH = 8;
+function mistAt(x){
+  const d = x < RIVER_X0 ? RIVER_X0 - x : x > RIVER_X1 ? x - RIVER_X1 : 0;
+  return mist * clamp(1 - d / MIST_REACH, 0, 1);
+}
+function mistCol(){ return mix(skyCols()[1], '#e6ebee', 0.55); }
 /* ---- reader eight: the river ---------------------------------------------------
  * The last quarter of the town running one climate forever. The water was twelve
  * anonymous streaks drawn inline in the frame loop at one speed and one colour, and
@@ -4547,6 +4588,7 @@ function drawGround(){
   gtx.setTransform(DPR, 0, 0, DPR, pad * DPR, 0);
   gview.s = viewS; gview.ox = originX; gview.tp = topPad; gview.pad = pad;
   SUN = sunVec(); LIT.length = 0; WINDOWS.length = 0; HAZE = skyCols()[1];
+  if (mistF() > 0) HAZE = mix(HAZE, mistCol(), 0.4 * mistF());   // the town beyond the frame goes into the mist too
   FACES.length = 0;                                // the cached faces are re-registered below; the live ones every frame
   snowPainted = snowCover; wetPainted = wetBucket();
   const m = maturity();
@@ -5020,6 +5062,7 @@ function drawScene(t, dt){
   for (const it of items) it.f(it, t);
 
   drawRiverFlow(t);
+  drawMist(t);
 
   // water sparkle (warm by day, cold moon-glints by night) and rain rings on the pond
   if (rainFall < 1){
@@ -5816,6 +5859,62 @@ function drawFountain(it, t){
  * cold-blue streaks; August is a few short slow green ones. Every one of them is
  * exactly the constant it replaced at riverRun() 1, and none of it consumes an R()
  * draw — this is hash() and the clock, so the seeded world is untouched by it. */
+/* The mist's veil (#88): LIVE, never in the ground cache (it changes every frame), drawn
+ * after the items and the streaks so the towpath walkers, the swans and the willow are
+ * IN it, and before applyLight so the night multiply stays the last thing to touch a
+ * colour. Two passes into one low-res offscreen: a horizontal gradient carries the weight
+ * out from the water (mistAt's shape, built at the polygon's mid row — the pinch moves
+ * the banks under 2 cells over the run), then a `destination-out` fade takes the far end
+ * off so the church tower and the clock tower stand out of it at the top of the frame.
+ * It stops at the lane: the near lane, and the water under the bridge, stay sharp. Reads
+ * daylight, so a pre-dawn veil is faint and the dawn brings it up. */
+const MIST_A = 0.58, MIST_RES = 0.25;
+const mcv = document.createElement('canvas'), mtx = mcv.getContext('2d');
+function drawMist(t){
+  const mf = mistF();
+  if (mf <= 0) return;
+  const lit = 0.35 + 0.65 * clamp(daylight / 0.3, 0, 1);
+  const c = cparse(mistCol()), rgb = c[0] + ',' + c[1] + ',' + c[2];
+  const breathe = RM ? 0 : Math.sin(t * 0.21) * 0.8;                     // the bank breathes a cell in and out
+  const x0 = RIVER_X0 - MIST_REACH - breathe, x1 = RIVER_X1 + MIST_REACH + breathe;
+  const yTop = 0, yLane = LN_WALK_N;
+  const L = project(x0, yLane, 0)[0], Rr = project(x1, yTop, 0)[0], T = project(0, yTop, 0)[1], B = project(0, yLane, 0)[1];
+  const w = Math.ceil((Rr - L) * MIST_RES * DPR) + 2, h = Math.ceil((B - T) * MIST_RES * DPR) + 2;
+  if (mcv.width !== w || mcv.height !== h){ mcv.width = w; mcv.height = h; }
+  mtx.setTransform(MIST_RES * DPR, 0, 0, MIST_RES * DPR, -L * MIST_RES * DPR + 1, -T * MIST_RES * DPR + 1);
+  mtx.globalCompositeOperation = 'source-over';
+  mtx.clearRect(L - 4, T - 4, Rr - L + 8, B - T + 8);
+  const fx = (ya, yb, k) => {
+    const ym = (ya + yb) / 2, a = MIST_A * mf * lit * k;
+    const g = mtx.createLinearGradient(project(x0, ym, 0)[0], 0, project(x1, ym, 0)[0], 0);
+    const f0 = (RIVER_X0 - x0) / (x1 - x0), f1 = (RIVER_X1 - x0) / (x1 - x0);
+    g.addColorStop(0, 'rgba(' + rgb + ',0)'); g.addColorStop(f0, 'rgba(' + rgb + ',' + a.toFixed(3) + ')');
+    g.addColorStop(f1, 'rgba(' + rgb + ',' + a.toFixed(3) + ')'); g.addColorStop(1, 'rgba(' + rgb + ',0)');
+    mtx.fillStyle = g;
+    poly(mtx, [project(x0, ya, 0), project(x1, ya, 0), project(x1, yb, 0), project(x0, yb, 0)]); mtx.fill();
+  };
+  fx(yTop, yLane, 1);
+  // wisps: a few soft brighter banks sliding slowly downstream, so the veil reads as a
+  // thing lying on the water and not a tint. hash() and the clock only; still under RM
+  { const a = MIST_A * mf * lit * 0.55, drift = RM ? 0 : t * 0.16;
+    for (let k = 0; k < 6; k++){
+      const wy = 6 + ((hash(k, 151) * 56 + drift * (0.6 + hash(k, 153) * 0.8)) % 56);
+      const wx = RIVER_X0 - 2 + hash(k, 157) * (RIVER_X1 - RIVER_X0 + 6);
+      const [sx, sy] = project(wx, wy, 0), rx = cellW * (5 + hash(k, 159) * 5), ry = cellH * (1.4 + hash(k, 161) * 1.2);
+      const g = mtx.createRadialGradient(sx, sy, 0, sx, sy, rx);
+      g.addColorStop(0, 'rgba(' + rgb + ',' + a.toFixed(3) + ')'); g.addColorStop(1, 'rgba(' + rgb + ',0)');
+      mtx.fillStyle = g;
+      mtx.save(); mtx.translate(sx, sy); mtx.scale(1, ry / rx); mtx.translate(-sx, -sy);
+      mtx.beginPath(); mtx.arc(sx, sy, rx, 0, 7); mtx.fill(); mtx.restore();
+    } }
+  // the far end lifts clear: nothing above row 1.5, full weight by row 13 (the church
+  // tower's foot is row 8, its top stands at row -3.5 in screen depth)
+  const gv = mtx.createLinearGradient(0, project(0, 1.5, 0)[1], 0, project(0, 13, 0)[1]);
+  gv.addColorStop(0, 'rgba(0,0,0,1)'); gv.addColorStop(1, 'rgba(0,0,0,0)');
+  mtx.globalCompositeOperation = 'destination-out';
+  mtx.fillStyle = gv; mtx.fillRect(L - 4, T - 4, Rr - L + 8, project(0, 13, 0)[1] - T + 4);
+  ctx.drawImage(mcv, L - 1 / (MIST_RES * DPR), T - 1 / (MIST_RES * DPR), w / (MIST_RES * DPR), h / (MIST_RES * DPR));
+}
 function drawRiverFlow(t){
   const run = riverRun(), gr = greyF();
   const glow = Math.max(daylight * 0.6, nightF * 0.25);
@@ -6533,12 +6632,13 @@ function applyLight(t){
     ctx.globalCompositeOperation = 'screen';
     for (const L of LAMPS.concat(LANE_LAMPS)){
       const [x, y] = project(L[0], L[1], 2.6);
-      const g = ctx.createRadialGradient(x, y, 1, x, y, cellW * 2.4);
+      const hr = cellW * 2.4 * (1 + 0.7 * mistAt(L[0]));           // a halo widens in the mist (#88); exactly 2.4 out of it
+      const g = ctx.createRadialGradient(x, y, 1, x, y, hr);
       g.addColorStop(0, 'rgba(255,196,104,' + 0.42 * nightF + ')');
       g.addColorStop(0.45, 'rgba(255,190,100,' + 0.13 * nightF + ')');
       g.addColorStop(1, 'rgba(255,190,100,0)');
       ctx.fillStyle = g;
-      ctx.beginPath(); ctx.arc(x, y, cellW * 2.4, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.arc(x, y, hr, 0, 7); ctx.fill();
       // and the pool it throws on the ground below
       const [px, py] = project(L[0], L[1] + 0.6, 0);
       const gp = ctx.createRadialGradient(px, py, 1, px, py, cellW * 3);
@@ -7043,7 +7143,7 @@ function nameAt(x, y){
   if (g === BED || g === CBED) return inAllotment(x, y) ? plotName(x, y) : bedName(x, y, j);
   if (g === GRASS) return daisy[j] ? 'the lawn, daisies in it'
                  : wear[j] > 0.45 ? 'the lawn, worn to a path' : 'the lawn';
-  if (g === WATER) return waterAt(x).what;
+  if (g === WATER){ const w = waterAt(x); return w.x0 === RIVER_X0 && mistF() > 0.3 ? 'mist on the river' : w.what; }
   if (g === EYOT) return 'the eyot';
   if (g === DECK) return 'the footbridge';
   if (g === DIAL) return sundialName();
@@ -7366,6 +7466,7 @@ function simStep(sdt, dt){
     announce('A brisk wind combs the block; everything that can flutter, does.');
   }
   stepWet(sdt);
+  stepMist(sdt);
   stepWind(sdt);
   stepClouds(sdt);
   stepSnow(sdt);
@@ -7590,6 +7691,7 @@ function beginEvening(){
   const to = eveningTarget();
   beginLapse(to.hours / 24 * DAY_LEN, () => to.evening
     ? 'Evening comes on over the block: lamps lit, the door open.'
+    : mistF() > 0.5 ? 'Morning comes round again; there is mist on the river.'
     : 'Morning comes round again over the block.');
 }
 function beginLapse(span, say){
