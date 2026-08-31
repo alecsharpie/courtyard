@@ -440,7 +440,8 @@
       "the NIGHT on the water — drawRiverLights() under RIVER_LAMPS + moon; ONE a.nightRail stander; boatLampF(); roseLit() lights the rose window LIVE",
       "FOOTBRIDGE — DECK tile rows 30..32 at ALLEY_Y; drawDeckSpan/drawDeckFront two items, boatUnderDeck(); agentZ()/deckZAt(); DECK_LEAD_A/Q, overDeck()",
       "WATERMILL — MILL footprint 130..133×19..24 (roof emergent); MILL_WHEEL on millSpin() = riverRun()·(1−fountainSkin()); two draw items; MILL_WIN lit all night",
-      "the EYOT — EYOT tile, EYOT_AT (124.3,46, rx 1.75, ry 5) once in buildGrid; onEyot/offEyot/eyotShore read the grid; drawEyot cached, drawWillow live (windSign·windF); swans' third bank; nestF() → 2 d.eyot ducks in spring. NOBODY can reach it"
+      "the EYOT — EYOT tile, EYOT_AT (124.3,46, rx 1.75, ry 5) once in buildGrid; onEyot/offEyot/eyotShore read the grid; drawEyot cached, drawWillow live (windSign·windF); swans' third bank; nestF() → 2 d.eyot ducks in spring. NOBODY can reach it",
+      "the PUNT (#96) — punt{leg 0..4}, PUNT_MOOR/SHORE/STAND/LAND; puntFits at the jetty stop's perform (dry, calm, eastOpen, close − hour > puntTripH(a) + 0.75); rider re-routed by wp splice (retire-safe, never walks on water); drawPuntHull/Crew; swans held 1.2 off the landing; probes/punt.mjs + punt-force.mjs. Natural rate ~0 — jetty arrivals are all 17:30+"
     ],
     "sky": [
       "day/night cycle (55 s day), sun and moon arc, hills hazed by HAZE (= skyCols()[1]), chimney smoke, a balloon; windowLit(sa,sb) the ONE predicate for pane + LIT[] glow; facades CACHED; LIT_PANES relit AFTER applyLight",
@@ -509,6 +510,12 @@
     {
       "id": "c142",
       "note": "gardener presence is thin everywhere (13 h mean 0.17 summer, 0 winter, >0 in 5/30) despite 0.7 set-outs/day — one-at-a-time rule + long walks; a gardener who arrives EARLY (sunrise set-out, short door) or a second bed slot would read better (#95)",
+      "raisedBy": 94,
+      "seenBy": 0
+    },
+    {
+      "id": "c143",
+      "note": "the punt runs at zero (c-punt): jetty stands 0.53/day, ALL 17:30–03:00 (the deck walk is ~12 h) vs eastOpen close 20.6 — to make it read: DECK_SHARE up, a morning-side source, an OFFERS invitation, or let a towpath stander (short PARK_GATE walk) ride (#96)",
       "raisedBy": 94,
       "seenBy": 0
     }
