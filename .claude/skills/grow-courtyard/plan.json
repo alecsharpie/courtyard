@@ -15,32 +15,6 @@
   "rationale": "RUNG 2 by evidence, not habit: no advisory signal shows, the last four passes sat at 4b/4b/3/4 and produced an eyot, a mist, a cart, a footbridge and a mill — the map and the year have both moved — and what the three wide shots now say is that the town's two biggest paved spaces are EMPTY while its edges are busy. That is a compounding problem (rung 2), not a missing world (rung 4): the plaza has a fountain that reads the year, wind and frost, two benches and its own arrival source, and holds nobody at noon; the courtyard has kids, nappers and picnics in spawnAgent() and shows a bare lawn. So the bet is the plaza's midday (b90, 70 min, high risk, first): families — the courtyard's existing KID figure with a parent — on their own source, chasing pigeons the plaza does not yet have, so a visitor's first ten seconds at the wide shot contain a running child and a bird flush where today there is paving. Behind it: an autumn bonfire on the allotments (b91, street 9 back — the season's one unbuilt spectacle, smoke on windDir() and a glow after dark), the linden's shade as a PLACE that the picnic and the napper choose by warmth (b92, courtyard 7 back, takes c124 and counts the lawn's emptiness for c135), a sill/camera polish bundle (b93, three cues, low), and the punt to the eyot (b94, river, medium-high) last — the island is the run's newest place and nobody can stand on it. Cost discipline: one bet, four briefs ≤45 min; the next pass climbs if this one lands clean and small.",
   "queue": [
     {
-      "id": "b92",
-      "domain": "Courtyard & garden",
-      "kind": "Connect",
-      "brief": "The linden's shade is a PLACE nobody reads. The tree's shadow is an ellipse drawn once per frame (centre CX + sunX·1.6·shOffset(), CY + 1.2; radii treeR·0.95·shSpread() by treeR·0.8·shSpread()) and no rule consults it — the picnic pair pick a blanket spot at r 9–12 by R() alone, the napper lies at r 2.6 regardless, and the sundial (c124) sits inside it all day at maturity. Step one: count courtyard presence by kind (kid, napper, picnic, sitter, gardener) at 10/13/16 h on HEAD over 10 seeds × 3 summer days and write it into the ledger — at 13:25 on seed 42 the lawn shows none of them (c135). Step two: ONE predicate inLindenShade(x, y) that the draw and the choices both read (one predicate, one definition). Consumers: the picnic pair choose their blanket spot INSIDE the shade when warmth > 0.65 and shadowF() > 0.5 (hot sun), OUTSIDE it when warmth < 0.45 (cool sun), by R() within the chosen set — no new draws in the branch that already draws; the napper's line and personName say 'in the shade of the linden' / 'out in the sun'; sundialName() says 'the sundial, in the linden's shade' when the crown is out and the dial is inside the ellipse. If step one shows the lawn under 2 people at a summer noon on the median seed, say so with the numbers and stop short of retuning capacity — that is the next manager's call, not this brief's.",
-      "seams": [
-        "drawTree (the shade ellipse near `const sunX`)",
-        "shOffset",
-        "shSpread",
-        "shadowF",
-        "treeR",
-        "maturity",
-        "spawnAgent (the 'picnic' and 'napper' branches)",
-        "GAP_ANGLES",
-        "picnicAt",
-        "napAt",
-        "sundialName",
-        "personName",
-        "warmth",
-        "capacity"
-      ],
-      "successLooksLike": "probes/shade.mjs, 10 seeds × 3 days at warmth 0.8 vs 0.35: blanket spots inside the ellipse ≥ 80% on hot days, ≤ 20% on cool days, measured at the CHOICE; the sundial's name flips with the crown (bare in winter → no 'shade'); census PASS with only the reshuffle the picnic's spot draw already owns; canvas IDENTICAL to HEAD when inLindenShade is forced false over the run. The ledger carries the courtyard presence histogram.",
-      "avoid": "Do not move BENCH_SPOTS — all four are 26+ cells from the tree and never in its shade; the shade's consumers are the lawn kinds. Do not thin the tree's shadow to expose the sundial. Do not retune capacity or the spawn shares in this brief.",
-      "budgetMin": 35,
-      "risk": "low"
-    },
-    {
       "id": "b93",
       "domain": "The sill & the observer",
       "kind": "Polish",
@@ -105,6 +79,10 @@
     {
       "id": "b91",
       "at": "2026-08-31T04:49:01.689Z"
+    },
+    {
+      "id": "b92",
+      "at": "2026-08-31T15:09:35.561Z"
     }
   ],
   "recommendStop": null

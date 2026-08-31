@@ -39,3 +39,8 @@ Probes resolve the artifact as `../../../../courtyard.html`. (moved at #11)
   1400; whole-canvas hash identity with HEAD at the wide view before AND after a round
   trip; the real tap path on a phone (rAF ease, naming under zoom, resize mid-quarter,
   offer order); draw ms at rest, mid-ease and zoomed. `__where(n, secs)` is the seam.
+- `shade.mjs` — the linden's shade as a place (#94): courtyard presence by kind and hour
+  on 10 summer seed·days, the shade's coverage of the picnic annulus and the inner lawn,
+  every picnic's blanket choice AT SPAWN (hot/cool, inside the ellipse), `--warmth W`
+  pinned after `updateClock`, `--force-false` for the identity control, `--hash` for the
+  canvas at two pinned instants, `--names` for the sundial's and a sleeper's names.

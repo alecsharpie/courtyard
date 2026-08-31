@@ -40,14 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 86 — the camera's two loose ends: cached FACES hit-tested through the ease's k; the Far bank quarter fills a wide frame (2026-08-31) [The sill & the observer × Polish]
-
-**Brief:** b84 — c119 (pane glows and hit-boxes drift off their panes mid-ease) + c120 (a desktop's Far bank IS the Plaza frame).
-**Did:** `faceAt()` maps every cached face through `k = viewS/gview.s` and the origin shift; live faces untouched. `viewFor()` takes a per-quarter `share`: s rises to `W·share/((x1−x0)·cellW0)` (≤ VIEW_SMAX). `QUARTERS[4]` = y 0..50, share 0.3 → desktop s 3.18 (Plaza 1.89), frame x 96..138: rose window, mill, wheel, deck, jetty, bandstand; phone 3.5.
-**Gates:** census PASS (unchanged) · motion PASS · visual PASS (`shots/b84-*.png`) · `probes/where-faces.mjs` 58/58 cached windows hit at their LIVE centre, 5 instants × 4 quarters × 2 sizes (HEAD: 0/32 desktop) · `where-identity` IDENTICAL ×4 · `where-cost` wide 3.0 / ease 1.8 / far bank 2.1 ms.
-**Verdict:** shipped (+13 lines). HALF the brief rejected on evidence: the LIT_PANES/halo half of c119 was never broken — `drawLitPanes` projects live every frame, to 0.01 px on HEAD too.
-**Surprise:** `where-identity` said DIFFERS on a change that cannot touch the wide frame — it hashes `/tmp/head.html`, a stale fixture; regenerated from `git show HEAD:` → IDENTICAL. And "the mill fills a third of the frame" is unreachable: 3 cells at VIEW_SMAX is 8% of 1228 px; the far bank (13 cells) is what can fill a third.
-
 ## Iteration 87 — the eyot: the river's first landform, a reed-ringed island in the east half with a willow leaning over the channel; ducks nest on it in spring, the swans take it as a third bank (2026-08-31) [River & far bank × Scale/World]
 
 **Brief:** b85 — THE BET, rung 4b: an island (new tile, census moves), shingle, reeds, ONE willow on windDir(), swans' third bank, ducks nesting, streaks parting; the boat's channel untouched.
@@ -118,3 +110,13 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Surprise:** the weather already WAS the brief's "1 day in 3": histogram the set-out predicate and the hash has almost nothing left to cut — K went to 0.8 to land the band. Three crops were of the clock tower: a page clip needs the canvas rect (a law I had just read).
 **Law:** a hashed calendar share sits on a weather predicate's CONVERSION — count fine windows per offered day first (17/40), then set K to the success band; the brief's share is the product, not the factor.
 **Law:** the motion gate's scenes are days 3, 7, 11, 19, 22 — a feature living on days 12–18 is invisible to it; carry continuity (largest step by identity) in its own probe.
+
+## Iteration 94 — the linden's shade becomes a place: one predicate the draw and the choices read; on a hot day the picnic pair carry the blanket in through a bed gap and spread it in the shade, the sleeper and the sundial say where they are (2026-09-01) [Courtyard & garden × Connect]
+
+**Brief:** b92. Step one on HEAD (`probes/shade.mjs`, 10 seeds × days 5–7, warmth 0.97): courtyard presence inside the wall — **10 h median 0.25 (mean 0.78) · 13 h median 1.0 (0.97) · 16 h median 2.0 (1.62)**; at 13 h kid 0.43, napper 0.23, picnic 0.27, sitter 0, gardener 0. Seed 42 at 13:25: day 5 = 3 (2 kids, 1 napper), days 6 and 7 = **0** (c135 confirmed). **The lawn is under 2 people at a summer noon on the median seed** — reported, not retuned; capacity is the manager's call.
+**Premise priced:** at a hard summer sun the ellipse (rx ≤ 8.2, ry ≤ 6.9, centre +1.2 south) covers **0% of the picnic annulus r 9–12 and 100% of the inner lawn** — "inside the shade" is the inner lawn, so the hot pair go in through a bed gap like the napper (`shadeSpots()`: 5 stands per gap at r 3.3, off the sundial by 1.6, off anyone lying/sitting or headed there by 2.2, spots in FRONT of the trunk first — behind it the crown covers them). The cool rule (turn by eighths until out of the shade) has 3% of the annulus to act on and never fired in 9 cool set-outs: geometrically a near no-op, kept because it is the one definition.
+**Did:** `lindenShade()`/`inLindenShade(x,y)` beside `shOffset`; drawTree's pass draws `sh.cx/cy/rx/ry`; picnic branch keeps its two draws (`th`, `u`) and picks within the chosen set; `a.shaded`, `preExit` via the gap; napper's arrival line, `personName` (lie / blanket), `sundialName` 'in the linden's shade' when `leafOut() > 0.5` and the dial is inside.
+**Gates:** hot 12/13 = **92% inside** (r 3.3; the one miss had both gaps blocked); cool 0/9 = 0% (HEAD 0/9). Forced-false canvas hash **20/20 IDENTICAL to HEAD** (10 seeds × 2 instants) and choices identical (17 set-outs, r 9.6–11.7). Names: summer 10–16 h all 'in the linden's shade'; **winter day 19 14:00 clear (shadowF 0.57, crown bare) → 'about one'** — the flip is the crown's; sleeper 'lying in the shade of the linden' ×3, 'on the grass' after dark. Census **FAIL people 271→244 (−10%)** = the reshuffle: `census-noise.mjs` 8 seeds HEAD 486 vs 489 (+0.6%), every ±10 cell is a shower that moved; HEAD's own spread on identical code 19%. Motion PASS · filmstrip 0 POP · `probes/sundial.mjs` PASS · `shots/b92-shade-picnic-7/42`.
+**Verdict:** shipped, ~+60 lines.
+**Surprise:** the shade does not touch the lawn the brief thought it shaded — the ellipse ends 1 cell short of the outer lawn at noon. 'Out in the sun' never fires by day: the inner lawn is 100% shade from day 5 on, so the words exist for a young tree only.
+**Law:** a brief that names a THRESHOLD on a region ("inside the ellipse ≥ 80%") is pricing an intersection — sample the region's coverage of the consumer's set first (0% of the annulus); the rule may have to move the consumer, not the threshold.

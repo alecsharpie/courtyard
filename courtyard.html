@@ -2011,10 +2011,31 @@ function spawnAgent(room){
     announce('Someone wanders in with a book, eyeing the shade under the tree.');
   } else if (canPicnic && roll < 0.36){
     a.kind = 'picnic';
-    let th = R() * Math.PI * 2, rr = 9 + R() * 3;
+    // the same two draws as ever: an angle and a radius on the outer lawn. What changed
+    // (#94) is that the shade is now a place they can read: under a hot sun the pair
+    // goes in through a bed gap and spreads the blanket INSIDE the linden's shade; on a
+    // cool day they keep out of it, turning by eighths until the spot is in the sun.
+    // Either way the uniforms already drawn pick within the chosen set — no new draw.
+    let th = R() * Math.PI * 2; const u = R(), rr = 9 + u * 3;
     a.picnicAt = [CX + Math.cos(th) * rr, CY + Math.sin(th) * rr];
-    a.wp.push(...ringPath(e.k, nearestRing(th), ringDir(e.k, nearestRing(th))));
-    a.wp.push(a.picnicAt);
+    let gap = null;
+    if (warmth > 0.65 && shadowF() > 0.5){
+      const sp = shadeSpots(th, u);
+      if (sp){ a.picnicAt = sp.pt; gap = sp.g; }
+    } else if (warmth < 0.45 && inLindenShade(a.picnicAt[0], a.picnicAt[1])){
+      for (let k = 1; k < 8; k++){
+        const t = th + k * Math.PI / 4, x = CX + Math.cos(t) * rr, y = CY + Math.sin(t) * rr;
+        if (!inLindenShade(x, y)){ th = t; a.picnicAt = [x, y]; break; }
+      }
+    }
+    if (gap !== null){
+      const gapPt = [CX + Math.cos(gap) * (bedOut(gap) + 0.8), CY + Math.sin(gap) * (bedOut(gap) + 0.8)];
+      a.wp.push(...ringPath(e.k, nearestRing(gap), ringDir(e.k, nearestRing(gap))), gapPt.slice(), a.picnicAt);
+      a.preExit = [gapPt]; a.shaded = true;
+    } else {
+      a.wp.push(...ringPath(e.k, nearestRing(th), ringDir(e.k, nearestRing(th))));
+      a.wp.push(a.picnicAt);
+    }
     const b = Object.assign({}, a, {shirt:pick(SHIRT), pants:pick(PANTS),
       wp:a.wp.map(p=>[p[0]+0.9,p[1]+0.3]), i:0, x:a.x+0.7, y:a.y, phase:R()*9, lead:false});
     a.lead = true;
@@ -2203,7 +2224,8 @@ function stepAgent(a, dt){
       if (a.home){ arriveHome(a); a.done = true; return; }   // at the door: in they go
       if (a.kind === 'gardener' && !a.planted){ a.state='kneel'; a.timer=8+R()*4; return; }
       if (a.kind === 'napper' && a.napAt){ a.state='lie'; a.timer=16+R()*14; a.napAt=null;
-        if (R()<0.6) announce('Asleep under the tree within minutes.'); return; }
+        if (R()<0.6) announce(inLindenShade(a.x, a.y) ? 'Asleep in the shade of the linden within minutes.'
+                              : shadowF() > 0.5 ? 'Asleep out in the sun within minutes.' : 'Asleep under the tree within minutes.'); return; }
       /* A courtyard seat can be refused now, which is why c11 stayed open for 24
        * iterations: these two kinds are STAYING, so they arrive with an empty
        * waypoint list and refusing used to mean `a.done` where they stood. routeToExit()
@@ -2219,7 +2241,7 @@ function stepAgent(a, dt){
         // partner is a copy — so the release lifts them in the same frame.)
         if (seatRefused(a) && !(a.mate && a.mate.state === 'sit')){ routeToExit(a); return; }
         a.state='sit'; a.timer=dur; a.blanket=a.lead;
-        if (a.lead) announce('A blanket unfurls on the grass — picnic hour.');
+        if (a.lead) announce(a.shaded ? 'A blanket unfurls in the shade of the linden — picnic hour.' : 'A blanket unfurls on the grass — picnic hour.');
         return;
       }
       if (a.kind === 'sitter' && a.benchAt){
@@ -3904,6 +3926,39 @@ function shadowF(){
 }
 function shSpread(){ return 1 + 0.5 * (1 - shadowF()); }    // the penumbra eats the umbra
 function shOffset(){ return 1 - 0.65 * (1 - shadowF()); }   // and the throw retracts under its object
+/* The linden's shade as a PLACE (#94). The ellipse the tree throws on the lawn used to be
+ * drawn once per frame and consulted by nothing; now it is ONE definition — the draw
+ * reads this, and so do the choices (the picnic pair's blanket, the napper's line, the
+ * sundial's name). Nobody re-derives it. Centre slides with the sun, radii with the
+ * tree's maturity and the sky's spread; by night there is no shade to be in. */
+function lindenShade(){
+  const m = maturity(), treeR = 4.0 + m * 4.6;
+  const sunX = lerp(1.6, -1.6, clamp((hour - 6) / 14, 0, 1)) * daylight, sp = shSpread();
+  return {treeR, cx: CX + sunX * 1.6 * shOffset(), cy: CY + 1.2, rx: treeR * 0.95 * sp, ry: treeR * 0.8 * sp};
+}
+function inLindenShade(x, y){
+  if (daylight <= 0.05) return false;
+  const s = lindenShade(), dx = (x - s.cx) / s.rx, dy = (y - s.cy) / s.ry;
+  return dx * dx + dy * dy <= 1;
+}
+/* Where a blanket can go INSIDE the shade. At a hard summer sun the ellipse reaches r ~8
+ * and the picnic annulus starts at 9, so "in the shade" means the inner lawn, through a
+ * bed gap like the napper: five stands either side of each gap at r 3.3, kept off the
+ * sundial and off anyone already lying or sitting there. Deterministic — the caller's
+ * own uniform picks among them, so this costs the seeded world no draw. */
+function shadeSpots(th, u){
+  const gaps = GAP_ANGLES.slice().sort((p, q) => Math.cos(q - th) - Math.cos(p - th));
+  const clear = (x, y) => Math.hypot(x - SUNDIAL.x - 0.5, y - SUNDIAL.y - 0.5) >= 1.6
+    && !agents.some(o => { const t = o.napAt || o.picnicAt;      // where they are, or where they are headed to lie down
+      return ((o.state === 'lie' || o.state === 'sit') && Math.hypot(o.x - x, o.y - y) < 2.2) || (t && Math.hypot(t[0] - x, t[1] - y) < 2.2); });
+  const front = [], back = [];                 // in front of the trunk they are SEEN; behind it the crown covers them
+  for (const g of gaps) for (const k of [0, -1, 1, -2, 2]){
+    const t = g + k * 0.28, x = CX + Math.cos(t) * 3.3, y = CY + Math.sin(t) * 3.3;
+    if (inLindenShade(x, y) && inLindenShade(x + 0.9, y + 0.3) && clear(x, y) && clear(x + 0.9, y + 0.3)) (y > CY + 0.6 ? front : back).push({pt:[x, y], g});
+  }
+  const spots = front.length ? front : back;
+  return spots.length ? spots[(u * spots.length) | 0] : null;
+}
 function skyCols(){
   const d = daylight, w = warmth;
   // the dusk windows ride sunset and sunrise, or winter glows orange an hour after dark
@@ -5244,15 +5299,13 @@ function drawScene(t, dt){
 
   windT += dt * (RM ? 0.15 : 0.6) * (1 + 1.4 * windF());
   const sway = RM ? 0 : (Math.sin(windT) * 0.14 + Math.sin(windT*2.7)*0.05) * (1 + 0.7 * windF());
-  const m = maturity();
-  const treeR = 4.0 + m * 4.6, treeH = 6 + m * 3.8;
-  const sunX = lerp(1.6, -1.6, clamp((hour - 6) / 14, 0, 1)) * daylight;
+  const m = maturity(), sh = lindenShade();           // the ONE ellipse (#94): drawn here, read by inLindenShade()
+  const treeR = sh.treeR, treeH = 6 + m * 3.8;
 
   if (daylight > 0.05){
-    const sp = shSpread();
     ctx.fillStyle = 'rgba(30,42,22,' + (0.22*daylight) * shadowF() + ')';
-    const [tsx, tsy] = project(CX + sunX*1.6*shOffset(), CY + 1.2, 0);
-    ctx.beginPath(); ctx.ellipse(tsx, tsy, treeR*cellW*0.95*sp, treeR*cellH*0.8*sp, 0, 0, 7); ctx.fill();
+    const [tsx, tsy] = project(sh.cx, sh.cy, 0);
+    ctx.beginPath(); ctx.ellipse(tsx, tsy, sh.rx * cellW, sh.ry * cellH, 0, 0, 7); ctx.fill();
   }
 
   for (const a of agents) if (a.blanket && a.state==='sit'){
@@ -6743,6 +6796,7 @@ function dialThrow(h){                // where a point h above the dial's foot l
 function sundialName(){
   if (daylight <= 0.05) return 'the sundial, nothing on it till morning';
   if (shadowF() < 0.5) return 'the sundial, no shadow to read under this sky';
+  if (leafOut() > 0.5 && inLindenShade(SUNDIAL.x + 0.5, SUNDIAL.y + 0.5)) return 'the sundial, in the linden\'s shade';   // the crown is out and over it (#94)
   const h = 12 + (sunArc - 0.5) * dayHours;                 // the SUN's hour, not the clock's
   const k = Math.round(h * 2) / 2, hi = Math.floor(k), w = hi === 12 ? 'noon' : HOUR_WORDS[hi % 12];
   return 'the sundial — ' + (k !== hi ? 'half past ' : 'about ') + w;
@@ -7551,7 +7605,8 @@ function personName0(a){
   if (k === 'cyclist') return 'a cyclist';
   if (k === 'loader') return st === 'stand' ? 'an allotment holder, loading the cart'
                      : a.crop ? 'an allotment holder, basket out to the cart' : 'an allotment holder, back from the cart';
-  if (st === 'lie') return 'someone lying on the grass';
+  if (st === 'lie') return inLindenShade(a.x, a.y) ? 'someone lying in the shade of the linden'
+                        : daylight > 0.05 && shadowF() > 0.5 ? 'someone lying out in the sun' : 'someone lying on the grass';
   if (a.tend && st === 'stand') return 'an allotment holder, feeding the bonfire';
   if (st === 'kneel') return k === 'allot' ? (a.dig ? 'an allotment holder, turning a plot over' : 'an allotment holder, kneeling at the plot')
                                            : 'the gardener, kneeling at a bed';
@@ -7560,7 +7615,7 @@ function personName0(a){
   if (a.band && st === 'stand') return 'someone in the audience, listening';
   if (k === 'parapet' && st === 'stand') return 'someone leaning on the parapet';
   if (a.eveSpot && a.eveSpot.deck && st === 'stand') return a.fromBand ? 'someone from the concert, leaning on the footbridge rail' : a.stay ? 'someone who stayed on, leaning on the footbridge rail' : 'someone leaning on the footbridge rail';
-  if (st === 'sit') return a.cup ? 'someone at a table, with a cup' : k === 'picnic' ? 'someone on a blanket' : 'someone sitting';
+  if (st === 'sit') return a.cup ? 'someone at a table, with a cup' : k === 'picnic' ? (inLindenShade(a.x, a.y) ? 'someone on a blanket, in the linden\'s shade' : 'someone on a blanket') : 'someone sitting';
   if (a.greet > 0) return 'someone stopped for a word';
   if (a.listen > 0) return 'someone stopped, listening to the bell';
   if (st === 'stand') return a.watch > 0 ? 'someone watching the boat go by'

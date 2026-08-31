@@ -402,7 +402,8 @@
       "walled garden — bed ring, four arches, BENCH_SPOTS (4, outside the ring), desire paths (wear[]), daisies, ivy, a pre-dawn sweeper, ONE linden (treeR 4–8.6; its shade ellipse is drawn in drawTree's pass — no predicate reads it); planting CA (11 SPECIES); drawGround cached",
       "the beds read the YEAR — growF()/dieF() off warmth, lawn health in groundCol; bloomCap() dithered per cell",
       "the ground remembers — trod[] discounts snowAt(); litter[] laid by leaves, cut by feet/broom/wheels, cleared by snow; the dawn sweeper walks the heaviest ROAD row",
-      "the SUNDIAL — DIAL cell 32,35 on the inner lawn; drawSundial live, dialThrow(h) off sunVec(); sundialName() reads the SUN's hour; pairStands refuses DIAL"
+      "the SUNDIAL — DIAL cell 32,35 on the inner lawn; drawSundial live, dialThrow(h) off sunVec(); sundialName() reads the SUN's hour; pairStands refuses DIAL",
+      "the linden's SHADE is a place — lindenShade()/inLindenShade(x,y) the ONE ellipse (drawn in drawTree's pass, centre slides with the sun); shadeSpots() = inner-lawn stands r 3.3 by the bed gaps; hot picnic pairs (warmth > .65 & shadowF > .5) blanket INSIDE it via a gap (a.shaded), cool ones keep out; sundialName/personName/napper line read it"
     ],
     "lane": [
       "kiosk, pavement cafe (claimable CAFE_TABLES), awnings, washing lines (in on weatherComing() and at dusk), planters, LANE_LAMPS, LANE_BENCHES; market every 4th day, three MARKET_STALLS",
@@ -528,6 +529,12 @@
     {
       "id": "c140",
       "note": "the bonfire's smoke column is faint at 1× against the lawn (thick 0.34 in drawSmoke); no leaf lands on the allotment block (litter bbox x 4..71) so nothing there burns leaves (#93)",
+      "raisedBy": 91,
+      "seenBy": 0
+    },
+    {
+      "id": "c141",
+      "note": "the courtyard lawn holds a MEDIAN 1.0 person at a summer 13 h (0 on seed 42 days 6–7; 10 h 0.25, 16 h 2.0; probes/shade.mjs) — capacity/spawn shares untouched by #94; the manager's call",
       "raisedBy": 91,
       "seenBy": 0
     }
