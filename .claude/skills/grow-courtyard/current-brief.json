@@ -24,7 +24,7 @@
   "avoid": "Do not put the veil in the ground cache (it changes every frame) and do not step it — it is a rate-capped scalar with a cap, a cycle and an anchor (the law): mistF() = 0 must reproduce HEAD's pixels exactly. Do not add a mist to the night: the veil reads daylight, and nightF's multiply must stay last (the night-colour law). Do not open it after 09:00 or while it is raining.",
   "budgetMin": 60,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 2,
   "nextIter": 88,
   "issued": "2026-08-30T23:46:29.724Z",
