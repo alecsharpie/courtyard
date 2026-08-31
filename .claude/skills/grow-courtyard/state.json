@@ -423,7 +423,9 @@
       "plaza with a FOUNTAIN (105.5,30) and paved roundel, four tree pits, PLAZA_BENCHES (2); QUAY_BENCHES (2), quay rail x 112.9. pavingAt(x,y) the ONE predicate naming a cell's paving; crumbSpot() keeps birds off the basin",
       "NO bird lands on the plaza unbidden — updateWildlife lands birds[] on the courtyard lawn and the lane only; the plaza's pigeons are the crumbs' three and the belfry's flushes",
       "spawnEastAgent() — the east quarter's own source (eastCap/eastRate, a.east, eastOpen()): plaza 0.32 (bench or fountain, sit 9–18 s) / quay / towpath / parapet; enters by EAST_GATE_A/Q/P, one stop, retraces; DECK_SHARE walk on to the jetty",
-      "the FOUNTAIN reads the YEAR, WIND and FROST — fountainPlay() off greyF(); jets lean windSign·windF(), fountainStand() shy when windy; fountainIce()/fountainSkin()"
+      "the FOUNTAIN reads the YEAR, WIND and FROST — fountainPlay() off greyF(); jets lean windSign·windF(), fountainStand() shy when windy; fountainIce()/fountainSkin()",
+      "FAMILIES — spawnFamilyAgent(): the plaza's own source (FAM_CAP, famOpen() dry daylit midday); the parent (a.fam, famBench) on a PLAZA_BENCHES seat or the fountain stand; the child a makeCompanion() follower (a.famKid, kidRun) running the roundel arc and chasing plaza pigeons; alley gate only",
+      "PLAZA PIGEONS — birds[] with b.plaza, own roll and cap; plazaBirdSpot() on the roundel rings, off the basin, never beside anyone, on a seated family's side"
     ],
     "river": [
       "river (RIVER_X0..RIVER_X1, 13 columns), ONE fair-weather rowboat (boat.x 116.5–121.5, y −7 → 93; boatRate/boatSpeed; drawBoat), three-arch lane bridge, towpath (TOW_WALK 128.6, FAR_WALK 133.2), church with tower and rose window, bandstand, ORCHARD, JETTY (128.4,35; onJetty), PARK_GATE",
@@ -495,6 +497,24 @@
     {
       "id": "c135",
       "note": "the courtyard LAWN holds 2–4 people at a summer midday on seed 42 (shots/mgr-noon2-wide.png, 13:25: no kid, no blanket, no napper); count courtyard presence by kind × hour on HEAD before the next courtyard brief (#91, manager)",
+      "raisedBy": 91,
+      "seenBy": 0
+    },
+    {
+      "id": "c136",
+      "note": "plaza families: child-triggered flushes are 29% of visits (probes/plaza-midday.mjs) — pigeons land ~7/day and crossers on DECK_LEAD_A flush most; a returning pigeon or a crumb bias would raise it (#92)",
+      "raisedBy": 91,
+      "seenBy": 0
+    },
+    {
+      "id": "c137",
+      "note": "at 03h a 'dusk stay' deck stayer is walking on the plaza in nearly every night sample on 4 seeds — walking home at 3 am or stuck; trace lifetime (#92 c127 by-kind pass)",
+      "raisedBy": 91,
+      "seenBy": 0
+    },
+    {
+      "id": "c138",
+      "note": "plaza box presence at noon on HEAD was 2.7 not 0: ~2 are east visitors crossing on DECK_LEAD_A through the roundel — the manager's 'empty plaza' reading was of STOPPED people (~0.7); measure the two separately (#92)",
       "raisedBy": 91,
       "seenBy": 0
     }

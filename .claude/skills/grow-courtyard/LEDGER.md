@@ -40,14 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 84 — the sundial: a stone plinth and gnomon on the inner lawn, its shadow cast live from sunVec() (2026-08-31) [Courtyard & garden × New element]
-
-**Brief:** b82 — a sundial inside the bed ring, shadow per frame off the roofs' own sun, one non-walkable cell, named with the hour.
-**Did:** `DIAL = 13`, `SUNDIAL = {x:32, y:35, h:0.85}` on the inner lawn south of the linden; `buildGrid` sets it, `pairStands` refuses it, the cache paints it GRASS. `drawSundial` a live item at y+0.9: plinth shadow + `dialThrow(h)` = −SUN·h·shOffset()/SUN[2] on the grass, alpha 0.22·daylight·shadowF(), width × shSpread(); plinth, face with hour lines, gnomon. `sundialName()` reads the SUN's hour (45 min behind the clock); night and shadowF < 0.5 say so. Census TN gets 'DIAL'. No R().
-**Gates:** census PASS — tileKinds +1, DIAL +1, GRASS −1, the rest churn; **baseline re-pinned** · motion PASS · visual PASS (`shots/b82-sundial-sheet.png`) · day filmstrip 0 POP · perf PASS (+0.0%) · `probes/sundial.mjs`: throw (−0.35,−0.26) 08:00 → (0,−0.22) 12:45 → (0.22,−0.24) 16:00 summer; winter noon 0.70 vs 0.22 cells; lid + name flips; pixel margin 19; all PASS.
-**Verdict:** shipped (+85 lines).
-**Surprise:** routes are WAYPOINTS and nobody reads the grid between them — the DIAL cell keeps a companion off it and nothing else; the inner lawn is the only grass no route crosses but the nappers' gap lines, which chose the site. A summer throw (0.44 cells at 08:00) is shorter than the plinth's radius: the reading lives on the face; the ground shadow shows evenings and winter (1.64 cells).
-
 ## Iteration 85 — the deck's evening comes from the far side: a visitor whose afternoon ends inside a warm evening stays on, at the footbridge's east rail (2026-08-31) [People & animals × Connect]
 
 **Brief:** b83 — c118: EVE_SPOTS' deck posts fit 0 times in 30 evenings from any gate; give the deck an ALREADY-THERE source via the one re-route, priced at the choice.
@@ -109,3 +101,16 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Gates:** census PASS · motion PASS · visual PASS (`b89-vane-*` at 3×) · filmstrip 0 POP · `probes/vane.mjs`: mirror PASS; **north footprint 23×18 / 5×10 px, was 1 wide**; names PASS; **162 px differ from HEAD, 0 outside the two vane crops**.
 **Verdict:** shipped (+~70 lines).
 **Surprise:** #83's "clock arrow IDENTICAL to HEAD" probe went DIFFERENT the moment the arrow grew a cross-bar — an identity-with-HEAD assertion outlives the change it was written for by exactly one iteration; the assertion moved to the diff's LOCATION. A 6 px letter is a smudge at 1× but the CROSS reads, and the cross carries the heading.
+
+## Iteration 92 — the plaza gets a midday: families by the alley, a child that runs the roundel and chases the plaza's own pigeons back to a parent on the bench (2026-08-31) [Plaza & quay × Connect]
+
+**Brief:** b90 — c127 (count plaza presence by hour on HEAD), then families.
+**c127 on HEAD** (`probes/plaza-midday.mjs`, box x 98..112 y 18..46): 10h 2.9 · **12h 3.0** · 16h 1.6 · 03h 2.0; noon median **2.67, not 0** — but ~2 are east visitors CROSSING on `DECK_LEAD_A` (through the roundel); STOPPED people ~0.7.
+**Did:** `spawnFamilyAgent()`, own source (FAM_CAP 3 = the plaza's three places, FAM_RATE 0.5, `famOpen()` 09:30–17:00 dry daylit for SET-OUTS, the sun ends a stop; the walk priced against 17:00; place released as the walk out begins). Parent on a free `PLAZA_BENCHES` seat or the fountain stand; child = `makeCompanion()` (withCompanion split, no roll) with `kidRun()` — a pigeon within 8 of the parent, else a ±0.8 rad arc of the roundel on the parent's side; runs end when the parent stands. `plazaBirdSpot()`: PLAZA_BIRDS 3 on their own roll, rings r 4.2–6, off the basin, never beside anyone, on the family's side. Names, one announce, `__entities` fam/kid/run, census `inEast` counts families.
+**Gates:** census PASS (reshuffle; people +25) · motion: `day/cart` 0→1 = the median rule on the reshuffle (cart's worst step 3.9 on HEAD and candidate, p90 2.6 both) · filmstrip 0 POP · `shots/b90-plaza-noon-*` 13:25/seed 42: bench parent, small figure, fountain group.
+**Probe (candidate):** noon box 6.67; families/day median **3** (0 in rain, max 5); 82/82 pairs left together; child > 6 cells from parent > 3 s: **0**; runs 1.8/visit; **child-triggered flush in 24/82 visits — short of one per visit**.
+**Verdict:** shipped, ~+190 lines. Quay gate built, priced at 40 cells = 16 h, removed. FAM_CAP 2 gave 2/day: a family holds its place ~8 h of a 7.5 h window.
+**Surprise:** `__warp(0.05)` rounds UP to whole fixed-dt steps (~0.067 s): every "1100 steps = a day" probe ran 4 days and under-read durations 1.33× — the 17:03 exodus I chased for two rounds was real but mis-timed.
+**Budget:** inventory 9.6/9.5 KB after two plaza nouns — manager to distil.
+**Law:** `__warp(s)` advances whole fixed-dt steps — a step count is not a clock; loop on `day`, measure durations as `simT` deltas.
+**Law:** a place-holder whose visit outlasts the window makes arrivals/day ≈ cap whatever the rate: price presence as rate × visit BEFORE choosing the cap, and release the place as the walk OUT begins.

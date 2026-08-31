@@ -2132,11 +2132,15 @@ function stepAgent(a, dt){
     // leaves when the last case comes off the stand.
     if (a.band && !a.heard && bandF() > 0.98) a.heard = true;
     // a companion keeps no clock of its own: it gets up when the leader does
-    if (a.with){ if (a.with.done || a.with.state === 'walk'){ a.state = 'walk'; a.cup = false; } return; }
+    if (a.with){ if (a.with.done || a.with.state === 'walk'){ a.state = 'walk'; a.cup = false; }
+      // a family's child rests a beat at the parent's side, then is off again (#92)
+      else if (a.famKid && !raining){ a.rest -= dt; if (a.rest <= 0) startKidRun(a); }
+      return; }
     if (a.timer <= 0 || (raining && a.state !== 'lie')
         || skyLifts(a)
         || (a.east && !eastOpenFor(a))
         || (a.dusk && !eveOpen())
+        || (a.fam && !famSun())
         || (a.tap && !tapOpen())
         || (a.band && (bandF() <= 0 || (a.heard && bandF() < a.leaveAt)))){
       // a listener who would call in at the door on the way home: the walk is priced
@@ -2167,7 +2171,10 @@ function stepAgent(a, dt){
   // a companion re-reads its place beside the leader every step (a rate, not an
   // offset); once the leader is off the frame it walks to the last place it was asked
   // to and is done there.
-  if (a.with){ if (a.with.done) a.with = null; else { a.wp = [pairTarget(a)]; a.i = 0; } }
+  if (a.with){ if (a.with.done) a.with = null;
+    else if (a.run && (a.with.state === 'walk' || raining)) endKidRun(a);   // the parent is leaving: the run is over
+    else if (a.run && !a.chasing){ const b = kidBird(a); if (b){ a.run = a.wp = [[b.x, b.y]]; a.i = 0; a.chasing = true; a.chased++; } }   // a pigeon comes down mid-loop: the child breaks off for it
+    if (a.with && !a.run){ if (a.with.state === 'walk') kidSettle(a); a.wp = [pairTarget(a)]; a.i = 0; } }
   const tgt = a.i < a.wp.length ? a.wp[a.i] : null;
   if (!tgt){ a.done = true; return; }
   // the ONE place a leaver is asked home: on the lane, after dark, as the last leg (the
@@ -2189,7 +2196,8 @@ function stepAgent(a, dt){
     if (a.i >= a.wp.length){
       // a companion at its place: caught up (the leader walks on, and it is re-asked next
       // step), or at the leader's side while they sit or stand
-      if (a.with){ if (a.with.state !== 'walk'){ a.state = a.with.state; a.cup = !!a.with.cup; a.resume = true; } return; }
+      if (a.with){ if (a.run){ endKidRun(a); return; }   // run done: re-targeted to the parent's side next step
+        if (a.with.state !== 'walk'){ kidSettle(a); a.state = a.with.state; a.cup = !!a.with.cup; a.resume = true; } return; }
       if (a.home){ arriveHome(a); a.done = true; return; }   // at the door: in they go
       if (a.kind === 'gardener' && !a.planted){ a.state='kneel'; a.timer=8+R()*4; return; }
       if (a.kind === 'napper' && a.napAt){ a.state='lie'; a.timer=16+R()*14; a.napAt=null;
@@ -3082,6 +3090,127 @@ function spawnEastAgent(nightRail, room){
   a.wp.push(gate.slice());                   // and back out the way they came
   agents.push(a); withCompanion(a, room && !nightRail);   // the rail is ONE
 }
+/* ============ the plaza's midday: families (#92) ============ *
+ * Counted on HEAD (probes/plaza-midday.mjs, 10 seeds × 3 summer days): the plaza box
+ * holds ~2.7 people at noon, but ~2 of them are east visitors CROSSING it on the deck
+ * route; the ones who stop — a bench, the fountain — are ~0.7. Nobody stays, and the
+ * courtyard's kid never leaves the courtyard. So a family is its own source (the law:
+ * a rare thing needs its own source, never a share of eastCap's seven-way budget):
+ * FAM_CAP families at once, a window of dry daylit hours, a rate floored so a summer
+ * day sees a few. The parent takes what spawnEastAgent's plaza branch takes — a bench
+ * seat or the fountain stand — and the child is a FOLLOWER (makeCompanion: re-targeted
+ * off the leader every step) with a lead of its own: between rests at the parent's side
+ * it runs — at a pigeon on the roundel if one is down (the 4.5-cell scare in
+ * updateWildlife is the payoff), else a short arc of the roundel on the parent's side,
+ * so it is never far from them. Runs are cancelled the moment the parent gets up, so
+ * the pair leave together, retracing. The plaza's pigeons are PLAZA_BIRDS' own band
+ * (plazaBirdSpot), on the paved rings, off the basin (PAVING.plaza.keep) and never
+ * beside anyone standing there. Every draw here is on the family's own roll.
+ * PRICED (the time-compression law): the window is 7.5 h = 17 s of sim. The alley gate is
+ * 8–14 cells from the two benches — 1.3–2.6 h each way — and the dwell 3.5–6.5 h, so a
+ * family holds its place under the cap for most of the window: families a day ≈ FAM_CAP,
+ * however high the rate (2 gave 2, measured; 4 gave 4 and a crowd). The cap is the
+ * plaza's three places — two benches and the fountain — released as a family starts
+ * walking out (famCount), with a roll of 0.5/s so it fills by 10:30. A parent takes a
+ * bench no other family holds (famBench), or the fountain: two on one seat draw as one.
+ * The quay's north end was tried as a second gate and is 40 cells from the roundel —
+ * a 16 h walk that fits the window never and left a parent on the quay at 03:00 — so
+ * families come and go by the alley alone. And a walk is priced at its CHOICE: nobody
+ * sets out unless the arrival plus FAM_MIN_DWELL lands before the window's end — else the
+ * cap, filled by 11:30, released one family at 16:00 whose stop was cut at 17:03 with the
+ * others', three benches emptying on one frame. The window governs SET-OUTS only: a family
+ * that is there stays for its dwell (a 12:40 set-out sits until ~20:00), and the one
+ * thing that ends a stop early is the sun (famSun(), the way eastOpen() ends the quay). */
+const FAM_CAP = 3, FAM_RATE = 0.5, FAM_H0 = 9.5, FAM_H1 = 17, FAM_SUN = 0.35, FAM_MIN_DWELL = 1.5, FAM_WALK_MARGIN = 1.15;
+const FAM_LEASH = 8,              // a child runs at a pigeon only this far from the parent
+      FAM_ARC = 0.8,              // half-angle of the roundel arc a child loops, centred on the parent's side
+      FAM_RUN_R0 = 4.7, FAM_RUN_R1 = 5.8,   // between the roundel's middle and outer rings
+      FAM_REST0 = 0.8, FAM_REST1 = 1.6;     // seconds at the parent's side between runs (a run + the way back is ~4 s of an ~10 s dwell)
+const PLAZA_BIRDS = 3, PLAZA_BIRD_RATE = 0.5, PLAZA_BIRD_R0 = 4.2, PLAZA_BIRD_R1 = 6.0;
+const FAM_LEAD = [[99.8, ALLEY_Y + 0.4]];
+function famSun(){ return daylight > FAM_SUN; }
+function famOpen(){ return day >= 1 && !raining && famSun() && hour >= FAM_H0 && hour < FAM_H1; }
+function famCount(){ return agents.filter(a => a.fam && !a.famKid && !(a.stopped && a.state === 'walk')).length; }   // on the way in or stopped; a family walking out has given its place up
+function spawnFamilyAgent(){
+  const a = {
+    kind:'family', street:true, fam:true,
+    x:0, y:0, wp:[], i:0, speed:1.4 + R() * 0.6, state:'walk', timer:0,
+    shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9, wary:R(),
+  };
+  const free = PLAZA_BENCHES.filter(b => !agents.some(o => o.famBench === b));
+  if (free.length && R() < 1 - 0.5 * fountainStand()){
+    const b = pick(free); a.famBench = b;
+    a.stop = {x:b.x + 0.5, y:b.y + 1.0, act:'sit', dur:9 + R() * 4};
+  } else {
+    a.stop = {x:FOUNTAIN.x - 2.4 + R() * 1.6, y:FOUNTAIN.y + 3.1, act:'stand', dur:7 + R() * 3};
+  }
+  const gate = EAST_GATE_A, lead = FAM_LEAD;
+  const arrive = hour + FAM_WALK_MARGIN * pathHours(gate[0], gate[1], lead.concat([[a.stop.x, a.stop.y]]), a.speed);
+  if (arrive + FAM_MIN_DWELL >= FAM_H1) return;   // too late in the day to be worth the walk: the draws are spent, nobody comes
+  a.x = gate[0]; a.y = gate[1];
+  for (const p of lead) a.wp.push(p.slice());
+  a.wp.push([a.stop.x, a.stop.y]);
+  for (let i = lead.length - 1; i >= 0; i--) a.wp.push(lead[i].slice());
+  a.wp.push(gate.slice());                   // and back out the way they came, together
+  agents.push(a);
+  const k = makeCompanion(a);                // the child: the same follower every pair uses
+  k.kind = 'kid'; k.small = true; k.fam = true; k.famKid = true; k.famParent = a;
+  k.speed = a.speed * 1.12; k.runSpeed = 2.8 + R() * 0.8;
+  k.rest = 0.3 + R() * 0.5; k.chased = 0;      // the first rest is a glance: the child is off as soon as the parent has sat down
+  if (R() < 0.5) announce('A family comes through from the alley and the child makes straight for the pigeons.');
+}
+/* where a child runs next: a hopping pigeon within the leash of the parent, else an arc
+ * of the roundel on the parent's side. Waypoints, like every route in the town. */
+function kidBird(k){                         // the nearest pigeon down, or coming down, within the leash of the parent
+  const P = k.with; let best = null, bd = FAM_LEASH;
+  for (const b of birds) if (b.plaza && (b.state === 'hop' || b.state === 'land')){
+    const d = Math.hypot(b.x - P.x, b.y - P.y);
+    if (d < bd){ bd = d; best = b; }
+  }
+  return best;
+}
+function kidRun(k){
+  const P = k.with, pts = [], best = kidBird(k);
+  if (best){ pts.push([best.x, best.y]); k.chased++; k.chasing = true; }
+  else {
+    k.chasing = false;
+    const th0 = Math.atan2(P.y - FOUNTAIN.y, P.x - FOUNTAIN.x), dir = R() < 0.5 ? 1 : -1;
+    const r = FAM_RUN_R0 + R() * (FAM_RUN_R1 - FAM_RUN_R0), n = 3;
+    for (let j = 0; j <= n; j++){
+      const th = th0 + dir * (-FAM_ARC + 2 * FAM_ARC * j / n);
+      pts.push([FOUNTAIN.x + Math.cos(th) * r, FOUNTAIN.y + Math.sin(th) * r]);
+    }
+  }
+  return pts;
+}
+function startKidRun(k){
+  k.run = kidRun(k); k.wp = k.run; k.i = 0;
+  k.walkSpeed = k.speed; k.speed = k.runSpeed;
+  k.state = 'walk'; k.cup = false;
+}
+function endKidRun(k){
+  if (!k.run) return;
+  k.run = null; k.chasing = false;              // the run speed is kept for the way back — kidSettle() restores it at the parent's side
+  k.rest = FAM_REST0 + R() * (FAM_REST1 - FAM_REST0);
+}
+function kidSettle(k){ if (k.walkSpeed){ k.speed = k.walkSpeed; k.walkSpeed = 0; } }
+/* a pigeon comes down on the roundel's paved rings: on the side where a family is
+ * sitting if one is (pigeons go where the crumbs are — and that puts the bird inside
+ * the child's leash), else any angle; off the basin by construction (the rings start
+ * outside it — asserted against PAVING.plaza.keep), and never within the scare radius
+ * of anyone already there, or it would be up again in the same frame. Returns null when
+ * the spot is taken; the two draws are spent either way. */
+const PLAZA_BIRD_SIDE = 1.2;      // half-angle of the arc round a seated family
+function plazaBirdSpot(){
+  const P = agents.find(a => a.fam && !a.famKid && a.stopped && a.state !== 'walk');
+  const u = R(), th = P ? Math.atan2(P.y - FOUNTAIN.y, P.x - FOUNTAIN.x) + (u - 0.5) * 2 * PLAZA_BIRD_SIDE : u * Math.PI * 2;
+  const r = PLAZA_BIRD_R0 + R() * (PLAZA_BIRD_R1 - PLAZA_BIRD_R0);
+  const x = FOUNTAIN.x + Math.cos(th) * r, y = FOUNTAIN.y + Math.sin(th) * r;
+  const kp = PAVING.plaza.keep;
+  if (kp && x > kp.x0 - 0.6 && x < kp.x1 + 0.6 && y > kp.y0 - 0.6 && y < kp.y1 + 0.6) return null;
+  if (agents.some(a => Math.hypot(a.x - x, a.y - y) < 4.6)) return null;
+  return [x, y];
+}
 /* ============ the evening's own arrivals (#79) ============ *
  * The town had an evening door (spawnTapAgent), homers (spawnHomeAgent) and a night on
  * the water that ONE person watched (a.nightRail). A warm dry evening now has its own
@@ -3221,6 +3350,10 @@ function withCompanion(a, room){
   const roll = R();
   if (!room || roll >= PAIR_P || a.cycle || a.dog || a.kind === 'allot' || a.kind === 'busker' || a.nightRail
       || a.kind === 'kid' || a.kind === 'picnic' || a.kind === 'gardener' || a.kind === 'napper') return;
+  makeCompanion(a);
+}
+// the follower itself, no roll: a family's child (#92) is one by construction
+function makeCompanion(a){
   const b = Object.assign({}, a, {shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9,
     speed:a.speed * 1.12, with:a, side:R() < 0.5 ? 1 : -1, stop:null, table:null, dog:null, wp:[], i:0, hx:1, hy:0});
   a.pairLead = true;
@@ -3237,6 +3370,7 @@ function withCompanion(a, room){
   }
   const t = pairTarget(b); b.x = t[0]; b.y = t[1]; b.wp = [t];
   agents.push(b);
+  return b;
 }
 /* where the companion wants to be: walking, a step behind and to one side of the
  * leader's heading; sitting, beside them on the same bench (perpendicular to the way
@@ -3521,7 +3655,12 @@ function updateWildlife(dt){
   while (fireflies.length > wantF) fireflies.pop();
   for (const f of fireflies){ f.ph += dt*(RM?0.8:1.6); f.x += Math.sin(f.ph*0.9)*dt*0.8; f.y += Math.cos(f.ph*0.7)*dt*0.6; }
   belfryRoost = Math.min(7, belfryRoost + dt*0.85);   // flushed pigeons drift back to the tower
-  if (!raining && daylight>0.3 && birds.length < 3 && R() < dt*0.06*(0.5+m)){
+  // #92: the plaza's own pigeons, on their own roll and cap, off the lawn's three
+  if (!raining && daylight > 0.3 && birds.filter(b => b.plaza).length < PLAZA_BIRDS && R() < dt * PLAZA_BIRD_RATE){
+    const sp = plazaBirdSpot(), col = pick(['#7d8089','#6e6a60','#33302c','#5a4636']);
+    if (sp) birds.push({x:sp[0], y:sp[1], z:8, state:'land', hop:0, t:0, plaza:true, col});
+  }
+  if (!raining && daylight>0.3 && birds.filter(b => !b.plaza).length < 3 && R() < dt*0.06*(0.5+m)){
     const onLane = R() < 0.4;
     const th=R()*Math.PI*2, r=6+R()*10;
     birds.push({
@@ -7256,6 +7395,10 @@ function cartName(){
        : c.out ? 'the carter and his horse, trotting home' + what : 'the carter and his horse' + what;
 }
 function personName(a){
+  if (a.famKid) return a.run ? (a.chasing ? 'a child, chasing the pigeons' : 'a child, running about the roundel')
+                             : a.state === 'walk' ? 'a child, at someone\'s side' : 'a child, back at someone\'s side';
+  if (a.fam) return a.state === 'sit' ? 'someone on a bench, watching a child'
+                  : a.state === 'stand' ? 'someone at the fountain, watching a child' : 'someone, walking with a child';
   const n = personName0(a);
   return (a.with || a.pairLead) && /^someone/.test(n) ? n + (a.with ? ', with the one they came with' : ', with a friend') : n;
 }
@@ -7566,7 +7709,8 @@ function simStep(sdt, dt){
   const homeNow = homeCount();                   // the night's own arrivals: never a share of laneCap
   const eveNow = eveCount(), eveAll = eveNow + stayCount();   // the warm evening's own arrivals (#79): likewise; the deck's stayers (#85) are off eastCount already
   const cafeAll = agents.filter(a => a.cafe).length, cafeNow = cafeCount();   // the cafe's own custom (#74)
-  const laneCount = agents.length - courtyardCount - eastCount - bandCount - tapNow - homeNow - cafeAll - eveAll;
+  const famNow = famCount(), famAll = agents.filter(a => a.fam).length;   // the plaza's families (#92): their own source, parent + child off the residual
+  const laneCount = agents.length - courtyardCount - eastCount - bandCount - tapNow - homeNow - cafeAll - eveAll - famAll;
   /* Each cap is its old expression with the multiply-out done, so the fixed share is
    * visible as a number and the year rides the daylight term alone (see yearBusy).
    * At the anchor, warmth 0.5, all three are algebraically identical to what they
@@ -7617,6 +7761,8 @@ function simStep(sdt, dt){
     // the warm evening's own roll: eveOpen() is false on every hour outside its window
     // and on every cold, wet or windy evening, so the draw exists only when it is spending
     if (eveOpen() && eveNow < EVE_CAP && R() < EVE_RATE) spawnEveningAgent(eveNow + 1 < EVE_CAP);
+    // the plaza's midday: famOpen() is false outside 10–17, in rain and under low sun, so the draw exists only then
+    if (famOpen() && famNow < FAM_CAP && R() < FAM_RATE) spawnFamilyAgent();
     if (agents.length === 0 && day === 0 && simT > 6 && !window._first){ window._first = true; spawnAgent();
       announce('The first neighbour wanders in through the archway.'); }
   }
@@ -7882,6 +8028,7 @@ window.__entities = function(){
                    if (a === followed) o.followed = 1;
                    if (a.with) o.with = 'walker' + a.with.__id;
                    if (a.pairLead) o.lead = 1;
+                   if (a.fam){ o.fam = 1; if (a.famKid){ o.kid = 1; if (a.run) o.run = a.chasing ? 'bird' : 'arc'; } }
                    if (a.dig) o.dig = 1;
                    // the audience on the green. A probe has to tell a listener from a
                    // passer-by, and a listener standing AT its claimed place from one
@@ -7892,7 +8039,7 @@ window.__entities = function(){
        (o, a) => { o.act = a.state; if (a.tap){ o.tap = 1; if (a.caller) o.caller = 1; } });
   take(ducks, 'duck'); take(swans, 'swan', (o, s) => { o.act = s.state; });
   take(butterflies, 'butterfly'); take(fireflies, 'firefly');
-  take(birds, 'bird'); take(leaves, 'leaf');
+  take(birds, 'bird', (o, b) => { o.act = b.state; if (b.plaza) o.plaza = 1; }); take(leaves, 'leaf');
   if (balloon) take([balloon], 'balloon');
   if (boat) take([boat], 'boat');
   if (cart) take([cart], 'cart', (o, c) => { o.act = c.state; o.at = c.at; o.load = c.load; o.sacks = c.sacks ? 1 : 0; o.hx = +c.hx.toFixed(2); o.hy = +c.hy.toFixed(2); });
@@ -7931,7 +8078,7 @@ window.__census = function(){
     onStreet: agents.filter(a => a.street).length,
     // a subset of onStreet, not a new axis: the same where-are-they split, extended
     // to the half of the world that never had a counter.
-    inEast: agents.filter(a => a.east).length,
+    inEast: agents.filter(a => a.east || a.fam).length,   // #92: the plaza's families are east-quarter presence too
     ducks: ducks.length, swans: swans.length, birds: birds.length,
     butterflies: butterflies.length, fireflies: fireflies.length,
     leaves: leaves.length, raindrops: raindrops.length,
