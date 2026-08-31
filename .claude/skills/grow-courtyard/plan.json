@@ -1,48 +1,58 @@
 {
-  "generated": "2026-08-31T15:00:00.000Z",
-  "byIteration": 91,
-  "rung": 2,
+  "generated": "2026-09-01T08:30:00.000Z",
+  "byIteration": 94,
+  "rung": 6,
   "diagnosis": {
-    "health": "Sound but dearer: 19 of the last 20 real rows shipped, 0 reverts, selfVerdict == verdict throughout, src moved 10/10. The one non-ship is #90 REJECTING b88, and the fault is mine: c122 ('nothing has ever left by the lane's east end') was written from an inventory line I had myself written, and spawnLaneAgent has entered at GW + 2.5 since the first commit — the worker's 20-line count on HEAD was the second witness the brief never had; promoted to a law and corrected in the inventory. Cost: $6.92/iter over the last ten against $5.51 and $4.25 at the two passes before — but the ten include two bets that landed (+222 at $12.51, +115 at $8.27 across three attempts) and the tail (b87–b89) came in at $5.77/$3.85 for +20/+8/+70, so output moved with cost; not the Solvista signature, but the third rise in a row, and every one of the last five workers opened OVER budget (48.0–49.1 / 46 KB) — the tenth pass this has been true. Fixed this pass by distilling, not deferring: three 2.4–3.0 KB entries condensed to 1.4–1.5 KB (full text archived), five new laws MERGED into existing ones and the file trimmed to 12.2 KB with no law removed, the inventory rewritten to ≤300 B nouns (11.4 → 9.5 KB), cues 11 → 5. The loop is learning, not repeating: #87–#91 each surfaced a law nobody had (share sets s from width; the rate-capped scalar's else branch; a priced walk's unpriced holds; a per-day hash is seed-independent; an identity-with-HEAD probe outlives its change by one iteration).",
+    "health": "Shipping, but dearer for the third pass running and the one hard signal of the run fired: costSpike — #92/#93/#94 averaged $11.54 (23/18/12 min, 69/72/35 turns) against a $5.77 median. 19 of the last 20 real rows shipped, 0 reverts, selfVerdict == verdict throughout, src moved 10/10, and output moved with cost (+161 the plaza's midday, +150 the bonfire over two attempts, +81 the shade) — so this is not Solvista's flat-output climb. But the shape of the spend is diagnosable and mine: (1) both dear briefs opened with a COUNT step ('count plaza presence by hour on HEAD first', 'count courtyard presence by kind first') that the worker ran for 20–30 turns before building; (2) #93 attempt 1 was cut off by the session limit and attempt 2 re-verified all of it; (3) every one of the last five workers opened OVER the context budget (48.7/46 KB — the eleventh pass this has been true). Fixed this pass by distilling, not deferring: the three fat entries condensed 2.5/2.5/3.1 → 1.8/1.8/2.0 KB with the full text archived, five new laws MERGED into existing laws (#92 ×2, #93 ×2, #94) with ~1 KB of worked examples cut so the file sits at 12.0/12 KB and 30 laws, cues 11 → 5 (four closed, two pairs merged), and every brief below carries its numbers ALREADY COUNTED so no worker spends its first half re-measuring. The loop is learning, not repeating: #92–#94 each surfaced a law nobody had (warp steps are not a clock; a place-holder's visit sets arrivals ≈ cap; a hashed share sits on a weather conversion; the motion gate is blind to days 12–18; a region threshold is an intersection).",
     "signals": [
-      "none firing: last five shipped diffs 222/115/20/8/70 (median 70, smallDiff clear); mapFlat clear (#87 moved tileKinds and WATER); rung history 4b, 4b, 3, 4 — no consecutive-rung-2 problem",
-      "cost $4.25 → $5.51 → $6.92/iter over three passes: watch closely — this batch has ONE 70-minute bet and three ≤45-minute briefs by design",
-      "worker budget OVER on every open since #86 (48.0 KB at this pass's start): distilled to under the cap this pass",
-      "brief-premise error (#90): the manager's own inventory is not a witness — grep and count on HEAD before writing 'never' into a brief"
+      "costSpike (hard): last 3 averaged $11.54 vs $5.77 median → the rung is spent; climbed 2 → 6",
+      "smallDiff clear: last five shipped 29/75/161/25/81, median 75",
+      "mapFlat clear: #87 moved tileKinds and WATER, 7 back",
+      "rungHeld clear: rung history 4b/4b/3/4/2 — but this pass would have been the second consecutive ≤ 2, so a climb was due anyway",
+      "budget OVER 48.7/46 KB at the start of the pass (fixed: see health)"
     ],
-    "balance": "After recording #87–#91: plaza 14 back (#77 — the longest by five), street 9 (#82), courtyard 7 (#84), sill 5, river 4, sky 3, life 2, lane 1, roofs 0. Three wide shots this pass (seed 42, early summer, 10:30 / 13:25 / 16:55) show the plaza holding 0–1 people at every hour and the courtyard lawn holding none of its kinds at 13:25 — the two longest-neglected domains are also the two empty ones at the frontier; the concert green is the only crowd in the frame. Roofs and the river have had four of the last nine."
+    "balance": "Last 12 by domain: roofs 2, courtyard 2, life 2, and one each elsewhere. Lane & market is the longest-neglected in REAL terms — its last shipped work is #74 (the cafe); #90 was a rejected premise with 8 lines. Roofs & skyline (the rung-3 domain from #81) has 2 entries and no New element. The sill is 8 back (b93 covers it). Sky × polish stays saturated; the sky gets nothing this batch."
   },
-  "rationale": "RUNG 2 by evidence, not habit: no advisory signal shows, the last four passes sat at 4b/4b/3/4 and produced an eyot, a mist, a cart, a footbridge and a mill — the map and the year have both moved — and what the three wide shots now say is that the town's two biggest paved spaces are EMPTY while its edges are busy. That is a compounding problem (rung 2), not a missing world (rung 4): the plaza has a fountain that reads the year, wind and frost, two benches and its own arrival source, and holds nobody at noon; the courtyard has kids, nappers and picnics in spawnAgent() and shows a bare lawn. So the bet is the plaza's midday (b90, 70 min, high risk, first): families — the courtyard's existing KID figure with a parent — on their own source, chasing pigeons the plaza does not yet have, so a visitor's first ten seconds at the wide shot contain a running child and a bird flush where today there is paving. Behind it: an autumn bonfire on the allotments (b91, street 9 back — the season's one unbuilt spectacle, smoke on windDir() and a glow after dark), the linden's shade as a PLACE that the picnic and the napper choose by warmth (b92, courtyard 7 back, takes c124 and counts the lawn's emptiness for c135), a sill/camera polish bundle (b93, three cues, low), and the punt to the eyot (b94, river, medium-high) last — the island is the run's newest place and nobody can stand on it. Cost discipline: one bet, four briefs ≤45 min; the next pass climbs if this one lands clean and small.",
+  "rationale": "Where the frontier is: the courtyard. The diorama is called The Courtyard, the walled garden is the centre-left third of every wide shot, and #94 measured what shots/wide.png shows — the lawn's own kinds inside the wall hold a MEDIAN 0.25 person at 10 h, 1.0 at 13 h, 2.0 at 16 h on a summer day (seed 42 days 6–7: nobody), while the plaza (#92), the cafe (#74), the concert green and the warm evening (#79) all fill because each got its own source with places as its cap. The courtyard is the last population still on the iteration-1 model: ONE spawnAgent(room) roll under `capacity`, whose default branch is a ring walker who transits and leaves, with the staying kinds as 10–12% shares of that roll. That is the weakest system in the town by the run's own numbers, and costSpike says rung 2 is spent — so this batch is RUNG 6: retire and rebuild it (b95, the bet, first, 75 min, a 150–300-line diff expected). The rest of the queue balances: b94 (kept from #91's plan — the punt to the eyot, the run's newest place that nobody can stand on; the second bet, medium); b96 a murmuration coming in to roost at dusk in autumn and winter — the roofline and the sky above the river are the top third of the wide shot and nothing flocks in it (Roofs & skyline × New element, the domain's first new thing); b97 the lane's morning — the morning lapse is one tap away and shows the sweeper and the cart and nobody else, and the lane has had no shipped work for twenty iterations; b93 (kept — three measured camera loose ends, low, last). Cost discipline for this batch: every count a brief needs is IN the brief; no brief opens with 'measure first'. If the next three rows come in over $10 with output flat, the next pass reads the turns column before it reads the town.",
   "queue": [
     {
-      "id": "b93",
-      "domain": "The sill & the observer",
-      "kind": "Polish",
-      "brief": "Three camera/sill loose ends, all measured, none built. (1) c129: in the Far bank quarter on a desktop the willow's fronds hang under the foreground sill strip (rows 48+ at 2.6×) — re-price QUARTERS[4]'s box with project() on the target frame (the share law: share sets s from WIDTH, so fix rows by the box, not the share) so the island and its willow are inside the frame on a 1400 px desktop and a phone alike. (2) c126: viewFor()'s east clamp is priced at the bottom row (p = 1); price it at the box's OWN top row so a quarter near the top of the world can never show void past GW, and let Plaza take share ≥ 0.5 at 1400 px if it then fits. (3) c134: the clock-tower vane's cardinal letters are 6 px CSS at every zoom — scale them with cellW (floor 6 px) so a phone quarter at s 3.5 reads them; and let the wind announcement name the vane's heading via vaneName(). Prove each with probes/where-identity (IDENTICAL on Wide) and a before/after crop.",
+      "id": "b95",
+      "domain": "Courtyard & garden",
+      "kind": "Deepen",
+      "brief": "THE BET — rung 6, retire and rebuild the courtyard's population. The counts are DONE (probes/shade.mjs on HEAD, 10 seeds × summer days 5–7, warmth 0.97): the lawn's own kinds inside the wall hold a median 0.25 person at 10 h, 1.0 at 13 h, 2.0 at 16 h; at 13 h kid 0.43, napper 0.23, picnic 0.27, sitter 0, gardener 0; seed 42 at 13:25 on days 6 and 7 shows nobody. Do not re-measure — build. The cause is the iteration-1 model in the spawn loop (~line 7917): ONE `spawnAgent(room)` roll under `capacity = 2 + round(m·(3 + 9·daylight·yearBusy(EX_COURT)))` at `rate ≈ (0.05 + 0.42m)·(0.12 + daylight)`, where the default branch is a ring walker who crosses and leaves (~40 s = a resident) so `courtyardCount` is spent on transit, and the staying kinds are shares of that roll (gardener 0.10, kid 0.12, then dog/picnic/napper/sitter). The plaza (#92 spawnFamilyAgent/FAM_CAP), the cafe (#74), the warm evening (#79) each outgrew this; the courtyard is the last population still on it. Rebuild it their way: `spawnLawnAgent()` as the LAWN's own source, off `capacity`, with the lawn's PLACES as its cap — the 4 BENCH_SPOTS (sitters), shadeSpots()/napAt (nappers), the picnic annulus r 9–12 via picnicAt (pairs), the kid's run (kids, often two), EDGE_BEDS (one gardener) — each kind claiming a place at the choice and releasing it as the walk out begins; a visit priced at the choice against the retire rule (the sun ends a stay: `daylight`, SIT_REFUSE/seatRefused for the seated). Price presence as rate × visit BEFORE choosing the cap (law). Transit walkers/crossers/dogwalkers stay on the old roll under a `capacity` that no longer counts the stayers — then delete the staying branches from spawnAgent; a rebuild replaces, it does not bolt a second roll beside the first. Target: a summer 13 h holds 4–7 lawn-kind people on the MEDIAN seed (10 h ≥ 2, 16 h ≥ 3), every kind non-zero at 13 h across the sample, the lawn still empties by dark, rain and a clear winter noon stay within HEAD ± 1. A 150–300-line diff is expected and welcome; take the swing.",
       "seams": [
-        "QUARTERS",
-        "viewFor",
-        "q.share",
-        "project",
-        "VIEW_SMAX",
-        "VANES",
-        "drawVanes",
-        "vaneName",
-        "announce",
-        "cellW",
-        "probes/where-faces.mjs",
-        "probes/where-identity.mjs"
+        "spawnAgent",
+        "capacity",
+        "rate",
+        "courtyardCount",
+        "STAYING",
+        "finishItinerary",
+        "withCompanion",
+        "BENCH_SPOTS",
+        "shadeSpots",
+        "inLindenShade",
+        "picnicAt",
+        "napAt",
+        "GAP_ANGLES",
+        "EDGE_BEDS",
+        "spawnFamilyAgent (the model: FAM_CAP, famOpen, famCount, place release)",
+        "seatRefused",
+        "SIT_REFUSE",
+        "POP_FLOOR",
+        "yearBusy",
+        "probes/shade.mjs",
+        "probes/census-noise.mjs"
       ],
-      "successLooksLike": "Far bank quarter shows rows 0..52 on a 1400×900 desktop and on a 390×844 phone (project() of EYOT_AT.y + ry lands above the sill strip); no quarter box's right edge projects past GW at its top row; the vane letters measure ≥ cellW·1.7 px at s 3.5; the wide frame is IDENTICAL to HEAD; a wind announcement reads '…the weathercock swings into a west wind'.",
-      "avoid": "Do not move FOCUS or touch gview's k mapping. Do not add a new offer to OFFERS. No new quarter.",
-      "budgetMin": 25,
-      "risk": "low"
+      "successLooksLike": "probes/lawn-day.mjs (10 seeds × summer days 5–7, the shade.mjs box and kinds): median lawn-kind presence 13 h ≥ 4, 10 h ≥ 2, 16 h ≥ 3, each kind > 0 at 13 h; 0 lawn-kind stayers inside the wall at nightF > 0.5 who are not walking out; winter clear day 19 at 13 h and a rainy summer noon within HEAD ± 1; census PASS read for collapse (people will rise — say by how much; re-pin the baseline and say so), the reshuffle's ±10–19% on people is noise (census-noise.mjs); motion PASS; shots/b95-lawn-1325-s42-d6.png shows the lawn peopled where HEAD's shows nobody; wide.png at 09:00 day 4 reads busier inside the wall than shots/wide.png does now.",
+      "avoid": "Do not raise `rate`/`capacity` and call it done — that puts more walkers on the ring, not people on the lawn (the counts already say the ring is busy and the lawn empty). Do not touch laneCap/eastCap/POP_FLOOR or the night floor. Do not add a sixth kind of person — the five exist; give them a source. Do not leave the old staying branches in spawnAgent alongside the new source.",
+      "budgetMin": 75,
+      "risk": "high"
     },
     {
       "id": "b94",
       "domain": "River & far bank",
       "kind": "Connect",
-      "brief": "The punt to the eyot (c128). The island is the run's newest place and nobody can stand on it: the only way onto it is by water from the JETTY (128.4, 35; onJetty()), where overDeck()'s jetty visitors already stand for a while (a.stop at JETTY.x − 1.3). Count them first on HEAD (10 seeds × 3 summer days: how many jetty stands per day, how long). Then: ONE punt moored at the jetty; in daylight, calm (windF < 0.5) and dry, a jetty visitor whose dwell allows it (priced at the CHOICE against their retire: the trip is ~1 h sim each way plus a stay) steps aboard, poles to the eyot's EAST shore (eyotShore; the channel and the rowboat's lane x 116.5–121.5 are never entered — the crossing runs x ≈ 127 → 126.2, rows 35 → 42, south of the deck rows 30..32), stands under the willow for 1–2 h sim (a.eyot; named 'someone on the eyot, under the willow'), poles back, and resumes their retrace. The punt is two draw items in the rowboat's idiom (drawBoat is the rowboat's: give the punt its own, hull + pole + figure), never under the deck; while it is out the mooring is empty. Swans already keep off the turf (offEyot) — make sure the punt's landing does not put a swan or a nesting duck ON the shore cell it lands at (the 0.9-cell law). __entities takes the punt and the a.eyot stander; one announce line as it pushes off.",
+      "brief": "The punt to the eyot (c128). The island is the run's newest place and nobody can stand on it: the only way onto it is by water from the JETTY (128.4, 35; onJetty()), where overDeck()'s jetty visitors already stand for a while (a.stop at JETTY.x − 1.3). One count only, inline in the probe you write anyway (jetty stands/day and their dwell on HEAD, 10 seeds × 3 summer days — write the two numbers into the ledger and move on). Then: ONE punt moored at the jetty; in daylight, calm (windF < 0.5) and dry, a jetty visitor whose dwell allows it (priced at the CHOICE against their retire: the trip is ~1 h sim each way plus a stay) steps aboard, poles to the eyot's EAST shore (eyotShore; the channel and the rowboat's lane x 116.5–121.5 are never entered — the crossing runs x ≈ 127 → 126.2, rows 35 → 42, south of the deck rows 30..32), stands under the willow for 1–2 h sim (a.eyot; named 'someone on the eyot, under the willow'), poles back, and resumes their retrace. The punt is two draw items in the rowboat's idiom (drawBoat is the rowboat's: give the punt its own, hull + pole + figure), never under the deck; while it is out the mooring is empty. Swans already keep off the turf (offEyot) — make sure the punt's landing does not put a swan or a nesting duck ON the shore cell it lands at (the 0.9-cell law). __entities takes the punt and the a.eyot stander; one announce line as it pushes off.",
       "seams": [
         "JETTY",
         "onJetty",
@@ -69,20 +79,95 @@
       "avoid": "Do not add a second rowboat or move the rowboat's channel. Do not give the punt its own arrival source — it is a re-route of a jetty stander (the callIn/stayOn shape), priced at the choice. Do not let the punt cross the lane bridge's arches or the footbridge.",
       "budgetMin": 50,
       "risk": "medium"
-    }
-  ],
-  "consumed": [
-    {
-      "id": "b90",
-      "at": "2026-08-31T04:25:42.353Z"
     },
     {
-      "id": "b91",
-      "at": "2026-08-31T04:49:01.689Z"
+      "id": "b96",
+      "domain": "Roofs & skyline",
+      "kind": "New element",
+      "brief": "A MURMURATION at dusk. The roofline and the sky over the river are the top third of every wide shot, and apart from chimney smoke and two vanes nothing moves up there; nothing in the town flocks. In autumn and winter (from the first shed day, leafShed() > 0.1, through midwinter to the first leafOut — read seasonPhase/leafShed/leafOut, do not invent a calendar), on a dry evening (not raining, windF < 0.7), a flock of starlings gathers over the river and far bank in the last stretch of daylight — time-compressed to ~1.2 h sim (~2.7 real s; a twenty-minute one would be 0.75 s and nobody would see it): forming from sunDown − 1.3 h, boiling and turning against the sky as one soft cloud (a particle FIELD of 80–160 dots with two or three drifting attractors and a per-particle hash phase — NOT birds[] agents), leaning downwind off windDir(), then funnelling down into a roost at sunDown − 0.1: the church tower and the far-bank ridges (CHURCH; the eyot's willow may take a share). At sunrise a thin skein leaves the roost. Draw it as ONE live pass between drawBackdrop and the roof rows so it passes BEHIND the spire and the clock tower, and let applyLight/nightF own its colour (it is dark against a bright sky, then gone). No R(): hash(day, k) for the day's flock size, hashes for phases — zero reshuffle, canvas IDENTICAL to HEAD with the season forced to summer. nameAt over the cloud: 'starlings coming in to roost'; one announce as it forms; the evening lapse (sunDown + 1) passes through it — the filmstrip of that lapse must show the cloud and must not POP when it dissolves into the roost (fade the roost's last particles over ≥ 0.3 s real).",
+      "seams": [
+        "drawBackdrop",
+        "drawSky",
+        "drawRoofRow (draw order)",
+        "drawClockTower",
+        "CHURCH",
+        "belfryRoost",
+        "sunDown",
+        "sunAt",
+        "nightF",
+        "daylight",
+        "windDir",
+        "windF",
+        "raining",
+        "leafShed",
+        "leafOut",
+        "seasonPhase",
+        "applyLight",
+        "nameAt",
+        "announce",
+        "beginEvening",
+        "probes/filmstrip.mjs",
+        "probes/frame-cost.mjs"
+      ],
+      "successLooksLike": "probes/murmur.mjs, 8 seeds × 26 days: forms on ≥ 60% of dry autumn/winter evenings, 0 in summer, 0 in rain; canvas hash IDENTICAL to HEAD with the season forced to summer over the run (the identity law); frame-cost ≤ +0.5 ms at 160 particles; shots/b96-murmur-*.png at sunDown − 0.8 (wide) and in the Far bank quarter show a legible cloud, not a smear; the evening-lapse filmstrip shows it and grades 0 POP at the roost; nameAt reads under the pointer.",
+      "avoid": "Not birds[] agents and not a per-bird R(). Do not touch the belfry pigeons' bell 'wheel' or belfryRoost. Not filed under Sky (sky × polish is saturated; this is the roofline's first new thing). No new OFFERS entry.",
+      "budgetMin": 45,
+      "risk": "medium"
     },
     {
-      "id": "b92",
-      "at": "2026-08-31T15:09:35.561Z"
+      "id": "b97",
+      "domain": "Lane & market",
+      "kind": "New element",
+      "brief": "The lane's MORNING. The clock button's second landing (sunUp + 0.5, one tap away) shows the sweeper, the cart from ~sunUp + 0.2 and nobody else — the watch line says so and nobody has built for that hour. The lane has had no shipped work since #74. Give it a morning round: ONE figure with a handcart or a bag who comes in at the west end at sunUp − 0.3 and works the HOME_DOORS (y 64; x 4..130, fourteen doors) in order, a short stop at each (a bottle or a parcel left on the step: one small draw per delivered door, visible at 3×, cleared by ~09:30 as if taken in), out by the east end by sunUp + 1.6; its own source beside the sweeper's spawn (~line 3481: `!sweeper && hour > sunUp − 0.5 …`), NEVER a laneCap share; goes in rain under an umbrella (a.umbrella exists), skips only when snow is lying (snowCover > 0.5). Price the round first: fourteen stops must fit 1.9 h at effective speed ~0.75·a.speed — trace one; if it does not fit, fewer doors, not a faster walker. Second clause, the one a wide shot reads: the HOMES' windows are lit before sunrise — from sunUp − 0.8 fading out by sunUp + 0.4 — through windowLit()/LIT_PANES exactly as the evening does (check first whether a dawn is ALREADY lit by the nid mechanism; if it is, count it, say so, and spend the time on the round). Names: personName 'the morning round' / nameAt on a step 'a bottle left on the step'; the morning lapse's landing line names the round when it is out.",
+      "seams": [
+        "HOME_DOORS",
+        "homeDoorAt",
+        "HOMES",
+        "windowLit",
+        "LIT_PANES",
+        "drawLitPanes",
+        "nid",
+        "sunUp",
+        "sunAt",
+        "sweeper (spawn ~line 3481)",
+        "spawnHomeAgent",
+        "homeRate",
+        "beginEvening (the morning landing line)",
+        "snowCover",
+        "umbrella",
+        "personName",
+        "nameAt",
+        "__entities",
+        "probes/night-lit.mjs or the nearest LIT probe (ls probes/)"
+      ],
+      "successLooksLike": "probes/morning-round.mjs, 10 seeds × 4 days: the round is out on every non-snow day, in at sunUp − 0.3 ± 0.1, all fourteen doors visited, out by sunUp + 1.6 (a summer and a winter day both — the sunAt law); the morning lapse lands at sunUp + 0.5 with the round mid-street on 10/10 seeds; step marks present at 07:30 and gone at 09:30 in a 3× crop; dawn panes lit at sunUp − 0.5 and dark at sunUp + 0.5 on the same seed; census PASS (one new agent kind: people +1 at most per instant); motion PASS; filmstrip of the morning lapse 0 POP.",
+      "avoid": "No laneCap share. Do not move the sweeper or the cart. Do not change the lapse landing hour. Do not add a second figure — one round, priced.",
+      "budgetMin": 45,
+      "risk": "medium"
+    },
+    {
+      "id": "b93",
+      "domain": "The sill & the observer",
+      "kind": "Polish",
+      "brief": "Three camera/sill loose ends, all measured, none built. (1) c129: in the Far bank quarter on a desktop the willow's fronds hang under the foreground sill strip (rows 48+ at 2.6×) — re-price QUARTERS[4]'s box with project() on the target frame (the share law: share sets s from WIDTH, so fix rows by the box, not the share) so the island and its willow are inside the frame on a 1400 px desktop and a phone alike. (2) c126: viewFor()'s east clamp is priced at the bottom row (p = 1); price it at the box's OWN top row so a quarter near the top of the world can never show void past GW, and let Plaza take share ≥ 0.5 at 1400 px if it then fits. (3) c134: the clock-tower vane's cardinal letters are 6 px CSS at every zoom — scale them with cellW (floor 6 px) so a phone quarter at s 3.5 reads them; and let the wind announcement name the vane's heading via vaneName(). Prove each with probes/where-identity (IDENTICAL on Wide) and a before/after crop.",
+      "seams": [
+        "QUARTERS",
+        "viewFor",
+        "q.share",
+        "project",
+        "VIEW_SMAX",
+        "VANES",
+        "drawVanes",
+        "vaneName",
+        "announce",
+        "cellW",
+        "probes/where-faces.mjs",
+        "probes/where-identity.mjs"
+      ],
+      "successLooksLike": "Far bank quarter shows rows 0..52 on a 1400×900 desktop and on a 390×844 phone (project() of EYOT_AT.y + ry lands above the sill strip); no quarter box's right edge projects past GW at its top row; the vane letters measure ≥ cellW·1.7 px at s 3.5; the wide frame is IDENTICAL to HEAD; a wind announcement reads '…the weathercock swings into a west wind'.",
+      "avoid": "Do not move FOCUS or touch gview's k mapping. Do not add a new offer to OFFERS. No new quarter.",
+      "budgetMin": 25,
+      "risk": "low"
     }
   ],
   "recommendStop": null

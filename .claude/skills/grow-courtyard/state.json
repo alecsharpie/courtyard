@@ -1,8 +1,8 @@
 {
-  "updated": "2026-08-31",
+  "updated": "2026-09-01",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 91,
+  "lastIteration": 94,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -191,7 +191,8 @@
       ],
       "connect": [
         49,
-        75
+        75,
+        94
       ],
       "new-element": [
         84
@@ -227,7 +228,8 @@
       "new-element": [
         "pre2",
         "pre4",
-        82
+        82,
+        93
       ],
       "polish": [
         "pre3",
@@ -266,7 +268,8 @@
       ],
       "connect": [
         50,
-        59
+        59,
+        92
       ]
     },
     "river": {
@@ -403,7 +406,7 @@
       "the beds read the YEAR — growF()/dieF() off warmth, lawn health in groundCol; bloomCap() dithered per cell",
       "the ground remembers — trod[] discounts snowAt(); litter[] laid by leaves, cut by feet/broom/wheels, cleared by snow; the dawn sweeper walks the heaviest ROAD row",
       "the SUNDIAL — DIAL cell 32,35 on the inner lawn; drawSundial live, dialThrow(h) off sunVec(); sundialName() reads the SUN's hour; pairStands refuses DIAL",
-      "the linden's SHADE is a place — lindenShade()/inLindenShade(x,y) the ONE ellipse (drawn in drawTree's pass, centre slides with the sun); shadeSpots() = inner-lawn stands r 3.3 by the bed gaps; hot picnic pairs (warmth > .65 & shadowF > .5) blanket INSIDE it via a gap (a.shaded), cool ones keep out; sundialName/personName/napper line read it"
+      "the linden's SHADE is a place — lindenShade()/inLindenShade(x,y) the ONE ellipse (drawn in drawTree, slides with the sun); shadeSpots() inner-lawn stands r 3.3 by the bed gaps; hot picnic pairs (warmth > .65, shadowF > .5) blanket INSIDE via a gap (a.shaded); sundialName/personName/napper read it"
     ],
     "lane": [
       "kiosk, pavement cafe (claimable CAFE_TABLES), awnings, washing lines (in on weatherComing() and at dusk), planters, LANE_LAMPS, LANE_BENCHES; market every 4th day, three MARKET_STALLS",
@@ -473,20 +476,8 @@
   },
   "openCues": [
     {
-      "id": "c121",
-      "note": "the cart's loader pops in/out beside a plot on row 45; a holder already kneeling with a.crop could be the loader instead (#82)",
-      "raisedBy": 81,
-      "seenBy": 2
-    },
-    {
       "id": "c131",
-      "note": "the deck's two stay posts are the audience's cap (19/33 concert evenings fill both; 51/246 in-weather listeners chose): a third stay post at 122.5, 2 cells clear, would put three on the rail (#89)",
-      "raisedBy": 86,
-      "seenBy": 1
-    },
-    {
-      "id": "c132",
-      "note": "a priced stayer still loses the post to the bell: a.listen (~0.5 h) landed 8/51 concert stayers after eveEnd() — one frame standing, then on; price it or let a priced walker not look up (#89)",
+      "note": "the deck's two stay posts cap the audience (19/33 concert evenings fill both) and a priced stayer still loses a post to the bell (a.listen ~0.5 h, 8/51 after eveEnd()): a third post at 122.5 + price a.listen (#89)",
       "raisedBy": 86,
       "seenBy": 1
     },
@@ -497,46 +488,22 @@
       "seenBy": 1
     },
     {
-      "id": "c135",
-      "note": "the courtyard LAWN holds 2–4 people at a summer midday on seed 42 (shots/mgr-noon2-wide.png, 13:25: no kid, no blanket, no napper); count courtyard presence by kind × hour on HEAD before the next courtyard brief (#91, manager)",
-      "raisedBy": 91,
-      "seenBy": 0
-    },
-    {
       "id": "c136",
       "note": "plaza families: child-triggered flushes are 29% of visits (probes/plaza-midday.mjs) — pigeons land ~7/day and crossers on DECK_LEAD_A flush most; a returning pigeon or a crumb bias would raise it (#92)",
       "raisedBy": 91,
-      "seenBy": 0
+      "seenBy": 1
     },
     {
       "id": "c137",
       "note": "at 03h a 'dusk stay' deck stayer is walking on the plaza in nearly every night sample on 4 seeds — walking home at 3 am or stuck; trace lifetime (#92 c127 by-kind pass)",
       "raisedBy": 91,
-      "seenBy": 0
-    },
-    {
-      "id": "c138",
-      "note": "plaza box presence at noon on HEAD was 2.7 not 0: ~2 are east visitors crossing on DECK_LEAD_A through the roundel — the manager's 'empty plaza' reading was of STOPPED people (~0.7); measure the two separately (#92)",
-      "raisedBy": 91,
-      "seenBy": 0
+      "seenBy": 1
     },
     {
       "id": "c139",
-      "note": "bonfire: 2/17 kindles land at 20:00+ (a slow holder's 13 h walk from a sunrise set-out) — an after-dark 'afternoon' fire; price the walk or spawn the holder at the lane gate (#93)",
+      "note": "bonfire: 2/17 kindles land at 20:00+ (a slow holder's 13 h walk from a sunrise set-out — spawn at the lane gate or price the walk), and the smoke column is faint at 1× against the lawn (thick 0.34 in drawSmoke) (#93)",
       "raisedBy": 91,
-      "seenBy": 0
-    },
-    {
-      "id": "c140",
-      "note": "the bonfire's smoke column is faint at 1× against the lawn (thick 0.34 in drawSmoke); no leaf lands on the allotment block (litter bbox x 4..71) so nothing there burns leaves (#93)",
-      "raisedBy": 91,
-      "seenBy": 0
-    },
-    {
-      "id": "c141",
-      "note": "the courtyard lawn holds a MEDIAN 1.0 person at a summer 13 h (0 on seed 42 days 6–7; 10 h 0.25, 16 h 2.0; probes/shade.mjs) — capacity/spawn shares untouched by #94; the manager's call",
-      "raisedBy": 91,
-      "seenBy": 0
+      "seenBy": 1
     }
   ],
   "watch": [
@@ -554,7 +521,7 @@
     },
     {
       "since": 81,
-      "note": "THE MAP MOVED FOUR TIMES — #73 (tileKinds, water), #78 (developed +135), #84 (DIAL), #87 (EYOT +26, tileKinds). passages/structures/speciesKinds still sit at their #2 values. A spatial brief is EXPECTED to move them — re-pin the baseline (census.mjs --save-baseline) and say so; the gate reads collapse, not delta."
+      "note": "THE MAP MOVED FOUR TIMES — #73 (tileKinds, water), #78 (developed +135), #84 (DIAL), #87 (EYOT +26). passages/structures/speciesKinds still sit at their #2 values. A spatial brief is EXPECTED to move them — re-pin the baseline (census.mjs --save-baseline) and say so; the gate reads collapse, not delta. PEOPLE churns ±10–19% on any new R() draw (census-noise.mjs): that delta is the reshuffle."
     }
   ],
   "closedCues": [
@@ -1485,6 +1452,54 @@
       "seenBy": 0,
       "closedBy": 91,
       "reason": "PROMOTED to brief b93 at manager pass #91"
+    },
+    {
+      "id": "c135",
+      "note": "the courtyard LAWN holds 2–4 people at a summer midday on seed 42 (shots/mgr-noon2-wide.png, 13:25: no kid, no blanket, no napper); count courtyard presence by kind × hour on HEAD before the next courtyard brief (#91, manager)",
+      "raisedBy": 91,
+      "seenBy": 0,
+      "closedBy": 94,
+      "reason": "confirmed by #94's count (13 h median 1.0); superseded by c141 → brief b95 at manager pass #94"
+    },
+    {
+      "id": "c141",
+      "note": "the courtyard lawn holds a MEDIAN 1.0 person at a summer 13 h (0 on seed 42 days 6–7; 10 h 0.25, 16 h 2.0; probes/shade.mjs) — capacity/spawn shares untouched by #94; the manager's call",
+      "raisedBy": 91,
+      "seenBy": 0,
+      "closedBy": 94,
+      "reason": "PROMOTED to brief b95 (the bet) at manager pass #94"
+    },
+    {
+      "id": "c138",
+      "note": "plaza box presence at noon on HEAD was 2.7 not 0: ~2 are east visitors crossing on DECK_LEAD_A through the roundel — the manager's 'empty plaza' reading was of STOPPED people (~0.7); measure the two separately (#92)",
+      "raisedBy": 91,
+      "seenBy": 0,
+      "closedBy": 94,
+      "reason": "measured by #92 (stopped ~0.7 vs crossing ~2 at noon); the family source answered it — plaza noon box 2.7 → 6.7"
+    },
+    {
+      "id": "c121",
+      "note": "the cart's loader pops in/out beside a plot on row 45; a holder already kneeling with a.crop could be the loader instead (#82)",
+      "raisedBy": 81,
+      "seenBy": 2,
+      "closedBy": 94,
+      "reason": "closed at manager pass #94: a one-frame pop beside row 45, unclaimed for three passes; not worth a slot — reopen only with a cart brief"
+    },
+    {
+      "id": "c132",
+      "note": "a priced stayer still loses the post to the bell: a.listen (~0.5 h) landed 8/51 concert stayers after eveEnd() — one frame standing, then on; price it or let a priced walker not look up (#89)",
+      "raisedBy": 86,
+      "seenBy": 1,
+      "closedBy": 94,
+      "reason": "merged into its neighbour cue at manager pass #94"
+    },
+    {
+      "id": "c140",
+      "note": "the bonfire's smoke column is faint at 1× against the lawn (thick 0.34 in drawSmoke); no leaf lands on the allotment block (litter bbox x 4..71) so nothing there burns leaves (#93)",
+      "raisedBy": 91,
+      "seenBy": 0,
+      "closedBy": 94,
+      "reason": "merged into its neighbour cue at manager pass #94"
     }
   ]
 }
