@@ -403,7 +403,7 @@
       "wet seats — seatRefused(a) = sky > SIT_REFUSE OR seatWet(a) (wetF() above 0.75 − a.wary·0.4); arrivals only. probes/wet-seats.mjs",
       "the working day hangs off the SUN — kiosk/market/sweeper offsets from sunUp/sunDown; the stalls sell what the plots grew: produce[] from harvestPlot(), stockMarket(). probes/working-day.mjs, market-year.mjs",
       "the cafe's own source (#74) — cafeOpen()/cafeRate()/spawnCafeAgent() under CAFE_WAY, west edge, 3.5–7 h, companion across the table. probes/cafe-supply.mjs",
-      "entries: spawnLaneAgent from the WEST edge only (x −2.5, LANE_N_Y/LANE_S_Y); exits west or by routeToExit(); nothing uses the EAST end (x 138 past PARK_GATE)"
+      "lane ENDS (#90): spawnLaneAgent enters at EITHER edge (fromW = R() < 0.5; x −2.5 / GW + 2.5) and exits at the opposite one (toX); HEAD counts E 32/102 entries, 18 exits. routeToExit() is the COURTYARD's ring exit. probes/lane-ends.mjs"
     ],
     "street": [
       "cross street: two footways, roadway, curbs, lamps, four street trees in TREE_PITS; allotment block of 17 plots, timber fence, gates, shed, POND, an alley through the block (ALLEY_Y)",
@@ -411,7 +411,7 @@
       "seasonal canopy on all 13 trees — leafOut/Fresh/Deep/Turn/Shed + leafCol() off seasonPhase, bare in winter behind drawBoughs(); leafFallF(); fruit trees add blossomF()/fruitF(). probes/canopy-year.mjs",
       "winter — SPECIES.hardy (cabbages) grain-matched to the PLOT via plotStands(); digWeather() adds DIG_RATE, fallowPlots() turned by a.dig holders. probes/allot-year.mjs",
       "street litter clears — feet/wheels cut litter on SIDE/ROAD, the dawn sweeper walks the heaviest ROAD row (sweeper.gutter)",
-      "the CARTER (#82) — one cart object: cartToday()/cartDue() off sunUp; south to the fence gate row 45, spawnLoader() basket → c.load; market days on to MARKET_STALLS[1] and out west, else back north; sacks off wetF(); cartShove() yields walkers; two draw items. probes/cart-day.mjs"
+      "the CARTER (#82) — one cart object: cartToday()/cartDue() off sunUp; south to the fence gate row 45, spawnLoader() basket → c.load; market days on to MARKET_STALLS[1] and out by cartHomeX() — west or EAST past the gatehouse on hash(day,763) < CART_EAST (#90), else back north; sacks off wetF(); cartShove() yields walkers; two draw items. probes/cart-day.mjs"
     ],
     "plaza": [
       "plaza with a FOUNTAIN and paved roundel, four tree pits, benches; QUAY_BENCHES. pavingAt(x,y) the ONE predicate naming a cell's paving, each with a crumbs line; crumbSpot() keeps birds off the basin",
@@ -513,6 +513,12 @@
     {
       "id": "c132",
       "note": "a priced stayer still loses the post to the bell: a.listen (~0.5 h) landed 8/51 concert stayers after eveEnd() — one frame standing, then on; price it or let a priced walker not look up (#89)",
+      "raisedBy": 86,
+      "seenBy": 0
+    },
+    {
+      "id": "c133",
+      "note": "the cart trots home by either lane end at 18–20 h in early summer (a 12 h round trip); on a short winter day that is after dark by either end — how often is uncounted (#82, #90)",
       "raisedBy": 86,
       "seenBy": 0
     }

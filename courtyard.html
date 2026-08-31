@@ -2692,7 +2692,7 @@ function spawnCafeAgent(room){
  * items round the walkers' row (drawCartBody before, drawCartFront after), like the deck
  * and the mill wheel. No R() anywhere in it — the loader's colours come off hash(day) —
  * so the seeded stream is untouched on cart days and cart-less days alike. */
-const CART_P = 0.8, CART_X = XS_R0 + 3, CART_GATE_Y = 45, CART_LANE_Y = LN_ROAD0 + 2.2;
+const CART_P = 0.8, CART_X = XS_R0 + 3, CART_GATE_Y = 45, CART_LANE_Y = LN_ROAD0 + 2.2, CART_EAST = 0.5;   // CART_EAST: the share of market-day departures that go home by the lane's EAST end
 const CART_SPEED = 6.5, CART_TROT = 1.5, CART_IN = 0.2, CART_LAST = 1.6;    // cells/s, ×trot on the way out; hours off sunUp it may set out
 const CART_BERTH = 1.7, CART_SHOVE = 3.6, CART_LEN = 2.9;                 // the axle-to-nose segment walkers keep off
 const CART_GATE_DUR = 3.0, CART_MK_DUR = 2.0, CART_LOAD_HOLD = 1.2;       // seconds; the gate also waits for the load
@@ -2711,9 +2711,15 @@ function spawnCart(){
   announce(cart.sacks ? 'A cart comes down the cross street, sacks from the mill on its bed.'
                       : 'Hooves on the cross street: the carter is coming down from the north.');
 }
+/* The way home from the stalls has two ends (#90, c122): the lane runs out over the bridge
+ * and past the far-bank gatehouse as well as west, and until now nothing on wheels had ever
+ * used that end. A per-day hash, like cartToday(): no R() draw, so the seeded world is the
+ * same on every day the cart goes west. Both ends are off the frame (the lane row is visible
+ * to x 139.6; the cart's tail is at c.x − 0, its nose at + CART_LEN). */
+function cartHomeX(){ return hash(day, 763) < CART_EAST ? GW + 4 : -4; }
 function cartRouteOn(){          // decided as it pulls away from the gate, off the market as it IS then
   const c = cart;
-  if (marketActive()) c.wp.push({x:CART_X, y:CART_LANE_Y}, {x:MARKET_STALLS[1].x, y:CART_LANE_Y, stop:'market'}, {x:-4, y:CART_LANE_Y});
+  if (marketActive()) c.wp.push({x:CART_X, y:CART_LANE_Y}, {x:MARKET_STALLS[1].x, y:CART_LANE_Y, stop:'market'}, {x:cartHomeX(), y:CART_LANE_Y});
   else { c.wp.push({x:CART_X, y:-4}); c.out = true; }
 }
 function cartCrop(){             // what the basket holds: the store's biggest line, or a bare vegetable
