@@ -29,7 +29,7 @@
   "avoid": "Do not add a second rowboat or move the rowboat's channel. Do not give the punt its own arrival source — it is a re-route of a jetty stander (the callIn/stayOn shape), priced at the choice. Do not let the punt cross the lane bridge's arches or the footbridge.",
   "budgetMin": 50,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 96,
   "issued": "2026-08-31T19:57:11.383Z",
