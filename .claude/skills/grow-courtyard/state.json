@@ -458,7 +458,7 @@
     ],
     "roofs": [
       "emergent roofs from buildVolumes() (footprint → volume, eaveFor); CHIMNEYS[] filled as roofs draw, drawSmoke(t) leans windDir(); drawRoofRow() shades by SUN, cloud and warmth; snowCover whitens; the night cat (catA) on the ground only",
-      "WEATHERVANES (#83) on both towers — VANES[], drawVanes() LIVE by the clock hands, vaneAngle() into the wind off windSign·windF(), vaneWob() calm drift; a flat arrow, edge-on pointing north"
+      "WEATHERVANES (#83, #91) on both towers — VANES[] {kind,name}, drawVanes() LIVE by the clock hands, vaneAngle() into the wind off windSign·windF(), vaneWob() calm drift; the clock tower's an ARROW (head, swallow tail, screen-fixed N/S/E/W cross-bar), the church's a WEATHERCOCK (body with ground-plane width, a blob edge-on); vaneAt()/vaneName() in lookAt(): 'the vane, idle in the calm' / 'the weathercock, into a west wind'. probes/vane.mjs, vane-shots.mjs"
     ]
   },
   "openCues": [
@@ -519,6 +519,12 @@
     {
       "id": "c133",
       "note": "the cart trots home by either lane end at 18–20 h in early summer (a 12 h round trip); on a short winter day that is after dark by either end — how often is uncounted (#82, #90)",
+      "raisedBy": 86,
+      "seenBy": 0
+    },
+    {
+      "id": "c134",
+      "note": "c134: the vanes' cardinal letters are 6 px CSS at every zoom — scale with cellW on a phone quarter (s 3.5); the wind announcement could name the vane's heading (#91)",
       "raisedBy": 86,
       "seenBy": 0
     }

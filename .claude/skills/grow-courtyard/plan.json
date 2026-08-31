@@ -13,28 +13,7 @@
     "balance": "After recording: lane 12 back (#74, the longest), plaza 9 (#77), sky 10 (#76), street 4, roofs 3, courtyard 2, life 1, sill 0, river 5. The lane gets b88 (its east end); the sky gets the mist (b86, sky × Scale/World); the plaza's gap is diagnosed, not built — c127 asks for a presence count first, because the east half's supply has been re-tuned four times and a fifth blind tune is how a domain gets a polish streak. The river takes the bet (b85) although it had two of the last eight, because the river is the centre of every wide shot and the one place a spatial change is visible from every quarter."
   },
   "rationale": "RUNG 4, both halves, because smallDiff fires and the ladder says a firing signal is a spent rung — the last batch's cart and sundial were structural and still the batch's median was polish-sized. Thirty seconds at the wide shot, seed 42, early-summer noon: the river runs the full height of the frame through its centre and is a flat blue slab with faint streaks — one rowboat sometimes, two swans; the far-bank lawn and the plaza are empty at noon; the sky is plain blue with three clouds and has never been anything but clear, raining or snowing. So b85 THE BET (4b, river × Scale/World, 75 min, a 150–300-line diff invited): an EYOT — an island in the river's east half with a willow, a shingle bank and reeds, the boat's channel kept clear on the west, the swans given a third bank, ducks nesting on it in spring; WATER cells become a new tile, speciesKinds and tileKinds move and the baseline is re-pinned. b86 (4a, sky × Scale/World, 60 min, high): RIVER MIST — a rate-capped mistF() that rises off the water on still, clear mornings after a wet or cold night, thickest over the river and the low east ground at sunUp, gone by mid-morning; the backdrop's HAZE is already a consumer (drawRoofRow mixes 0.55 into it) and the morning tap (sunUp + 0.5) lands a visitor inside it. b87 c125: the concert audience walks round the bandstand to the deck (life × Connect, medium) — 290 of 418 far-side evening retirements were the audience, and #85 showed the deck's evening needs people already on the far side. b88 c122: the lane's east end becomes a real end (lane × Connect, medium-low) — nothing has ever left or arrived by x 138 in 86 iterations. b89 c123: weathercocks and lookAt names them (roofs × Polish, low). Order: bet first, mist second, so both are built while the plan is fresh.",
-  "queue": [
-    {
-      "id": "b89",
-      "domain": "Roofs & skyline",
-      "kind": "Polish",
-      "brief": "c123. The church vane sits on the rod under the cross and goes edge-on to a 1-px sliver whenever the heading passes north, and neither vane is named. Give each VANES[] entry a silhouette that reads at every heading — a weathercock on the church (a cock's body reads from the side and as a blob edge-on), the clock tower's arrow kept but with a tail and a cross-bar of N/S/E/W letters that never foreshortens — and make lookAt() name them with their state ('the weathercock, into a west wind' / 'the vane, idle in the calm').",
-      "seams": [
-        "VANES",
-        "drawVanes",
-        "vaneAngle",
-        "vaneWob",
-        "lookAt",
-        "windSign",
-        "windF",
-        "drawClockTower"
-      ],
-      "successLooksLike": "probes/vane.mjs extended: at heading north each vane's drawn bounding box is ≥ 4 px wide (was 1); lookAt() over either tower returns a vane name in three wind states; the wide shot at noon shows both vanes legibly.",
-      "avoid": "Do not move the vanes back into the cache. No R() in the draw. Keep vaneAngle()'s mirror test passing.",
-      "budgetMin": 25,
-      "risk": "low"
-    }
-  ],
+  "queue": [],
   "recommendStop": null,
   "consumed": [
     {
@@ -52,6 +31,10 @@
     {
       "id": "b88",
       "at": "2026-08-31T03:55:12.573Z"
+    },
+    {
+      "id": "b89",
+      "at": "2026-08-31T04:07:09.073Z"
     }
   ]
 }

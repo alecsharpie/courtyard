@@ -4209,24 +4209,76 @@ function drawClockTower(g){
  * towers are in the ground cache, so the arrow is drawn live beside the clock
  * hands (the rose window's model, #81): projected per frame, under applyLight. */
 const VANES = [
-  {x:(CT.x0 + CT.x1) / 2, y:(CT.yF + CT.yB) / 2, z:CT.top + 4.8, len:5, fin:2},
-  {x:(CHURCH.tx0 + CHURCH.tx1) / 2, y:(CHURCH.ty1 + CHURCH.ty0 + 0.2) / 2, z:13.6 + 10.3, len:4, fin:1.6},
+  {x:(CT.x0 + CT.x1) / 2, y:(CT.yF + CT.yB) / 2, z:CT.top + 4.8, len:5, fin:2, kind:'arrow', name:'the vane'},
+  {x:(CHURCH.tx0 + CHURCH.tx1) / 2, y:(CHURCH.ty1 + CHURCH.ty0 + 0.2) / 2, z:13.6 + 10.3, len:5, fin:1.6, kind:'cock', name:'the weathercock'},
 ];
 const VANE_WOB = 0.14;                                  // ~8 degrees of calm drift
+const VANE_COL = '#4a4238';
+/* The weathercock's silhouette, in a plate frame: f along the heading (beak +1),
+ * u up; the BODY carries a ground-plane width so it reads as a blob edge-on (#91). */
+const COCK = [[-0.95, 0.75], [-1.05, 0.95], [-0.7, 1.0], [-0.45, 0.62], [0.15, 0.48], [0.45, 0.4],
+              [0.5, 0.72], [0.62, 0.92], [0.8, 0.92], [0.95, 0.72], [1.15, 0.58], [0.9, 0.42], [0.7, 0.2],
+              [0.42, -0.2], [0.0, -0.36], [-0.32, -0.32], [-0.5, -0.05], [-0.62, 0.22]];
+const COCK_HALF_W = 0.42;                               // body half-width across the heading, in len
 function vaneWob(v){ return RM ? 0 : Math.sin(simT * 0.6 + hash(v.x, v.y) * 6.283) * VANE_WOB * (1 - windF()); }
 function vaneAngle(v){ return Math.PI * (windSign + 1) * 0.5 * windF() + vaneWob(v); }   // 0 east ... PI west, into the wind
+/* The heading and its ground-plane normal, as seen: unit screen vectors per world unit
+ * at the vane, so a plate along the heading foreshortens edge-on and the normal grows. */
+function vaneAxes(v, th, c){
+  const ex = project(v.x + 1, v.y, v.z), ey = project(v.x, v.y + 1, v.z);
+  const sx = ex[0] - c[0], px = (ey[0] - c[0]) / sx, py = (ey[1] - c[1]) / sx;   // world y as seen, per world x
+  return { ux: Math.cos(th) - Math.sin(th) * px, uy: -Math.sin(th) * py,          // along the heading
+           nx: Math.sin(th) + Math.cos(th) * px, ny: Math.cos(th) * py };         // across it
+}
 function drawVanes(){
   for (const v of VANES){
-    const th = vaneAngle(v), c = project(v.x, v.y, v.z), cy = c[1] + 3;
-    const ex = project(v.x + 1, v.y, v.z), ey = project(v.x, v.y + 1, v.z);
-    const sx = ex[0] - c[0];                                // screen px per world x at the vane
-    // the heading in the ground plane, as seen: (cos, -sin) in world x,y -> screen
-    const ux = (Math.cos(th) * sx - Math.sin(th) * (ey[0] - c[0])) / sx;
-    const uy = (-Math.sin(th) * (ey[1] - c[1])) / sx;
-    const tx = c[0] + v.len * ux, ty = cy + v.len * uy, bx = c[0] - v.len * ux, by = cy - v.len * uy;
-    ctx.fillStyle = '#4a4238';
-    poly(ctx, [[bx, by - v.fin], [tx, ty], [bx, by + v.fin]]); ctx.fill();   // a vertical plate: fins up and down
+    const th = vaneAngle(v), c = project(v.x, v.y, v.z), cy = c[1] + 3, L = v.len;
+    const {ux, uy, nx, ny} = vaneAxes(v, th, c);
+    ctx.fillStyle = VANE_COL; ctx.strokeStyle = VANE_COL;
+    if (v.kind === 'cock'){
+      // the body: an ellipse with a real width, so edge-on it is a blob, not a line
+      const bx = c[0] + L * 0.05 * ux, by = cy + L * 0.05 * uy - L * 0.32;
+      const ax = L * 0.56, ay = L * 0.36;                                  // half-axes in the plate frame
+      const rot = Math.atan2(uy, ux), wsx = L * COCK_HALF_W * Math.abs(nx);   // the width as seen
+      ctx.beginPath(); ctx.ellipse(bx, by, Math.max(Math.hypot(ax * ux, ax * uy), wsx), ay, Math.abs(ux) > 0.2 ? rot : 0, 0, 7); ctx.fill();
+      // tail fan, neck, head, comb and beak: a plate along the heading
+      poly(ctx, COCK.map(([f, u]) => [c[0] + L * f * ux, cy + L * f * uy - L * u * 0.62])); ctx.fill();
+      // legs to the rod's ball
+      ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(bx - 0.8, by + ay); ctx.lineTo(c[0] - 0.5, cy + 2.2);
+      ctx.moveTo(bx + 0.8, by + ay); ctx.lineTo(c[0] + 0.5, cy + 2.2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(c[0], cy + 2.6, 1.3, 0, 7); ctx.fill();
+    } else {
+      // the arrow: head, a shaft, and a tail fin at the back; a vertical plate
+      const tx = c[0] + L * ux, ty = cy + L * uy, bx = c[0] - L * ux, by = cy - L * uy;
+      const hx = c[0] + L * 0.4 * ux, hy = cy + L * 0.4 * uy;
+      poly(ctx, [[hx, hy - v.fin * 0.8], [tx, ty], [hx, hy + v.fin * 0.8]]); ctx.fill();   // a long head
+      ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(bx, by); ctx.stroke();
+      const fx = c[0] - L * 0.6 * ux, fy = cy - L * 0.6 * uy;                            // a swallow tail
+      poly(ctx, [[fx, fy], [bx, by - v.fin * 1.1], [c[0] - L * 0.85 * ux, cy - L * 0.85 * uy], [bx, by + v.fin * 1.1]]); ctx.fill();
+      // the cardinals: a cross-bar fixed in SCREEN space down the rod, so it never foreshortens
+      const ky = cy + v.fin + 7, kw = L + 1, kh = 3;
+      ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(c[0] - kw, ky); ctx.lineTo(c[0] + kw, ky);
+      ctx.moveTo(c[0], ky - kh); ctx.lineTo(c[0], ky + kh); ctx.stroke();
+      ctx.font = 'bold 6px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('W', c[0] - kw - 3, ky); ctx.fillText('E', c[0] + kw + 3, ky);
+      ctx.fillText('N', c[0], ky - kh - 3.5); ctx.fillText('S', c[0], ky + kh + 3.5);
+    }
   }
+}
+/* Hit-tested in SCREEN space, a box round the plate; named with the wind it stands in. */
+function vaneAt(p){
+  for (const v of VANES){
+    const c = project(v.x, v.y, v.z), w = v.len + 6;
+    if (Math.abs(p[0] - c[0]) <= w && p[1] >= c[1] - v.len - 2 && p[1] <= c[1] + v.len + 12) return v;
+  }
+  return null;
+}
+function vaneName(v){
+  const w = windF();
+  if (w < 0.15) return v.name + ', idle in the calm';
+  const th = vaneAngle(v) - vaneWob(v), k = Math.round(th / (Math.PI / 4));   // 0 east .. 4 west
+  const from = ['east', 'north-east', 'north', 'north-west', 'west'][clamp(k, 0, 4)];
+  return v.name + ', into a' + (w < 0.6 ? ' light' : from === 'east' ? 'n' : '') + ' ' + from + ' wind';
 }
 
 /* ============ the church across the river ============ */
@@ -7305,6 +7357,7 @@ function lookAt(p){
   const l = livingAt(p);
   if (l) return l;
   if (millWheelAt(p)) return millWheelName();
+  { const v = vaneAt(p); if (v) return vaneName(v); }
   const f = faceAt(p), c = treeAt(p);        // crowns paint over the cached facades; the live band over the crowns
   if (f && (f.live || !c)) return f.door ? doorName(f) : windowName(f.sa, f.sb);
   if (c) return c.name + ', ' + treeState(c.fruit);
