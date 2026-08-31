@@ -444,7 +444,8 @@
       "yearBusy(ex) multiplies the DAYLIGHT term of capacity/laneCap/eastCap only; POP_FLOOR + scarcity lift the arrival RATES only",
       "crowds with their OWN source, outside eastCount/laneCount: concert, evening door, homers, cafe, evening posts; goHome(a) sends a lane leaver to a HOME_DOOR after dusk, HOMES read by windowLit()",
       "ARRIVALS IN TWOS — withCompanion(a, room) on the lane/east/courtyard/cafe spawners under the SAME cap; b.with re-targets pairTarget(b) per step (PAIR_MIN 0.9, a.pairSeat shifts seats); named 'with a friend'. probes/pairs.mjs",
-      "the warm EVENING (#79, #85) — eveOpen() (warmth ≥ 0.6, dry, calm, sunDown−2.5..+3) rolls spawnEveningAgent() under EVE_CAP onto EVE_SPOTS (quay, deck rail, far bench, towpath; a.dusk); stayOn(a) re-routes a far-bank a.east visitor onto the deck's EAST-end posts. probes/evening-*.mjs"
+      "the warm EVENING (#79, #85) — eveOpen() (warmth ≥ 0.6, dry, calm, sunDown−2.5..+3) rolls spawnEveningAgent() under EVE_CAP onto EVE_SPOTS (quay, deck rail, far bench, towpath; a.dusk); stayOn(a) re-routes a far-bank a.east visitor onto the deck's EAST-end posts. probes/evening-*.mjs",
+      "the AUDIENCE stays on (#89) — stayOn() takes a.band listeners: bandWay(a) names the corner points round the stand's base (BAND_ROUND 3.3) to [FAR_WALK, y] and up to the deck's stay:1 posts; slot released, a.band → a.fromBand at the choice; chatty() refuses a.stay. probes/evening-stay-price.mjs (CHOICE + FOLLOW), band-stay-trace.mjs, band-deck-shot.mjs"
     ],
     "sill": [
       "the SILL under the canvas — #plate, #daytime, #season, #where, #ticker (queue, TICK_DWELL 2.5 s), #stats, #ctrl; hidden under 640px except during an invitation; a ResizeObserver on the frame",
@@ -500,6 +501,18 @@
     {
       "id": "c130",
       "note": "mist-year.mjs samples at sunUp+0.5: 3/34 mist mornings read mist 0.3-0.76 in windF 0.44-0.61 because a windy day's wind rises from the 06:00 roll after the mist formed — sample the 'never in wind' assertion at the OPEN (sunUp−1) (#88)",
+      "raisedBy": 86,
+      "seenBy": 0
+    },
+    {
+      "id": "c131",
+      "note": "the deck's two stay posts are the audience's cap (19/33 concert evenings fill both; 51/246 in-weather listeners chose): a third stay post at 122.5, 2 cells clear, would put three on the rail (#89)",
+      "raisedBy": 86,
+      "seenBy": 0
+    },
+    {
+      "id": "c132",
+      "note": "a priced stayer still loses the post to the bell: a.listen (~0.5 h) landed 8/51 concert stayers after eveEnd() — one frame standing, then on; price it or let a priced walker not look up (#89)",
       "raisedBy": 86,
       "seenBy": 0
     }

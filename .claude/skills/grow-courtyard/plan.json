@@ -15,31 +15,6 @@
   "rationale": "RUNG 4, both halves, because smallDiff fires and the ladder says a firing signal is a spent rung — the last batch's cart and sundial were structural and still the batch's median was polish-sized. Thirty seconds at the wide shot, seed 42, early-summer noon: the river runs the full height of the frame through its centre and is a flat blue slab with faint streaks — one rowboat sometimes, two swans; the far-bank lawn and the plaza are empty at noon; the sky is plain blue with three clouds and has never been anything but clear, raining or snowing. So b85 THE BET (4b, river × Scale/World, 75 min, a 150–300-line diff invited): an EYOT — an island in the river's east half with a willow, a shingle bank and reeds, the boat's channel kept clear on the west, the swans given a third bank, ducks nesting on it in spring; WATER cells become a new tile, speciesKinds and tileKinds move and the baseline is re-pinned. b86 (4a, sky × Scale/World, 60 min, high): RIVER MIST — a rate-capped mistF() that rises off the water on still, clear mornings after a wet or cold night, thickest over the river and the low east ground at sunUp, gone by mid-morning; the backdrop's HAZE is already a consumer (drawRoofRow mixes 0.55 into it) and the morning tap (sunUp + 0.5) lands a visitor inside it. b87 c125: the concert audience walks round the bandstand to the deck (life × Connect, medium) — 290 of 418 far-side evening retirements were the audience, and #85 showed the deck's evening needs people already on the far side. b88 c122: the lane's east end becomes a real end (lane × Connect, medium-low) — nothing has ever left or arrived by x 138 in 86 iterations. b89 c123: weathercocks and lookAt names them (roofs × Polish, low). Order: bet first, mist second, so both are built while the plan is fresh.",
   "queue": [
     {
-      "id": "b87",
-      "domain": "People & animals",
-      "kind": "Connect",
-      "brief": "c125. The concert audience is the deck's biggest unused evening source: #85's probe found 324 of 418 far-side evening retirements were a.band listeners, and 290 of them stand SOUTH of the bandstand with no route north but through it. When the concert ends inside eveWeather() (the same predicate stayOn() reads), route a share of the audience round the bandstand — a leg from their BAND_SLOT round the platform's edge to [FAR_WALK, y] then up to [FAR_WALK, DECK_WALK] and onto the deck's east-end posts (stay:1) by stayOn()'s own pricing (arrival + EVE_STAND before eveEnd()), the rest home as now. The audience becomes the deck's evening on concert nights.",
-      "seams": [
-        "BAND_SLOTS",
-        "bandF",
-        "isBandDay",
-        "spawnConcertAgent",
-        "stayOn",
-        "deckWay",
-        "EVE_SPOTS",
-        "eveWeather",
-        "eveEnd",
-        "FAR_WALK",
-        "TOW_WALK",
-        "DECK_WALK",
-        "skyLifts"
-      ],
-      "successLooksLike": "probes/evening-stay-price.mjs extended: on concert evenings that end inside eveWeather(), a deck post is stood on in most of them (was 58% of all open evenings with 0 from the audience); a follow on a listener shows the walk round the bandstand and up to the rail, not through the platform; motion gate clean on the far bank.",
-      "avoid": "Do not route through the bandstand's platform cells (the waypoints law: name the corner points). Do not let the audience count against EVE_CAP or eastCount (the stayer model: a.stay). Measure the share at the CHOICE, not by presence.",
-      "budgetMin": 40,
-      "risk": "medium"
-    },
-    {
       "id": "b88",
       "domain": "Lane & market",
       "kind": "Connect",
@@ -92,6 +67,10 @@
     {
       "id": "b86",
       "at": "2026-08-30T23:46:29.723Z"
+    },
+    {
+      "id": "b87",
+      "at": "2026-08-31T03:45:23.673Z"
     }
   ]
 }

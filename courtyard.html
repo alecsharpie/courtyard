@@ -2318,7 +2318,7 @@ const GREET_DT = 0.5, GREET_R = 1.6, GREET_MIN = 0.9, GREET_P = 0.17;
 let greetAcc = 0;
 function chatty(a){
   return a.state === 'walk' && !a.small && !(a.listen > 0) && !(a.greet > 0) && !(a.chatCool > 0)
-      && a.kind !== 'sweeper' && a.kind !== 'picnic' && !a.homer && !a.with;   // a companion is already with somebody   // the sweeper is working; picnic pairs arrive together; a homer is priced to a door (c90)
+      && a.kind !== 'sweeper' && a.kind !== 'picnic' && !a.homer && !a.stay && !a.with;   // a companion is already with somebody   // the sweeper is working; picnic pairs arrive together; a homer is priced to a door (c90), a stayer to a post before the light goes (#89)
 }
 function greetPass(){
   const free = [];
@@ -3156,8 +3156,20 @@ function eveRelease(a){ if (a.eveSpot && !a.with){ a.eveSpot.taken = 0; } a.eveS
  * step (a.east = false, as callIn does), retiring by a.dusk && !eveOpen() like the
  * others and leaving by the alley, over the deck. The share is 1: the posts are the
  * cap. No R(): the first post that fits, and the dwell hashed off a.speed (goHome's
- * model). The concert audience is NOT a source: 290 of 324 stand south of the
- * bandstand with no way north but through it (c125). */
+ * model).
+ * The concert audience is the same source's biggest case (#89, c125): 324 of 418
+ * far-side evening retirements were listeners, 290 of them south of the bandstand
+ * with no way north but through the platform. bandWay() names the corner points
+ * round the stand's stepped base (rx 2.67, ry 1.92 cells) to FAR_WALK north of it,
+ * then up to the deck as the far-bank visitors do; the pricing is stayOn's own. The
+ * place on the green goes back and a.band clears at the choice — the strike's own
+ * retire rule (bandF() <= 0) would otherwise end the stay on the deck in a frame. */
+const BAND_ROUND = 3.3;                          // corner x-offset from the stand's centre: clear of the base's rx 2.67
+function bandWay(a){                             // from a BAND_SLOT round the platform's edge to FAR_WALK, then up to the deck's east end
+  const side = a.x < BANDSTAND.x ? -1 : 1, cx = BANDSTAND.x + side * BAND_ROUND;
+  return [[cx, BANDSTAND.y + 0.8], [cx, BANDSTAND.y - 1.2], [FAR_WALK, BANDSTAND.y - 3.0],
+          [FAR_WALK, DECK_WALK], [TOW_WALK, DECK_WALK]];
+}
 function deckWay(a){                             // from a far-bank stop to the deck's east end, the way they came
   const w = a.wp.slice(a.i), k = w.findIndex(p => p[0] === TOW_WALK && p[1] === DECK_WALK);
   if (k >= 0) return w.slice(0, k + 1);
@@ -3165,8 +3177,8 @@ function deckWay(a){                             // from a far-bank stop to the 
   return null;
 }
 function stayOn(a){
-  if (!a.east || a.band || a.nightRail || a.x < RIVER_X1 - 1 || a.y > 60 || day < 1 || !eveWeather() || skyLifts(a)) return false;
-  const way = deckWay(a);
+  if (!a.east || a.nightRail || a.x < RIVER_X1 - 1 || a.y > 60 || day < 1 || !eveWeather() || skyLifts(a)) return false;
+  const way = a.band ? bandWay(a) : deckWay(a);
   if (!way) return false;
   for (const s of EVE_SPOTS){
     if (!s.stay || s.taken) continue;
@@ -3175,9 +3187,11 @@ function stayOn(a){
     if (arrive < sunDown - EVE_LEAD || arrive + EVE_STAND >= eveEnd()) continue;
     s.taken = 1;
     const h = Math.round(a.speed * 1e4);
+    if (a.band){ a.band = false; a.fromBand = true; if (a.slot){ a.slot.taken = 0; a.slot = null; } }   // the place on the green goes back now
     a.east = false; a.dusk = true; a.stay = true; a.eveSpot = s; a.stopped = false;
     a.stop = {x:s.x, y:s.y, act:'stand', dur:4 + hash(h, 97) * 6,
-      say: hash(h, 101) < 0.15 ? 'Someone who came over for the afternoon has stopped on the footbridge instead of going back, to watch the lamps come on along the river.' : null};
+      say: hash(h, 101) < 0.15 ? (a.fromBand ? 'Someone from the concert has walked round the bandstand and up to the footbridge instead of going home, to hear the river after the music.'
+                                             : 'Someone who came over for the afternoon has stopped on the footbridge instead of going back, to watch the lamps come on along the river.') : null};
     a.wp = path.concat(s.lead.slice().reverse().map(p => p.slice()), [eveGate(s).slice()]); a.i = 0; a.state = 'walk';
     return true;
   }
@@ -7202,7 +7216,7 @@ function personName0(a){
   if (k === 'tap' && st === 'stand') return a.cup ? 'someone at the door, cup in hand' : 'someone waiting at the door';
   if (a.band && st === 'stand') return 'someone in the audience, listening';
   if (k === 'parapet' && st === 'stand') return 'someone leaning on the parapet';
-  if (a.eveSpot && a.eveSpot.deck && st === 'stand') return a.stay ? 'someone who stayed on, leaning on the footbridge rail' : 'someone leaning on the footbridge rail';
+  if (a.eveSpot && a.eveSpot.deck && st === 'stand') return a.fromBand ? 'someone from the concert, leaning on the footbridge rail' : a.stay ? 'someone who stayed on, leaning on the footbridge rail' : 'someone leaning on the footbridge rail';
   if (st === 'sit') return a.cup ? 'someone at a table, with a cup' : k === 'picnic' ? 'someone on a blanket' : 'someone sitting';
   if (a.greet > 0) return 'someone stopped for a word';
   if (a.listen > 0) return 'someone stopped, listening to the bell';
@@ -7805,6 +7819,7 @@ window.__entities = function(){
                    if (a.homer) o.homer = 1;
                    if (a.dusk) o.dusk = 1;
                    if (a.stay) o.stay = 1;
+                   if (a.fromBand) o.fromBand = 1;
                    if (a === followed) o.followed = 1;
                    if (a.with) o.with = 'walker' + a.with.__id;
                    if (a.pairLead) o.lead = 1;

@@ -40,14 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 81 — the rose window lit live: one eased ramp off `nightF` (`roseLit()`) sets glass, mullions, multiply and glow; the cache holds only the unlit disc (2026-08-31) [River & far bank × Polish]
-
-**Brief b79.** c104: the rose window stepped at cache time (`nightF > 0.3` in `drawChurchFront`) while its relight ramped live — a two-sided dusk seam. Also c116.
-**Did:** `drawChurchFront` paints the unlit glass only; `ROSE` is gone. In `applyLight` after the pane screen, `k = roseLit()` (smoothstep of `(nightF − ROSE_ON 0.3) / ROSE_RAMP 0.25`) on a live `project()`ed disc: lit glass 0.9·k, six mullions 0.7·k, night multiply clipped to the disc 0.8·nightF·k, screen 0.7·nightF·k, halo push. Projected per frame, so it no longer sits at cache coordinates under `#where`. `probes/fountain-freeze.mjs` summer crop reads `gcv`.
-**Gates:** census PASS (unchanged) · motion PASS · visual PASS (`shots/east.png`, `shots/b79-night-wide-here.png`) · dusk filmstrip 0 POP · `probes/rose-dusk.mjs`: HEAD disc 150 → 169 → 188 across two frames (a Δ 5.37 step `pops()` did NOT flag); here 153 → 197 over an hour with no frame over the ordinary bucket Δ; rebuild count untouched; `fountain-freeze.mjs` summer hash now stable across runs.
-**Verdict:** shipped (+30 lines).
-**Surprise:** the first live disc lost the mullions — they were stroked in the cache OVER the lit glass and a 0.9-alpha live disc buried them. Anything lifted out of a cache carries what the cache drew on top of it. The same seam existed at DAWN reversed; one function of nightF fixes both ends.
-
 ## Iteration 82 — the carter: a horse-drawn cart down the cross street most mornings, loaded at the allotments' street gate, on to the stalls on market days (2026-08-31) [Cross street & allotments × New element]
 
 **Brief:** b80 — THE BET: the first thing on the road bigger than a bicycle; own source, two draw items, walkers yield.
@@ -108,3 +100,13 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Law:** a rate-capped scalar's two branches are `tgt > x` and `tgt < x`, never `else` — at the target the else branch runs, and a ±r flicker at the ceiling passes every gate but a printed curve.
 **Cue:** 3 of 34 mist mornings still read mist 0.3–0.76 with windF 0.44–0.61 at sunUp + 0.5 — a windy day's wind rises from the 06:00 roll, AFTER the mist formed (realistic); "never opens in wind" must be sampled at the OPEN (sunUp − 1), not at + 0.5.
 **Budget:** context-budget read OVER after this entry (46.5 / 46 KB) — the manager's signal, not mine to fix this pass.
+
+## Iteration 89 — the audience becomes the deck's evening: a listener whose concert ends inside a warm evening walks round the bandstand, up the far walk and onto the footbridge's east posts instead of home (2026-08-31) [People & animals × Connect]
+
+**Brief:** b87 — c125: route a share of the concert audience round the bandstand to the deck's `stay:1` posts by `stayOn()`'s own pricing; the rest home as now.
+**Did:** `stayOn()` no longer refuses `a.band`; `way = a.band ? bandWay(a) : deckWay(a)`. `bandWay()` names the corner points: `[BANDSTAND.x ± BAND_ROUND 3.3, y+0.8]`, `[…, y−1.2]`, `[FAR_WALK, y−3]`, `[FAR_WALK, DECK_WALK]`, `[TOW_WALK, DECK_WALK]` — the nearer side, clear of the base ellipse (rx 2.67, ry 1.92). At the choice the green slot goes back, `a.band = false`, `a.fromBand = true` (the strike's `bandF() <= 0` would otherwise end the stay on the deck in a frame); `a.east = false` so eastCount and EVE_CAP never see them. Own `say`, `personName` 'someone from the concert, leaning on the footbridge rail', `__entities` `fromBand`. Plus one line: `chatty()` refuses `a.stay` (as it refuses `a.homer`, and for the same reason).
+**Gates:** census PASS ×2 (reshuffle only) · motion PASS ×2 · visual PASS (`shots/east.png`, `wide.png`; `b87-band-deck-s1.png` a stayer on the east post at sunDown+1.2) · strike filmstrip 0 POP · `evening-stay-price.mjs` extended (CHOICE + FOLLOW), 10 seeds × 4 summer days: HEAD 274/310 listeners NOPATH, the 36 with a straight line fit 7×; here **32/33 concert evenings that ended inside eveWeather() had the audience on a deck post (97%), 19 both posts; 51/246 in-weather choices (21%, the two posts cap it); 0 on the 7 evenings that ended outside the weather; FOLLOW 51 tracks, nearest approach 1.15× the base, 0 through, 43 stood on the post**.
+**Verdict:** shipped (+~20 lines).
+**Surprise:** the first run had 14/56 stayers choose the deck and then walk straight past their post out through the alley. Not a bug in the route: `band-stay-trace.mjs` showed two listeners from the same concert, walking the same towpath at different speeds, passing within GREET_R and stopping for a 2.7 h word — arriving after `eveEnd()`, standing ONE frame, and the `(a.dusk && !eveOpen())` retire sending them on. The pricing at the choice is exact; what happens on the walk is not priced. Excluding stayers from `chatty()` took it to 43/51; the remaining 8 are the bell (`a.listen`, ~0.5 h) landing them past the window's end.
+**Law:** a walk priced at the CHOICE is only as good as the walk's interruptions: every hold a walker can pick up en route (`greet`, `listen`, `cartShove`) is unpriced time, so a priced walker must refuse the optional ones (`chatty()`) or carry a margin bigger than the mandatory ones. A one-frame `stand` between two `walk`s is invisible at a 0.25 s sample — trace state CHANGES, and treat "walked past its own stop" as "arrived late", not "missed it".
+**Cue:** a third stay post at 122.5 would let a concert put three on the rail (see state); the bell's listen still costs 8/51.
