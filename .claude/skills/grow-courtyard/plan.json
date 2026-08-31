@@ -15,37 +15,6 @@
   "rationale": "RUNG 2 by evidence, not habit: no advisory signal shows, the last four passes sat at 4b/4b/3/4 and produced an eyot, a mist, a cart, a footbridge and a mill — the map and the year have both moved — and what the three wide shots now say is that the town's two biggest paved spaces are EMPTY while its edges are busy. That is a compounding problem (rung 2), not a missing world (rung 4): the plaza has a fountain that reads the year, wind and frost, two benches and its own arrival source, and holds nobody at noon; the courtyard has kids, nappers and picnics in spawnAgent() and shows a bare lawn. So the bet is the plaza's midday (b90, 70 min, high risk, first): families — the courtyard's existing KID figure with a parent — on their own source, chasing pigeons the plaza does not yet have, so a visitor's first ten seconds at the wide shot contain a running child and a bird flush where today there is paving. Behind it: an autumn bonfire on the allotments (b91, street 9 back — the season's one unbuilt spectacle, smoke on windDir() and a glow after dark), the linden's shade as a PLACE that the picnic and the napper choose by warmth (b92, courtyard 7 back, takes c124 and counts the lawn's emptiness for c135), a sill/camera polish bundle (b93, three cues, low), and the punt to the eyot (b94, river, medium-high) last — the island is the run's newest place and nobody can stand on it. Cost discipline: one bet, four briefs ≤45 min; the next pass climbs if this one lands clean and small.",
   "queue": [
     {
-      "id": "b91",
-      "domain": "Cross street & allotments",
-      "kind": "New element",
-      "brief": "An autumn bonfire on the allotments. The block runs a full year (harvest, fallow, dig weather, cabbages) and autumn is its emptiest season on screen: leaves fall, litter lies, nothing burns. On dry, calm autumn afternoons (leafFallF() > 0.3, !raining, wetF() < 0.4, windF() < 0.5, roughly 1 day in 3 by hash(day, k) — histogram the predicate before choosing k) a holder lights a heap on ONE fixed bare cell of the block, chosen off the grid clear of the timber fence, the shed, the POND and every plot lattice cell (read fallowPlots()' lattice; do not re-derive it). fireF 0..1 rate-capped: kindles over ~1 h sim, burns 3–4 h, dies to embers. A smoke column in drawSmoke()'s own idiom leaning windDir()·windF(); a holder (spawnAllotAgent()'s a.dig shape: sendToPlot to the fire cell, 'stand' with a fork, a.tend) who feeds it and leaves when it dies; litter[] within 3 cells consumed as it burns; an ember glow after dark in a screen pass AFTER applyLight (the night-colour law), visible from the wide shot. Named: 'the bonfire, smoking' / 'the bonfire, down to embers' / 'an allotment holder, feeding the bonfire'; one announce line at kindling. Snow or rain arriving puts it out (fireF target 0).",
-      "seams": [
-        "fallowPlots",
-        "sendToPlot",
-        "spawnAllotAgent",
-        "turnPlot",
-        "digWeather",
-        "leafFallF",
-        "litter",
-        "drawSmoke",
-        "windDir",
-        "windF",
-        "wetF",
-        "raining",
-        "snowCover",
-        "applyLight",
-        "nameAt",
-        "announce",
-        "ALT_X0",
-        "ALT_GATE",
-        "POND"
-      ],
-      "successLooksLike": "probes/bonfire-year.mjs, 8 seeds × 26 days: fires on 25–40% of autumn days, 0 in summer, 0 in rain or wind > 0.5; a holder stands at it on every fire; litter within 3 cells falls to 0 while it burns; the glow is visible at 21:00 in a shots/b91-bonfire-night.png crop and the smoke leans the same way as the chimneys in the same frame; census PASS (reshuffle only); filmstrip 0 POP at kindling. ~80–140 lines.",
-      "avoid": "Not a new tile and not a structure — one cell, one item, drawn live; do not move the census baseline. Do not put it on a plot (the lattice is harvest territory) or against the fence. No R() in the draw; the day's fire is a hash. Do not let the holder's 'stand' block ALLEY_Y.",
-      "budgetMin": 45,
-      "risk": "medium"
-    },
-    {
       "id": "b92",
       "domain": "Courtyard & garden",
       "kind": "Connect",
@@ -132,6 +101,10 @@
     {
       "id": "b90",
       "at": "2026-08-31T04:25:42.353Z"
+    },
+    {
+      "id": "b91",
+      "at": "2026-08-31T04:49:01.689Z"
     }
   ],
   "recommendStop": null

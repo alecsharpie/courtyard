@@ -2136,6 +2136,7 @@ function stepAgent(a, dt){
       // a family's child rests a beat at the parent's side, then is off again (#92)
       else if (a.famKid && !raining){ a.rest -= dt; if (a.rest <= 0) startKidRun(a); }
       return; }
+    if (a.tend && !bon.on && bon.fire < 0.15) a.timer = 0;   // the bonfire is out: the holder goes (#93)
     if (a.timer <= 0 || (raining && a.state !== 'lie')
         || skyLifts(a)
         || (a.east && !eastOpenFor(a))
@@ -2149,6 +2150,7 @@ function stepAgent(a, dt){
       // a far-side visitor whose afternoon ends inside a warm evening stays on, at the deck rail (#85)
       if (a.east && stayOn(a)) return;
       if (a.blanket){ a.blanket = false; }
+      if (a.tend){ bon.on = false; bon.holder = null; a.tend = false; }   // nobody feeding it: it burns down to embers
       if (a.tableRef){ a.tableRef.taken = 0; a.tableRef = null; a.cup = false; }
       // the place at the door goes back the moment they step away from it, not when
       // they are finally off the frame: the walk home is on another line, and a slot
@@ -2225,6 +2227,16 @@ function stepAgent(a, dt){
         a.benchAt = null;
         if (seatRefused(a)){ routeToExit(a); return; }
         a.state='sit'; a.timer=dur; a.onBench=true; return;
+      }
+      if (a.tend && !a.lit){                       // at the heap (#93): light it, or find the weather turned and go home again
+        a.lit = true;
+        a.wp.push([79, 20], [XS_WALK_E, 20], [XS_WALK_E, -2.5]);   // the way out, walked when it dies
+        if (bonfireWeather() && !skyLifts(a)){        // and not under a front that would have them leave in the same frame
+          bon.on = true; bon.lit = simT;
+          a.state = 'stand'; a.timer = 1e9; a.resume = true; a.faceL = true;
+          announce('A bonfire is lit on the allotments; the smoke leans out over the fence.');
+        } else { a.tend = false; bon.holder = null; }
+        return;
       }
       if (a.kind === 'allot' && a.tendPlot){
         a.tendPlot = false; a.state = 'kneel'; a.timer = 9 + R() * 5; a.resume = true;
@@ -2360,7 +2372,7 @@ function greetPass(){
 }
 
 /* ============ lane agents ============ */
-function allotCount(){ return agents.filter(g => g.kind === 'allot').length; }
+function allotCount(){ return agents.filter(g => g.kind === 'allot' && !g.tend).length; }   // the bonfire's holder is not a picker (#93)
 function pickPlot(){
   const plots = [];
   for (let py = 8; py <= 56; py++) for (let px = 80; px <= 93; px++)
@@ -2443,6 +2455,58 @@ function spawnAllotAgent(){
     shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9, wary:R(),
   };
   sendToPlot(a);
+  agents.push(a);
+}
+/* The block's AUTUMN (#93). The year had a harvest, a fallow and a dig, and autumn was
+ * the one quarter with nothing of its own on screen: leaves fell and lay, and nothing
+ * burned. On a dry, calm autumn day a holder comes in early and lights a heap on ONE bare
+ * cell — the gap between the first two plot columns, five cells in from the row-20 gate,
+ * clear of the fence, the lattice and the pond — feeds it with a fork, and goes when it
+ * dies. Two rate-capped scalars: bon.fire is the flame (kindles over BON_RISE_H, burns
+ * BON_BURN_H, falls over BON_FALL_H), bon.ember the heat left in it (falls over
+ * BON_EMBER_H, the glow you see from the lane after dark). Rain or snow arriving sends
+ * both to 0 in BON_RAIN_H. The day is a hash(day, k), so it is the same calendar in every
+ * seed; the weather is the seed's. Leaves lying within three cells go on to it. */
+const BONFIRE = {x:84.0, y:19.5};
+const BON_K = 0.45, BON_SALT = 672;                           // hash share of shed days offered one (salt: 2–4 of the 7 in every year of 12); the weather takes its cut
+const BON_RISE_H = 1.0, BON_BURN_H = 3.5, BON_FALL_H = 1.2, BON_EMBER_H = 4.0, BON_RAIN_H = 0.25;
+const BON_LITTER = 24, BON_LITTER_T = 0.4;                    // per tick of BON_LITTER_T s, within 3 cells
+const bon = {fire:0, ember:0, on:false, lit:-1, day:-1, holder:null, acc:0};
+function bonfireDay(){ return leafShed() > 0.1 && hash(day, BON_SALT) < BON_K; }   // the SHED, days 12–18: leafFallF() > 0.3 is also every spring day
+function bonfireWeather(){ return !raining && wetF() < 0.4 && windF() < 0.5 && snowCover <= 0; }
+function bonfireHour(){ return sunUp + 0.3 + hash(day, 518) * 1.2; }   // set out early: the walk in is most of a working day
+function bonfireDue(){ return bon.day !== day && !bon.on && bon.fire === 0 && hour >= bonfireHour() && hour < bonfireHour() + 2 && bonfireDay() && bonfireWeather(); }
+function bonfireAlight(){ return bon.on || bon.fire > 0 || bon.ember > 0; }
+function bonfireName(){ return bon.fire > 0.3 ? 'the bonfire, smoking' : bon.ember > 0.05 ? 'the bonfire, down to embers' : 'a heap on the allotments, waiting for a match'; }
+function stepBonfire(dt){
+  const h = dt * 24 / DAY_LEN, wet = raining || snowCover > 0;   // sim hours this step
+  if (bon.on && (wet || simT - bon.lit > BON_BURN_H * DAY_LEN / 24)) bon.on = false;
+  const tgt = bon.on ? 1 : 0;
+  if (tgt > bon.fire) bon.fire = Math.min(1, bon.fire + h / BON_RISE_H);
+  else if (tgt < bon.fire){ const r = h / (wet ? BON_RAIN_H : BON_FALL_H); bon.fire = bon.fire <= r ? 0 : bon.fire - r; }
+  const etgt = bon.fire > 0.05 ? 1 : 0;
+  if (etgt > bon.ember) bon.ember = Math.min(1, bon.ember + h / 0.5);
+  else if (etgt < bon.ember){ const r = h / (wet ? BON_RAIN_H : BON_EMBER_H); bon.ember = bon.ember <= r ? 0 : bon.ember - r; }
+  if (bon.fire > 0.3){ bon.acc += dt; if (bon.acc > BON_LITTER_T){ bon.acc = 0; burnLitter(); } }
+}
+function burnLitter(){
+  const cx = Math.floor(BONFIRE.x), cy = Math.floor(BONFIRE.y);
+  let dirty = false;
+  for (let y = cy - 3; y <= cy + 3; y++) for (let x = cx - 3; x <= cx + 3; x++){
+    if (x < 0 || y < 0 || x >= GW || y >= WH || Math.hypot(x - cx, y - cy) > 3) continue;
+    const j = y * GW + x, was = litter[j]; if (!was) continue;
+    litter[j] = was > BON_LITTER ? was - BON_LITTER : 0;
+    if ((litter[j] / LITTER_BUCKET | 0) !== (was / LITTER_BUCKET | 0)) dirty = true;
+  }
+  if (dirty) wearDirty = true;
+}
+function spawnBonfireHolder(){                                 // sendToPlot's cross-street entry, by the row-20 gate, to the heap's east side
+  const a = {
+    kind:'allot', street:true, tend:true, fork:true, x:XS_WALK_E, y:-2.5,
+    wp:[[XS_WALK_E, 20], [79, 20], [BONFIRE.x + 1.4, BONFIRE.y + 0.8]], i:0, speed:1.5 + R() * 0.6, state:'walk', timer:0,
+    shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9, wary:0.75 + R() * 0.25,   // hardy: nine hours' walk is not left at the first overcast (skyLifts)
+  };
+  bon.day = day; bon.holder = a;
   agents.push(a);
 }
 function spawnLaneAgent(room){
@@ -5260,6 +5324,7 @@ function drawScene(t, dt){
   }
   for (const b of birds) items.push({y:b.y+0.4, f:drawBird, b});
   for (const d of ducks) items.push({y:d.y+0.3, f:drawDuck, d});
+  if (bonfireAlight()) items.push({y:BONFIRE.y + 0.4, f:drawBonfireHeap});   // the flames are light: drawBonfireLight, after applyLight
   if (catA) items.push({y:catA.y+0.3, f:drawCat});
   items.push({y:65.1, f:drawSouthBand});
   // between the wall it is cut in (65.1) and the arch beside it (65.3), so the fronts
@@ -5388,6 +5453,7 @@ function drawScene(t, dt){
 
   drawSmoke(t);
   applyLight(t);
+  drawBonfireLight(t);            // flame and glow are light: after the night's multiply (#93)
   drawBalloon(t);                 // the balloon rides above every ground light
   drawFollowMark(t);
 
@@ -5406,11 +5472,24 @@ function drawScene(t, dt){
   }
 }
 function drawSmoke(t){
+  const drift = (1 + 1.6 * windF()) * windDir();   // calm: exactly 1; a full east wind: -2.6
+  // the bonfire's column (#93): the chimneys' idiom, from the ground, thicker and lower,
+  // and it does not read the hour — a fire smokes when it is lit
+  if (!RM && (bon.fire > 0.02 || bon.ember > 0.02)){
+    const thick = 0.34 * bon.fire + 0.06 * bon.ember;
+    for (let p = 0; p < 9; p++){
+      const ph = ((t * 0.22 + p * 0.111 + hash(p, 517) * 0.3) % 1);
+      const rise = 0.6 + ph * 6.4, spread = 0.55 + ph * 2.3;
+      const wob = Math.sin(t * 0.8 + p * 1.7) * 0.4 * ph;
+      const [sx, sy] = project(BONFIRE.x + wob + (ph * 1.4 + ph * ph * 0.8) * drift, BONFIRE.y - ph * 0.4, rise);
+      ctx.fillStyle = 'rgba(206,200,190,' + (thick * (1 - ph * ph)).toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(sx, sy, cellW * spread * 0.45, 0, 7); ctx.fill();
+    }
+  }
   // fires get lit on chilly mornings, damp afternoons and after dark
   const cold = clamp(1 - Math.abs(hour - 7) / 3.5, 0, 1) + rainFall * 0.7 +
                clamp((hour - 18.5) / 2, 0, 1) * 0.8;
   if (cold <= 0.05 || RM) return;
-  const drift = (1 + 1.6 * windF()) * windDir();   // calm: exactly 1; a full east wind: -2.6
   for (let k = 0; k < CHIMNEYS.length; k++){
     const [cx, cy] = CHIMNEYS[k];
     if (hash(cx, cy + day * 7) > clamp(cold, 0, 1) * 0.75) continue;
@@ -5424,6 +5503,70 @@ function drawSmoke(t){
       ctx.beginPath(); ctx.arc(sx, sy, cellW * spread * 0.45, 0, 7); ctx.fill();
     }
   }
+}
+/* The heap, in the sorted pass, so the holder and a passing picker stand in front of or
+ * behind it: a mound of dark stuff, a few sticks out of it. It goes as it burns. */
+function drawBonfireHeap(){
+  const k = bon.on ? 1 : Math.max(bon.fire, bon.ember);
+  const [x, y] = project(BONFIRE.x, BONFIRE.y, 0);
+  const rx = cellW * (0.45 + 0.35 * k), ry = cellH * (0.22 + 0.16 * k);
+  ctx.fillStyle = 'rgba(28,22,18,0.35)';
+  ctx.beginPath(); ctx.ellipse(x, y + ry * 0.3, rx * 1.15, ry * 0.9, 0, 0, 7); ctx.fill();   // the scorch under it
+  ctx.fillStyle = k > 0.5 ? '#4a3a2a' : '#3a3230';
+  ctx.beginPath(); ctx.ellipse(x, y - ry * 0.4, rx, ry, 0, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#6b5236'; ctx.lineWidth = 1.2;
+  for (let i = 0; i < 4; i++){
+    const a0 = -0.4 - i * 0.75, L = rx * (0.7 + 0.5 * hash(i, 93)) * (0.6 + 0.4 * k);
+    ctx.beginPath(); ctx.moveTo(x + Math.cos(a0 + 1.6) * rx * 0.3, y - ry * 0.4);
+    ctx.lineTo(x + Math.cos(a0) * L, y - ry * 0.4 - Math.abs(Math.sin(a0)) * L * 0.8); ctx.stroke();
+  }
+}
+/* Flame and glow. Drawn after applyLight: the night's multiply would turn a flame drawn
+ * in the sorted pass slate by midnight, and this is the one thing on the block that is
+ * its own light. The tongues flicker on the clock, no R(); the pool on the ground is a
+ * screen fill like a lamp's, on the ember, so it is what is left after the flames go. */
+function drawBonfireLight(t){
+  if (bon.fire <= 0 && bon.ember <= 0) return;
+  const [x, y] = project(BONFIRE.x, BONFIRE.y, 0);
+  const prev = ctx.globalCompositeOperation;
+  if (nightF > 0.02 && bon.ember > 0){
+    // brighter and wider than a lamp's (0.42 / 0.20 at 2.4 / 3 cells): an open fire, not a mantle
+    ctx.globalCompositeOperation = 'screen';
+    const fl = RM ? 0 : 0.06 * Math.sin(t * 5.3) * bon.fire;
+    const r = cellW * (3.6 + 2.2 * bon.fire), al = (0.34 + 0.3 * bon.fire + fl) * nightF * bon.ember;
+    const g = ctx.createRadialGradient(x, y, 1, x, y, r);
+    g.addColorStop(0, 'rgba(255,160,70,' + al.toFixed(3) + ')');
+    g.addColorStop(0.4, 'rgba(255,140,50,' + (al * 0.35).toFixed(3) + ')');
+    g.addColorStop(1, 'rgba(255,120,40,0)');
+    ctx.fillStyle = g;
+    ctx.save(); ctx.translate(x, y); ctx.scale(1, 0.5); ctx.translate(-x, -y);
+    ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
+    ctx.restore();
+    const [hx, hy] = project(BONFIRE.x, BONFIRE.y, 0.9), hr = cellW * (1.6 + 1.4 * bon.fire);   // the halo in the air over it
+    const gh = ctx.createRadialGradient(hx, hy, 1, hx, hy, hr);
+    gh.addColorStop(0, 'rgba(255,190,90,' + ((0.3 + 0.25 * bon.fire) * nightF * bon.ember).toFixed(3) + ')');
+    gh.addColorStop(1, 'rgba(255,170,80,0)');
+    ctx.fillStyle = gh; ctx.beginPath(); ctx.arc(hx, hy, hr, 0, 7); ctx.fill();
+  }
+  ctx.globalCompositeOperation = 'source-over';
+  const ry = cellH * 0.3, top = y - ry * 0.7;
+  if (bon.ember > 0){                                          // the red heart, breathing
+    const br = 0.7 + 0.3 * Math.sin(t * 2.1);
+    ctx.fillStyle = 'rgba(255,' + (70 + 60 * bon.fire | 0) + ',20,' + (0.75 * bon.ember * br).toFixed(3) + ')';
+    ctx.beginPath(); ctx.ellipse(x, top + ry * 0.35, cellW * 0.55 * (0.5 + 0.5 * bon.ember), ry * 0.55, 0, 0, 7); ctx.fill();
+  }
+  if (bon.fire > 0.02){
+    const fl = RM ? 0.15 : 1;
+    for (let i = 0; i < 5; i++){
+      const bx = (hash(i, 31) - 0.5) * cellW * 0.9 * bon.fire, w = cellW * (0.2 + 0.12 * hash(i, 32));
+      const hgt = cellH * (1.3 + 0.9 * hash(i, 33)) * bon.fire * (0.75 + 0.25 * fl * Math.sin(t * 7.3 + i * 1.9) + 0.12 * fl * Math.sin(t * 13.1 + i * 3.1));
+      const lean = fl * Math.sin(t * 3.7 + i) * w * 0.6 + windDir() * windF() * w * 0.8;
+      ctx.fillStyle = i % 2 ? 'rgba(255,150,40,0.9)' : 'rgba(255,205,80,0.9)';
+      ctx.beginPath(); ctx.moveTo(x + bx - w, top); ctx.quadraticCurveTo(x + bx - w * 0.3 + lean, top - hgt * 0.5, x + bx + lean * 1.4, top - hgt);
+      ctx.quadraticCurveTo(x + bx + w * 0.3 + lean, top - hgt * 0.5, x + bx + w, top); ctx.closePath(); ctx.fill();
+    }
+  }
+  ctx.globalCompositeOperation = prev;
 }
 function drawPlant(it, t){
   const i = it.i, s = SPECIES[bSp[i]-1], st = bSt[i];
@@ -6743,6 +6886,14 @@ function drawPerson(it, t){
     ctx.strokeStyle = '#b0a488'; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.moveTo(bw + 6, 0); ctx.lineTo(bw + 9, 3); ctx.stroke();
   }
+  if (a.fork){                      // the bonfire's fork (#93): on the heap's side, pushed in on a slow beat while they tend it
+    const fd = a.tend && a.state === 'stand' && !RM ? Math.max(0, Math.sin(t * 1.1 + a.phase)) : 0;
+    const tx = -bw * (2.0 + 1.1 * fd), ty = 0.6 + 1.4 * fd;
+    ctx.strokeStyle = '#7d5f3c'; ctx.lineWidth = 1.3;
+    ctx.beginPath(); ctx.moveTo(-bw * 0.8, -hgt * 0.55); ctx.lineTo(tx, ty); ctx.stroke();
+    ctx.strokeStyle = '#9a9a96'; ctx.lineWidth = 1;
+    for (let k = -1; k <= 1; k++){ ctx.beginPath(); ctx.moveTo(tx, ty + k * 1.1); ctx.lineTo(tx - 2.4, ty + k * 1.1 + 1.4); ctx.stroke(); }
+  }
   if (a.plays){                     // the band: a bell up and out, or a drum at the waist
     if (a.plays === 'drum'){
       ctx.fillStyle = '#cbb68c';
@@ -7350,6 +7501,7 @@ function plotName(x, y){
 function nameAt(x, y){
   if (x < 0 || y < 0 || x >= GW || y >= WH) return '';
   const j = y * GW + x, g = grid[j];
+  if (bonfireAlight() && Math.hypot(x + .5 - BONFIRE.x, y + .5 - BONFIRE.y) < 1.3) return bonfireName();
   if (millAt(x, y)) return 'the mill';
   if (g === BED || g === CBED) return inAllotment(x, y) ? plotName(x, y) : bedName(x, y, j);
   if (g === GRASS) return daisy[j] ? 'the lawn, daisies in it'
@@ -7411,6 +7563,7 @@ function personName0(a){
   if (k === 'loader') return st === 'stand' ? 'an allotment holder, loading the cart'
                      : a.crop ? 'an allotment holder, basket out to the cart' : 'an allotment holder, back from the cart';
   if (st === 'lie') return 'someone lying on the grass';
+  if (a.tend && st === 'stand') return 'an allotment holder, feeding the bonfire';
   if (st === 'kneel') return k === 'allot' ? (a.dig ? 'an allotment holder, turning a plot over' : 'an allotment holder, kneeling at the plot')
                                            : 'the gardener, kneeling at a bed';
   if (k === 'busker' && st === 'stand') return 'a busker, playing';
@@ -7686,6 +7839,7 @@ function simStep(sdt, dt){
   stepWind(sdt);
   stepClouds(sdt);
   stepSnow(sdt);
+  stepBonfire(sdt);
   // sun moves, cover thickens: relight the static layer now and then. Cover rides
   // the same bucket rather than its own, so it costs no extra rebuilds.
   const lb = Math.floor(hour * 4) * 8 + Math.round(cloudCover() * 6);
@@ -7750,6 +7904,8 @@ function simStep(sdt, dt){
     // not under eastCap: after dark that is 1, and the people walking home hold it
     else if (!eastOpen() && tapOpen() && nightRailFree() && R() < NIGHT_RAIL_RATE) spawnEastAgent(true);
     if (daylight > 0.3 && day >= 1 && allotCount() < 3 && R() < allotRate) spawnAllotAgent();
+    // the bonfire's holder (#93): no roll — the day is a hash and the hour is a window, once
+    if (day >= 1 && bonfireDue()) spawnBonfireHolder();
     // tapServing() is false on every hour that is not an evening, so this roll exists
     // only in the window it is spending
     if (tapServing() && tapNow < TAP_SLOTS.length && R() < tapRate()) spawnTapAgent();
@@ -8030,6 +8186,7 @@ window.__entities = function(){
                    if (a.pairLead) o.lead = 1;
                    if (a.fam){ o.fam = 1; if (a.famKid){ o.kid = 1; if (a.run) o.run = a.chasing ? 'bird' : 'arc'; } }
                    if (a.dig) o.dig = 1;
+                   if (a.tend) o.tend = 1;
                    // the audience on the green. A probe has to tell a listener from a
                    // passer-by, and a listener standing AT its claimed place from one
                    // that drifted off it — which is the exact inverse of cue c49's bug.
