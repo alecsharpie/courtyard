@@ -23,7 +23,7 @@
   "avoid": "Do not move BENCH_SPOTS — all four are 26+ cells from the tree and never in its shade; the shade's consumers are the lawn kinds. Do not thin the tree's shadow to expose the sundial. Do not retune capacity or the spawn shares in this brief.",
   "budgetMin": 35,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 94,
   "issued": "2026-08-31T15:09:35.562Z",
