@@ -22,7 +22,7 @@
   "avoid": "Do not route through the bandstand's platform cells (the waypoints law: name the corner points). Do not let the audience count against EVE_CAP or eastCount (the stayer model: a.stay). Measure the share at the CHOICE, not by presence.",
   "budgetMin": 40,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 89,
   "issued": "2026-08-31T03:45:23.675Z",
