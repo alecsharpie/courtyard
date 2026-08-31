@@ -28,7 +28,7 @@
   "avoid": "Not a new tile and not a structure — one cell, one item, drawn live; do not move the census baseline. Do not put it on a plot (the lattice is harvest territory) or against the fence. No R() in the draw; the day's fire is a hash. Do not let the holder's 'stand' block ALLEY_Y.",
   "budgetMin": 45,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 2,
   "nextIter": 93,
   "issued": "2026-08-31T04:49:01.691Z",
