@@ -25,7 +25,7 @@
   "avoid": "Do not widen eastCap or the spawnEastAgent plaza share (0.32) — the WATCH note says that budget is already shared seven ways; a family is its own source. Do not route families through the courtyard's spawnAgent(). Do not let the child's runs cross the fountain basin (crumbSpot's keep box) or the roundel's tree pits. The kid speed (2.6–3.6) with a follower re-target can trip the motion gate's median rule — compare the worst step against HEAD's kids on the lawn before calling it a bug.",
   "budgetMin": 70,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 92,
   "issued": "2026-08-31T04:25:42.354Z",
