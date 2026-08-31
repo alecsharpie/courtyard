@@ -1974,91 +1974,16 @@ function spawnAgent(room){
     umbrella:false, phase:R() * 9, wary:R(), exit:ex,
   };
   const roll = R();
-  const sun = daylight > 0.35;
-  const canKids = day >= 1 && sun, canDog = day >= 1, canPicnic = day >= 3 && sun,
-        canNap = day >= 2 && sun, canGardener = sun && !agents.some(g => g.kind === 'gardener');
-  if (canGardener && roll < 0.10 && EDGE_BEDS.length){
-    a.kind = 'gardener'; a.shirt = '#5d7a4a';
-    const spot = pick(EDGE_BEDS);
-    const t = nearestRingXY(spot.px, spot.py);
-    a.wp.push(...ringPath(e.k, t, ringDir(e.k, t)));
-    a.kneelAt = [spot.px, spot.py];
-    a.wp.push(a.kneelAt);
-    announce('A gardener arrives with a trowel and a tray of seedlings.');
-  } else if (canKids && roll < 0.22){
-    a.kind = 'kid'; a.speed = 2.6 + R(); a.small = true;
-    let kth = R() * Math.PI * 2;
-    for (let j = 0; j < 6 + (R()*5|0); j++){
-      kth += (R() - 0.5) * 1.6;
-      const rr = 9.4 + R() * Math.max(0.5, gR(kth) - 10.6);
-      a.wp.push([CX + Math.cos(kth) * rr, CY + Math.sin(kth) * rr]);
-    }
-    announce(pick(['Kids tear across the grass, shrieking.', 'A game of tag spills over the lawn.']));
-    if (R() < 0.7){
-      const b = Object.assign({}, a, {shirt:pick(SHIRT), pants:pick(PANTS), speed:a.speed*0.94,
-        wp:a.wp.map(p=>[p[0]+0.7,p[1]+0.5]), i:0, x:a.x+0.6, y:a.y, phase:R()*9});
-      finishItinerary(b); agents.push(b);
-    }
-  } else if (canNap && roll < 0.29){
-    a.kind = 'napper';
-    const g = pick(GAP_ANGLES);
-    const gapPt = [CX + Math.cos(g) * (bedOut(g) + 0.8), CY + Math.sin(g) * (bedOut(g) + 0.8)];
-    a.wp.push(...ringPath(e.k, nearestRing(g), ringDir(e.k, nearestRing(g))));
-    a.wp.push(gapPt.slice());
-    a.napAt = [CX + Math.cos(g) * 2.6, CY + Math.sin(g) * 2.6];
-    a.wp.push(a.napAt);
-    a.preExit = [gapPt];
-    announce('Someone wanders in with a book, eyeing the shade under the tree.');
-  } else if (canPicnic && roll < 0.36){
-    a.kind = 'picnic';
-    // the same two draws as ever: an angle and a radius on the outer lawn. What changed
-    // (#94) is that the shade is now a place they can read: under a hot sun the pair
-    // goes in through a bed gap and spreads the blanket INSIDE the linden's shade; on a
-    // cool day they keep out of it, turning by eighths until the spot is in the sun.
-    // Either way the uniforms already drawn pick within the chosen set — no new draw.
-    let th = R() * Math.PI * 2; const u = R(), rr = 9 + u * 3;
-    a.picnicAt = [CX + Math.cos(th) * rr, CY + Math.sin(th) * rr];
-    let gap = null;
-    if (warmth > 0.65 && shadowF() > 0.5){
-      const sp = shadeSpots(th, u);
-      if (sp){ a.picnicAt = sp.pt; gap = sp.g; }
-    } else if (warmth < 0.45 && inLindenShade(a.picnicAt[0], a.picnicAt[1])){
-      for (let k = 1; k < 8; k++){
-        const t = th + k * Math.PI / 4, x = CX + Math.cos(t) * rr, y = CY + Math.sin(t) * rr;
-        if (!inLindenShade(x, y)){ th = t; a.picnicAt = [x, y]; break; }
-      }
-    }
-    if (gap !== null){
-      const gapPt = [CX + Math.cos(gap) * (bedOut(gap) + 0.8), CY + Math.sin(gap) * (bedOut(gap) + 0.8)];
-      a.wp.push(...ringPath(e.k, nearestRing(gap), ringDir(e.k, nearestRing(gap))), gapPt.slice(), a.picnicAt);
-      a.preExit = [gapPt]; a.shaded = true;
-    } else {
-      a.wp.push(...ringPath(e.k, nearestRing(th), ringDir(e.k, nearestRing(th))));
-      a.wp.push(a.picnicAt);
-    }
-    const b = Object.assign({}, a, {shirt:pick(SHIRT), pants:pick(PANTS),
-      wp:a.wp.map(p=>[p[0]+0.9,p[1]+0.3]), i:0, x:a.x+0.7, y:a.y, phase:R()*9, lead:false});
-    a.lead = true;
-    finishItinerary(b); agents.push(b);
-    // linked both ways AFTER the copy, so the pair can decide the sky together. The
-    // line about the blanket now waits until the blanket is actually spread — a seat
-    // that can be refused makes an announcement at spawn a promise the town may break.
-    a.mate = b; b.mate = a;
-  } else if (canDog && roll < 0.46){
+  const canDog = day >= 1;
+  if (canDog && roll < 0.22){
     a.kind = 'dogwalker';
     a.dog = { x:a.x, y:a.y, phase:R()*9, col:pick(['#4a3a2c','#c9b18a','#2c2c2c','#a6763f']) };
     const loops = 1 + (R() * 1.5 | 0);
     a.wp.push(...ringPath(e.k, (e.k + Math.round(RK * (0.5 + loops))) % RK, 1));
     if (day >= 1 && R()<0.5) announce('A dog tows its human around the path, nose down.');
-  } else if (roll < 0.62 && day >= 1){
+  } else if (roll < 0.52 && day >= 1){
     a.kind = 'crosser';
     a.wp.push(...crossPts(e.k, ex.k));
-  } else if (roll < 0.78){
-    a.kind = 'sitter';
-    const b = pick(BENCH_SPOTS);
-    const t = nearestRingXY(b.x, b.y);
-    a.wp.push(...ringPath(e.k, t, ringDir(e.k, t)));
-    a.benchAt = b; a.wp.push([b.x + 0.5, b.y + 0.6]);
   } else {
     const dir = R() < 0.5 ? 1 : -1;
     a.wp.push(...ringPath(e.k, ex.k, dir));
@@ -2066,13 +1991,204 @@ function spawnAgent(room){
   finishItinerary(a);
   agents.push(a);
   // #75: the courtyard's own arrivals come in twos too — the same follower, spent from
-  // `capacity` (the caller passes whether one place is left). Kids and the picnic
-  // already bring their own second; a gardener works alone and a napper lies alone.
+  // `capacity` (the caller passes whether one place is left).
   withCompanion(a, room);
+}
+/* ============ the lawn's own people (#95) ============ *
+ * Until now the five kinds who STAY in the garden — a sitter on a bench, a child
+ * running the lawn, a sleeper under the linden, a picnic pair, the gardener — were
+ * shares of the ring's one roll, spent out of `capacity` alongside the walkers who
+ * cross and leave. A ring trip is ~40 s ≈ a resident, so the cap was full of transit
+ * and the lawn held a median of ONE person at a summer 13 h (probes/shade.mjs, #94).
+ * The plaza (#92), the cafe (#74) and the warm evening (#79) each got their own
+ * source; this is the lawn's. The model is spawnFamilyAgent's:
+ *   - a cap of HOLDERS (LAWN_CAP), each holding one PLACE — a bench (BENCH_SPOTS), a
+ *     bed gap to lie in (GAP_ANGLES), a blanket angle on the picnic annulus, one of the
+ *     kids' runs, the edge beds — claimed at the choice and released as the walk OUT
+ *     begins (lawnRelease), never at the door;
+ *   - a window of the SUN: lawnStart()..lawnEnd() bound the ARRIVAL (so a winter walk
+ *     may set out before the light clears LAWN_SUN — open a trip earlier than its hour),
+ *     and lawnClosed() (rain, or the failing light) ends every stay, so the lawn
+ *     empties itself by dusk whatever the timers say;
+ *   - the walk priced at the CHOICE against the window (lawnFits(), fixed-pointed
+ *     on sunAt at arrival): whoever cannot arrive with LAWN_MIN_DWELL to spare does not
+ *     set out, and the draws are spent either way. The lane's south door is ~40 cells
+ *     off; it fits in the morning and never in the afternoon, so the bag of doors is
+ *     priced before it is drawn from;
+ *   - PRICED before the cap was chosen: a holder is inside the wall for ~0.7 of its
+ *     hold (walk in ~8 s, stay 12–34 s) and brings ~1.35 people (the kids' pairs, the
+ *     picnic's two, a sitter's companion), so LAWN_CAP 5 at a filling rate reads ≈ 5
+ *     people on the lawn at a summer 13 h; the places (4 + 2 + 2 + 2 + 1 = 11) are the
+ *     sub-caps, not the cap.
+ * Warmth thins it: nobody lies on cold grass (LAWN_LIE_WARMTH), and the rate falls to a
+ * third in midwinter, so a clear winter noon reads what it always did — a child, a
+ * sitter, the gardener. Rain closes it; a wet seat is still judged at the seat. */
+const LAWN_CAP = 4, LAWN_RATE = 0.9, LAWN_SUN = 0.35, LAWN_MIN_DWELL = 1.5, LAWN_WALK_MARGIN = 1.1,
+      LAWN_LIE_WARMTH = 0.45, LAWN_NAPS = GAP_ANGLES.length, LAWN_BLANKETS = 2, LAWN_RUNS = 2, LAWN_BLANKET_SEP = 0.7, LAWN_CHORD = 1.2;
+const LAWN_OFF = {north:5, south:40, west:5, east:35};   // the off-frame leg to each door, in cells (entryLeg's own routes)
+const LAWN_W = {gardener:0.15, kid:0.2, napper:0.2, picnic:0.25, sitter:0.2};
+function lawnSun(){ return daylight > LAWN_SUN; }
+function lawnClosed(){ return raining || !lawnSun(); }   // the ONE closing rule: rain or the failing light end every stay
+function lawnEnd(t){ const s = sunAt(t === undefined ? simT : t); return s.down - (s.down - s.up) * Math.asin(LAWN_SUN) / Math.PI; }   // the hour daylight drops under LAWN_SUN
+function lawnStart(t){ const s = sunAt(t === undefined ? simT : t); return s.up + (s.down - s.up) * Math.asin(LAWN_SUN) / Math.PI; }   // …and the hour it first clears it
+function lawnRate(){ return LAWN_RATE * (0.45 + 0.55 * clamp((warmth - 0.2) / 0.5, 0, 1)); }   // a winter noon keeps a child and a sitter (HEAD ± 1)
+function lawnOpen(){ return day >= 1 && !raining && hour > sunUp && hour < sunDown; }   // set-outs need dry weather and the sun UP; the arrival's daylight is priced in lawnFits (open a trip earlier than its hour) — without the sunrise gate every midnight roll picks the one door whose walk is long enough to land in the window, and the east arch feeds the lawn marathon walkers
+function lawnHolds(o){ return o.lawn && o.lawnLead && !o.with && !o.lawnOut; }   // on the way in or at the place; a holder walking out has given it up
+function lawnCount(){ return agents.filter(lawnHolds).length; }
+function lawnRelease(a){ a.lawnOut = true; for (const o of agents) if (o.with === a) o.lawnOut = true; }   // and the companion at their side goes with them
+/* the walk from off-frame through door `e` along `pts`, in hours; and whether it fits the
+ * window — arrival with LAWN_MIN_DWELL to spare before the sun ends it, the sun read at
+ * the arrival instant (0.36 h/day of swing) */
+function lawnHours(e, pts, speed){ return (LAWN_OFF[e.name] / speed * HOURS_PER_S) + pathHours(e.door[0], e.door[1], pts, speed); }
+function lawnFits(e, pts, speed){
+  const walk = LAWN_WALK_MARGIN * lawnHours(e, pts, speed);
+  const tA = simT + walk / 24 * DAY_LEN;   // the arrival instant (LAW: an hour of the sun is solved at arrival, not departure)
+  return hour + walk >= lawnStart(tA) && hour + walk + LAWN_MIN_DWELL < lawnEnd(tA);
+}
+function gapPoint(g){ return [CX + Math.cos(g) * (bedOut(g) + 0.8), CY + Math.sin(g) * (bedOut(g) + 0.8)]; }
+/* the way in from door `e` to a point on the lawn: a straight chord across the outer
+ * lawn when the door is within LAWN_CHORD rad of the point (then the chord's nearest
+ * approach to the trunk is the point itself, so it never crosses the beds; the same
+ * chord is the way OUT — door → ring → arc → a far door is ~37 cells ≈ 9 h, and HEAD's
+ * sitters were still "walking out" inside the wall at 4 am), else round the ring */
+function chordOK(e, px, py){ return Math.abs(((Math.atan2(e.door[1] - CY, e.door[0] - CX) - Math.atan2(py - CY, px - CX) + Math.PI * 3) % (Math.PI * 2)) - Math.PI) < LAWN_CHORD; }
+function ringWay(e, px, py){ const t = nearestRingXY(px, py); return [RING[e.k].slice(), ...ringPath(e.k, t, ringDir(e.k, t)), [px, py]]; }
+function lawnWay(e, px, py){ return chordOK(e, px, py) ? [[px, py]] : ringWay(e, px, py); }
+function gapWay(e, g){ const p = gapPoint(g); return lawnWay(e, p[0], p[1]); }
+function nearDoor(px, py){ return ENTR.reduce((p, q) => Math.abs(((Math.atan2(q.door[1] - CY, q.door[0] - CX) - Math.atan2(py - CY, px - CX) + Math.PI * 3) % (Math.PI * 2)) - Math.PI) < Math.abs(((Math.atan2(p.door[1] - CY, p.door[0] - CX) - Math.atan2(py - CY, px - CX) + Math.PI * 3) % (Math.PI * 2)) - Math.PI) ? q : p); }   // the door a chord from (px, py) is clean to
+function cheapGap(free){ return free.reduce((p, q) => Math.min(...ENTR.map(e => lawnHours(e, gapWay(e, q), 1))) < Math.min(...ENTR.map(e => lawnHours(e, gapWay(e, p), 1))) ? q : p); }
+function spawnLawnAgent(){
+  const roll = R(), speed = 1.5 + R() * 0.7;
+  const held = agents.filter(lawnHolds);
+  const has = (f) => held.some(f);
+  const lie = warmth >= LAWN_LIE_WARMTH && snowCover < 0.2;
+  const fitsAny = (pts, sp) => ENTR.some(e => lawnFits(e, pts, sp));
+  const nap = g => [CX + Math.cos(g) * 2.6, CY + Math.sin(g) * 2.6];
+  // the kinds with a free place today AND a walk that fits from some door — priced
+  // before the kind is drawn, so a late roll goes to whoever can still get there (the
+  // tree is 29 cells ≈ 7 h from every door; a bench by the wall is 3): one roll picks
+  const freeGaps = GAP_ANGLES.filter(g => !has(o => o.place === g));
+  const freeBenches = BENCH_SPOTS.filter(b => !has(o => o.place === b));
+  const kinds = [];
+  if (EDGE_BEDS.length && !agents.some(g => g.kind === 'gardener')
+      && ENTR.some(e => { const b = EDGE_BEDS.reduce((p, q) => Math.hypot(q.px - e.door[0], q.py - e.door[1]) < Math.hypot(p.px - e.door[0], p.py - e.door[1]) ? q : p); return lawnFits(e, lawnWay(e, b.px, b.py), speed); })) kinds.push('gardener');
+  if (held.filter(o => o.kind === 'kid').length < LAWN_RUNS && ENTR.some(e => lawnFits(e, [RING[e.k], [CX + (RING[e.k][0] - CX) * 0.6, CY + (RING[e.k][1] - CY) * 0.6]], 2.6))) kinds.push('kid');
+  if (day >= 2 && lie && freeGaps.length && freeGaps.some(g => ENTR.some(e => lawnFits(e, gapWay(e, g).concat([nap(g)]), speed * 0.8)))) kinds.push('napper');
+  if (day >= 3 && lie && held.filter(o => o.kind === 'picnic').length < LAWN_BLANKETS
+      && ENTR.some(e => warmth > 0.65 && shadowF() > 0.5 ? GAP_ANGLES.some(g => lawnFits(e, gapWay(e, g).concat([[CX + Math.cos(g) * 3.3, CY + Math.sin(g) * 3.3]]), speed)) : lawnFits(e, lawnWay(e, CX + (RING[e.k][0] - CX) * 0.55, CY + (RING[e.k][1] - CY) * 0.55), speed))) kinds.push('picnic');
+  if (freeBenches.some(b => ENTR.some(e => lawnFits(e, lawnWay(e, b.x + 0.5, b.y + 0.6), speed)))) kinds.push('sitter');
+  if (!kinds.length) return;
+  const tot = kinds.reduce((s, k) => s + LAWN_W[k], 0); let acc = 0, kind = kinds[kinds.length - 1];
+  for (const k of kinds){ acc += LAWN_W[k] / tot; if (roll < acc){ kind = k; break; } }
+  const a = { kind, x:0, y:0, wp:[], i:0, speed, state:'walk', timer:0, lawn:true, lawnLead:true,
+    shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), umbrella:false, phase:R() * 9, wary:R() };
+  // the place, and the way in from each door (`way(e)` — the waypoints after the door)
+  let way, run = null, wsp = speed;
+  if (kind === 'gardener'){
+    // among the beds a door's walk FITS to, like the sitter's benches — pick() over all of
+    // them let a far bed kill the roll at the bag, and the town never saw a gardener
+    const fit = EDGE_BEDS.filter(b => ENTR.some(e => lawnFits(e, lawnWay(e, b.px, b.py), speed)));
+    const spot = pick(fit); a.kneelAt = [spot.px, spot.py]; a.place = spot; a.shirt = '#5d7a4a';
+    way = e => lawnWay(e, spot.px, spot.py);
+  } else if (kind === 'kid'){
+    a.speed = wsp = 2.6 + R(); a.small = true; run = [];
+    let kth = R() * Math.PI * 2;
+    for (let j = 0; j < 6 + (R()*5|0); j++){
+      kth += (R() - 0.5) * 1.6;
+      const r = 9.4 + R() * Math.max(0.5, gR(kth) - 10.6);
+      run.push([CX + Math.cos(kth) * r, CY + Math.sin(kth) * r]);
+    }
+    a.place = 'run';
+    way = e => [RING[e.k].slice(), ...run];
+    a.arrive = e => [RING[e.k].slice(), run[0]];   // priced to the START of the run: the run is the stay
+  } else if (kind === 'napper'){
+    // the nearest free shade, no draw: whichever gap some door reaches soonest
+    const g = cheapGap(freeGaps);
+    a.place = g; a.napAt = nap(g); wsp = speed * 0.8;
+    way = e => { const w = gapWay(e, g); a.preExit = [w[w.length - 1].slice()]; return w.concat([a.napAt.slice()]); };
+  } else if (kind === 'picnic'){
+    // the same two draws as ever: an angle and a radius on the outer lawn; a second
+    // blanket keeps LAWN_BLANKET_SEP of arc from the first, and the angle turns by
+    // eighths until some door's walk fits. Under a hot sun the pair goes in through a
+    // bed gap and spreads the blanket INSIDE the linden's shade (#94); on a cool day
+    // they keep out of it, turning by eighths until the spot is in the sun.
+    let th = R() * Math.PI * 2; const u = R(), rr = 9 + u * 3;
+    const clash = t => held.some(o => o.kind === 'picnic' && Math.abs(((t - o.place + Math.PI * 3) % (Math.PI * 2)) - Math.PI) < LAWN_BLANKET_SEP);
+    for (let k = 0; k < 8; k++){ const t = th + k * Math.PI / 4;
+      if (!clash(t) && ENTR.some(e => lawnFits(e, lawnWay(e, CX + Math.cos(t) * rr, CY + Math.sin(t) * rr), speed))){ th = t; break; } }
+    a.picnicAt = [CX + Math.cos(th) * rr, CY + Math.sin(th) * rr];
+    if (warmth > 0.65 && shadowF() > 0.5){
+      const sp = shadeSpots(th, u);
+      if (sp){ a.picnicAt = sp.pt; a.gap = sp.g; }
+    } else if (warmth < 0.45 && inLindenShade(a.picnicAt[0], a.picnicAt[1])){
+      for (let k = 1; k < 8; k++){
+        const t = th + k * Math.PI / 4, x = CX + Math.cos(t) * rr, y = CY + Math.sin(t) * rr;
+        if (!inLindenShade(x, y)){ th = t; a.picnicAt = [x, y]; break; }
+      }
+    }
+    a.place = th;
+    if (a.gap !== undefined){
+      // in by the CHEAPEST gap (the shade's own gap may be the far one: the front spots
+      // are the east gap's, 15 h round the ring from the north door), then round the
+      // trunk on the inner lawn at r 3.3 to the blanket; out the same way
+      const gIn = cheapGap(GAP_ANGLES), tS = Math.atan2(a.picnicAt[1] - CY, a.picnicAt[0] - CX);
+      const d = ((tS - gIn + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+      const inner = t => [CX + Math.cos(t) * 3.3, CY + Math.sin(t) * 3.3];
+      const round = [inner(gIn), inner(gIn + d / 2)];
+      a.gap = gIn;
+      way = e => { const w = gapWay(e, gIn); a.preExit = [round[0].slice(), w[w.length - 1].slice()]; a.shaded = true; return w.concat(round.map(p => p.slice()), [a.picnicAt.slice()]); };
+    } else way = e => lawnWay(e, a.picnicAt[0], a.picnicAt[1]);
+  } else {
+    // a sitter cuts straight from the door to the bench along the wall (the benches sit
+    // between the ring and the wall: door → ring → back out to the bench is 37 cells ≈ 9 h,
+    // the cut 12 ≈ 3 h); wear[] draws the desire line. Everyone else walks the ring.
+    const fit = freeBenches.filter(b => ENTR.some(e => lawnFits(e, lawnWay(e, b.x + 0.5, b.y + 0.6), speed)));
+    const b = pick(fit); a.benchAt = b; a.place = b;
+    way = e => lawnWay(e, b.x + 0.5, b.y + 0.6);
+  }
+  // which door: the lane's south arch weighted double as ever, but only among the doors
+  // the walk fits from — priced at the choice, so a late set-out takes a near door
+  const bag = [ENTR[0], ENTR[1], ENTR[1], ENTR[2], ENTR[3]].filter(e => lawnFits(e, (a.arrive || way)(e), wsp));
+  if (!bag.length) return;                    // too late in the day to be worth the walk
+  const e = pick(bag);
+  const legs = entryLeg(e);
+  a.x = legs[0][0]; a.y = legs[0][1]; a.exit = e;   // the way out is the way in — the near door
+  a.wp = legs.concat(way(e));
+  a.lawnCut = true;                           // leaves by the chord to the nearest door (routeToExit), via the gap if inside the beds
+  a.pred = lawnHours(e, (a.arrive || way)(e), wsp); delete a.arrive;   // the priced walk, for the probe
+  if (kind === 'kid'){
+    a.lawnEnd = a.wp.length;                  // the index the exit begins at: past it, the run is over and the place is free
+    const last = run[run.length - 1];
+    a.wp.push(...exitLeg(nearDoor(last[0], last[1])));   // straight off the lawn to the nearest door
+  }
+  if (kind === 'gardener') announce('A gardener arrives with a trowel and a tray of seedlings.');
+  else if (kind === 'kid'){
+    announce(pick(['Kids tear across the grass, shrieking.', 'A game of tag spills over the lawn.']));
+    if (R() < 0.7){
+      const b = Object.assign({}, a, {shirt:pick(SHIRT), pants:pick(PANTS), speed:a.speed*0.94, lawnLead:false,
+        wp:a.wp.map(p=>[p[0]+0.7,p[1]+0.5]), i:0, x:a.x+0.6, y:a.y, phase:R()*9});
+      finishItinerary(b); agents.push(b);
+    }
+  } else if (kind === 'napper') announce('Someone wanders in with a book, eyeing the shade under the tree.');
+  else if (kind === 'picnic'){
+    const b = Object.assign({}, a, {shirt:pick(SHIRT), pants:pick(PANTS), lawnLead:false,
+      wp:a.wp.map(p=>[p[0]+0.9,p[1]+0.3]), i:0, x:a.x+0.7, y:a.y, phase:R()*9, lead:false});
+    a.lead = true;
+    finishItinerary(b); agents.push(b);
+    // linked both ways AFTER the copy, so the pair can decide the sky together. The
+    // line about the blanket waits until the blanket is actually spread — a seat
+    // that can be refused makes an announcement at spawn a promise the town may break.
+    a.mate = b; b.mate = a;
+  }
+  finishItinerary(a);
+  agents.push(a);
+  // a sitter's companion shares the bench (#75); the other kinds bring their own second or come alone
+  withCompanion(a, kind === 'sitter');
 }
 const STAYING = {gardener:1, napper:1, picnic:1, sitter:1};
 function finishItinerary(a){
   const ex = a.exit;
+  if (a.lawnCut) return;                      // a lawn visitor who leaves by the chord already carries the way out (#95)
   if (!STAYING[a.kind]){
     const last = a.wp[a.wp.length - 1];
     const t = nearestRingXY(last[0], last[1]);
@@ -2107,6 +2223,12 @@ function skyLifts(a){
 }
 function routeToExit(a){
   const ex = a.exit;
+  if (a.lawn) lawnRelease(a);                 // the walk OUT begins here: the place goes back now, not at the door
+  if (a.lawnCut){                             // a lawn visitor: the chord to the nearest door (via the gap if inside the beds)
+    const th = Math.atan2(a.y - CY, a.x - CX), inside = Math.hypot(a.x - CX, a.y - CY) < bedOut(th) + 1.2;
+    const from = inside && a.preExit ? a.preExit[a.preExit.length - 1] : [a.x, a.y];
+    a.wp = (inside && a.preExit ? a.preExit.map(p => p.slice()) : []).concat(exitLeg(nearDoor(from[0], from[1]))); a.i = 0; a.state = 'walk'; return;
+  }
   const pts = (a.preExit || []).map(p => p.slice());
   const from = pts.length ? pts[pts.length-1] : [a.x, a.y];
   const t = nearestRingXY(from[0], from[1]);
@@ -2163,6 +2285,7 @@ function stepAgent(a, dt){
         || (a.east && !eastOpenFor(a))
         || (a.dusk && !eveOpen())
         || (a.fam && !famSun())
+        || (a.lawn && lawnClosed())           // rain or the failing light ends a stay on the lawn (#95)
         || (a.tap && !tapOpen())
         || (a.band && (bandF() <= 0 || (a.heard && bandF() < a.leaveAt)))){
       // a listener who would call in at the door on the way home: the walk is priced
@@ -2206,14 +2329,17 @@ function stepAgent(a, dt){
   // whoever is already walking out when the dusk edge crosses 0.3 is asked then.
   if (a.i === a.wp.length - 1 && !a.homeAsked && nightF > 0.3 && !a.home && !a.cycle && !a.east
       && !a.broom && !a.with && a.y > 65 && a.y < 79){ a.homeAsked = true; if (goHome(a)) return; }
+  if (a.lawn && !a.lawnOut && !lawnSun()){ routeToExit(a); return; }   // dusk on the lawn: the run is over, the late walker turns round; in RAIN they walk on — the seat is judged at the seat (#95)
   const dx = tgt[0] - a.x, dy = tgt[1] - a.y;
   const d = Math.hypot(dx, dy);
   const sp = a.speed * (raining && !a.umbrella ? 1.5 : 1) * (a.kind === 'napper' ? 0.8 : 1)
                      * (a.east && !eastOpenFor(a) ? 1.55 : 1)    // home before dark
                      * (a.dusk && !eveOpen() ? 1.4 : 1)            // the evening is over
+                     * (a.lawn && a.lawnOut && lawnClosed() ? 1.5 : 1)   // the lawn has closed behind them (#95)
                      * (a.with ? 1 + clamp((d - PAIR_GAP) * 0.5, 0, 0.9) : 1);   // a companion left behind hurries
   if (d < 0.25){
     a.i++;
+    if (a.lawn && !a.lawnOut && a.lawnEnd !== undefined && a.i >= a.lawnEnd) lawnRelease(a);   // a kid's run is done: the way out begins (#95)
     // the ONE place a leaver is asked home: on the lane, after dark, as the last leg
     // (the walk off the frame) begins — every route out of the town passes this point.
     if (a.i >= a.wp.length){
@@ -7896,7 +8022,8 @@ function simStep(sdt, dt){
   caAcc += sdt;
   while (caAcc > 0.35){ caAcc -= 0.35; caTick(); }
 
-  const courtyardCount = agents.filter(a => !a.street).length;
+  const courtyardCount = agents.filter(a => !a.street && !a.lawn).length;   // the ring's transit; the lawn's own people (#95) are under LAWN_CAP
+  const lawnNow = lawnCount();
   // the audience is subtracted from BOTH of the budgets it would otherwise be spent
   // out of: eastCap, which it stands in the middle of, and laneCap, which is the
   // residual of the other three and would silently absorb it.
@@ -7914,7 +8041,10 @@ function simStep(sdt, dt){
    * At the anchor, warmth 0.5, all three are algebraically identical to what they
    * replaced — 5..14, 3..9, 1..7 — and at daylight 0 they are identical in EVERY
    * season, which is what holds the night floor. */
-  const capacity = 2 + Math.round(maturity() * (3 + 9 * daylight * yearBusy(EX_COURT)));
+  // #95: the five staying kinds left this roll for their own source, so the daylight
+  // term is the old 9 × the ~0.64 of the roll that was transit — the ring holds what it
+  // held; at daylight 0 it is identical in every season (the night floor).
+  const capacity = 2 + Math.round(maturity() * (3 + 6 * daylight * yearBusy(EX_COURT)));
   const laneCap = 1 + Math.round(maturity() * (1.6 + 6.4 * daylight * yearBusy(EX_LANE)));
   // the far side arrives on its own budget, so it no longer loses to the lane. It is
   // the most exposed of the three and breathes hardest — but its ceiling does NOT
@@ -7943,6 +8073,8 @@ function simStep(sdt, dt){
   spawnAcc += sdt;
   if (spawnAcc > 1){ spawnAcc = 0;
     if (courtyardCount < capacity && R() < rate) spawnAgent(courtyardCount + 1 < capacity);
+    // the lawn's own roll (#95): lawnOpen() bars rain; the night bars itself, because no walk's ARRIVAL fits the sun's window (lawnFits)
+    if (lawnOpen() && lawnNow < LAWN_CAP && R() < lawnRate()) spawnLawnAgent();
     if (laneCount < laneCap && R() < laneRate) spawnLaneAgent(laneCount + 1 < laneCap);
     if (eastOpen() && eastCount < eastCap && R() < eastRate) spawnEastAgent(false, eastCount + 1 < eastCap);
     // not under eastCap: after dark that is 1, and the people walking home hold it
@@ -8230,6 +8362,7 @@ window.__entities = function(){
                    if (a.pairLead) o.lead = 1;
                    if (a.fam){ o.fam = 1; if (a.famKid){ o.kid = 1; if (a.run) o.run = a.chasing ? 'bird' : 'arc'; } }
                    if (a.dig) o.dig = 1;
+                   if (a.lawn){ o.lawn = 1; if (a.lawnOut) o.out = 1; if (lawnHolds(a)) o.holds = 1; }
                    if (a.tend) o.tend = 1;
                    // the audience on the green. A probe has to tell a listener from a
                    // passer-by, and a listener standing AT its claimed place from one

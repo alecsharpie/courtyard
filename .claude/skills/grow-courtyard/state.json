@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-01",
+  "updated": "2026-08-31",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
   "lastIteration": 94,
@@ -452,13 +452,14 @@
       "RIVER MIST — mist ONE rate-capped scalar (stepMist; still, clear, cold-or-wet mornings sunUp−1..+2.2, burnt off by sun/wind); mistAt(x); drawMist() live veil before applyLight; HAZE + lamp halos read it; nameAt 'mist on the river'. mist-year.mjs samples sunUp+0.5, not the OPEN"
     ],
     "life": [
-      "courtyard kinds via spawnAgent() under capacity: walker, crosser, sitter (pick(BENCH_SPOTS)), KID (a.small, speed 2.6+, lawn waypoints, often two — 'a child, running about'), napper (GAP_ANGLES, lies at r 2.6 under the linden), picnic (a pair, blanket at r 9–12), gardener (EDGE_BEDS), dogwalker",
+      "courtyard RING transit via spawnAgent() under capacity: walker, crosser, dogwalker; the five STAYING kinds moved to the lawn's own source (#95)",
       "drawPerson() 12 px figures, legs on a.phase; wildlife — butterflies, fireflies, birds[] (land/hop/fly; scared by anyone within 4.5 cells; belfry pigeons 'wheel' at the bell, bellStartle), ducks (POND, eyot), swans, a night cat, falling leaves",
       "clock strikes at nine and eighteen (strikeClock, bellUntil), the church bell answers, walkers look up (a.listen); greetPass/chatty() — two passing may stop and talk",
       "EVERY sitter reads the sky — SIT_REFUSE turns a seat down, skyLifts(a) gives one up off a.wary, umbrellas; a pair judges once (a.mate)",
       "crowds with their OWN source, outside eastCount/laneCount: concert, evening door, homers, cafe, evening posts; goHome(a) sends a lane leaver to a HOME_DOOR after dusk, HOMES read by windowLit()",
       "ARRIVALS IN TWOS — withCompanion(a, room) on the lane/east/courtyard/cafe spawners under the SAME cap; b.with re-targets pairTarget(b) per step (PAIR_MIN 0.9)",
-      "the warm EVENING — eveOpen() (warmth ≥ 0.6, dry, calm, sunDown−2.5..+3) rolls spawnEveningAgent() under EVE_CAP onto EVE_SPOTS (a.dusk); stayOn(a) re-routes a far-bank a.east visitor OR an a.band listener (bandWay()) onto the deck's two EAST stay:1 posts"
+      "the warm EVENING — eveOpen() (warmth ≥ 0.6, dry, calm, sunDown−2.5..+3) rolls spawnEveningAgent() under EVE_CAP onto EVE_SPOTS (a.dusk); stayOn(a) re-routes a far-bank a.east visitor OR an a.band listener (bandWay()) onto the deck's two EAST stay:1 posts",
+      "the LAWN's own source (#95) — spawnLawnAgent() under LAWN_CAP 4 place-holders (bench / bed-gap nap / blanket angle / kid run / edge bed), place claimed at the choice, released as the walk out begins (lawnRelease); walks priced vs the sun window lawnStart()..lawnEnd() at ARRIVAL, set-outs sun-up and dry (lawnOpen); lawnClosed() = rain or failing light ends every stay; lawnCut chord routes door<->lawn; probes/lawn-day.mjs the instrument"
     ],
     "sill": [
       "the SILL under the canvas — #plate, #daytime, #season, #where, #ticker (queue, TICK_DWELL 2.5 s), #stats, #ctrl; hidden under 640px except during an invitation",
@@ -504,6 +505,12 @@
       "note": "bonfire: 2/17 kindles land at 20:00+ (a slow holder's 13 h walk from a sunrise set-out — spawn at the lane gate or price the walk), and the smoke column is faint at 1× against the lawn (thick 0.34 in drawSmoke) (#93)",
       "raisedBy": 91,
       "seenBy": 1
+    },
+    {
+      "id": "c142",
+      "note": "gardener presence is thin everywhere (13 h mean 0.17 summer, 0 winter, >0 in 5/30) despite 0.7 set-outs/day — one-at-a-time rule + long walks; a gardener who arrives EARLY (sunrise set-out, short door) or a second bed slot would read better (#95)",
+      "raisedBy": 94,
+      "seenBy": 0
     }
   ],
   "watch": [
