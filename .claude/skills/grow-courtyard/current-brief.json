@@ -29,7 +29,7 @@
   "budgetMin": 45,
   "risk": "medium",
   "status": "active",
-  "attempts": 1,
+  "attempts": 2,
   "nextIter": 93,
   "issued": "2026-08-31T04:49:01.691Z",
   "fromPlan": "2026-08-31T15:00:00.000Z"

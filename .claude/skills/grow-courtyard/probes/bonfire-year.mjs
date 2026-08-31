@@ -1,15 +1,18 @@
 #!/usr/bin/env node
 /* probe: the allotment bonfire's year (#93).
  *
- * bonfireDay() is a hash of the day gated on leafFallF() > 0.3, and the kindle is gated
- * on the weather at set-out AND at arrival, so what a seed sees is the calendar's offer
- * minus the weather's cut. Folds, over a whole seasonal year on several seeds:
- *   - the calendar: days hash(day, 517) < BON_K, and how many fall in the leaf-fall window
+ * bonfireDay() is a hash of the day gated on leafShed() > 0.1 (the SHED, days 12–18), and
+ * the kindle is gated on the weather at set-out AND at arrival, so what a seed sees is the
+ * calendar's offer minus the weather's cut (~2/3: wind, rain, and snow lying by day 18).
+ * Folds, over a whole seasonal year on several seeds:
+ *   - the calendar: days hash(day, BON_SALT) < BON_K, and how many fall in the shed
+ *   - the holder's continuity: the largest 1 s step of the a.tend walker (a teleport check
+ *     the motion gate cannot make — none of its five scenes falls on a shed day)
  *   - fires per season quarter (lit events), share of autumn days with one
  *   - the weather at each kindle (raining / windF / wetF) — the brief wants 0 in rain, 0 in wind > 0.5
  *   - set-out → kindle walk in sim hours, kindle hour, flame-out hour, ember-out hour
  *   - a holder standing at it: share of burning (fire > 0.3) samples with an a.tend stander
- *   - litter within 3 cells: the max seen on a fire day before the kindle, and at flame-out
+ *   - litter within 3 cells: the max seen — 0 on HEAD, no leaf lands on the block (evidence, not a gate)
  *   - burning samples in rain / wind > 0.5 (mid-burn weather, not kindle weather)
  *
  *   node bonfire-year.mjs [pathToHtml] [label]
@@ -45,9 +48,10 @@ for (const seed of SEEDS) {
       window.__warp(step);
       if (bon.day !== lastDay) { lastDay = bon.day; spawnT = simT; }
       const stander = agents.some(a => a.tend && a.state === 'stand');
+      const hd = agents.find(a => a.tend); const hx = hd ? +hd.x.toFixed(2) : NaN, hy = hd ? +hd.y.toFixed(2) : NaN;
       const walker = agents.some(a => a.tend && a.state === 'walk');
       out.push([+simT.toFixed(2), day, +hour.toFixed(2), +seasonPhase.toFixed(4), +leafShed().toFixed(3), raining ? 1 : 0, +windF().toFixed(2), +wetF().toFixed(2),
-                +bon.fire.toFixed(3), +bon.ember.toFixed(3), bon.on ? 1 : 0, +bon.lit.toFixed(2), bon.day, stander ? 1 : 0, walker ? 1 : 0, litNear(), snowCover > 0 ? 1 : 0, spawnT, agents.length]);
+                +bon.fire.toFixed(3), +bon.ember.toFixed(3), bon.on ? 1 : 0, +bon.lit.toFixed(2), bon.day, stander ? 1 : 0, walker ? 1 : 0, litNear(), snowCover > 0 ? 1 : 0, spawnT, agents.length, hx, hy]);
     }
     return { out, cal, BON_K, salt: BON_SALT };
   }, { step: STEP, n: Math.round(DAYS * DAY / STEP) });
@@ -55,9 +59,9 @@ for (const seed of SEEDS) {
   runs.push({ seed, ...r }); await page.close();
 }
 await browser.close();
-const T = 0, D = 1, H = 2, PH = 3, LF = 4, RAIN = 5, WIND = 6, WET = 7, FIRE = 8, EMB = 9, ON = 10, LIT = 11, BDAY = 12, STAND = 13, WALK = 14, LITTER = 15, SNOW = 16, SPAWN = 17;
+const T = 0, D = 1, H = 2, PH = 3, LF = 4, RAIN = 5, WIND = 6, WET = 7, FIRE = 8, EMB = 9, ON = 10, LIT = 11, BDAY = 12, STAND = 13, WALK = 14, LITTER = 15, SNOW = 16, SPAWN = 17, HX = 19, HY = 20;
 const SEASONS = ['winter', 'spring', 'summer', 'autumn'];
-const seasonOf = p => SEASONS[Math.floor(((p + 0.125) % 1) * 4)];
+const seasonOf = p => p > 0.70 && p < 0.97 ? 'autumn' : SEASONS[Math.floor(((p + 0.125) % 1) * 4)];   // autumn = the shed, days 12–18
 const mean = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
 const fmt = (x, d = 2) => (+x).toFixed(d);
 
@@ -68,7 +72,7 @@ const dayInfo = {};     // per day: leaf-fall at noon (seed 0)
 for (const v of runs[0].out) if (Math.abs(v[H] - 12) < 0.5 && !(v[D] in dayInfo)) dayInfo[v[D]] = { lf: v[LF], season: seasonOf(v[PH]) };
 const autumnDays = Object.keys(dayInfo).filter(d => dayInfo[d].lf > 0.1).map(Number);   // the SHED days: leafShed() > 0.1 at noon
 const offered = autumnDays.filter(d => runs[0].cal[d]);
-console.log(`calendar: hash(day,517) < BON_K on ${cal.reduce((a, b) => a + b, 0)}/${cal.length} days 1..${DAYS - 1}; leafShed() > 0.1 at noon on ${autumnDays.length} days [${autumnDays[0]}..${autumnDays[autumnDays.length - 1]}]; offered a fire on ${offered.length} of them: ${offered.join(',')}`);
+console.log(`calendar: hash(day,${runs[0].salt}) < BON_K on ${cal.reduce((a, b) => a + b, 0)}/${cal.length} days 1..${DAYS - 1}; leafShed() > 0.1 at noon on ${autumnDays.length} days [${autumnDays[0]}..${autumnDays[autumnDays.length - 1]}]; offered a fire on ${offered.length} of them: ${offered.join(',')}`);
 
 // per seed events
 const bySeason = { winter: 0, spring: 0, summer: 0, autumn: 0 };
@@ -114,6 +118,9 @@ console.log(`kindles in rain: ${kindles.filter(k => k.rain).length}; in wind > 0
 console.log(`kindle hour: ${fmt(Math.min(...kindles.map(k => k.hour)), 1)}–${fmt(Math.max(...kindles.map(k => k.hour)), 1)} (mean ${fmt(mean(kindles.map(k => k.hour)), 1)}); set-out → kindle ${fmt(mean(kindles.map(k => k.walkH)), 1)} h (range ${fmt(Math.min(...kindles.map(k => k.walkH)), 1)}–${fmt(Math.max(...kindles.map(k => k.walkH)), 1)})`);
 console.log(`flames > 0.3 for ${fmt(mean(kindles.map(k => k.burnH)), 1)} h; flame-out at ${fmt(mean(kindles.filter(k => !isNaN(k.outH)).map(k => k.outH)), 1)} h (${kindles.filter(k => k.rainOut).length} put out by rain/snow); embers out at ${fmt(mean(kindles.filter(k => !isNaN(k.embH)).map(k => k.embH)), 1)} h (+${fmt(mean(kindles.filter(k => !isNaN(k.embDay)).map(k => k.embDay)), 1)} d)`);
 console.log(`a holder standing at it: ${fmt(100 * burnStand / Math.max(1, burnSamples), 0)}% of burning samples; fires with a stander > half the burn: ${fireDaysWithStander}/${firesTotal}`);
+let maxStep = 0, steps = 0, where = '';
+for (const r of runs) for (let i = 1; i < r.out.length; i++){ const a = r.out[i-1], b = r.out[i]; if (isNaN(a[HX]) || isNaN(b[HX]) || a[BDAY] !== b[BDAY]) continue; const d = Math.hypot(b[HX]-a[HX], b[HY]-a[HY]); steps++; if (d > maxStep){ maxStep = d; where = `seed ${r.seed} d${b[D]} ${fmt(b[H],1)}h`; } }
+console.log(`holder continuity: ${steps} 1 s steps, largest ${fmt(maxStep)} cells (${where}); a 2.1-speed walker's step is ≤ ~1.6`);
 console.log(`burning samples in rain ${burnRain}/${burnSamples}, in snow ${burnSnow}, in wind > 0.5 ${burnWind} (${fmt(100 * burnWind / Math.max(1, burnSamples), 0)}%)`);
 const withLit = kindles.filter(k => k.litBefore > 0);
 console.log(`litter within 3 cells: non-zero before the kindle on ${withLit.length}/${firesTotal} fires (max ${Math.max(0, ...kindles.map(k => k.litBefore))}); at flame-out ${withLit.map(k => k.litOut).join(',') || '-'}; max litter near the cell over the whole run: ${Math.max(...runs.map(r => Math.max(...r.out.map(v => v[LITTER]))))}`);

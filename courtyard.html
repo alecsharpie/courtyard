@@ -2466,12 +2466,13 @@ function spawnAllotAgent(){
  * BON_BURN_H, falls over BON_FALL_H), bon.ember the heat left in it (falls over
  * BON_EMBER_H, the glow you see from the lane after dark). Rain or snow arriving sends
  * both to 0 in BON_RAIN_H. The day is a hash(day, k), so it is the same calendar in every
- * seed; the weather is the seed's. Leaves lying within three cells go on to it. */
+ * seed; the weather is the seed's. It does not eat the litter: no leaf lands on the block
+ * (litter's autumn bbox is x 4..71 — the trees are all west of the fence), so a consumer
+ * here would run at a rate of zero. */
 const BONFIRE = {x:84.0, y:19.5};
-const BON_K = 0.45, BON_SALT = 672;                           // hash share of shed days offered one (salt: 2–4 of the 7 in every year of 12); the weather takes its cut
+const BON_K = 0.8, BON_SALT = 285;                           // hash share of shed days offered one — 5–6 of the 7 in every year of 12 (histogram); the weather then takes ~2/3 (wind 1.0 on a third of autumn mornings; snow lies by day 18)
 const BON_RISE_H = 1.0, BON_BURN_H = 3.5, BON_FALL_H = 1.2, BON_EMBER_H = 4.0, BON_RAIN_H = 0.25;
-const BON_LITTER = 24, BON_LITTER_T = 0.4;                    // per tick of BON_LITTER_T s, within 3 cells
-const bon = {fire:0, ember:0, on:false, lit:-1, day:-1, holder:null, acc:0};
+const bon = {fire:0, ember:0, on:false, lit:-1, day:-1, holder:null};
 function bonfireDay(){ return leafShed() > 0.1 && hash(day, BON_SALT) < BON_K; }   // the SHED, days 12–18: leafFallF() > 0.3 is also every spring day
 function bonfireWeather(){ return !raining && wetF() < 0.4 && windF() < 0.5 && snowCover <= 0; }
 function bonfireHour(){ return sunUp + 0.3 + hash(day, 518) * 1.2; }   // set out early: the walk in is most of a working day
@@ -2487,18 +2488,6 @@ function stepBonfire(dt){
   const etgt = bon.fire > 0.05 ? 1 : 0;
   if (etgt > bon.ember) bon.ember = Math.min(1, bon.ember + h / 0.5);
   else if (etgt < bon.ember){ const r = h / (wet ? BON_RAIN_H : BON_EMBER_H); bon.ember = bon.ember <= r ? 0 : bon.ember - r; }
-  if (bon.fire > 0.3){ bon.acc += dt; if (bon.acc > BON_LITTER_T){ bon.acc = 0; burnLitter(); } }
-}
-function burnLitter(){
-  const cx = Math.floor(BONFIRE.x), cy = Math.floor(BONFIRE.y);
-  let dirty = false;
-  for (let y = cy - 3; y <= cy + 3; y++) for (let x = cx - 3; x <= cx + 3; x++){
-    if (x < 0 || y < 0 || x >= GW || y >= WH || Math.hypot(x - cx, y - cy) > 3) continue;
-    const j = y * GW + x, was = litter[j]; if (!was) continue;
-    litter[j] = was > BON_LITTER ? was - BON_LITTER : 0;
-    if ((litter[j] / LITTER_BUCKET | 0) !== (was / LITTER_BUCKET | 0)) dirty = true;
-  }
-  if (dirty) wearDirty = true;
 }
 function spawnBonfireHolder(){                                 // sendToPlot's cross-street entry, by the row-20 gate, to the heap's east side
   const a = {
@@ -5533,10 +5522,10 @@ function drawBonfireLight(t){
     // brighter and wider than a lamp's (0.42 / 0.20 at 2.4 / 3 cells): an open fire, not a mantle
     ctx.globalCompositeOperation = 'screen';
     const fl = RM ? 0 : 0.06 * Math.sin(t * 5.3) * bon.fire;
-    const r = cellW * (3.6 + 2.2 * bon.fire), al = (0.34 + 0.3 * bon.fire + fl) * nightF * bon.ember;
+    const r = cellW * (3.6 + 2.2 * bon.fire), al = (0.48 + 0.34 * bon.fire + fl) * nightF * bon.ember;
     const g = ctx.createRadialGradient(x, y, 1, x, y, r);
     g.addColorStop(0, 'rgba(255,160,70,' + al.toFixed(3) + ')');
-    g.addColorStop(0.4, 'rgba(255,140,50,' + (al * 0.35).toFixed(3) + ')');
+    g.addColorStop(0.4, 'rgba(255,140,50,' + (al * 0.5).toFixed(3) + ')');
     g.addColorStop(1, 'rgba(255,120,40,0)');
     ctx.fillStyle = g;
     ctx.save(); ctx.translate(x, y); ctx.scale(1, 0.5); ctx.translate(-x, -y);

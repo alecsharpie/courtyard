@@ -40,14 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 85 — the deck's evening comes from the far side: a visitor whose afternoon ends inside a warm evening stays on, at the footbridge's east rail (2026-08-31) [People & animals × Connect]
-
-**Brief:** b83 — c118: EVE_SPOTS' deck posts fit 0 times in 30 evenings from any gate; give the deck an ALREADY-THERE source via the one re-route, priced at the choice.
-**Did:** `stayOn(a)` in the retire block (after the band's callIn): an `a.east` far-bank visitor (not audience, not night rail) getting up while eveWeather() holds and !skyLifts(a) takes the nearest free deck post whose arrival + EVE_STAND lands inside [sunDown − EVE_LEAD, eveEnd()) — walk `deckWay(a)`. Two NEW posts at the deck's EAST end (`stay:1`, x 126.5/124.5). callIn's model: a.east = false, a.dusk/a.stay/a.eveSpot, dwell `hash(speed, 97)`, no R(); out by the alley over the deck; retire by `a.dusk && !eveOpen()`. `eveCount()` excludes stayers; `eveAll` off laneCount. Named; `o.stay` in `__entities`.
-**Gates:** census PASS (reshuffle) · visual PASS (`shots/b83-deck-evening-*.png`) · motion FAIL on dusk/cart jumps, ruled not mine: `probe-cartjump` replays the same 3.9-cell step at the same instant on HEAD · night filmstrip 0 POP. `probes/evening-arrivals.mjs`: summer 10 × 4 d — stayers 0.57/evening, **a deck post stood on 18/31 open evenings**, presence at +1 h 5.3 → 6.3; winter 0.
-**Verdict:** shipped (+53), off-brief on WHICH posts: `probes/evening-stay-price.mjs` on HEAD — a walk to the WEST posts fit 1/40 (12 cells of deck ≈ 2.75 h), to the east end 31/40. The brief's posts are unreachable from either side.
-**Surprise:** the rel −4 h spike of 171 retirements was the concert AUDIENCE — 324 of 418 far-side retirements, 290 of them stood SOUTH of the bandstand with no route north but through it (c125 → b87).
-
 ## Iteration 86 — the camera's two loose ends: cached FACES hit-tested through the ease's k; the Far bank quarter fills a wide frame (2026-08-31) [The sill & the observer × Polish]
 
 **Brief:** b84 — c119 (pane glows and hit-boxes drift off their panes mid-ease) + c120 (a desktop's Far bank IS the Plaza frame).
@@ -114,3 +106,15 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Budget:** inventory 9.6/9.5 KB after two plaza nouns — manager to distil.
 **Law:** `__warp(s)` advances whole fixed-dt steps — a step count is not a clock; loop on `day`, measure durations as `simT` deltas.
 **Law:** a place-holder whose visit outlasts the window makes arrivals/day ≈ cap whatever the rate: price presence as rate × visit BEFORE choosing the cap, and release the place as the walk OUT begins.
+
+## Iteration 93 — the allotments get their autumn: a bonfire on one bare cell, a holder with a fork who lights it on a dry calm shed day and goes when it dies, smoke, an ember pool after dark (2026-09-01) [Cross street & allotments × New element]
+
+**Brief:** b91, attempt 2 on #93's unverified WIP (e201eb0: `bon.fire`/`bon.ember` rate-capped, `spawnBonfireHolder`, `drawBonfireLight` AFTER `applyLight`). Proved, re-priced, one clause cut.
+**Cell:** (84, 19.5), GRASS in the plot gap (`block-map.mjs`); shed, pond, fence clear; the stand is off `ALLEY_Y`.
+**Premise REJECTED — litter:** the shed-day litter bbox is x 4..71, 0 cells on the block (every tree is west of the fence): "litter within 3 cells consumed" would run at a rate of zero at ANY legal cell; cut.
+**Re-priced:** attempt 1's `hash(day,672) < 0.45` offered 3 of the 7 shed days (12–18) → 23%. `bonfire-window.mjs`: of 40 offered seed-days only 17 had a fine 2 h set-out window (wind 1.0 on a third of autumn mornings; snow lying on day 18 in 4/8 seeds), 3–7 more turned by arrival — conversion ~35%. K 0.8, salt 285 by histogram (5–6 of 7 in every year of 12): **17/56 = 30%**, per seed 1–3. Predicate `leafShed() > 0.1`, not `leafFallF() > 0.3` (also every spring day).
+**Gates:** census PASS (diff EMPTY — no census age is a shed day) · motion `dusk/cart` 0→1 = the median rule on the reshuffle (`cart-dusk-replay.mjs`: worst step 3.9 at 17:05 on HEAD and candidate, median 1.73 → 0) · filmstrip at the kindle 0 POP · `bonfire-year.mjs` 8 seeds × 27 d: 0 kindles in rain / wind > 0.5 / summer; holder at 16/17 fires (99% of burning samples); kindle 13.8–20.4 h; largest step 2.37/s · `bonfire-shots.mjs`: flames, column, holder 19:00; pool 21:00; embers 23:30; glow +39/+25 lum over the lawn (pool alpha 0.34→0.48); seen in the night wide.
+**Verdict:** shipped, ~+150 lines.
+**Surprise:** the weather already WAS the brief's "1 day in 3": histogram the set-out predicate and the hash has almost nothing left to cut — K went to 0.8 to land the band. Three crops were of the clock tower: a page clip needs the canvas rect (a law I had just read).
+**Law:** a hashed calendar share sits on a weather predicate's CONVERSION — count fine windows per offered day first (17/40), then set K to the success band; the brief's share is the product, not the factor.
+**Law:** the motion gate's scenes are days 3, 7, 11, 19, 22 — a feature living on days 12–18 is invisible to it; carry continuity (largest step by identity) in its own probe.
