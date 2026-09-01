@@ -28,7 +28,7 @@
   "avoid": "No laneCap share. Do not move the sweeper or the cart. Do not change the lapse landing hour. Do not add a second figure — one round, priced.",
   "budgetMin": 45,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 98,
   "issued": "2026-09-01T00:50:27.884Z",
