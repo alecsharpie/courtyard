@@ -603,6 +603,15 @@ const CAFE_TABLES = [
   {x:23.2, y:77.4, taken:0}, {x:26.4, y:76.9, taken:0}, {x:29.4, y:77.5, taken:0},
 ];
 const TREE_PITS = [8, 22, 48, 58];        // street trees along the north footway
+/* Two light wells punched through the near block's roof — the only VOID left in the
+ * grid once rows 79.. are built. They are not decoration: buildVolumes' distance
+ * transform drops the roof to nothing at their lip, so the valleys and the little hips
+ * around them fall out of the footprint exactly as every other roof's do. */
+const WELLS = [{x0:24, x1:27, y0:83, y1:85}, {x0:88, x1:91, y0:83, y1:85}];
+function wellAt(x, y){
+  for (const w of WELLS) if (x >= w.x0 && x < w.x1 && y >= w.y0 && y < w.y1) return true;
+  return false;
+}
 function buildGrid(){
   for (let y = 0; y < WH; y++) for (let x = 0; x < GW; x++){
     const i = y * GW + x;
@@ -694,7 +703,7 @@ function buildGrid(){
       if (y === 78 && ((x >= 8 && x <= 9) || (x >= 55 && x <= 56) || (x >= 88 && x <= 89))) grid[i] = BED;
     } else {
       // below the lane: our own building, with the river slipping between its two halves
-      grid[i] = (x >= QUAY_X0 && x < RIVER_X1) ? WATER : VOID;
+      grid[i] = (x >= QUAY_X0 && x < RIVER_X1) ? WATER : wellAt(x, y) ? VOID : WALL;
     }
   }
   for (const b of BENCH_SPOTS){
@@ -713,6 +722,12 @@ const solidM = new Uint8Array(GW * WH), eaveM = new Float32Array(GW * WH);
 const VW = GW + 1, VH = WH + 1;
 const vD = new Float32Array(VW * VH), vZ = new Float32Array(VW * VH);
 function eaveFor(x, y){
+  /* Our own block, the one we are looking out OVER, lies ON the ground plane. project()
+   * lifts z northward on SCREEN, so a near roof given its true eave would be drawn
+   * standing in front of the lane — and the lane is what this picture is looking at.
+   * At eave 0 the whole volume stays inside its own nine rows: 0 at the parapet, 2.11
+   * at the ridge, 0 again at the world's south edge. */
+  if (y >= LN_WALK_S) return 0;
   if (churchAt(x, y)) return 7.8;
   if (millAt(x, y)) return 4.7;                        // the mill house, squat under its wheel
   if (x >= DIV_X0 && x < PLAZA_X0) return 6.6;         // the tall terrace
@@ -722,7 +737,11 @@ function eaveFor(x, y){
   return 5.1;                                          // courtyard side walls
 }
 function solidAt(x, y){                            // strict: the world genuinely ends at its edges
-  if (y < 0 || y >= WH || x < 0 || x >= GW) return 0;
+  if (y < 0 || y >= WH) return 0;
+  // ...except the near block, which is the street WE are on: it runs off both sides of
+  // the picture. Left strict it would hip down to nothing at x = 0 and x = GW and put a
+  // V-notch in the roof at either margin of the wide frame.
+  if (x < 0 || x >= GW) return y >= LN_WALK_S ? solidM[y * GW + clamp(x, 0, GW - 1)] : 0;
   return solidM[y * GW + x];
 }
 function eaveAt(x, y){
@@ -4449,23 +4468,49 @@ function roofShade(x, y){
   return [clamp((-gx * SUN[0] - gy * SUN[1] + SUN[2]) / nl, 0, 1), z00, z10, z11, z01];
 }
 let HAZE = '#c6dcec';
-function drawRoofRow(g, y){
+// the ambient and key terms every tiled surface in the town is lit by. The key weakens
+// with the sun's height as well as with cover: a winter noon is as long-shadowed and as
+// flat as a summer evening. (0.84..1.16 about warmth 0.5 = 1)
+function roofKey(){
   const cc = cloudCover();                                       // cover flattens the key light
-  // the key weakens with the sun's height as well as with cover: a winter noon is as
-  // long-shadowed and as flat as a summer evening. (0.84..1.16 about warmth 0.5 = 1)
-  const amb = 0.26 + 0.20 * daylight + 0.07 * cc * daylight,
-        key = (0.22 + 0.78 * daylight) * (1 - 0.5 * cc) * (0.84 + 0.32 * warmth);
+  return [0.26 + 0.20 * daylight + 0.07 * cc * daylight,
+          (0.22 + 0.78 * daylight) * (1 - 0.5 * cc) * (0.84 + 0.32 * warmth)];
+}
+/* The town is pantiled and we are slated. That is not only a colour: the near block is a
+ * third of the picture's area and a bright field there fights the town for the eye, so
+ * the thing in the foreground is the DARK thing and the town reads past it — which is
+ * also what looking out of a window is like. Four slates, picked per HOUSE off the same
+ * `(gx+1)/3.5` the facades divide on, so the terrace reads as a terrace and not a slab. */
+const SLATES = [['#2c3037', '#7c8590'], ['#31322f', '#848579'], ['#2b3138', '#76818c'], ['#35322e', '#827c74']];
+function tileCol(lam, hv, amb, key, house){
+  const t = clamp(amb + 0.8 * lam * key + hv * 0.08 - 0.04, 0, 1);
+  let col;
+  if (house === undefined) col = mix('#6f4a39', '#cd9268', t);
+  else {
+    const s = SLATES[(hash(house, 71) * SLATES.length) | 0];
+    col = mix(s[0], s[1], clamp(t * (0.92 + 0.16 * hash(house, 73)), 0, 1));
+  }
+  if (snowCover > 0) col = mix(col, SNOW_COL, snowCover * (0.6 + 0.4 * hv) * (0.75 + 0.25 * lam));
+  return col;
+}
+/* Our own houses are wider than the town's 3.5-cell terrace: at 3.5 the party walls come
+ * every 31 px across a 1600 px frame and the roof reads as boarding rather than as a row
+ * of houses. Seven cells is the same rhythm the eye reads on the far side, at our range. */
+const NEAR_HOUSE = 7;
+function houseOf(x){ return Math.floor((x + 1) / NEAR_HOUSE); }
+function drawRoofRow(g, y){
+  const [amb, key] = roofKey();
   for (let x = XLO; x < XHI; x++){
     const gx = clamp(x, 0, GW - 1);
     if (!solidM[y * GW + gx]) continue;
-    const out = x !== gx;                                        // beyond the frame: the town, hazed
+    // beyond the frame the town is hazed — but the near block is the closest thing in
+    // the world, and haze on the row under our own sill would read as fog at our feet
+    const out = x !== gx && y < LN_WALK_S;
     const r = roofShade(x, y), lam = r[0];
     const hv = hash(gx, y);
     const sy = solidC(x, y + 1) ? y + 1 : y + 1.3;               // eaves overhang the wall below
     const dz = solidC(x, y + 1) ? 0 : SLOPE * 0.3;
-    const t = clamp(amb + 0.8 * lam * key + hv * 0.08 - 0.04, 0, 1);
-    let col = mix('#6f4a39', '#cd9268', t);
-    if (snowCover > 0) col = mix(col, SNOW_COL, snowCover * (0.6 + 0.4 * hv) * (0.75 + 0.25 * lam));
+    let col = tileCol(lam, hv, amb, key, y >= LN_WALK_S ? houseOf(x) : undefined);
     if (out) col = mix(col, HAZE, 0.55);
     g.fillStyle = col;
     const a = project(x, y, r[1]), b = project(x + 1, y, r[2]);
@@ -4474,13 +4519,17 @@ function drawRoofRow(g, y){
     if (out) continue;
     g.strokeStyle = 'rgba(48,29,21,' + (0.13 + 0.14 * lam) * (1 - 0.8 * snowCover) + ')'; g.lineWidth = 0.8;
     g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]);
-    g.moveTo(a[0], a[1]); g.lineTo(d[0], d[1]); g.stroke();
+    // the down-joint is a tile's edge; on the near block, nine rows filling an eighth of
+    // the frame, one per cell across 160 columns reads as vertical boarding, not slate
+    if (y < LN_WALK_S){ g.moveTo(a[0], a[1]); g.lineTo(d[0], d[1]); }
+    g.stroke();
     if (dz){                                                     // shadow the wall under the eaves
       g.fillStyle = 'rgba(30,22,16,.32)';
       const e1 = project(x, y + 1, r[4]), e2 = project(x + 1, y + 1, r[3]);
       poly(g, [e1, e2, c, d]); g.fill();
     }
-    if (hash(gx * 5, y * 3) > 0.965 && Math.min(roofD(x, y), roofD(x + 1, y + 1)) > 0.95){
+    // the near block's stacks stand on its party walls, and are placed there (drawNearRoof)
+    if (y < LN_WALK_S && hash(gx * 5, y * 3) > 0.965 && Math.min(roofD(x, y), roofD(x + 1, y + 1)) > 0.95){
       drawChimney(g, x, y);
       if (x === gx && !CHIMNEYS.some(c => c[0] === x && c[1] === y)) CHIMNEYS.push([x, y]);
     }
@@ -5487,55 +5536,290 @@ function drawBridge(g){
            project(RIVER_X1, yS + bTail, 0), project(RIVER_X0, yS + bTail, 0)]);
   g.fill();
 }
-function drawOurSide(g){
-  // our own building, the near edge of the world, with the river slipping between its halves
-  const e1 = project(-2, LN_WALK_S, 0);
-  const cut0 = project(QUAY_X0, LN_WALK_S, 0)[0], cut1 = project(RIVER_X1, LN_WALK_S, 0)[0];
-  const gr = g.createLinearGradient(0, e1[1], 0, e1[1] + 120);
-  gr.addColorStop(0, '#2a231b'); gr.addColorStop(1, '#131009');
-  for (const [px0, px1] of [[0, cut0], [cut1, W]]){
-    g.fillStyle = gr; g.fillRect(px0, e1[1], px1 - px0, H - e1[1]);
-    const sh = g.createLinearGradient(0, e1[1] - 24, 0, e1[1]);
-    sh.addColorStop(0, 'rgba(10,8,5,0)'); sh.addColorStop(1, 'rgba(10,8,5,.4)');
-    g.fillStyle = sh; g.fillRect(px0, e1[1] - 24, px1 - px0, 24);
+/* ============ the near block: the roof we are looking out over ============
+ * Rows 79..WH used to be VOID, and drawGround skips VOID, so the bottom eighth of the
+ * picture was a black gradient with six awning stripes laid on it in screen space —
+ * 118 px of a desktop frame, 164 of a phone's, and none of it in the world.
+ *
+ * buildGrid always said what belongs there ("below the lane: our own building, with the
+ * river slipping between its two halves"), and the sill says where we are standing: up,
+ * looking out. So what fills the near band is that building's ROOF, seen from above.
+ *
+ * None of it is hand-drawn. The footprint went into the grid as WALL and buildVolumes
+ * grew the volume off it like every other roof in the town — the pitches, the ridge
+ * running along the lane, the hips where the river cuts the block in two and the
+ * valleys round the two light wells are all the distance transform's, not mine. Three
+ * things are stated rather than derived, and each is a footprint or an eave, never a
+ * roof: eaveFor is 0 here (see there), solidAt runs the block off both sides of the
+ * picture (see there), and WELLS punches the two holes.
+ *
+ * Everything the far roofs live among reaches it for free, because it goes through the
+ * same drawRoofRow: snowCover whitens it, the sun/cloud/warmth key shades it, chimneys
+ * are placed and pushed to CHIMNEYS[] so drawSmoke leans them downwind. What is added
+ * here is what only a roof this close is big enough to show — the parapet and its lead
+ * gutter at the lane edge, moss on the north pitch, dormers and rooflights that light
+ * at night off windowLit, and the apron carrying the near pitch off the bottom edge. */
+const NEAR_SPANS = [[XLO, QUAY_X0], [RIVER_X1, XHI]];   // the block's two halves, the river between
+const PARA_Y = LN_WALK_S + 0.55, PARA_Z = 0.47;         // the top of the parapet lands at depth 79.01
+const DORM_Y = 85;                                      // dormers and rooflights on the near pitch
+const STACK_Y = 86;                                     // and the stacks, one pitch further down
+const ROOF_LIGHTS = [];                                 // [quad, sa, sb] — glazing up here, relit live
+function nearZ(x, y){ return (roofZ(x, y) + roofZ(x + 1, y) + roofZ(x + 1, y + 1) + roofZ(x, y + 1)) / 4; }
+/* The party walls: the terrace's own divisions, carried up over the roof as the brick
+ * upstands they are. They are what turns one orange field into a row of houses, and
+ * they are where a terrace puts its stacks — so the stacks are read off the same list.
+ * `bx` runs off both sides of the picture on the unclamped x, exactly as the roof does. */
+function partyWalls(sx0, sx1){
+  const out = [];
+  for (let x = Math.ceil(sx0); x < sx1; x++) if (houseOf(x) !== houseOf(x - 1)) out.push(x);
+  return out;
+}
+/* Priced against the lane, not against the roof: a stack is 1.4-2.4 cells of brick on top
+ * of the pitch and LIFT carries every one of those cells NORTH on screen. On the ridge
+ * (row 83) a cowl lands at depth 78.1 — in front of the south footway. At STACK_Y 86 the
+ * same cowl tops out at 81.8, clear of the lane by nearly three rows. */
+function nearStack(bx){ return hash(houseOf(bx), 13) > 0.68; }
+function drawNearRoof(g){
+  const [amb, key] = roofKey();
+  ROOF_LIGHTS.length = 0;
+  for (let y = LN_WALK_S; y < WH; y++) drawRoofRow(g, y);
+  // the near pitch does not stop at the world's south edge — it runs on under us, out of
+  // the picture. One column-wise apron off row WH, flared by the same trick the river's
+  // gradient uses, and darkening as it comes: down here it is in our own shadow.
+  for (const [sx0, sx1] of NEAR_SPANS){
+    for (let x = sx0; x < sx1; x++){
+      const gx = clamp(x, 0, GW - 1);
+      const a = project(x, WH, 0), b = project(x + 1, WH, 0);
+      const a4 = project(x, WH - 4, 0), b4 = project(x + 1, WH - 4, 0);
+      g.fillStyle = tileCol(roofShade(x, WH - 1)[0], hash(gx, WH), amb, key, houseOf(x));
+      poly(g, [a, b, [b[0] + (b[0] - b4[0]) * 4, H], [a[0] + (a[0] - a4[0]) * 4, H]]); g.fill();
+    }
+    const l = project(sx0, WH, 0), r = project(sx1, WH, 0);
+    const l4 = project(sx0, WH - 4, 0), r4 = project(sx1, WH - 4, 0);
+    const L = [l[0] + (l[0] - l4[0]) * 4, H], R = [r[0] + (r[0] - r4[0]) * 4, H];
+    /* And it goes into shadow as it comes. That is not only true — the last four rows of
+     * roof are under our own wall — it is what makes the picture READ: bright town, slate
+     * mid-tone, then a foreground that falls away into the sill instead of competing with
+     * the courtyard for the eye. This is the one part of the band with nothing on it, and
+     * it is the part that should have nothing on it. */
+    const sh = g.createLinearGradient(0, l[1] - cellH, 0, H);
+    sh.addColorStop(0, 'rgba(10,9,8,0)'); sh.addColorStop(0.35, 'rgba(10,9,8,.30)');
+    sh.addColorStop(1, 'rgba(8,7,6,.68)');
+    g.fillStyle = sh; poly(g, [l, r, R, L]); g.fill();
+    g.strokeStyle = 'rgba(26,24,22,.35)'; g.lineWidth = Math.max(1, cellH * 0.16);
+    g.beginPath(); g.moveTo(l[0], l[1]); g.lineTo(r[0], r[1]); g.stroke();   // the last full course
+    g.strokeStyle = 'rgba(24,22,20,.28)'; g.lineWidth = 1;      // and the courses under it, opening out
+    for (const f of [0.13, 0.30, 0.52]){
+      g.beginPath();
+      g.moveTo(l[0] + (L[0] - l[0]) * f, l[1] + (H - l[1]) * f);
+      g.lineTo(r[0] + (R[0] - r[0]) * f, r[1] + (H - r[1]) * f);
+      g.stroke();
+    }
   }
-  // striped awnings over our shopfronts, with lit glass beneath
-  for (const [ax0, ax1, c1] of [[5, 15, '#8a4a3c'], [22, 30, '#4a6b52'], [40, 54, '#4a5f8a'],
-      [64, 76, '#8a6b3c'], [82, 93, '#5f4a6e'], [131, 137, '#6b4a3c']]){
-    const a = project(ax0, LN_WALK_S - 0.4, 0), b = project(ax1, LN_WALK_S - 0.4, 0);
-    const yTop = e1[1] + 3, yBot = e1[1] + 15;
-    g.fillStyle = 'rgba(255,214,150,' + (0.10 + 0.35 * nightF) + ')';
-    g.fillRect(a[0] + 3, e1[1] - 1, b[0] - a[0] - 6, 4);
-    g.fillStyle = c1;
-    poly(g, [[a[0], yBot], [a[0] + 4, yTop], [b[0] - 4, yTop], [b[0], yBot]]); g.fill();
-    g.save();
-    poly(g, [[a[0], yBot], [a[0] + 4, yTop], [b[0] - 4, yTop], [b[0], yBot]]); g.clip();
-    g.fillStyle = '#d8cbb2';
-    for (let sx = a[0]; sx < b[0]; sx += 14) g.fillRect(sx, yTop - 2, 7, 18);
+  for (let y = LN_WALK_S; y < WH; y++) drawCrests(g, y);
+  /* The ridge. drawCrests finds a crest by a strict local maximum of the distance field,
+   * and this block is nine rows deep — an EVEN number of vertex rows — so its top is a
+   * two-row plateau (vD 4 at both 83 and 84) and no vertex is strictly higher than its
+   * neighbours. Nothing was wrong with drawCrests; the ridge simply has width. Cap it. */
+  {
+    let ry = LN_WALK_S, best = -1;
+    for (let y = LN_WALK_S; y <= WH; y++) if (roofD(60, y) > best){ best = roofD(60, y); ry = y; }
+    for (const [sx0, sx1] of NEAR_SPANS){
+      const a = project(sx0, ry, roofZ(sx0, ry)), b = project(sx1, ry, roofZ(sx1, ry));
+      const c = project(sx1, ry + 0.62, roofZ(sx1, ry)), d = project(sx0, ry + 0.62, roofZ(sx0, ry));
+      g.fillStyle = mix(mix('#30302e', '#a9aeaa', 0.22 + 0.55 * daylight), SNOW_COL, snowCover * 0.85);
+      poly(g, [a, b, c, d]); g.fill();
+      g.strokeStyle = 'rgba(16,18,20,.5)'; g.lineWidth = Math.max(1, cellH * 0.18);
+      g.beginPath(); g.moveTo(d[0], d[1]); g.lineTo(c[0], c[1]); g.stroke();
+    }
+  }
+  // moss and lichen on the north pitch — the damp side, in the parapet's own shade
+  const mossF = clamp(0.35 + 0.5 * (1 - warmth), 0, 1) * (1 - snowCover);
+  if (mossF > 0.05){
+    for (let y = LN_WALK_S; y < WH; y++) for (let x = XLO; x < XHI; x++){
+      const gx = clamp(x, 0, GW - 1);
+      if (!solidC(x, y) || roofZ(x, y + 1) - roofZ(x, y) < 0.1) continue;   // north-facing only
+      for (let k = 0; k < 3; k++){
+        const h1 = hash(gx * 3 + k, y * 11), h2 = hash(gx * 7, y * 13 + k);
+        if (h1 < 0.62) continue;
+        const p = project(x + 0.15 + h1 * 0.7, y + 0.2 + h2 * 0.6, nearZ(x, y));
+        g.fillStyle = 'rgba(' + (72 + (h2 * 30 | 0)) + ',' + (86 + (h1 * 26 | 0)) + ',54,' + (0.30 * mossF).toFixed(3) + ')';
+        g.beginPath(); g.ellipse(p[0], p[1], cellW * 0.26, cellH * 0.30, 0, 0, 7); g.fill();
+      }
+    }
+  }
+  for (const w of WELLS) drawWell(g, w);
+  for (let x = XLO; x < XHI; x++){
+    // one per house, set just east of its party wall — and solidC is asked about the cell
+    // the dormer actually stands on: at x 111 the wall is the block's last, and x + 1 is river
+    if (!solidC(x + 1, DORM_Y) || houseOf(x) === houseOf(x - 1)) continue;
+    const h = hash(clamp(x, 0, GW - 1) * 7, 811);
+    if (h > 0.62) drawDormer(g, x + 1);
+    else if (h > 0.34) drawRoofLight(g, x + 1, DORM_Y + 0.4, 0.42, 0.62);
+  }
+  drawPartyWalls(g);
+  drawParapet(g);
+}
+/* Drawn last of the roof, over the tiling and the dormers' cheeks: the upstands run from
+ * the parapet clean off the bottom of the picture, and the stacks stand on them. */
+function drawPartyWalls(g){
+  const lit = 0.22 + 0.5 * daylight;
+  const cap = mix(mix('#3b3a36', '#b3ac9c', lit), SNOW_COL, snowCover * 0.7);
+  for (const [sx0, sx1] of NEAR_SPANS){
+    for (const bx of partyWalls(sx0, sx1)){
+      const pts = [];
+      for (let y = PARA_Y; y < WH; y += 0.5) pts.push(project(bx, y, roofZ(bx, Math.round(y)) + 0.16));
+      const e = project(bx, WH, 0), e4 = project(bx, WH - 4, 0);
+      pts.push(e, [e[0] + (e[0] - e4[0]) * 4, H]);
+      g.strokeStyle = 'rgba(16,14,12,.40)'; g.lineWidth = Math.max(2.4, cellW * 0.26);
+      g.beginPath(); g.moveTo(pts[0][0], pts[0][1]);
+      for (const p of pts) g.lineTo(p[0], p[1]);
+      g.stroke();
+      g.strokeStyle = cap; g.lineWidth = Math.max(1.2, cellW * 0.13);
+      g.beginPath(); g.moveTo(pts[0][0] - 1, pts[0][1]);
+      for (const p of pts) g.lineTo(p[0] - 1, p[1]);
+      g.stroke();
+      if (nearStack(bx)) drawChimney(g, bx - 1, STACK_Y);   // drawChimney centres on x+0.5
+    }
+  }
+  for (const bx of partyWalls(0, GW)){                  // the register drawSmoke reads
+    if (!nearStack(bx) || bx >= QUAY_X0 && bx < RIVER_X1) continue;
+    const cx = bx - 1;
+    if (!CHIMNEYS.some(c => c[0] === cx && c[1] === STACK_Y)) CHIMNEYS.push([cx, STACK_Y]);
+  }
+}
+/* The parapet we lean out over, and the lead gutter behind it. It is held ENTIRELY south
+ * of the lane's own line: LIFT carries height northward on screen, so a parapet given
+ * real height would stand in front of the south footway. PARA_Z 0.47 at row 79.55 lands
+ * its coping at depth 79.006 — under the lane by six thousandths of a cell. */
+function drawParapet(g){
+  const lit = 0.25 + 0.5 * daylight;
+  for (const [sx0, sx1] of NEAR_SPANS){
+    const cop = [project(sx0, PARA_Y, PARA_Z), project(sx1, PARA_Y, PARA_Z),
+                 project(sx1, PARA_Y + 0.30, PARA_Z), project(sx0, PARA_Y + 0.30, PARA_Z)];
+    const face = [cop[3], cop[2], project(sx1, PARA_Y + 0.30, 0), project(sx0, PARA_Y + 0.30, 0)];
+    const gut = [face[3], face[2], project(sx1, PARA_Y + 0.62, 0), project(sx0, PARA_Y + 0.62, 0)];
+    // the lead: a wet channel even when the roof above it has dried
+    g.fillStyle = mix(mix('#2e3336', '#6d7478', lit), '#8fa2ae', 0.45 * wetF());
+    poly(g, gut); g.fill();
+    g.fillStyle = mix('#3b342b', '#8d7f6a', lit);                       // the inner face, in shade
+    poly(g, face); g.fill();
+    g.fillStyle = mix(mix('#4a443a', '#cfc6ae', lit), SNOW_COL, snowCover * 0.85);
+    poly(g, cop); g.fill();                                             // stone coping, catching the sky
+    g.strokeStyle = 'rgba(22,17,12,.45)'; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(gut[3][0], gut[3][1]); g.lineTo(gut[2][0], gut[2][1]); g.stroke();
+    // the fall of the gutter, and a hopper head every so often where it lets go
+    for (let x = Math.ceil(sx0 / 9) * 9; x < sx1; x += 9){
+      const p = project(x, PARA_Y + 0.46, 0);
+      g.fillStyle = 'rgba(28,32,34,.85)';
+      g.beginPath(); g.ellipse(p[0], p[1], cellW * 0.22, cellH * 0.30, 0, 0, 7); g.fill();
+    }
+  }
+}
+/* A light well: a hole clean through the block. The roof falls away to nothing at its
+ * lip because the distance transform says so, so all this draws is the shaft — and, at
+ * the bottom of it, somebody's back window, on the same windowLit clock as the town's. */
+function drawWell(g, w){
+  const a = project(w.x0, w.y0, 0), b = project(w.x1, w.y0, 0);
+  const c = project(w.x1, w.y1, 0), d = project(w.x0, w.y1, 0);
+  const sh = g.createLinearGradient(0, a[1], 0, c[1]);
+  sh.addColorStop(0, '#100d09'); sh.addColorStop(1, '#221c14');
+  g.fillStyle = sh; poly(g, [a, b, c, d]); g.fill();
+  g.strokeStyle = mix('#3a3630', '#9aa0a0', 0.2 + 0.5 * daylight); g.lineWidth = Math.max(1, cellW * 0.10);
+  poly(g, [a, b, c, d]); g.stroke();                                    // lead flashing round the lip
+  const q = [project(w.x0 + 0.55, w.y1 - 0.75, 0), project(w.x1 - 0.55, w.y1 - 0.75, 0),
+             project(w.x1 - 0.55, w.y1 - 0.2, 0), project(w.x0 + 0.55, w.y1 - 0.2, 0)];
+  g.fillStyle = mix('#1b1712', '#5f6a72', 0.10 + 0.35 * daylight);
+  poly(g, q); g.fill();
+  ROOF_LIGHTS.push([q, w.x0, w.y0 + 900]);
+}
+/* A rooflight lying in the pitch, and a dormer standing out of it. Both take their z off
+ * the surface under them (nearZ) rather than a constant, so they sit on the roof the
+ * distance transform actually built — including the one leaning toward a well. */
+function drawRoofLight(g, x, y, hw, hh){
+  const z = nearZ(x, Math.floor(y));
+  const q = [project(x + 0.5 - hw, y - hh, z), project(x + 0.5 + hw, y - hh, z),
+             project(x + 0.5 + hw, y + hh, z), project(x + 0.5 - hw, y + hh, z)];
+  g.fillStyle = mix('#2a2c30', '#7d94a6', 0.16 + 0.48 * daylight);
+  poly(g, q); g.fill();
+  g.strokeStyle = mix('#4a453c', '#d6cfba', 0.2 + 0.55 * daylight); g.lineWidth = Math.max(1, cellW * 0.09);
+  poly(g, q); g.stroke();
+  ROOF_LIGHTS.push([q, clamp(x, 0, GW - 1), 700 + (Math.floor(y * 4) % 8)]);
+}
+function drawDormer(g, x){
+  const gx = clamp(x, 0, GW - 1), z = nearZ(x, DORM_Y), dh = 1.35, w = 0.55;
+  const lit = 0.22 + 0.6 * daylight;
+  const f = [project(x + 0.5 - w, DORM_Y, z + dh), project(x + 0.5 + w, DORM_Y, z + dh),
+             project(x + 0.5 + w, DORM_Y, z), project(x + 0.5 - w, DORM_Y, z)];
+  const cheekL = [f[0], f[3], project(x + 0.5 - w, DORM_Y + 0.8, z + 0.1), project(x + 0.5 - w, DORM_Y + 0.8, z + dh + 0.42)];
+  const cheekR = [f[1], f[2], project(x + 0.5 + w, DORM_Y + 0.8, z + 0.1), project(x + 0.5 + w, DORM_Y + 0.8, z + dh + 0.42)];
+  g.fillStyle = mix('#312b24', '#6f6555', lit);
+  poly(g, [cheekL[0], cheekL[3], cheekL[2], cheekL[1]]); g.fill();
+  poly(g, [cheekR[0], cheekR[3], cheekR[2], cheekR[1]]); g.fill();
+  g.fillStyle = mix('#3f3a33', PLASTER[(hash(gx, 37) * PLASTER.length) | 0], clamp(lit + 0.16, 0, 1));
+  poly(g, f); g.fill();                                                 // the cheek-wall front, facing the lane
+  const q = [project(x + 0.5 - w * 0.62, DORM_Y, z + dh * 0.86), project(x + 0.5 + w * 0.62, DORM_Y, z + dh * 0.86),
+             project(x + 0.5 + w * 0.62, DORM_Y, z + dh * 0.22), project(x + 0.5 - w * 0.62, DORM_Y, z + dh * 0.22)];
+  g.fillStyle = mix('#242a33', '#7d94a6', 0.18 + 0.5 * daylight);
+  poly(g, q); g.fill();
+  ROOF_LIGHTS.push([q, gx, 720]);
+  const roofQ = [project(x + 0.5 - w - 0.10, DORM_Y - 0.02, z + dh + 0.08),
+                 project(x + 0.5 + w + 0.10, DORM_Y - 0.02, z + dh + 0.08),
+                 project(x + 0.5 + w + 0.10, DORM_Y + 0.82, z + dh + 0.50),
+                 project(x + 0.5 - w - 0.10, DORM_Y + 0.82, z + dh + 0.50)];
+  g.fillStyle = mix(mix('#2d3237', '#828d97', 0.3 + 0.5 * daylight), SNOW_COL, snowCover * 0.8);
+  poly(g, roofQ); g.fill();
+  g.strokeStyle = 'rgba(34,22,15,.35)'; g.lineWidth = 1;
+  poly(g, roofQ); g.stroke();
+}
+/* Live, after the ground blit and beside drawLitPanes: glazing up here goes on and off
+ * on the same windowLit hours as the town's, and the quad goes into LIT_PANES so the
+ * night's multiply gets its warmth put back exactly as a facade window's does. */
+function drawRoofLights(){
+  if (nightF <= 0.3) return;
+  for (const [q, sa, sb] of ROOF_LIGHTS){
+    if (!windowLit(sa, sb)) continue;
+    ctx.fillStyle = 'rgb(254,209,144)'; poly(ctx, q); ctx.fill();
+    LIT.push([(q[0][0] + q[2][0]) / 2, (q[0][1] + q[2][1]) / 2]);
+    LIT_PANES.push(q);
+  }
+}
+/* The shopfronts under our roof are under our roof: from up here they are gone, and so
+ * are the six screen-space stripes that used to stand in for them. The awnings are not
+ * gone — an awning seen from almost straight above IS a coloured rectangle over the
+ * pavement, so they come back into the WORLD, along the kerb between the walking line
+ * and the parapet. The green one is still the café's, which is what the announce says. */
+const OUR_AWNINGS = [[5, 15, '#8a4a3c'], [22, 30, '#4a6b52'], [40, 54, '#4a5f8a'],
+                     [64, 76, '#8a6b3c'], [82, 93, '#5f4a6e'], [131, 137, '#6b4a3c']];
+const AWN_N = 77.65;                                   // clear of LANE_S_Y's jitter (77.3 ± 0.5)
+function drawAwnings(g){
+  for (const [ax0, ax1, c1] of OUR_AWNINGS){
+    const a = project(ax0, AWN_N, 0), b = project(ax1, AWN_N, 0);
+    const c = project(ax1, LN_WALK_S, 0), d = project(ax0, LN_WALK_S, 0);
+    g.fillStyle = mix(c1, '#0d0b08', 0.45 - 0.35 * daylight);
+    poly(g, [a, b, c, d]); g.fill();
+    g.save(); poly(g, [a, b, c, d]); g.clip();                  // the canvas, striped across the fall
+    g.fillStyle = 'rgba(216,203,178,' + (0.35 + 0.3 * daylight) + ')';
+    for (let sx = ax0; sx < ax1; sx += 1.6){
+      const s1 = project(sx, AWN_N, 0), s2 = project(sx + 0.8, AWN_N, 0);
+      const s3 = project(sx + 0.8, LN_WALK_S, 0), s4 = project(sx, LN_WALK_S, 0);
+      poly(g, [s1, s2, s3, s4]); g.fill();
+    }
+    if (snowCover > 0){
+      g.fillStyle = 'rgba(236,240,244,' + (0.85 * snowCover) + ')';
+      poly(g, [a, b, c, d]); g.fill();
+    }
     g.restore();
-    if (snowCover > 0){                                  // a cap of snow along the canvas
-      g.fillStyle = 'rgba(236,240,244,' + (0.9 * snowCover) + ')';
-      poly(g, [[a[0] + 4, yTop], [b[0] - 4, yTop], [b[0] - 2, yTop + 4], [a[0] + 2, yTop + 4]]); g.fill();
-    }
-    g.fillStyle = 'rgba(24,18,12,.4)';
-    poly(g, [[a[0], yBot], [b[0], yBot], [b[0], yBot + 3], [a[0], yBot + 3]]); g.fill();
+    g.fillStyle = 'rgba(22,16,10,.35)';                         // the shade it throws on the kerb
+    poly(g, [a, b, project(ax1, AWN_N - 0.28, 0), project(ax0, AWN_N - 0.28, 0)]); g.fill();
+    g.fillStyle = 'rgba(255,214,150,' + (0.06 + 0.30 * nightF) + ')';   // shopfront light under it
+    poly(g, [project(ax0 + 0.3, LN_WALK_S - 0.22, 0), project(ax1 - 0.3, LN_WALK_S - 0.22, 0),
+             project(ax1 - 0.3, LN_WALK_S, 0), project(ax0 + 0.3, LN_WALK_S, 0)]); g.fill();
   }
-  // our own doorway onto the lane
-  const s = project(33.9, LN_WALK_S, 0);
-  g.fillStyle = '#0e0b07';
-  g.beginPath(); g.ellipse(s[0], s[1] + 8, cellW * 1.9, cellH * 1.5, 0, Math.PI, 0); g.fill();
-  // a hint of our own frontage below the awnings, so the near wall isn't a void
-  const band = e1[1] + 26;
-  for (const [px0, px1] of [[0, cut0], [cut1, W]]){
-    g.fillStyle = 'rgba(150,128,100,.10)';
-    g.fillRect(px0, band, px1 - px0, 2);
-    g.fillStyle = 'rgba(120,102,80,.07)';
-    g.fillRect(px0, band + 30, px1 - px0, 1.5);
-    for (let sx = px0 + 18; sx < px1; sx += cellW * 3.4){
-      g.fillStyle = 'rgba(255,214,150,' + (0.03 + 0.10 * nightF) + ')';
-      g.fillRect(sx, band + 6, cellW * 1.1, 18);
-    }
-  }
+}
+function drawOurSide(g){
+  drawAwnings(g);
+  drawNearRoof(g);
   const vg = g.createLinearGradient(0, H - 26, 0, H);
   vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.5)');
   g.fillStyle = vg; g.fillRect(0, H - 26, W, 26);
@@ -5613,6 +5897,7 @@ function drawScene(t, dt){
   // the glow pass drew hundreds of halos on top of each other.
   LIT.length = 0; LIT_PANES.length = 0; BOAT_LAMP = null;
   drawLitPanes();
+  drawRoofLights();
 
   // wet sheen on the streets after rain
   if (wetness > 0){
@@ -5621,6 +5906,8 @@ function drawScene(t, dt){
     ctx.fillStyle = 'rgba(190,210,228,' + al * 3 + ')';
     const l1 = project(0, LN_WALK_N, 0), l2 = project(GW, LN_WALK_N, 0), l3 = project(GW, LN_WALK_S, 0), l4 = project(0, LN_WALK_S, 0);
     poly(ctx, [l1, l2, l3, l4]); ctx.fill();
+    // and the slates below us, which are the biggest wet surface in the picture
+    ctx.fillRect(0, l4[1], W, sillTop() - l4[1]);
     const c1 = project(XS_W0, 0, 0), c2 = project(XS_E1, 0, 0), c3 = project(XS_E1, LN_WALK_N, 0), c4 = project(XS_W0, LN_WALK_N, 0);
     poly(ctx, [c1, c2, c3, c4]); ctx.fill();
     ctx.globalCompositeOperation = 'source-over';
@@ -8007,6 +8294,9 @@ function nameAt(x, y){
   if (g === DECK) return 'the footbridge';
   if (g === DIAL) return sundialName();
   if (y === 65 && roundMarkAt(x)) return 'a bottle left on the step';
+  if (y >= LN_WALK_S) return g === VOID ? 'a light well, down through our own roof'
+       : y < LN_WALK_S + 3 ? 'the parapet of our own roof'
+       : 'our own roof, the slates below the window';
   if (g === SIDE || g === ROAD || g === PATH) return pavingAt(x, y).what;
   return '';                       // a wall, a roof, the inside of an archway: no name
 }

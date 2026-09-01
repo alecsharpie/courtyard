@@ -40,16 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 92 — the plaza gets a midday: families by the alley, a child that runs the roundel and chases the plaza's own pigeons back to a parent on the bench (2026-08-31) [Plaza & quay × Connect]
-
-**Brief:** b90 — c127 (count plaza presence by hour on HEAD), then families.
-**c127 on HEAD** (`probes/plaza-midday.mjs`, box x 98..112 y 18..46): 10h 2.9 · 12h 3.0 · 16h 1.6 · 03h 2.0 — noon median 2.67, not 0; ~2 are east visitors CROSSING on `DECK_LEAD_A`, STOPPED people ~0.7.
-**Did:** `spawnFamilyAgent()`, its own source: FAM_CAP 3 (= the plaza's three places), FAM_RATE 0.5, `famOpen()` 09:30–17:00 dry daylit for SET-OUTS, the walk priced against 17:00, the place released as the walk out begins. Parent on a free `PLAZA_BENCHES` seat or the fountain stand; child = `makeCompanion()` with `kidRun()` (a pigeon within 8 of the parent, else a ±0.8 rad arc of the roundel); runs end when the parent stands. `plazaBirdSpot()`: PLAZA_BIRDS 3 on their own roll, rings r 4.2–6, off the basin, never beside anyone. Names, one announce, `__entities` fam/kid/run.
-**Gates:** census PASS (reshuffle; people +25) · motion `day/cart` 0→1 = the median rule on the reshuffle (worst step 3.9 on HEAD and candidate) · filmstrip 0 POP · `shots/b90-plaza-noon-*`.
-**Probe:** noon box 6.67; families/day median 3 (0 in rain); 82/82 pairs left together; child-triggered flush 24/82 visits.
-**Verdict:** shipped, ~+190 lines. A quay gate was built, priced at 40 cells = 16 h, and removed. FAM_CAP 2 gave 2/day: a family holds its place ~8 h of a 7.5 h window.
-**Surprise:** `__warp(0.05)` rounds UP to whole fixed-dt steps (~0.067 s): every "1100 steps = a day" probe ran 4/3 of a day and under-read durations 1.33× — the 17:03 exodus chased for two rounds was real but mis-timed.
-
 ## Iteration 93 — the allotments get their autumn: a bonfire on one bare cell, a holder with a fork who lights it on a dry calm shed day and goes when it dies; smoke, an ember pool after dark (2026-09-01) [Cross street & allotments × New element]
 
 **Brief:** b91, attempt 2 on #93's unverified WIP (e201eb0). Proved, re-priced, one clause cut.
@@ -123,3 +113,13 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Probes:** `probes/where-void.mjs` (new) — east void at the frame's *visible* top row: far bank **172→0 px**, plaza **144→0**, four framings. `probes/vane-letters.mjs` (new) — font off the page's own `fillText`: control 6/6/6 px at s 1/2/3.5, candidate 6/12/**21**.
 **Verdict:** shipped, +15 lines.
 **Surprise:** the "before" far bank looked like the *better* picture, and that was the bug — it showed invented land. The ground cache over-paints past `GW`, so the void reads as a grey wedge only on the top rows it misses; the rest looked like green field. Closing it moves the frame east, so the quarter shows *less* far bank — which looks like a regression and is not one.
+
+## Iteration 100 — the diorama gets a foreground: rows 79..87 stop being VOID and become our own slated roof (2026-09-02) [Roofs & skyline × Scale/World]
+
+**Brief:** b100 — build the near band as the roof of the block we look out over. Take the swing.
+**Did:** the footprint went into `buildGrid` as WALL and **`buildVolumes` grew the roof** — ridge along the lane, hips at the river, valleys round the two `WELLS` (still VOID). Three statements, each a footprint or an eave and never a roof: `eaveFor` 0 for `y >= LN_WALK_S`, `solidAt` runs the block off both x edges, `WELLS`. Then `drawNearRoof` in the cached layer — `drawRoofRow` per row, so snow, key light and `CHIMNEYS` come for free — plus a flared apron off row WH falling into shadow, ridge capping, moss on the north pitch, `drawParapet`, `drawWell`, a `drawDormer`/`drawRoofLight` per house, and `drawPartyWalls` carrying the stacks. `ROOF_LIGHTS` → `drawRoofLights()` beside `drawLitPanes`, pushed to `LIT_PANES` so the night multiply is undone as a facade window's is. Slate not pantile, per house off `SLATES`; `nameAt` names it. The six screen-space awning stripes came back into the WORLD along the kerb (rows 77.65..79); HEAD's 24 px shadow band over the footway went.
+**Gates:** census PASS, **re-pinned** (`developed` +1095/world, `structures` +7, VOID 1107→12, `tileKinds` held at 12 by the wells) · motion PASS vs a HEAD `--page` baseline · filmstrip 0 POP · perf +0.0% · shots day/night/snow/rain × desktop/phone.
+**Probes** (`probes/near-roof-band.mjs`, `canvas-diff-where.mjs`): near band luma<20 — desktop **24.9% → 9.6%**, phone **59.7% → 21.7%** (mean luma 31.9→94.8, 18.8→73.2). Snow forced 0/.3/.55/1 → band mean **86/104/119/146**. Night: 5 of 20 rooflights lit at 22:35, 0 at 01:30. Nothing is drawn north of row 79 but the awnings.
+**Verdict:** shipped, ~+230 lines.
+**Surprise:** the first slab was pantile-orange and read as one flat field — the fix was not more detail but **less brightness**: a dark near block is what lets the town read past it. Two instrument traps: `roofZ` takes a VERTEX index, so `drawChimney(g, bx - 0.5, …)` indexed `vZ` fractionally → NaN, and the stacks were counted by the census and drawn nowhere; and a HEAD-vs-HEAD control differed in 332 px, so "first row differing from HEAD = 90" was rasterizer noise, not a leak into the sky.
+**Law:** A foreground volume is priced against what is BEHIND it: `project()` lifts z northward, so every cell of height on the near block walks it 1.15 rows up the frame and into the thing it should sit in front of. Eave 0, and price everything standing on it by its own row.
