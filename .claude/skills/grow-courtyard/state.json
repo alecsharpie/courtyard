@@ -2,7 +2,7 @@
   "updated": "2026-09-01",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 102,
+  "lastIteration": 103,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -272,6 +272,9 @@
         50,
         59,
         92
+      ],
+      "new-ca": [
+        103
       ]
     },
     "river": {
@@ -433,7 +436,8 @@
       "spawnEastAgent() — the east quarter's own source (eastCap/eastRate, a.east, eastOpen()): plaza 0.32 / quay / towpath / parapet; in by EAST_GATE_A/Q/P, one stop, retraces; DECK_SHARE walks on to the jetty",
       "the FOUNTAIN reads the YEAR, WIND and FROST — fountainPlay() off greyF(); jets lean windSign·windF(); fountainStand() shy when windy; fountainIce()/fountainSkin()",
       "FAMILIES — spawnFamilyAgent(), the plaza's own source (FAM_CAP, famOpen() dry daylit midday); parent (a.fam, famBench) on a bench or the fountain stand; child a makeCompanion() follower (a.famKid, kidRun) on the roundel, chasing pigeons",
-      "PLAZA PIGEONS — no bird lands here unbidden; b.plaza has its own roll and cap, plazaBirdSpot() on the roundel rings, off the basin"
+      "PLAZA PIGEONS — no bird lands here unbidden; b.plaza has its own roll and cap, plazaBirdSpot() on the roundel rings, off the basin",
+      "the plaza's paving AGES — moss[] a per-cell CA on its 730 PATH cells (stepMoss in caTick): creep off the four-neighbour mean, mossShel[] the shelter read once off the grid, mossTop[] the hashed ceiling, mossFloor() a winter hold under the drawn threshold; mossGrowF()/mossDieF() off warmth/greyF()/wetF() (MOSS_COLD frost, MOSS_DRY drought); feet scuff it in stepAgent as wear[] is scuffed; drawMoss() seam + blades in MOSS_BUCKET levels, tint in groundBase; census mossy, nameAt 'green in the joints'"
     ],
     "river": [
       "river (RIVER_X0..RIVER_X1, 13 columns), ONE fair-weather rowboat (boat, boatRate/boatSpeed), three-arch lane bridge, towpath (TOW_WALK 128.6, FAR_WALK 133.2), church with tower and rose window, bandstand, ORCHARD, JETTY, PARK_GATE",
@@ -527,6 +531,12 @@
       "id": "c153",
       "note": "below cover 0.2 — 58% of daylit samples — the ground shows almost nothing while drawClouds still has a bank or two in the sky: a lone fair-weather cumulus tied to its own small travelling shadow would close the gap (#102, probes/cloud-shade-presence.mjs)",
       "raisedBy": 99,
+      "seenBy": 0
+    },
+    {
+      "id": "c154",
+      "note": "the quay, the towpath, the lane and the cross street are all SIDE/ROAD and still do not age — moss[] is deliberately plaza-only (pavingAt's other five kinds are untouched). The quay strip against the rail is the obvious next joint, and it needs no new machinery, only a second region in stepMoss (#103)",
+      "raisedBy": 102,
       "seenBy": 0
     }
   ],

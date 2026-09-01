@@ -1453,6 +1453,99 @@ function stepSnow(dt){
   if (snowAnnounced && snowCover <= 0) snowAnnounced = false;   // next winter gets its line too
 }
 
+/* ============ moss in the plaza's joints (#103) ============
+ * The plaza is the largest laid surface in the town and the only ground that did not
+ * age: the courtyard remembers its feet in wear[]/trod[] and its autumn in litter[],
+ * and the square across the world was the same stone in February as in August. moss[]
+ * is that idea as a CA on the other room — a per-cell 0..1 over the plaza's PATH cells
+ * only, stepped in caTick beside the beds.
+ *
+ * Three terms, and nothing else:
+ *   creep    a joint next to a mossy joint takes faster than bare stone (the CA part)
+ *   shelter  mossShel[], read ONCE off the grid: what fraction of a cell's eight
+ *            neighbours is not paving. A joint against the basin, a planter, the
+ *            terrace wall or the quay stays damp; the middle of the square does not.
+ *            With a hash it sets the cell's CEILING (mossTop[]), so the open square can
+ *            reach the first drawn level and no further, and never greens over.
+ *   the year mossGrowF()/mossDieF() off warmth, greyF() and wetF() — the cool wet
+ *            shoulders are the growing season, midsummer drought bleaches it back and
+ *            a hard frost takes it off. Growth and dieback are separate rates because
+ *            they are separate things: moss comes in over days and goes in hours.
+ *
+ * And feet cut it, in stepAgent, exactly where wear[] is cut in the courtyard — so the
+ * roundel's walked rings, the mouth onto the lane and the approaches to the two benches
+ * stay clean without anybody's route changing. Nothing here is walkable: pavingAt(),
+ * the ring nodes and every spot picker are untouched.
+ *
+ * The rate is scaled per cell by hash(x, y + 313) — a fixed number of ticks at a global
+ * rate would take the whole square through a drawn bucket in the same tick and the
+ * plaza would flicker as one field. Drawn in MOSS_BUCKET levels for the same reason the
+ * litter is: the cache is only dirtied when a level can have changed, and caTick's own
+ * wearDirty already throttles that to WEAR_REPAINT. */
+const moss = new Float32Array(GW * WH), mossShel = new Float32Array(GW * WH),
+      mossTop = new Float32Array(GW * WH);
+const MOSS_COLD = 0.26,      // below this warmth nothing grows and the frost term rises
+      MOSS_DRY = 0.66,       // above this warmth a dry spell starts to bleach it back
+      MOSS_GROW = 0.0052, MOSS_DIE = 0.0038,
+      MOSS_CAP = 0.94, MOSS_BUCKET = 6,
+      MOSS_FLOOR = 0.16,     // must stay UNDER 1/MOSS_BUCKET — see mossFloor()
+      MOSS_SCUFF = 1.6;      // per second of a full-size walker standing on the cell
+function inPlaza(x, y){ return x >= PLAZA_X0 && x < PLAZA_X1 && grid[y * GW + x] === PATH; }
+/* how damp a joint stays: the share of the eight neighbours that is not paving. Read off
+ * the grid once, after buildGrid — one predicate, one definition. */
+function buildMoss(){
+  moss.fill(0); mossShel.fill(0);
+  for (let y = 3; y < 61; y++) for (let x = PLAZA_X0; x < PLAZA_X1; x++){
+    if (!inPlaza(x, y)) continue;
+    let n = 0;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++){
+      if (!dx && !dy) continue;
+      const gx = x + dx, gy = y + dy;
+      if (gx < 0 || gy < 0 || gx >= GW || gy >= WH || grid[gy * GW + gx] !== PATH) n++;
+    }
+    const i = y * GW + x;
+    mossShel[i] = clamp(n / 5, 0, 1);
+    /* The ceiling, computed ONCE because it is geometry, not weather. Two terms, and
+     * the second is why it is not a stripe: shelter says a joint against the basin, a
+     * planter or the terrace wall holds moss where the middle of the square can only
+     * reach the FIRST drawn bucket — but shelter is CONSTANT along an edge, so shelter
+     * alone paints both sides of the plaza as two unbroken green verges. The hash breaks
+     * the run into present-and-absent along its length, which is what reads as moss
+     * rather than as planting. The base is set just above 1/MOSS_BUCKET on purpose:
+     * under it the open square could never draw at all and feet would be decorative,
+     * because the ceiling would already be doing their work. */
+    mossTop[i] = MOSS_CAP * (0.22 + 0.78 * mossShel[i]) * (0.42 + 0.58 * hash(x, y + 337));
+    // the square does not open at day 0 scrubbed: it starts wherever a spring plaza
+    // would be. hash, not R(), so ?seed= owns it and a reload is the same square
+    moss[i] = mossTop[i] * 0.45 * hash(x, y + 311);
+  }
+}
+/* Frost and drought take the green off, not the hold: what is left in the deepest joints
+ * after a February is a floor UNDER the drawn threshold (MOSS_FLOOR < 1/MOSS_BUCKET, so
+ * `mossy` still reads a clean 0 twice a year and drawMoss still draws nothing), and the
+ * shoulder grows back OUT of it rather than colonising bare stone from nowhere. Feet are
+ * the one thing that goes through the floor: a scrubbed line is scrubbed. */
+function mossFloor(i){ return MOSS_FLOOR * mossShel[i]; }
+function mossDampF(){ return clamp(0.30 * wetF() + clamp(0.46 + 0.62 * greyF(), 0, 0.70), 0, 1); }
+function mossGrowF(){ return mossDampF() * clamp(warmth / MOSS_COLD, 0, 1); }
+function mossDieF(){
+  const drought = clamp((warmth - MOSS_DRY) / (1 - MOSS_DRY), 0, 1) * (1 - wetF());
+  return Math.max(drought, clamp(1 - warmth / MOSS_COLD, 0, 1));
+}
+function stepMoss(){
+  const gf = mossGrowF(), df = mossDieF();
+  for (let y = 3; y < 61; y++) for (let x = PLAZA_X0; x < PLAZA_X1; x++){
+    if (!inPlaza(x, y)) continue;        // the basin and the two planters are not paving
+    const i = y * GW + x, v = moss[i];
+    const nb = (moss[i - 1] + moss[i + 1] + moss[i - GW] + moss[i + GW]) * 0.25;
+    const rate = 0.45 + 0.55 * hash(x, y + 313);             // this joint's own speed, forever
+    const nv = v + MOSS_GROW * gf * rate * (0.35 + 1.10 * nb)
+                 - MOSS_DIE * df * rate * (1.15 - 0.50 * mossShel[i]);   // a deep joint goes back slower than an open seam
+    moss[i] = clamp(nv, Math.min(v, mossFloor(i)), mossTop[i]);          // min(v,·): a scuffed cell is not lifted back to the floor
+  }
+}
+buildMoss();      // grid is built above; the consts this reads are declared above too
+
 /* ============ the band on the green ============ */
 /* The bandstand has stood on the far bank since before the loop and nothing has ever
  * happened in it. Nor does anything east of the bridge GATHER: every crowd this town
@@ -1903,6 +1996,7 @@ function harvestPlot(a){
 }
 function caTick(){
   stepLitter();
+  stepMoss();
   const m = maturity(), boost = raining ? 3 : 1;
   const vig = growF(), die = dieF();          // the ceiling is per-cell now: bedCap(x, y)
   const availF = SPECIES.filter(s => s.minDay <= day && !s.veg);
@@ -2494,6 +2588,13 @@ function stepAgent(a, dt){
       if (snowCover > 0) trod[j] = Math.min(1, trod[j] + (a.small?0.2:0.35) * dt * 6);   // feet cut a lying cover
       if (litter[j]) litter[j] = Math.max(0, litter[j] - Math.ceil(dt * (a.small ? 60 : 120)));   // and scuff the leaves (~2 s standing clears a cell)
       if (R()<dt*2) wearDirty = true;                        // pending: the tick throttles the repaint
+    } else if (moss[j] > 0 && inPlaza(gx, gy)){
+      // #103: the plaza's other half of wear[] — feet scuff the joints they cross, so
+      // the roundel's rings, the mouth and the bench approaches stay clean. Bucketed:
+      // the repaint is asked for only when a drawn level can have changed
+      const wasB = moss[j] * MOSS_BUCKET | 0;
+      moss[j] = Math.max(0, moss[j] - (a.small ? 0.6 : 1) * MOSS_SCUFF * dt);
+      if ((moss[j] * MOSS_BUCKET | 0) !== wasB) wearDirty = true;
     } else if (a.broom && snowCover > 0 && trod[j] < 1){
       trod[j] = 1; wearDirty = true;                          // the sweeper clears the strip he walks
     } else if (a.broom && litter[j]){
@@ -5308,6 +5409,32 @@ function groundCol(x, y, t, hv, m){
   const cl = lt ? mix(c, '#8a5a2c', 0.10 + 0.32 * (lt / LITTER_BUCKET | 0) / 7) : c;   // #66: leaf litter warms the ground it lies on
   return sn > 0 ? mix(cl, SNOW_COL, k) : cl;
 }
+/* #103: what the moss actually looks like. It grows in the JOINT, not over the sett, so
+ * it is drawn as the cell's own outline in green with a few blades standing out of the
+ * seams — bucketed to MOSS_BUCKET levels, hash-placed, no R(). The tint under it is in
+ * groundBase; this is the part that says "grass in a crack" rather than "a stain". */
+const MOSS_COLS = ['#6a7f45', '#5b7240', '#768a4e', '#4f6539'];
+function drawMoss(g, x, y, mv){
+  const b = Math.min(MOSS_BUCKET - 1, mv * MOSS_BUCKET | 0);
+  if (b < 1) return;                                        // a trace of moss draws nothing
+  const lv = b / (MOSS_BUCKET - 1);                         // 0..1 over the drawn levels
+  g.strokeStyle = 'rgba(100,116,66,' + (0.15 + 0.32 * lv).toFixed(3) + ')';
+  g.lineWidth = Math.max(0.8, cellW * 0.055 * (0.5 + lv));
+  quad(g, x, y, -0.02); g.stroke();                         // the seam round the sett, thickening
+  const n = b - 1;                                          // 0..4 blades, only once it has taken
+  const bs = Math.max(0.9, cellW / 11);
+  g.strokeStyle = MOSS_COLS[(hash(x, y + 317) * 4) | 0];
+  g.lineWidth = Math.max(0.7, bs * 0.8);
+  for (let k = 0; k < n; k++){
+    const h1 = hash(x * 3 + k, y + 319), h2 = hash(x + k, y * 3 + 323);
+    const edge = (hash(x + k, y + 331) * 4) | 0;            // blades sit ON a seam, not mid-sett
+    const px = edge === 0 ? 0.04 : edge === 1 ? 0.96 : 0.1 + 0.8 * h1;
+    const py = edge === 2 ? 0.04 : edge === 3 ? 0.96 : 0.1 + 0.8 * h2;
+    const [sx, sy] = project(x + px, y + py, 0);
+    g.beginPath(); g.moveTo(sx, sy);
+    g.lineTo(sx + (h1 - 0.5) * 1.8 * bs, sy - (1.2 + 1.8 * h2 * lv) * bs); g.stroke();
+  }
+}
 const LITTER_COLS = ['#b8742e', '#a55a24', '#c98b3a', '#8f4f22', '#d2a04a'];
 function drawLitter(g, x, y, lt){                            // hash-placed leaves, more with the level; no R()
   const n = 2 + 2 * (lt / LITTER_BUCKET | 0);                // 2..16 per cell, bucketed like the tint
@@ -5325,7 +5452,11 @@ function drawLitter(g, x, y, lt){                            // hash-placed leav
  * differently on the places people have laid than on the ground they have not. */
 function wetCol(c, hv){ return wetPainted > 0 ? mix(c, '#3f4650', wetPainted * (0.30 + 0.12 * hv)) : c; }
 function groundBase(x, y, t, hv, m){
-  if (t === PATH) return wetCol(mix('#c3b18c', '#cfbd98', hv), hv);
+  if (t === PATH){
+    const p = wetCol(mix('#c3b18c', '#cfbd98', hv), hv);
+    const mo = moss[y * GW + x];                        // #103: 0 everywhere but the plaza, and the mix is exact at 0
+    return mo > 0 ? mix(p, '#74804e', 0.38 * mo) : p;
+  }
   if (t === SLOT) return mix('#9d8f73', '#ab9d80', hv);
   if (t === GRASS){
     // the lawn reads the SAME warmth the beds do rather than deriving its own idea of
@@ -5460,6 +5591,7 @@ function drawGround(){
       gtx.strokeStyle = 'rgba(90,75,50,.25)'; gtx.lineWidth = 0.7;
       quad(gtx, x, y, -0.06); gtx.stroke();
     }
+    if (t === PATH && moss[i] > 0) drawMoss(gtx, x, y, moss[i]);
     if (t === SIDE && hv > 0.55){                        // paving joints
       gtx.strokeStyle = 'rgba(96,88,70,.16)'; gtx.lineWidth = 0.7;
       quad(gtx, x, y, -0.04); gtx.stroke();
@@ -8440,6 +8572,8 @@ function nameAt(x, y){
   if (y >= LN_WALK_S) return g === VOID ? 'a light well, down through our own roof'
        : y < LN_WALK_S + 3 ? 'the parapet of our own roof'
        : 'our own roof, the slates below the window';
+  if (g === PATH && moss[y * GW + x] > 0.5)
+    return pavingAt(x, y).what + ', green in the joints';
   if (g === SIDE || g === ROAD || g === PATH) return pavingAt(x, y).what;
   return '';                       // a wall, a roof, the inside of an archway: no name
 }
@@ -9173,7 +9307,7 @@ window.__census = function(){
   for (let i = 0; i < GW * WH; i++){ const n = TN[grid[i]] || ('T' + grid[i]); tiles[n] = (tiles[n] || 0) + 1; }
 
   /* planting CA: how much of the beds is actually growing, and how far along */
-  let planted = 0, blooming = 0, daisies = 0, worn = 0, matureTrees = 0;
+  let planted = 0, blooming = 0, daisies = 0, worn = 0, mossy = 0, matureTrees = 0;
   const bySpecies = {};
   for (let i = 0; i < GW * WH; i++){
     if (bSp[i]){ planted++;
@@ -9182,6 +9316,7 @@ window.__census = function(){
       if (bSt[i] === 3) blooming++;
     }
     if (daisy[i]) daisies++;
+    if (moss[i] > 1 / MOSS_BUCKET) mossy++;   // #103: joints green enough to be DRAWN green
     if (wear[i] > 0.5) worn++;
     if (grid[i] === TRUNK) matureTrees++;
   }
@@ -9224,7 +9359,7 @@ window.__census = function(){
        between one market and the next. It is town state, not render state — a pure
        function of what has been picked and what the last market carried away — and
        nothing else the census reports moves when the harvest→market link breaks. */
-    planting: { planted, blooming, daisies, matureTrees, worn, harvested,
+    planting: { planted, blooming, daisies, mossy, matureTrees, worn, harvested,
                 produce: +produce.reduce((a, b) => a + b, 0).toFixed(1),
                 species: SPECIES.length, bySpecies },
     /* headline aggregates — what the census gate watches for collapse */
