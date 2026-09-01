@@ -122,7 +122,7 @@
           "snowCover",
           "LIT"
         ],
-        "added": "manager pass from #81 (rung 3): the roofline is the top third of every wide shot and nothing on it has ever been the SUBJECT of a brief — roofs are emergent, chimneys smoke, one static vane, a cat that never climbs."
+        "added": "manager pass from #81 (rung 3): the roofline is the top third of every wide shot and nothing on it has ever been the SUBJECT of a brief \u2014 roofs are emergent, chimneys smoke, one static vane, a cat that never climbs."
       }
     ],
     "kinds": [
@@ -164,7 +164,7 @@
       {
         "id": "harness",
         "name": "Harness",
-        "what": "the loop's own instruments — gates, probes, runlog, stats. Changes nothing a viewer sees, and does NOT count toward a domain's balance"
+        "what": "the loop's own instruments \u2014 gates, probes, runlog, stats. Changes nothing a viewer sees, and does NOT count toward a domain's balance"
       }
     ]
   },
@@ -402,80 +402,82 @@
   "inventory": {
     "note": "What the town ALREADY contains. <=300 B a line. Read before you build; `ls probes/` for instruments.",
     "courtyard": [
-      "walled garden — bed ring, four arches, BENCH_SPOTS (4, outside the ring), desire paths (wear[]), daisies, ivy, a pre-dawn sweeper, ONE linden (treeR 4–8.6; its shade ellipse is drawn in drawTree's pass — no predicate reads it); planting CA (11 SPECIES); drawGround cached",
-      "the beds read the YEAR — growF()/dieF() off warmth, lawn health in groundCol; bloomCap() dithered per cell",
-      "the ground remembers — trod[] discounts snowAt(); litter[] laid by leaves, cut by feet/broom/wheels, cleared by snow; the dawn sweeper walks the heaviest ROAD row",
-      "the SUNDIAL — DIAL cell 32,35 on the inner lawn; drawSundial live, dialThrow(h) off sunVec(); sundialName() reads the SUN's hour; pairStands refuses DIAL",
-      "the linden's SHADE is a place — lindenShade()/inLindenShade(x,y) the ONE ellipse (drawn in drawTree, slides with the sun); shadeSpots() inner-lawn stands r 3.3 by the bed gaps; hot picnic pairs (warmth > .65, shadowF > .5) blanket INSIDE via a gap (a.shaded); sundialName/personName/napper read it"
+      "walled garden \u2014 bed ring, four arches, BENCH_SPOTS (4, outside the ring), desire paths (wear[]), daisies, ivy, a pre-dawn sweeper, ONE linden (treeR 4\u20138.6; its shade ellipse is drawn in drawTree's pass \u2014 no predicate reads it); planting CA (11 SPECIES); drawGround cached",
+      "the beds read the YEAR \u2014 growF()/dieF() off warmth, lawn health in groundCol; bloomCap() dithered per cell",
+      "the ground remembers \u2014 trod[] discounts snowAt(); litter[] laid by leaves, cut by feet/broom/wheels, cleared by snow; the dawn sweeper walks the heaviest ROAD row",
+      "the SUNDIAL \u2014 DIAL cell 32,35 on the inner lawn; drawSundial live, dialThrow(h) off sunVec(); sundialName() reads the SUN's hour; pairStands refuses DIAL",
+      "the linden's SHADE is a place \u2014 lindenShade()/inLindenShade(x,y) the ONE ellipse (drawn in drawTree, slides with the sun); shadeSpots() inner-lawn stands r 3.3 by the bed gaps; hot picnic pairs (warmth > .65, shadowF > .5) blanket INSIDE via a gap (a.shaded); sundialName/personName/napper read it"
     ],
     "lane": [
       "kiosk, pavement cafe (claimable CAFE_TABLES), awnings, washing lines (in on weatherComing() and at dusk), planters, LANE_LAMPS, LANE_BENCHES; market every 4th day, three MARKET_STALLS",
-      "the NIGHT's two sources — TAP_DOOR (tapOpen() sunDown−3..03.00, tapF(), TAP_SLOTS, spawnTapAgent; callIn(a,pts,dur) the ONE re-route, priced by tapFits()) and spawnHomeAgent() off homeRate() while nightF > 0.3 (a.homer)",
-      "wet seats — seatRefused(a) = sky > SIT_REFUSE OR seatWet(a) (wetF() vs a.wary); arrivals only",
-      "the working day hangs off the SUN — kiosk/market/sweeper offsets from sunUp/sunDown; the stalls sell what the plots grew (produce[], stockMarket())",
-      "the cafe's own source — cafeOpen()/cafeRate()/spawnCafeAgent() under CAFE_WAY, companion across the table",
-      "lane ENDS — spawnLaneAgent enters at EITHER edge (fromW = R() < 0.5; x −2.5 / GW + 2.5), exits at the opposite one (toX); ~1/3 of entries are east. routeToExit() is the COURTYARD's ring exit",
-      "the MORNING ROUND (#98) — mround/updateRound() beside the sweeper: in west at sunUp−0.3, doors 4 and 8 ONLY (ROUND_H 5 h of sunrise at ~5.2 cells/h), a stand + a bottle on the step (roundMarks/drawStepMarks, nameAt), back out west ~sunUp+6.6; rain ok, snow > 0.5 skips; off laneCount"
+      "the NIGHT's two sources \u2014 TAP_DOOR (tapOpen() sunDown\u22123..03.00, tapF(), TAP_SLOTS, spawnTapAgent; callIn(a,pts,dur) the ONE re-route, priced by tapFits()) and spawnHomeAgent() off homeRate() while nightF > 0.3 (a.homer)",
+      "wet seats \u2014 seatRefused(a) = sky > SIT_REFUSE OR seatWet(a) (wetF() vs a.wary); arrivals only",
+      "the working day hangs off the SUN \u2014 kiosk/market/sweeper offsets from sunUp/sunDown; the stalls sell what the plots grew (produce[], stockMarket())",
+      "the cafe's own source \u2014 cafeOpen()/cafeRate()/spawnCafeAgent() under CAFE_WAY, companion across the table",
+      "lane ENDS \u2014 spawnLaneAgent enters at EITHER edge (fromW = R() < 0.5; x \u22122.5 / GW + 2.5), exits at the opposite one (toX); ~1/3 of entries are east. routeToExit() is the COURTYARD's ring exit",
+      "the MORNING ROUND (#98) \u2014 mround/updateRound() beside the sweeper: in west at sunUp\u22120.3, doors 4 and 8 ONLY (ROUND_H 5 h of sunrise at ~5.2 cells/h), a stand + a bottle on the step (roundMarks/drawStepMarks, nameAt), back out west ~sunUp+6.6; rain ok, snow > 0.5 skips; off laneCount"
     ],
     "street": [
-      "cross street: two footways, roadway, curbs, lamps, four street trees (TREE_PITS); allotment block of 17 plots (ALT_X0 78, lattice ox 80..90 × oy 8..50), timber fence, ALT_GATE, shed, POND (90,49.5), alley (ALLEY_Y)",
-      "harvest cycle — harvestPlot() lifts a mature bed, bAge doubles as the fallow clock (only when !bSp), re-sown under plotCrop(); spawnAllotAgent()/sendToPlot() on ripePlots(); a.crop baskets",
-      "seasonal canopy on all 13 trees — leafOut/Fresh/Deep/Turn/Shed + leafCol() off seasonPhase, bare in winter (drawBoughs); leafFallF(); fruit trees blossomF()/fruitF()",
-      "winter — SPECIES.hardy cabbages via plotStands(); digWeather() adds DIG_RATE; fallowPlots() turned by a.dig holders (turnPlot)",
-      "the CARTER — one cart: cartToday()/cartDue() off sunUp; south to the fence gate row 45, spawnLoader() basket → c.load; market days on to MARKET_STALLS[1], home by cartHomeX() (west or EAST, hash(day,763)); sacks off wetF(); cartShove() yields walkers",
-      "the BONFIRE — a GRASS cell (84,19.5) in the plot gap; bon.fire/bon.ember rate-capped; bonfireDay() = leafShed() > 0.1 && hash(day,285) < 0.8; bonfireWeather() dry/calm/no snow; spawnBonfireHolder() (a.tend, a.fork) out at sunrise, kindles ~9 h on; drawBonfireLight AFTER applyLight"
+      "cross street: two footways, roadway, curbs, lamps, four street trees (TREE_PITS); allotment block of 17 plots (ALT_X0 78, lattice ox 80..90 \u00d7 oy 8..50), timber fence, ALT_GATE, shed, POND (90,49.5), alley (ALLEY_Y)",
+      "harvest cycle \u2014 harvestPlot() lifts a mature bed, bAge doubles as the fallow clock (only when !bSp), re-sown under plotCrop(); spawnAllotAgent()/sendToPlot() on ripePlots(); a.crop baskets",
+      "seasonal canopy on all 13 trees \u2014 leafOut/Fresh/Deep/Turn/Shed + leafCol() off seasonPhase, bare in winter (drawBoughs); leafFallF(); fruit trees blossomF()/fruitF()",
+      "winter \u2014 SPECIES.hardy cabbages via plotStands(); digWeather() adds DIG_RATE; fallowPlots() turned by a.dig holders (turnPlot)",
+      "the CARTER \u2014 one cart: cartToday()/cartDue() off sunUp; south to the fence gate row 45, spawnLoader() basket \u2192 c.load; market days on to MARKET_STALLS[1], home by cartHomeX() (west or EAST, hash(day,763)); sacks off wetF(); cartShove() yields walkers",
+      "the BONFIRE \u2014 a GRASS cell (84,19.5) in the plot gap; bon.fire/bon.ember rate-capped; bonfireDay() = leafShed() > 0.1 && hash(day,285) < 0.8; bonfireWeather() dry/calm/no snow; spawnBonfireHolder() (a.tend, a.fork) out at sunrise, kindles ~9 h on; drawBonfireLight AFTER applyLight"
     ],
     "plaza": [
       "plaza with a FOUNTAIN (105.5,30) and paved roundel, four tree pits, PLAZA_BENCHES (2); QUAY_BENCHES (2), quay rail x 112.9. pavingAt(x,y) the ONE predicate naming a cell's paving; crumbSpot() keeps birds off the basin",
-      "NO bird lands on the plaza unbidden — updateWildlife lands birds[] on the courtyard lawn and the lane only; the plaza's pigeons are the crumbs' three and the belfry's flushes",
-      "spawnEastAgent() — the east quarter's own source (eastCap/eastRate, a.east, eastOpen()): plaza 0.32 (bench or fountain, sit 9–18 s) / quay / towpath / parapet; enters by EAST_GATE_A/Q/P, one stop, retraces; DECK_SHARE walk on to the jetty",
-      "the FOUNTAIN reads the YEAR, WIND and FROST — fountainPlay() off greyF(); jets lean windSign·windF(), fountainStand() shy when windy; fountainIce()/fountainSkin()",
-      "FAMILIES — spawnFamilyAgent(): the plaza's own source (FAM_CAP, famOpen() dry daylit midday); the parent (a.fam, famBench) on a PLAZA_BENCHES seat or the fountain stand; the child a makeCompanion() follower (a.famKid, kidRun) running the roundel arc and chasing plaza pigeons; alley gate only",
-      "PLAZA PIGEONS — birds[] with b.plaza, own roll and cap; plazaBirdSpot() on the roundel rings, off the basin, never beside anyone, on a seated family's side"
+      "NO bird lands on the plaza unbidden \u2014 updateWildlife lands birds[] on the courtyard lawn and the lane only; the plaza's pigeons are the crumbs' three and the belfry's flushes",
+      "spawnEastAgent() \u2014 the east quarter's own source (eastCap/eastRate, a.east, eastOpen()): plaza 0.32 (bench or fountain, sit 9\u201318 s) / quay / towpath / parapet; enters by EAST_GATE_A/Q/P, one stop, retraces; DECK_SHARE walk on to the jetty",
+      "the FOUNTAIN reads the YEAR, WIND and FROST \u2014 fountainPlay() off greyF(); jets lean windSign\u00b7windF(), fountainStand() shy when windy; fountainIce()/fountainSkin()",
+      "FAMILIES \u2014 spawnFamilyAgent(): the plaza's own source (FAM_CAP, famOpen() dry daylit midday); the parent (a.fam, famBench) on a PLAZA_BENCHES seat or the fountain stand; the child a makeCompanion() follower (a.famKid, kidRun) running the roundel arc and chasing plaza pigeons; alley gate only",
+      "PLAZA PIGEONS \u2014 birds[] with b.plaza, own roll and cap; plazaBirdSpot() on the roundel rings, off the basin, never beside anyone, on a seated family's side"
     ],
     "river": [
-      "river (RIVER_X0..RIVER_X1, 13 columns), ONE fair-weather rowboat (boat.x 116.5–121.5, y −7 → 93; boatRate/boatSpeed; drawBoat), three-arch lane bridge, towpath (TOW_WALK 128.6, FAR_WALK 133.2), church with tower and rose window, bandstand, ORCHARD, JETTY (128.4,35; onJetty), PARK_GATE",
+      "river (RIVER_X0..RIVER_X1, 13 columns), ONE fair-weather rowboat (boat.x 116.5\u2013121.5, y \u22127 \u2192 93; boatRate/boatSpeed; drawBoat), three-arch lane bridge, towpath (TOW_WALK 128.6, FAR_WALK 133.2), church with tower and rose window, bandstand, ORCHARD, JETTY (128.4,35; onJetty), PARK_GATE",
       "byTheWater() the ONE predicate for river-facing places, boatWatch() its reader (a.watch); riverRun() drives drawRiverFlow(t), riverCol()",
-      "the BANDSTAND's summer concert — bandF() stages BAND_PLAYERS and bunting on ONE 0..1; isBandDay(); spawnConcertAgent fills BAND_SLOTS (a.band)",
-      "swans are a PAIR with states — swim|upend|preen + s.hold; cob picks the stretch, pen re-reads it; SWAN_BANK",
-      "the NIGHT on the water — drawRiverLights() under RIVER_LAMPS + moon; ONE a.nightRail stander; boatLampF(); roseLit() lights the rose window LIVE",
-      "FOOTBRIDGE — DECK tile rows 30..32 at ALLEY_Y; drawDeckSpan/drawDeckFront two items, boatUnderDeck(); agentZ()/deckZAt(); DECK_LEAD_A/Q, overDeck()",
-      "WATERMILL — MILL footprint 130..133×19..24 (roof emergent); MILL_WHEEL on millSpin() = riverRun()·(1−fountainSkin()); two draw items; MILL_WIN lit all night",
-      "the EYOT — EYOT tile, EYOT_AT (124.3,46, rx 1.75, ry 5) once in buildGrid; onEyot/offEyot/eyotShore read the grid; drawEyot cached, drawWillow live (windSign·windF); swans' third bank; nestF() → 2 d.eyot ducks in spring. NOBODY can reach it",
-      "the PUNT (#96) — punt{leg 0..4}, PUNT_MOOR/SHORE/STAND/LAND; puntFits at the jetty stop's perform (dry, calm, eastOpen, close − hour > puntTripH(a) + 0.75); rider re-routed by wp splice (retire-safe, never walks on water); drawPuntHull/Crew; swans held 1.2 off the landing; probes/punt.mjs + punt-force.mjs. Natural rate ~0 — jetty arrivals are all 17:30+"
+      "the BANDSTAND's summer concert \u2014 bandF() stages BAND_PLAYERS and bunting on ONE 0..1; isBandDay(); spawnConcertAgent fills BAND_SLOTS (a.band)",
+      "swans are a PAIR with states \u2014 swim|upend|preen + s.hold; cob picks the stretch, pen re-reads it; SWAN_BANK",
+      "the NIGHT on the water \u2014 drawRiverLights() under RIVER_LAMPS + moon; ONE a.nightRail stander; boatLampF(); roseLit() lights the rose window LIVE",
+      "FOOTBRIDGE \u2014 DECK tile rows 30..32 at ALLEY_Y; drawDeckSpan/drawDeckFront two items, boatUnderDeck(); agentZ()/deckZAt(); DECK_LEAD_A/Q, overDeck()",
+      "WATERMILL \u2014 MILL footprint 130..133\u00d719..24 (roof emergent); MILL_WHEEL on millSpin() = riverRun()\u00b7(1\u2212fountainSkin()); two draw items; MILL_WIN lit all night",
+      "the EYOT \u2014 EYOT tile, EYOT_AT (124.3,46, rx 1.75, ry 5) once in buildGrid; onEyot/offEyot/eyotShore read the grid; drawEyot cached, drawWillow live (windSign\u00b7windF); swans' third bank; nestF() \u2192 2 d.eyot ducks in spring. NOBODY can reach it",
+      "the PUNT (#96) \u2014 punt{leg 0..4}, PUNT_MOOR/SHORE/STAND/LAND; puntFits at the jetty stop's perform (dry, calm, eastOpen, close \u2212 hour > puntTripH(a) + 0.75); rider re-routed by wp splice (retire-safe, never walks on water); drawPuntHull/Crew; swans held 1.2 off the landing; probes/punt.mjs + punt-force.mjs. Natural rate ~0 \u2014 jetty arrivals are all 17:30+"
     ],
     "sky": [
       "day/night cycle (55 s day), sun and moon arc, hills hazed by HAZE (= skyCols()[1]), chimney smoke, a balloon; windowLit(sa,sb) the ONE predicate for pane + LIT[] glow; facades CACHED; LIT_PANES relit AFTER applyLight",
-      "cloudCover() — one slow rate-capped scalar; fronts build ~half a day, break after rain; weatherComing(); rainFall 0..1 beside raining; shadowF()/shSpread()/shOffset() fade cast shadows under the lid",
-      "season() — the YEAR over SEASON_LEN 26 days, phase 0 midwinter, anchor SEASON_START 0.25 where every seasoned term equals its old constant; warmth a cosine of the phase; greyF() drives the weather's year",
-      "snow — snowF() past greyF 0.55; snowCover 0..1 rate-capped, snowAt per cell whitens cached ground/roofs/awnings",
-      "wetness 0..1 — wetF()/stepWet(): rain soaks paving, dries by daylight×warmth; wetCol(); lane sheen; drawWetLights()",
-      "the WIND — windF() 0..1 rate-capped off windyDay()/frontWind(), 0 while raining; windSign ±1 per spell latched from calm; windDir() the blend EVERY x-lean reads: rain, leaves, fountain, smoke, boat, vanes, willow",
-      "RIVER MIST — mist ONE rate-capped scalar (stepMist; still, clear, cold-or-wet mornings sunUp−1..+2.2, burnt off by sun/wind); mistAt(x); drawMist() live veil before applyLight; HAZE + lamp halos read it; nameAt 'mist on the river'. mist-year.mjs samples sunUp+0.5, not the OPEN"
+      "cloudCover() \u2014 one slow rate-capped scalar; fronts build ~half a day, break after rain; weatherComing(); rainFall 0..1 beside raining; shadowF()/shSpread()/shOffset() fade cast shadows under the lid",
+      "season() \u2014 the YEAR over SEASON_LEN 26 days, phase 0 midwinter, anchor SEASON_START 0.25 where every seasoned term equals its old constant; warmth a cosine of the phase; greyF() drives the weather's year",
+      "snow \u2014 snowF() past greyF 0.55; snowCover 0..1 rate-capped, snowAt per cell whitens cached ground/roofs/awnings",
+      "wetness 0..1 \u2014 wetF()/stepWet(): rain soaks paving, dries by daylight\u00d7warmth; wetCol(); lane sheen; drawWetLights()",
+      "the WIND \u2014 windF() 0..1 rate-capped off windyDay()/frontWind(), 0 while raining; windSign \u00b11 per spell latched from calm; windDir() the blend EVERY x-lean reads: rain, leaves, fountain, smoke, boat, vanes, willow",
+      "RIVER MIST \u2014 mist ONE rate-capped scalar (stepMist; still, clear, cold-or-wet mornings sunUp\u22121..+2.2, burnt off by sun/wind); mistAt(x); drawMist() live veil before applyLight; HAZE + lamp halos read it; nameAt 'mist on the river'. mist-year.mjs samples sunUp+0.5, not the OPEN"
     ],
     "life": [
       "courtyard RING transit via spawnAgent() under capacity: walker, crosser, dogwalker; the five STAYING kinds moved to the lawn's own source (#95)",
-      "drawPerson() 12 px figures, legs on a.phase; wildlife — butterflies, fireflies, birds[] (land/hop/fly; scared by anyone within 4.5 cells; belfry pigeons 'wheel' at the bell, bellStartle), ducks (POND, eyot), swans, a night cat, falling leaves",
-      "clock strikes at nine and eighteen (strikeClock, bellUntil), the church bell answers, walkers look up (a.listen); greetPass/chatty() — two passing may stop and talk",
-      "EVERY sitter reads the sky — SIT_REFUSE turns a seat down, skyLifts(a) gives one up off a.wary, umbrellas; a pair judges once (a.mate)",
+      "drawPerson() 12 px figures, legs on a.phase; wildlife \u2014 butterflies, fireflies, birds[] (land/hop/fly; scared by anyone within 4.5 cells; belfry pigeons 'wheel' at the bell, bellStartle), ducks (POND, eyot), swans, a night cat, falling leaves",
+      "clock strikes at nine and eighteen (strikeClock, bellUntil), the church bell answers, walkers look up (a.listen); greetPass/chatty() \u2014 two passing may stop and talk",
+      "EVERY sitter reads the sky \u2014 SIT_REFUSE turns a seat down, skyLifts(a) gives one up off a.wary, umbrellas; a pair judges once (a.mate)",
       "crowds with their OWN source, outside eastCount/laneCount: concert, evening door, homers, cafe, evening posts; goHome(a) sends a lane leaver to a HOME_DOOR after dusk, HOMES read by windowLit()",
-      "ARRIVALS IN TWOS — withCompanion(a, room) on the lane/east/courtyard/cafe spawners under the SAME cap; b.with re-targets pairTarget(b) per step (PAIR_MIN 0.9)",
-      "the warm EVENING — eveOpen() (warmth ≥ 0.6, dry, calm, sunDown−2.5..+3) rolls spawnEveningAgent() under EVE_CAP onto EVE_SPOTS (a.dusk); stayOn(a) re-routes a far-bank a.east visitor OR an a.band listener (bandWay()) onto the deck's two EAST stay:1 posts",
-      "the LAWN's own source (#95) — spawnLawnAgent() under LAWN_CAP 4 place-holders (bench / bed-gap nap / blanket angle / kid run / edge bed), place claimed at the choice, released as the walk out begins (lawnRelease); walks priced vs the sun window lawnStart()..lawnEnd() at ARRIVAL, set-outs sun-up and dry (lawnOpen); lawnClosed() = rain or failing light ends every stay; lawnCut chord routes door<->lawn; probes/lawn-day.mjs the instrument"
+      "ARRIVALS IN TWOS \u2014 withCompanion(a, room) on the lane/east/courtyard/cafe spawners under the SAME cap; b.with re-targets pairTarget(b) per step (PAIR_MIN 0.9)",
+      "the warm EVENING \u2014 eveOpen() (warmth \u2265 0.6, dry, calm, sunDown\u22122.5..+3) rolls spawnEveningAgent() under EVE_CAP onto EVE_SPOTS (a.dusk); stayOn(a) re-routes a far-bank a.east visitor OR an a.band listener (bandWay()) onto the deck's two EAST stay:1 posts",
+      "the LAWN's own source (#95) \u2014 spawnLawnAgent() under LAWN_CAP 4 place-holders (bench / bed-gap nap / blanket angle / kid run / edge bed), place claimed at the choice, released as the walk out begins (lawnRelease); walks priced vs the sun window lawnStart()..lawnEnd() at ARRIVAL, set-outs sun-up and dry (lawnOpen); lawnClosed() = rain or failing light ends every stay; lawnCut chord routes door<->lawn; probes/lawn-day.mjs the instrument"
     ],
     "sill": [
-      "the SILL under the canvas — #plate, #daytime, #season, #where, #ticker (queue, TICK_DWELL 2.5 s), #stats, #ctrl; hidden under 640px except during an invitation",
-      "two LAPSE buttons, one mechanism — beginLapse(span, say): #season skips a quarter; #daytime → beginEvening() lands at sunDown+1 h then sunUp+0.5 h (sunAt)",
-      "the NAMING — what is under the pointer (a TAP on a phone): beds, plots, places off pavingAt/WATERS, trees; the LIVING via livingAt()/personName(a); WINDOWS/DOORS via FACES[]/faceAt(); lookAt(p) far-bank/roof/vane names",
-      "THE DIORAMA IS CLICKABLE and says so once — answersTouch(x,y) the ONE predicate: seeds, a daisy, crumbs, a coin, a pebble. OFFERS[]: touch → clock → season → follow → where",
+      "the SILL under the canvas \u2014 #plate, #daytime, #season, #where, #ticker (queue, TICK_DWELL 2.5 s), #stats, #ctrl; hidden under 640px except during an invitation",
+      "two LAPSE buttons, one mechanism \u2014 beginLapse(span, say): #season skips a quarter; #daytime \u2192 beginEvening() lands at sunDown+1 h then sunUp+0.5 h (sunAt)",
+      "the NAMING \u2014 what is under the pointer (a TAP on a phone): beds, plots, places off pavingAt/WATERS, trees; the LIVING via livingAt()/personName(a); WINDOWS/DOORS via FACES[]/faceAt(); lookAt(p) far-bank/roof/vane names",
+      "THE DIORAMA IS CLICKABLE and says so once \u2014 answersTouch(x,y) the ONE predicate: seeds, a daisy, crumbs, a coin, a pebble. OFFERS[]: touch \u2192 clock \u2192 season \u2192 follow \u2192 where",
       "harness: runlog --regrade; crashed-worker retry; filmstrip AT(day,hour), pops.mjs; DRY_RUN=1; __entities() (role, act, watch, with/lead, stay, fromBand, stable id) the seam a behaviour probe reads; frame-cost.mjs; noon-identical.mjs",
-      "FOLLOWS a person — a tap holds a walker: followLine(), drawFollowMark(), followLost(); __follow()",
-      "the quarter CAMERA — #where cycles QUARTERS Wide→Courtyard→Street→Plaza→Far bank; viewFor()/whereGo()/stepView(), the wide cache scaled through the ease (gview); q.share sets s from WIDTH; faceAt() maps cached FACES through k"
+      "FOLLOWS a person \u2014 a tap holds a walker: followLine(), drawFollowMark(), followLost(); __follow()",
+      "the quarter CAMERA \u2014 #where cycles QUARTERS Wide\u2192Courtyard\u2192Street\u2192Plaza\u2192Far bank; viewFor()/whereGo()/stepView(), the wide cache scaled through the ease (gview); q.share sets s from WIDTH; faceAt() maps cached FACES through k",
+      "viewFor() reads sillTop() \u2014 quarter fit and centring priced against the picture above the sill strip, box overflow held at the TOP; the east/west clamp priced at the frame's own top row, skipped on an edge a box shares with the world; QUARTERS share: Plaza 0.5, Far bank 0.3"
     ],
     "roofs": [
-      "emergent roofs from buildVolumes() (footprint → volume, eaveFor); CHIMNEYS[] filled as roofs draw, drawSmoke(t) leans windDir(); drawRoofRow() shades by SUN, cloud, warmth; snowCover whitens; the night cat (catA) on the ground only",
-      "WEATHERVANES on both towers — VANES[] {kind,name}; drawVanes() LIVE by the clock hands; vaneAngle() into the wind off windSign·windF(), vaneWob(); clock tower an ARROW with a screen-fixed N/S/E/W cross-bar (6 px CSS), church a WEATHERCOCK; vaneAt()/vaneName() in lookAt()",
-      "MURMURATION — drawMurmuration() right after drawSky (in front of the backdrop hills, behind the cache): murmSeason()/murmWx()/murmEnv() on dry autumn–winter dusks sunDown−1.3..+0.05, N 80–160 by hash(day,601), 2–3 attractors, funnel into MUR_ROOSTS (tower parapet, nave ridge, far-bank ridge, willow); stepMurm() latches roosted → skeinEnv() at sunUp; murBox → lookAt 'starlings coming in to roost'; no R(); probes/murmur.mjs, murmur-shots.mjs. The sky is Wide-only: every quarter's frame starts below the horizon"
+      "emergent roofs from buildVolumes() (footprint \u2192 volume, eaveFor); CHIMNEYS[] filled as roofs draw, drawSmoke(t) leans windDir(); drawRoofRow() shades by SUN, cloud, warmth; snowCover whitens; the night cat (catA) on the ground only",
+      "WEATHERVANES on both towers \u2014 VANES[] {kind,name}; drawVanes() LIVE by the clock hands; vaneAngle() into the wind off windSign\u00b7windF(), vaneWob(); clock tower an ARROW with a screen-fixed N/S/E/W cross-bar (6 px CSS), church a WEATHERCOCK; vaneAt()/vaneName() in lookAt()",
+      "MURMURATION \u2014 drawMurmuration() right after drawSky (in front of the backdrop hills, behind the cache): murmSeason()/murmWx()/murmEnv() on dry autumn\u2013winter dusks sunDown\u22121.3..+0.05, N 80\u2013160 by hash(day,601), 2\u20133 attractors, funnel into MUR_ROOSTS (tower parapet, nave ridge, far-bank ridge, willow); stepMurm() latches roosted \u2192 skeinEnv() at sunUp; murBox \u2192 lookAt 'starlings coming in to roost'; no R(); probes/murmur.mjs, murmur-shots.mjs. The sky is Wide-only: every quarter's frame starts below the horizon",
+      "vane drawing scales with viewS (k): plate, legs, cross-bar and W/E/N/S cardinals at 6*k px, floor 6 at s=1; vaneAt() hit-test scaled to match; vaneHeading(w) names the wind, used by vaneName() and the windy-day announcement"
     ]
   },
   "openCues": [
@@ -487,55 +489,73 @@
     },
     {
       "id": "c133",
-      "note": "the cart trots home by either lane end at 18–20 h in early summer (a 12 h round trip); on a short winter day that is after dark by either end — how often is uncounted (#82, #90)",
+      "note": "the cart trots home by either lane end at 18\u201320 h in early summer (a 12 h round trip); on a short winter day that is after dark by either end \u2014 how often is uncounted (#82, #90)",
       "raisedBy": 86,
       "seenBy": 1
     },
     {
       "id": "c136",
-      "note": "plaza families: child-triggered flushes are 29% of visits (probes/plaza-midday.mjs) — pigeons land ~7/day and crossers on DECK_LEAD_A flush most; a returning pigeon or a crumb bias would raise it (#92)",
+      "note": "plaza families: child-triggered flushes are 29% of visits (probes/plaza-midday.mjs) \u2014 pigeons land ~7/day and crossers on DECK_LEAD_A flush most; a returning pigeon or a crumb bias would raise it (#92)",
       "raisedBy": 91,
       "seenBy": 1
     },
     {
       "id": "c137",
-      "note": "at 03h a 'dusk stay' deck stayer is walking on the plaza in nearly every night sample on 4 seeds — walking home at 3 am or stuck; trace lifetime (#92 c127 by-kind pass)",
+      "note": "at 03h a 'dusk stay' deck stayer is walking on the plaza in nearly every night sample on 4 seeds \u2014 walking home at 3 am or stuck; trace lifetime (#92 c127 by-kind pass)",
       "raisedBy": 91,
       "seenBy": 1
     },
     {
       "id": "c139",
-      "note": "bonfire: 2/17 kindles land at 20:00+ (a slow holder's 13 h walk from a sunrise set-out — spawn at the lane gate or price the walk), and the smoke column is faint at 1× against the lawn (thick 0.34 in drawSmoke) (#93)",
+      "note": "bonfire: 2/17 kindles land at 20:00+ (a slow holder's 13 h walk from a sunrise set-out \u2014 spawn at the lane gate or price the walk), and the smoke column is faint at 1\u00d7 against the lawn (thick 0.34 in drawSmoke) (#93)",
       "raisedBy": 91,
       "seenBy": 1
     },
     {
       "id": "c142",
-      "note": "gardener presence is thin everywhere (13 h mean 0.17 summer, 0 winter, >0 in 5/30) despite 0.7 set-outs/day — one-at-a-time rule + long walks; a gardener who arrives EARLY (sunrise set-out, short door) or a second bed slot would read better (#95)",
+      "note": "gardener presence is thin everywhere (13 h mean 0.17 summer, 0 winter, >0 in 5/30) despite 0.7 set-outs/day \u2014 one-at-a-time rule + long walks; a gardener who arrives EARLY (sunrise set-out, short door) or a second bed slot would read better (#95)",
       "raisedBy": 94,
       "seenBy": 0
     },
     {
       "id": "c143",
-      "note": "the punt runs at zero (c-punt): jetty stands 0.53/day, ALL 17:30–03:00 (the deck walk is ~12 h) vs eastOpen close 20.6 — to make it read: DECK_SHARE up, a morning-side source, an OFFERS invitation, or let a towpath stander (short PARK_GATE walk) ride (#96)",
+      "note": "the punt runs at zero (c-punt): jetty stands 0.53/day, ALL 17:30\u201303:00 (the deck walk is ~12 h) vs eastOpen close 20.6 \u2014 to make it read: DECK_SHARE up, a morning-side source, an OFFERS invitation, or let a towpath stander (short PARK_GATE walk) ride (#96)",
       "raisedBy": 94,
       "seenBy": 0
     },
     {
       "id": "c144",
-      "note": "the Far bank quarter holds no sky (frame top at depth +0.15) — the spire's top, the roost and the murmuration are outside it; a y0 of about −8 would frame them, at the cost of #86/#87's rose-window-to-eyot fit",
+      "note": "the Far bank quarter holds no sky (frame top at depth +0.15) \u2014 the spire's top, the roost and the murmuration are outside it; a y0 of about \u22128 would frame them, at the cost of #86/#87's rose-window-to-eyot fit",
       "raisedBy": 94,
       "seenBy": 0
     },
     {
       "id": "c145",
-      "note": "the lane runs ~5.2 cells/h: fourteen HOME_DOORS from one end is 30 h. The round takes doors 4 and 8; the twelve east of x 8 get no caller — a mirrored round from the EAST end is the same source (#98)",
+      "note": "the lane runs ~5.2 cells/h: fourteen HOME_DOORS from one end is 30 h. The round takes doors 4 and 8; the twelve east of x 8 get no caller \u2014 a mirrored round from the EAST end is the same source (#98)",
       "raisedBy": 94,
       "seenBy": 0
     },
     {
       "id": "c146",
-      "note": "dawn panes: windowLit early risers key on the dawn EDGE (sunUp+1.3..2.1 h), so lit panes RISE after sunrise (5→11 at sunUp+0.5 in winter, probes/dawn-lit.mjs); re-key hRise to sunUp−0.8..+0.4 (#98)",
+      "note": "dawn panes: windowLit early risers key on the dawn EDGE (sunUp+1.3..2.1 h), so lit panes RISE after sunrise (5\u219211 at sunUp+0.5 in winter, probes/dawn-lit.mjs); re-key hRise to sunUp\u22120.8..+0.4 (#98)",
+      "raisedBy": 94,
+      "seenBy": 0
+    },
+    {
+      "id": "c147",
+      "note": "No quarter frames the clock-tower arrow vane above s~1.02, so its now-scaled cardinals are only ever seen at the 6 px floor (#99).",
+      "raisedBy": 94,
+      "seenBy": 0
+    },
+    {
+      "id": "c148",
+      "note": "Courtyard shows ~110-130 px of void west of x=0 at its top row on desktop; unchanged from HEAD, over-painted by the ground cache (#99).",
+      "raisedBy": 94,
+      "seenBy": 0
+    },
+    {
+      "id": "c149",
+      "note": "Far bank no longer shows land past GW, so the bandstand sits hard against the frame east edge (#99).",
       "raisedBy": 94,
       "seenBy": 0
     }
@@ -543,41 +563,41 @@
   "watch": [
     {
       "since": 0,
-      "note": "The east half is fed by ONE spawnLaneAgent roll under one laneCap (peaks at 9). Anything out there competes for that budget — check whether your feature needs its own arrival source before concluding it is unused. Bands: market 0.24, kiosk 0.18, cafe 0.26, allotment 0.48, plaza 0.48, quay 0.53, green 0.58. spawnEastAgent adds eastCap (max 7); its arrivals RETRACE their route, so a wider cap means single file."
+      "note": "The east half is fed by ONE spawnLaneAgent roll under one laneCap (peaks at 9). Anything out there competes for that budget \u2014 check whether your feature needs its own arrival source before concluding it is unused. Bands: market 0.24, kiosk 0.18, cafe 0.26, allotment 0.48, plaza 0.48, quay 0.53, green 0.58. spawnEastAgent adds eastCap (max 7); its arrivals RETRACE their route, so a wider cap means single file."
     },
     {
       "since": 86,
-      "note": "BOTH LAPSE HOURS ARE ONE TAP AWAY. The clock button alternates: this evening (sunDown+1) then the morning (sunUp+0.5), ~2.4 s each. Night holds 6–9 people (homers, tap, evening posts, deck stayers); the MORNING holds the sweeper, the cart from ~sunUp+0.2 and nobody else. Supply for either hour is its own source, never a laneCap share."
+      "note": "BOTH LAPSE HOURS ARE ONE TAP AWAY. The clock button alternates: this evening (sunDown+1) then the morning (sunUp+0.5), ~2.4 s each. Night holds 6\u20139 people (homers, tap, evening posts, deck stayers); the MORNING holds the sweeper, the cart from ~sunUp+0.2 and nobody else. Supply for either hour is its own source, never a laneCap share."
     },
     {
       "since": 33,
-      "note": "Observer tools are advertised through OFFERS[] only — touch → clock → season → follow, TICK_DWELL 2.5 s, any second offer ≥ 19.5 real s in (INVITE_AT/DWELL/GAP). A new one joins that queue; nothing gets a hint of its own."
+      "note": "Observer tools are advertised through OFFERS[] only \u2014 touch \u2192 clock \u2192 season \u2192 follow, TICK_DWELL 2.5 s, any second offer \u2265 19.5 real s in (INVITE_AT/DWELL/GAP). A new one joins that queue; nothing gets a hint of its own."
     },
     {
       "since": 81,
-      "note": "THE MAP MOVED FOUR TIMES — #73 (tileKinds, water), #78 (developed +135), #84 (DIAL), #87 (EYOT +26). passages/structures/speciesKinds still sit at their #2 values. A spatial brief is EXPECTED to move them — re-pin the baseline (census.mjs --save-baseline) and say so; the gate reads collapse, not delta. PEOPLE churns ±10–19% on any new R() draw (census-noise.mjs): that delta is the reshuffle."
+      "note": "THE MAP MOVED FOUR TIMES \u2014 #73 (tileKinds, water), #78 (developed +135), #84 (DIAL), #87 (EYOT +26). passages/structures/speciesKinds still sit at their #2 values. A spatial brief is EXPECTED to move them \u2014 re-pin the baseline (census.mjs --save-baseline) and say so; the gate reads collapse, not delta. PEOPLE churns \u00b110\u201319% on any new R() draw (census-noise.mjs): that delta is the reshuffle."
     }
   ],
   "closedCues": [
     {
       "id": "c5",
-      "note": "PROMOTED to brief b8 at manager pass #5. updateBoat() runs a boat past a quay full of people who never acknowledge it — the written-but-unread shape bellUntil had. a.listen now exists as a mechanism that fits.",
+      "note": "PROMOTED to brief b8 at manager pass #5. updateBoat() runs a boat past a quay full of people who never acknowledge it \u2014 the written-but-unread shape bellUntil had. a.listen now exists as a mechanism that fits.",
       "raisedBy": 0,
       "seenBy": 1,
       "closedBy": 8,
-      "reason": "boatWatch() shipped at #9 — 2.1 glances per boat, measured"
+      "reason": "boatWatch() shipped at #9 \u2014 2.1 glances per boat, measured"
     },
     {
       "id": "c11",
-      "note": "CORRECTED at manager pass #5 — the original wording overstated it. People DO cross the bridge: the lane IS the bridge (RIVER_X0 114 to RIVER_X1 127, carried at LANE_N_Y 66.4), and the `green` itinerary routes walkers out to PARK_GATE at x=134, so every far-bank visitor walks over the water. What is actually missing is that nobody ever STOPS on it — no waypoint in the town puts a person at the parapet looking down. Folded into b8.",
+      "note": "CORRECTED at manager pass #5 \u2014 the original wording overstated it. People DO cross the bridge: the lane IS the bridge (RIVER_X0 114 to RIVER_X1 127, carried at LANE_N_Y 66.4), and the `green` itinerary routes walkers out to PARK_GATE at x=134, so every far-bank visitor walks over the water. What is actually missing is that nobody ever STOPS on it \u2014 no waypoint in the town puts a person at the parapet looking down. Folded into b8.",
       "raisedBy": 4,
       "seenBy": 1,
       "closedBy": 8,
-      "reason": "the parapet stop shipped at #9 — somebody is on the bridge ~12% of daylight, measured"
+      "reason": "the parapet stop shipped at #9 \u2014 somebody is on the bridge ~12% of daylight, measured"
     },
     {
       "id": "c4",
-      "note": "PROMOTED to brief b9 at manager pass #5. The church-answer branch in strikeClock is UNREACHABLE: (hInt===9||hInt===18) hangs off an else-if under (hInt%3===0), and both 9 and 18 are divisible by 3. Confirmed by reading the function at line 3143. The blocker is announce(), which overwrites tickerEl.textContent outright, so two lines in one frame show only the second — which is why b9 is scoped as fixing announce() first.",
+      "note": "PROMOTED to brief b9 at manager pass #5. The church-answer branch in strikeClock is UNREACHABLE: (hInt===9||hInt===18) hangs off an else-if under (hInt%3===0), and both 9 and 18 are divisible by 3. Confirmed by reading the function at line 3143. The blocker is announce(), which overwrites tickerEl.textContent outright, so two lines in one frame show only the second \u2014 which is why b9 is scoped as fixing announce() first.",
       "raisedBy": 0,
       "seenBy": 1,
       "closedBy": 9,
@@ -593,7 +613,7 @@
     },
     {
       "id": "c6",
-      "note": "state.mjs rewrites state.json with JSON.stringify(...,2), which explodes every inline array onto its own lines — the first write after a hand-edited file produced a 353-line diff for two inventory entries. HARNESS, not town: no worker brief",
+      "note": "state.mjs rewrites state.json with JSON.stringify(...,2), which explodes every inline array onto its own lines \u2014 the first write after a hand-edited file produced a 353-line diff for two inventory entries. HARNESS, not town: no worker brief",
       "raisedBy": 2,
       "seenBy": 1,
       "closedBy": 6,
@@ -601,31 +621,31 @@
     },
     {
       "id": "c12",
-      "note": "RUNLOG.jsonl records secs=0, costUsd=0, turns=0, tokens=null on every worker row (iters 2-5); only the manager row carries real numbers. The exact metric that killed the previous loop — cost per iteration climbing while output stays flat — ",
+      "note": "RUNLOG.jsonl records secs=0, costUsd=0, turns=0, tokens=null on every worker row (iters 2-5); only the manager row carries real numbers. The exact metric that killed the previous loop \u2014 cost per iteration climbing while output stays flat \u2014 ",
       "raisedBy": 5,
       "seenBy": 0,
       "closedBy": 6,
-      "reason": "PROMOTED to brief b10 at pass #6 — and the cause is now known and is worse than written. The worker runs runlog.mjs ITSELF and commits its own row; the runner then calls runlog.mjs with --elapsed/--raw/--pre-blob and gets \"already recorded — nothing to append\", so the authoritative row is discarded every iteration. Real durations exist in ~/Library/Logs/courtyard-grow.log (1143/1022/809/1642/1816/1237/921/1653/558 s) and reach RUNLOG.jsonl as secs=0."
+      "reason": "PROMOTED to brief b10 at pass #6 \u2014 and the cause is now known and is worse than written. The worker runs runlog.mjs ITSELF and commits its own row; the runner then calls runlog.mjs with --elapsed/--raw/--pre-blob and gets \"already recorded \u2014 nothing to append\", so the authoritative row is discarded every iteration. Real durations exist in ~/Library/Logs/courtyard-grow.log (1143/1022/809/1642/1816/1237/921/1653/558 s) and reach RUNLOG.jsonl as secs=0."
     },
     {
       "id": "c61",
-      "note": "(was c12, renumbered c61 at pass #30 — ids were not unique) The allotment block is 17 plots, not 21: buildGrid excludes x>=84 && y>=42 for the pond corner. Brief b6 and the inventory both said 21.",
+      "note": "(was c12, renumbered c61 at pass #30 \u2014 ids were not unique) The allotment block is 17 plots, not 21: buildGrid excludes x>=84 && y>=42 for the pond corner. Brief b6 and the inventory both said 21.",
       "raisedBy": 6,
       "seenBy": 0,
       "closedBy": 6,
-      "reason": "PROMOTED to brief b10 at pass #6 — and the cause is now known and is worse than written. The worker runs runlog.mjs ITSELF and commits its own row; the runner then calls runlog.mjs with --elapsed/--raw/--pre-blob and gets \"already recorded — nothing to append\", so the authoritative row is discarded every iteration. Real durations exist in ~/Library/Logs/courtyard-grow.log (1143/1022/809/1642/1816/1237/921/1653/558 s) and reach RUNLOG.jsonl as secs=0."
+      "reason": "PROMOTED to brief b10 at pass #6 \u2014 and the cause is now known and is worse than written. The worker runs runlog.mjs ITSELF and commits its own row; the runner then calls runlog.mjs with --elapsed/--raw/--pre-blob and gets \"already recorded \u2014 nothing to append\", so the authoritative row is discarded every iteration. Real durations exist in ~/Library/Logs/courtyard-grow.log (1143/1022/809/1642/1816/1237/921/1653/558 s) and reach RUNLOG.jsonl as secs=0."
     },
     {
       "id": "c14",
-      "note": "runlog.mjs derives srcChanged from --pre-blob, which only run-loop.sh supplies. A hand-invoked /grow-courtyard iteration therefore logs verdict 'no-ship' however much it shipped — iter 7 did exactly this and had to be re-derived with 'git r",
+      "note": "runlog.mjs derives srcChanged from --pre-blob, which only run-loop.sh supplies. A hand-invoked /grow-courtyard iteration therefore logs verdict 'no-ship' however much it shipped \u2014 iter 7 did exactly this and had to be re-derived with 'git r",
       "raisedBy": 7,
       "seenBy": 0,
       "closedBy": 6,
-      "reason": "FOLDED into b10 at pass #6 — same root cause as c12, not a separate --pre-blob bug."
+      "reason": "FOLDED into b10 at pass #6 \u2014 same root cause as c12, not a separate --pre-blob bug."
     },
     {
       "id": "c15",
-      "note": "filmstrip.mjs's whole-frame mean is blind to a change under ~2% of the canvas — it could not tell HEAD from the three-stalls-in-one-frame fix at all; crop to the feature (probes/market-raise.mjs)",
+      "note": "filmstrip.mjs's whole-frame mean is blind to a change under ~2% of the canvas \u2014 it could not tell HEAD from the three-stalls-in-one-frame fix at all; crop to the feature (probes/market-raise.mjs)",
       "raisedBy": 7,
       "seenBy": 0,
       "closedBy": 6,
@@ -633,7 +653,7 @@
     },
     {
       "id": "c17",
-      "note": "Rain ends in a single frame: raining=false drops all ~110 raindrops and the wet sheen at once, while cover eases away over half a day. The arrival is ramped, the departure is a cut — and it is what a filmstrip POP in a rain window usually i",
+      "note": "Rain ends in a single frame: raining=false drops all ~110 raindrops and the wet sheen at once, while cover eases away over half a day. The arrival is ramped, the departure is a cut \u2014 and it is what a filmstrip POP in a rain window usually i",
       "raisedBy": 8,
       "seenBy": 0,
       "closedBy": 6,
@@ -641,7 +661,7 @@
     },
     {
       "id": "c19",
-      "note": "iteration 9's probes/parapet-and-boat.mjs sits at the repo root matched by an UNANCHORED .gitignore line, so it is cited in the ledger and absent from the repo — the exact failure the anchored /probe-*.mjs comment warns about. Move it into ",
+      "note": "iteration 9's probes/parapet-and-boat.mjs sits at the repo root matched by an UNANCHORED .gitignore line, so it is cited in the ledger and absent from the repo \u2014 the exact failure the anchored /probe-*.mjs comment warns about. Move it into ",
       "raisedBy": 9,
       "seenBy": 0,
       "closedBy": 6,
@@ -649,11 +669,11 @@
     },
     {
       "id": "c20",
-      "note": "runlog.mjs:72 runs 'git diff --numstat <blobA> <blobB> -- courtyard.html', which git rejects (a pathspec is illegal with a two-blob diff) — it prints git usage noise and returns nothing, so srcLines ALWAYS comes from the HEAD~1 fallback at ",
+      "note": "runlog.mjs:72 runs 'git diff --numstat <blobA> <blobB> -- courtyard.html', which git rejects (a pathspec is illegal with a two-blob diff) \u2014 it prints git usage noise and returns nothing, so srcLines ALWAYS comes from the HEAD~1 fallback at ",
       "raisedBy": 10,
       "seenBy": 0,
       "closedBy": 6,
-      "reason": "FOLDED into b10 at pass #6 — the illegal two-blob pathspec is real, but it only ever mattered because the runner row was being dropped."
+      "reason": "FOLDED into b10 at pass #6 \u2014 the illegal two-blob pathspec is real, but it only ever mattered because the runner row was being dropped."
     },
     {
       "id": "c9",
@@ -661,15 +681,15 @@
       "raisedBy": 3,
       "seenBy": 2,
       "closedBy": 15,
-      "reason": "CLOSED at pass #15 as hypothetical — greetPass() has no early-out today, so the cooldown cannot freeze. Re-raise if one is added."
+      "reason": "CLOSED at pass #15 as hypothetical \u2014 greetPass() has no early-out today, so the cooldown cannot freeze. Re-raise if one is added."
     },
     {
       "id": "c13",
-      "note": "ripePlots() rescans 102 cells every spawn tick (1/s) to set an arrival rate — the first place a spawn rate reads the CA. Free at this size; cache it on the CA tick if anything else wants the pattern.",
+      "note": "ripePlots() rescans 102 cells every spawn tick (1/s) to set an arrival rate \u2014 the first place a spawn rate reads the CA. Free at this size; cache it on the CA tick if anything else wants the pattern.",
       "raisedBy": 6,
       "seenBy": 1,
       "closedBy": 15,
-      "reason": "CLOSED at pass #15 — 'free at this size' and it has never bitten in nine iterations. A perf note with no observable is memory rent."
+      "reason": "CLOSED at pass #15 \u2014 'free at this size' and it has never bitten in nine iterations. A perf note with no observable is memory rent."
     },
     {
       "id": "c16",
@@ -677,7 +697,7 @@
       "raisedBy": 7,
       "seenBy": 1,
       "closedBy": 15,
-      "reason": "CLOSED at pass #15 — three is not four. Re-raise when a fourth staged appearance is actually briefed; extracting a helper for its own sake buys the viewer nothing."
+      "reason": "CLOSED at pass #15 \u2014 three is not four. Re-raise when a fourth staged appearance is actually briefed; extracting a helper for its own sake buys the viewer nothing."
     },
     {
       "id": "c21",
@@ -689,27 +709,27 @@
     },
     {
       "id": "c22",
-      "note": "LAWS.md's probe law blames an unanchored .gitignore line that has never existed; the real #9 fault was a second probes/ directory at the repo root. Advice right, stated cause wrong — reword before it is re-derived.",
+      "note": "LAWS.md's probe law blames an unanchored .gitignore line that has never existed; the real #9 fault was a second probes/ directory at the repo root. Advice right, stated cause wrong \u2014 reword before it is re-derived.",
       "raisedBy": 10,
       "seenBy": 0,
       "closedBy": 15,
-      "reason": "CLOSED at pass #15 by doing it — the probe law now names the real fault (a second probes/ directory at the repo root), not the .gitignore line that never existed."
+      "reason": "CLOSED at pass #15 by doing it \u2014 the probe law now names the real fault (a second probes/ directory at the repo root), not the .gitignore line that never existed."
     },
     {
       "id": "c23",
-      "note": "stall.mjs's streak() runs over ALL rows, so manager passes (always verdict=no-ship, always srcChanged=false) count toward noShipStreak and srcFlat. With MANAGER_GAP=2 a manager row sits next to worker rows regularly, so ONE no-ship worker iteration is enough to fire both signals and summon a manager. Fired exactly that way at #11. Fix is to streak over kind==='worker' rows only — but it changes when the manager is summoned, so it is the manager's call.",
+      "note": "stall.mjs's streak() runs over ALL rows, so manager passes (always verdict=no-ship, always srcChanged=false) count toward noShipStreak and srcFlat. With MANAGER_GAP=2 a manager row sits next to worker rows regularly, so ONE no-ship worker iteration is enough to fire both signals and summon a manager. Fired exactly that way at #11. Fix is to streak over kind==='worker' rows only \u2014 but it changes when the manager is summoned, so it is the manager's call.",
       "raisedBy": 10,
       "seenBy": 0,
       "closedBy": 15,
-      "reason": "PROMOTED into brief b15 at pass #15. Manager's ruling, since it was my call: streak over kind==='worker' rows only. A manager row is no-ship and src-flat BY CONSTRUCTION, so counting it is counting my own footprints as evidence of a stall — that is how #11 summoned a manager off one no-ship worker."
+      "reason": "PROMOTED into brief b15 at pass #15. Manager's ruling, since it was my call: streak over kind==='worker' rows only. A manager row is no-ship and src-flat BY CONSTRUCTION, so counting it is counting my own footprints as evidence of a stall \u2014 that is how #11 summoned a manager off one no-ship worker."
     },
     {
       "id": "c24",
-      "note": "capacity/laneCap/eastCap compress daylight hard (0.25+0.75*d), so a 52% swing in mean daylight moves capacity only 8->9 — that compression, not the season, caps the population breathing at ~15%. Widening it risks the winter floor; People & animals vector, manager's call.",
+      "note": "capacity/laneCap/eastCap compress daylight hard (0.25+0.75*d), so a 52% swing in mean daylight moves capacity only 8->9 \u2014 that compression, not the season, caps the population breathing at ~15%. Widening it risks the winter floor; People & animals vector, manager's call.",
       "raisedBy": 10,
       "seenBy": 0,
       "closedBy": 15,
-      "reason": "PROMOTED to brief b18 at pass #15 — the year's readers are the batch's spine, and this is the People & animals one."
+      "reason": "PROMOTED to brief b18 at pass #15 \u2014 the year's readers are the batch's spine, and this is the People & animals one."
     },
     {
       "id": "c26",
@@ -733,7 +753,7 @@
       "raisedBy": 10,
       "seenBy": 0,
       "closedBy": 15,
-      "reason": "CLOSED at pass #15 by doing it — cues 20 -> 7, the inventory back to nouns, three census laws merged into one."
+      "reason": "CLOSED at pass #15 by doing it \u2014 cues 20 -> 7, the inventory back to nouns, three census laws merged into one."
     },
     {
       "id": "c29",
@@ -765,42 +785,42 @@
       "raisedBy": 14,
       "seenBy": 0,
       "closedBy": 15,
-      "reason": "CLOSED at pass #15 — folded into the sky inventory line, which now says ~3 s rather than repeating RAIN_TAIL. The general lesson went into the #15 law."
+      "reason": "CLOSED at pass #15 \u2014 folded into the sky inventory line, which now says ~3 s rather than repeating RAIN_TAIL. The general lesson went into the #15 law."
     },
     {
       "id": "c7",
       "closedAt": 20,
-      "why": "promoted to b21 at pass #20 — hard shadows under full overcast",
-      "was": "The town still casts hard sun shadows under full overcast — drawSunMoon veils the disc, but the ~6 SUN[0]/SUN[2] shadow call sites use fixed alphas."
+      "why": "promoted to b21 at pass #20 \u2014 hard shadows under full overcast",
+      "was": "The town still casts hard sun shadows under full overcast \u2014 drawSunMoon veils the disc, but the ~6 SUN[0]/SUN[2] shadow call sites use fixed alphas."
     },
     {
       "id": "c8",
       "closedAt": 20,
-      "why": "folded into b20 at pass #20 — the overnight-front rain gate is part of putting weather on the year",
-      "was": "Rain requires daylight>0.15, so a heavy front peaking overnight builds full cover, never rains, and breaks by morning — overcast nights are commoner than rain."
+      "why": "folded into b20 at pass #20 \u2014 the overnight-front rain gate is part of putting weather on the year",
+      "was": "Rain requires daylight>0.15, so a heavy front peaking overnight builds full cover, never rains, and breaks by morning \u2014 overcast nights are commoner than rain."
     },
     {
       "id": "c25",
       "closedAt": 20,
-      "why": "promoted to b20 at pass #20 — the last one-way ramp",
-      "was": "stepClouds' heavy-front probability reads richness(), which pins at day 16 — WEATHER IS THE LAST SLOW SYSTEM STILL ON A ONE-WAY RAMP. season() is available to it. Strongest cue on the board; next batch unless something displaces it."
+      "why": "promoted to b20 at pass #20 \u2014 the last one-way ramp",
+      "was": "stepClouds' heavy-front probability reads richness(), which pins at day 16 \u2014 WEATHER IS THE LAST SLOW SYSTEM STILL ON A ONE-WAY RAMP. season() is available to it. Strongest cue on the board; next batch unless something displaces it."
     },
     {
       "id": "c30",
       "closedAt": 20,
-      "why": "promoted to b24 at pass #20 — the allotments in deep winter, measured",
-      "was": "The allotments inherit bloomCap through the shared caTick path, so crops do not ripen in deep winter, harvestPlot stops and ripePlots()->0 damps their arrival source for ~a fifth of the year. Seasonally true and UNMEASURED — nobody has checked the gardeners come back at the right rate in spring."
+      "why": "promoted to b24 at pass #20 \u2014 the allotments in deep winter, measured",
+      "was": "The allotments inherit bloomCap through the shared caTick path, so crops do not ripen in deep winter, harvestPlot stops and ripePlots()->0 damps their arrival source for ~a fifth of the year. Seasonally true and UNMEASURED \u2014 nobody has checked the gardeners come back at the right rate in spring."
     },
     {
       "id": "c34",
       "closedAt": 20,
       "why": "closed at pass #20: the trade is real and is now recorded in the pin-the-instant law (hold season AND hour). Kept as an open cue it was re-charging every worker for a decision already made",
-      "was": "The census ladder holds season fixed but still varies the HOUR (21.27/14.73/21.27), so day-gated systems sample unevenly. Fixing hour AND season needs t = 0 or 27.5 (mod 55) — exactly two hours exist, 06.00 and 18.00, both awkward (dawn is empty; 18.00 is inside market pack-down and the bell). A real trade, derived at #16 — do not re-derive."
+      "was": "The census ladder holds season fixed but still varies the HOUR (21.27/14.73/21.27), so day-gated systems sample unevenly. Fixing hour AND season needs t = 0 or 27.5 (mod 55) \u2014 exactly two hours exist, 06.00 and 18.00, both awkward (dawn is empty; 18.00 is inside market pack-down and the bell). A real trade, derived at #16 \u2014 do not re-derive."
     },
     {
       "id": "c35",
       "closedAt": 20,
-      "why": "folded into b20 at pass #20 — rain is that brief’s own feature, so it is that brief that must be able to see it",
+      "why": "folded into b20 at pass #20 \u2014 rain is that brief\u2019s own feature, so it is that brief that must be able to see it",
       "was": "motion.mjs watches rain as a POPULATION (census life.raindrops), not per drop: raindrops are screen-space and absent from __entities(). A drop that goes NaN or strobes is still invisible; needs one line in __entities() plus a screen-space exemption from motion.mjs's world-bounds test."
     },
     {
@@ -812,7 +832,7 @@
     {
       "id": "c38",
       "closedAt": 20,
-      "why": "closed at pass #20 by DOING it — ledger rotated, #18-20 condensed into the archive, inventory back to nouns, cues 19 -> 5",
+      "why": "closed at pass #20 by DOING it \u2014 ledger rotated, #18-20 condensed into the archive, inventory back to nouns, cues 19 -> 5",
       "was": "context-budget printed OVER at the start of #17 (48.8 KB vs 46 KB cap: LEDGER 15.9, SKILL 11.8, LAWS 9.4, state 9.4) and #17's ledger entry makes it worse. Distil this pass."
     },
     {
@@ -824,63 +844,63 @@
     {
       "id": "c40",
       "closedAt": 20,
-      "why": "merged into c10 at pass #20 — same defect, later observation",
+      "why": "merged into c10 at pass #20 \u2014 same defect, later observation",
       "was": "eastCap now sits at its 7-person ceiling for materially more of a summer day; the ceiling is unchanged so c10 is no worse per instant, but it is exposed for longer and nobody has watched a summer afternoon at the park gate for the single-file retrace reading as a queue"
     },
     {
       "id": "c42",
       "closedAt": 20,
-      "why": "closed at pass #20 with c38 — same cue, third report",
+      "why": "closed at pass #20 with c38 \u2014 same cue, third report",
       "was": "context-budget printed OVER at 53.6 KB against a 46 KB cap at the start of #19 (worse than c38's 48.8): LEDGER 18.9, SKILL 11.8, state 11.4, LAWS 9.4. Rotation is overdue."
     },
     {
       "id": "c43",
       "closedAt": 20,
-      "why": "promoted to b23 at pass #20 — the answering surface reaches PATH",
-      "was": "answersTouch() does not answer PATH, so the plaza roundel around the fountain and the whole courtyard path ring are dead to cursor and click. PAVING.plaza only fires on the plaza's 6x4 MOUTH onto the lane — 24 of the world's 2903 paved cells. Extending the surface to PATH is a real vector but moves the cursor's 46% share and needs touch-hint.mjs re-measured."
+      "why": "promoted to b23 at pass #20 \u2014 the answering surface reaches PATH",
+      "was": "answersTouch() does not answer PATH, so the plaza roundel around the fountain and the whole courtyard path ring are dead to cursor and click. PAVING.plaza only fires on the plaza's 6x4 MOUTH onto the lane \u2014 24 of the world's 2903 paved cells. Extending the surface to PATH is a real vector but moves the cursor's 46% share and needs touch-hint.mjs re-measured."
     },
     {
       "id": "c60",
       "raisedBy": 5,
       "closedAt": 25,
       "why": "PROMOTED to b29 (#25 pass). routeToExit(a) now exists at the seam the cue said was missing.",
-      "note": "(was c11, renumbered c60 at pass #30 — ids were not unique) undefined"
+      "note": "(was c11, renumbered c60 at pass #30 \u2014 ids were not unique) undefined"
     },
     {
       "id": "c18",
       "raisedBy": 8,
       "closedAt": 25,
-      "why": "CLOSED — moved into the river inventory as a noun, where a brief will actually meet it."
+      "why": "CLOSED \u2014 moved into the river inventory as a noun, where a brief will actually meet it."
     },
     {
       "id": "c46",
       "raisedBy": 21,
       "closedAt": 25,
-      "why": "CLOSED — accepted. One SH_FLOOR for all eight sites is a priced simplification; per-object occlusion needs a height and only drawShadows has one."
+      "why": "CLOSED \u2014 accepted. One SH_FLOOR for all eight sites is a priced simplification; per-object occlusion needs a height and only drawShadows has one."
     },
     {
       "id": "c47",
       "raisedBy": 21,
       "closedAt": 25,
-      "why": "CLOSED — accepted and bounded. 3/24 boatless winters is no worse than HEAD worst season, and the only structural fix (a second boat) was forbidden by b22."
+      "why": "CLOSED \u2014 accepted and bounded. 3/24 boatless winters is no worse than HEAD worst season, and the only structural fix (a second boat) was forbidden by b22."
     },
     {
       "id": "c48",
       "raisedBy": 21,
       "closedAt": 25,
-      "why": "CLOSED — promoted into the R()-reshuffle law: two seeds is not a sample, replay over ten."
+      "why": "CLOSED \u2014 promoted into the R()-reshuffle law: two seeds is not a sample, replay over ten."
     },
     {
       "id": "c51",
       "raisedBy": 24,
       "closedAt": 25,
-      "why": "CLOSED — promoted into the pin-the-instant law: the census ladder samples ONE warmth."
+      "why": "CLOSED \u2014 promoted into the pin-the-instant law: the census ladder samples ONE warmth."
     },
     {
       "id": "c37",
       "raisedBy": 16,
       "closedAt": 25,
-      "why": "CLOSED — not a cue but a settled decision. b16 forbade seasonal tree size on purpose; maturity() pinning all 13 trees at day 8 is the accepted consequence. If a multi-year growth term is ever wanted it is a BRIEF, and leafOut is its seam."
+      "why": "CLOSED \u2014 not a cue but a settled decision. b16 forbade seasonal tree size on purpose; maturity() pinning all 13 trees at day 8 is the accepted consequence. If a multi-year growth term is ever wanted it is a BRIEF, and leafOut is its seam."
     },
     {
       "id": "c10",
@@ -893,11 +913,11 @@
     },
     {
       "id": "c52",
-      "note": "the sill overflows its box at 320px — 44px on HEAD before this iteration, pre-existing and untouched. 390 is the tracked framing; if a narrower one is ever added, the fix is the same caption-slot move applied to #daytime.",
+      "note": "the sill overflows its box at 320px \u2014 44px on HEAD before this iteration, pre-existing and untouched. 390 is the tracked framing; if a narrower one is ever added, the fix is the same caption-slot move applied to #daytime.",
       "raisedBy": 25,
       "seenBy": 0,
       "closedBy": 30,
-      "reason": "320px is not a tracked framing — 390 is — and the fix is the caption-slot move already shipped for #season at 640px. Reopen only if a narrower framing is adopted."
+      "reason": "320px is not a tracked framing \u2014 390 is \u2014 and the fix is the caption-slot move already shipped for #season at 640px. Reopen only if a narrower framing is adopted."
     },
     {
       "id": "c57",
@@ -909,11 +929,11 @@
     },
     {
       "id": "c53",
-      "note": "The naming names places and plants, not PEOPLE. Walkers, ducks, swans, the sweeper and the boat all pass under the pointer and answer with the ground they stand on. __entities() already carries every one with a stable id, and crowns[] is the pattern — let the draw pass record where it painted a thing.",
+      "note": "The naming names places and plants, not PEOPLE. Walkers, ducks, swans, the sweeper and the boat all pass under the pointer and answer with the ground they stand on. __entities() already carries every one with a stable id, and crowns[] is the pattern \u2014 let the draw pass record where it painted a thing.",
       "raisedBy": 26,
       "seenBy": 0,
       "closedBy": 30,
-      "reason": "PROMOTED to brief b34 — the naming names places and plants, not people."
+      "reason": "PROMOTED to brief b34 \u2014 the naming names places and plants, not people."
     },
     {
       "id": "c54",
@@ -921,7 +941,7 @@
       "raisedBy": 27,
       "seenBy": 0,
       "closedBy": 30,
-      "reason": "PROMOTED to brief b30 — the season button is unadvertised."
+      "reason": "PROMOTED to brief b30 \u2014 the season button is unadvertised."
     },
     {
       "id": "c56",
@@ -929,7 +949,7 @@
       "raisedBy": 27,
       "seenBy": 0,
       "closedBy": 30,
-      "reason": "PROMOTED to brief b33 — the opening scatter puts ornamentals in the allotment block, and since #29 they can reach a market board."
+      "reason": "PROMOTED to brief b33 \u2014 the opening scatter puts ornamentals in the allotment block, and since #29 they can reach a market board."
     },
     {
       "id": "c59",
@@ -945,7 +965,7 @@
       "raisedBy": 20,
       "seenBy": 1,
       "closedBy": 30,
-      "reason": "MERGED into c44 — same subject, the winter lid, from two sides."
+      "reason": "MERGED into c44 \u2014 same subject, the winter lid, from two sides."
     },
     {
       "id": "c49",
@@ -959,7 +979,7 @@
       "id": "c44",
       "raisedBy": 20,
       "closedAt": 37,
-      "why": "CLOSED pass #37: no consumer wants a how-heavy-is-the-lid signal above cover 0.95 — shadowF(), greyF() and the tint all read the mid-range. Re-raise if a brief ever needs one.",
+      "why": "CLOSED pass #37: no consumer wants a how-heavy-is-the-lid signal above cover 0.95 \u2014 shadowF(), greyF() and the tint all read the mid-range. Re-raise if a brief ever needs one.",
       "note": "FRONT_DEEP lets deep-winter cover CLAMP at a saturated 1.000 for whole spells, so no drawn term has range left above ~0.95: a future how-heavy-is-this-lid signal cannot be read off cover alone."
     },
     {
@@ -973,7 +993,7 @@
       "id": "c60",
       "raisedBy": 30,
       "closedAt": 37,
-      "why": "CLOSED pass #37: the #31 law already rules it — a wall-clock arrival for anything queued behind other state is not assertable; assert structure, not timing.",
+      "why": "CLOSED pass #37: the #31 law already rules it \u2014 a wall-clock arrival for anything queued behind other state is not assertable; assert structure, not timing.",
       "note": "the offer queue bounds SPACING but not ARRIVAL: offerInvite waits for tickerFree(), so a first offer on a busy day inherits an arrival time nothing floors (17.4 s vs 30.1 s measured)."
     },
     {
@@ -981,7 +1001,7 @@
       "raisedBy": 32,
       "closedAt": 37,
       "why": "PROMOTED into b38 (harness) at pass #37: motion.mjs splits rises from falls so the night cell is attributable.",
-      "note": "motion.mjs sums a shower’s rises and falls into one jumps figure, but only a FALL is the bug it exists for. Splitting them would make the night cell attributable instead of advisory."
+      "note": "motion.mjs sums a shower\u2019s rises and falls into one jumps figure, but only a FALL is the bug it exists for. Splitting them would make the night cell attributable instead of advisory."
     },
     {
       "id": "c64",
@@ -1015,7 +1035,7 @@
     },
     {
       "id": "c73",
-      "note": "swans carry no behaviour state (only ph) — an upend/preen would give personName's sibling something to say",
+      "note": "swans carry no behaviour state (only ph) \u2014 an upend/preen would give personName's sibling something to say",
       "raisedBy": 39,
       "seenBy": 0,
       "closedBy": 42,
@@ -1063,7 +1083,7 @@
     },
     {
       "id": "c76",
-      "note": "Winter sunset relight POPs 5-9 mean-Δ in one frame on HEAD (light bucket vs compressed dusk) — live overlay or finer bucket near sunUp/sunDown",
+      "note": "Winter sunset relight POPs 5-9 mean-\u0394 in one frame on HEAD (light bucket vs compressed dusk) \u2014 live overlay or finer bucket near sunUp/sunDown",
       "raisedBy": 42,
       "seenBy": 0,
       "closedBy": 47,
@@ -1071,7 +1091,7 @@
     },
     {
       "id": "c77",
-      "note": "Snow × footfall: desire paths worn dark through lying snow (b42's named follow-on)",
+      "note": "Snow \u00d7 footfall: desire paths worn dark through lying snow (b42's named follow-on)",
       "raisedBy": 42,
       "seenBy": 0,
       "closedBy": 47,
@@ -1079,11 +1099,11 @@
     },
     {
       "id": "c75",
-      "note": "swans have no night behaviour — ducks slow at nightF > 0.6, swans keep daytime rates and never rest on the bank",
+      "note": "swans have no night behaviour \u2014 ducks slow at nightF > 0.6, swans keep daytime rates and never rest on the bank",
       "raisedBy": 42,
       "seenBy": 0,
       "closedBy": 47,
-      "reason": "promoted to brief b49's twin cue; folded into b48's avoid — swans at night ride the next life brief"
+      "reason": "promoted to brief b49's twin cue; folded into b48's avoid \u2014 swans at night ride the next life brief"
     },
     {
       "id": "c74",
@@ -1095,35 +1115,35 @@
     },
     {
       "id": "c82",
-      "note": "filmstrip.mjs's 0.35 s gap reads a legitimately fast sky (winter dusk daylight moves 0.04/sample, ~7 RGB) as a POP. A 'pop' gate should compare against the per-60fps-frame Δ (probes/dusk-relight-where.mjs gap 0.0167): a step is a frame far above its neighbours, not a sample far above 2.",
+      "note": "filmstrip.mjs's 0.35 s gap reads a legitimately fast sky (winter dusk daylight moves 0.04/sample, ~7 RGB) as a POP. A 'pop' gate should compare against the per-60fps-frame \u0394 (probes/dusk-relight-where.mjs gap 0.0167): a step is a frame far above its neighbours, not a sample far above 2.",
       "raisedBy": 47,
       "seenBy": 0,
       "closedBy": 52,
-      "reason": "PROMOTED into b54 at pass #52 — the instrument that manufactured b45's premise."
+      "reason": "PROMOTED into b54 at pass #52 \u2014 the instrument that manufactured b45's premise."
     },
     {
       "id": "c81",
-      "note": "drawGround() is 9.2 ms against 2.3 ms for the rest of the frame, and rebuilds ~650×/sim-day in BOTH seasons — 80% from the grass-wear line (R()<dt*2 per walker on grass, courtyard.html ~1824), 20% the light bucket. The 'cache' is repainted every few frames. Throttle wear repaints (one dirty flag per N sim-seconds, or a dirty-rect for the trodden cell) and perf.mjs should drop hard; measure with probes/ground-rebuilds.mjs + perf.mjs.",
+      "note": "drawGround() is 9.2 ms against 2.3 ms for the rest of the frame, and rebuilds ~650\u00d7/sim-day in BOTH seasons \u2014 80% from the grass-wear line (R()<dt*2 per walker on grass, courtyard.html ~1824), 20% the light bucket. The 'cache' is repainted every few frames. Throttle wear repaints (one dirty flag per N sim-seconds, or a dirty-rect for the trodden cell) and perf.mjs should drop hard; measure with probes/ground-rebuilds.mjs + perf.mjs.",
       "raisedBy": 47,
       "seenBy": 0,
       "closedBy": 52,
-      "reason": "PROMOTED to brief b53 at pass #52 — drawGround is 80% of the frame and repaints on the wear line."
+      "reason": "PROMOTED to brief b53 at pass #52 \u2014 drawGround is 80% of the frame and repaints on the wear line."
     },
     {
       "id": "c85",
-      "note": "after dark the town holds 6–9 agents and under one askable leaver a night, so goHome fires ~1×/night; a night arrival source (people coming home FROM off-frame to a door) is the supply the windows are waiting for",
+      "note": "after dark the town holds 6\u20139 agents and under one askable leaver a night, so goHome fires ~1\u00d7/night; a night arrival source (people coming home FROM off-frame to a door) is the supply the windows are waiting for",
       "raisedBy": 47,
       "seenBy": 0,
       "closedBy": 52,
-      "reason": "PROMOTED to brief b50 at pass #52 — the night arrival source is the batch's bet."
+      "reason": "PROMOTED to brief b50 at pass #52 \u2014 the night arrival source is the batch's bet."
     },
     {
       "id": "c87",
-      "note": "row-64 windows are drawn live and then night-tinted, so a lit pane there lands at (127,118,116) — half the cached windows' warmth",
+      "note": "row-64 windows are drawn live and then night-tinted, so a lit pane there lands at (127,118,116) \u2014 half the cached windows' warmth",
       "raisedBy": 47,
       "seenBy": 0,
       "closedBy": 52,
-      "reason": "FOLDED into b50 at pass #52 — a lit pane over a home door must read as warm as a cached one."
+      "reason": "FOLDED into b50 at pass #52 \u2014 a lit pane over a home door must read as warm as a cached one."
     },
     {
       "id": "c78",
@@ -1131,63 +1151,63 @@
       "raisedBy": 42,
       "seenBy": 0,
       "closedBy": 52,
-      "reason": "FOLDED into b51 at pass #52 — the rowboat's reflection and the deck's shadow ride the river-wind brief."
+      "reason": "FOLDED into b51 at pass #52 \u2014 the rowboat's reflection and the deck's shadow ride the river-wind brief."
     },
     {
       "id": "c80",
-      "note": "swans have no night behaviour — ducks slow at nightF > 0.6, swans keep daytime rates and never rest on the bank",
+      "note": "swans have no night behaviour \u2014 ducks slow at nightF > 0.6, swans keep daytime rates and never rest on the bank",
       "raisedBy": 47,
       "seenBy": 0,
       "closedBy": 52,
-      "reason": "CLOSED at pass #52 — done by #51 (swans rest by the bank at nightF > 0.6)."
+      "reason": "CLOSED at pass #52 \u2014 done by #51 (swans rest by the bank at nightF > 0.6)."
     },
     {
       "id": "c86",
-      "note": "swans rest by the bank at nightF > 0.6 (one line in updateSwans) — unprobed beyond the motion gate",
+      "note": "swans rest by the bank at nightF > 0.6 (one line in updateSwans) \u2014 unprobed beyond the motion gate",
       "raisedBy": 47,
       "seenBy": 0,
       "closedBy": 52,
-      "reason": "CLOSED at pass #52 — one line behind the motion gate; re-raise only if a night shot shows the pair swimming laps."
+      "reason": "CLOSED at pass #52 \u2014 one line behind the motion gate; re-raise only if a night shot shows the pair swimming laps."
     },
     {
       "id": "c83",
-      "note": "Snowy lawn at dawn reads pale green rather than white (cover ~0.5 mixed under the dawn tint) — the snow-wear contrast is faint at the hour the brief asked for; consider a whiter SNOW_COL floor or a higher cover before dawn shots",
+      "note": "Snowy lawn at dawn reads pale green rather than white (cover ~0.5 mixed under the dawn tint) \u2014 the snow-wear contrast is faint at the hour the brief asked for; consider a whiter SNOW_COL floor or a higher cover before dawn shots",
       "raisedBy": 47,
       "seenBy": 1,
       "closedBy": 57,
-      "reason": "PROMOTED at pass #57 → b58."
+      "reason": "PROMOTED at pass #57 \u2192 b58."
     },
     {
       "id": "c84",
-      "note": "bunting flags ~3px at 1x — flutter only reads on a contact sheet; consider larger flags",
+      "note": "bunting flags ~3px at 1x \u2014 flutter only reads on a contact sheet; consider larger flags",
       "raisedBy": 47,
       "seenBy": 1,
       "closedBy": 57,
-      "reason": "PROMOTED at pass #57 → b58."
+      "reason": "PROMOTED at pass #57 \u2192 b58."
     },
     {
       "id": "c88",
-      "note": "turned earth is faint at 1x — dark brown on brown; a furrow texture or colder tint would make a dug plot legible from the wide view",
+      "note": "turned earth is faint at 1x \u2014 dark brown on brown; a furrow texture or colder tint would make a dug plot legible from the wide view",
       "raisedBy": 52,
       "seenBy": 1,
       "closedBy": 57,
-      "reason": "PROMOTED at pass #57 → b58."
+      "reason": "PROMOTED at pass #57 \u2192 b58."
     },
     {
       "id": "c89",
-      "note": "the church has no night beyond eastOpenFor — no lit window, no bell after dark, no one on the green; the far bank after dusk is lamps on water and nothing else",
+      "note": "the church has no night beyond eastOpenFor \u2014 no lit window, no bell after dark, no one on the green; the far bank after dusk is lamps on water and nothing else",
       "raisedBy": 52,
       "seenBy": 0,
       "closedBy": 57,
-      "reason": "CLOSED at pass #57 — half false: drawChurchFront lights the rose window at nightF > 0.3 and pushes it to LIT[]; the bell after dark and people on the green are supply (see WATCH), not a cue."
+      "reason": "CLOSED at pass #57 \u2014 half false: drawChurchFront lights the rose window at nightF > 0.3 and pushes it to LIT[]; the bell after dark and people on the green are supply (see WATCH), not a cue."
     },
     {
       "id": "c90",
-      "note": "greets stall a walker home 0.4–4.5 h (two passing words beat HOME_LATE 3 h and the hash lights the window before they are in) — exclude a.home from chatty() or lengthen HOME_LATE",
+      "note": "greets stall a walker home 0.4\u20134.5 h (two passing words beat HOME_LATE 3 h and the hash lights the window before they are in) \u2014 exclude a.home from chatty() or lengthen HOME_LATE",
       "raisedBy": 52,
       "seenBy": 0,
       "closedBy": 57,
-      "reason": "PROMOTED at pass #57 → b55 carries it (exclude a.homer from chatty())."
+      "reason": "PROMOTED at pass #57 \u2192 b55 carries it (exclude a.homer from chatty())."
     },
     {
       "id": "c91",
@@ -1195,43 +1215,43 @@
       "raisedBy": 52,
       "seenBy": 0,
       "closedBy": 57,
-      "reason": "PROMOTED at pass #57 → b58."
+      "reason": "PROMOTED at pass #57 \u2192 b58."
     },
     {
       "id": "c92",
-      "note": "c78 is half false: the bridge already lays a shadow on the water (drawBridge). A boat reflection after dark needs a lantern on the boat first — dark on dark reads as nothing",
+      "note": "c78 is half false: the bridge already lays a shadow on the water (drawBridge). A boat reflection after dark needs a lantern on the boat first \u2014 dark on dark reads as nothing",
       "raisedBy": 52,
       "seenBy": 0,
       "closedBy": 57,
-      "reason": "PROMOTED at pass #57 → b59 (the boat carries a lantern after dark)."
+      "reason": "PROMOTED at pass #57 \u2192 b59 (the boat carries a lantern after dark)."
     },
     {
       "id": "c93",
-      "note": "HOMES is never pruned — entries from past nights accumulate forever (14 doors max, harmless, but any new reader must qualify on nid)",
+      "note": "HOMES is never pruned \u2014 entries from past nights accumulate forever (14 doors max, harmless, but any new reader must qualify on nid)",
       "raisedBy": 54,
       "seenBy": 0,
       "closedBy": 57,
-      "reason": "PROMOTED at pass #57 → law (a register never pruned is a history)."
+      "reason": "PROMOTED at pass #57 \u2192 law (a register never pruned is a history)."
     },
     {
       "id": "c94",
-      "note": "perf.mjs reads rAF cadence (16.70 ms both sides) and is blind under the 60 fps cap — fold frame-cost.mjs's draw timing into it or retire it",
+      "note": "perf.mjs reads rAF cadence (16.70 ms both sides) and is blind under the 60 fps cap \u2014 fold frame-cost.mjs's draw timing into it or retire it",
       "raisedBy": 54,
       "seenBy": 0,
       "closedBy": 57,
-      "reason": "PROMOTED at pass #57 → law (perf.mjs is rAF-blind; frame-cost.mjs is the instrument). perf.mjs stays until a harness brief retires it."
+      "reason": "PROMOTED at pass #57 \u2192 law (perf.mjs is rAF-blind; frame-cost.mjs is the instrument). perf.mjs stays until a harness brief retires it."
     },
     {
       "id": "c95",
-      "note": "filmstrip POP is blind to a step that lands mid-ramp (10 RGB on a 5/sample dusk ramp reads flat) — if it matters, test against a local linear fit instead of the max neighbour",
+      "note": "filmstrip POP is blind to a step that lands mid-ramp (10 RGB on a 5/sample dusk ramp reads flat) \u2014 if it matters, test against a local linear fit instead of the max neighbour",
       "raisedBy": 54,
       "seenBy": 0,
       "closedBy": 57,
-      "reason": "CLOSED at pass #57 — accepted blind spot, recorded in #57's entry; a step on a ramp is what the eye reads as the ramp."
+      "reason": "CLOSED at pass #57 \u2014 accepted blind spot, recorded in #57's entry; a step on a ramp is what the eye reads as the ramp."
     },
     {
       "id": "c79",
-      "note": "callIn: a trader from stall 0 (x 45, 19 cells nearer) would reach the door in spring/autumn too; today only warmth ≤ 0.43 market days call in",
+      "note": "callIn: a trader from stall 0 (x 45, 19 cells nearer) would reach the door in spring/autumn too; today only warmth \u2264 0.43 market days call in",
       "raisedBy": 42,
       "seenBy": 2,
       "closedBy": 57,
@@ -1239,7 +1259,7 @@
     },
     {
       "id": "c96",
-      "note": "HEAD's hour-6 wind step is invisible in a fountain crop under the dawn relight (Δ 5.12 vs 3.92): a day-hash wind starts in the one hour a step cannot be seen; the visible payoff is wind rising mid-day off a front (#58)",
+      "note": "HEAD's hour-6 wind step is invisible in a fountain crop under the dawn relight (\u0394 5.12 vs 3.92): a day-hash wind starts in the one hour a step cannot be seen; the visible payoff is wind rising mid-day off a front (#58)",
       "raisedBy": 58,
       "seenBy": 0,
       "closedBy": 57,
@@ -1255,7 +1275,7 @@
     },
     {
       "id": "c98",
-      "note": "the follow line hides wide-sill ticker news for the whole follow (30+ h for a resident) — should news pass through for its dwell?",
+      "note": "the follow line hides wide-sill ticker news for the whole follow (30+ h for a resident) \u2014 should news pass through for its dwell?",
       "raisedBy": 57,
       "seenBy": 0,
       "closedBy": 57,
@@ -1271,7 +1291,7 @@
     },
     {
       "id": "c103",
-      "note": "the evening offer is 4th in OFFERS, after follow — a visitor who never taps a person hears it ~30 s in; rank it second?",
+      "note": "the evening offer is 4th in OFFERS, after follow \u2014 a visitor who never taps a person hears it ~30 s in; rank it second?",
       "raisedBy": 67,
       "seenBy": 0,
       "closedBy": 67,
@@ -1287,54 +1307,54 @@
     },
     {
       "id": "c101",
-      "note": "windyDay() is hash(day,99) — seed-blind, every seed shares one windy calendar (~40% of hours in a 30-day window)",
+      "note": "windyDay() is hash(day,99) \u2014 seed-blind, every seed shares one windy calendar (~40% of hours in a 30-day window)",
       "raisedBy": 65,
       "seenBy": 0,
       "closedBy": 67,
-      "reason": "FOLDED into brief b68 at pass #67 — the windy calendar takes the seed while the sign is added."
+      "reason": "FOLDED into brief b68 at pass #67 \u2014 the windy calendar takes the seed while the sign is added."
     },
     {
       "id": "c100",
-      "note": "picnic pairs refuse a wet lawn via the same paving wetness — decide whether grass should dry on its own clock",
+      "note": "picnic pairs refuse a wet lawn via the same paving wetness \u2014 decide whether grass should dry on its own clock",
       "raisedBy": 64,
       "seenBy": 0,
       "closedBy": 67,
-      "reason": "CLOSED at pass #67 — a grass-drying scalar nobody can see is a second truth beside wetness; the picnic pair refusing a wet lawn on the paving clock is a fair by-product. Re-raise only if a viewer can tell the lawn from the flags."
+      "reason": "CLOSED at pass #67 \u2014 a grass-drying scalar nobody can see is a second truth beside wetness; the picnic pair refusing a wet lawn on the paving clock is a fair by-product. Re-raise only if a viewer can tell the lawn from the flags."
     },
     {
       "id": "c105",
       "at": 72,
-      "why": "closed at pass #72: #68 showed re-ordering only shifts slots by 11.5 s; whether follow earns a slot is a viewer statistic the loop does not collect — no build follows from it"
+      "why": "closed at pass #72: #68 showed re-ordering only shifts slots by 11.5 s; whether follow earns a slot is a viewer statistic the loop does not collect \u2014 no build follows from it"
     },
     {
       "id": "c106",
       "at": 72,
-      "why": "→ b74 (plaza × polish, the basin reads frozen at a glance)"
+      "why": "\u2192 b74 (plaza \u00d7 polish, the basin reads frozen at a glance)"
     },
     {
       "id": "c107",
       "at": 72,
-      "why": "→ b73 (courtyard × connect, companions on spawnAgent)"
+      "why": "\u2192 b73 (courtyard \u00d7 connect, companions on spawnAgent)"
     },
     {
       "id": "c108",
       "at": 72,
-      "why": "→ b72 (the rain slant reads windDir())"
+      "why": "\u2192 b72 (the rain slant reads windDir())"
     },
     {
       "id": "c109",
       "at": 72,
-      "why": "→ b72 (leaves killed at the frame edge)"
+      "why": "\u2192 b72 (leaves killed at the frame edge)"
     },
     {
       "id": "c110",
       "at": 72,
-      "why": "→ b72 (per-leaf y drift spreads the gutter row)"
+      "why": "\u2192 b72 (per-leaf y drift spreads the gutter row)"
     },
     {
       "id": "c104",
       "at": 77,
-      "why": "→ b79 (live-drawn rose disc after applyLight)"
+      "why": "\u2192 b79 (live-drawn rose disc after applyLight)"
     },
     {
       "id": "c111",
@@ -1344,12 +1364,12 @@
     {
       "id": "c112",
       "at": 77,
-      "why": "closed: #76 culls leaves at LEAF_EDGE_W/E, oob 57 → 0 over 10 seeds × 30 d"
+      "why": "closed: #76 culls leaves at LEAF_EDGE_W/E, oob 57 \u2192 0 over 10 seeds \u00d7 30 d"
     },
     {
       "id": "c114",
       "at": 77,
-      "why": "closed: counted at #75 — 1 daylit sighting/10 days; the visible pairs are the walkers, the bench is not what a viewer reads. No build."
+      "why": "closed: counted at #75 \u2014 1 daylit sighting/10 days; the visible pairs are the walkers, the bench is not what a viewer reads. No build."
     },
     {
       "id": "c116",
@@ -1361,7 +1381,7 @@
     },
     {
       "id": "c113",
-      "note": "cafe walkers set out under a clear sky and are refused at a wet chair 6 h later (26/144 in #74) — no departure-time sky check",
+      "note": "cafe walkers set out under a clear sky and are refused at a wet chair 6 h later (26/144 in #74) \u2014 no departure-time sky check",
       "raisedBy": 72,
       "seenBy": 1,
       "closedBy": 81,
@@ -1369,11 +1389,11 @@
     },
     {
       "id": "c118",
-      "note": "the deck's evening: EVE_SPOTS deck posts fit 0 times in 30 evenings (plaza crossing ~4 h) — give the deck an ALREADY-THERE source: an east arrival who stays on past eastOpen() under eveOpen()",
+      "note": "the deck's evening: EVE_SPOTS deck posts fit 0 times in 30 evenings (plaza crossing ~4 h) \u2014 give the deck an ALREADY-THERE source: an east arrival who stays on past eastOpen() under eveOpen()",
       "raisedBy": 79,
       "seenBy": 0,
       "closedBy": 81,
-      "why": "promoted → b83"
+      "why": "promoted \u2192 b83"
     },
     {
       "id": "c120",
@@ -1381,7 +1401,7 @@
       "raisedBy": 77,
       "seenBy": 0,
       "closedBy": 81,
-      "why": "promoted → b84 (with c119)"
+      "why": "promoted \u2192 b84 (with c119)"
     },
     {
       "id": "c119",
@@ -1389,19 +1409,19 @@
       "raisedBy": 77,
       "seenBy": 0,
       "closedBy": 81,
-      "why": "promoted → b84 (with c120)"
+      "why": "promoted \u2192 b84 (with c120)"
     },
     {
       "id": "c117",
-      "note": "a miller for the mill (#78): an agent at MILL door, sacks on the towpath — the next brief if the mill stays",
+      "note": "a miller for the mill (#78): an agent at MILL door, sacks on the towpath \u2014 the next brief if the mill stays",
       "raisedBy": 78,
       "seenBy": 0,
       "closedBy": 81,
-      "why": "promoted → the cart brief b80 (the mill's sacks are its cargo)"
+      "why": "promoted \u2192 the cart brief b80 (the mill's sacks are its cargo)"
     },
     {
       "id": "c115",
-      "note": "the sweeper clears one road row; litter now spans 68-73, rows 69/71 outlast him — a two-row pass or the heaviest pair (#76)",
+      "note": "the sweeper clears one road row; litter now spans 68-73, rows 69/71 outlast him \u2014 a two-row pass or the heaviest pair (#76)",
       "raisedBy": 76,
       "seenBy": 2,
       "closedBy": 86,
@@ -1409,31 +1429,31 @@
     },
     {
       "id": "c122",
-      "note": "nothing ever leaves by the lane's EAST end — the cart goes west or back north; the east end is an exit nobody uses (#82)",
+      "note": "nothing ever leaves by the lane's EAST end \u2014 the cart goes west or back north; the east end is an exit nobody uses (#82)",
       "raisedBy": 81,
       "seenBy": 0,
       "closedBy": 86,
-      "reason": "PROMOTED to b88 at pass #86 — the lane's east end becomes a real end."
+      "reason": "PROMOTED to b88 at pass #86 \u2014 the lane's east end becomes a real end."
     },
     {
       "id": "c123",
-      "note": "the church vane sits on the rod under the cross and goes edge-on (a 1-px sliver) when the heading passes north — a weathercock silhouette would read at every heading; neither vane is named by lookAt() (#83)",
+      "note": "the church vane sits on the rod under the cross and goes edge-on (a 1-px sliver) when the heading passes north \u2014 a weathercock silhouette would read at every heading; neither vane is named by lookAt() (#83)",
       "raisedBy": 82,
       "seenBy": 0,
       "closedBy": 86,
-      "reason": "PROMOTED to b89 at pass #86 — weathercock silhouettes; lookAt names the vanes."
+      "reason": "PROMOTED to b89 at pass #86 \u2014 weathercock silhouettes; lookAt names the vanes."
     },
     {
       "id": "c125",
-      "note": "the concert audience (324 far-side retirements/40 evenings, rel −4..−2 h) is the deck's biggest unused evening source: 290 stand SOUTH of the bandstand with no route north but through it — a BAND_SLOTS → round the bandstand → [FAR_WALK, DECK_WALK] leg would make the concert's end the deck's evening (#85)",
+      "note": "the concert audience (324 far-side retirements/40 evenings, rel \u22124..\u22122 h) is the deck's biggest unused evening source: 290 stand SOUTH of the bandstand with no route north but through it \u2014 a BAND_SLOTS \u2192 round the bandstand \u2192 [FAR_WALK, DECK_WALK] leg would make the concert's end the deck's evening (#85)",
       "raisedBy": 82,
       "seenBy": 0,
       "closedBy": 86,
-      "reason": "PROMOTED to b87 at pass #86 — the concert audience walks round the bandstand to the deck."
+      "reason": "PROMOTED to b87 at pass #86 \u2014 the concert audience walks round the bandstand to the deck."
     },
     {
       "id": "c124",
-      "note": "the sundial stands inside the linden's shadow ellipse all day at maturity (the inner lawn IS the shade) — a shadow in a shadow; name it 'in the linden's shade' when the crown is out, or thin the tree's shadow where it stands (#84)",
+      "note": "the sundial stands inside the linden's shadow ellipse all day at maturity (the inner lawn IS the shade) \u2014 a shadow in a shadow; name it 'in the linden's shade' when the crown is out, or thin the tree's shadow where it stands (#84)",
       "raisedBy": 82,
       "seenBy": 1,
       "closedBy": 91,
@@ -1441,7 +1461,7 @@
     },
     {
       "id": "c126",
-      "note": "viewFor's east clamp is priced at the bottom row (p = 1): a quarter box near the top of the world could show void past GW (hidden by the cache's over-paint today); Plaza could take share ≥ 0.5 at 1400 px (#86)",
+      "note": "viewFor's east clamp is priced at the bottom row (p = 1): a quarter box near the top of the world could show void past GW (hidden by the cache's over-paint today); Plaza could take share \u2265 0.5 at 1400 px (#86)",
       "raisedBy": 82,
       "seenBy": 1,
       "closedBy": 91,
@@ -1449,7 +1469,7 @@
     },
     {
       "id": "c127",
-      "note": "the plaza is EMPTY at noon on the wide shot (seed 42, early summer): count plaza presence by hour on HEAD before the next plaza brief — the east half is one laneCap roll plus eastCap 7 (#86, manager)",
+      "note": "the plaza is EMPTY at noon on the wide shot (seed 42, early summer): count plaza presence by hour on HEAD before the next plaza brief \u2014 the east half is one laneCap roll plus eastCap 7 (#86, manager)",
       "raisedBy": 86,
       "seenBy": 0,
       "closedBy": 91,
@@ -1457,7 +1477,7 @@
     },
     {
       "id": "c128",
-      "note": "the eyot is a place nobody can reach: a punt from the jetty (JETTY 128.4,35) is the only way onto it — a rung-5 vector (#87)",
+      "note": "the eyot is a place nobody can reach: a punt from the jetty (JETTY 128.4,35) is the only way onto it \u2014 a rung-5 vector (#87)",
       "raisedBy": 86,
       "seenBy": 0,
       "closedBy": 91,
@@ -1465,7 +1485,7 @@
     },
     {
       "id": "c129",
-      "note": "the willow's fronds hang below the foreground sill strip in the Far bank quarter on a desktop (rows 48+ are under the strip at 2.6x); a phone shows rows 0–51 (#87)",
+      "note": "the willow's fronds hang below the foreground sill strip in the Far bank quarter on a desktop (rows 48+ are under the strip at 2.6x); a phone shows rows 0\u201351 (#87)",
       "raisedBy": 86,
       "seenBy": 0,
       "closedBy": 91,
@@ -1473,7 +1493,7 @@
     },
     {
       "id": "c130",
-      "note": "mist-year.mjs samples at sunUp+0.5: 3/34 mist mornings read mist 0.3-0.76 in windF 0.44-0.61 because a windy day's wind rises from the 06:00 roll after the mist formed — sample the 'never in wind' assertion at the OPEN (sunUp−1) (#88)",
+      "note": "mist-year.mjs samples at sunUp+0.5: 3/34 mist mornings read mist 0.3-0.76 in windF 0.44-0.61 because a windy day's wind rises from the 06:00 roll after the mist formed \u2014 sample the 'never in wind' assertion at the OPEN (sunUp\u22121) (#88)",
       "raisedBy": 86,
       "seenBy": 0,
       "closedBy": 91,
@@ -1481,7 +1501,7 @@
     },
     {
       "id": "c134",
-      "note": "c134: the vanes' cardinal letters are 6 px CSS at every zoom — scale with cellW on a phone quarter (s 3.5); the wind announcement could name the vane's heading (#91)",
+      "note": "c134: the vanes' cardinal letters are 6 px CSS at every zoom \u2014 scale with cellW on a phone quarter (s 3.5); the wind announcement could name the vane's heading (#91)",
       "raisedBy": 86,
       "seenBy": 0,
       "closedBy": 91,
@@ -1489,15 +1509,15 @@
     },
     {
       "id": "c135",
-      "note": "the courtyard LAWN holds 2–4 people at a summer midday on seed 42 (shots/mgr-noon2-wide.png, 13:25: no kid, no blanket, no napper); count courtyard presence by kind × hour on HEAD before the next courtyard brief (#91, manager)",
+      "note": "the courtyard LAWN holds 2\u20134 people at a summer midday on seed 42 (shots/mgr-noon2-wide.png, 13:25: no kid, no blanket, no napper); count courtyard presence by kind \u00d7 hour on HEAD before the next courtyard brief (#91, manager)",
       "raisedBy": 91,
       "seenBy": 0,
       "closedBy": 94,
-      "reason": "confirmed by #94's count (13 h median 1.0); superseded by c141 → brief b95 at manager pass #94"
+      "reason": "confirmed by #94's count (13 h median 1.0); superseded by c141 \u2192 brief b95 at manager pass #94"
     },
     {
       "id": "c141",
-      "note": "the courtyard lawn holds a MEDIAN 1.0 person at a summer 13 h (0 on seed 42 days 6–7; 10 h 0.25, 16 h 2.0; probes/shade.mjs) — capacity/spawn shares untouched by #94; the manager's call",
+      "note": "the courtyard lawn holds a MEDIAN 1.0 person at a summer 13 h (0 on seed 42 days 6\u20137; 10 h 0.25, 16 h 2.0; probes/shade.mjs) \u2014 capacity/spawn shares untouched by #94; the manager's call",
       "raisedBy": 91,
       "seenBy": 0,
       "closedBy": 94,
@@ -1505,11 +1525,11 @@
     },
     {
       "id": "c138",
-      "note": "plaza box presence at noon on HEAD was 2.7 not 0: ~2 are east visitors crossing on DECK_LEAD_A through the roundel — the manager's 'empty plaza' reading was of STOPPED people (~0.7); measure the two separately (#92)",
+      "note": "plaza box presence at noon on HEAD was 2.7 not 0: ~2 are east visitors crossing on DECK_LEAD_A through the roundel \u2014 the manager's 'empty plaza' reading was of STOPPED people (~0.7); measure the two separately (#92)",
       "raisedBy": 91,
       "seenBy": 0,
       "closedBy": 94,
-      "reason": "measured by #92 (stopped ~0.7 vs crossing ~2 at noon); the family source answered it — plaza noon box 2.7 → 6.7"
+      "reason": "measured by #92 (stopped ~0.7 vs crossing ~2 at noon); the family source answered it \u2014 plaza noon box 2.7 \u2192 6.7"
     },
     {
       "id": "c121",
@@ -1517,11 +1537,11 @@
       "raisedBy": 81,
       "seenBy": 2,
       "closedBy": 94,
-      "reason": "closed at manager pass #94: a one-frame pop beside row 45, unclaimed for three passes; not worth a slot — reopen only with a cart brief"
+      "reason": "closed at manager pass #94: a one-frame pop beside row 45, unclaimed for three passes; not worth a slot \u2014 reopen only with a cart brief"
     },
     {
       "id": "c132",
-      "note": "a priced stayer still loses the post to the bell: a.listen (~0.5 h) landed 8/51 concert stayers after eveEnd() — one frame standing, then on; price it or let a priced walker not look up (#89)",
+      "note": "a priced stayer still loses the post to the bell: a.listen (~0.5 h) landed 8/51 concert stayers after eveEnd() \u2014 one frame standing, then on; price it or let a priced walker not look up (#89)",
       "raisedBy": 86,
       "seenBy": 1,
       "closedBy": 94,
@@ -1529,7 +1549,7 @@
     },
     {
       "id": "c140",
-      "note": "the bonfire's smoke column is faint at 1× against the lawn (thick 0.34 in drawSmoke); no leaf lands on the allotment block (litter bbox x 4..71) so nothing there burns leaves (#93)",
+      "note": "the bonfire's smoke column is faint at 1\u00d7 against the lawn (thick 0.34 in drawSmoke); no leaf lands on the allotment block (litter bbox x 4..71) so nothing there burns leaves (#93)",
       "raisedBy": 91,
       "seenBy": 0,
       "closedBy": 94,

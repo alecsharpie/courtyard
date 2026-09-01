@@ -40,14 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 91 — the vanes get silhouettes: a weathercock on the church, an arrow with a tail and a fixed cardinal cross on the clock tower, both named with the wind they stand in (2026-08-31) [Roofs & skyline × Polish]
-
-**Brief:** b89 — c123: the church vane goes to a 1-px sliver edge-on and neither vane is named.
-**Did:** `VANES[]` entries carry `kind` and `name`. `vaneAxes()` gives the heading AND its ground-plane normal as screen vectors, so a plate foreshortens while the width across it grows. `kind:'cock'`: body ellipse (seen half-width `max(along, COCK_HALF_W·len·|nx|)`) + a `COCK[]` plate, legs to a ball. `kind:'arrow'`: head, shaft, swallow tail, and a W/E/N/S cross-bar in 6 px bold fixed in SCREEN space. `vaneAt(p)`/`vaneName(v)` ('idle in the calm' / 'into a [light] north-west wind' in eighths); `lookAt` asks after the mill wheel. `vaneAngle()` untouched; no `R()`.
-**Gates:** census PASS · motion PASS · visual PASS (`b89-vane-*` at 3×) · filmstrip 0 POP · `probes/vane.mjs`: mirror PASS; **north footprint 23×18 / 5×10 px, was 1 wide**; names PASS; **162 px differ from HEAD, 0 outside the two vane crops**.
-**Verdict:** shipped (+~70 lines).
-**Surprise:** #83's "clock arrow IDENTICAL to HEAD" probe went DIFFERENT the moment the arrow grew a cross-bar — an identity-with-HEAD assertion outlives the change it was written for by exactly one iteration; the assertion moved to the diff's LOCATION. A 6 px letter is a smudge at 1× but the CROSS reads, and the cross carries the heading.
-
 ## Iteration 92 — the plaza gets a midday: families by the alley, a child that runs the roundel and chases the plaza's own pigeons back to a parent on the bench (2026-08-31) [Plaza & quay × Connect]
 
 **Brief:** b90 — c127 (count plaza presence by hour on HEAD), then families.
@@ -126,3 +118,16 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Surprise:** the brief's pricing was 15× off and its own fallback priced to nothing.
 **Law:** price "works the N places" as N × (leg + stand) at ~5 cells/h BEFORE choosing N; when the window prices to zero, widen the WINDOW to the trip that reads (a morning ≈ 5 h of sunrise), never the speed.
 **Budget:** OVER at open (50.9 / 46 KB).
+
+## Iteration 99 — the camera reads the sill, and the east clamp finally holds at the top row (2026-09-02) [The sill & the observer × Polish]
+
+**Brief:** b93 (attempt 2) — c129 willow under the sill, c126 void past GW at a quarter's top row, c134 the vane's 6 px cardinals at every zoom. Attempt 1 committed all three **unverified** (session limit); verifying them, two did not hold.
+**Did:** kept attempt 1's `sillTop()` (one definition, read by `drawSill` and `viewFor`), its fit/centre against `pic` with overflow held at the top, and its `k = viewS` scaling of the vane draw and hit-test. **Fixed the clamp:** its escape hatch `if (nearL < 0 || nearR > W) oxT = held(1)` fired on *every* far-bank frame — the far bank's `x1` **is** `GW`, so its near-row east corner is the world's own edge and necessarily past `W`, handing the clamp back to the old bottom-row behaviour. Now guarded by `q.x0 > 0` / `q.x1 < GW`. **Added `Plaza share:0.5`** (item 2's other half).
+**Gates:** census PASS (five groups unchanged) · motion PASS vs a baseline taken on the pre-attempt-1 file through `--page` (zero delta) · `where-identity` IDENTICAL at 390 and 1400, incl. the round-trip through the rescaled Plaza · before/after crops of q3/q4.
+**Probes:** `probes/where-void.mjs` (new) — east void at the frame's *visible* top row: far bank **172→0 px**, plaza **144→0**, four framings. `probes/vane-letters.mjs` (new) — font off the page's own `fillText`: control 6/6/6 px at s 1/2/3.5, candidate 6/12/**21**.
+**Verdict:** shipped.
+**Surprise:** the "before" far bank looked like the *better* picture, and that was the bug — it showed invented land. The ground cache over-paints past `GW`, so the void reads as a grey wedge only on the top rows it misses; the rest looked like green field. Closing it moves the frame east, so the quarter shows less far bank — which looks like a regression and is not one.
+**Law:** a brief's success criteria can contradict each other — price them against each other before building. b93 wanted the far bank at "rows 0..52" *and* `share:0.3`; the share forces s ≥ 2.586, 52 rows needs s ≤ 2.27. Its parenthetical (eyot's shore above the sill) was the achievable reading. "Letters ≥ cellW·1.7" is likewise a glyph wider than the vane is long.
+**Law:** a clamp priced at a box's corner must ask whether that corner is the *world's* edge — on a world-edge box the test is trivially true and silently disables the clamp.
+**Cue:** c147, c148, c149.
+**Budget:** `context-budget.mjs` **OVER**, 49.7/46 KB on entry; inventory 12.1/9.5 KB — distil this pass.

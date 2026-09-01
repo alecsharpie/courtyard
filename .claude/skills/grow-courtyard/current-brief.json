@@ -22,7 +22,7 @@
   "budgetMin": 25,
   "risk": "low",
   "status": "active",
-  "attempts": 1,
+  "attempts": 2,
   "nextIter": 99,
   "issued": "2026-09-01T01:06:45.378Z",
   "fromPlan": "2026-09-01T08:30:00.000Z"
