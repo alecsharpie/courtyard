@@ -2161,6 +2161,13 @@ const LAWN_OFF = {north:5, south:40, west:5, east:35};   // the off-frame leg to
 const LAWN_W = {gardener:0.15, kid:0.2, napper:0.2, picnic:0.25, sitter:0.2};
 function lawnSun(){ return daylight > LAWN_SUN; }
 function lawnClosed(){ return raining || !lawnSun(); }   // the ONE closing rule: rain or the failing light end every stay
+/* the light has GONE, as opposed to not being up YET (#108). `!lawnSun()` alone is
+ * DAWN as well as dusk, and lawnFits() deliberately lets a walk set out before the
+ * light clears LAWN_SUN — so the walking rule below was turning every early arrival
+ * round at the door, on the step it had been priced to take. Two-sided: the morning
+ * climb between sunrise and lawnStart() is the authorised walk; anything else dark is
+ * the end of the day (or the small hours, when the hour has wrapped under sunUp). */
+function lawnGone(){ return !lawnSun() && !(hour > sunUp && hour < lawnStart()); }
 function lawnEnd(t){ const s = sunAt(t === undefined ? simT : t); return s.down - (s.down - s.up) * Math.asin(LAWN_SUN) / Math.PI; }   // the hour daylight drops under LAWN_SUN
 function lawnStart(t){ const s = sunAt(t === undefined ? simT : t); return s.up + (s.down - s.up) * Math.asin(LAWN_SUN) / Math.PI; }   // …and the hour it first clears it
 function lawnRate(){ return LAWN_RATE * (0.45 + 0.55 * clamp((warmth - 0.2) / 0.5, 0, 1)); }   // a winter noon keeps a child and a sitter (HEAD ± 1)
@@ -2202,7 +2209,9 @@ function spawnLawnAgent(){
   const freeGaps = GAP_ANGLES.filter(g => !has(o => o.place === g));
   const freeBenches = BENCH_SPOTS.filter(b => !has(o => o.place === b));
   const kinds = [];
-  if (EDGE_BEDS.length && !agents.some(g => g.kind === 'gardener')
+  // one gardener at a time, but held like every other lawn place — the bed comes back
+  // as the walk OUT begins (lawnRelease), not when they are finally off the frame (#108)
+  if (EDGE_BEDS.length && !has(o => o.kind === 'gardener')
       && ENTR.some(e => { const b = EDGE_BEDS.reduce((p, q) => Math.hypot(q.px - e.door[0], q.py - e.door[1]) < Math.hypot(p.px - e.door[0], p.py - e.door[1]) ? q : p); return lawnFits(e, lawnWay(e, b.px, b.py), speed); })) kinds.push('gardener');
   if (held.filter(o => o.kind === 'kid').length < LAWN_RUNS && ENTR.some(e => lawnFits(e, [RING[e.k], [CX + (RING[e.k][0] - CX) * 0.6, CY + (RING[e.k][1] - CY) * 0.6]], 2.6))) kinds.push('kid');
   if (day >= 2 && lie && freeGaps.length && freeGaps.some(g => ENTR.some(e => lawnFits(e, gapWay(e, g).concat([nap(g)]), speed * 0.8)))) kinds.push('napper');
@@ -2220,7 +2229,7 @@ function spawnLawnAgent(){
     // among the beds a door's walk FITS to, like the sitter's benches — pick() over all of
     // them let a far bed kill the roll at the bag, and the town never saw a gardener
     const fit = EDGE_BEDS.filter(b => ENTR.some(e => lawnFits(e, lawnWay(e, b.px, b.py), speed)));
-    const spot = pick(fit); a.kneelAt = [spot.px, spot.py]; a.place = spot; a.shirt = '#5d7a4a';
+    const spot = pick(fit); a.kneelAt = [spot.px, spot.py]; a.place = spot; a.shirt = '#5d7a4a'; a.tendBed = true;
     way = e => lawnWay(e, spot.px, spot.py);
   } else if (kind === 'kid'){
     a.speed = wsp = 2.6 + R(); a.small = true; run = [];
@@ -2282,7 +2291,12 @@ function spawnLawnAgent(){
   // the walk fits from — priced at the choice, so a late set-out takes a near door
   const bag = [ENTR[0], ENTR[1], ENTR[1], ENTR[2], ENTR[3]].filter(e => lawnFits(e, (a.arrive || way)(e), wsp));
   if (!bag.length) return;                    // too late in the day to be worth the walk
-  const e = pick(bag);
+  // …except the gardener, who takes the SHORT door (#108). They come to WORK: every hour
+  // of the lane's 40-cell leg is an hour not spent at the bed, and it is the walk in that
+  // was putting the median kneel at 17 h with nothing left of the light for a second row.
+  const e = kind === 'gardener'
+    ? bag.reduce((p, q) => lawnHours(q, way(q), wsp) < lawnHours(p, way(p), wsp) ? q : p)
+    : pick(bag);
   const legs = entryLeg(e);
   a.x = legs[0][0]; a.y = legs[0][1]; a.exit = e;   // the way out is the way in — the near door
   a.wp = legs.concat(way(e));
@@ -2316,6 +2330,41 @@ function spawnLawnAgent(){
   agents.push(a);
   // a sitter's companion shares the bench (#75); the other kinds bring their own second or come alone
   withCompanion(a, kind === 'sitter');
+}
+/* ============ the gardener works ROWS (#108) ============ *
+ * One kneel was the whole visit: they walked in, planted one patch and walked out, so
+ * the person the courtyard is named for stood at a 13 h presence of 0.10 in summer and
+ * 0.08 in winter (probes/gardener-presence.mjs on HEAD, 72 seed-days each) — the town's
+ * title object, barely tended. The fault is PRESENCE, not arrivals, and presence is
+ * rate x visit: this lengthens the VISIT. lawnRate() and LAWN_W are untouched.
+ * The pattern is the allotment holder's (`a.tendPlot` / `a.rows`), which has worked
+ * since #6: each kneel is one row; when it is done they shuffle along the wall to
+ * another edge bed within GARDEN_REACH and kneel again, so a visit is a morning's work
+ * on three or four feet of border and not one patch. `a.resume` walks them there when
+ * the timer runs out, and the last row falls through to routeToExit as it always did.
+ * PRICED at the choice, and on the row's own drawn length rather than a ceiling — the
+ * ceiling is 1.7 h dearer than the mean and by itself deleted the second row on nearly
+ * every day. The bed is never blocked: the gardener is one of lawnHolds' place-holders
+ * now, released as the walk out begins, so a long visit costs the next one nothing. */
+const GARDEN_ROWS = 5, GARDEN_MORE = 0.8, GARDEN_REACH = 10, GARDEN_ROW = 5, GARDEN_ROW_R = 3.5;
+function gardenerKneel(a){
+  const dur = a.rowDur || (GARDEN_ROW + R() * GARDEN_ROW_R);
+  a.rowDur = 0; a.tendBed = false; a.planted = false;   // a fresh row: the planting rule fires again at timer < 4
+  a.state = 'kneel'; a.timer = dur; a.resume = true;
+  a.rows = (a.rows || 0) + 1;
+  if (a.rows >= GARDEN_ROWS || R() >= GARDEN_MORE) return;
+  // the next row, and whether the light lasts: this kneel, the shuffle along, THAT row
+  // and the walk out — to the DOOR, not off the frame. What lawnEnd() bounds is the
+  // garden, and exitLeg's south door walks the whole lane to the world edge: charging
+  // that leg here priced one row at 34 h and deleted the second row on every day.
+  const nd = GARDEN_ROW + R() * GARDEN_ROW_R, done = hour + (dur + nd) * HOURS_PER_S;
+  const fit = EDGE_BEDS.filter(b => { const d = Math.hypot(b.px - a.x, b.py - a.y);
+    return d > 1.2 && d < GARDEN_REACH
+      && done + d / a.speed * HOURS_PER_S + pathHours(b.px, b.py, [nearDoor(b.px, b.py).door], a.speed) < lawnEnd(); });
+  if (!fit.length) return;
+  const b = pick(fit);
+  a.place = b; a.kneelAt = [b.px, b.py]; a.rowDur = nd; a.tendBed = true;
+  a.wp.push([b.px, b.py]);
 }
 const STAYING = {gardener:1, napper:1, picnic:1, sitter:1};
 function finishItinerary(a){
@@ -2427,6 +2476,11 @@ function stepAgent(a, dt){
       // a far-side visitor whose afternoon ends inside a warm evening stays on, at the deck rail (#85)
       if (a.east && stayOn(a)) return;
       if (a.blanket){ a.blanket = false; }
+      // the next bed is off unless the row ended on its OWN timer with the lawn still
+      // open: this block is entered by rain, the sky and the failing light too, and a
+      // guard that fired on all of them cancelled every queued row (7 in 62 taken, 0 ever
+      // reached). Truncating wp leaves a.resume nothing to walk to, so routeToExit runs.
+      if (a.tendBed && (a.timer > 0 || lawnClosed())){ a.tendBed = false; a.wp.length = a.i; }
       if (a.tend){ bon.on = false; bon.holder = null; a.tend = false; }   // nobody feeding it: it burns down to embers
       if (a.tableRef){ a.tableRef.taken = 0; a.tableRef = null; a.cup = false; }
       // the place at the door goes back the moment they step away from it, not when
@@ -2465,7 +2519,7 @@ function stepAgent(a, dt){
   // whoever is already walking out when the dusk edge crosses 0.3 is asked then.
   if (a.i === a.wp.length - 1 && !a.homeAsked && nightF > 0.3 && !a.home && !a.cycle && !a.east
       && !a.broom && !a.with && a.y > 65 && a.y < 79){ a.homeAsked = true; if (goHome(a)) return; }
-  if (a.lawn && !a.lawnOut && !lawnSun()){ routeToExit(a); return; }   // dusk on the lawn: the run is over, the late walker turns round; in RAIN they walk on — the seat is judged at the seat (#95)
+  if (a.lawn && !a.lawnOut && lawnGone()){ routeToExit(a); return; }   // dusk on the lawn: the run is over, the late walker turns round; in RAIN they walk on — the seat is judged at the seat (#95). NOT at dawn (#108)
   const dx = tgt[0] - a.x, dy = tgt[1] - a.y;
   const d = Math.hypot(dx, dy);
   const sp = a.speed * (raining && !a.umbrella ? 1.5 : 1) * (a.kind === 'napper' ? 0.8 : 1)
@@ -2485,7 +2539,7 @@ function stepAgent(a, dt){
       if (a.with){ if (a.run){ endKidRun(a); return; }   // run done: re-targeted to the parent's side next step
         if (a.with.state !== 'walk'){ kidSettle(a); a.state = a.with.state; a.cup = !!a.with.cup; a.resume = true; } return; }
       if (a.home){ arriveHome(a); a.done = true; return; }   // at the door: in they go
-      if (a.kind === 'gardener' && !a.planted){ a.state='kneel'; a.timer=8+R()*4; return; }
+      if (a.kind === 'gardener' && a.tendBed){ gardenerKneel(a); return; }
       if (a.kind === 'napper' && a.napAt){ a.state='lie'; a.timer=16+R()*14; a.napAt=null;
         if (R()<0.6) announce(inLindenShade(a.x, a.y) ? 'Asleep in the shade of the linden within minutes.'
                               : shadowF() > 0.5 ? 'Asleep out in the sun within minutes.' : 'Asleep under the tree within minutes.'); return; }
