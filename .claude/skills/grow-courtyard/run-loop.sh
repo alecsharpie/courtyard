@@ -161,7 +161,10 @@ if [ "$DRY_RUN" != "1" ] && [ -n "$(dirty)" ]; then
   exit 1
 fi
 
-rm -f "$STOP_FILE"
+# Not on a dry run: it takes its own lock and can therefore run BESIDE a live
+# runner, and clearing the file out from under one would silently cancel a stop
+# the person watching had already asked for.
+[ "$DRY_RUN" = "1" ] || rm -f "$STOP_FILE"
 log "=== grow-courtyard runner up. repo=$REPO perm=$PERM max_iters=${MAX_ITERS:-unlimited} push=$PUSH ==="
 
 # ---- one `claude -p` invocation ----------------------------------------------
@@ -261,7 +264,9 @@ last_manager=0   # worker-iteration index of the last manager pass. Baselined at
 while :; do
   if [ -f "$STOP_FILE" ]; then
     log "STOP file present — stopping cleanly after $done_ok iteration(s)."
-    rm -f "$STOP_FILE"; exit 0
+    # A dry run must not CONSUME it either — see the note by the startup clear.
+    [ "$DRY_RUN" = "1" ] || rm -f "$STOP_FILE"
+    exit 0
   fi
   if [ "$MAX_ITERS" -gt 0 ] && [ "$done_ok" -ge "$MAX_ITERS" ]; then
     log "reached MAX_ITERS=$MAX_ITERS — stopping."; exit 0
