@@ -20,7 +20,7 @@
   "avoid": "Do NOT re-price stayOn at the choice: #101 measured that and it takes far-post fits from 41 in 248 to 2, deleting #85's stay outright. Do not raise eastCap - its arrivals RETRACE their route, so a wider cap just means single file. Count WHEN, not just how often: a place 12 h of walking from its source is an evening place however well the offer is priced.",
   "budgetMin": 55,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 107,
   "issued": "2026-09-01T21:09:14.445Z",
