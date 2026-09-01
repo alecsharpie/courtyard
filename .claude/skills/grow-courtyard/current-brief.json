@@ -22,7 +22,7 @@
   "avoid": "Do not raise EVE_CAP - the cap is not the problem, the ending is. Do not add a new source: the evening already has one.",
   "budgetMin": 45,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 101,
   "issued": "2026-09-01T18:03:45.269Z",
