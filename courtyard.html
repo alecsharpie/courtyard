@@ -4117,6 +4117,15 @@ function updateWildlife(dt){
     const sp = plazaBirdSpot(), col = pick(['#7d8089','#6e6a60','#33302c','#5a4636']);
     if (sp) birds.push({x:sp[0], y:sp[1], z:8, state:'land', hop:0, t:0, plaza:true, col});
   }
+  /* #106: the near roof's own band. Its own roll and its own cap, never a share of the
+   * three below — and open after dark as well as by day, because up here a bird does not
+   * go home at dusk, it roosts (see the hop state). */
+  if (!raining && (daylight > 0.25 || nightF > 0.45) && birds.filter(b => b.roof).length < ROOF_BIRDS
+      && R() < dt * ROOF_BIRD_RATE){
+    const sp = roofBirdSpot();
+    if (sp) birds.push({x:sp[0], y:sp[1], z:sp[2] + 7, zf:sp[2], state:'land', hop:0, t:0,
+                        roof:true, perch:sp[3], col:pick(['#5c5850','#33302c','#4a4640','#6e6a60'])});
+  }
   if (!raining && daylight>0.3 && birds.filter(b => !b.plaza).length < 3 && R() < dt*0.06*(0.5+m)){
     const onLane = R() < 0.4;
     const th=R()*Math.PI*2, r=6+R()*10;
@@ -4129,10 +4138,24 @@ function updateWildlife(dt){
   }
   for (let i=birds.length-1; i>=0; i--){
     const b = birds[i];
-    if (b.state==='land'){ b.z -= dt*6; if (b.z<=0){ b.z=0; b.state='hop'; b.t=6+R()*8; } }
+    const zf = b.zf || 0;                       // #106: the ground is 0 everywhere but the roof
+    if (b.state==='land'){ b.z -= dt*6; if (b.z<=zf){ b.z=zf; b.state='hop'; b.t=b.roof ? 16+R()*18 : 6+R()*8; } }
     else if (b.state==='hop'){
-      b.t -= dt; b.hop += dt*4;
-      if (Math.sin(b.hop)>0.9){ b.x += (R()-0.5)*0.8; b.y += (R()-0.5)*0.8; }
+      /* On the roof a bird sits the night out instead of leaving — a roost is the whole
+       * point of a ridge — and its height is read off the surface under its feet every
+       * frame, so a hop up the pitch rides the pitch rather than floating off it (#73).
+       * A hop that would carry it off the roof, into a light well or into the river gap
+       * simply does not happen: the bird holds its place that beat. */
+      const roost = b.roof && nightF > 0.5;
+      if (!roost) b.t -= dt;
+      b.hop += dt*(roost ? 0.4 : 4);
+      if (Math.sin(b.hop)>0.9){
+        const nx = b.x + (R()-0.5)*0.8, ny = b.y + (R()-0.5)*0.8;
+        if (!b.roof) { b.x = nx; b.y = ny; }
+        else if (b.perch === 'parapet' ? (ny > PARA_Y && ny < PARA_Y + 0.32 && solidC(Math.floor(nx), LN_WALK_S))
+                                       : onNearRoof(nx, ny)) { b.x = nx; b.y = ny; }
+      }
+      if (b.roof) b.z = b.zf = (b.perch === 'parapet' ? PARA_Z : roofSurfZ(b.x, b.y));
       const scare = agents.some(a => Math.hypot(a.x-b.x, a.y-b.y) < 4.5);
       if (scare || b.t<=0 || raining) b.state='fly';
     } else if (b.state==='wheel'){    // put up off the belfry by the bell: one wide turn, then away
@@ -4175,10 +4198,47 @@ function updateWildlife(dt){
     if (l.vy === undefined){ const u = (l.ph / 9) % 1, v = (l.ph * 1.7) % 1; l.vy = 0.5 + 0.35 * (u + v - 1); }
     l.ph+=dt*3; l.x+=l.vx*dt+Math.sin(l.ph)*dt*1.4; l.y+=dt*l.vy; l.z-=dt*0.55;
     if (l.z<=0 || l.x < LEAF_EDGE_W || l.x > LEAF_EDGE_E){ landLeaf(l); leaves.splice(i,1); } }
-  if (!catA && nightF > 0.5 && day >= 2){ catA = {x:-2, y:LANE_N_Y - 0.5, dir:1}; }
+  /* #106: the cat's second act. It has only ever walked the lane; on its own roll it now
+   * turns south partway along, crosses, comes up over the parapet and walks the ridge —
+   * the nearest and largest thing in the night picture, and until this pass the emptiest.
+   *
+   * PRICED AGAINST THE NIGHT, not against the lane. nightF > 0.5 to nightF < 0.2 is about
+   * 27 s of a 55 s day, and the lane walk alone is 68 cells at 1.6 c/s = 42 s — a cat that
+   * diverts late never arrives anywhere. So it turns at turnX (4..12, ~3-8 s in), crosses
+   * the road at 2.4 c/s and climbs at 1.1, which puts it on the ridge inside ~12-18 s and
+   * leaves the rest of the night up there. The roll is R(), not hash(day, k): a per-day
+   * hash is seed-INDEPENDENT and would give every world the same cat nights, which is
+   * also an instrument that cannot be replayed across seeds. Both draws are spent either
+   * way, so the stream does not fork on the answer.
+   *
+   * Every leg is priced BY ITS OWN ROW: z is read off the surface under its feet, and the
+   * ridge at row 83 lands at depth 80.6 — clear of the lane, which the roof's own rows 79
+   * and 80 (78.6, 78.9) are not. The step from the coping (PARA_Z) to the tiles behind it
+   * (0.31) drops the cat 0.18 of a row DOWN the screen, which is a cat dropping into the
+   * lead gutter behind a parapet, and is meant. */
+  if (!catA && nightF > 0.5 && day >= 2){
+    const u = R(), tx = 4 + R() * 8;
+    catA = {x:-2, y:LANE_N_Y - 0.5, z:0, dir:1, leg:'lane', turnX: u < CAT_ROOF_P ? tx : Infinity};
+  }
   if (catA){
-    catA.x += catA.dir * dt * 1.6;
-    if (catA.x > 66 || nightF < 0.2) catA = null;
+    const c = catA;
+    if (c.leg === 'lane'){
+      c.x += c.dir * dt * 1.6;
+      if (c.x >= c.turnX) c.leg = 'cross';
+    } else if (c.leg === 'cross'){
+      c.y += dt * 2.4; c.x += dt * 0.3;                 // straight over the road, not dawdling
+      if (c.y >= CAT_EAVE) c.leg = 'climb';
+    } else if (c.leg === 'climb'){
+      c.y += dt * 1.1;
+      c.z = c.y < PARA_Y + 0.30 ? PARA_Z * clamp((c.y - CAT_EAVE) / 0.9, 0, 1) : roofSurfZ(c.x, c.y);
+      if (c.y >= CAT_RIDGE_Y){ c.y = CAT_RIDGE_Y; c.leg = 'ridge'; }
+    } else {
+      c.x += c.dir * dt * 1.35;                          // along the one line that crosses the frame
+      c.y = CAT_RIDGE_Y + Math.sin(c.x * 0.55) * CAT_WOBBLE;   // the crest line, clear of both wells
+      c.z = roofSurfZ(c.x, c.y);
+      if (c.x >= QUAY_X0 - 1.5) c.dir = -1;               // the river cuts the block in two: turn back
+    }
+    if ((c.leg === 'lane' && c.x > 66) || c.x < -4 || nightF < 0.2) catA = null;
   }
   // umbrellas go up on the approach, not on the first drop. Each walker has their own
   // patience with the sky, and the top of the band runs past 1, so roughly a third of
@@ -5854,6 +5914,112 @@ function partyWalls(sx0, sx1){
  * (row 83) a cowl lands at depth 78.1 — in front of the south footway. At STACK_Y 86 the
  * same cowl tops out at 81.8, clear of the lane by nearly three rows. */
 function nearStack(bx){ return hash(houseOf(bx), 13) > 0.68; }
+/* ============ the near roof's own life (#106) ============ *
+ * #100 grew the biggest single object in the picture and nothing lived on it — not by
+ * oversight: the bed CA, the item sort, the opening seed scatter and every spawner in
+ * the town bound their y loops at LN_WALK_S, so the whole band south of the lane was
+ * empty BY CONSTRUCTION. It gets its own tenants here, and they are the town's existing
+ * ones — the birds that already land and hop, and the night cat that has only ever
+ * walked the lane.
+ *
+ * A roof bird is NOT a wider birds[] roll. A spawn band is a share of a budget, so the
+ * roof gets its own roll and its own cap, exactly as the plaza's pigeons did in #92 —
+ * widen the general roll instead and the roof and the lawn compete for the same three.
+ *
+ * THE BAND IS MEASURED, not chosen (probe-roofgeom):
+ *
+ *     row    79     80     81     82     83     84     85     86
+ *     z    0.31   0.93   1.55   1.98   2.11   1.98   1.55   0.93
+ *     depth 78.64 78.93  79.22  79.72  80.58  81.72  83.22  84.93
+ *
+ * Two ends, and each is a hard edge. project() lifts z NORTHWARD 1.15 rows per cell of
+ * height, and the roof's own surface crosses the lane's line doing it: rows 79 and 80
+ * land at depth 78.6 and 78.9 — NORTH of the south footway — so a bird standing there
+ * renders in the road. Row 81 (79.22) is the first that is clear. The other end is the
+ * sill: sillTop() eats the bottom of every frame, and how much of the roof it eats swings
+ * with the framing — at 1600x950 the whole block is visible, but at a wide, short
+ * 1200x720 the sill cuts the surface at row ~84.9 and the visible roof is 3.6% of the
+ * canvas, not the 14% it is on a tall one. The band visible at EVERY framing is
+ * 81.4..84.6, which is the ridge and the pitch either side of it — the most legible part
+ * of the surface anyway, and the one line that crosses the whole frame. */
+const ROOF_N = 81.8, ROOF_S = 84.6;      // clear of the lane at one end, above the sill at the other
+/* The south end has to be bounded in DEPTH, not in rows, and rows lie about it: around a
+ * light well the distance transform drops the roof to nothing, so the SAME row 84.6 is
+ * 1.7 of depth lower on a well's lip than it is out on the pitch — which is how a bird
+ * ended up 9.5 px over the painted sill at 1200x720 with the row bound looking correct.
+ * Depth (y - z*LIFT) is world state; sillTop() is not. */
+const ROOF_DMAX = 82.2;                  // measured: the sill sits at depth 82.62 on a 1200x720
+/* nearZ averages a 2x2 of VERTICES, so a reading taken at row 82 still reaches into row
+ * 83 — and row 83 at x 24..27 and 88..91 is a WELL, where the roof is nothing. Sampling
+ * the surface per cell therefore dropped the cat from z 1.98 to 0.31 mid-stride, twice a
+ * crossing, as it passed the two light wells: a two-row fall down the screen with no
+ * change of leg. The line it walks is held one row north of that, where the stencil
+ * cannot reach a well at all and the roof is level along the whole block (probe-roofgeom:
+ * z 1.55 at x 0, 20, 40, 60, 80 and 105 alike). The wobble is kept inside that row so
+ * floor() never lands on 82. */
+const CAT_RIDGE_Y = ROOF_N + 0.05, CAT_WOBBLE = 0.1;
+const ROOF_RIDGE = 83;                   // roofD's plateau top — the line the eye follows across
+const ROOF_BIRDS = 3, ROOF_BIRD_RATE = 0.5;
+const ROOF_BIRD_MIN = 1.1;               // two birds nearer than this draw as one shape (#73)
+const CAT_ROOF_P = 0.6, CAT_EAVE = LN_WALK_S - 0.4;
+/* Everything alive in this town is drawn at a FIXED screen size — 12 px people, a bird
+ * whose body is a 2.6 px ellipse — and for a flat diorama read end-on that is right.
+ * It is wrong for the one band that is genuinely close to us. Drawn at the lawn's size,
+ * a bird on the ridge is a 5 px smudge on slate: the pixels are there and a difference
+ * image finds them, but legibility is MASS, not peak delta, and nothing at that size
+ * reads at the shipping size. So a figure on the near block is drawn to ITS OWN ROW,
+ * ramping from 1x at the lane's south walking line — where the existing lane cat is, so
+ * it is untouched — to NEAR_SZ at the bottom of the visible roof. It is a ramp and not a
+ * flag so that the cat coming up over the parapet grows into the foreground instead of
+ * popping when its leg changes. */
+const NEAR_SZ = 1.95;
+function nearScale(y){ return 1 + (NEAR_SZ - 1) * clamp((y - LANE_S_Y) / (ROOF_S - LANE_S_Y), 0, 1); }
+/* Height is read off the place under the feet, every frame, never written at spawn —
+ * the same rule agentZ() follows for the footbridge deck. */
+function roofSurfZ(x, y){ return nearZ(Math.floor(x), Math.floor(y)); }
+function nearDepth(x, y){ return y - roofSurfZ(x, y) * LIFT; }
+function onNearRoof(x, y){
+  if (y < ROOF_N || y > ROOF_S) return false;
+  if (nearDepth(x, y) > ROOF_DMAX) return false;
+  if (x >= QUAY_X0 - 0.8 && x < RIVER_X1 + 0.8) return false;   // the river runs between the halves
+  if (wellAt(x, y)) return false;                               // a hole clean through: nothing stands on it
+  return !!solidC(Math.floor(x), Math.floor(y));
+}
+/* Where a bird comes down. Four kinds of place, each read off the roof rather than
+ * stated: the ridge (most of them), the pitch either side, the north lip of a light well
+ * — where a bird stands and looks down the shaft, which is the half of c151 nothing had
+ * answered — and now and then the parapet coping. The parapet is deliberate: it is the
+ * one perch inside the 4.5-cell scare radius of the south footway, so a bird that takes
+ * it is put up by the next person along the lane, unbidden and for no extra code.
+ * The well branch picks x FROM a well rather than testing whether x landed in one: the
+ * two wells are 6 cells of 146, so a reject would have run this perch at ~0.6% of rolls,
+ * which is the rate-of-zero trap. Returns null when the spot will not do; the draws are
+ * spent either way, so the cadence does not depend on the answer (#92). */
+function roofBirdSpot(){
+  const u = R();
+  let x, y, perch;
+  if (u < 0.15){
+    const w = WELLS[R() < 0.5 ? 0 : 1];
+    x = w.x0 + 0.45 + R() * (w.x1 - w.x0 - 0.9);
+    /* 0.6 and not 0.42: the roof falls to NOTHING at a well's lip (z 0.31 there against
+     * 1.98 out on the pitch), so a spot only two fifths of a cell north of the hole prices
+     * to depth 82.22 against a 82.2 cap and is rejected by two hundredths — silently, at a
+     * rate of zero, which is the trap this perch was written to avoid in the first place. */
+    y = w.y0 - 0.6; perch = 'well';
+  } else {
+    x = 2 + R() * (GW - 4);
+    const s = R();
+    if (u < 0.27){ y = PARA_Y + 0.16; perch = 'parapet'; }
+    else if (u < 0.70){ y = ROOF_RIDGE + (s - 0.5) * 0.55; perch = 'ridge'; }
+    else { y = s < 0.5 ? ROOF_N + 0.15 + s * 2.3 : ROOF_RIDGE + 0.8 + (s - 0.5) * 1.5; perch = 'pitch'; }
+    if (x >= QUAY_X0 - 0.8 && x < RIVER_X1 + 0.8) return null;
+    if (perch === 'parapet'){ if (!solidC(Math.floor(x), LN_WALK_S)) return null; }
+    else if (!onNearRoof(x, y)) return null;
+  }
+  if (perch !== 'parapet' && nearDepth(x, y) > ROOF_DMAX) return null;
+  for (const b of birds) if (b.roof && Math.hypot(b.x - x, b.y - y) < ROOF_BIRD_MIN) return null;
+  return [x, y, perch === 'parapet' ? PARA_Z : roofSurfZ(x, y), perch];
+}
 function drawNearRoof(g){
   const [amb, key] = roofKey();
   ROOF_LIGHTS.length = 0;
@@ -8098,29 +8264,42 @@ function drawDog(it){
   ctx.strokeStyle = d.col; ctx.lineWidth = 1.4;
   ctx.beginPath(); ctx.moveTo(x - 4, y - 4.5 - bob); ctx.lineTo(x - 6.5, y - 7 - bob); ctx.stroke();
 }
+/* drawSill is painted into the GROUND CACHE and every live item sorts after the blit, so
+ * a figure low on the near block is drawn ON TOP of the sill — cue c156's exact fault.
+ * ROOF_DMAX keeps the band clear of it down to a 1200x720 window, but how much roof the
+ * sill eats swings with the framing (it sits at world depth 81.7 on a 1280x700, 82.6 on a
+ * 1200x720, 98 on a 1600x950 and 120 on a phone), so no world bound is safe at every
+ * window and this is the backstop: on the near block, what the sill would cover is not
+ * drawn. Which is also what a sill IS — the edge we are looking out over. */
+function nearHidden(y, sy){ return y > LN_WALK_S && sy > sillTop(); }
 function drawBird(it){
   const b = it.b;
   const [x, y] = project(b.x, b.y, b.z);
+  if (nearHidden(b.y, y)) return;
+  const n = nearScale(b.y);            // 1 everywhere but the near block (#106)
   ctx.fillStyle = b.col;
-  if (b.state === 'hop' || (b.state === 'land' && b.z < 1)){
-    ctx.beginPath(); ctx.ellipse(x, y - 2, 2.6, 1.8, 0, 0, 7); ctx.fill();
-    ctx.beginPath(); ctx.arc(x + 2, y - 3.6, 1.2, 0, 7); ctx.fill();
-    ctx.fillStyle = '#c9903a'; ctx.fillRect(x + 3, y - 3.8, 1.6, 0.8);
+  if (b.state === 'hop' || (b.state === 'land' && b.z < (b.zf || 0) + 1)){
+    ctx.beginPath(); ctx.ellipse(x, y - 2 * n, 2.6 * n, 1.8 * n, 0, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + 2 * n, y - 3.6 * n, 1.2 * n, 0, 7); ctx.fill();
+    ctx.fillStyle = '#c9903a'; ctx.fillRect(x + 3 * n, y - 3.8 * n, 1.6 * n, 0.8 * n);
   } else {
-    const f = Math.sin(b.ph2 != null ? b.ph2 : b.z * 3), s = b.sz || 1;
+    const f = Math.sin(b.ph2 != null ? b.ph2 : b.z * 3), s = (b.sz || 1) * n;
     ctx.beginPath(); ctx.moveTo(x - 4*s, y - 2 - f*2*s); ctx.quadraticCurveTo(x, y, x + 4*s, y - 2 - f*2*s);
     ctx.quadraticCurveTo(x, y + 1, x - 4*s, y - 2 - f*2*s); ctx.fill();
   }
 }
 function drawCat(){
-  const [x, y] = project(catA.x, catA.y, 0);
+  const [x, y] = project(catA.x, catA.y, catA.z || 0);
+  if (nearHidden(catA.y, y)) return;
+  const n = nearScale(catA.y), d = catA.dir < 0 ? -1 : 1;   // it faces the way it is going
+  const X = (o) => x + o * n * d, Y = (o) => y - o * n;
   ctx.fillStyle = '#26221e';
-  ctx.beginPath(); ctx.ellipse(x, y - 2.5, 3.6, 2, 0, 0, 7); ctx.fill();
-  ctx.beginPath(); ctx.arc(x + 3, y - 4.4, 1.5, 0, 7); ctx.fill();
-  poly(ctx, [[x + 2.2, y - 5.4], [x + 2.9, y - 7], [x + 3.5, y - 5.5]]); ctx.fill();
-  poly(ctx, [[x + 3.1, y - 5.4], [x + 3.8, y - 6.8], [x + 4.3, y - 5.4]]); ctx.fill();
-  ctx.strokeStyle = '#26221e'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(x - 3.4, y - 2.5); ctx.quadraticCurveTo(x - 6, y - 5.5, x - 4.5, y - 7); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(x, Y(2.5), 3.6 * n, 2 * n, 0, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.arc(X(3), Y(4.4), 1.5 * n, 0, 7); ctx.fill();
+  poly(ctx, [[X(2.2), Y(5.4)], [X(2.9), Y(7)], [X(3.5), Y(5.5)]]); ctx.fill();
+  poly(ctx, [[X(3.1), Y(5.4)], [X(3.8), Y(6.8)], [X(4.3), Y(5.4)]]); ctx.fill();
+  ctx.strokeStyle = '#26221e'; ctx.lineWidth = Math.max(1, n);
+  ctx.beginPath(); ctx.moveTo(X(-3.4), Y(2.5)); ctx.quadraticCurveTo(X(-6), Y(5.5), X(-4.5), Y(7)); ctx.stroke();
 }
 
 /* ============ lighting ============ */
@@ -8761,7 +8940,17 @@ function livingAt(p){
     s.state === 'upend' ? 'a swan, upended' : s.state === 'preen' ? 'a swan, preening' : 'a swan, on the river', 1.1);
   if (cart) hit(cart.x + cart.hx * 1.2, cart.y + cart.hy * 1.2, 0, 1.8, Math.max(cart.y, cart.y + cart.hy * 2.3) + 0.6, cartName(), 3.2);
   if (boat && (boat.y < 64.5 || boat.y > 79)) hit(boat.x, boat.y, 0, 1.4, boat.y + 0.6, boatLampF() > 0.5 ? 'the rowboat, going downriver by lantern' : 'the rowboat, going downriver');
-  if (catA) hit(catA.x, catA.y, 0, 0.6, catA.y + 0.3, 'the cat, out along the lane');
+  if (catA) hit(catA.x, catA.y, catA.z || 0, 0.6, catA.y + 0.3,
+    catA.leg === 'ridge' ? 'the cat, up on the ridge' :
+    catA.leg === 'lane'  ? 'the cat, out along the lane' : 'the cat, going up over the parapet');
+  // #106: the roof's own tenants are nameable, or nobody finds them — the sill is how
+  // this piece advertises what it contains. Only the ones that are DOWN: a bird still in
+  // the air is not standing anywhere the pointer can mean.
+  for (const b of birds) if (b.roof && b.state === 'hop')
+    hit(b.x, b.y, b.z, 0.5, b.y + 0.4,
+        b.perch === 'well'    ? 'a bird on the lip of the light well, looking down' :
+        b.perch === 'parapet' ? 'a bird on the parapet, over the lane' :
+        nightF > 0.5          ? 'a bird roosting on the ridge' : 'a bird up on the roof slates', 0.9);
   return best;
 }
 /* The windows and front doors, hit-tested in SCREEN space against FACES[] — painter's
@@ -9376,7 +9565,8 @@ window.__entities = function(){
        (o, a) => { o.act = a.state; if (a.tap){ o.tap = 1; if (a.caller) o.caller = 1; } });
   take(ducks, 'duck'); take(swans, 'swan', (o, s) => { o.act = s.state; });
   take(butterflies, 'butterfly'); take(fireflies, 'firefly');
-  take(birds, 'bird', (o, b) => { o.act = b.state; if (b.plaza) o.plaza = 1; }); take(leaves, 'leaf');
+  take(birds, 'bird', (o, b) => { o.act = b.state; if (b.plaza) o.plaza = 1; if (b.roof){ o.roof = 1; o.perch = b.perch; } }); take(leaves, 'leaf');
+  if (catA) take([catA], 'cat', (o, c) => { o.act = c.leg; });
   if (balloon) take([balloon], 'balloon');
   if (boat) take([boat], 'boat');
   take([punt], 'punt', (o, p) => { o.act = ['moored', 'claimed', 'out', 'ashore', 'back'][p.leg]; if (p.rider) o.rider = 1; });

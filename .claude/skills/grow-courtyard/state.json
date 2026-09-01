@@ -471,7 +471,9 @@
    "ARRIVALS IN TWOS: withCompanion(a, room) on the lane/east/courtyard/cafe spawners under the SAME cap; b.with re-targets pairTarget(b) per step (PAIR_MIN 0.9)",
    "the warm EVENING: eveOpen() rolls spawnEveningAgent() under EVE_CAP onto EVE_SPOTS (a.dusk); stayOn(a) re-routes an a.east or a.band onto the deck's east posts",
    "the LAWN's own source: spawnLawnAgent() under LAWN_CAP 4 place-holders, claimed at the choice, released as the walk out begins, priced vs lawnStart()..lawnEnd()",
-   "NOTHING LIVING GOES SOUTH OF LN_WALK_S (79): the bed CA, the item sort, the seed scatter and every spawner bound their y loops at it, so the near roof has no inhabitants"
+   "SOUTH OF LN_WALK_S (79) IS NO LONGER EMPTY (#106): the bed CA, the item sort and the seed scatter still bound their y loops there, but the near roof now has its own bird band and the cat's second act. The one thing that always went south of it is the ROWBOAT, which runs downriver to row 92 between the block's halves - exclude the river channel from any 'nothing lives here' control or HEAD reads 4.6%, not 0",
+   "catA has a SECOND ACT (#106): legs lane->cross->climb->ridge on its own R() roll (~60% of nights), priced against the night (27 s) not the lane (42 s); CAT_RIDGE_Y held one row north of the wells so nearZ's 2x2 stencil cannot reach a hole",
+   "nearScale(y) ramps a figure's drawn size 1 -> NEAR_SZ 1.95 across the near block, exactly 1 everywhere else (probes/near-identity.mjs); nearHidden() stops a near-block figure drawing over the cached sill at any framing"
   ],
   "sill": [
    "the SILL under the canvas: #plate, #daytime, #season, #where, #ticker (TICK_DWELL 2.5 s), #stats, #ctrl; hidden under 640px. Two LAPSE buttons, one mechanism (beginLapse)",
@@ -488,7 +490,8 @@
    "OUR OWN ROOF below the lane: rows 79..WH are WALL and buildVolumes grows the near block's slate roof; NEAR_SPANS the two halves, eaveFor 0 so it cannot occlude the lane, SLATES per house",
    "drawNearRoof (CACHED): drawRoofRow per row, drawCrests + a capped ridge, moss on the north pitch, WELLS (the only VOID left), a dormer or rooflight per house at DORM_Y 85 (ROOF_LIGHTS -> LIT_PANES), drawPartyWalls with stacks at STACK_Y 86, drawParapet at PARA_Y",
    "the APRON below row WH: one column-wise quad to the canvas bottom under a gradient to rgba(8,7,6,.68). OUR_AWNINGS are world quads on the kerb (rows 77.65..79)",
-   "nearShadow(g): the ONE ramp from near roof into the sill, priced off sillTop(), bounded above by the footway (yWalk + 1) so no live walker stands in a cached shadow (#105)"
+   "nearShadow(g): the ONE ramp from near roof into the sill, priced off sillTop(), bounded above by the footway (yWalk + 1) so no live walker stands in a cached shadow (#105)",
+   "THE NEAR ROOF IS INHABITED (#106): roofBirdSpot() is the roof's OWN band - own roll/cap (ROOF_BIRDS 3, ROOF_BIRD_RATE), four perches (ridge, pitch, a WELL's north lip, the parapet, which the south footway's 4.5-cell scare flushes); birds carry zf and roost through the night; bounded in DEPTH by ROOF_DMAX 82.2, never in rows"
   ]
  },
  "openCues": [
@@ -513,6 +516,18 @@
   {
    "id": "c156",
    "note": "at every zoomed quarter the sill band fills with live content drawn over the cached sill (max luma 221 at Courtyard, 192 at Plaza, 112 at Street) - identical on HEAD, so pre-existing: drawSill is baked into the ground cache and agents/overlays sort after it, so the four quarter cameras have no sill at all (#105)",
+   "raisedBy": 104,
+   "seenBy": 0
+  },
+  {
+   "id": "c157",
+   "note": "the near roof's life is confined to depth <= 82.2 (rows ~81.8-84.6) because those are the rows above sillTop at a 1200x720; at 1600x950 and on a phone that is only the top ~20% of the roof band and the big lower expanse of slate is still empty. Widening it needs nearHidden() clipping, which costs a blink as a bird hops the sill line at short framings (#106)",
+   "raisedBy": 104,
+   "seenBy": 0
+  },
+  {
+   "id": "c158",
+   "note": "birds are still not named by livingAt() anywhere but the near roof - a pigeon on the lawn, the lane or the plaza roundel answers nothing under the pointer, though every duck, swan and dog does (#106)",
    "raisedBy": 104,
    "seenBy": 0
   }
