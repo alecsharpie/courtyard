@@ -22,7 +22,7 @@
   "avoid": "Per-cell variance at the grain the region is addressed by - a scalar that can reach zero needs `hash(x, y+k) > c`, not a global multiply, or the whole plaza flickers as one. It is cached ground: set the dirty flag on the cadence the growth actually changes, not per frame (`ground-rebuilds.mjs`). Do not make it walkable-different: nobody's route changes.",
   "budgetMin": 50,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 103,
   "issued": "2026-09-01T19:09:26.025Z",
