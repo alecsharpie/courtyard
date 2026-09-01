@@ -17,7 +17,7 @@
   "avoid": "Do not add a new kind of worker, and do not raise the set-out rate - 0.7/day is already fine and the fault is presence, not arrivals. Price presence as rate x visit before you touch any cap: lengthen the stay or shorten the walk. Do not let a longer stay block the bed the way the one-at-a-time rule already does; release the bed as the walk out begins.",
   "budgetMin": 35,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 108,
   "issued": "2026-09-01T21:38:19.712Z",
