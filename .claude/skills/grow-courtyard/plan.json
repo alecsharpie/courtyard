@@ -15,30 +15,7 @@
     "balance": "Recording #95-#99 (courtyard x Deepen, river x Connect, roofs x New element, lane x New element, sill x Polish): Sky is 11 back, People & animals 10, Plaza & quay 7, Cross street 6; everything else was touched in the last five. Roofs & skyline is still the thinnest domain in the town (4 entries) and it is the domain the bet belongs to. Sky x Polish stays saturated - the sky brief below is a Connect. Plaza x New CA is an empty cell, and New CA has 4 entries in 99 iterations, all of them in the courtyard and the allotments."
   },
   "rationale": "I went and looked at the thing. shots/mgr100a-wide.png, seed 42, day 6, 14:43, a clear midsummer afternoon: the town above the lane is dense and finished, and the bottom of the picture is a BLACK RECTANGLE. It is not a rendering bug, it is an omission with a comment on it - buildGrid's last clause reads `// below the lane: our own building, with the river slipping between its two halves` and then sets rows 79..87 to VOID, and drawGround's first line is `if (t === WALL || t === VOID) continue`. So 1107 cells, 9.1% of the grid, the NEAREST rows and therefore the largest ones on screen, have never been painted by anything. Measured on HEAD: on a 1600x950 desktop the band runs from project(60,79,0)[1] = 676.4 to sillTop() = 794.6 of a canvas H = 859 - 13.8% of the picture; on a 390x844 phone it is 536.2 to 700.5 of H = 757.25, 21.7%. That is the answer to 'what would most change a thirty-second look', and it is a SPATIAL answer, which is what this batch needs: mapFlat is two iterations from firing, the map has not moved since #87, and `structures` and `passages` have not moved once in the whole run. So this batch is RUNG 4b, and b100 is the bet: give the diorama its foreground. The rest balance the grid and are aimed at what the same screenshot shows: an evenly-lit town under a sky whose eleven cloud banks cast nothing on it (b102, Sky 11 back, and drawClouds is a sky-strip-only pass - grepped, confirmed), an evening that does not end (b101, People 10 back, c137: a dusk stayer is still walking the plaza at 03h on four seeds), a plaza whose paving is 400 identical setts (b103, Plaza 7 back, New CA, and `moss`/`weed`/`lichen` appear nowhere in the source), and one measured polish (b104, Street 6 back). Cost discipline, third pass running: every number a brief needs is IN the brief, and where I could not price something I have said so rather than inventing a target.",
-  "queue": [
-    {
-      "id": "b104",
-      "domain": "Cross street & allotments",
-      "kind": "Polish",
-      "brief": "The autumn bonfire barely reads. Its smoke column is `thick = 0.34 * bon.fire + 0.06 * bon.ember` in drawSmoke (line ~5859) and at 1x against the lawn it is nearly invisible - the one thing on the allotments that is supposed to be seen from across the town. And 2 of 17 kindles land at 20:00 or later, because the holder walks 13 h from a sunrise set-out, so the fire lights after dark on days it should have burned in the afternoon. Make the column read at 1x, and get the late kindles into the daylight - either spawn the holder at the lane gate (a shorter walk) or price the walk at the set-out, per the both-ends rule.",
-      "seams": [
-        "drawSmoke",
-        "bon.fire",
-        "bon.ember",
-        "bonfireDay",
-        "bonfireWeather",
-        "spawnBonfireHolder",
-        "a.tend",
-        "ALT_GATE",
-        "drawBonfireLight"
-      ],
-      "measured": "#93's own numbers: 17 kindles over 8 seeds x 27 days, of which 2 land at 20:00+; kindle hours span 13.8-20.4. `thick = 0.34 * bon.fire + 0.06 * bon.ember`. Re-run `probes/bonfire-year.mjs` on HEAD before and after; do not re-derive the window.",
-      "successLooksLike": "A 1x wide shot at the kindle hour shows the column against the lawn (before/after crop, and a pixel count for the column's own box). Kindles at 20:00+ fall to 0 of ~17 with the total number of fires per season unchanged.",
-      "avoid": "Do not change bonfireDay()'s K or bonfireWeather() - the rate is right and was priced twice at #93. Thickening the column must not thicken the chimneys: they share drawSmoke.",
-      "budgetMin": 30,
-      "risk": "low"
-    }
-  ],
+  "queue": [],
   "recommendStop": null,
   "consumed": [
     {
@@ -56,6 +33,10 @@
     {
       "id": "b103",
       "at": "2026-09-01T19:09:26.023Z"
+    },
+    {
+      "id": "b104",
+      "at": "2026-09-01T19:32:28.294Z"
     }
   ]
 }

@@ -429,7 +429,7 @@
       "harvest cycle — harvestPlot(), bAge the fallow clock when !bSp, re-sown under plotCrop(); spawnAllotAgent()/sendToPlot() on ripePlots(); a.crop baskets. Winter: hardy cabbages, digWeather()/DIG_RATE, fallowPlots() turned by a.dig",
       "seasonal canopy on all 13 trees — leafOut/Fresh/Deep/Turn/Shed + leafCol() off seasonPhase, bare in winter (drawBoughs); leafFallF(); fruit trees blossomF()/fruitF()",
       "the CARTER — one cart: cartToday()/cartDue() off sunUp; south to the fence gate row 45, spawnLoader() basket → c.load; market days on to MARKET_STALLS[1], home by cartHomeX() west or EAST; sacks off wetF()",
-      "the BONFIRE — a GRASS cell (84,19.5) in the plot gap; bon.fire/bon.ember rate-capped; bonfireDay()/bonfireWeather(); spawnBonfireHolder() (a.tend, a.fork) out at sunrise, kindles ~9 h on; drawBonfireLight after applyLight"
+      "the BONFIRE — a GRASS cell (84,19.5) in the plot gap; bon.fire/bon.ember rate-capped; bonfireDay()/bonfireWeather(); spawnBonfireHolder() (a.tend, a.fork) out at sunrise, kindles ~9 h on; drawBonfireLight after applyLight; smoke column BON_PUFFS/BON_THICK, reads at 1x"
     ],
     "plaza": [
       "plaza with a FOUNTAIN (105.5,30) and paved roundel, four tree pits, PLAZA_BENCHES (2); QUAY_BENCHES (2), quay rail x 112.9; pavingAt(x,y) the ONE paving predicate; crumbSpot() keeps birds off the basin",
@@ -537,6 +537,12 @@
       "id": "c154",
       "note": "the quay, the towpath, the lane and the cross street are all SIDE/ROAD and still do not age — moss[] is deliberately plaza-only (pavingAt's other five kinds are untouched). The quay strip against the rail is the obvious next joint, and it needs no new machinery, only a second region in stepMoss (#103)",
       "raisedBy": 102,
+      "seenBy": 0
+    },
+    {
+      "id": "c155",
+      "note": "at 1200x720 the near block's apron eats the bottom ~50 px as near-black (rows >=83 read 4,3,2; rows 79.5-82 read ~117) - live rAF and ?pause+__warp agree exactly, so it is the framing, not a probe artifact (#104)",
+      "raisedBy": 103,
       "seenBy": 0
     }
   ],
