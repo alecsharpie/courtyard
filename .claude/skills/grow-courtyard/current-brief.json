@@ -19,7 +19,7 @@
   "avoid": "Do not change bonfireDay()'s K or bonfireWeather() - the rate is right and was priced twice at #93. Thickening the column must not thicken the chimneys: they share drawSmoke.",
   "budgetMin": 30,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 104,
   "issued": "2026-09-01T19:32:28.296Z",

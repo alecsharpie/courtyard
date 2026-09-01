@@ -2,7 +2,7 @@
   "updated": "2026-09-01",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 103,
+  "lastIteration": 104,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -237,7 +237,8 @@
         "pre3",
         "pre5",
         41,
-        61
+        61,
+        104
       ],
       "connect": [
         "pre7",
