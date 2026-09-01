@@ -539,6 +539,7 @@ function makeR(seed){
 window.__reseed = function(n){ if (SEED === null && n === undefined) return false; R = makeR(n === undefined ? SEED : n); return true; };
 function pick(a){ return a[(R() * a.length) | 0]; }
 function clamp(v, a, b){ return v < a ? a : v > b ? b : v; }
+function mod(v, m){ return ((v % m) + m) % m; }        // a wrap that survives a negative: windX runs backwards under an east wind
 function lerp(a, b, t){ return a + (b - a) * t; }
 function cparse(c){
   if (c[0] === '#'){ const v = parseInt(c.slice(1),16); return [v>>16, (v>>8)&255, v&255]; }
@@ -4275,13 +4276,18 @@ function drawSky(g){
   }
   g.drawImage(bcv, 0, 0, W, H);
 }
+/* How far the sky has travelled, in drift units. ONE definition: the banks in the
+ * sky strip and their shadows on the town read the same number, so a cloud and its
+ * shade cannot drift apart. windX already carries direction and gust (windDir()
+ * flips it under an east wind); RM slows it without stopping it. */
+function cloudDrift(){ return (simT + windX) * 1.4 * (RM ? 0.12 : 1); }
 /* A fixed pool of banks that fade in one by one as cover thickens, so the sky
  * fills continuously instead of popping a cloud into existence. Draw path, so it
  * is hash()-and-simT deterministic — never R(). */
 function drawClouds(g, hz){
   const c = cloudCover();
   if (c < 0.04) return;
-  const drift = (simT + windX) * 1.4 * (RM ? 0.12 : 1);   // calm: exactly the old simT * 1.4
+  const drift = cloudDrift();                             // calm: exactly the old simT * 1.4
   const span = W + cellW * 36;
   const pale = mix('#ffffff', '#8a919d', clamp((c - 0.34) * 1.5, 0, 1));
   const dark = mix('#3b4358', '#161c2c', clamp((c - 0.4) * 1.4, 0, 1));
@@ -4306,6 +4312,96 @@ function drawClouds(g, hz){
     g.fill();
   }
   g.globalAlpha = 1;
+}
+/* ---- the sky's shadow on the town (#102) --------------------------------------
+ * drawClouds() drew eleven banks in the SKY STRIP and nothing they passed over was
+ * ever told. shadowF() had already taught every object's own shadow that a lid has
+ * no edge — but a lid is not weather. Weather is the light MOVING: on a broken day
+ * the town should darken and clear in patches that travel, not sit under a dimmer.
+ *
+ * Same drift, same hash family as the banks above, so the sky and the ground agree
+ * and the whole thing stays hash()-and-simT deterministic — no R(), no new draw in
+ * the seeded world. A handful of soft ellipses laid on the ground plane in ONE
+ * multiply pass, LIVE: the ground is a cache with its own dirty flag, and a
+ * per-frame truth on a cache belongs in an overlay (drawLitPanes' idiom).
+ *
+ * The strength is a HUMP, not a ramp. A clear sky has nothing to cast; a full lid
+ * casts nothing either, because the whole town is already inside it and what is
+ * left is shadowF()'s uniform softening. Broken cloud is the only sky that moves
+ * light, and 57% of this town's daylit hours sit in that band (probe-cloud-band.mjs).
+ *
+ * Placed before applyLight() and after the items, so it shades the people and the
+ * trees along with the ground they stand on; clipped to below the horizon, so the
+ * banks in the sky are not shaded by their own shadows. */
+const CSH_KNEE = 0.04;      // drawClouds' own gate: at or below it the frame is HEAD's, byte for byte
+const CSH_RISE = 0.14;      // ...and by here a bank that exists casts at full strength: the
+                            // COUNT of banks already thins with cover, and throttling their
+                            // strength by it too left a fair-weather sky with nothing on it
+const CSH_FALL = 0.55;      // past broken, the lid starts to swallow its own shadows
+const CSH_SHUT = 0.95;      // ...and by here it is everywhere: nothing travels
+const CSH_MAX  = 0.40;      // the strongest multiply alpha, at the peak of a summer noon
+const CSH_N    = 14;        // slots a bank can occupy; each one exists at its own cover
+const CSH_LIFT = 20;        // how high they fly, in cells: with sunVec() this is the throw
+const CSH_COL  = '70,84,112';
+/* 0..1-ish: how hard the sky is casting right now. Zero on a clear sky, zero under a
+ * lid, zero after dark — so the night's multiply never meets this one. */
+function cloudShadeF(){
+  const c = cloudCover();
+  if (c <= CSH_KNEE || daylight <= 0.06) return 0;
+  const up = clamp((c - CSH_KNEE) / (CSH_RISE - CSH_KNEE), 0, 1);
+  const dn = clamp((CSH_SHUT - c) / (CSH_SHUT - CSH_FALL), 0, 1);
+  return CSH_MAX * up * dn * daylight;
+}
+function drawCloudShade(){
+  const f = cloudShadeF();
+  if (f <= 0.004) return;
+  const S = sunVec(), sz = Math.max(S[2], 0.3);
+  // downsun: a shadow is not under its cloud. A low sun throws it far west or east and
+  // south; at a high summer noon it pulls in under the bank.
+  const thX = -S[0] / sz * CSH_LIFT, thY = -S[1] / sz * CSH_LIFT;
+  const c = cloudCover(), drift = cloudDrift(), span = GW + 120;
+  const hz = topPad - 3.4 * cellH;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0, hz, W, H - hz); ctx.clip();
+  ctx.globalCompositeOperation = 'multiply';
+  for (let k = 0; k < CSH_N; k++){
+    // present or absent on a hashed threshold, never all-on-at-different-strengths: a dozen
+    // half-strength patches overlap into a wash, which is the dimmer switch again. Broken
+    // cloud is patches with SUN between them, so each bank has its own cover at which it
+    // begins to exist, and a short fade in so none of them pops.
+    // ...on STRATIFIED thresholds, not a free hash: fourteen free draws leave a gap at the
+    // bottom of [0,1), and a gap there is a whole band of cover with no shadow in the world at
+    // all. One threshold per fourteenth, ordered by a coprime step so the first banks to
+    // appear are not the westmost slots.
+    const a = clamp((c - ((k * 5) % CSH_N + hash(k, 83)) / CSH_N) / 0.12, 0, 1);
+    if (a <= 0.02) continue;
+    const sp = 0.55 + hash(k, 61) * 0.8;                       // each bank its own speed, as the sky's have
+    // one slot each, jittered inside it, and DEEP: a free hashed scatter of round patches over
+    // a span twice the world's width leaves the courtyard unvisited for whole days. A patch has
+    // to be able to hold the garden and the lane at once, and the 1.35 puts a bank across the
+    // courtyard in ~12 s of sim on a calm day, faster with the wind behind it.
+    const wx = mod((k + hash(k, 53)) / CSH_N * span + drift * sp * 1.35, span) - 60 + thX;   // drift runs NEGATIVE under an east wind
+    const wy = WH * 0.5 + (hash(k, 59) - 0.5) * WH * 0.6 + thY;
+    const rx = (12 + hash(k, 67) * 11) * (0.8 + 0.4 * c);      // heavier cover, broader patches
+    const ry = (22 + hash(k, 71) * 16) * (0.8 + 0.4 * c);
+    const rw = rx * cellW, rh = ry * cellH;
+    const [sx, sy] = project(wx, wy, 0);
+    if (sx + rw < 0 || sx - rw > W || sy + rh < hz || sy - rh > H) continue;   // off the frame: no gradient
+    const al = f * a;
+    const gr = ctx.createRadialGradient(0, 0, 0, 0, 0, rw);
+    // a plateau and then a short rim: a shadow has an EDGE that arrives. A gradient that
+    // ramps all the way from the centre reads as a slightly darker corner of the world.
+    gr.addColorStop(0, 'rgba(' + CSH_COL + ',' + al.toFixed(4) + ')');
+    gr.addColorStop(0.68, 'rgba(' + CSH_COL + ',' + (al * 0.93).toFixed(4) + ')');
+    gr.addColorStop(0.9, 'rgba(' + CSH_COL + ',' + (al * 0.38).toFixed(4) + ')');
+    gr.addColorStop(1, 'rgba(' + CSH_COL + ',0)');
+    ctx.save();
+    ctx.translate(sx, sy); ctx.scale(1, rh / rw);
+    ctx.fillStyle = gr;
+    ctx.beginPath(); ctx.arc(0, 0, rw, 0, 7); ctx.fill();
+    ctx.restore();
+  }
+  ctx.restore();
 }
 // the moon's 0..1 arc, read by the disc and by its reflection so the two agree
 function moonArc(){
@@ -6164,6 +6260,7 @@ function drawScene(t, dt){
   }
   drawVanes();                    // live, like the hands: the towers are cached, the wind is not
 
+  drawCloudShade();               // the weather passes over the town, before the night's own multiply
   drawSmoke(t);
   applyLight(t);
   drawBonfireLight(t);            // flame and glow are light: after the night's multiply (#93)

@@ -2,7 +2,7 @@
   "updated": "2026-09-01",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 99,
+  "lastIteration": 102,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -326,7 +326,8 @@
       "connect": [
         6,
         65,
-        76
+        76,
+        102
       ],
       "scale": [
         12,
@@ -451,7 +452,8 @@
       "season() — the YEAR over SEASON_LEN 26 days, phase 0 midwinter, anchor SEASON_START 0.25; warmth a cosine of the phase; greyF() drives the weather year",
       "SNOW and WET — snowF() past greyF 0.55, snowCover rate-capped, snowAt whitens cached ground/roofs/awnings; wetF()/stepWet() soaks paving, dries by daylight×warmth; wetCol(), drawWetLights()",
       "the WIND — windF() 0..1 rate-capped off windyDay()/frontWind(), 0 while raining; windSign ±1 per spell latched from calm; windDir() the blend EVERY x-lean reads",
-      "RIVER MIST — mist ONE rate-capped scalar (stepMist; still, clear, cold-or-wet mornings sunUp−1..+2.2); mistAt(x); drawMist() live before applyLight; HAZE and lamp halos read it"
+      "RIVER MIST — mist ONE rate-capped scalar (stepMist; still, clear, cold-or-wet mornings sunUp−1..+2.2); mistAt(x); drawMist() live before applyLight; HAZE and lamp halos read it",
+      "CLOUD SHADOW — drawCloudShade() lays CSH_N soft ellipses on the ground in one live multiply before applyLight; cloudDrift() the ONE travel scalar the sky's banks read too; cloudShadeF() a hump (KNEE .04 / RISE .14 / FALL .55 / SHUT .95) x daylight; banks present-or-absent on stratified thresholds, thrown downsun off sunVec()"
     ],
     "life": [
       "courtyard RING transit via spawnAgent() under capacity: walker, crosser, dogwalker; the five STAYING kinds moved to the lawn's own source (#95)",
@@ -518,6 +520,12 @@
     {
       "id": "c152",
       "note": "the deck's far posts are 33 cells / 4.7 h at a hurry from EAST_GATE_A and their source releases nobody before sunDown-4, so arrivals sit at sunDown+1.8: pricing the round trip at the CHOICE takes stayOn from 41 fits in 248 to 2. A far-end stay that clears by 03h needs an EARLIER far-side source, not better pricing (#101, the shape of c143)",
+      "raisedBy": 99,
+      "seenBy": 0
+    },
+    {
+      "id": "c153",
+      "note": "below cover 0.2 — 58% of daylit samples — the ground shows almost nothing while drawClouds still has a bank or two in the sky: a lone fair-weather cumulus tied to its own small travelling shadow would close the gap (#102, probes/cloud-shade-presence.mjs)",
       "raisedBy": 99,
       "seenBy": 0
     }

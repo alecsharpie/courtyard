@@ -17,31 +17,6 @@
   "rationale": "I went and looked at the thing. shots/mgr100a-wide.png, seed 42, day 6, 14:43, a clear midsummer afternoon: the town above the lane is dense and finished, and the bottom of the picture is a BLACK RECTANGLE. It is not a rendering bug, it is an omission with a comment on it - buildGrid's last clause reads `// below the lane: our own building, with the river slipping between its two halves` and then sets rows 79..87 to VOID, and drawGround's first line is `if (t === WALL || t === VOID) continue`. So 1107 cells, 9.1% of the grid, the NEAREST rows and therefore the largest ones on screen, have never been painted by anything. Measured on HEAD: on a 1600x950 desktop the band runs from project(60,79,0)[1] = 676.4 to sillTop() = 794.6 of a canvas H = 859 - 13.8% of the picture; on a 390x844 phone it is 536.2 to 700.5 of H = 757.25, 21.7%. That is the answer to 'what would most change a thirty-second look', and it is a SPATIAL answer, which is what this batch needs: mapFlat is two iterations from firing, the map has not moved since #87, and `structures` and `passages` have not moved once in the whole run. So this batch is RUNG 4b, and b100 is the bet: give the diorama its foreground. The rest balance the grid and are aimed at what the same screenshot shows: an evenly-lit town under a sky whose eleven cloud banks cast nothing on it (b102, Sky 11 back, and drawClouds is a sky-strip-only pass - grepped, confirmed), an evening that does not end (b101, People 10 back, c137: a dusk stayer is still walking the plaza at 03h on four seeds), a plaza whose paving is 400 identical setts (b103, Plaza 7 back, New CA, and `moss`/`weed`/`lichen` appear nowhere in the source), and one measured polish (b104, Street 6 back). Cost discipline, third pass running: every number a brief needs is IN the brief, and where I could not price something I have said so rather than inventing a target.",
   "queue": [
     {
-      "id": "b102",
-      "domain": "Sky, light & weather",
-      "kind": "Connect",
-      "brief": "The sky and the ground ignore each other. drawClouds() draws eleven hashed banks on a (simT + windX) drift, but it draws them in the SKY STRIP only - above hz, under the backdrop - and nothing they pass over is shaded: the town has no moving cloud shadow. shadowF()/shSpread()/shOffset() only soften every object's own shadow uniformly under a lid. Connect them: let the banks throw soft shadows that travel across the courtyard, the allotments, the plaza and the river with the wind, so that on a broken-cloud day the light MOVES over the town and a viewer sees weather passing rather than a dimmer switch. The wide shot is where this pays: it is the only change on this list that alters the whole picture at once.",
-      "seams": [
-        "drawClouds",
-        "cloudCover",
-        "windX",
-        "windDir",
-        "windF",
-        "shadowF",
-        "shSpread",
-        "shOffset",
-        "drawSky",
-        "applyLight",
-        "drawGround",
-        "project"
-      ],
-      "measured": "Not measured, deliberately - I am not going to invent a coverage target. Grepped and confirmed on HEAD: `cloudShadow` and `shadeAt` do not exist; drawClouds' only geometry is at `hz`; shadowF() has 14 call sites and every one is an object's own shadow. Pick the intensity by looking at it, and report what you chose.",
-      "successLooksLike": "On a seed and day with cloudCover in the broken band, a filmstrip cropped to the courtyard lawn shows the light rising and falling as a bank crosses, and the same instants at cloudCover < 0.04 are IDENTICAL to HEAD. The shadow travels with windDir() and reverses with windSign.",
-      "avoid": "Deterministic only - hash and simT, no new R() draw. This is a live pass, not a cache rebuild: the ground cache is repainted on its own dirty flag and a per-frame truth on it belongs in a live overlay (drawLitPanes' idiom). Watch the frame cost - `frame-cost.mjs`, not `perf.mjs` - a full-frame per-pixel pass will not do; a handful of soft ellipses composited in one multiply will.",
-      "budgetMin": 60,
-      "risk": "medium"
-    },
-    {
       "id": "b103",
       "domain": "Plaza & quay",
       "kind": "New CA",
@@ -98,6 +73,10 @@
     {
       "id": "b101",
       "at": "2026-09-01T18:03:45.268Z"
+    },
+    {
+      "id": "b102",
+      "at": "2026-09-01T18:29:34.639Z"
     }
   ]
 }

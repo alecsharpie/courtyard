@@ -44,3 +44,15 @@ Probes resolve the artifact as `../../../../courtyard.html`. (moved at #11)
   every picnic's blanket choice AT SPAWN (hot/cool, inside the ellipse), `--warmth W`
   pinned after `updateClock`, `--force-false` for the identity control, `--hash` for the
   canvas at two pinned instants, `--names` for the sundial's and a sleeper's names.
+- `cloud-shade-*.mjs` — the sky's shadow on the town (#102). All five draw the frame TWICE
+  per instant, once with `drawCloudShade` and once with it swapped for a no-op, so what is
+  measured is the pass and nothing else; all capture inside the `evaluate` (a `cv.screenshot()`
+  after it is unpinned — the rAF loop redraws with `cloud` slewed back off the pin).
+  `-identity` a canvas hash against HEAD up a cover ladder — neutrality is byte-identity below
+  the gate and after dark, and the expectation is derived from the page's own `daylight`, never
+  from the case label. `-shot` a pinned pair plus an amplified DIFFERENCE image and a 12×6 grid
+  of mean Δ%: the pair is what to look at, the grid is what to believe. `-strip` a contact
+  sheet cropped to a world box with the crop's luma as a % of its own unshaded frame, so the
+  day's arc cancels. `-wind` travel per sim second by cross-correlating the darkening's column
+  profile (mean-subtracted — a non-negative profile's DC term reports "it did not move").
+  `-presence` how often the town actually sees it, at natural cover, by cover band.

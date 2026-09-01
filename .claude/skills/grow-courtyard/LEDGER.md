@@ -40,26 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 93 — the allotments get their autumn: a bonfire on one bare cell, a holder with a fork who lights it on a dry calm shed day and goes when it dies; smoke, an ember pool after dark (2026-09-01) [Cross street & allotments × New element]
-
-**Brief:** b91, attempt 2 on #93's unverified WIP (e201eb0). Proved, re-priced, one clause cut.
-**Did:** cell (84, 19.5), GRASS in the plot gap (`block-map.mjs`), stand off `ALLEY_Y`. `bon.fire`/`bon.ember` rate-capped; `bonfireDay()` = `leafShed() > 0.1 && hash(day,285) < 0.8` (not `leafFallF() > 0.3`, which is also every spring day); `bonfireWeather()` dry/calm/no snow; `spawnBonfireHolder()` (a.tend, a.fork) out at sunrise, kindles ~9 h on; `drawBonfireLight` AFTER `applyLight`.
-**Premise REJECTED — litter:** the shed-day litter bbox is x 4..71, 0 cells on the block: "litter within 3 cells consumed" would run at a rate of zero at ANY legal cell; cut.
-**Re-priced:** `bonfire-window.mjs`: of 40 offered seed-days only 17 had a fine 2 h set-out window (wind 1.0 on a third of autumn mornings; snow on day 18 in 4/8 seeds) — the weather already WAS the brief's "1 day in 3", so K went 0.45 → 0.8: 17/56 shed days = 30%, per seed 1–3.
-**Gates:** census PASS (diff EMPTY — no census age is a shed day) · motion `dusk/cart` 0→1 = the median rule on the reshuffle (`cart-dusk-replay.mjs`) · filmstrip 0 POP · `bonfire-year.mjs` 8 seeds × 27 d: 0 kindles in rain / wind > 0.5 / summer; holder at 16/17 fires; kindle 13.8–20.4 h · `bonfire-shots.mjs`: flames + column 19:00, pool 21:00, embers 23:30, glow +39/+25 lum.
-**Verdict:** shipped, ~+150 lines over two attempts.
-**Surprise:** three crops were of the clock tower — a page clip needs the canvas rect, a law I had just read. The motion gate's scenes (days 3, 7, 11, 19, 22) never see days 12–18.
-
-## Iteration 94 — the linden's shade becomes a place: one predicate the draw and the choices read; hot picnic pairs carry the blanket in through a bed gap, the sleeper and the sundial say where they are (2026-09-01) [Courtyard & garden × Connect]
-
-**Brief:** b92 — count courtyard presence on HEAD, then `inLindenShade` as the ONE predicate.
-**Count on HEAD** (`probes/shade.mjs`, 10 seeds × days 5–7, warmth 0.97), lawn kinds inside the wall: 10 h median 0.25 · 13 h median 1.0 · 16 h median 2.0; at 13 h kid 0.43, napper 0.23, picnic 0.27, sitter 0, gardener 0. Seed 42 13:25: day 5 = 3, days 6–7 = 0. Reported, not retuned (→ b95).
-**Premise priced:** at a hard summer sun the ellipse (rx ≤ 8.2, ry ≤ 6.9) covers 0% of the picnic annulus r 9–12 and 100% of the inner lawn — so the hot pair go IN through a bed gap like the napper: `shadeSpots()` = 5 stands per gap at r 3.3, off the sundial, off anyone lying/sitting, in FRONT of the trunk. The cool rule has 3% of the annulus to act on and never fired in 9 set-outs; kept as the one definition.
-**Did:** `lindenShade()`/`inLindenShade(x,y)` beside `shOffset`; drawTree draws `sh.cx/cy/rx/ry`; the picnic branch keeps its two draws and picks within the chosen set; `a.shaded`, `preExit` via the gap; napper line, `personName`, `sundialName` 'in the linden's shade' when `leafOut() > 0.5` and the dial is inside.
-**Gates:** hot 12/13 = 92% inside; cool 0/9 (HEAD 0/9). Forced-false canvas 20/20 IDENTICAL to HEAD, choices identical. Names flip with the crown (winter clear day 19 → 'about one'). Census FAIL people 271→244 (−10%) = the reshuffle (`census-noise.mjs`: 8 seeds HEAD 486 vs 489; HEAD's own spread on identical code 19%) · motion PASS · filmstrip 0 POP · `shots/b92-shade-picnic-*`.
-**Verdict:** shipped, ~+60 lines.
-**Surprise:** the shade does not touch the lawn the brief thought it shaded — the ellipse ends 1 cell short of the outer lawn at noon; 'out in the sun' never fires by day, so the words exist for a young tree only.
-
 ## Iteration 95 — the lawn gets its own population: spawnLawnAgent() off LAWN_CAP places, the staying kinds leave the ring's roll, the sun's window prices every walk and ends every stay (2026-09-01) [Courtyard & garden × Deepen]
 
 **Brief:** b95 rung 6 (attempt 3; attempt 2 left a complete uncommitted WIP — verified it, fixed three defects, landed it).
@@ -140,3 +120,16 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Surprise:** the fit test's first draft added `EVE_STAND` to *both* bounds and took the evening's gate arrivals from 67 to 24 — `eveEnd()` has already spent that hour, so charging it twice halved a fitting window that is only ~1.2 h wide to begin with.
 **Law:** a window's end is the hour the last person is GONE, not the hour they start walking: price the walk home at the choice, or "the evening closes" only means the walking begins. And a hold on a priced walk must be refused or carried — `chatty()` is not the only one; the bell (`a.listen`) is a second, and a refusal must still spend both draws.
 **Cue:** a page clip of a world box needs `r.x + project()·(r.width / (canvas.width / devicePixelRatio))` — `project()` returns CSS pixels, so dividing by the drawing-buffer width alone crops at half scale and lands on the wrong building.
+
+## Iteration 102 — the sky's shadow lands on the town: soft banks travel across the courtyard, the allotments and the river with the wind (2026-09-02) [Sky, light & weather × Connect]
+
+**Brief:** b102 — connect `drawClouds()` to the ground; the wide shot is where it pays.
+**Did:** `cloudDrift()` is the ONE travel scalar (`drawClouds` reads it too, arithmetic unchanged); `drawCloudShade()` lays up to `CSH_N 14` soft ellipses on the ground plane in one `multiply` pass — live, after the items and before `applyLight`, so it shades people and trees with the ground they stand on. `cloudShadeF()` is a HUMP × `daylight` (`CSH_KNEE .04` → full by `CSH_RISE .14`, held to `CSH_FALL .55`, out by `CSH_SHUT .95`): a clear sky has nothing to cast, a lid casts nothing because the town is already inside it. Bands thrown downsun off `sunVec()`, wrapped by a new `mod()`, clipped below `hz`.
+**Counted, nothing pinned** (`probes/cloud-shade-presence.mjs`, 348 daylit samples, 3 seeds × 8 d): **49%** carry visible shade, 29% deep. Mean frame share shaded rises 1% → 45% across cover 0.1→0.7 and falls back to 30% under the lid.
+**Gates:** census PASS, **every group unchanged** (no `R()` draw ⇒ no reshuffle) · motion PASS · filmstrip day+night **0 POP** · cost under the noise floor (`frame-cost.mjs` 3.04→3.05 ms summer) · shots wide/courtyard/east/lane + 390×844 clean.
+**Measured vs a HEAD control I ran:** canvas hash at 12 instants × 2 seeds is **IDENTICAL to HEAD at cover ≤ 0.039 and at any cover after dark**, differing only where the gate says. Lawn crop, drawn twice per instant so the day's arc cancels: **81% → 98% → 93%** of unshaded over 24 s. Travel per sim second, off the frame's own profile: east wind **−1.1..−1.35 cells**, west **+1.1..+3.4**, calm **+0..+0.9** — it reverses with `windSign`.
+**Verdict:** shipped, ~+70 lines.
+**Surprise:** I looked at the shaded frame and the unshaded frame in turn and called them identical. They differed by **65 luma** at the core; only the difference image and a grid of Δ% caught it. Two earlier designs died of the same blindness the other way — a scatter of soft overlapping patches measures as a real change and *is* a dimmer switch.
+**Note for the manager:** `context-budget.mjs` opened this iteration at **49.0 KB / 46 KB — OVER**.
+**Law:** What reads as weather is CONTRAST, not coverage — present-or-absent patches with sun between them, never all present at different strengths. N free hash draws leave a gap at the bottom of [0,1): stratify `(k + hash(k,s)) / N` when a threshold must be reachable at every level of what it gates.
+**Law:** Judge a whole-frame change from a difference image and a number, never from two pictures looked at in turn — the eye normalises. Same trap in the instrument: cross-correlating non-negative profiles is DC-dominated and reports "it did not move"; mean-subtract, and take the per-term mean.
