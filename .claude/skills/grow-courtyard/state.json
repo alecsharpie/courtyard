@@ -1,8 +1,8 @@
 {
-  "updated": "2026-09-01",
+  "updated": "2026-09-02",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 104,
+  "lastIteration": 109,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -179,7 +179,8 @@
       "deepen": [
         "pre21",
         37,
-        95
+        95,
+        108
       ],
       "new-ca": [
         "pre",
@@ -213,7 +214,8 @@
         74
       ],
       "polish": [
-        "pre17"
+        "pre17",
+        109
       ],
       "connect": [
         18,
@@ -293,7 +295,8 @@
         2,
         46,
         54,
-        96
+        96,
+        107
       ],
       "deepen": [
         9,
@@ -391,12 +394,14 @@
       "polish": [
         68,
         86,
-        99
+        99,
+        105
       ]
     },
     "roofs": {
       "deepen": [
-        83
+        83,
+        106
       ],
       "polish": [
         91
@@ -416,146 +421,100 @@
     }
   },
   "inventory": {
-    "note": "What the town ALREADY contains. Nouns + the seam that owns them. Read before you build; `ls probes/` for instruments.",
+    "note": "NOUNS the town already has + the seam that owns them. Grep the seam for how it works; the ledger has the why. Never measurements or history here. `ls probes/`.",
     "courtyard": [
-      "walled garden: bed ring, four arches, BENCH_SPOTS(4), desire paths (wear[]), daisies, ivy, pre-dawn sweeper, ONE linden, planting CA (11 SPECIES)",
-      "the beds read the YEAR: growF()/dieF() off warmth, bloomCap(); the ground REMEMBERS via trod[] (discounts snowAt) and litter[] (cut by feet/broom/wheels)",
-      "the linden's SHADE is a place: lindenShade()/inLindenShade(), ONE ellipse in drawTree, shadeSpots(), a.shaded picnic pairs. SUNDIAL = DIAL cell 32,35, dialThrow(h)",
-      "the gardener WORKS (#108): gardenerKneel() one row per kneel then along the border (GARDEN_REACH), priced on the row's own a.rowDur and the walk to the DOOR; a lawnHolds place-holder, released as the walk out begins; takes the SHORT door. 13 h presence 0.10 -> 0.24 summer, 0.08 -> 0.17 winter"
+      "walled garden, bed ring, four arches, BENCH_SPOTS(4), desire paths wear[], daisies, ivy, pre-dawn sweeper, ONE linden, planting CA (11 SPECIES)",
+      "beds read the year: growF/dieF/bloomCap; ground remembers: trod[], litter[]",
+      "linden SHADE as a place: lindenShade/inLindenShade/shadeSpots, a.shaded. SUNDIAL: DIAL cell 32,35, dialThrow",
+      "gardener works a row at a time: gardenerKneel, GARDEN_REACH, a.rowDur, a lawnHolds place-holder"
     ],
     "lane": [
-      "kiosk, pavement cafe, awnings, washing lines, planters, LANE_LAMPS, LANE_BENCHES; market every 4th day, three MARKET_STALLS selling produce[] (stockMarket())",
-      "NIGHT sources: TAP_DOOR (tapOpen() sunDown-3..03:00, TAP_SLOTS, spawnTapAgent, callIn() the ONE re-route) and spawnHomeAgent() off homeRate() while nightF>0.3",
-      "cafe source: cafeOpen()/cafeRate()/spawnCafeAgent() under CAFE_WAY, CAFE_TABLES claimed",
-      "lane ENDS: spawnLaneAgent enters at EITHER edge and exits at the opposite one (toX), ~1/3 east; routeToExit() is the COURTYARD's ring exit",
-      "MORNING ROUND: mround/updateRound(), in west at sunUp-0.3, doors 4 and 8 only (ROUND_H 5 h), a bottle on the step (roundMarks), out west"
+      "kiosk, pavement cafe, awnings, washing lines, planters, LANE_LAMPS, LANE_BENCHES; market every 4th day, three MARKET_STALLS, produce[]/stockMarket",
+      "night sources: TAP_DOOR/tapOpen/TAP_SLOTS/spawnTapAgent/callIn; spawnHomeAgent off homeRate",
+      "cafe source: cafeOpen/cafeRate/spawnCafeAgent, CAFE_WAY, CAFE_TABLES",
+      "spawnLaneAgent enters either edge, exits the opposite (toX); routeToExit is the COURTYARD ring exit",
+      "morning ROUND: mround/updateRound, doors 4 and 8, ROUND_H 5h, roundMarks"
     ],
     "street": [
-      "cross street: two footways, roadway, curbs, lamps, four street trees (TREE_PITS); allotments: 17 plots (ALT_X0 78, ox 80..90 x oy 8..50), fence, ALT_GATE, shed, POND, alley (ALLEY_Y)",
-      "harvest cycle: harvestPlot(), bAge the fallow clock when !bSp, re-sown under plotCrop(), spawnAllotAgent()/sendToPlot() on ripePlots(); winter cabbages, digWeather()",
-      "seasonal canopy on all 13 trees: leafOut/Fresh/Deep/Turn/Shed + leafCol() off seasonPhase, bare in winter; fruit trees blossomF()/fruitF()",
-      "the CARTER, ONE cart: cartToday()/cartDue() off sunUp, south to the fence gate row 45, spawnLoader() basket, market days on to MARKET_STALLS[1]",
-      "the BONFIRE: GRASS cell (84,19.5); bon.fire/bon.ember rate-capped, bonfireDay()/bonfireWeather(), spawnBonfireHolder() out at sunrise kindling ~9 h on, BON_PUFFS 18 column"
+      "cross street: two footways, roadway, curbs, lamps, four TREE_PITS. Allotments: 17 plots (ALT_X0 78, ox 80..90 x oy 8..50), fence, ALT_GATE, shed, POND, alley ALLEY_Y",
+      "harvest cycle: harvestPlot, bAge (fallow only when !bSp), plotCrop, spawnAllotAgent/sendToPlot/ripePlots, digWeather",
+      "seasonal canopy on all 13 trees: leafOut/Fresh/Deep/Turn/Shed, leafCol, blossomF/fruitF",
+      "ONE cart: cartToday/cartDue, spawnLoader, market days to MARKET_STALLS[1]",
+      "BONFIRE at (84,19.5): bon.fire/bon.ember, bonfireDay/bonfireWeather, spawnBonfireHolder, BON_PUFFS 18"
     ],
     "plaza": [
-      "plaza: FOUNTAIN (105.5,30) + paved roundel, four tree pits, PLAZA_BENCHES(2), QUAY_BENCHES(2), quay rail x112.9; pavingAt(x,y) the ONE paving predicate; crumbSpot()",
-      "spawnEastAgent(): the east quarter's own source (eastCap/eastRate, a.east, eastOpen() closes 20.6) - plaza/quay/towpath/parapet, ONE stop, RETRACES; DECK_SHARE to the jetty",
-      "the FOUNTAIN reads YEAR, WIND and FROST: fountainPlay() off greyF(), jets lean windSign*windF(), fountainStand() shy when windy, fountainIce()",
-      "FAMILIES: spawnFamilyAgent() the plaza's own source (FAM_CAP, famOpen() dry daylit midday); parent a.fam, child a makeCompanion() follower (a.famKid)",
-      "PLAZA PIGEONS: no bird lands here unbidden - b.plaza has its own roll and cap, plazaBirdSpot() on the roundel rings, off the basin",
-      "the paving AGES: moss[] a per-cell CA on its 730 PATH cells (stepMoss in caTick) - creep off the 4-neighbour mean, mossShel[] off the grid, mossTop[] hashed; feet scuff it. PLAZA ONLY"
+      "FOUNTAIN (105.5,30), paved roundel, four tree pits, PLAZA_BENCHES(2), QUAY_BENCHES(2), quay rail x112.9, pavingAt the ONE paving predicate, crumbSpot",
+      "spawnEastAgent: east quarter's own source (eastCap/eastRate/a.east/eastOpen), ONE stop, RETRACES; DECK_SHARE to the jetty",
+      "fountain reads year/wind/frost: fountainPlay, fountainStand, fountainIce",
+      "FAMILIES: spawnFamilyAgent, FAM_CAP, famOpen, a.fam + a.famKid via makeCompanion",
+      "PLAZA PIGEONS have their own roll and cap: b.plaza, plazaBirdSpot",
+      "paving AGES, PLAZA ONLY: moss[] CA on 730 PATH cells, stepMoss in caTick, mossShel[]/mossTop[], scuffed by feet"
     ],
     "river": [
-      "river (13 columns), ONE fair-weather rowboat, three-arch lane bridge, towpath (TOW_WALK 128.6, FAR_WALK 133.2), church + tower + rose window, bandstand, ORCHARD, JETTY, PARK_GATE",
-      "byTheWater() the ONE river-facing predicate, boatWatch() its reader; riverRun() drives drawRiverFlow(t); the swans are a PAIR (SWAN_BANK)",
-      "the BANDSTAND's summer concert: bandF() stages BAND_PLAYERS and bunting on ONE 0..1, isBandDay(), spawnConcertAgent fills BAND_SLOTS",
-      "NIGHT on the water: drawRiverLights() under RIVER_LAMPS and moon, ONE a.nightRail stander, roseLit() lights the rose window LIVE",
-      "FOOTBRIDGE: DECK rows 30..32 at ALLEY_Y, drawDeckSpan/Front, boatUnderDeck(), agentZ()/deckZAt(), DECK_LEAD_A/Q. WATERMILL: MILL_WHEEL on millSpin(), MILL_WIN lit all night",
-      "the EYOT: EYOT_AT (124.3,46) once in buildGrid, onEyot/offEyot/eyotShore read the grid, drawEyot cached + drawWillow live, the swans' third bank, nestF() ducks in spring",
-      "the PUNT: punt{leg 0..4}, PUNT_MOOR/SHORE/STAND/LAND, puntFits at the jetty stop. riders come from the far bank's own morning source since #107 (0 -> 18 landings/40 days, a crossing on 15 of 26 fine days)",
-      "the evening ENDS: EVE_GONE/EVE_HURRY/EVE_BELL; eveOutH() the ONE priced walk home stored as a.eveOut at the choice; goHome(a, maxH); THREE far deck posts",
-      "the far bank's own MORNING (#107): spawnFarAgent()/farOpen()/farRate(), FAR_CAP 3, in from FAR_GATE [GW+2,31] off-frame east down FAR_SPINE 137.2 — mill door, orchard, church front, towpath, and the JETTY branch (a.jetty) that is the punt's rider; farJettyFits prices the choice on time alone. SOLO, off laneCount"
+      "river (13 cols), ONE rowboat, three-arch bridge, towpath TOW_WALK 128.6 / FAR_WALK 133.2, church + tower + rose window, bandstand, ORCHARD, JETTY, PARK_GATE",
+      "byTheWater the ONE river-facing predicate, boatWatch its reader; riverRun/drawRiverFlow; swans are a PAIR (SWAN_BANK)",
+      "summer concert: bandF, isBandDay, BAND_PLAYERS, BAND_SLOTS, spawnConcertAgent, bunting",
+      "night water: drawRiverLights, RIVER_LAMPS, a.nightRail, roseLit",
+      "FOOTBRIDGE: DECK rows 30..32 at ALLEY_Y, drawDeckSpan/Front, boatUnderDeck, agentZ/deckZAt, DECK_LEAD_A/Q. WATERMILL: MILL_WHEEL/millSpin, MILL_WIN",
+      "EYOT at (124.3,46): onEyot/offEyot/eyotShore, drawEyot cached + drawWillow live, nestF ducks in spring",
+      "the evening ends: EVE_GONE/EVE_HURRY/EVE_BELL, eveOutH -> a.eveOut, goHome(a,maxH), three far deck posts",
+      "far bank's own morning + the PUNT it feeds: spawnFarAgent/farOpen/farRate, FAR_CAP 3, FAR_GATE [GW+2,31], FAR_SPINE 137.2, five branches incl. a.jetty; farJettyFits prices on TIME alone; off laneCount. punt{leg 0..4}, PUNT_MOOR/SHORE/STAND/LAND, puntFits. SOLO only, by construction (c160)"
     ],
     "sky": [
-      "day/night cycle (55 s day), sun and moon arc, hills hazed by HAZE, chimney smoke, a balloon; windowLit(sa,sb) the ONE pane + LIT[] predicate; LIT_PANES relit AFTER applyLight",
-      "season(): the YEAR over SEASON_LEN 26 days, phase 0 midwinter; warmth a cosine of the phase; greyF() drives the weather year",
-      "cloudCover(): one slow rate-capped scalar, fronts build ~half a day and break after rain; shadowF() fades cast shadows under the lid. drawClouds(): 11 hashed banks, SKY STRIP ONLY",
-      "SNOW and WET: snowF() past greyF 0.55, snowCover rate-capped, snowAt whitens cached ground/roofs/awnings; wetF()/stepWet() soaks paving, dries by daylight x warmth",
-      "the WIND: windF() 0..1 rate-capped off windyDay()/frontWind() (0 while raining), windSign +-1 per spell latched from calm, windDir() the blend EVERY x-lean reads",
-      "RIVER MIST: mist ONE rate-capped scalar (still, clear, cold-or-wet mornings sunUp-1..+2.2), mistAt(x), drawMist() live before applyLight",
-      "CLOUD SHADOW: drawCloudShade() lays CSH_N soft ellipses on the ground in ONE live multiply before applyLight; cloudDrift() the ONE travel scalar the sky's banks read too",
-      "DAWN falls, it does not rise: windowLit's early risers key on sunUp, not the night's dawn edge — all lit by sunUp-0.8, out across sunUp-0.3..+0.4, so the town DARKENS through sunrise (#109)"
+      "day/night (55 s day), sun and moon arc, HAZE hills, chimney smoke, a balloon; windowLit the ONE pane predicate + LIT[]; LIT_PANES relit AFTER applyLight",
+      "season(): year over SEASON_LEN 26 days, phase 0 midwinter, warmth a cosine; greyF drives the weather year",
+      "cloudCover one slow rate-capped scalar; shadowF fades cast shadows; drawClouds 11 hashed banks, SKY STRIP ONLY",
+      "SNOW/WET: snowF, snowCover, snowAt on cached ground/roofs/awnings; wetF/stepWet",
+      "WIND: windF, windyDay/frontWind, windSign latched per spell, windDir the blend every x-lean reads",
+      "MIST: one rate-capped scalar, mistAt(x), drawMist live before applyLight",
+      "CLOUD SHADOW: drawCloudShade, CSH_N ellipses, one live multiply before applyLight; cloudDrift the ONE travel scalar",
+      "dawn FALLS: windowLit's early risers key on sunUp, not the night's dawn edge. w.last (burn-through) still on the dawn edge (c162)"
     ],
     "life": [
-      "courtyard RING transit via spawnAgent() under capacity: walker, crosser, dogwalker; the five STAYING kinds moved to the lawn's own source",
-      "drawPerson() 12 px figures; wildlife: butterflies, fireflies, birds[] (land/hop/fly, scared within 4.5 cells), ducks, swans, a night cat (catA, LANE ONLY, x -2..66), falling leaves",
-      "the clock strikes at nine and eighteen (strikeClock, bellUntil), walkers look up (a.listen); greetPass/chatty(). EVERY sitter reads the sky: seatRefused(a), seatWet(a), skyLifts(a)",
-      "crowds with their OWN source, outside eastCount/laneCount: concert, evening door, homers, cafe, evening posts; goHome(a) after dusk, HOMES read by windowLit()",
-      "ARRIVALS IN TWOS: withCompanion(a, room) on the lane/east/courtyard/cafe spawners under the SAME cap; b.with re-targets pairTarget(b) per step (PAIR_MIN 0.9)",
-      "the warm EVENING: eveOpen() rolls spawnEveningAgent() under EVE_CAP onto EVE_SPOTS (a.dusk); stayOn(a) re-routes an a.east or a.band onto the deck's east posts",
-      "the LAWN's own source: spawnLawnAgent() under LAWN_CAP 4 place-holders, claimed at the choice, released as the walk out begins, priced vs lawnStart()..lawnEnd()",
-      "SOUTH OF LN_WALK_S (79) IS NO LONGER EMPTY (#106): the bed CA, the item sort and the seed scatter still bound their y loops there, but the near roof now has its own bird band and the cat's second act. The one thing that always went south of it is the ROWBOAT, which runs downriver to row 92 between the block's halves - exclude the river channel from any 'nothing lives here' control or HEAD reads 4.6%, not 0",
-      "catA has a SECOND ACT (#106): legs lane->cross->climb->ridge on its own R() roll (~60% of nights), priced against the night (27 s) not the lane (42 s); CAT_RIDGE_Y held one row north of the wells so nearZ's 2x2 stencil cannot reach a hole",
-      "nearScale(y) ramps a figure's drawn size 1 -> NEAR_SZ 1.95 across the near block, exactly 1 everywhere else (probes/near-identity.mjs); nearHidden() stops a near-block figure drawing over the cached sill at any framing",
-      "lawnGone() (#108) is the two-sided light rule stepAgent turns a lawn walker round on — !lawnSun() alone is DAWN too and was aborting every early arrival at the door"
+      "ring transit via spawnAgent: walker, crosser, dogwalker (the five STAYING kinds are on the lawn's own source). drawPerson 12 px. Wildlife: butterflies, fireflies, birds[] (land/hop/fly, scared within 4.5 cells), ducks, swans, night cat catA, falling leaves",
+      "clock strikes nine and eighteen: strikeClock/bellUntil/a.listen; greetPass/chatty. Sitters read the sky: seatRefused/seatWet/skyLifts",
+      "crowds outside eastCount/laneCount: concert, evening door, homers, cafe, evening posts; goHome after dusk; HOMES read by windowLit",
+      "arrivals in TWOS: withCompanion(a,room) under the SAME cap, b.with, pairTarget, PAIR_MIN 0.9",
+      "warm EVENING: eveOpen/spawnEveningAgent/EVE_CAP/EVE_SPOTS (a.dusk); stayOn re-routes onto the deck's east posts",
+      "LAWN's own source: spawnLawnAgent, LAWN_CAP 4 place-holders claimed at the choice, lawnStart/lawnEnd; lawnGone is the TWO-SIDED light rule",
+      "catA's second act: lane->cross->climb->ridge, own R() roll, CAT_RIDGE_Y one row north of the wells. nearScale(y) ramps drawn size 1 -> NEAR_SZ 1.95 across the near block, exactly 1 elsewhere; nearHidden backstops the sill",
+      "south of LN_WALK_S (79) the bed CA, item sort and seed scatter still bound their y loops. The ROWBOAT runs to row 92 between the block's halves — exclude the channel from any 'nothing lives here' control (HEAD reads 4.6%, not 0)"
     ],
     "sill": [
-      "the SILL under the canvas: #plate, #daytime, #season, #where, #ticker (TICK_DWELL 2.5 s), #stats, #ctrl; hidden under 640px. Two LAPSE buttons, one mechanism (beginLapse)",
-      "the NAMING of what is under the pointer (a TAP on a phone): beds, plots, places off pavingAt/WATERS, trees, the LIVING via livingAt(), WINDOWS/DOORS via FACES[]/faceAt()",
-      "THE DIORAMA IS CLICKABLE and says so once: answersTouch(x,y) the ONE predicate. OFFERS[]: touch -> clock -> season -> follow -> where. A tap also FOLLOWS a walker (followLine)",
-      "the quarter CAMERA: #where cycles QUARTERS Wide->Courtyard->Street->Plaza->Far bank; viewFor()/whereGo()/stepView(), the wide cache scaled through the ease (gview), q.share sets s from WIDTH",
-      "the PAINTED sill: drawSill(g) inside drawOurSide, so it is baked into the GROUND CACHE. sillTop() = H - max(26, H*0.075) is the ONE definition, read by drawSill and viewFor",
-      "drawSill paints a SURFACE, not a fill: a 7-stop gradient (opening -> room's shadow -> nosing) on lit = 0.30 + 0.70*warm, 22 broken hash() grain runs, 9 scuffs, cast() shadows under both pots and the cup. Surface luma range 0 -> ~38, mean ~13 (#105)"
+      "#plate, #daytime, #season, #where, #ticker (TICK_DWELL 2.5 s), #stats, #ctrl; hidden under 640px. Two LAPSE buttons, one beginLapse",
+      "NAMING under the pointer/tap: beds, plots, pavingAt/WATERS places, trees, the living via livingAt, windows/doors via FACES[]/faceAt",
+      "it says it is clickable ONCE: answersTouch. OFFERS[]: touch -> clock -> season -> follow -> where. A tap also FOLLOWS (followLine)",
+      "quarter CAMERA: #where cycles QUARTERS Wide/Courtyard/Street/Plaza/Far bank; viewFor/whereGo/stepView, wide cache scaled through gview, q.share sets s from WIDTH",
+      "the PAINTED sill: drawSill inside drawOurSide, baked into the GROUND CACHE — so the four quarter cameras have no sill at all (c156). sillTop() = H - max(26, H*0.075) is the ONE definition",
+      "drawSill paints a SURFACE: 7-stop gradient on lit = 0.30 + 0.70*warm, 22 broken grain runs, 9 scuffs, a nosing, cast() shadows under the pots and cup"
     ],
     "roofs": [
-      "emergent roofs from buildVolumes() (footprint -> volume, eaveFor); CHIMNEYS[] filled as roofs draw, drawSmoke(t) leans windDir(); drawRoofRow() shades by SUN, cloud, warmth",
-      "WEATHERVANES on both towers: VANES[], drawVanes() LIVE, vaneAngle() off windSign*windF(); clock tower an ARROW with an N/S/E/W cross-bar, church a WEATHERCOCK; vaneAt()/vaneName()",
-      "MURMURATION: drawMurmuration() right after drawSky (behind the cache); murmSeason/murmWx/murmEnv on dry autumn-winter dusks, funnel into MUR_ROOSTS, skeinEnv() at sunUp. Wide-only",
-      "OUR OWN ROOF below the lane: rows 79..WH are WALL and buildVolumes grows the near block's slate roof; NEAR_SPANS the two halves, eaveFor 0 so it cannot occlude the lane, SLATES per house",
-      "drawNearRoof (CACHED): drawRoofRow per row, drawCrests + a capped ridge, moss on the north pitch, WELLS (the only VOID left), a dormer or rooflight per house at DORM_Y 85 (ROOF_LIGHTS -> LIT_PANES), drawPartyWalls with stacks at STACK_Y 86, drawParapet at PARA_Y",
-      "the APRON below row WH: one column-wise quad to the canvas bottom under a gradient to rgba(8,7,6,.68). OUR_AWNINGS are world quads on the kerb (rows 77.65..79)",
-      "nearShadow(g): the ONE ramp from near roof into the sill, priced off sillTop(), bounded above by the footway (yWalk + 1) so no live walker stands in a cached shadow (#105)",
-      "THE NEAR ROOF IS INHABITED (#106): roofBirdSpot() is the roof's OWN band - own roll/cap (ROOF_BIRDS 3, ROOF_BIRD_RATE), four perches (ridge, pitch, a WELL's north lip, the parapet, which the south footway's 4.5-cell scare flushes); birds carry zf and roost through the night; bounded in DEPTH by ROOF_DMAX 82.2, never in rows"
+      "emergent roofs from buildVolumes (footprint -> volume, eaveFor); CHIMNEYS[], drawSmoke leans windDir; drawRoofRow shades by sun, cloud, warmth and snowCover",
+      "WEATHERVANES on both towers: VANES[], drawVanes live, vaneAngle, vaneAt/vaneName",
+      "MURMURATION: drawMurmuration after drawSky, murmSeason/murmWx/murmEnv, MUR_ROOSTS, skeinEnv. Wide-only",
+      "OUR OWN ROOF below the lane: rows 79..WH are WALL, NEAR_SPANS the two halves, eaveFor 0, SLATES per house",
+      "drawNearRoof (CACHED): drawRoofRow per row, drawCrests + capped ridge, moss on the north pitch, WELLS (the only VOID left), a dormer or rooflight per house at DORM_Y 85 (ROOF_LIGHTS -> LIT_PANES), drawPartyWalls + stacks at STACK_Y 86, drawParapet at PARA_Y",
+      "APRON below row WH: column-wise quads to the canvas bottom. OUR_AWNINGS are world quads on the kerb (rows 77.65..79)",
+      "nearShadow: the ONE ramp from near roof into the sill, priced off sillTop(), bounded above by yWalk + 1",
+      "near roof life is RIDGE ONLY: roofBirdSpot has its own roll/cap (ROOF_BIRDS 3, ROOF_BIRD_RATE), four perches (ridge, pitch, a WELL's north lip, the parapet). Band ROOF_N 81.8..ROOF_S 84.6, capped by ROOF_DMAX 82.2 in DEPTH never rows — everything south of that is inert slate (c157)"
     ]
   },
   "openCues": [
     {
-      "id": "c136",
-      "note": "plaza families: child-triggered flushes are 29% of visits (probes/plaza-midday.mjs) — pigeons land ~7/day and crossers on DECK_LEAD_A flush most; a returning pigeon or a crumb bias would raise it (#92)",
-      "raisedBy": 91,
-      "seenBy": 3
-    },
-    {
       "id": "c150",
-      "note": "the quarters frame GROUND, not the town's tall things: Far bank holds no sky (top at depth +0.15), no quarter reaches s > 1.02 on the clock tower so the vane's cardinals never leave their 6 px floor, and Courtyard shows void west of x=0 (#97, #99)",
+      "note": "the quarter cameras frame GROUND, not the town's tall things: Far bank holds no sky, no quarter reaches s > 1.02 on the clock tower so the vane's cardinals never leave their 6 px floor, and Courtyard shows void west of x=0 (#97, #99)",
       "raisedBy": 99,
       "seenBy": 1
     },
     {
-      "id": "c154",
-      "note": "the quay, towpath, lane and cross street are all SIDE/ROAD and still do not age: moss[] is deliberately plaza-only, pavingAt's other five kinds untouched. The quay strip against the rail needs no new machinery, only a second region in stepMoss (#103)",
-      "raisedBy": 102,
-      "seenBy": 1
-    },
-    {
-      "id": "c156",
-      "note": "at every zoomed quarter the sill band fills with live content drawn over the cached sill (max luma 221 at Courtyard, 192 at Plaza, 112 at Street) - identical on HEAD, so pre-existing: drawSill is baked into the ground cache and agents/overlays sort after it, so the four quarter cameras have no sill at all (#105)",
-      "raisedBy": 104,
-      "seenBy": 0
-    },
-    {
-      "id": "c157",
-      "note": "the near roof's life is confined to depth <= 82.2 (rows ~81.8-84.6) because those are the rows above sillTop at a 1200x720; at 1600x950 and on a phone that is only the top ~20% of the roof band and the big lower expanse of slate is still empty. Widening it needs nearHidden() clipping, which costs a blink as a bird hops the sill line at short framings (#106)",
-      "raisedBy": 104,
-      "seenBy": 0
-    },
-    {
-      "id": "c158",
-      "note": "birds are still not named by livingAt() anywhere but the near roof - a pigeon on the lawn, the lane or the plaza roundel answers nothing under the pointer, though every duck, swan and dog does (#106)",
-      "raisedBy": 104,
-      "seenBy": 0
-    },
-    {
       "id": "c159",
-      "note": "the far bank's new east gate (FAR_GATE, #107) is a bare world edge — the lane's gates are arches and the quay's is the map edge, but a figure walks in at x=140 across open grass with no door to have come out of. A stile, a hedge gap or a field track on FAR_SPINE would give it one",
+      "note": "the far bank's east gate (FAR_GATE, #107) is a bare world edge — a figure walks in at x=140 across open grass with no door to have come out of. A stile, a hedge gap or a field track on FAR_SPINE would give it one",
       "raisedBy": 104,
       "seenBy": 0
     },
     {
       "id": "c160",
-      "note": "the punt (#107): 52 jetty arrivals convert to 18 crossings, the loss being puntFits' wind bar at the planks, which is correct. But a.with || a.pairLead || a.small means a PAIR can never cross at all — the eyot is solo-only by construction and nobody decided that on purpose",
-      "raisedBy": 104,
-      "seenBy": 0
-    },
-    {
-      "id": "c161",
-      "note": "the dawn fix (#108) lets lawn walkers cross the courtyard at nightF > 0.5 — hour 4.95–5.74 with sunrise at 4.01, so nightF's curve and daylight's disagree by about an hour (shots/b108-dawn-cand.png). Arrivals, not stayers; HEAD read 0 there",
-      "raisedBy": 104,
-      "seenBy": 0
-    },
-    {
-      "id": "c162",
-      "note": "the last lamps in town still go out AFTER sunrise: w.last = span - 0.05 - 0.9*hOn is still keyed on the dawn edge, so the ~5% burn-through windows darken at sunUp+0.7..+1.6 — winter holds a flat 2-3 panes from sunUp+0.4 and drops to 1 only by +1.2. Left deliberately; w.last is the evening half's (#109)",
+      "note": "the punt is solo-only by construction: puntFits' `a.with || a.pairLead || a.small` means a PAIR can never cross, so the eyot is unreachable in company. Nobody decided that on purpose (#107)",
       "raisedBy": 104,
       "seenBy": 0
     }
@@ -575,7 +534,7 @@
     },
     {
       "since": 105,
-      "note": "THE MAP MOVED AT #100 (developed 61875->71730, structures 2916->2979, VOID 1107->12) and the baseline was re-pinned there, so mapFlat is clear — but passages, tileKinds and speciesKinds have NEVER moved in 104 iterations. A spatial brief is expected to move a census scalar: re-pin with census.mjs --save-baseline and SAY SO. The gate reads collapse, not delta; PEOPLE churns +-10-19% on any new R() draw."
+      "note": "THE MAP MOVED AT #100 (developed 61875->71730, structures 2916->2979, VOID 1107->12) and the baseline was re-pinned there, so mapFlat is clear — but passages, tileKinds and speciesKinds have NEVER moved in 109 iterations. A spatial brief is expected to move a census scalar: re-pin with census.mjs --save-baseline and SAY SO. The gate reads collapse, not delta; PEOPLE churns +-10-19% on any new R() draw."
     }
   ],
   "closedCues": [
@@ -1682,6 +1641,62 @@
       "seenBy": 0,
       "closedBy": 104,
       "reason": "promoted to brief b105 and re-measured: the near-black band is drawSill()'s own #0a0806 fill below sillTop(), not the apron"
+    },
+    {
+      "id": "c136",
+      "note": "plaza families: child-triggered flushes are 29% of visits (probes/plaza-midday.mjs) — pigeons land ~7/day and crossers on DECK_LEAD_A flush most; a returning pigeon or a crumb bias would raise it (#92)",
+      "raisedBy": 91,
+      "seenBy": 3,
+      "closedBy": 109,
+      "reason": "closed unpromoted: three manager passes have declined it. A returning-pigeon bias is a sub-1%-of-frame tweak on a system (#92) that already works; the plaza's real gap is that only its paving ages (c154)."
+    },
+    {
+      "id": "c154",
+      "note": "the quay, towpath, lane and cross street are all SIDE/ROAD and still do not age: moss[] is deliberately plaza-only, pavingAt's other five kinds untouched. The quay strip against the rail needs no new machinery, only a second region in stepMoss (#103)",
+      "raisedBy": 102,
+      "seenBy": 1,
+      "closedBy": 109,
+      "reason": "promoted to b114"
+    },
+    {
+      "id": "c156",
+      "note": "at every zoomed quarter the sill band fills with live content drawn over the cached sill (max luma 221 at Courtyard, 192 at Plaza, 112 at Street) - identical on HEAD, so pre-existing: drawSill is baked into the ground cache and agents/overlays sort after it, so the four quarter cameras have no sill at all (#105)",
+      "raisedBy": 104,
+      "seenBy": 0,
+      "closedBy": 109,
+      "reason": "promoted to b111"
+    },
+    {
+      "id": "c157",
+      "note": "the near roof's life is confined to depth <= 82.2 (rows ~81.8-84.6) because those are the rows above sillTop at a 1200x720; at 1600x950 and on a phone that is only the top ~20% of the roof band and the big lower expanse of slate is still empty. Widening it needs nearHidden() clipping, which costs a blink as a bird hops the sill line at short framings (#106)",
+      "raisedBy": 104,
+      "seenBy": 0,
+      "closedBy": 109,
+      "reason": "promoted to b110 — the bet"
+    },
+    {
+      "id": "c158",
+      "note": "birds are still not named by livingAt() anywhere but the near roof - a pigeon on the lawn, the lane or the plaza roundel answers nothing under the pointer, though every duck, swan and dog does (#106)",
+      "raisedBy": 104,
+      "seenBy": 0,
+      "closedBy": 109,
+      "reason": "promoted to b113"
+    },
+    {
+      "id": "c161",
+      "note": "the dawn fix (#108) lets lawn walkers cross the courtyard at nightF > 0.5 — hour 4.95–5.74 with sunrise at 4.01, so nightF's curve and daylight's disagree by about an hour (shots/b108-dawn-cand.png). Arrivals, not stayers; HEAD read 0 there",
+      "raisedBy": 104,
+      "seenBy": 0,
+      "closedBy": 109,
+      "reason": "promoted to b112"
+    },
+    {
+      "id": "c162",
+      "note": "the last lamps in town still go out AFTER sunrise: w.last = span - 0.05 - 0.9*hOn is still keyed on the dawn edge, so the ~5% burn-through windows darken at sunUp+0.7..+1.6 — winter holds a flat 2-3 panes from sunUp+0.4 and drops to 1 only by +1.2. Left deliberately; w.last is the evening half's (#109)",
+      "raisedBy": 104,
+      "seenBy": 0,
+      "closedBy": 109,
+      "reason": "promoted to b112"
     }
   ]
 }

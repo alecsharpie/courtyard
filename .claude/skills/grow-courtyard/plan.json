@@ -1,43 +1,127 @@
 {
-  "generated": "2026-09-02T00:00:00.000Z",
-  "byIteration": 104,
-  "rung": 2,
+  "generated": "2026-09-02T00:00:00Z",
+  "byIteration": 109,
+  "rung": "4b",
   "diagnosis": {
-    "health": "Landing cleanly and the runner problem is gone. 19 of the last 20 real rows shipped, 0 reverts, selfVerdict == verdict throughout, src moved 10/10, and #100-#104 all came in on ONE attempt against 4-of-7 needing two in #93-#99 (those were session limits, not thrash). Output is not shrinking: 408/67/99/141/22 lines, median 99. Cost is the line to watch but it is buying something — the last 10 average 23 min and $9.70 against this run's $5.77 median, and the two most expensive rows (#100 at $14.38/408 lines, #102 at $12.92/99 lines) are the two that changed the picture most. costSpike does not fire. The real failure this pass had to fix was mine: the worker opened OVER budget in #102 (49.0), #103 (50.3) and #104 (52.2) and wrote a note to the manager each time, and the last two manager passes did not clear it. Fixed properly here, 50.8 -> 43.4, the lowest of the run, and the mechanism that let it drift is now closed too (see rationale). My other standing fault is inventing brief numbers: #99's pass admitted three of five briefs missed bands the manager made up. Every number in this batch was either measured by me on HEAD this pass or carries the iteration that measured it.",
+    "health": "Healthy on every verdict measure and quietly unhealthy on cost. 19 of the last 20 shipped, zero reverts, src moved 10/10, and selfVerdict has agreed with verdict on every worker row since #99. But the last ten iterations cost $8.20 each against ~$5-6 earlier in the run, and the mechanism is visible rather than guessed: context-budget.mjs opened OVER on #106 (46.5 KB), #107 (49.3), #108 (51.2) and #109 (53.5 / 46) — four consecutive workers each re-read a memory 16% past its cap before doing any work. That is precisely the Solvista signature (cost $5.45 -> $13.72 with flat output because every fresh worker re-read an ever-growing pile), caught at the fourth iteration instead of the fortieth. Fixed this pass, not deferred: 53.5 -> 45.5 KB.",
     "signals": [
-      "no stall signal fires; stall.mjs reports clean",
-      "budget was OVER for the 13th consecutive open (50.8/46) and the worker had flagged it in three consecutive ledger entries - the one real fault, fixed this pass to 43.4/46",
-      "mapFlat CLEARED at #100: developed 61875->71730, structures 2916->2979, VOID 1107->12, baseline re-pinned. The watch note claiming the map is flat since #87 was stale and has been rewritten",
-      "smallDiff clear: last five shipped 408/67/99/141/22, median 99",
-      "rungHeld clear: rung history 2/4/2/6/4b - this is the first rung<=2 pass in three, so the two-consecutive rule is not binding yet. It binds the NEXT pass",
-      "attempts=1 on 5 of the last 5 (was 2 on 4 of 7) - the runner fault that drove #93-#99's cost is gone",
-      "ledger entry size drifted 2.0 KB (#97-#99) -> 2.7-4.7 KB (#100-#104), which is what pushed the tail to 9.8 KB; promoted Law/Cue lines had never been cut from entries as the protocol requires"
+      "budgetOver=4 consecutive (#106-#109)",
+      "costPerIter $8.20 vs ~$5.50 run-average",
+      "no stall signals, no advisory signals",
+      "revertStreak=0",
+      "rungHeld=1 (only #104 was rung 2)"
     ],
-    "balance": "Recording #100 (roofs x Scale/World) and #101 (life x Deepen), which the coverage grid had missed. Now: Courtyard 9 back (#95), River 8 back (#96), Lane 6 back (#98), Sill 5 back (#99), Roofs 4 back (#100); Street/Plaza/Sky/Life all touched in the last three. Roofs & skyline is still the thinnest domain in the town (5 entries) and it is where the frontier is, so it takes two of this batch. Sky x Polish stays saturated and nothing here is a sky brief. This queue is Sill / Roofs / River / Courtyard / Lane - the five domains furthest back, in order."
+    "balance": "People & animals 8 back (#101), Sky 7 back (#102), Plaza 6 back (#103), Cross street 5 back (#104). Roofs & skyline is only 3 back but takes the bet on frontier grounds, stated below. Empty cells worth noting: Roofs has never had new-ca, connect or interaction; The sill & the observer has never had new-element, new-ca, deepen or connect and is 6/14 of the whole grid's interaction work."
   },
-  "rationale": "I went and looked, at the size the thing actually ships at. shots/mgr105-1200-day.png, seed 42, day 4 10:36, clear early summer: the town above the lane is dense and finished, and the bottom fifth of the picture is dead. Two separate faults, both in the band #100 built, and I measured both on HEAD rather than guessing. (1) The black bar under the picture is not the apron and not unpainted canvas - it is drawSill() itself, filling #0a0806 flat over the strip below sillTop(). Sampled below sillTop at three viewports and three hours, min luma == max luma == mean, exactly: 8.4 by day, 6.2 at dusk, 3.0 at night, zero pixels above luma 20 in 42,624 / 62,628 / 6,358. The sill's lit front edge, its two geranium pots and its cup are silhouetted in rgba(9,8,6) against a #0a0806 ground - under one luma unit of contrast. The whole framing conceit of the piece, the thing the fourth domain is named after, renders as a bar. That is b105. (2) Directly above it, the near roof is the largest single object in the frame (13.8% of a desktop picture, 21.7% of a phone, per #100) and NOTHING LIVES ON IT - not by oversight but by construction: the bed CA, the item sort, the seed scatter and every spawner bound their y loops at LN_WALK_S 79, and catA is pinned to the lane at x -2..66. It has a ridge, two light wells, a dormer per house, party walls, stacks and moss, and no tenant. That is b106, the bet, and it is where c151 has been pointing since #99. The rest balance the grid on cues that a worker already measured and that name their own fix: b107 takes c143 and c152 together, because both reduce to one thing (#101's own words - a far-end stay that clears by 03h needs an EARLIER far-side source, not better pricing), and it is the third pass those two have survived; b108 is c142's thin gardener in the courtyard, 9 back and the title object; b109 is c146's dawn re-key, small but sitting on the morning lapse hour that is one tap away. This is RUNG 2 and I am calling it that rather than dressing it up: the frontier right now is genuinely a deepen, the two spatial and structural rungs were spent at #99 (4b) and #94 (6), and the ladder's own note is that rung 2 is usually the highest-yield move. It is the first rung<=2 pass in three, so the rule is not binding - but it binds the next one, and if the batch after this also wants rung 2 it must climb instead. On memory: budget was OVER 13 opens running and three workers wrote to me about it. I distilled rather than deferred - LAWS 25 laws/12.0 KB -> 18 laws/12.0 KB (promoted #100-#104's six laws by MERGING them into their subjects rather than stacking; cut 'The sill is DOM' outright, folding its one live clause into the camera law; merged the two anchor laws, the two probe/instant laws, the two counting laws, and #102's + #104's judging-a-look laws into one). Inventory 11.6 -> 8.3 KB as nouns plus one primary seam each, with three factual corrections: the near roof is no longer VOID, the sill's paint is now recorded, and 'nothing living goes south of LN_WALK_S' is now written down instead of being rediscovered. Cues 10 -> 3: seven closed, five of them because they are briefs in this queue. And I found the mechanism behind the drift - the protocol says promoted Law:/Cue: lines are cut from the entry once the manager has promoted them, and no pass had ever done it; doing it took the ledger tail 9.8 -> 8.1 KB on its own.",
-  "queue": [],
-  "recommendStop": null,
-  "consumed": [
+  "rationale": "I shot the town before planning it, at 1600x950 and at 390x844, and the two pictures disagree with the prose. The town proper is dense and good. But #100's near roof — the rung-4b foreground that was the run's biggest single change, +408 lines and the only census move in 109 iterations — is the dullest object in the frame, and on a phone it is 20% of the picture: one flat blue-grey field with a few dormers, no life below the ridge, and a black apron under it. #106 gave it tenants and bounded them at ROOF_DMAX 82.2 because at a short 1200x720 the sill cuts the surface at row ~84.9; the entire visible roof at every OTHER framing is therefore empty by construction, and #106's own ledger entry handed that trade to me as 'the manager's call'. I am calling it: it is worth a blink at short framings to stop giving a fifth of the phone frame to nothing. That is b110, and it is a real 4b rather than a deepen because the WATCH note is right that passages, tileKinds and speciesKinds have never moved in 109 iterations — the brief is required to move one and re-pin the baseline. b111 is the same picture's other half: the sill is baked into the ground cache, so four of the five camera positions have no sill at all and fill that band with live content instead (max luma 221 at Courtyard against a painted 13). Together they fix the bottom quarter of the frame. b112 finishes what #109 started — the night clock and the sun still disagree by an hour at dawn, so lawn walkers cross a courtyard the town is still lighting as night and the last lamps go out after sunrise; it serves the stalest domain and sky-polish is saturated, so it is a Deepen. b113 and b114 are the low-risk rotation into People & animals and Plaza & quay. On curation: the budget was the real emergency and it took the whole pass. LAWS.md is at 12288/12288 bytes with 18 laws after promoting eight from #105-#109 — I merged rather than stacked (the #106 depth law and #105's foreground-ramp law folded into the framing law; #108's dawn law and #109's sunUp law became one; #107's two pricing findings became one corollary law; #106's motion-gate zero-median and #109's canvas-hash containment went into the two instrument laws), and I made one outright cut: the standalone 'A raised surface is two draw items' law (#73) is gone, its still-live half folded into the renderer law as trap (d) and its DECK-specific sort order dropped, because the deck is built and stable and that detail now lives in the inventory. Inventory 11.4 -> 7.2 KB by taking it back to nouns plus seams; seven cues closed (six promoted into this queue, c136 deleted after three passes declined it); the three fattest ledger entries condensed in place with full text appended to LEDGER-archive.md. Worker budget 53.5 -> 45.5 KB, OK. NOTE FOR THE NEXT PASS: LAWS.md has zero bytes of headroom, so the next promotion must be paid for by a cut first.",
+  "queue": [
     {
-      "id": "b105",
-      "at": "2026-09-01T20:16:15.176Z"
+      "id": "b110",
+      "domain": "Roofs & skyline",
+      "kind": "Scale/World",
+      "brief": "Our own roof is the biggest object in the picture and, below the ridge, nothing is on it. Shoot it yourself before you start — at 1600x950 and at 390x844 the near block is 14-20% of the frame and reads as one flat blue-grey field. The cause is bounded and known: roofBirdSpot() and the cat are capped at ROOF_DMAX 82.2 (band ROOF_N 81.8..ROOF_S 84.6), which is the band visible at EVERY framing, because at a short 1200x720 sillTop() cuts the surface at row ~84.9. Everything south of that is inert slate at the two framings where the roof is largest. Give the lower roof something to be. It is a working roof seen from an upstairs window: the leads and valley gutters between the party walls, a flat behind the parapet, a water tank, a pigeon loft, washing pegged out on a fine day, a cat's route across the whole slope rather than along one line. Take the swing — a 150-300 line diff is expected and welcome. This is a 4b: it must change the shape of the map, so it must move a census scalar. passages, tileKinds and speciesKinds have not moved in 109 iterations and structures has moved once; move one of them, re-pin with `census.mjs --save-baseline`, and SAY SO in the ledger entry.",
+      "seams": [
+        "drawNearRoof",
+        "ROOF_DMAX",
+        "ROOF_N",
+        "ROOF_S",
+        "nearHidden",
+        "nearZ",
+        "roofBirdSpot",
+        "drawPartyWalls",
+        "drawParapet",
+        "WELLS",
+        "DORM_Y",
+        "STACK_Y",
+        "NEAR_SPANS",
+        "sillTop"
+      ],
+      "successLooksLike": "On a phone and at 1600x950 the bottom fifth of the picture is somewhere with things happening on it, and a thirty-second look finds at least one of them without being told where. A census scalar has moved and the baseline is re-pinned.",
+      "avoid": "Do not widen the general birds[] roll to reach the roof — the roof has its own source and its own cap, and widening the shared one makes the lawn and the roof compete (#92, #106). Do not bound anything new in ROWS: around a light well the same row is 1.7 of depth lower on a lip than on the pitch. If you extend the life band south you must clip it with nearHidden(); the blink as something crosses the sill line at 1200x720 is an accepted cost of this brief, but measure it and say how big it is.",
+      "budgetMin": 75,
+      "risk": "high"
     },
     {
-      "id": "b106",
-      "at": "2026-09-01T20:36:37.051Z"
+      "id": "b111",
+      "domain": "The sill & the observer",
+      "kind": "Deepen",
+      "brief": "The painted sill exists at exactly one camera position. drawSill(g) runs inside drawOurSide and is therefore baked into the GROUND CACHE, while agents and overlays sort after it — so at Courtyard, Street, Plaza and Far bank there is no sill at all and the bottom band fills with live content drawn over where it should be (measured max luma 221 at Courtyard, 192 at Plaza, 112 at Street, against the painted surface's mean of ~13). Four of the five things the #where button does are broken in the same way, and #where is the town's most-used offer. Give every quarter its sill. Note that b110 lands before you and may have changed what the near roof shows at the sill line — re-read drawSill and nearHidden on HEAD before pricing anything.",
+      "seams": [
+        "drawSill",
+        "drawOurSide",
+        "sillTop",
+        "viewFor",
+        "QUARTERS",
+        "stepView",
+        "gview",
+        "nearHidden",
+        "nearShadow"
+      ],
+      "successLooksLike": "A screenshot at each of the five camera positions shows the same painted sill across the bottom, with nothing living drawn on top of it, at 1200x720, 1600x950 and 390x844.",
+      "avoid": "Do not solve it by moving drawSill out of the cache and repainting it live every frame without pricing that — it is a 7-stop gradient plus 22 grain runs plus 9 scuffs plus cast shadows, and drawGround's own spread is 0.90 ms. If you do lift it out, measure with frame-cost.mjs, not perf.mjs. And a quarter's share sets s from WIDTH alone, so sillTop() is not where you think it is in a zoomed frame — price the rows with project() on each target frame.",
+      "budgetMin": 35,
+      "risk": "medium"
     },
     {
-      "id": "b107",
-      "at": "2026-09-01T21:09:14.443Z"
+      "id": "b112",
+      "domain": "Sky, light & weather",
+      "kind": "Deepen",
+      "brief": "#109 re-keyed the early risers onto sunUp and the town now darkens through sunrise, but it was told to touch one clause and the rest of dawn is still on the night's clock. Two measured leftovers. (1) w.last = span - 0.05 - 0.9*hOn is still keyed on the dawn edge, so the ~5% burn-through windows darken at sunUp+0.7..+1.6 and winter holds a flat 2-3 panes from sunUp+0.4, dropping to 1 only by +1.2: the last lamps in town still go out after sunrise. (2) nightF's curve and daylight's disagree by about an hour — lawn walkers now cross the courtyard at nightF > 0.5, measured at hour 4.95-5.74 with sunrise at 4.01, so there is an hour of real daylight the town still paints as night (shots/b108-dawn-cand.png). Make dawn one event. Sky is seven iterations back and sky x polish is saturated since #32, so this is Deepen: the whole light curve at first light, not a nudge to one constant.",
+      "seams": [
+        "windowLit",
+        "nightAt",
+        "nightF",
+        "NIGHT_K",
+        "sunAt",
+        "sunUp",
+        "daylight",
+        "applyLight",
+        "updateClock"
+      ],
+      "successLooksLike": "From sunUp-1 to sunUp+1.5, on a winter day and a summer day, the light on the town and the lamps in the windows tell the same story: it gets lighter, and the lamps go out before or as it does. No pane is lit after sunUp+0.5.",
+      "avoid": "Do not move NIGHT_K or nightF's edges globally on a hunch — they are read by the evening half, by drawRiverLights, by catA's window and by every spawner that asks whether it is night, and the evening is not broken. Prove containment by canvas hash at pinned instants on both builds (identical outside the dawn band, differing inside it), the way #109 did; the census cannot see a draw-only vector. Remember the day rolls at hour 6.00 and a winter dawn band straddles it.",
+      "budgetMin": 40,
+      "risk": "medium"
     },
     {
-      "id": "b108",
-      "at": "2026-09-01T21:38:19.710Z"
+      "id": "b113",
+      "domain": "People & animals",
+      "kind": "Interaction/UX",
+      "brief": "livingAt() names every duck, swan, dog and person under the pointer, but birds are named only on the near roof. A pigeon on the courtyard lawn, on the lane, or standing on the plaza roundel — where #92 gave them their own roll and cap precisely so they would be there — answers nothing at all when you point at it. That is the one visible hole in the town's naming, and it is on the most-used offer after #where. Close it: every bird the town draws should say what it is and, where the town knows, where it is. People & animals is eight iterations back and has had exactly one interaction vector in the whole run.",
+      "seams": [
+        "livingAt",
+        "answersTouch",
+        "birds",
+        "plazaBirdSpot",
+        "roofBirdSpot",
+        "faceAt",
+        "followLine"
+      ],
+      "successLooksLike": "Pointing at a bird anywhere in the town names it, at every camera position and on a phone tap, and the naming survives the bird hopping or flying while the pointer is still on it.",
+      "avoid": "Do not add a new entry to OFFERS[] — this is the existing touch offer doing its job, and a second offer waits 19.5 real seconds behind the queue. Keep the hit test on the same predicate everything else uses; do not give birds their own parallel path.",
+      "budgetMin": 25,
+      "risk": "low"
     },
     {
-      "id": "b109",
-      "at": "2026-09-01T22:00:32.298Z"
+      "id": "b114",
+      "domain": "Plaza & quay",
+      "kind": "Deepen",
+      "brief": "#103 gave the plaza's paving a moss CA and it works, but moss[] is deliberately plaza-only: it runs on 730 PATH cells and pavingAt's other five kinds are untouched, so the quay, the towpath, the lane and the cross street do not age at all. The town's oldest-looking surface is its newest one. Extend the ageing to at least the quay strip against the rail, which needs no new machinery — a second region in stepMoss, the same creep off the four-neighbour mean, the same scuffing by feet. Judge it at the shipping size: a difference image and a number, not two screenshots.",
+      "seams": [
+        "moss",
+        "stepMoss",
+        "caTick",
+        "mossShel",
+        "mossTop",
+        "pavingAt",
+        "QUAY_BENCHES"
+      ],
+      "successLooksLike": "By late autumn the quay's joints against the rail are visibly greener than the line people walk, and the plaza's own moss is unchanged from HEAD.",
+      "avoid": "Do not widen the region by relaxing pavingAt's test — a threshold on a REGION is an intersection, so sample how much of the quay strip the consumer's set actually covers before believing a number. And the skip guard is the trap here: `!shelter && !value` means 'not my cell' only until the value first reaches zero, after which the cell is dead forever.",
+      "budgetMin": 30,
+      "risk": "low"
     }
-  ]
+  ],
+  "recommendStop": null,
+  "consumed": []
 }
