@@ -23,7 +23,7 @@
   "avoid": "Do not widen the general birds[] roll to reach the roof — the roof has its own source and its own cap, and widening the shared one makes the lawn and the roof compete (#92, #106). Do not bound anything new in ROWS: around a light well the same row is 1.7 of depth lower on a lip than on the pitch. If you extend the life band south you must clip it with nearHidden(); the blink as something crosses the sill line at 1200x720 is an accepted cost of this brief, but measure it and say how big it is.",
   "budgetMin": 75,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 110,
   "issued": "2026-09-01T23:13:19.546Z",
