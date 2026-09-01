@@ -3444,6 +3444,103 @@ function spawnEastAgent(nightRail, room){
   a.wp.push(gate.slice());                   // and back out the way they came
   agents.push(a); withCompanion(a, room && !nightRail);   // the rail is ONE
 }
+/* ============ the far bank's morning (#107) ============ *
+ * Measured on HEAD before any of this was written (probe-east-branch.mjs, 10 seeds ×
+ * 4 summer days, 197 set-outs): spawnEastAgent is NOT late — 182 of its 197 set-outs
+ * are before noon, median 10.0. What is late is every ARRIVAL, because every far-side
+ * branch is eight to eleven hours of walking from the gate it uses: towpath 8.3 h,
+ * quay 8.9 h, the jetty 10.4 h, the church green 10.8 h, all landing at a median of
+ * 19–21h. The far bank is an evening place because it is thirty-odd cells from the
+ * town's nearest door, and no arrival HOUR can fix a ten-hour walk.
+ *
+ * Cue c143 falls out of the same fact. puntFits was offered 29 riders in 40 days and
+ * refused all 29: ten came as a pair, eight to wind, seven because the light had gone
+ * by the time they got there, two to rain, two to the hour. Not one of the 29 reached
+ * the planks before 15:24.
+ *
+ * So the far bank gets a door of its own, on the side the town cannot see: in from
+ * the east, off-frame behind the church green, where the fields are. Everything it
+ * serves is a few cells from that gate — the mill, the orchard, the church front, the
+ * towpath — so a set-out at first light is STANDING somewhere by eight. One walks out
+ * along the jetty planks, and that is the punt's rider: priced at the choice, a 10h
+ * arrival clears eastOpen()'s close with hours in hand where a 20:40 one never could.
+ *
+ * Its own cap and its own rate, never a share of eastCap (whose people RETRACE their
+ * route and would queue single-file), and subtracted out of laneCount the way the
+ * morning round is. Always solo: puntFits refuses a companion, and taking the punt is
+ * what this source is for.
+ */
+const FAR_GATE = [GW + 2, 31];        // in from the east, off-frame: the field side of the church green, on the jetty's own row
+const FAR_SPINE = 137.2;              // the far bank's own north–south line, east of church (x<136), mill (x<133) and the orchard's east row
+const FAR_CAP = 3, FAR_RATE = 0.5, FAR_MARGIN = 1.25;
+const FAR_MILL = [132.6, 25.1];       // at the mill's south door — drawFrontDoor sits at MILL.x1 - 1, the wall ends at MILL.y1
+const FAR_CHURCH = [133.6, 17.8];     // under the church front, clear of the nave (CHURCH.ny1)
+const FAR_JETTY = [JETTY.x - 1.3, JETTY.y];
+const FAR_W = {mill:1.0, orchard:0.9, church:0.8, towpath:1.0, jetty:2.0};   // the crossing is what this source is FOR
+// set-outs only: dry, from first light, and bounded at BOTH ends — an unbounded window
+// picks whichever walk is long enough to land in it (see lawnOpen)
+function farOpen(){ return day >= 1 && !raining && hour > sunUp - 0.4 && hour < sunUp + 5.5; }
+function farRate(){ return FAR_RATE * (0.55 + 0.45 * clamp((warmth - 0.15) / 0.55, 0, 1)); }
+function farHolds(o){ return o.far && !o.done; }
+function farCount(){ return agents.filter(farHolds).length; }
+function farWay(t){ return [[FAR_SPINE, t[1]], t.slice()]; }        // out to the spine at the target's row, then straight in
+function farWalkH(t, speed){ return FAR_MARGIN * pathHours(FAR_GATE[0], FAR_GATE[1], farWay(t), speed); }
+/* the jetty branch is priced at the CHOICE on TIME alone, twice: the punt must still
+ * take them when they get there (puntFits' own test, moved forward by the walk), and
+ * the whole day — out, the stay under the willow, back, and the walk to the gate —
+ * must be done by EVE_GONE, the hour the town already calls the last one gone.
+ *
+ * The WEATHER is deliberately not asked here. Measured with it in (probe-far-choice),
+ * a dawn windF() >= 0.5 deleted the branch on 36 of 94 mornings — but the rain, the
+ * wind and the punt's own mooring are puntFits' business at the moment of boarding,
+ * five hours later, and a stand at the jetty head is a good stop on a windy day
+ * whether or not the punt goes. One predicate, one definition: the choice prices the
+ * WALK, because the walk is the only thing that cannot be re-priced on arrival. */
+function farJettyFits(speed, phase){
+  const walk = farWalkH(FAR_JETTY, speed), arrive = hour + walk, trip = puntTripH({speed});
+  return arrive + trip + PUNT_MIN_STAY_H < eastCloseHour()
+      && arrive + 2 * trip + puntStayH({phase}) + walk < EVE_GONE;
+}
+function spawnFarAgent(){
+  const speed = 1.5 + R() * 0.7, phase = R() * 9;   // drawn before the choice: the stay under the willow is priced EXACTLY, not at its ceiling
+  const kinds = ['mill', 'orchard', 'church', 'towpath'];
+  if (farJettyFits(speed, phase)) kinds.push('jetty');
+  const roll = R(), tot = kinds.reduce((s, k) => s + FAR_W[k], 0);
+  let acc = 0, k = kinds[kinds.length - 1];
+  for (const q of kinds){ acc += FAR_W[q] / tot; if (roll < acc){ k = q; break; } }
+  const a = { kind:'green', street:true, far:true, farAt:k,
+    x:FAR_GATE[0], y:FAR_GATE[1], wp:[], i:0, speed, state:'walk', timer:0,
+    shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase, wary:R() };
+  let t;
+  if (k === 'mill'){
+    t = FAR_MILL.slice();
+    a.stop = {x:t[0], y:t[1], act:'stand', dur:5 + R() * 5,
+      say: R() < 0.14 ? 'Somebody is at the mill door early, while the wheel is still turning on the night\'s water.' : null};
+  } else if (k === 'orchard'){
+    const o = pick(ORCHARD);
+    t = [o[0] + 0.2, o[1] + 1.3];
+    a.stop = {x:t[0], y:t[1], act:'stand', dur:6 + R() * 6,
+      say: R() < 0.12 ? 'Someone is out among the orchard trees before the town is up.' : null};
+  } else if (k === 'church'){
+    t = FAR_CHURCH.slice();
+    a.stop = {x:t[0], y:t[1], act:'stand', dur:5 + R() * 6,
+      say: R() < 0.12 ? 'Someone has come up to the church front in the early light.' : null};
+  } else if (k === 'towpath'){
+    t = [TOW_WALK, 18 + R() * 30];
+    a.stop = {x:t[0], y:t[1], act:'stand', dur:6 + R() * 6,
+      say: R() < 0.1 ? 'Someone is on the towpath early, with the far bank to themselves.' : null};
+  } else {
+    t = FAR_JETTY.slice();
+    a.jetty = true;                    // the ONE thing puntFits reads (#96): the stand becomes the crossing
+    a.stop = {x:t[0], y:t[1], act:'stand', dur:6 + R() * 6,
+      say: R() < 0.2 ? 'Someone has walked out along the jetty in the early light, looking at the punt.' : null};
+  }
+  const lead = farWay(t);
+  for (const p of lead) a.wp.push(p.slice());
+  for (let i = lead.length - 2; i >= 0; i--) a.wp.push(lead[i].slice());
+  a.wp.push(FAR_GATE.slice());         // and back out the way they came
+  agents.push(a);                      // solo, always — see the header
+}
 /* ============ the plaza's midday: families (#92) ============ *
  * Counted on HEAD (probes/plaza-midday.mjs, 10 seeds × 3 summer days): the plaza box
  * holds ~2.7 people at noon, but ~2 of them are east visitors CROSSING it on the deck
@@ -8905,6 +9002,13 @@ function personName0(a){
   if (k === 'busker' && st === 'stand') return 'a busker, playing';
   if (k === 'tap' && st === 'stand') return a.cup ? 'someone at the door, cup in hand' : 'someone waiting at the door';
   if (a.band && st === 'stand') return 'someone in the audience, listening';
+  if (a.far) return st === 'stand'
+      ? (a.farAt === 'mill' ? 'someone at the mill door, early'
+       : a.farAt === 'orchard' ? 'someone in the orchard, early'
+       : a.farAt === 'church' ? 'someone at the church front, early'
+       : a.farAt === 'jetty' ? 'someone out on the jetty, early'
+       : 'someone on the towpath, early')
+      : 'someone from the far side of the river' + (a.i >= a.wp.length - 2 ? ', going back' : ', out early');
   if (k === 'parapet' && st === 'stand') return 'someone leaning on the parapet';
   if (a.eveSpot && a.eveSpot.deck && st === 'stand') return a.fromBand ? 'someone from the concert, leaning on the footbridge rail' : a.stay ? 'someone who stayed on, leaning on the footbridge rail' : 'someone leaning on the footbridge rail';
   if (st === 'sit') return a.cup ? 'someone at a table, with a cup' : k === 'picnic' ? (inLindenShade(a.x, a.y) ? 'someone on a blanket, in the linden\'s shade' : 'someone on a blanket') : 'someone sitting';
@@ -9220,7 +9324,8 @@ function simStep(sdt, dt){
   const eveNow = eveCount(), eveAll = eveNow + stayCount();   // the warm evening's own arrivals (#79): likewise; the deck's stayers (#85) are off eastCount already
   const cafeAll = agents.filter(a => a.cafe).length, cafeNow = cafeCount();   // the cafe's own custom (#74)
   const famNow = famCount(), famAll = agents.filter(a => a.fam).length;   // the plaza's families (#92): their own source, parent + child off the residual
-  const laneCount = agents.length - courtyardCount - eastCount - bandCount - tapNow - homeNow - cafeAll - eveAll - famAll - roundCount();   // the morning round (#98) is its own source
+  const farNow = farCount();                     // the far bank's morning (#107): its own source, off the residual like the round
+  const laneCount = agents.length - courtyardCount - eastCount - bandCount - tapNow - homeNow - cafeAll - eveAll - famAll - roundCount() - farNow;   // the morning round (#98) is its own source
   /* Each cap is its old expression with the multiply-out done, so the fixed share is
    * visible as a number and the year rides the daylight term alone (see yearBusy).
    * At the anchor, warmth 0.5, all three are algebraically identical to what they
@@ -9261,6 +9366,9 @@ function simStep(sdt, dt){
     // the lawn's own roll (#95): lawnOpen() bars rain; the night bars itself, because no walk's ARRIVAL fits the sun's window (lawnFits)
     if (lawnOpen() && lawnNow < LAWN_CAP && R() < lawnRate()) spawnLawnAgent();
     if (laneCount < laneCap && R() < laneRate) spawnLaneAgent(laneCount + 1 < laneCap);
+    // the far bank's own morning (#107): farOpen() is a set-out window of ~5 h at first
+    // light, so this roll exists only in the hours it is spending
+    if (farOpen() && farNow < FAR_CAP && R() < farRate()) spawnFarAgent();
     if (eastOpen() && eastCount < eastCap && R() < eastRate) spawnEastAgent(false, eastCount + 1 < eastCap);
     // not under eastCap: after dark that is 1, and the people walking home hold it
     else if (!eastOpen() && tapOpen() && nightRailFree() && R() < NIGHT_RAIL_RATE) spawnEastAgent(true);

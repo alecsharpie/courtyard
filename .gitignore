@@ -25,3 +25,6 @@ shots/
 /probe-*.mjs
 /shot-*.mjs
 .claude/skills/grow-courtyard/motion-baseline.json
+
+# The HEAD fixture probes regenerate from `git show` on every run.
+.probe-head.html

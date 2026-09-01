@@ -451,8 +451,9 @@
    "NIGHT on the water: drawRiverLights() under RIVER_LAMPS and moon, ONE a.nightRail stander, roseLit() lights the rose window LIVE",
    "FOOTBRIDGE: DECK rows 30..32 at ALLEY_Y, drawDeckSpan/Front, boatUnderDeck(), agentZ()/deckZAt(), DECK_LEAD_A/Q. WATERMILL: MILL_WHEEL on millSpin(), MILL_WIN lit all night",
    "the EYOT: EYOT_AT (124.3,46) once in buildGrid, onEyot/offEyot/eyotShore read the grid, drawEyot cached + drawWillow live, the swans' third bank, nestF() ducks in spring",
-   "the PUNT: punt{leg 0..4}, PUNT_MOOR/SHORE/STAND/LAND, puntFits at the jetty stop. RUNS AT ~ZERO - cue c143 / brief b107",
-   "the evening ENDS: EVE_GONE/EVE_HURRY/EVE_BELL; eveOutH() the ONE priced walk home stored as a.eveOut at the choice; goHome(a, maxH); THREE far deck posts"
+   "the PUNT: punt{leg 0..4}, PUNT_MOOR/SHORE/STAND/LAND, puntFits at the jetty stop. riders come from the far bank's own morning source since #107 (0 -> 18 landings/40 days, a crossing on 15 of 26 fine days)",
+   "the evening ENDS: EVE_GONE/EVE_HURRY/EVE_BELL; eveOutH() the ONE priced walk home stored as a.eveOut at the choice; goHome(a, maxH); THREE far deck posts",
+   "the far bank's own MORNING (#107): spawnFarAgent()/farOpen()/farRate(), FAR_CAP 3, in from FAR_GATE [GW+2,31] off-frame east down FAR_SPINE 137.2 — mill door, orchard, church front, towpath, and the JETTY branch (a.jetty) that is the punt's rider; farJettyFits prices the choice on time alone. SOLO, off laneCount"
   ],
   "sky": [
    "day/night cycle (55 s day), sun and moon arc, hills hazed by HAZE, chimney smoke, a balloon; windowLit(sa,sb) the ONE pane + LIT[] predicate; LIT_PANES relit AFTER applyLight",
@@ -528,6 +529,18 @@
   {
    "id": "c158",
    "note": "birds are still not named by livingAt() anywhere but the near roof - a pigeon on the lawn, the lane or the plaza roundel answers nothing under the pointer, though every duck, swan and dog does (#106)",
+   "raisedBy": 104,
+   "seenBy": 0
+  },
+  {
+   "id": "c159",
+   "note": "the far bank's new east gate (FAR_GATE, #107) is a bare world edge — the lane's gates are arches and the quay's is the map edge, but a figure walks in at x=140 across open grass with no door to have come out of. A stile, a hedge gap or a field track on FAR_SPINE would give it one",
+   "raisedBy": 104,
+   "seenBy": 0
+  },
+  {
+   "id": "c160",
+   "note": "the punt (#107): 52 jetty arrivals convert to 18 crossings, the loss being puntFits' wind bar at the planks, which is correct. But a.with || a.pairLead || a.small means a PAIR can never cross at all — the eyot is solo-only by construction and nobody decided that on purpose",
    "raisedBy": 104,
    "seenBy": 0
   }
