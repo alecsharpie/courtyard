@@ -4275,7 +4275,8 @@ function updateWildlife(dt){
       && R() < dt * ROOF_BIRD_RATE){
     const sp = roofBirdSpot();
     if (sp) birds.push({x:sp[0], y:sp[1], z:sp[2] + 7, zf:sp[2], state:'land', hop:0, t:0,
-                        roof:true, perch:sp[3], col:pick(['#5c5850','#33302c','#4a4640','#6e6a60'])});
+                        roof:true, perch:sp[3], bx:sp[4], by:sp[1], bz:sp[2], bw:sp[5],
+                        col:pick(['#5c5850','#33302c','#4a4640','#6e6a60'])});
   }
   if (!raining && daylight>0.3 && birds.filter(b => !b.plaza).length < 3 && R() < dt*0.06*(0.5+m)){
     const onLane = R() < 0.4;
@@ -4304,9 +4305,10 @@ function updateWildlife(dt){
         const nx = b.x + (R()-0.5)*0.8, ny = b.y + (R()-0.5)*0.8;
         if (!b.roof) { b.x = nx; b.y = ny; }
         else if (b.perch === 'parapet' ? (ny > PARA_Y && ny < PARA_Y + 0.32 && solidC(Math.floor(nx), LN_WALK_S))
+               : b.perch === 'loft'    ? (Math.abs(ny - b.by) < 0.24 && Math.abs(nx - b.bx) < b.bw * 0.5)
                                        : onNearRoof(nx, ny)) { b.x = nx; b.y = ny; }
       }
-      if (b.roof) b.z = b.zf = (b.perch === 'parapet' ? PARA_Z : roofSurfZ(b.x, b.y));
+      if (b.roof) b.z = b.zf = (b.perch === 'parapet' ? PARA_Z : b.perch === 'loft' ? b.bz : roofSurfZ(b.x, b.y));
       const scare = agents.some(a => Math.hypot(a.x-b.x, a.y-b.y) < 4.5);
       if (scare || b.t<=0 || raining) b.state='fly';
     } else if (b.state==='wheel'){    // put up off the belfry by the bell: one wide turn, then away
@@ -4381,12 +4383,12 @@ function updateWildlife(dt){
       if (c.y >= CAT_EAVE) c.leg = 'climb';
     } else if (c.leg === 'climb'){
       c.y += dt * 1.1;
-      c.z = c.y < PARA_Y + 0.30 ? PARA_Z * clamp((c.y - CAT_EAVE) / 0.9, 0, 1) : roofSurfZ(c.x, c.y);
-      if (c.y >= CAT_RIDGE_Y){ c.y = CAT_RIDGE_Y; c.leg = 'ridge'; }
+      c.z = c.y < PARA_Y + 0.30 ? PARA_Z * clamp((c.y - CAT_EAVE) / 0.9, 0, 1) : roofWalkZ(c.x, c.y);
+      if (c.y >= CAT_RIDGE_Y){ c.y = CAT_RIDGE_Y; c.leg = 'ridge'; c.ph = -c.x * CAT_SWING_K; }
     } else {
-      c.x += c.dir * dt * 1.35;                          // along the one line that crosses the frame
-      c.y = CAT_RIDGE_Y + Math.sin(c.x * 0.55) * CAT_WOBBLE;   // the crest line, clear of both wells
-      c.z = roofSurfZ(c.x, c.y);
+      c.x += c.dir * dt * 1.35;                          // and now across the pitch as it goes
+      c.y = catLine(c.x, c.ph) + Math.sin(c.x * 0.55) * CAT_WOBBLE;
+      c.z = roofWalkZ(c.x, c.y);
       if (c.x >= QUAY_X0 - 1.5) c.dir = -1;               // the river cuts the block in two: turn back
     }
     if ((c.leg === 'lane' && c.x > 66) || c.x < -4 || nightF < 0.2) catA = null;
@@ -5786,7 +5788,7 @@ function drawGround(){
   SUN = sunVec(); LIT.length = 0; WINDOWS.length = 0; HAZE = skyCols()[1];
   if (mistF() > 0) HAZE = mix(HAZE, mistCol(), 0.4 * mistF());   // the town beyond the frame goes into the mist too
   FACES.length = 0;                                // the cached faces are re-registered below; the live ones every frame
-  snowPainted = snowCover; wetPainted = wetBucket();
+  snowPainted = snowCover; wetPainted = wetBucket(); washPainted = washOut();
   const m = maturity();
   // the sky is *not* baked in here — it is painted fresh every frame underneath this
   // layer, so the sun crosses smoothly instead of hopping when the layer is rebuilt
@@ -6120,6 +6122,30 @@ const ROOF_DMAX = 82.2;                  // measured: the sill sits at depth 82.
  * z 1.55 at x 0, 20, 40, 60, 80 and 105 alike). The wobble is kept inside that row so
  * floor() never lands on 82. */
 const CAT_RIDGE_Y = ROOF_N + 0.05, CAT_WOBBLE = 0.1;
+/* #110: and one line is not a route. The cat now works ACROSS the pitch as it goes —
+ * over the ridge, down the south slope to row 86.3 and back up — on a cosine of x with a
+ * 33-cell period, which at 1.35 cells/s is one traverse every 24 s of a 55 s day. It is
+ * a function of x and not a state, so it is continuous by construction and there is no
+ * leg to change.
+ *
+ * The wells are what shape it. wellNear() pulls the line back to CAT_RIDGE_Y over a
+ * light well, because the hole is real and nothing may walk across it — but the row the
+ * old line used is NOT the level line #106 believed it was. probe-roofgeom sampled x = 0,
+ * 20, 40, 60, 80, 105 and never a well column: nearZ(x, 81) runs 1.55 1.21 0.99 0.93 over
+ * x 20..24, so HEAD's cat was already stepping 0.246 of a cell — 1.8 px down the screen
+ * in a single frame, four times a crossing — every time it walked past x 24..27 or 88..91.
+ * roofWalkZ() takes that to 0.008, and it does the same for the new line's much larger
+ * step down the pitch at the same time (probe-catz). */
+const CAT_SOUTH = 86.3, CAT_SWING_K = 0.19;
+/* PHASED ON THE HAND-OVER, not on a constant. The climb ends at CAT_RIDGE_Y and the
+ * wander begins the same frame, so a fixed phase snaps y by however far down the pitch
+ * the cosine happened to be at that x — which the motion gate caught as a 4.3-cell step
+ * against a 0.39 median, three times in five scenes. `c.ph = -c.x * CAT_SWING_K` puts
+ * the cosine's crest exactly where the cat came over, so the traverse STARTS at the
+ * ridge and the join is continuous by construction rather than by luck. */
+function catLine(x, ph){
+  return CAT_RIDGE_Y + (CAT_SOUTH - CAT_RIDGE_Y) * 0.5 * (1 - Math.cos(x * CAT_SWING_K + ph)) * wellNear(x);
+}
 const ROOF_RIDGE = 83;                   // roofD's plateau top — the line the eye follows across
 const ROOF_BIRDS = 3, ROOF_BIRD_RATE = 0.5;
 const ROOF_BIRD_MIN = 1.1;               // two birds nearer than this draw as one shape (#73)
@@ -6140,6 +6166,90 @@ function nearScale(y){ return 1 + (NEAR_SZ - 1) * clamp((y - LANE_S_Y) / (ROOF_S
  * the same rule agentZ() follows for the footbridge deck. */
 function roofSurfZ(x, y){ return nearZ(Math.floor(x), Math.floor(y)); }
 function nearDepth(x, y){ return y - roofSurfZ(x, y) * LIFT; }
+/* The pitch read CONTINUOUSLY. nearZ is a per-cell average, so anything walking the
+ * near roof drops the WHOLE difference between two rows in a single frame. Measured on
+ * the cat's new line (probe-catz): 0.620 of a cell crossing rows 85/86, which is 4.4 px
+ * down the screen in ONE frame with no change of leg, against 0.005 read bilinearly.
+ * Bilinear over the same four readings: the surface a foot lands on is the surface
+ * the eye already sees, and a valley beside a light well becomes a dip that is padded
+ * down into and out of instead of a step. */
+function roofWalkZ(x, y){
+  const cx = Math.floor(x - 0.5), fx = (x - 0.5) - cx;
+  const cy = Math.floor(y - 0.5), fy = (y - 0.5) - cy;
+  const a = nearZ(cx, cy), b = nearZ(cx + 1, cy), c = nearZ(cx, cy + 1), d = nearZ(cx + 1, cy + 1);
+  return (a * (1 - fx) + b * fx) * (1 - fy) + (c * (1 - fx) + d * fx) * fy;
+}
+/* 0 over a light well (and a cell of its lip), ramping to 1 three cells clear of it.
+ * The wells are holes clean through the block, so no line across the roof may cross
+ * one — and the roof around them is not merely lower, it is nothing. */
+function wellNear(x){
+  let m = 1;
+  for (const q of WELLS) m = Math.min(m, clamp(Math.max(q.x0 - 1 - x, x - (q.x1 + 1), 0) / 3, 0, 1));
+  return m;
+}
+/* ============ the working roof (#110) ============ *
+ * #106 gave the near block tenants and bounded them at ROOF_DMAX 82.2 — the band that
+ * survives a short 1200x720 window. That is the ridge and a row either side of it, and
+ * it left everything south of the ridge as one flat blue-grey field: at 1600x950 and at
+ * 390x844, where the whole block IS visible, thirty-nine and twenty-five pixels of the
+ * frame's full width with nothing on them at all.
+ *
+ * What goes there is what is actually on a terrace roof seen from an upstairs window
+ * opposite, and the geometry decides which of it is possible. Measured (probe-roofsurf):
+ *
+ *     row      84     85     86     87
+ *     z      1.98   1.55   0.93   0.31      out on the open pitch
+ *     z      0.00   0.31   0.62   0.31      at a light well's columns
+ *     depth 82.22  83.72  85.43  87.14
+ *
+ * Row 87 is the one line that is dead level across the whole block, wells included, and
+ * it is also the row the shadow ramp starts eating. Row 86 is level to within 0.31 of a
+ * cell. So the furniture stands on 86..87 and everything on it is SHORT: LIFT carries a
+ * cell of height 1.15 rows NORTH, so a tank 1.3 cells tall on row 87 tops out at depth
+ * 85.6 — still south of the ridge, which is the whole point of putting it there.
+ *
+ * Placed per BAY — the run of roof between two party walls — off hash(house), never
+ * R(): a draw here would reshuffle the entire seeded world for a set of objects that
+ * never move (#96). Every bay may have a line strung across it; at most one of a water
+ * tank or a pigeon loft stands beside it. */
+const ROOF_FURN = [];            // {kind, x, x1, y, h, house} — town state, counted by the census
+const LOFTS = [];                // [x, y, boardW, z] — the landing boards, which are a PERCH
+const WASH_H = 1.75, WASH_SAG = 0.16;    // the line's height over the leads, and its sag
+function buildRoofFurn(){
+  ROOF_FURN.length = 0; LOFTS.length = 0;
+  for (const [sx0, sx1] of NEAR_SPANS){
+    const walls = partyWalls(sx0, sx1);
+    for (let i = 0; i + 1 < walls.length; i++){
+      const a = walls[i], b = walls[i + 1];
+      if (b - a < 4) continue;                       // the block's ends can leave a stub bay
+      const house = houseOf(a);
+      const h1 = hash(house + 300, 401), h2 = hash(house + 300, 409), h3 = hash(house + 300, 419);
+      const line = h1 < 0.52;
+      if (line) ROOF_FURN.push({kind:'line', x:a + 0.45, x1:b - 0.45, y:85.95 + h3 * 0.5, h:h3, house});
+      /* A bay with no line always gets a stand-alone piece. The first draft let both
+       * rolls miss and put four bare bays in a row across the middle of the frame —
+       * which is the flat field this vector exists to break, rebuilt at a smaller scale. */
+      const stand = line ? h2 : h2 * 0.55;
+      if (stand < 0.34) ROOF_FURN.push({kind:'tank', x:a + 1.3 + h3 * 1.1, x1:0, y:86.95, h:h1, house});
+      else if (stand < 0.60){
+        const lx = a + 3.7 + h3 * 1.3;
+        ROOF_FURN.push({kind:'loft', x:lx, x1:0, y:86.8, h:h1, house});
+        LOFTS.push([lx, 87.52, 1.5, nearZ(Math.floor(lx), 86) + 0.26]);
+      }
+    }
+  }
+}
+buildRoofFurn();      // the volumes are built above, and nothing here is seeded
+/* Washing goes out on a FINE day and is in before the light goes. Bounded on BOTH sides
+ * of noon off the sun's own hours and never off `daylight`, which is dawn as much as it
+ * is dusk (#108, #109) — and off wetF() rather than `raining`, because nobody pegs a
+ * sheet onto a roof that is still running with this morning's shower. */
+let washPainted = false;
+function washOut(){
+  if (raining || wetF() > 0.22 || snowCover > 0.04) return false;
+  return hour > sunUp + 1.3 && hour < sunDown - 1.1;
+}
+const WASH_COL = ['#d6cfbe', '#c6bda8', '#9fb0bd', '#b0725f', '#8b9a76', '#cbbb9a', '#e0dad0', '#7f8ba0'];
 function onNearRoof(x, y){
   if (y < ROOF_N || y > ROOF_S) return false;
   if (nearDepth(x, y) > ROOF_DMAX) return false;
@@ -6173,6 +6283,18 @@ function roofBirdSpot(){
     const s = R();
     if (u < 0.27){ y = PARA_Y + 0.16; perch = 'parapet'; }
     else if (u < 0.70){ y = ROOF_RIDGE + (s - 0.5) * 0.55; perch = 'ridge'; }
+    /* #110: a loft's landing board, taken out of the PITCH's share and out of its two
+     * draws — `x` is re-used as the uniform along the board and `s` picks the loft. Not
+     * one new R() call site, so the seeded world is bit-identical to the build without
+     * this perch, and the census reads as pure signal instead of a reshuffle (#96). It
+     * is the one perch south of ROOF_DMAX: the board sits at depth 86.1, which the sill
+     * shows whole at 1600x950 and on a phone and eats entirely on a short 1200x720 —
+     * nearHidden() is what makes that safe, and it is the only bound that can be. */
+    else if (u < 0.84 && LOFTS.length){
+      const L = LOFTS[Math.min(LOFTS.length - 1, (s * LOFTS.length) | 0)];
+      x = L[0] + (x / GW - 0.5) * L[2]; y = L[1]; perch = 'loft';
+      return [x, y, L[3], 'loft', L[0], L[2]];
+    }
     else { y = s < 0.5 ? ROOF_N + 0.15 + s * 2.3 : ROOF_RIDGE + 0.8 + (s - 0.5) * 1.5; perch = 'pitch'; }
     if (x >= QUAY_X0 - 0.8 && x < RIVER_X1 + 0.8) return null;
     if (perch === 'parapet'){ if (!solidC(Math.floor(x), LN_WALK_S)) return null; }
@@ -6261,6 +6383,7 @@ function drawNearRoof(g){
     if (h > 0.62) drawDormer(g, x + 1);
     else if (h > 0.34) drawRoofLight(g, x + 1, DORM_Y + 0.4, 0.42, 0.62);
   }
+  drawRoofFurn(g);
   drawPartyWalls(g);
   drawParapet(g);
 }
@@ -6319,6 +6442,113 @@ function drawParapet(g){
       g.beginPath(); g.ellipse(p[0], p[1], cellW * 0.22, cellH * 0.30, 0, 0, 7); g.fill();
     }
   }
+}
+/* The furniture, drawn into the ground cache with the rest of the roof and after the
+ * dormers, so a party wall's upstand still crosses in front of what stands beside it.
+ * Everything here is drawn SOUTH-FACE-then-TOP: we are above this roof, so a box shows
+ * us the side turned toward the window and the lid, and nothing else. */
+function drawRoofFurn(g){
+  const lit = 0.24 + 0.58 * daylight, out = washOut();
+  for (const f of ROOF_FURN){
+    if (f.kind === 'line') drawWashLine(g, f, lit, out);   // the line stays strung; the washing does not
+    else if (f.kind === 'tank') drawWaterTank(g, f, lit);
+    else drawPigeonLoft(g, f, lit);
+  }
+}
+/* A line strung between two upstands, and what is pegged along it. The cloth hangs DOWN
+ * in z, which carries it SOUTH on screen — so a shirt occupies the strip below the line
+ * rather than standing in front of the ridge. The lean is baked off windSign·windF():
+ * this is in the ground cache and may not be per-frame, and both terms move slowly
+ * enough that a quarter-hour rebuild moves it by a fraction of a pixel. */
+function drawWashLine(g, f, lit, out){
+  const gx = clamp(Math.floor((f.x + f.x1) / 2), 0, GW - 1);
+  const zr = nearZ(Math.floor((f.x + f.x1) / 2), Math.floor(f.y)), zTop = zr + WASH_H;
+  const pts = [];
+  for (let k = 0; k <= 8; k++){
+    const u = k / 8;
+    pts.push(project(f.x + (f.x1 - f.x) * u, f.y, zTop - Math.sin(u * Math.PI) * WASH_SAG));
+  }
+  g.strokeStyle = 'rgba(28,26,23,.55)'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(pts[0][0], pts[0][1]);
+  for (const p of pts) g.lineTo(p[0], p[1]);
+  g.stroke();
+  if (!out) return;                       // a wet morning: the line is there, the washing is in
+  const lean = windSign * windF() * 0.20;
+  const n = 5 + ((f.h * 4) | 0);
+  for (let k = 0; k < n; k++){
+    const u = (k + 0.5) / n, sx = f.x + (f.x1 - f.x) * u;
+    const ha = hash(gx * 13 + k, 733), hb = hash(gx * 17 + k, 741), hc = hash(gx * 19 + k, 757);
+    const top = zTop - Math.sin(u * Math.PI) * WASH_SAG;
+    const drop = 0.58 + ha * 0.95, w = 0.16 + hb * 0.20;      // a shirt, or somebody's sheet
+    const q = [project(sx - w, f.y, top), project(sx + w, f.y, top),
+               project(sx + w + lean, f.y, top - drop), project(sx - w + lean, f.y, top - drop)];
+    g.fillStyle = mix('#2b2822', WASH_COL[(hc * WASH_COL.length) | 0], lit);
+    poly(g, q); g.fill();
+    g.fillStyle = 'rgba(30,26,22,.6)';                        // the two pegs holding it up
+    for (const px of [sx - w * 0.7, sx + w * 0.7]){
+      const p = project(px, f.y, top + 0.06);
+      g.fillRect(p[0] - 0.6, p[1] - 1.4, 1.2, 2.6);
+    }
+  }
+}
+/* The tank: boarded, on a low timber cradle, with the overflow running off south to the
+ * leads. 1.3 cells tall on row 87 tops out at depth 85.6 — south of the ridge, north of
+ * the shadow ramp, which is the strip this whole vector is for. */
+function drawWaterTank(g, f, lit){
+  const z = nearZ(Math.floor(f.x), Math.floor(f.y));
+  const w = 0.80, d = 0.55, legh = 0.26, hgt = 1.00;
+  const y0 = f.y - d, y1 = f.y + d, zb = z + legh, zt = zb + hgt;
+  g.strokeStyle = 'rgba(26,20,15,.75)'; g.lineWidth = Math.max(1, cellW * 0.11);
+  for (const sx of [f.x - w * 0.75, f.x + w * 0.75]){
+    const p0 = project(sx, y1, z), p1 = project(sx, y1, zb);
+    g.beginPath(); g.moveTo(p0[0], p0[1]); g.lineTo(p1[0], p1[1]); g.stroke();
+  }
+  const face = [project(f.x - w, y1, zt), project(f.x + w, y1, zt),
+                project(f.x + w, y1, zb), project(f.x - w, y1, zb)];
+  g.fillStyle = mix('#292420', '#6d6150', lit); poly(g, face); g.fill();
+  g.strokeStyle = 'rgba(18,14,11,.45)'; g.lineWidth = 1;
+  for (const u of [0.34, 0.67]){
+    const p0 = project(f.x - w + 2 * w * u, y1, zt), p1 = project(f.x - w + 2 * w * u, y1, zb);
+    g.beginPath(); g.moveTo(p0[0], p0[1]); g.lineTo(p1[0], p1[1]); g.stroke();
+  }
+  const top = [project(f.x - w, y0, zt), project(f.x + w, y0, zt),
+               project(f.x + w, y1, zt), project(f.x - w, y1, zt)];
+  g.fillStyle = mix(mix('#37322a', '#9c9484', lit), SNOW_COL, snowCover * 0.75);
+  poly(g, top); g.fill();
+  g.strokeStyle = 'rgba(16,13,10,.5)'; g.lineWidth = 1; poly(g, top); g.stroke();
+  const o0 = project(f.x + w * 0.72, y1, zt - 0.10), o1 = project(f.x + w * 0.72, y1 + 0.5, z);
+  g.strokeStyle = 'rgba(38,42,44,.8)'; g.lineWidth = Math.max(1, cellW * 0.08);
+  g.beginPath(); g.moveTo(o0[0], o0[1]); g.lineTo(o1[0], o1[1]); g.stroke();
+}
+/* The loft: a hutch with a pitched top, three entry holes and a landing board out over
+ * the leads. The board is a PERCH — roofBirdSpot reads LOFTS — so this is the one piece
+ * of furniture that is also a place, which is what stops the strip being a still life. */
+function drawPigeonLoft(g, f, lit){
+  const z = nearZ(Math.floor(f.x), Math.floor(f.y));
+  const w = 0.82, d = 0.42, zb = z + 0.20, zt = zb + 0.72, rid = zt + 0.30;
+  const y0 = f.y - d, y1 = f.y + d;
+  const bd = [project(f.x - w, y1, zb + 0.04), project(f.x + w, y1, zb + 0.04),
+              project(f.x + w, y1 + 0.62, zb + 0.04), project(f.x - w, y1 + 0.62, zb + 0.04)];
+  g.fillStyle = mix('#2f2820', '#8a7c62', lit); poly(g, bd); g.fill();
+  g.strokeStyle = 'rgba(18,14,11,.5)'; g.lineWidth = 1; poly(g, bd); g.stroke();
+  const face = [project(f.x - w, y1, zt), project(f.x + w, y1, zt),
+                project(f.x + w, y1, zb), project(f.x - w, y1, zb)];
+  g.fillStyle = mix('#272320', '#7d6e56', lit); poly(g, face); g.fill();
+  g.fillStyle = 'rgba(14,11,9,.88)';
+  for (const u of [0.24, 0.5, 0.76]){
+    const p = project(f.x - w + 2 * w * u, y1, zb + 0.44);
+    g.beginPath(); g.ellipse(p[0], p[1], Math.max(1, cellW * 0.09), Math.max(1, cellH * 0.26), 0, 0, 7); g.fill();
+  }
+  const nSl = [project(f.x - w - 0.10, y0, zt), project(f.x + w + 0.10, y0, zt),
+               project(f.x + w + 0.10, f.y, rid), project(f.x - w - 0.10, f.y, rid)];
+  const sSl = [project(f.x - w - 0.10, f.y, rid), project(f.x + w + 0.10, f.y, rid),
+               project(f.x + w + 0.10, y1, zt), project(f.x - w - 0.10, y1, zt)];
+  g.fillStyle = mix(mix('#2c3036', '#7e8892', 0.28 + 0.5 * daylight), SNOW_COL, snowCover * 0.8);
+  poly(g, nSl); g.fill();
+  g.fillStyle = mix(mix('#25282c', '#69727b', 0.28 + 0.5 * daylight), SNOW_COL, snowCover * 0.7);
+  poly(g, sSl); g.fill();
+  g.strokeStyle = 'rgba(16,18,20,.5)'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(nSl[3][0], nSl[3][1]); g.lineTo(nSl[2][0], nSl[2][1]); g.stroke();
 }
 /* A light well: a hole clean through the block. The roof falls away to nothing at its
  * lip because the distance transform says so, so all this draws is the shaft — and, at
@@ -9370,6 +9600,7 @@ function simStep(sdt, dt){
   if (lb !== lightBucket){ lightBucket = lb; groundDirty = true; }
   if (Math.abs(snowCover - snowPainted) > SNOW_REPAINT) groundDirty = true;   // snow lies (or goes) in small steps
   if (wetBucket() !== wetPainted) groundDirty = true;                        // the paving soaks and dries in WET_STEPS steps
+  if (washOut() !== washPainted) groundDirty = true;                         // #110: the washing goes out, and comes in
   wearAcc += sdt;
   if (wearDirty && wearAcc >= WEAR_REPAINT) groundDirty = true;               // the trodden paths, throttled
 
@@ -9790,7 +10021,7 @@ window.__census = function(){
      * of each scene), so its value depends on where in the draw pass you sample —
      * it made the census non-reproducible. Census fields must be town state, not
      * render state. */
-    chimneys: CHIMNEYS.length,
+    chimneys: CHIMNEYS.length, roofFurniture: ROOF_FURN.length,
     ringNodes: RING.length, edgeBeds: EDGE_BEDS.length,
     benches: BENCH_SPOTS.length + LANE_BENCHES.length + QUAY_BENCHES.length + FAR_BENCHES.length,
     cafeTables: CAFE_TABLES.length, marketStalls: MARKET_STALLS.length,

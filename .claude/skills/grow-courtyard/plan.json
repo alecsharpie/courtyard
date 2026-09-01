@@ -16,32 +16,6 @@
   "rationale": "I shot the town before planning it, at 1600x950 and at 390x844, and the two pictures disagree with the prose. The town proper is dense and good. But #100's near roof — the rung-4b foreground that was the run's biggest single change, +408 lines and the only census move in 109 iterations — is the dullest object in the frame, and on a phone it is 20% of the picture: one flat blue-grey field with a few dormers, no life below the ridge, and a black apron under it. #106 gave it tenants and bounded them at ROOF_DMAX 82.2 because at a short 1200x720 the sill cuts the surface at row ~84.9; the entire visible roof at every OTHER framing is therefore empty by construction, and #106's own ledger entry handed that trade to me as 'the manager's call'. I am calling it: it is worth a blink at short framings to stop giving a fifth of the phone frame to nothing. That is b110, and it is a real 4b rather than a deepen because the WATCH note is right that passages, tileKinds and speciesKinds have never moved in 109 iterations — the brief is required to move one and re-pin the baseline. b111 is the same picture's other half: the sill is baked into the ground cache, so four of the five camera positions have no sill at all and fill that band with live content instead (max luma 221 at Courtyard against a painted 13). Together they fix the bottom quarter of the frame. b112 finishes what #109 started — the night clock and the sun still disagree by an hour at dawn, so lawn walkers cross a courtyard the town is still lighting as night and the last lamps go out after sunrise; it serves the stalest domain and sky-polish is saturated, so it is a Deepen. b113 and b114 are the low-risk rotation into People & animals and Plaza & quay. On curation: the budget was the real emergency and it took the whole pass. LAWS.md is at 12288/12288 bytes with 18 laws after promoting eight from #105-#109 — I merged rather than stacked (the #106 depth law and #105's foreground-ramp law folded into the framing law; #108's dawn law and #109's sunUp law became one; #107's two pricing findings became one corollary law; #106's motion-gate zero-median and #109's canvas-hash containment went into the two instrument laws), and I made one outright cut: the standalone 'A raised surface is two draw items' law (#73) is gone, its still-live half folded into the renderer law as trap (d) and its DECK-specific sort order dropped, because the deck is built and stable and that detail now lives in the inventory. Inventory 11.4 -> 7.2 KB by taking it back to nouns plus seams; seven cues closed (six promoted into this queue, c136 deleted after three passes declined it); the three fattest ledger entries condensed in place with full text appended to LEDGER-archive.md. Worker budget 53.5 -> 45.5 KB, OK. NOTE FOR THE NEXT PASS: LAWS.md has zero bytes of headroom, so the next promotion must be paid for by a cut first.",
   "queue": [
     {
-      "id": "b110",
-      "domain": "Roofs & skyline",
-      "kind": "Scale/World",
-      "brief": "Our own roof is the biggest object in the picture and, below the ridge, nothing is on it. Shoot it yourself before you start — at 1600x950 and at 390x844 the near block is 14-20% of the frame and reads as one flat blue-grey field. The cause is bounded and known: roofBirdSpot() and the cat are capped at ROOF_DMAX 82.2 (band ROOF_N 81.8..ROOF_S 84.6), which is the band visible at EVERY framing, because at a short 1200x720 sillTop() cuts the surface at row ~84.9. Everything south of that is inert slate at the two framings where the roof is largest. Give the lower roof something to be. It is a working roof seen from an upstairs window: the leads and valley gutters between the party walls, a flat behind the parapet, a water tank, a pigeon loft, washing pegged out on a fine day, a cat's route across the whole slope rather than along one line. Take the swing — a 150-300 line diff is expected and welcome. This is a 4b: it must change the shape of the map, so it must move a census scalar. passages, tileKinds and speciesKinds have not moved in 109 iterations and structures has moved once; move one of them, re-pin with `census.mjs --save-baseline`, and SAY SO in the ledger entry.",
-      "seams": [
-        "drawNearRoof",
-        "ROOF_DMAX",
-        "ROOF_N",
-        "ROOF_S",
-        "nearHidden",
-        "nearZ",
-        "roofBirdSpot",
-        "drawPartyWalls",
-        "drawParapet",
-        "WELLS",
-        "DORM_Y",
-        "STACK_Y",
-        "NEAR_SPANS",
-        "sillTop"
-      ],
-      "successLooksLike": "On a phone and at 1600x950 the bottom fifth of the picture is somewhere with things happening on it, and a thirty-second look finds at least one of them without being told where. A census scalar has moved and the baseline is re-pinned.",
-      "avoid": "Do not widen the general birds[] roll to reach the roof — the roof has its own source and its own cap, and widening the shared one makes the lawn and the roof compete (#92, #106). Do not bound anything new in ROWS: around a light well the same row is 1.7 of depth lower on a lip than on the pitch. If you extend the life band south you must clip it with nearHidden(); the blink as something crosses the sill line at 1200x720 is an accepted cost of this brief, but measure it and say how big it is.",
-      "budgetMin": 75,
-      "risk": "high"
-    },
-    {
       "id": "b111",
       "domain": "The sill & the observer",
       "kind": "Deepen",
@@ -123,5 +97,10 @@
     }
   ],
   "recommendStop": null,
-  "consumed": []
+  "consumed": [
+    {
+      "id": "b110",
+      "at": "2026-09-01T23:13:19.544Z"
+    }
+  ]
 }
