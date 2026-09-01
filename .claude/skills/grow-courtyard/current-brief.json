@@ -23,7 +23,7 @@
   "avoid": "Do NOT occlude the lane. If you raise a volume through buildVolumes, its drawn top must stay south of the lane's south footway - check against the 676.4 px line above. Do NOT move FOCUS, PINCH, WH, GW or any QUARTERS box: #99 has just settled the camera and `where-identity` is the gate for that. Keep x QUAY_X0..RIVER_X1 as WATER - the river slips between the block's two halves and its gradient already carries it off the bottom. Do not turn this into a walkable place with its own population; nobody needs to go up there this iteration.",
   "budgetMin": 90,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 100,
   "issued": "2026-09-01T17:24:55.412Z",
