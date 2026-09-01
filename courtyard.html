@@ -2321,7 +2321,7 @@ function stepAgent(a, dt){
     if (a.timer <= 0 || (raining && a.state !== 'lie')
         || skyLifts(a)
         || (a.east && !eastOpenFor(a))
-        || (a.dusk && !eveOpen())
+        || (a.dusk && (!eveOpen() || (a.eveLeave !== undefined && hourEve() >= a.eveLeave)))
         || (a.fam && !famSun())
         || (a.lawn && lawnClosed())           // rain or the failing light ends a stay on the lawn (#95)
         || (a.tap && !tapOpen())
@@ -2340,7 +2340,10 @@ function stepAgent(a, dt){
       if (a.tap && a.slot){ a.slot.taken = 0; a.slot = null; a.cup = false; }
       // an evening arrival's post goes back as they step off it; from the quay or the
       // far bank goHome() prices a door and mostly finds none — the retrace is the fallback
-      if (a.dusk){ eveRelease(a); if (!a.with && goHome(a)) return; }
+      // the walk home is priced against EVE_GONE too — from the deck the nearest door is
+      // FURTHER than the way they came (35 cells against 33), so an unbounded goHome()
+      // made the late walk longer, not shorter
+      if (a.dusk){ eveRelease(a); a.eveGoing = true; if (!a.with && goHome(a, (EVE_GONE - hourEve()) * EVE_HURRY)) return; }
       if (a.resume && a.i < a.wp.length){ a.state = 'walk'; a.resume = false; }
       else if (a.street){ a.state = 'walk'; }        // lane agents just continue their route
       else routeToExit(a);
@@ -2372,7 +2375,7 @@ function stepAgent(a, dt){
   const d = Math.hypot(dx, dy);
   const sp = a.speed * (raining && !a.umbrella ? 1.5 : 1) * (a.kind === 'napper' ? 0.8 : 1)
                      * (a.east && !eastOpenFor(a) ? 1.55 : 1)    // home before dark
-                     * (a.dusk && !eveOpen() ? 1.4 : 1)            // the evening is over
+                     * (a.dusk && (a.eveGoing || !eveOpen()) ? EVE_HURRY : 1)   // the evening is over (#101)
                      * (a.lawn && a.lawnOut && lawnClosed() ? 1.5 : 1)   // the lawn has closed behind them (#95)
                      * (a.with ? 1 + clamp((d - PAIR_GAP) * 0.5, 0, 0.9) : 1);   // a companion left behind hurries
   if (d < 0.25){
@@ -2460,6 +2463,8 @@ function stepAgent(a, dt){
         return;                                    // walk on past the empty chair
       }
       a.state = a.stop.act; a.timer = a.stop.dur; a.resume = true;
+      // an hour on the post at least, then away in time to be off the frame by EVE_GONE (#101)
+      if (a.dusk && a.eveOut !== undefined) a.eveLeave = Math.max(hourEve() + EVE_STAND, EVE_GONE - a.eveOut);
       if (a.stop.cup){ a.cup = true; a.tableRef = a.table; a.table = null; }
       if (a.stop.say) announce(a.stop.say);
       return;
@@ -2528,7 +2533,7 @@ const GREET_DT = 0.5, GREET_R = 1.6, GREET_MIN = 0.9, GREET_P = 0.17;
 let greetAcc = 0;
 function chatty(a){
   return a.state === 'walk' && !a.small && !(a.listen > 0) && !(a.greet > 0) && !(a.chatCool > 0)
-      && a.kind !== 'sweeper' && a.kind !== 'picnic' && !a.homer && !a.stay && !a.with && !a.round;   // a companion is already with somebody   // the sweeper is working; picnic pairs arrive together; a homer is priced to a door (c90), a stayer to a post before the light goes (#89)
+      && a.kind !== 'sweeper' && a.kind !== 'picnic' && !a.homer && !a.dusk && !a.with && !a.round;   // a companion is already with somebody   // the sweeper is working; picnic pairs arrive together; a homer is priced to a door (c90), and EVERY evening walk is priced — to a post before the light goes, and off the frame before EVE_GONE (#89, #101: a gate arrival stood talking for 2.79 h and lost its post)
 }
 function greetPass(){
   const free = [];
@@ -3146,11 +3151,14 @@ function claimHome(best){                        // the register goes dark for t
   best.d.nid = n.nid;
   HOMES.set(best.d.sa * 1000 + best.d.sb, { nid: n.nid, t: null, due: best.at });
 }
-function goHome(a){
+// maxH: the most walking the caller can afford (#101 — the evening's leavers are priced
+// against EVE_GONE and a door across the river is not always the short way home)
+function goHome(a, maxH){
   if (nightF <= 0.3) return false;
   if (hash(Math.round(a.speed * 1e4), 53) >= HOME_SHARE) return false;
   const best = homeDoor(a.x, a.y, a.speed);
   if (!best) return false;
+  if (maxH !== undefined && pathHours(a.x, a.y, best.path, a.speed) > maxH) return false;
   claimHome(best);
   a.home = best.d; a.wp = best.path; a.i = 0; a.state = 'walk';
   if (a.slot){ a.slot.taken = 0; a.slot = null; }
@@ -3475,11 +3483,38 @@ function plazaBirdSpot(){
  * quay bench, and from the park gate the far bench and the towpath by the steps —
  * each `taken` so two never render as one shape (the 0.9-cell law). */
 const EVE_CAP = 6, EVE_RATE = 0.8, EVE_WARM = 0.6, EVE_WET = 0.3, EVE_WIND = 0.5, EVE_LEAD = 2.5, EVE_SPAN = 3, EVE_STAND = 1;
+/* ---- and the hour it is OVER (#101) ----
+ * #79 priced the walk IN and nothing else, so the evening ended at eveEnd() and the
+ * walking home began there: traced over 10 seeds x 4 days, a dusk agent went off the
+ * frame a MEDIAN of 4.4 h after the window shut (worst 9.9), and 29 of 40 nights still
+ * had one on the plaza at 03:00. Three separate unpriced things, all of them time:
+ *   - the walk home itself. EVE_GONE is the hour the evening's people are off the
+ *     frame; a spot is now chosen only if the ROUND TRIP fits it (eveFits), and
+ *     whoever is on a post gets up at eveLeave — an hour on it at least, then away in
+ *     time to be home by then. EVE_HURRY is the walk back (1.4 -> 2.3: it is late and
+ *     they are a long way from the lane — 33 cells from the deck's far end).
+ *   - the bell. `a.listen` holds a walker 0.44-0.92 h and the clock strikes every
+ *     third hour: on the way IN it cost four of 51 gate arrivals their post (they
+ *     stood one frame past eveEnd and got straight up), so EVE_BELL is carried as a
+ *     margin; on the way HOME it added ~1.5 h to a walk that was already too long, so
+ *     whoever is going home does not stop for it — the draw is still spent (#2's law),
+ *     only the hold is refused.
+ *   - the passing word. chatty() excluded a.stay but not the gate arrivals, so a
+ *     priced evening walk stood in the road for up to 2.79 h. Now every a.dusk walk
+ *     refuses it, as #89's law says a priced walker must.
+ * MEASURED and NOT fixed: the deck's far posts are 33 cells (6.6-8.6 h, 4.7 h at the
+ * hurry) from EAST_GATE_A and their source releases nobody before sunDown-4, so their
+ * arrivals sit at sunDown+1.8 median. Pricing the round trip at the CHOICE there takes
+ * 41 fits in 248 far-side retirements to 2 — the stay #85 built would simply stop
+ * happening. So stayOn prices the LEAVE, not the choice: they go as early as their
+ * hour on the post allows, and the last of them is still crossing the plaza after
+ * EVE_GONE. That is geometry, not pricing (see the ledger). */
+const EVE_GONE = 26.5, EVE_HURRY = 2.3, EVE_BELL = 0.35;   // on hourEve()'s 6..30 axis: away by half past two
 const EVE_SPOTS = [
   ...[12.5, 14.5, 16.5].map(y => ({g:'Q', lead:[[112.9, 7]], x:112.9, y, act:'stand', rail:1})),
   {g:'Q', lead:[[112.9, 7]], bench:QUAY_BENCHES[0], act:'sit'},
   ...[114.5, 116.5].map(x => ({g:'A', lead:DECK_LEAD_A.slice(0, 4), x, y:DECK_Y0 + 0.5, act:'stand', deck:1})),   // by the alley, #73's route: the plaza crossing alone is ~4 h, so only the near end of the span is reached
-  ...[126.5, 124.5].map(x => ({g:'A', lead:DECK_LEAD_A.slice(0, 4), x, y:DECK_Y0 + 0.5, act:'stand', deck:1, stay:1})),   // the FAR end, mirrored: reached only by someone already over the river (stayOn, #85); far end first
+  ...[126.5, 124.5, 122.5].map(x => ({g:'A', lead:DECK_LEAD_A.slice(0, 4), x, y:DECK_Y0 + 0.5, act:'stand', deck:1, stay:1})),   // the FAR end, mirrored: reached only by someone already over the river (stayOn, #85); far end first. THREE since #101 — 19 of 33 concert evenings filled both of the two
   {g:'P', lead:[[PARK_GATE, 60.5], [FAR_WALK, 57]], bench:FAR_BENCHES[1], act:'sit'},
   ...[50.5, 53, 55.5].map(y => ({g:'P', lead:[[PARK_GATE, 60.5], [TOW_WALK, 59]], x:TOW_WALK, y, act:'stand', tow:1})),
 ];
@@ -3490,11 +3525,20 @@ function eveOpen(){ return day >= 1 && eveWeather() && hourEve() >= sunDown - EV
 function eveCount(){ return agents.filter(a => a.dusk && !a.stay).length; }   // the gate arrivals, under EVE_CAP
 function stayCount(){ return agents.filter(a => a.stay).length; }               // the far side's own, under the two posts
 function eveGate(s){ return s.g === 'Q' ? EAST_GATE_Q : s.g === 'A' ? EAST_GATE_A : EAST_GATE_P; }
+// the walk home from a post, at the hurry the retire rule actually gives them: ONE
+// definition, priced at the choice (eveFits, spawnEveningAgent, stayOn) and read again
+// at the post to fix the hour they get up
+function eveOutH(s, speed){ return pathHours(s.x, s.y, s.lead.slice().reverse().concat([eveGate(s)]), speed) / EVE_HURRY; }
 function eveFits(s, speed){
   if (s.taken) return false;
   const g = eveGate(s);
-  const arrive = hourEve() + pathHours(g[0], g[1], s.lead.concat([[s.x, s.y]]), speed);
-  return arrive + EVE_STAND < eveEnd();
+  const arrive = hourEve() + pathHours(g[0], g[1], s.lead.concat([[s.x, s.y]]), speed) + EVE_BELL;
+  // two bounds, not one term: the STAND is bounded by the window (as it always was —
+  // eveEnd() ends it), and the walk HOME is bounded by the night. Adding EVE_STAND to
+  // the second as well double-counts the hour eveEnd() has already spent, and measured
+  // it took the evening's gate arrivals from 67 to 24 over 40 nights.
+  return arrive + EVE_STAND < eveEnd()
+      && arrive + eveOutH(s, speed) < EVE_GONE;
 }
 function spawnEveningAgent(room){
   const speed = 1.5 + R() * 0.8, dur = 4 + R() * 6, k = R();   // three draws whether or not a place fits: the stream is the same either way
@@ -3517,6 +3561,7 @@ function spawnEveningAgent(room){
   for (let i = s.lead.length - 1; i >= 0; i--) a.wp.push(s.lead[i].slice());
   a.wp.push(gate.slice());                   // and back out the way they came — unless goHome() takes them
   a.pred = pathHours(gate[0], gate[1], s.lead.concat([[s.x, s.y]]), speed);   // the priced walk, for the probe
+  a.eveOut = eveOutH(s, speed);                                                // and the priced walk home, spent at the post
   agents.push(a); withCompanion(a, room);
 }
 function eveRelease(a){ if (a.eveSpot && !a.with){ a.eveSpot.taken = 0; } a.eveSpot = null; }
@@ -3567,6 +3612,7 @@ function stayOn(a){
     const h = Math.round(a.speed * 1e4);
     if (a.band){ a.band = false; a.fromBand = true; if (a.slot){ a.slot.taken = 0; a.slot = null; } }   // the place on the green goes back now
     a.east = false; a.dusk = true; a.stay = true; a.eveSpot = s; a.stopped = false;
+    a.eveOut = eveOutH(s, a.speed);   // priced at the LEAVE, not at the choice: see EVE_GONE
     a.stop = {x:s.x, y:s.y, act:'stand', dur:4 + hash(h, 97) * 6,
       say: hash(h, 101) < 0.15 ? (a.fromBand ? 'Someone from the concert has walked round the bandstand and up to the footbridge instead of going home, to hear the river after the music.'
                                              : 'Someone who came over for the afternoon has stopped on the footbridge instead of going back, to watch the lamps come on along the river.') : null};
@@ -8603,7 +8649,10 @@ function bellStartle(){
       cx, cy, r:0.5 + R()*0.6, ph:R()*Math.PI*2, sp:1.9 + R()*1.3, ph2:R()*9,
       col:pick(['#3a3733','#4e4a44','#5a5650','#6e6a60'])});
   }
-  for (const a of agents) if (a.state === 'walk' && R() < 0.45) a.listen = 1 + R()*1.1;
+  // both draws are spent whatever happens (#2), but whoever is walking home from the
+  // evening does not stop for it: the hold is 0.44-0.92 h and their walk is hours (#101)
+  for (const a of agents) if (a.state === 'walk' && R() < 0.45){ const hold = 1 + R()*1.1;
+    if (!(a.dusk && (a.eveGoing || !eveOpen()))) a.listen = hold; }
 }
 /* One simulation step. Split out of frame() so `__warp()` can advance the town
  * with a FIXED dt and no drawing — that is what makes a seeded run reproducible:

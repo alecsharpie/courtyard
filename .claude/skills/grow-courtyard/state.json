@@ -441,7 +441,8 @@
       "the NIGHT on the water — drawRiverLights() under RIVER_LAMPS and moon; ONE a.nightRail stander; boatLampF(); roseLit() lights the rose window LIVE",
       "FOOTBRIDGE — DECK tile rows 30..32 at ALLEY_Y; drawDeckSpan/drawDeckFront, boatUnderDeck(), agentZ()/deckZAt(), DECK_LEAD_A/Q, overDeck(). WATERMILL — MILL 130..133×19..24, MILL_WHEEL on millSpin(), MILL_WIN lit all night",
       "the EYOT — EYOT tile, EYOT_AT (124.3,46) once in buildGrid; onEyot/offEyot/eyotShore read the grid; drawEyot cached, drawWillow live; the swans' third bank; nestF() → 2 d.eyot ducks in spring",
-      "the PUNT — punt{leg 0..4}, PUNT_MOOR/SHORE/STAND/LAND; puntFits at the jetty stop's perform; the rider re-routed by a wp splice, never walks on water; drawPuntHull/Crew"
+      "the PUNT — punt{leg 0..4}, PUNT_MOOR/SHORE/STAND/LAND; puntFits at the jetty stop's perform; the rider re-routed by a wp splice, never walks on water; drawPuntHull/Crew",
+      "the evening ENDS (#101) — EVE_GONE/EVE_HURRY/EVE_BELL; eveOutH() the ONE priced walk home stored as a.eveOut at the choice; a.eveLeave fixed at the post; a.eveGoing drives the hurry and refuses the bell's HOLD (not its draw); chatty() refuses every a.dusk; goHome(a, maxH); THREE far deck posts"
     ],
     "sky": [
       "day/night cycle (55 s day), sun and moon arc, hills hazed by HAZE, chimney smoke, a balloon; windowLit(sa,sb) the ONE pane + LIT[] predicate; facades CACHED; LIT_PANES relit AFTER applyLight",
@@ -511,6 +512,12 @@
     {
       "id": "c151",
       "note": "nothing looks down the two light wells and nothing lands on the near ridge (MUR_ROOSTS could take one); on a phone in snow the near band is a large bright blank — its apron is 128 px of 164, so anything placed there has to live past row WH (#100)",
+      "raisedBy": 99,
+      "seenBy": 0
+    },
+    {
+      "id": "c152",
+      "note": "the deck's far posts are 33 cells / 4.7 h at a hurry from EAST_GATE_A and their source releases nobody before sunDown-4, so arrivals sit at sunDown+1.8: pricing the round trip at the CHOICE takes stayOn from 41 fits in 248 to 2. A far-end stay that clears by 03h needs an EARLIER far-side source, not better pricing (#101, the shape of c143)",
       "raisedBy": 99,
       "seenBy": 0
     }
