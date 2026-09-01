@@ -22,7 +22,7 @@
   "avoid": "Deterministic only - hash and simT, no new R() draw. This is a live pass, not a cache rebuild: the ground cache is repainted on its own dirty flag and a per-frame truth on it belongs in a live overlay (drawLitPanes' idiom). Watch the frame cost - `frame-cost.mjs`, not `perf.mjs` - a full-frame per-pixel pass will not do; a handful of soft ellipses composited in one multiply will.",
   "budgetMin": 60,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 102,
   "issued": "2026-09-01T18:29:34.641Z",
