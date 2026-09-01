@@ -21,7 +21,7 @@
   "avoid": "Do not move FOCUS or touch gview's k mapping. Do not add a new offer to OFFERS. No new quarter.",
   "budgetMin": 25,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 2,
   "nextIter": 99,
   "issued": "2026-09-01T01:06:45.378Z",
