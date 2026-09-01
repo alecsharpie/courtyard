@@ -5,6 +5,8 @@
  *   node pop-brief.mjs --peek      report queue depth only, change nothing
  *   node pop-brief.mjs --done      mark the current brief finished
  *   node pop-brief.mjs --reject "…" the town already has this; say so with evidence
+ *   node pop-brief.mjs --no-bump  re-issue the active brief WITHOUT counting an
+ *                                 attempt (the last launch was rejected outright)
  *
  * Exit 0 = a brief is ready in current-brief.json.
  * Exit 2 = the queue is empty. The runner reads this as "fire the manager".
@@ -25,6 +27,11 @@ const RUNLOG = join(HERE, 'RUNLOG.jsonl');
 
 const argv = process.argv.slice(2);
 const peek = argv.includes('--peek');
+/* An attempt is a worker that READ the brief. A `claude -p` the API rejected at the
+ * door never did, and counting those made b93 read "attempt 17" on 2026-09-01 after
+ * one real try and sixteen half-hourly retries against an exhausted model — a number
+ * runlog.mjs's one-retry rule and every later reader would have believed. */
+const noBump = argv.includes('--no-bump');
 
 const plan = existsSync(PLAN) ? JSON.parse(readFileSync(PLAN, 'utf8')) : { queue: [], consumed: [] };
 const cur = existsSync(CUR) ? JSON.parse(readFileSync(CUR, 'utf8')) : null;
@@ -69,6 +76,10 @@ if (peek) {
 /* An iteration that died before committing leaves its brief active — retry it
  * rather than skipping to the next. The work it wanted done still wants doing. */
 if (cur && cur.status === 'active') {
+  if (noBump) {
+    console.log(`pop-brief: re-issuing ${cur.id} (still attempt ${cur.attempts || 1}) — the last launch never reached a worker.`);
+    process.exit(0);
+  }
   cur.attempts = (cur.attempts || 1) + 1;
   cur.nextIter = nextIter();
   delete cur.retry;   // runlog.mjs's "re-issued once" note; the count now lives in attempts

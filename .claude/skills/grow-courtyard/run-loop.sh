@@ -24,6 +24,11 @@
 #
 # Env:
 #   PERM         permission mode (default: auto). See the note below.
+#   MODELS       comma-separated model priority list (default: opus,sonnet). The loop
+#                runs on the first; when a usage limit rejects THAT model it drops to
+#                the next and retries immediately, and only sleeps when the whole list
+#                is spent. MODELS=opus pins one model and restores the sleep-only
+#                behaviour; MODELS= (empty) inherits whatever `claude` defaults to.
 #   MAX_ITERS    stop after this many COMPLETED worker iterations (default: unlimited)
 #   VERBOSE      0 = boundaries only, 1 = live action feed (default), 2 = full prose
 #   LOG          log file (default: ~/Library/Logs/courtyard-grow.log)
@@ -48,6 +53,11 @@ MAX_ITERS="${MAX_ITERS:-0}"
 LOG="${LOG:-$HOME/Library/Logs/courtyard-grow.log}"
 PUSH="${PUSH:-1}"
 MANAGER_GAP="${MANAGER_GAP:-2}"
+# A usage limit is per MODEL, not per account: on 2026-09-01 the loop sat in a
+# 30-minute sleep/retry cycle for hours against an exhausted Fable 5 while every
+# other model was free, and burned 16 re-issues of one brief doing it. So the model
+# is a LIST, and a limit walks down it before it ever sleeps.
+MODELS="${MODELS-opus,sonnet}"
 VERBOSE="${VERBOSE:-1}"
 
 STOP_FILE="$HERE/STOP"
@@ -68,6 +78,22 @@ LIMIT_MAX="${LIMIT_MAX:-21600}"
 
 mkdir -p "$(dirname "$LOG")"
 log() { printf '%s  %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" | tee -a "$LOG"; }
+
+IFS=',' read -ra MODEL_LIST <<< "$MODELS"
+[ ${#MODEL_LIST[@]} -eq 0 ] && MODEL_LIST=("")
+model_i=0; MODEL_NOW="${MODEL_LIST[0]}"
+
+# A long wait must still answer the STOP file. `touch STOP` during a 30-minute
+# rate-limit sleep used to sit unread until the sleep ended — up to half an hour
+# after the runner looked, to the person watching, like it had ignored them.
+nap() {
+  local left="$1"
+  while [ "$left" -gt 0 ]; do
+    if [ -f "$STOP_FILE" ]; then log "    STOP file appeared during the wait — cutting it short."; return 0; fi
+    sleep $(( left > 15 ? 15 : left ))
+    left=$(( left - 15 ))
+  done
+}
 
 # ---- --status ----------------------------------------------------------------
 if [ "${1:-}" = "--status" ]; then
@@ -145,7 +171,9 @@ run_claude() {
   local prompt="$1" label="$2" started
   started=$(date +%s)
   raw="$(mktemp)"; : > "$RATE_FILE"
-  claude -p "$prompt" --permission-mode "$PERM" \
+  local margs=()
+  [ -n "$MODEL_NOW" ] && margs=(--model "$MODEL_NOW")
+  claude -p "$prompt" --permission-mode "$PERM" ${margs[@]+"${margs[@]}"} \
          --output-format stream-json --verbose < /dev/null 2>&1 \
     | tee -a "$raw" \
     | VERBOSE="$VERBOSE" node "$HERE/fmt-stream.mjs" --rate-file "$RATE_FILE" \
@@ -204,9 +232,28 @@ rate_limited() {
   return 0
 }
 
+# A limit answered by a cheaper model is not a wait at all. Returns 0 (and re-points
+# MODEL_NOW) when there is another model to drop to; the caller retries immediately.
+next_model() {
+  [ $(( model_i + 1 )) -lt ${#MODEL_LIST[@]} ] || return 1
+  model_i=$(( model_i + 1 )); MODEL_NOW="${MODEL_LIST[$model_i]}"
+  log "    the limit is on the MODEL, not the account: dropping to ${MODEL_NOW:-the CLI default} and retrying now (no sleep)."
+  return 0
+}
+# After a real sleep the top of the list has had its reset — start there again, so a
+# single hour on the fallback does not pin the whole run to it.
+reset_model() {
+  [ "$model_i" -eq 0 ] && return 0
+  model_i=0; MODEL_NOW="${MODEL_LIST[0]}"
+  log "    back to ${MODEL_NOW:-the CLI default} after the wait."
+}
+
 # ---- the loop ----------------------------------------------------------------
 done_ok=0        # landed worker iterations — what MAX_ITERS counts
 fails=0
+unlaunched=""    # the last cycle ended before a worker ever read the brief (a limit
+                 # rejected the launch): the next pop re-issues it WITHOUT counting an
+                 # attempt. 16 of b93's 17 "attempts" were this — sleep, reject, bump.
 last_manager=0   # worker-iteration index of the last manager pass. Baselined at the
                  # start, not -99: with -99 the stall check ran BEFORE the first landed
                  # iteration whatever MANAGER_GAP said. A fresh start now honours the gap.
@@ -240,7 +287,11 @@ while :; do
   if [ "$need_manager" = "1" ]; then
     log "--- manager pass ($why_manager) ---"
     run_claude "/courtyard-manager" manager
-    if rate_limited; then rm -f "$raw"; sleep "$wait_s"; continue; fi
+    if rate_limited; then
+      rm -f "$raw"
+      if next_model; then continue; fi
+      nap "$wait_s"; reset_model; continue
+    fi
     node "$HERE/runlog.mjs" --repo "$REPO" --elapsed "$elapsed" --raw "$raw" --rc "$rc" --kind manager 2>&1 | tee -a "$LOG" || true
     rm -f "$raw"
     last_manager=$done_ok
@@ -250,7 +301,7 @@ while :; do
       log "  The manager's one hard rule is that it may never leave an empty queue —"
       log "  saturation is a reason to climb the escalation ladder, not to stop."
       if [ "$fails" -ge "$MAX_FAILS" ]; then log "giving up. Check $LOG and plan.json."; exit 1; fi
-      sleep 60; continue
+      nap 60; continue
     fi
     # A manager pass may commit its plan; land it before the worker starts so the
     # worker's own diff is only its own work.
@@ -260,9 +311,10 @@ while :; do
   fi
 
   # ---- 2. claim the next brief ------------------------------------------------
-  if ! node "$HERE/pop-brief.mjs" 2>&1 | tee -a "$LOG"; then
-    log "pop-brief failed unexpectedly — backing off."; sleep 60; continue
+  if ! node "$HERE/pop-brief.mjs" ${unlaunched:+--no-bump} 2>&1 | tee -a "$LOG"; then
+    log "pop-brief failed unexpectedly — backing off."; nap 60; continue
   fi
+  unlaunched=""
 
   # The artifact's blob hash BEFORE the iteration. This is what makes the verdict
   # evidence rather than self-report: whatever the worker writes about itself, this
@@ -270,12 +322,17 @@ while :; do
   PRE_BLOB="$(git -C "$REPO" hash-object courtyard.html)"
 
   # ---- 3. the worker ----------------------------------------------------------
-  log "--- iteration $((done_ok + 1)) starting ---"
+  log "--- iteration $((done_ok + 1)) starting${MODEL_NOW:+ (model: $MODEL_NOW)} ---"
   run_claude "/grow-courtyard" worker
   if rate_limited; then
     rm -f "$raw"
-    log "--- iteration $((done_ok + 1)) hit a session limit after ${elapsed}s (brief stays claimed) ---"
-    sleep "$wait_s"; continue
+    # Under 30 s with a limit event is a REJECTED LAUNCH: no worker read the brief, so
+    # the re-issue must not count as an attempt. A limit that lands mid-iteration
+    # (#93 died at 855 s with work on disk) is a real attempt and still counts.
+    [ "$elapsed" -lt 30 ] && unlaunched=1
+    log "--- iteration $((done_ok + 1)) hit a session limit after ${elapsed}s (brief stays claimed${unlaunched:+, launch rejected — not counted as an attempt}) ---"
+    if next_model; then continue; fi
+    nap "$wait_s"; reset_model; continue
   fi
 
   # ---- 4. record what actually happened --------------------------------------
@@ -311,7 +368,7 @@ while :; do
     backoff=$(( BACKOFF_BASE * (1 << (fails - 1)) ))
     [ "$backoff" -gt "$BACKOFF_CAP" ] && backoff=$BACKOFF_CAP
     log "backing off ${backoff}s."
-    sleep "$backoff"; continue
+    nap "$backoff"; continue
   fi
 
   fails=0
