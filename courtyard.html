@@ -438,7 +438,7 @@ const QUARTERS = [
   { name:'Courtyard',  x0:1,    x1:63,  y0:1, y1:63 },
   { name:'Street',     x0:63.5, x1:98,  y0:0, y1:64 },
   { name:'Plaza',      x0:98,   x1:128, y0:2, y1:58 },
-  { name:'Far bank',   x0:122,  x1:138, y0:0, y1:53, share:0.3 },   // #86: rose window to bandstand, ≥ 30% of a wide frame; #87: and the eyot (x 122.5–126, y 41–51) — a desktop shows rows 1.5–48 at 2.6x, a phone 0–51 at 3.3x
+  { name:'Far bank',   x0:122,  x1:138, y0:0, y1:52, share:0.3 },   // #86: rose window to bandstand, ≥ 30% of a wide frame; #87: and the eyot (x 122.5–126, y 41–51); #99: y1 is the eyot's south shore + 1 — the share overflows the box on a desktop, and the overflow is held at the TOP (the tower, cut already), never the sill
 ];
 const VIEW_SECS = 0.9, VIEW_SMAX = 3.6;
 let whereN = 0, whereEver = false;
@@ -446,20 +446,35 @@ let viewS = 1, viewFrom = null, viewTo = null, viewAt = 0;
 function viewFor(n){
   const q = QUARTERS[n];
   if (!q.x1) return { s:1, ox:originX0, tp:topPad0 };
+  // #99: the frame is the PICTURE — the canvas above the sill strip drawSill() paints over
+  // its bottom 7.5%. The fit and the centring both read it: fitted to H and centred on H/2,
+  // every box put its bottom 2–3 rows under the sill (c129: the eyot and the willow's fronds)
+  const pic = sillTop();
   const cx = (q.x0 + q.x1) / 2, cy = (q.y0 + q.y1) / 2, p = 1 - PINCH * (1 - cy / WH);
   let s = clamp(Math.min(W * 0.96 / ((q.x1 - q.x0) * cellW0),
-                         H * 0.92 / ((q.y1 - q.y0) * cellH0)), 1, VIEW_SMAX);
+                         pic * 0.96 / ((q.y1 - q.y0) * cellH0)), 1, VIEW_SMAX);
   // #86: a quarter at the world's edge on a wide frame — the height fit left the far bank
   // a 13-cell sliver at the side of a frame the east clamp then filled with the plaza, so
   // a desktop's Far bank WAS the Plaza. A quarter may ask for a share of the frame's
   // WIDTH; s rises to meet it (a phone's tall frame meets it already, so nothing moves there)
   if (q.share) s = clamp(Math.max(s, W * q.share / ((q.x1 - q.x0) * cellW0)), 1, VIEW_SMAX);
-  // centred on the quarter, then held inside the world's east and west edges (at the
-  // bottom row, the widest): a wide desktop frame ends exactly at x = GW, and a zoomed
-  // one that ran past it showed the void beyond the far bank
+  // centred on the quarter; when the share has raised s past the height fit the box
+  // overflows the picture, and the overflow goes to the TOP: the near row is the ground a
+  // quarter leans in for, the far row is a roofline the frame top cuts already (c129)
+  const tp = Math.min(pic / 2 - cy * cellH0 * s, pic * 0.98 - q.y1 * cellH0 * s);
+  // then held inside the world's east and west edges. The world is a trapezoid (PINCH):
+  // narrowest at its top row, so a frame that ends at x = GW on its bottom row shows the
+  // void past GW at its top (c126). Price the clamp at the frame's own top row — unless
+  // that pushes the box's near corners out of the frame (the Courtyard's west wall, the
+  // far bank's bandstand), in which case the bottom row governs and the cache's over-paint
+  // covers the top's slack, as it always has
   const ox = W / 2 - (cx - FOCUS) * cellW0 * s * p;
-  const oxMin = W - (GW - FOCUS) * cellW0 * s, oxMax = FOCUS * cellW0 * s;
-  return { s, ox: oxMin <= oxMax ? clamp(ox, oxMin, oxMax) : ox, tp: H / 2 - cy * cellH0 * s };
+  const rowTop = Math.max(0, -tp / (cellH0 * s)), pTop = 1 - PINCH * (1 - rowTop / WH), pNear = 1 - PINCH * (1 - q.y1 / WH);
+  const held = (pp) => { const lo = W - (GW - FOCUS) * cellW0 * s * pp, hi = FOCUS * cellW0 * s * pp; return lo <= hi ? clamp(ox, lo, hi) : ox; };
+  let oxT = held(pTop);
+  const nearL = oxT - (FOCUS - q.x0) * cellW0 * s * pNear, nearR = oxT + (q.x1 - FOCUS) * cellW0 * s * pNear;
+  if (nearL < 0 || nearR > W) oxT = held(1);
+  return { s, ox: oxT, tp };
 }
 function applyView(v){
   viewS = v.s; cellW = cellW0 * v.s; cellH = cellH0 * v.s; originX = v.ox; topPad = v.tp;
@@ -4784,8 +4799,12 @@ function vaneAxes(v, th, c){
            nx: Math.sin(th) + Math.cos(th) * px, ny: Math.cos(th) * py };         // across it
 }
 function drawVanes(){
+  // #99: the vane is drawn in screen px (v.len), so it was 5 px on a tower three times its
+  // size in a phone quarter and its cardinals 6 px CSS at every zoom (c134). k = viewS is
+  // exactly 1 in the wide view at every frame — the wide drawing is the old drawing
+  const k = viewS;
   for (const v of VANES){
-    const th = vaneAngle(v), c = project(v.x, v.y, v.z), cy = c[1] + 3, L = v.len;
+    const th = vaneAngle(v), c = project(v.x, v.y, v.z), cy = c[1] + 3 * k, L = v.len * k, fin = v.fin * k;
     const {ux, uy, nx, ny} = vaneAxes(v, th, c);
     ctx.fillStyle = VANE_COL; ctx.strokeStyle = VANE_COL;
     if (v.kind === 'cock'){
@@ -4797,40 +4816,44 @@ function drawVanes(){
       // tail fan, neck, head, comb and beak: a plate along the heading
       poly(ctx, COCK.map(([f, u]) => [c[0] + L * f * ux, cy + L * f * uy - L * u * 0.62])); ctx.fill();
       // legs to the rod's ball
-      ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(bx - 0.8, by + ay); ctx.lineTo(c[0] - 0.5, cy + 2.2);
-      ctx.moveTo(bx + 0.8, by + ay); ctx.lineTo(c[0] + 0.5, cy + 2.2); ctx.stroke();
-      ctx.beginPath(); ctx.arc(c[0], cy + 2.6, 1.3, 0, 7); ctx.fill();
+      ctx.lineWidth = k; ctx.beginPath(); ctx.moveTo(bx - 0.8 * k, by + ay); ctx.lineTo(c[0] - 0.5 * k, cy + 2.2 * k);
+      ctx.moveTo(bx + 0.8 * k, by + ay); ctx.lineTo(c[0] + 0.5 * k, cy + 2.2 * k); ctx.stroke();
+      ctx.beginPath(); ctx.arc(c[0], cy + 2.6 * k, 1.3 * k, 0, 7); ctx.fill();
     } else {
       // the arrow: head, a shaft, and a tail fin at the back; a vertical plate
       const tx = c[0] + L * ux, ty = cy + L * uy, bx = c[0] - L * ux, by = cy - L * uy;
       const hx = c[0] + L * 0.4 * ux, hy = cy + L * 0.4 * uy;
-      poly(ctx, [[hx, hy - v.fin * 0.8], [tx, ty], [hx, hy + v.fin * 0.8]]); ctx.fill();   // a long head
-      ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(bx, by); ctx.stroke();
+      poly(ctx, [[hx, hy - fin * 0.8], [tx, ty], [hx, hy + fin * 0.8]]); ctx.fill();   // a long head
+      ctx.lineWidth = 1.2 * k; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(bx, by); ctx.stroke();
       const fx = c[0] - L * 0.6 * ux, fy = cy - L * 0.6 * uy;                            // a swallow tail
-      poly(ctx, [[fx, fy], [bx, by - v.fin * 1.1], [c[0] - L * 0.85 * ux, cy - L * 0.85 * uy], [bx, by + v.fin * 1.1]]); ctx.fill();
+      poly(ctx, [[fx, fy], [bx, by - fin * 1.1], [c[0] - L * 0.85 * ux, cy - L * 0.85 * uy], [bx, by + fin * 1.1]]); ctx.fill();
       // the cardinals: a cross-bar fixed in SCREEN space down the rod, so it never foreshortens
-      const ky = cy + v.fin + 7, kw = L + 1, kh = 3;
-      ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(c[0] - kw, ky); ctx.lineTo(c[0] + kw, ky);
+      const ky = cy + fin + 7 * k, kw = L + k, kh = 3 * k;
+      ctx.lineWidth = k; ctx.beginPath(); ctx.moveTo(c[0] - kw, ky); ctx.lineTo(c[0] + kw, ky);
       ctx.moveTo(c[0], ky - kh); ctx.lineTo(c[0], ky + kh); ctx.stroke();
-      ctx.font = 'bold 6px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText('W', c[0] - kw - 3, ky); ctx.fillText('E', c[0] + kw + 3, ky);
-      ctx.fillText('N', c[0], ky - kh - 3.5); ctx.fillText('S', c[0], ky + kh + 3.5);
+      ctx.font = 'bold ' + (6 * k) + 'px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('W', c[0] - kw - 3 * k, ky); ctx.fillText('E', c[0] + kw + 3 * k, ky);
+      ctx.fillText('N', c[0], ky - kh - 3.5 * k); ctx.fillText('S', c[0], ky + kh + 3.5 * k);
     }
   }
 }
 /* Hit-tested in SCREEN space, a box round the plate; named with the wind it stands in. */
 function vaneAt(p){
   for (const v of VANES){
-    const c = project(v.x, v.y, v.z), w = v.len + 6;
-    if (Math.abs(p[0] - c[0]) <= w && p[1] >= c[1] - v.len - 2 && p[1] <= c[1] + v.len + 12) return v;
+    const c = project(v.x, v.y, v.z), w = (v.len + 6) * viewS, L = v.len * viewS;
+    if (Math.abs(p[0] - c[0]) <= w && p[1] >= c[1] - L - 2 * viewS && p[1] <= c[1] + L + 12 * viewS) return v;
   }
   return null;
+}
+/* Where the vane points at a wind of strength w: 0 east .. PI west, into the wind (vaneAngle) */
+function vaneHeading(w){
+  const k = Math.round(Math.PI * (windSign + 1) * 0.5 * w / (Math.PI / 4));   // 0 east .. 4 west
+  return ['east', 'north-east', 'north', 'north-west', 'west'][clamp(k, 0, 4)];
 }
 function vaneName(v){
   const w = windF();
   if (w < 0.15) return v.name + ', idle in the calm';
-  const th = vaneAngle(v) - vaneWob(v), k = Math.round(th / (Math.PI / 4));   // 0 east .. 4 west
-  const from = ['east', 'north-east', 'north', 'north-west', 'west'][clamp(k, 0, 4)];
+  const from = vaneHeading(w);
   return v.name + ', into a' + (w < 0.6 ? ' light' : from === 'east' ? 'n' : '') + ' ' + from + ' wind';
 }
 
@@ -5515,9 +5538,11 @@ function drawOurSide(g){
   g.fillStyle = vg; g.fillRect(0, H - 26, W, 26);
   drawSill(g);
 }
+// where the sill strip begins: ONE definition, read by drawSill and by the camera (viewFor)
+function sillTop(){ return H - Math.max(26, H * 0.075); }
 function drawSill(g){
   // our own windowsill, in the near dark at the bottom of the view
-  const sy = H - Math.max(26, H * 0.075), u = Math.max(5, cellW * 0.7);
+  const sy = sillTop(), u = Math.max(5, cellW * 0.7);
   const warm = 0.10 + 0.55 * daylight;
   g.fillStyle = '#0a0806'; g.fillRect(0, sy, W, H - sy);
   g.fillStyle = 'rgba(196,168,124,' + (0.10 + 0.22 * warm) + ')';
@@ -8310,7 +8335,8 @@ function simStep(sdt, dt){
   }
   if (windyDay() && windAnnounced !== day && hour > sunUp + 1.5 && hour < sunUp + 3.5){
     windAnnounced = day;
-    announce('A brisk wind combs the block; everything that can flutter, does.');
+    const from = vaneHeading(1);                 // where the day's blow ends up, not the half-swung vane
+    announce('A brisk wind combs the block; ' + VANES[1].name + ' swings into a' + (from === 'east' ? 'n' : '') + ' ' + from + ' wind.');
   }
   stepWet(sdt);
   stepMist(sdt);
