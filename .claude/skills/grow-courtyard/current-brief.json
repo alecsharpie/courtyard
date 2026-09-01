@@ -16,7 +16,7 @@
   "avoid": "Do not touch the evening half of windowLit - it is tuned and the LIT_PANES night composite from #61/#93 depends on it. Do not add a morning source; the morning's population is b107's and b108's territory, not this brief's. Remember the hour of the sun is solved at the ARRIVAL instant: fixed-point any sunUp read on sunAt(t) rather than a stale value.",
   "budgetMin": 30,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 109,
   "issued": "2026-09-01T22:00:32.300Z",
