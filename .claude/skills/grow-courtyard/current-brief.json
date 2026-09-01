@@ -23,7 +23,7 @@
   "avoid": "Do not widen the general birds[] roll or spawnLaneAgent to reach the roof - a spawn band is a share of a budget, so the roof needs its own source and its own cap (plazaBirdSpot is the pattern). Do not put PEOPLE on it. Do not move LN_WALK_S or change the near block's footprint: #100's roof is emergent from buildVolumes and a footprint change grows a different roof. Two traps that will bite: project() lifts z NORTHWARD ~1.15 rows per cell of height, so a bird on the ridge at row 83 can render north of the lane - price everything by its own row exactly as #100 had to for the stacks; and drawNearRoof is in the GROUND CACHE, so anything that moves must be a live overlay after the cache blit, and anything warm at night must go in a screen pass AFTER applyLight.",
   "budgetMin": 75,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 106,
   "issued": "2026-09-01T20:36:37.053Z",
