@@ -5034,12 +5034,12 @@ function drawChimney(g, x, y){
  * NIGHT_K*dayHours), running to the dawn edge at `span`. A window comes on within the
  * first two hours of dark, goes out at its own bedtime (most by mid-evening, the tail
  * squared into the small hours, one in twenty burning through), and a few early risers
- * come back on in the hour or so before dawn. The night is addressed by `nid`, not
- * `day`: the day rolls at 06.00, which in every season is still dark, and a night hashed
- * on `day` re-rolls every window at that seam. Nothing lit at nightF <= 0.3, exactly as
- * before; daytime frames are unchanged. windowLit() is the ONE predicate — the pane
- * fill and the LIT[] glow both read it. Variance is hash(), never R(): this is the
- * renderer. */
+ * come back on in the dark before sunrise and are out again as the light arrives. The
+ * night is addressed by `nid`, not `day`: the day rolls at 06.00, which in every season
+ * is still dark, and a night hashed on `day` re-rolls every window at that seam.
+ * Nothing lit at nightF <= 0.3, exactly as before; daytime frames are unchanged.
+ * windowLit() is the ONE predicate — the pane fill and the LIT[] glow both read it.
+ * Variance is hash(), never R(): this is the renderer. */
 const NIGHT_K = Math.asin(0.4375) / Math.PI;       // nightF 0.3 = 1 - 1.6*daylight -> daylight 0.4375
 function nightAt(){                                // the night's own clock: id, hours since the dusk edge, its span
   const duskAt = sunDown - NIGHT_K * dayHours;
@@ -5082,7 +5082,18 @@ function windowLit(sa, sb){
     else on = w.t < home.due + HOME_LATE ? Infinity : w.on;                                   // on their way: dark
   }
   if (w.t >= on && w.t < off) return true;
-  if (w.hRise < 0.14 && w.t >= w.span - 0.6 - 1.6 * w.hRise / 0.14 && w.t < w.last) return true;  // early risers
+  // The early risers key on SUNRISE, not on the night's dawn EDGE. The edge (t = span) is
+  // sunUp + NIGHT_K*dayHours — 1.7 h past first light in winter, 2.5 h in summer — so keyed
+  // there a lamp came ON as late as sunUp+1.1 and burned to sunUp+1.6, and the town lit UP as
+  // the sun rose: 5 panes at sunUp-0.8 against 10 at sunUp+0.5 in winter. They now wake in the
+  // dark (all of them lit by sunUp-0.8) and go out one by one across sunUp-0.3..+0.4 as the
+  // light comes up, so the count is FALLING through sunrise. `sunUp` is the current instant's,
+  // recomputed by updateClock every frame: the hour of the sun asked where it is answered, so
+  // no fixed point. Continuous across the 06.00 day roll, which `nid` already crosses whole.
+  if (w.hRise < 0.14){
+    const r = w.hRise / 0.14, s = hour - sunUp;                    // 0..1 within the early-rising seventh
+    if (s >= -2.2 + 1.4 * r && s < -0.3 + 0.7 * r) return true;    // up in the dark, out as the town wakes
+  }
   return false;
 }
 /* The pane and its mullions, drawn twice over: once dark into the cached ground layer

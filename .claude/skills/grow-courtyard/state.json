@@ -463,7 +463,8 @@
       "SNOW and WET: snowF() past greyF 0.55, snowCover rate-capped, snowAt whitens cached ground/roofs/awnings; wetF()/stepWet() soaks paving, dries by daylight x warmth",
       "the WIND: windF() 0..1 rate-capped off windyDay()/frontWind() (0 while raining), windSign +-1 per spell latched from calm, windDir() the blend EVERY x-lean reads",
       "RIVER MIST: mist ONE rate-capped scalar (still, clear, cold-or-wet mornings sunUp-1..+2.2), mistAt(x), drawMist() live before applyLight",
-      "CLOUD SHADOW: drawCloudShade() lays CSH_N soft ellipses on the ground in ONE live multiply before applyLight; cloudDrift() the ONE travel scalar the sky's banks read too"
+      "CLOUD SHADOW: drawCloudShade() lays CSH_N soft ellipses on the ground in ONE live multiply before applyLight; cloudDrift() the ONE travel scalar the sky's banks read too",
+      "DAWN falls, it does not rise: windowLit's early risers key on sunUp, not the night's dawn edge — all lit by sunUp-0.8, out across sunUp-0.3..+0.4, so the town DARKENS through sunrise (#109)"
     ],
     "life": [
       "courtyard RING transit via spawnAgent() under capacity: walker, crosser, dogwalker; the five STAYING kinds moved to the lawn's own source",
@@ -549,6 +550,12 @@
     {
       "id": "c161",
       "note": "the dawn fix (#108) lets lawn walkers cross the courtyard at nightF > 0.5 — hour 4.95–5.74 with sunrise at 4.01, so nightF's curve and daylight's disagree by about an hour (shots/b108-dawn-cand.png). Arrivals, not stayers; HEAD read 0 there",
+      "raisedBy": 104,
+      "seenBy": 0
+    },
+    {
+      "id": "c162",
+      "note": "the last lamps in town still go out AFTER sunrise: w.last = span - 0.05 - 0.9*hOn is still keyed on the dawn edge, so the ~5% burn-through windows darken at sunUp+0.7..+1.6 — winter holds a flat 2-3 panes from sunUp+0.4 and drops to 1 only by +1.2. Left deliberately; w.last is the evening half's (#109)",
       "raisedBy": 104,
       "seenBy": 0
     }

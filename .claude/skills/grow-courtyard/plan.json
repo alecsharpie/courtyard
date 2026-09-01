@@ -16,27 +16,7 @@
     "balance": "Recording #100 (roofs x Scale/World) and #101 (life x Deepen), which the coverage grid had missed. Now: Courtyard 9 back (#95), River 8 back (#96), Lane 6 back (#98), Sill 5 back (#99), Roofs 4 back (#100); Street/Plaza/Sky/Life all touched in the last three. Roofs & skyline is still the thinnest domain in the town (5 entries) and it is where the frontier is, so it takes two of this batch. Sky x Polish stays saturated and nothing here is a sky brief. This queue is Sill / Roofs / River / Courtyard / Lane - the five domains furthest back, in order."
   },
   "rationale": "I went and looked, at the size the thing actually ships at. shots/mgr105-1200-day.png, seed 42, day 4 10:36, clear early summer: the town above the lane is dense and finished, and the bottom fifth of the picture is dead. Two separate faults, both in the band #100 built, and I measured both on HEAD rather than guessing. (1) The black bar under the picture is not the apron and not unpainted canvas - it is drawSill() itself, filling #0a0806 flat over the strip below sillTop(). Sampled below sillTop at three viewports and three hours, min luma == max luma == mean, exactly: 8.4 by day, 6.2 at dusk, 3.0 at night, zero pixels above luma 20 in 42,624 / 62,628 / 6,358. The sill's lit front edge, its two geranium pots and its cup are silhouetted in rgba(9,8,6) against a #0a0806 ground - under one luma unit of contrast. The whole framing conceit of the piece, the thing the fourth domain is named after, renders as a bar. That is b105. (2) Directly above it, the near roof is the largest single object in the frame (13.8% of a desktop picture, 21.7% of a phone, per #100) and NOTHING LIVES ON IT - not by oversight but by construction: the bed CA, the item sort, the seed scatter and every spawner bound their y loops at LN_WALK_S 79, and catA is pinned to the lane at x -2..66. It has a ridge, two light wells, a dormer per house, party walls, stacks and moss, and no tenant. That is b106, the bet, and it is where c151 has been pointing since #99. The rest balance the grid on cues that a worker already measured and that name their own fix: b107 takes c143 and c152 together, because both reduce to one thing (#101's own words - a far-end stay that clears by 03h needs an EARLIER far-side source, not better pricing), and it is the third pass those two have survived; b108 is c142's thin gardener in the courtyard, 9 back and the title object; b109 is c146's dawn re-key, small but sitting on the morning lapse hour that is one tap away. This is RUNG 2 and I am calling it that rather than dressing it up: the frontier right now is genuinely a deepen, the two spatial and structural rungs were spent at #99 (4b) and #94 (6), and the ladder's own note is that rung 2 is usually the highest-yield move. It is the first rung<=2 pass in three, so the rule is not binding - but it binds the next one, and if the batch after this also wants rung 2 it must climb instead. On memory: budget was OVER 13 opens running and three workers wrote to me about it. I distilled rather than deferred - LAWS 25 laws/12.0 KB -> 18 laws/12.0 KB (promoted #100-#104's six laws by MERGING them into their subjects rather than stacking; cut 'The sill is DOM' outright, folding its one live clause into the camera law; merged the two anchor laws, the two probe/instant laws, the two counting laws, and #102's + #104's judging-a-look laws into one). Inventory 11.6 -> 8.3 KB as nouns plus one primary seam each, with three factual corrections: the near roof is no longer VOID, the sill's paint is now recorded, and 'nothing living goes south of LN_WALK_S' is now written down instead of being rediscovered. Cues 10 -> 3: seven closed, five of them because they are briefs in this queue. And I found the mechanism behind the drift - the protocol says promoted Law:/Cue: lines are cut from the entry once the manager has promoted them, and no pass had ever done it; doing it took the ledger tail 9.8 -> 8.1 KB on its own.",
-  "queue": [
-    {
-      "id": "b109",
-      "domain": "Lane & market",
-      "kind": "Polish",
-      "brief": "The town's windows light UP as the sun rises, which is backwards. Measured at #94 with probes/dawn-lit.mjs: windowLit's early risers key on the dawn EDGE at sunUp+1.3..2.1 h, so lit panes RISE after sunrise - 5 at dawn to 11 at sunUp+0.5 in winter. #98's named fix is to re-key hRise to sunUp-0.8..+0.4, so panes are lit BEFORE first light and go out as the town wakes. Small, but it sits on the morning: the clock button's second tap lands at sunUp+0.5 (watch note), which makes this the hour a visitor is most likely to look at after touching anything.",
-      "seams": [
-        "windowLit",
-        "LIT",
-        "LIT_PANES",
-        "HOMES",
-        "nid",
-        "sunAt",
-        "drawLitPanes"
-      ],
-      "successLooksLike": "At sunUp+0.5 in winter the count of lit panes is FALLING, not rising. Print the HEAD and candidate curves across the year from probes/dawn-lit.mjs, and show the evening curve is unchanged.",
-      "avoid": "Do not touch the evening half of windowLit - it is tuned and the LIT_PANES night composite from #61/#93 depends on it. Do not add a morning source; the morning's population is b107's and b108's territory, not this brief's. Remember the hour of the sun is solved at the ARRIVAL instant: fixed-point any sunUp read on sunAt(t) rather than a stale value.",
-      "budgetMin": 30,
-      "risk": "low"
-    }
-  ],
+  "queue": [],
   "recommendStop": null,
   "consumed": [
     {
@@ -54,6 +34,10 @@
     {
       "id": "b108",
       "at": "2026-09-01T21:38:19.710Z"
+    },
+    {
+      "id": "b109",
+      "at": "2026-09-01T22:00:32.298Z"
     }
   ]
 }
