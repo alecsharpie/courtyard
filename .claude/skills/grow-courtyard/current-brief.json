@@ -15,7 +15,7 @@
   "avoid": "Do NOT just raise the brightness. #100's finding stands and is why the band is dark: a dark near block is what lets the town read past it. The fix is value SEPARATION inside a dark band - a real dark surface still shows 15-30 luma of internal range - not a higher mean. Do not change sillTop()'s formula without checking viewFor(), which reads it as the ONE definition and prices the camera against it.",
   "budgetMin": 45,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 105,
   "issued": "2026-09-01T20:16:15.177Z",
