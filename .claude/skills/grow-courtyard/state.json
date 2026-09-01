@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-31",
+  "updated": "2026-09-01",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
   "lastIteration": 94,
@@ -473,7 +473,8 @@
     ],
     "roofs": [
       "emergent roofs from buildVolumes() (footprint → volume, eaveFor); CHIMNEYS[] filled as roofs draw, drawSmoke(t) leans windDir(); drawRoofRow() shades by SUN, cloud, warmth; snowCover whitens; the night cat (catA) on the ground only",
-      "WEATHERVANES on both towers — VANES[] {kind,name}; drawVanes() LIVE by the clock hands; vaneAngle() into the wind off windSign·windF(), vaneWob(); clock tower an ARROW with a screen-fixed N/S/E/W cross-bar (6 px CSS), church a WEATHERCOCK; vaneAt()/vaneName() in lookAt()"
+      "WEATHERVANES on both towers — VANES[] {kind,name}; drawVanes() LIVE by the clock hands; vaneAngle() into the wind off windSign·windF(), vaneWob(); clock tower an ARROW with a screen-fixed N/S/E/W cross-bar (6 px CSS), church a WEATHERCOCK; vaneAt()/vaneName() in lookAt()",
+      "MURMURATION — drawMurmuration() right after drawSky (in front of the backdrop hills, behind the cache): murmSeason()/murmWx()/murmEnv() on dry autumn–winter dusks sunDown−1.3..+0.05, N 80–160 by hash(day,601), 2–3 attractors, funnel into MUR_ROOSTS (tower parapet, nave ridge, far-bank ridge, willow); stepMurm() latches roosted → skeinEnv() at sunUp; murBox → lookAt 'starlings coming in to roost'; no R(); probes/murmur.mjs, murmur-shots.mjs. The sky is Wide-only: every quarter's frame starts below the horizon"
     ]
   },
   "openCues": [
@@ -516,6 +517,12 @@
     {
       "id": "c143",
       "note": "the punt runs at zero (c-punt): jetty stands 0.53/day, ALL 17:30–03:00 (the deck walk is ~12 h) vs eastOpen close 20.6 — to make it read: DECK_SHARE up, a morning-side source, an OFFERS invitation, or let a towpath stander (short PARK_GATE walk) ride (#96)",
+      "raisedBy": 94,
+      "seenBy": 0
+    },
+    {
+      "id": "c144",
+      "note": "the Far bank quarter holds no sky (frame top at depth +0.15) — the spire's top, the roost and the murmuration are outside it; a y0 of about −8 would frame them, at the cost of #86/#87's rose-window-to-eyot fit",
       "raisedBy": 94,
       "seenBy": 0
     }

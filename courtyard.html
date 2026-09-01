@@ -4253,6 +4253,116 @@ function drawBackdrop(g, hz, low){
   }
 }
 
+/* ============ the murmuration ============
+ * Starlings over the river on dry autumn and winter evenings: a particle FIELD on the
+ * draw path — day-hashed size, per-particle hash phases, positions solved fresh from
+ * simT every frame. No R(), no per-particle state: outside its season the pass draws
+ * nothing and the canvas is HEAD's exactly. Particles live in (world x, screen depth d)
+ * with d negative — the sky — so project(wx, d, 0) places the cloud in every camera,
+ * and being drawn before the ground cache puts it BEHIND the spire and the clock
+ * tower. It funnels into the roosts at dusk; a thin skein leaves again at sunrise. */
+const MUR_ROOSTS = [[132.5, -9.0],   // the church tower parapet — the roost proper
+                    [133.5, 3.4],    // the nave ridge (drops behind the cache on arrival)
+                    [136.2, 2.2],    // a far-bank ridge
+                    [124.3, 40.9]];  // the eyot's willow takes a small share
+let roosted = false, murAnnounced = -1;
+const murBox = { on:false, x:0, y:0, rx:1, ry:1 };   // last frame's cloud, for the naming
+// from the first shed day, through midwinter, to the first leafOut (leafOut is 0 only
+// across the winter wrap, so the union is one continuous window and no summer day is in it)
+function murmSeason(){ return leafShed() > 0.1 || leafOut() <= 0; }
+// raining is a hard 0: rainFall is a TAIL measure (1 at onset, ramps only at the end),
+// so there is no smooth onset signal — and the town already treats rain as a cut
+function murmWx(){ return (raining ? 0 : 1) * clamp((0.7 - windF()) / 0.12, 0, 1); }
+function murmEnv(){
+  if (!murmSeason()) return 0;
+  const rise = clamp((hour - (sunDown - 1.3)) / 0.35, 0, 1);    // ~0.8 s real: it FORMS, it does not appear
+  const fall = clamp(((sunDown + 0.05) - hour) / 0.15, 0, 1);   // stragglers fade past the roost, never pop
+  return Math.min(rise, fall) * murmWx();
+}
+function skeinEnv(){
+  if (!roosted || !murmSeason()) return 0;
+  const rise = clamp((hour - (sunUp - 0.05)) / 0.1, 0, 1);
+  const fall = clamp(((sunUp + 0.55) - hour) / 0.15, 0, 1);
+  return Math.min(rise, fall) * murmWx();
+}
+/* Sim-side so a warped-to morning still knows last evening happened: the latch is
+ * stepped, never written from the draw (__warp never draws). */
+function stepMurm(){
+  if (murmEnv() > 0.5){
+    roosted = true;
+    if (murAnnounced !== day){
+      murAnnounced = day;
+      announce('Starlings come in over the river; the flock folds and turns against the last of the light.');
+    }
+  } else if (hour > sunUp + 0.7 && hour < sunDown - 1.5) roosted = false;
+}
+function drawMurmuration(g){
+  const e = murmEnv(), mo = skeinEnv();
+  murBox.on = false;
+  if (e < 0.01 && mo < 0.01) return;
+  const tRM = RM ? 0.3 : 1, lean = windSign * windF();
+  g.fillStyle = '#20242e';                       // dark against a bright sky; applyLight owns the rest
+  const dotW = Math.max(1.5, cellW * 0.18), dotH = Math.max(1.5, cellH * 0.18);   // a starling is a dot at 1x, a fleck in a quarter
+  if (e >= 0.01){
+    const N = 80 + Math.floor(hash(day, 601) * 81);          // the day's flock
+    const wx0 = 121 + (hash(day, 607) - 0.5) * 6 + lean * 3; // over the river, leaning downwind
+    const dd0 = -7.6 + (hash(day, 611) - 0.5) * 3;   // boiling just clear of the backdrop skyline
+    const nA = 2 + (hash(day, 613) < 0.5 ? 1 : 0);           // two or three drifting attractors
+    const ax = [], ad = [];
+    const fu = clamp((hour - (sunDown - 0.5)) / 0.4, 0, 1);  // the funnel down into the roost
+    for (let j = 0; j < nA; j++){
+      ax.push(wx0 + Math.sin(simT * 0.30 * tRM + hash(day, 620 + j) * 6.28) * (2.5 + j * 1.3));
+      ad.push(dd0 + Math.sin(simT * 0.23 * tRM + hash(day, 630 + j) * 6.28) * (1.4 + j * 0.6));
+    }
+    const gatherF = clamp((hour - (sunDown - 1.3)) / 0.25, 0, 1);
+    const sp = lerp(4.6, 2.8, gatherF) * (1 - 0.45 * fu);
+    for (let k = 0; k < N; k++){
+      const h1 = hash(k, 101), h2 = hash(k, 103), h3 = hash(k, 107), h4 = hash(k, 109);
+      const j = k % nA;
+      const mig = 0.5 + 0.5 * Math.sin(simT * (0.5 + h1 * 0.6) * tRM + h2 * 6.28);
+      const bx = lerp(ax[j], ax[(j + 1) % nA], mig * 0.7);
+      const bd = lerp(ad[j], ad[(j + 1) % nA], mig * 0.7);
+      const r = (0.3 + Math.pow(h3, 0.65) * 0.85) * sp;
+      const th = simT * (1.4 + h4 * 1.6) * tRM + h1 * 6.28;
+      let wx = bx + Math.cos(th) * r * (1 + 0.35 * windF());
+      let dd = bd + Math.sin(th) * r * 0.5;
+      let al = (0.5 + 0.4 * h2) * e;
+      if (fu > 0){
+        const landF = clamp((fu - h1 * 0.6) / 0.35, 0, 1);   // staggered, so the cloud thins rather than cuts
+        if (landF > 0){
+          const rs = MUR_ROOSTS[h3 < 0.5 ? 0 : h3 < 0.8 ? 1 : h3 < 0.92 ? 2 : 3];
+          const eF = landF * landF * (3 - 2 * landF);
+          wx = lerp(wx, rs[0], eF); dd = lerp(dd, rs[1], eF);
+          al *= 1 - clamp((landF - 0.5) / 0.5, 0, 1);        // each bird fades over the back half of its drop
+        }
+      }
+      if (al < 0.02) continue;
+      const p = project(wx, dd, 0);
+      g.globalAlpha = al;
+      g.fillRect(p[0], p[1], dotW, dotH);
+    }
+    const c = project(wx0, dd0, 0);
+    murBox.on = e > 0.15 && fu < 0.9;
+    murBox.x = c[0]; murBox.y = c[1]; murBox.rx = sp * 1.9 * cellW; murBox.ry = Math.max(cellH, sp * 1.0 * cellH);
+  }
+  if (mo >= 0.01){                               // the thin skein off the tower at first light
+    const nS = 10 + Math.floor(hash(murAnnounced, 651) * 9);   // the ROOST's day: a winter sunrise before 06:00 straddles the roll
+    for (let i = 0; i < nS; i++){
+      const s1 = hash(i, 653), s2 = hash(i, 657), s3 = hash(i, 659);
+      const q = clamp((hour - (sunUp - 0.05) - s1 * 0.22) / 0.3, 0, 1);
+      if (q <= 0 || q >= 1) continue;
+      const wx = MUR_ROOSTS[0][0] - q * (24 + s2 * 10) + lean * q * 5;
+      const dd = MUR_ROOSTS[0][1] - q * (5 + s3 * 4) + Math.sin(simT * (1.2 + s2) * tRM + s1 * 6.28) * 0.5;
+      const al = mo * clamp(q / 0.12, 0, 1) * clamp((1 - q) / 0.15, 0, 1) * (0.35 + 0.4 * s3);
+      if (al < 0.02) continue;
+      const p = project(wx, dd, 0);
+      g.globalAlpha = al;
+      g.fillRect(p[0], p[1], dotW, dotH);
+    }
+  }
+  g.globalAlpha = 1;
+}
+
 /* ============ buildings: hipped roofs grown off the footprint ============ */
 const XLO = -12, XHI = GW + 12;                    // draw past the frame so the town never ends in black
 function roofShade(x, y){
@@ -5405,6 +5515,7 @@ function drawScene(t, dt){
   if (groundDirty && !viewEasing()){ drawGround(); groundDirty = false; wearDirty = false; wearAcc = 0; }
   ctx.clearRect(0, 0, W, H);
   drawSky(ctx);
+  drawMurmuration(ctx);           // in the sky, so the cache puts every roofline in front of it
   // the cache is painted in ONE view and composited in the current one: an exact
   // scale+translate while the camera eases, the identity (0, 0, W, H) at rest
   { const k = viewS / gview.s;
@@ -7951,6 +8062,10 @@ function lookAt(p){
   const f = faceAt(p), c = treeAt(p);        // crowns paint over the cached facades; the live band over the crowns
   if (f && (f.live || !c)) return f.door ? doorName(f) : windowName(f.sa, f.sb);
   if (c) return c.name + ', ' + treeState(c.fruit);
+  if (murBox.on){
+    const dx = (p[0] - murBox.x) / murBox.rx, dy = (p[1] - murBox.y) / murBox.ry;
+    if (dx * dx + dy * dy <= 1) return 'starlings coming in to roost';
+  }
   const [x, y] = cellOf(p);
   return nameAt(x, y);
 }
@@ -8130,6 +8245,7 @@ function simStep(sdt, dt){
   }
   stepWet(sdt);
   stepMist(sdt);
+  stepMurm();
   stepWind(sdt);
   stepClouds(sdt);
   stepSnow(sdt);
