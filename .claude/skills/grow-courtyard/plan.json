@@ -16,37 +16,6 @@
   "rationale": "Where the frontier is: the courtyard. The diorama is called The Courtyard, the walled garden is the centre-left third of every wide shot, and #94 measured what shots/wide.png shows — the lawn's own kinds inside the wall hold a MEDIAN 0.25 person at 10 h, 1.0 at 13 h, 2.0 at 16 h on a summer day (seed 42 days 6–7: nobody), while the plaza (#92), the cafe (#74), the concert green and the warm evening (#79) all fill because each got its own source with places as its cap. The courtyard is the last population still on the iteration-1 model: ONE spawnAgent(room) roll under `capacity`, whose default branch is a ring walker who transits and leaves, with the staying kinds as 10–12% shares of that roll. That is the weakest system in the town by the run's own numbers, and costSpike says rung 2 is spent — so this batch is RUNG 6: retire and rebuild it (b95, the bet, first, 75 min, a 150–300-line diff expected). The rest of the queue balances: b94 (kept from #91's plan — the punt to the eyot, the run's newest place that nobody can stand on; the second bet, medium); b96 a murmuration coming in to roost at dusk in autumn and winter — the roofline and the sky above the river are the top third of the wide shot and nothing flocks in it (Roofs & skyline × New element, the domain's first new thing); b97 the lane's morning — the morning lapse is one tap away and shows the sweeper and the cart and nobody else, and the lane has had no shipped work for twenty iterations; b93 (kept — three measured camera loose ends, low, last). Cost discipline for this batch: every count a brief needs is IN the brief; no brief opens with 'measure first'. If the next three rows come in over $10 with output flat, the next pass reads the turns column before it reads the town.",
   "queue": [
     {
-      "id": "b97",
-      "domain": "Lane & market",
-      "kind": "New element",
-      "brief": "The lane's MORNING. The clock button's second landing (sunUp + 0.5, one tap away) shows the sweeper, the cart from ~sunUp + 0.2 and nobody else — the watch line says so and nobody has built for that hour. The lane has had no shipped work since #74. Give it a morning round: ONE figure with a handcart or a bag who comes in at the west end at sunUp − 0.3 and works the HOME_DOORS (y 64; x 4..130, fourteen doors) in order, a short stop at each (a bottle or a parcel left on the step: one small draw per delivered door, visible at 3×, cleared by ~09:30 as if taken in), out by the east end by sunUp + 1.6; its own source beside the sweeper's spawn (~line 3481: `!sweeper && hour > sunUp − 0.5 …`), NEVER a laneCap share; goes in rain under an umbrella (a.umbrella exists), skips only when snow is lying (snowCover > 0.5). Price the round first: fourteen stops must fit 1.9 h at effective speed ~0.75·a.speed — trace one; if it does not fit, fewer doors, not a faster walker. Second clause, the one a wide shot reads: the HOMES' windows are lit before sunrise — from sunUp − 0.8 fading out by sunUp + 0.4 — through windowLit()/LIT_PANES exactly as the evening does (check first whether a dawn is ALREADY lit by the nid mechanism; if it is, count it, say so, and spend the time on the round). Names: personName 'the morning round' / nameAt on a step 'a bottle left on the step'; the morning lapse's landing line names the round when it is out.",
-      "seams": [
-        "HOME_DOORS",
-        "homeDoorAt",
-        "HOMES",
-        "windowLit",
-        "LIT_PANES",
-        "drawLitPanes",
-        "nid",
-        "sunUp",
-        "sunAt",
-        "sweeper (spawn ~line 3481)",
-        "spawnHomeAgent",
-        "homeRate",
-        "beginEvening (the morning landing line)",
-        "snowCover",
-        "umbrella",
-        "personName",
-        "nameAt",
-        "__entities",
-        "probes/night-lit.mjs or the nearest LIT probe (ls probes/)"
-      ],
-      "successLooksLike": "probes/morning-round.mjs, 10 seeds × 4 days: the round is out on every non-snow day, in at sunUp − 0.3 ± 0.1, all fourteen doors visited, out by sunUp + 1.6 (a summer and a winter day both — the sunAt law); the morning lapse lands at sunUp + 0.5 with the round mid-street on 10/10 seeds; step marks present at 07:30 and gone at 09:30 in a 3× crop; dawn panes lit at sunUp − 0.5 and dark at sunUp + 0.5 on the same seed; census PASS (one new agent kind: people +1 at most per instant); motion PASS; filmstrip of the morning lapse 0 POP.",
-      "avoid": "No laneCap share. Do not move the sweeper or the cart. Do not change the lapse landing hour. Do not add a second figure — one round, priced.",
-      "budgetMin": 45,
-      "risk": "medium"
-    },
-    {
       "id": "b93",
       "domain": "The sill & the observer",
       "kind": "Polish",
@@ -84,6 +53,10 @@
     {
       "id": "b96",
       "at": "2026-08-31T20:28:35.179Z"
+    },
+    {
+      "id": "b97",
+      "at": "2026-09-01T00:50:27.883Z"
     }
   ]
 }

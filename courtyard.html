@@ -2341,6 +2341,7 @@ function stepAgent(a, dt){
   if (d < 0.25){
     a.i++;
     if (a.lawn && !a.lawnOut && a.lawnEnd !== undefined && a.i >= a.lawnEnd) lawnRelease(a);   // a kid's run is done: the way out begins (#95)
+    if (a.round && a.wp[a.i - 1][1] === ROUND_STEP_Y){ roundDeliver(a); return; }   // the morning round at a step (#98)
     // the ONE place a leaver is asked home: on the lane, after dark, as the last leg
     // (the walk off the frame) begins — every route out of the town passes this point.
     if (a.i >= a.wp.length){
@@ -2490,7 +2491,7 @@ const GREET_DT = 0.5, GREET_R = 1.6, GREET_MIN = 0.9, GREET_P = 0.17;
 let greetAcc = 0;
 function chatty(a){
   return a.state === 'walk' && !a.small && !(a.listen > 0) && !(a.greet > 0) && !(a.chatCool > 0)
-      && a.kind !== 'sweeper' && a.kind !== 'picnic' && !a.homer && !a.stay && !a.with;   // a companion is already with somebody   // the sweeper is working; picnic pairs arrive together; a homer is priced to a door (c90), a stayer to a post before the light goes (#89)
+      && a.kind !== 'sweeper' && a.kind !== 'picnic' && !a.homer && !a.stay && !a.with && !a.round;   // a companion is already with somebody   // the sweeper is working; picnic pairs arrive together; a homer is priced to a door (c90), a stayer to a post before the light goes (#89)
 }
 function greetPass(){
   const free = [];
@@ -3630,6 +3631,64 @@ function updateSweeper(){
     announce('A sweeper works the lane before the town wakes.');
   }
   if (sweeper && sweeper.done) sweeper = null;
+}
+
+/* ---- the morning round (#98) ----
+ * The morning lapse lands at sunUp + 0.5 with the sweeper, the cart and nobody else.
+ * ONE figure with a bag comes in at the west end at sunUp - 0.3, works the west end's
+ * HOME_DOORS in order — a short stand at each, a bottle left on the step, taken in by
+ * mid-morning — and walks back out west. Priced on HEAD by tracing the sweeper: the
+ * lane runs ~5.2 cells/h (2.6 nominal x 0.87), so fourteen doors over 126 cells is a
+ * 30 h walk and the brief's 1.9 h buys ten cells and no door. ROUND_H is the window:
+ * a door is taken while its priced arrival is inside ROUND_H hours of sunrise (two
+ * doors, 4 and 8, in every season at ROUND_SPEED); the rest of the terrace goes without.
+ * Its own source — never a laneCap share, and off laneCount; goes in rain under an
+ * umbrella; skips only a lying snow. No R(): the skin and the stands are hash(day). */
+const ROUND_SPEED = 2.3, ROUND_H = 5.0, ROUND_STAND_H = 0.8, ROUND_STEP_Y = 65.35, ROUND_TAKEN = 9.5;
+let mround = null, roundDay = -1;
+const roundMarks = [];                            // {x, until}: a bottle on the step of door x until simT `until`
+function roundCount(){ return mround ? 1 : 0; }
+function roundMarkAt(gx){ return roundMarks.some(m => m.x === gx && simT < m.until); }
+function updateRound(){
+  if (!mround && roundDay !== day && hour > sunUp - 0.3 && hour < sunUp + 0.7 && day >= 1 && snowCover <= 0.5){
+    roundDay = day;
+    const x0 = -2.5, wp = [], doors = [];
+    let px = x0, py = LANE_N_Y, h = 0;
+    for (const d of HOME_DOORS){                  // in order from the west end, while the next one fits
+      const leg = [[d.x + 0.5, LANE_N_Y], [d.x + 0.5, ROUND_STEP_Y]];
+      const dh = pathHours(px, py, leg, ROUND_SPEED * 0.87);
+      if (hour + h + dh > sunUp + ROUND_H) break; // priced at the choice: the door after this one is the afternoon's
+      h += dh + ROUND_STAND_H; doors.push(d.x); wp.push(...leg); px = d.x + 0.5; py = ROUND_STEP_Y;
+    }
+    if (!doors.length) return;                    // cannot happen at these constants; defend the loop
+    wp.push([px, LANE_N_Y], [x0, LANE_N_Y]);      // and back out the way they came
+    roundMarks.length = 0;
+    mround = {
+      kind:'round', round:true, street:true, homeAsked:true, x:x0, y:LANE_N_Y, wp, i:0,
+      speed:ROUND_SPEED, state:'walk', timer:0, shirt:'#7a6a52', pants:'#3a3a44',
+      skin:SKIN[(hash(day, 811) * SKIN.length) | 0], phase:0, bag:true, umbrella:raining,
+      left:0, doors:doors.length, wary:0.2,
+    };
+    agents.push(mround);
+    announce('The morning round comes in at the west end, bag on the shoulder.');
+  }
+  if (mround && mround.done) mround = null;
+}
+function roundDeliver(a){                         // at a step: a stand, a bottle left; taken in by ROUND_TAKEN, or an hour on if later
+  const gx = Math.round(a.x - 0.5);
+  let h = ((ROUND_TAKEN - 1.5 * hash(day, gx) - hour) % 24 + 24) % 24; if (h > 12) h = 0;
+  roundMarks.push({ x: gx, until: simT + Math.max(h, 0.75) / HOURS_PER_S });
+  a.left++;
+  a.state = 'stand'; a.timer = 1.4 + hash(day, gx + 500) * 0.8; a.resume = true; a.faceL = false;
+}
+function drawStepMarks(){                         // one small draw per delivered door: a bottle by the door, on the step
+  const s = cellW / 13;
+  for (const m of roundMarks){
+    if (simT >= m.until) continue;
+    const p = project(m.x + 0.5 + 0.36, 65.1, 0);
+    ctx.fillStyle = '#e6ecef'; ctx.fillRect(p[0] - 0.9 * s, p[1] - 3.1 * s, 1.8 * s, 3.1 * s);
+    ctx.fillStyle = '#c9b45a'; ctx.fillRect(p[0] - 0.6 * s, p[1] - 3.9 * s, 1.2 * s, 0.9 * s);
+  }
 }
 
 /* ============ wildlife & weather ============ */
@@ -5621,6 +5680,7 @@ function drawScene(t, dt){
   items.push({y:65.1, f:drawSouthBand});
   // between the wall it is cut in (65.1) and the arch beside it (65.3), so the fronts
   // are under it and anyone standing on the footway is in front of it
+  if (roundMarks.length) items.push({y:65.11, f:drawStepMarks});   // #98: on the step, over the fronts, under the footway
   items.push({y:65.12, f:drawTapDoor});
   for (const A of ARCHES) items.push({y: A.yF === 3 ? 3.06 : 65.3, f:drawArch, A});
   items.push({y:6.6, f:drawShed});
@@ -7282,6 +7342,12 @@ function drawPerson(it, t){
   const wTurn = wch * Math.max(-1, Math.min(1, (boat ? boat.x - a.x : 0) / 5)) * 2.2;
   ctx.beginPath(); ctx.arc(up * (a.faceL ? 1.2 : -1.2) + turn + wTurn,
     -hgt*1.05 - 2.2*scale - up*1.2 + Math.abs(nod) * 0.7 + wch * 1.2, 2.9*scale*(cellW/13), 0, 7); ctx.fill();
+  if (a.bag){                       // the morning round's bag (#98): on the hip, strap over the far shoulder
+    ctx.strokeStyle = '#4a3f33'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(bw * 0.5, -hgt * 0.92); ctx.lineTo(-bw * 1.2, -hgt * 0.42); ctx.stroke();
+    ctx.fillStyle = '#7d6547';
+    ctx.fillRect(-bw * 1.9, -hgt * 0.46, 3.6 * scale * (cellW / 13), 3.0 * scale * (cellW / 13));
+  }
   if (a.broom){
     ctx.strokeStyle = '#8a6a42'; ctx.lineWidth = 1.4;
     ctx.beginPath(); ctx.moveTo(bw, -hgt*0.7); ctx.lineTo(bw + 7, 1); ctx.stroke();
@@ -7912,6 +7978,7 @@ function nameAt(x, y){
   if (g === EYOT) return 'the eyot';
   if (g === DECK) return 'the footbridge';
   if (g === DIAL) return sundialName();
+  if (y === 65 && roundMarkAt(x)) return 'a bottle left on the step';
   if (g === SIDE || g === ROAD || g === PATH) return pavingAt(x, y).what;
   return '';                       // a wall, a roof, the inside of an archway: no name
 }
@@ -7959,6 +8026,8 @@ function personName(a){
 function personName0(a){
   const st = a.state, k = a.kind;
   if (a.aboard) return punt.leg === 4 ? 'someone poling the punt back to the jetty' : 'someone poling the punt out to the eyot';
+  if (a.round) return st === 'stand' ? 'the morning round, leaving a bottle on the step'
+                   : a.i >= a.wp.length - 2 ? 'the morning round, done and going back' : 'the morning round, working the doors';
   if (a.eyot) return st === 'stand' ? 'someone on the eyot, under the willow' : 'someone on the eyot';
   if (k === 'sweeper') return a.tap && st === 'stand' ? 'the evening sweeper, calling in at the door'
                             : a.eve ? 'the evening sweeper, clearing up after the market'
@@ -8275,7 +8344,7 @@ function simStep(sdt, dt){
   const eveNow = eveCount(), eveAll = eveNow + stayCount();   // the warm evening's own arrivals (#79): likewise; the deck's stayers (#85) are off eastCount already
   const cafeAll = agents.filter(a => a.cafe).length, cafeNow = cafeCount();   // the cafe's own custom (#74)
   const famNow = famCount(), famAll = agents.filter(a => a.fam).length;   // the plaza's families (#92): their own source, parent + child off the residual
-  const laneCount = agents.length - courtyardCount - eastCount - bandCount - tapNow - homeNow - cafeAll - eveAll - famAll;
+  const laneCount = agents.length - courtyardCount - eastCount - bandCount - tapNow - homeNow - cafeAll - eveAll - famAll - roundCount();   // the morning round (#98) is its own source
   /* Each cap is its old expression with the multiply-out done, so the fixed share is
    * visible as a number and the year rides the daylight term alone (see yearBusy).
    * At the anchor, warmth 0.5, all three are algebraically identical to what they
@@ -8360,6 +8429,7 @@ function simStep(sdt, dt){
   greetAcc += sdt;
   while (greetAcc > GREET_DT){ greetAcc -= GREET_DT; greetPass(); }
   updateSweeper();
+  updateRound();
   bandNews();
   tapNews();
   tapCallers();
@@ -8483,6 +8553,8 @@ function beginEvening(){
   const to = eveningTarget();
   beginLapse(to.hours / 24 * DAY_LEN, () => to.evening
     ? 'Evening comes on over the block: lamps lit, the door open.'
+    : mround && mistF() > 0.5 ? 'Morning comes round again; the round is out on the lane, mist on the river.'
+    : mround ? 'Morning comes round again; the round is out on the lane.'
     : mistF() > 0.5 ? 'Morning comes round again; there is mist on the river.'
     : 'Morning comes round again over the block.');
 }
@@ -8607,6 +8679,7 @@ window.__entities = function(){
                    if (a.aboard) o.aboard = 1;
                    if (a.lawn){ o.lawn = 1; if (a.lawnOut) o.out = 1; if (lawnHolds(a)) o.holds = 1; }
                    if (a.tend) o.tend = 1;
+                   if (a.round){ o.round = 1; o.left = a.left; }
                    // the audience on the green. A probe has to tell a listener from a
                    // passer-by, and a listener standing AT its claimed place from one
                    // that drifted off it — which is the exact inverse of cue c49's bug.
