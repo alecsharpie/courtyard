@@ -1,5 +1,5 @@
 {
- "updated": "2026-09-02",
+ "updated": "2026-09-01",
  "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
  "phase": "expanding",
  "lastIteration": 104,
@@ -478,7 +478,8 @@
    "the NAMING of what is under the pointer (a TAP on a phone): beds, plots, places off pavingAt/WATERS, trees, the LIVING via livingAt(), WINDOWS/DOORS via FACES[]/faceAt()",
    "THE DIORAMA IS CLICKABLE and says so once: answersTouch(x,y) the ONE predicate. OFFERS[]: touch -> clock -> season -> follow -> where. A tap also FOLLOWS a walker (followLine)",
    "the quarter CAMERA: #where cycles QUARTERS Wide->Courtyard->Street->Plaza->Far bank; viewFor()/whereGo()/stepView(), the wide cache scaled through the ease (gview), q.share sets s from WIDTH",
-   "the PAINTED sill: drawSill(g) inside drawOurSide, so it is baked into the GROUND CACHE. sillTop() = H - max(26, H*0.075) is the ONE definition, read by drawSill and viewFor"
+   "the PAINTED sill: drawSill(g) inside drawOurSide, so it is baked into the GROUND CACHE. sillTop() = H - max(26, H*0.075) is the ONE definition, read by drawSill and viewFor",
+   "drawSill paints a SURFACE, not a fill: a 7-stop gradient (opening -> room's shadow -> nosing) on lit = 0.30 + 0.70*warm, 22 broken hash() grain runs, 9 scuffs, cast() shadows under both pots and the cup. Surface luma range 0 -> ~38, mean ~13 (#105)"
   ],
   "roofs": [
    "emergent roofs from buildVolumes() (footprint -> volume, eaveFor); CHIMNEYS[] filled as roofs draw, drawSmoke(t) leans windDir(); drawRoofRow() shades by SUN, cloud, warmth",
@@ -486,7 +487,8 @@
    "MURMURATION: drawMurmuration() right after drawSky (behind the cache); murmSeason/murmWx/murmEnv on dry autumn-winter dusks, funnel into MUR_ROOSTS, skeinEnv() at sunUp. Wide-only",
    "OUR OWN ROOF below the lane: rows 79..WH are WALL and buildVolumes grows the near block's slate roof; NEAR_SPANS the two halves, eaveFor 0 so it cannot occlude the lane, SLATES per house",
    "drawNearRoof (CACHED): drawRoofRow per row, drawCrests + a capped ridge, moss on the north pitch, WELLS (the only VOID left), a dormer or rooflight per house at DORM_Y 85 (ROOF_LIGHTS -> LIT_PANES), drawPartyWalls with stacks at STACK_Y 86, drawParapet at PARA_Y",
-   "the APRON below row WH: one column-wise quad to the canvas bottom under a gradient to rgba(8,7,6,.68). OUR_AWNINGS are world quads on the kerb (rows 77.65..79)"
+   "the APRON below row WH: one column-wise quad to the canvas bottom under a gradient to rgba(8,7,6,.68). OUR_AWNINGS are world quads on the kerb (rows 77.65..79)",
+   "nearShadow(g): the ONE ramp from near roof into the sill, priced off sillTop(), bounded above by the footway (yWalk + 1) so no live walker stands in a cached shadow (#105)"
   ]
  },
  "openCues": [
@@ -507,6 +509,12 @@
    "note": "the quay, towpath, lane and cross street are all SIDE/ROAD and still do not age: moss[] is deliberately plaza-only, pavingAt's other five kinds untouched. The quay strip against the rail needs no new machinery, only a second region in stepMoss (#103)",
    "raisedBy": 102,
    "seenBy": 1
+  },
+  {
+   "id": "c156",
+   "note": "at every zoomed quarter the sill band fills with live content drawn over the cached sill (max luma 221 at Courtyard, 192 at Plaza, 112 at Street) - identical on HEAD, so pre-existing: drawSill is baked into the ground cache and agents/overlays sort after it, so the four quarter cameras have no sill at all (#105)",
+   "raisedBy": 104,
+   "seenBy": 0
   }
  ],
  "watch": [

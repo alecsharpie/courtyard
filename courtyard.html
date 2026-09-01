@@ -5877,10 +5877,11 @@ function drawNearRoof(g){
      * mid-tone, then a foreground that falls away into the sill instead of competing with
      * the courtyard for the eye. This is the one part of the band with nothing on it, and
      * it is the part that should have nothing on it. */
-    const sh = g.createLinearGradient(0, l[1] - cellH, 0, H);
-    sh.addColorStop(0, 'rgba(10,9,8,0)'); sh.addColorStop(0.35, 'rgba(10,9,8,.30)');
-    sh.addColorStop(1, 'rgba(8,7,6,.68)');
-    g.fillStyle = sh; poly(g, [l, r, R, L]); g.fill();
+    /* #105: the ramp that does this is no longer here. It was anchored on l[1] — the
+     * roof's LAST ROW — and at 1200x720 that row projects 31 px BELOW sillTop(), so the
+     * whole gradient was painted under the sill band and never seen: the desktop frame
+     * cut full-brightness slate straight to black. It is now one wash priced off
+     * sillTop() in drawOurSide, over whatever strip of near roof the frame shows. */
     g.strokeStyle = 'rgba(26,24,22,.35)'; g.lineWidth = Math.max(1, cellH * 0.16);
     g.beginPath(); g.moveTo(l[0], l[1]); g.lineTo(r[0], r[1]); g.stroke();   // the last full course
     g.strokeStyle = 'rgba(24,22,20,.28)'; g.lineWidth = 1;      // and the courses under it, opening out
@@ -6095,24 +6096,103 @@ function drawAwnings(g){
 function drawOurSide(g){
   drawAwnings(g);
   drawNearRoof(g);
-  const vg = g.createLinearGradient(0, H - 26, 0, H);
-  vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.5)');
-  g.fillStyle = vg; g.fillRect(0, H - 26, W, 26);
+  nearShadow(g);
   drawSill(g);
 }
 // where the sill strip begins: ONE definition, read by drawSill and by the camera (viewFor)
 function sillTop(){ return H - Math.max(26, H * 0.075); }
+/* The near pitch falls away into the sill instead of competing with the courtyard for the
+ * eye — bright town, slate mid-tone, dark foreground. That was always the intent; it just
+ * was not priced against the thing it has to meet. Anchored on the roof's own last row the
+ * ramp lands wherever the camera happens to put that row: at 1600x950 half of it shows, at
+ * 390x844 seven tenths, and at 1200x720 NONE of it does. So the ramp is priced off
+ * sillTop() and run over whatever strip of near roof the frame actually shows — bounded
+ * above by the south footway, because this is baked into the ground cache and a walker
+ * drawn live on top of it would not share the shadow. */
+function nearShadow(g){
+  const sTop = sillTop(), B = H - sTop;
+  const yWalk = project(0, LN_WALK_S, 0)[1];              // project()'s y is row-only: x free
+  const wTop = Math.max(yWalk + 1,
+                        Math.min(project(0, WH, 0)[1] - cellH, sTop - Math.max(cellH * 3.5, B * 0.6)));
+  if (wTop >= sTop - 1) return;      // a zoomed quarter can put the footway below the sill line: no near roof shows, so there is nothing to ramp
+  const sh = g.createLinearGradient(0, wTop, 0, sTop);
+  sh.addColorStop(0, 'rgba(10,9,8,0)'); sh.addColorStop(0.45, 'rgba(10,9,8,.32)');
+  sh.addColorStop(1, 'rgba(8,7,6,.66)');
+  g.fillStyle = sh; g.fillRect(0, wTop, W, sTop - wTop);
+}
+/* Our own windowsill, in the near dark at the bottom of the view — and it has to STAY
+ * dark: a dark near block is what lets the town read past it. But dark is not flat. This
+ * strip was one fillRect of #0a0806, and it measured min == max == mean == 8.4 luma over
+ * 48,384 px at 1200x720 and the identical flat value at 1600x950 and 390x844 — a real
+ * surface in shadow still holds fifteen or twenty units of range. So the mean barely moves
+ * and everything here buys SEPARATION instead: the window's light landing on the far half,
+ * the room's own shadow taking the near half, a nosing at the front edge, grain and scuffs
+ * across the boards, and the pots and the cup finally throwing something onto it. Cached
+ * with the ground (drawOurSide -> drawGround), so nothing here may be per-frame. */
 function drawSill(g){
-  // our own windowsill, in the near dark at the bottom of the view
-  const sy = sillTop(), u = Math.max(5, cellW * 0.7);
+  const sy = sillTop(), u = Math.max(5, cellW * 0.7), B = H - sy;
   const warm = 0.10 + 0.55 * daylight;
-  g.fillStyle = '#0a0806'; g.fillRect(0, sy, W, H - sy);
+  const lit = 0.30 + 0.70 * warm;                    // how much of the day gets in at all
+  const C = (r, gg, b) => 'rgb(' + (r | 0) + ',' + (gg | 0) + ',' + (b | 0) + ')';
+  // the surface: brightest a little inside the opening, falling away into the room as it
+  // comes toward us, picking a little bounce back up on the near nosing
+  const sg = g.createLinearGradient(0, sy, 0, H);
+  sg.addColorStop(0,    '#0a0806');
+  sg.addColorStop(0.16, C(14 + 13 * lit, 11 + 10 * lit, 8 + 7 * lit));
+  sg.addColorStop(0.38, C(11 +  8 * lit,  9 +  6 * lit, 7 + 4 * lit));
+  sg.addColorStop(0.66, '#090807');
+  sg.addColorStop(0.86, '#050505');
+  sg.addColorStop(0.94, C(10 +  9 * lit, 9 +  8 * lit, 8 + 6 * lit));
+  sg.addColorStop(1,    '#070605');
+  g.fillStyle = sg; g.fillRect(0, sy, W, B);
+  /* the grain, in BROKEN runs. A full-width streak varies down the strip and not across
+   * it, which is the same failure the flat fill had one axis over; the runs are what make
+   * a row of this band non-uniform. (#103's stripe, in miniature.) */
+  for (let k = 0; k < 22; k++){
+    const fy = 0.06 + hash(k, 71) * 0.88, y = sy + B * fy;
+    const th = Math.max(0.8, B * (0.014 + hash(k, 73) * 0.030));
+    const dark = hash(k, 77) > 0.42;
+    const a = (dark ? 0.26 : 0.16) * (0.4 + 0.6 * (1 - Math.abs(fy - 0.3) * 1.4));
+    g.fillStyle = dark ? 'rgba(0,0,0,' + a.toFixed(3) + ')'
+                       : 'rgba(208,186,152,' + (a * 0.6 * lit).toFixed(3) + ')';
+    for (let j = 0, runs = 1 + (hash(k, 79) * 3 | 0); j < runs; j++)
+      g.fillRect(hash(k * 7 + j, 83) * W, y, W * (0.06 + hash(k * 7 + j, 89) * 0.30), th);
+  }
+  for (let k = 0; k < 9; k++){                       // where things get put down and picked up
+    const rr = B * (0.06 + hash(k, 107) * 0.13);
+    g.fillStyle = hash(k, 109) > 0.5 ? 'rgba(0,0,0,.22)' : 'rgba(196,176,146,' + (0.10 * lit).toFixed(3) + ')';
+    g.beginPath();
+    g.ellipse(hash(k, 101) * W, sy + B * (0.12 + hash(k, 103) * 0.7), rr * 2.6, rr, 0, 0, 7);
+    g.fill();
+  }
+  // the near nosing: the sill has a FRONT, and the room puts a little light back on it
+  g.fillStyle = 'rgba(0,0,0,.45)'; g.fillRect(0, H - B * 0.135, W, Math.max(1, B * 0.055));
+  g.fillStyle = 'rgba(176,158,132,' + (0.09 + 0.11 * warm).toFixed(3) + ')';
+  g.fillRect(0, H - B * 0.075, W, Math.max(1.2, B * 0.028));
   g.fillStyle = 'rgba(196,168,124,' + (0.10 + 0.22 * warm) + ')';
   g.fillRect(0, sy, W, 2.2);                                   // the lit front edge of the sill
-  g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(0, sy + 2.2, W, 3);
+  g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(0, sy + 2.2, W, 2.2);
+  /* Everything on the sill throws something onto it. The light comes in over the far edge,
+   * so every shadow lies toward US — down the frame, out of the lit band and into the near
+   * dark, which is what tells you the band is a surface and not a hole. Drawn before the
+   * objects, so each one stands on the head of its own shadow. */
+  const cast = (px, halfW, depth) => {
+    const y0 = sy + 3, y1 = sy + B * depth;
+    const cg = g.createLinearGradient(0, y0, 0, y1);
+    cg.addColorStop(0, 'rgba(0,0,0,.66)'); cg.addColorStop(0.5, 'rgba(0,0,0,.34)');
+    cg.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = cg;
+    g.beginPath();
+    g.moveTo(px - halfW, y0); g.lineTo(px + halfW, y0);
+    g.lineTo(px + halfW * 1.55, y1); g.lineTo(px - halfW * 1.35, y1);
+    g.closePath(); g.fill();
+  };
   const silh = 'rgba(9,8,6,1)', rim = 'rgba(190,164,120,' + (0.06 + 0.18 * warm) + ')';
   // two pots of geraniums and, between them, a forgotten cup
-  for (const [px, s] of [[W * 0.055, 1], [W * 0.945, 0.85]]){
+  const POTS = [[W * 0.055, 1], [W * 0.945, 0.85]];
+  for (const [px, s] of POTS) cast(px, u * 1.5 * s * 0.72, 0.52);
+  cast(W * 0.5, u * 0.62 * 0.7, 0.34);
+  for (const [px, s] of POTS){
     const pw = u * 1.5 * s, ph = u * 1.25 * s;
     g.fillStyle = silh;
     g.beginPath();
