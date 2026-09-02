@@ -517,7 +517,9 @@
       "OUR OWN ROOF below the lane: rows 79..WH are WALL, NEAR_SPANS the two halves, NEAR_HOUSE 7/houseOf(x) the only house index in town. drawNearRoof CACHED: drawCrests, WELLS (the only VOID left), DORM_Y 85, drawPartyWalls + stacks at STACK_Y 86, drawParapet, APRON below WH, OUR_AWNINGS, nearShadow off sillTop()",
       "the near block is SLATED, not tiled (tileCol is the pantile alone now): drawRoofRow forks at LN_WALK_S to drawSlateCell/slateRun, a lattice GLOBAL along the row, slateGrid(y) solving it off the cell AS DRAWN; the APRON slates on the same run (APRON_GROW/hMax). Per-slate ageing: lichen off roofMossF(), sootAt(), replaced/slipped slates, snow by course",
       "near roof life: roofBirdSpot's own roll and cap, FIVE named perches, the first four capped by ROOF_DMAX 82.2 in DEPTH",
-      "THE WORKING ROOF: ROOF_FURN, 24 pieces per BAY off hash(house) — drawWashLine (washOut() gates the cloth), drawWaterTank, drawPigeonLoft; roofFurnAt + roofFurnName, FURN_BOX the ONE size. Bounded in DEPTH: furnRow() off FURN_DMAX 81.70 / FURN_DMIN 79.15 — 2.55 of depth, a water tank 2.549 of it"
+      "THE WORKING ROOF: ROOF_FURN, 24 pieces per BAY off hash(house) — drawWashLine (washOut() gates the cloth), drawWaterTank, drawPigeonLoft; roofFurnAt + roofFurnName, FURN_BOX the ONE size. Bounded in DEPTH: furnRow() off FURN_DMAX 81.70 / FURN_DMIN 79.15 — 2.55 of depth, a water tank 2.549 of it",
+      "the town is HOUSES now, not regions: houseAt(x,y)/houseIx on drawFaceRow's 3.5-cell rhythm (x for the north and gatehouse rows, y for the courtyard side walls and the tall terrace), houseLift = runOf's coarse run hash + a one-in-seven rebuild, EAVE_LO/HI, GATE_UP, ARCH_HOUSES. eaveBand is the old regional value",
+      "the STEP: roofZE(vx,vy,e) is a vertex read from inside its own house (vZ is the averaged field the generic consumers keep); drawGable the south-facing end wall, a party-wall line in drawRoofRow, buildStacks/STACK_ROWS one stack per party WALL into CHIMNEYS (entries carry an optional z). roofTopAt is the one cell-centre roof z"
     ]
   },
   "openCues": [
@@ -556,6 +558,18 @@
       "note": "GARDEN_ROWS is 5 and GARDEN_MORE 0.8, so a gardener should work ~3 rows; measured 1.53 after #129. gardenerKneel's light-fit charges two full rows plus the shuffle plus the walk to the door, so the second row is priced out most days.",
       "raisedBy": 127,
       "seenBy": 1
+    },
+    {
+      "id": "c206",
+      "note": "the lift clamps at EAVE_LO 4.62 on the 5.1 courtyard walls, so several of their lowest houses land on exactly the same eave — a swing priced per BAND rather than one global clamp would spread them",
+      "raisedBy": 129,
+      "seenBy": 0
+    },
+    {
+      "id": "c207",
+      "note": "the clock tower's north-row neighbours (x 62-63, y<3) are excluded from the house grid so nothing drops out from under CT's base at z 5.4; a tower that read its own roof would not need the exclusion",
+      "raisedBy": 129,
+      "seenBy": 0
     }
   ],
   "watch": [

@@ -40,15 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 123 — the working roof stops being invisible at half the framings we ship (2026-09-02) [Roofs & skyline × Polish]
-
-**Brief:** b123 — #110's 24 pieces are covered by the sill at short windows; bound them in DEPTH and place them accordingly.
-**Premise held; both of the readings the brief asked me to reconcile were right.** On HEAD, 3 of 24 pieces are off-canvas in x at every desktop size (11 on a phone — `ROOF_FURN[0]` sits at world x −7.5); of the 21 on canvas, **0 were visible at 1280x700 and 1200x720**, 21 at 1600x950.
-**Did.** `furnRow()` solves each piece's row from a DEPTH target instead of stating it: step north from the eaves, take the first row whose deepest DRAWN point clears the bound, reading `nearZ` at the same `floor(y)` the paint and the pointer read. Deepest point is per kind (`furnEdges`). Bounded at BOTH ends, `FURN_DMAX` 81.70 / `FURN_DMIN` 79.15. Draw order is load-bearing now — parapet → furniture → dormers → party walls.
-**Gates:** all PASS. Drawn whole and answering the pointer for itself at all five tracked framings: 21/21 on-canvas, against 0/21 at two of them on HEAD.
-**Verdict:** shipped
-**Surprise:** the band does not fit. Between the parapet and the shortest framing's sill there is 2.55 of depth, and a water tank is **2.549** of depth tall — six thousandths to spare, which is why the scatter had to become per-kind. The first draft, bounded only at the sill, put twelve pieces' tops over the lane's footway, where live walkers draw on top of them. And the census churned everywhere on a change with no `R()` in it: pinning only the landing board's coordinates back to HEAD made all nine cells identical — the perch moving with its loft changes where a bird stands, which changes whether a *later* spot is rejected for proximity.
-
 ## Iteration 124 — the morning fire stops burning on midwinter's clock all year (2026-09-02) [Sky, light & weather × Connect]
 
 **Brief:** b124 — `drawSmoke`'s hearth term is `clamp(1 - |hour - 7|/3.5)`; key it on the sun and scale it with the cold.
@@ -113,3 +104,14 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Gates:** census/perf/filmstrip/visual PASS · motion FAIL dismissed on a HEAD control. In the beds on a growing morning 0.06 → 0.22 (3.7×), 0.08 → 0.26 when the lawn is BUSY, nothing displaced.
 **Verdict:** shipped
 **Surprise:** every lever was already in the source one level up, unused. #108 fixed the gardener's DOOR and left the BED a flat `pick()` over all 204; the dawn start made that WORSE, because with the whole day ahead every bed passes `lawnFits` — the priced walk went 5.8 h → 9.2 h, all spent crossing the town. `lawnFits` bounds the LANDING only, which is all a visitor needs because none sets out before the lawn opens. Ranking beds by walk and bounding both ends turned 0.06 into 0.22; the schedule alone gave 0.08.
+
+## Iteration 130 — the town gets houses, and the roofline stops being a ruled line (2026-09-02) [Roofs & skyline × Scale/World]
+
+**Brief:** b130 — a house index per terrace, an eave per house, and what the step implies.
+**Premise held.** HEAD had **4 distinct eaves along its whole north row, 1 along each side wall**.
+**Did.** `houseAt(x,y)` indexes every terrace on `drawFaceRow`'s own 3.5-cell rhythm, counted the way the terrace RUNS: x for the long rows, y for the slivers. `houseLift` is a coarse hash (`runOf`, a builder's run of 1-6) with a fine one gated on it (one house in seven rebuilt). The step is **`roofZE(vx,vy,e)`**: a vertex read from INSIDE its own house, `e + SLOPE*min(vD)` — bit-identical to `vZ` in a block of one eave, different only where the town steps. Then its implications: `drawGable`, a party-wall line, `buildStacks` (a stack per party WALL, into `CHIMNEYS`). +213 lines.
+**Gates:** census PASS, **structures +369 / chimneys 27→68 a run**, tiles and life unchanged · motion PASS · filmstrip 0 POP · perf ±0.0% · legible at 1600x950, 390x844, night. Terrace eaves 4→20 / 18 steps (north row), 1→7 and 1→11 on the walls. Baseline re-pinned.
+**Verdict:** shipped
+**Surprise:** the near roof, which I never touched, came back **23.4% changed**. `roofShade` gained an `e` parameter and the APRON called it with none, so every apron slate shaded off NaN. Eyeballing two framings missed it; a difference image against a same-code control (0.000%) found it in one run.
+**Law:** widening a shared draw helper's SIGNATURE changes every caller — grep them all; the missing argument arrives `undefined`, and a colour off NaN still paints something plausible.
+**Law:** `hash(x,y)` is NOT seeded; `?seed=` swaps `R()` alone. The built FABRIC is one town in every world; only its life varies.

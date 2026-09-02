@@ -795,21 +795,65 @@ function buildGrid(){
 }
 buildGrid();
 
+/* ============ the town's houses ============
+ * A terrace is a row of HOUSES, and drawFaceRow has always known it: the plaster, the
+ * brick and the party-wall line all come off `floor((x + 1) / 3.5)`. The ROOF did not.
+ * Every house inside a terrace took one REGIONAL eave — 5.1 down the courtyard's sides,
+ * 5.6 along the gatehouse row, 5.8/6.2 across the north — so the skyline was a ruled
+ * horizontal line over two thirds of the wide frame: a town of one storey-height, put up
+ * in one afternoon by one builder.
+ *
+ * So the house index is the roof's too, counted along the way each terrace RUNS — x for
+ * the two long rows, y for the north-south slivers — and the heights are not authored.
+ * A terrace goes up in RUNS: a builder does three or four at a time, and a generation
+ * later one of them is rebuilt taller or lower than its neighbours. The lift is a COARSE
+ * hash (the run) with a fine one gated on top of it (the rebuild), because one uniform
+ * hash per house is a texture and the run is what makes it a place. `?seed=` owns both.
+ */
+const HOUSE_W = 3.5;                                     // drawFaceRow's rhythm, now the roof's
+function houseIx(u){ return Math.floor((u + 1) / HOUSE_W); }
+function houseU0(i){ return Math.max(0, Math.ceil(i * HOUSE_W) - 1); }   // its first cell
+const HB_NORTH = 1000, HB_GATE = 2000, HB_WEST = 3000, HB_EAST = 3500, HB_DIV = 4000;
+function houseAt(x, y){
+  if (y < 0 || y >= LN_WALK_S || x < 0 || x >= GW) return -1;   // our own block has houseOf()
+  if (churchAt(x, y) || millAt(x, y)) return -1;         // the skyline's two incidents keep their scale
+  if (x >= 64 && x < 66) return -1;                      // the clock tower's sliver stands alone,
+  if (y < 3 && x >= 62 && x < 64) return -1;             // and its base overhangs these two cells
+  if (x >= DIV_X0 && x < PLAZA_X0) return HB_DIV + houseIx(y);
+  if (y >= 61) return HB_GATE + houseIx(x);
+  if (y < 3) return HB_NORTH + houseIx(x);
+  if (x < 3) return HB_WEST + houseIx(y);
+  if (x >= 61 && x < 64) return HB_EAST + houseIx(y);
+  return -1;
+}
+const RUN_BREAK = 0.34, RUN_MAX = 6;                     // a builder's run: 1-6 houses, ~3 typical
+function runOf(id){
+  let k = id;
+  while (k > id - RUN_MAX && hash(k, 53) >= RUN_BREAK) k--;
+  return k;
+}
+const ARCH_HOUSES = new Set();                           // a house with a passage cut through it
+for (let y = 0; y < LN_WALK_S; y++) for (let x = 0; x < GW; x++){
+  if (grid[y * GW + x] !== TUNNEL) continue;
+  const h = houseAt(x, y); if (h >= 0) ARCH_HOUSES.add(h);
+}
+function houseLift(id){
+  let d = (hash(runOf(id), 67) - 0.5) * 1.30;                    // the run's own storey, +-0.65
+  if (hash(id, 89) > 0.86) d += (hash(id, 97) - 0.5) * 1.50;     // one in seven was rebuilt
+  if (ARCH_HOUSES.has(id)) d = Math.max(d, -0.15);               // never below its own arch
+  return d;
+}
+
 /* ============ building volumes ============
    Roofs are grown from the footprint itself: every roof vertex is lifted by its
    distance to the nearest edge of the block. Ridges, hips and valleys fall out of
    that for free, so corners meet properly and walls always reach their own eaves. */
 const SLOPE = 0.62;                        // rise per cell of inset from the eaves
 const solidM = new Uint8Array(GW * WH), eaveM = new Float32Array(GW * WH);
+const houseM = new Int32Array(GW * WH);            // which house a solid cell belongs to, or -1
 const VW = GW + 1, VH = WH + 1;
 const vD = new Float32Array(VW * VH), vZ = new Float32Array(VW * VH);
-function eaveFor(x, y){
-  /* Our own block, the one we are looking out OVER, lies ON the ground plane. project()
-   * lifts z northward on SCREEN, so a near roof given its true eave would be drawn
-   * standing in front of the lane — and the lane is what this picture is looking at.
-   * At eave 0 the whole volume stays inside its own nine rows: 0 at the parapet, 2.11
-   * at the ridge, 0 again at the world's south edge. */
-  if (y >= LN_WALK_S) return 0;
+function eaveBand(x, y){                             // the QUARTER's height, before its houses
   if (churchAt(x, y)) return 7.8;
   if (millAt(x, y)) return 4.7;                        // the mill house, squat under its wheel
   if (x >= DIV_X0 && x < PLAZA_X0) return 6.6;         // the tall terrace
@@ -817,6 +861,28 @@ function eaveFor(x, y){
   if (y >= 61) return 5.6;                             // the gatehouse row between courtyard and lane
   if (y < 3) return x >= FAR_X0 ? 6.2 : 5.8;
   return 5.1;                                          // courtyard side walls
+}
+const EAVE_LO = 4.62, EAVE_HI = 7.15;   // the church at 7.8 stays the skyline's tall thing
+const GATE_UP = 0.42;                   // what the gatehouse row may take from the garden
+function eaveFor(x, y){
+  /* Our own block, the one we are looking out OVER, lies ON the ground plane. project()
+   * lifts z northward on SCREEN, so a near roof given its true eave would be drawn
+   * standing in front of the lane — and the lane is what this picture is looking at.
+   * At eave 0 the whole volume stays inside its own nine rows: 0 at the parapet, 2.11
+   * at the ridge, 0 again at the world's south edge. */
+  if (y >= LN_WALK_S) return 0;
+  const id = houseAt(x, y);
+  if (id < 0) return eaveBand(x, y);
+  /* The band belongs to the HOUSE, not the cell: the north row is 5.8 and 6.2 over the
+   * far bank, and a band edge falling mid-house would slur the very step this exists to
+   * make. Only that row's band moves along the terrace, so only it needs the anchor. */
+  const ax = id >= HB_NORTH && id < HB_GATE ? houseU0(id - HB_NORTH) : x;
+  let lift = houseLift(id);
+  /* The gatehouse row is the one terrace with the GARDEN behind it, and project() walks
+   * a roof ~1.15 rows UP the frame: its ridge is already drawn at screen row 55, inside
+   * the courtyard. It may step down as far as any other house; up, it is capped. */
+  if (id >= HB_GATE && id < HB_WEST) lift = Math.min(lift, GATE_UP);
+  return clamp(eaveBand(ax, y) + lift, EAVE_LO, EAVE_HI);
 }
 function solidAt(x, y){                            // strict: the world genuinely ends at its edges
   if (y < 0 || y >= WH) return 0;
@@ -839,6 +905,7 @@ function buildVolumes(){
     const i = y * GW + x, t = grid[i];
     solidM[i] = (t === WALL || t === TUNNEL) ? 1 : 0;
     eaveM[i] = solidM[i] ? eaveFor(x, y) : 0;
+    houseM[i] = solidM[i] ? houseAt(x, y) : -1;
   }
   const BIG = 1e4, C = [[-1,-1],[0,-1],[-1,0],[0,0]];
   for (let vy = 0; vy < VH; vy++) for (let vx = 0; vx < VW; vx++){
@@ -874,6 +941,49 @@ const CHIMNEYS = [];                       // filled as the roofs are drawn; smo
 function wrapVX(vx){ return vx >= 0 ? clamp(vx, 0, VW - 1) : ((vx % 3) + 3) % 3; }
 function roofZ(vx, vy){ return vZ[clamp(vy, 0, VH-1) * VW + wrapVX(vx)]; }
 function roofD(vx, vy){ return vD[clamp(vy, 0, VH-1) * VW + wrapVX(vx)]; }
+/* vZ averages the FOUR cells around a vertex, which is right inside a block and wrong
+ * where two houses of different height meet: their step arrives as a one-vertex RAMP and
+ * the terrace slurs instead of stepping. A roof read from INSIDE its own house takes its
+ * own eave at every corner and lets vD — the footprint's distance transform, which no
+ * eave touches — keep the pitch, so ridges, hips and valleys are as emergent as ever.
+ * Inside a block of one eave this is vZ exactly; it differs only where the town STEPS. */
+function roofZE(vx, vy, e){ return e + SLOPE * Math.min(roofD(vx, vy), 3.4); }
+function roofTopAt(x, y){                          // the roof surface at a cell's own centre
+  const e = eaveAt(clamp(x, 0, GW - 1), clamp(y, 0, WH - 1));
+  return (roofZE(x, y, e) + roofZE(x + 1, y, e) + roofZE(x + 1, y + 1, e) + roofZE(x, y + 1, e)) / 4;
+}
+
+/* ============ what the step carries ============
+ * A terrace puts its stacks on the party walls, which is why a real roofline's chimneys
+ * do not sit on one line: they sit wherever the height changed. One per WALL, not per
+ * cell — found off the same house grid, stood at the wall's deepest point (its ridge),
+ * and pushed into CHIMNEYS so the smoke leans downwind with every other stack in town.
+ * The x-walls run north-south through a terrace, the y-walls east-west through a sliver. */
+const STACK_ROWS = [];
+function buildStacks(){
+  const walls = new Map();
+  const keep = (k, d, x, y, u) => { const w = walls.get(k); if (!w || d > w.d) walls.set(k, {d, x, y, u}); };
+  for (let y = 0; y < LN_WALK_S; y++) for (let x = 0; x < GW; x++){
+    const i = y * GW + x, h = houseM[i];
+    if (!solidM[i] || h < 0) continue;
+    if (x > 0 && solidM[i-1] && houseM[i-1] >= 0 && houseM[i-1] !== h && Math.abs(eaveM[i] - eaveM[i-1]) > 0.12)
+      keep('x.' + x + '.' + h + '.' + houseM[i-1], Math.min(roofD(x, y), roofD(x, y + 1)), x, y, 0);
+    if (y > 0 && solidM[i-GW] && houseM[i-GW] >= 0 && houseM[i-GW] !== h && Math.abs(eaveM[i] - eaveM[i-GW]) > 0.12)
+      keep('y.' + y + '.' + h + '.' + houseM[i-GW], Math.min(roofD(x, y), roofD(x + 1, y)), x, y, 1);
+  }
+  for (const w of walls.values()){
+    if (hash(w.x * 7 + w.y, 31) < 0.42) continue;         // not every party wall carries one
+    const i = w.y * GW + w.x;
+    const eT = Math.max(eaveM[i], eaveM[w.u ? i - GW : i - 1]);
+    const cx = w.u ? w.x + 0.5 : w.x, cy = w.u ? w.y : w.y + 0.5;
+    const z = w.u ? (roofZE(w.x, w.y, eT) + roofZE(w.x + 1, w.y, eT)) / 2
+                  : (roofZE(w.x, w.y, eT) + roofZE(w.x, w.y + 1, eT)) / 2;
+    const h = 1.5 + hash(w.x, w.y * 3) * 1.0;
+    (STACK_ROWS[w.y] || (STACK_ROWS[w.y] = [])).push([cx, cy, z, h]);
+    CHIMNEYS.push([cx - 0.5, cy - 0.72, z + h - 2.0]);    // drawSmoke adds 2.4 to reach a pot
+  }
+}
+buildStacks();
 
 /* nav ring around the grass */
 const RING = [];
@@ -5433,8 +5543,8 @@ function drawMurmuration(g){
 
 /* ============ buildings: hipped roofs grown off the footprint ============ */
 const XLO = -12, XHI = GW + 12;                    // draw past the frame so the town never ends in black
-function roofShade(x, y){
-  const z00 = roofZ(x, y), z10 = roofZ(x + 1, y), z11 = roofZ(x + 1, y + 1), z01 = roofZ(x, y + 1);
+function roofShade(x, y, e){
+  const z00 = roofZE(x, y, e), z10 = roofZE(x + 1, y, e), z11 = roofZE(x + 1, y + 1, e), z01 = roofZE(x, y + 1, e);
   const gx = ((z10 + z11) - (z00 + z01)) / 2, gy = ((z01 + z11) - (z00 + z10)) / 2;
   const nl = Math.hypot(gx, gy, 1);
   return [clamp((-gx * SUN[0] - gy * SUN[1] + SUN[2]) / nl, 0, 1), z00, z10, z11, z01];
@@ -5661,11 +5771,20 @@ function drawRoofRow(g, y){
     // beyond the frame the town is hazed — but the near block is the closest thing in
     // the world, and haze on the row under our own sill would read as fog at our feet
     const out = x !== gx && !near;
-    const r = roofShade(x, y), lam = r[0];
+    const e = eaveM[y * GW + gx];
+    const r = roofShade(x, y, e), lam = r[0];
     const hv = hash(gx, y);
     const sy = solidC(x, y + 1) ? y + 1 : y + 1.3;               // eaves overhang the wall below
     const dz = solidC(x, y + 1) ? 0 : SLOPE * 0.3;
     const c = project(x + 1, sy, r[3] - dz), d = project(x, sy, r[4] - dz);
+    /* What the step IMPLIES. A house taller than the one behind it simply hides more of
+     * it — its north wall looks away from us. A house SHORTER than the one behind leaves
+     * that neighbour's gable end standing over its roof, and THAT face looks at us: with
+     * nothing drawn there the sky came through the seam. */
+    if (!near && solidC(x, y - 1)){
+      const eN = eaveM[(y - 1) * GW + gx];
+      if (eN > e + 0.04) drawGable(g, x, y, e, eN, out);
+    }
     if (near) drawSlateCell(g, x, y, r, sy, dz, amb, key, gx, sg[0], sg[1], sg[2], sg[3]);
     else {
       const a = project(x, y, r[1]), b = project(x + 1, y, r[2]);
@@ -5684,47 +5803,88 @@ function drawRoofRow(g, y){
       const e1 = project(x, y + 1, r[4]), e2 = project(x + 1, y + 1, r[3]);
       poly(g, [e1, e2, c, d]); g.fill();
     }
+    /* and the party wall itself, where two heights meet along the terrace. We look
+     * straight down its length, so it draws as a line — the same thing drawPartyWalls
+     * does on our own roof, one storey-change at a time. */
+    if (!near){
+      const eW = solidC(x - 1, y) ? eaveM[y * GW + clamp(x - 1, 0, GW - 1)] : e;
+      if (Math.abs(eW - e) > 0.04){
+        const eT = Math.max(eW, e) + 0.13;
+        const q1 = project(x, y, roofZE(x, y, eT)), q2 = project(x, sy, roofZE(x, y + 1, eT) - dz);
+        g.strokeStyle = out ? 'rgba(196,186,170,.45)' : 'rgba(226,213,190,.62)';
+        g.lineWidth = Math.max(1, cellW * 0.10);
+        g.beginPath(); g.moveTo(q1[0], q1[1]); g.lineTo(q2[0], q2[1]); g.stroke();
+        g.strokeStyle = 'rgba(46,33,24,.30)'; g.lineWidth = Math.max(0.8, cellW * 0.05);
+        g.beginPath(); g.moveTo(q1[0], q1[1] + 1.6); g.lineTo(q2[0], q2[1] + 1.6); g.stroke();
+      }
+    }
     // the near block's stacks stand on its party walls, and are placed there (drawNearRoof)
     if (!near && hash(gx * 5, y * 3) > 0.965 && Math.min(roofD(x, y), roofD(x + 1, y + 1)) > 0.95){
       drawChimney(g, x, y);
       if (x === gx && !CHIMNEYS.some(c2 => c2[0] === x && c2[1] === y)) CHIMNEYS.push([x, y]);
     }
   }
+  const st = !near && STACK_ROWS[y];                    // and the stacks the party walls carry
+  if (st) for (const k of st) drawStack(g, k[0], k[1], k[2], k[3]);
+}
+/* The gable end a taller neighbour leaves standing over a lower roof: masonry, not tile,
+ * and lit like the fronts below because it is the same wall carried up. */
+function drawGable(g, x, y, eLo, eHi, out){
+  const wt = 0.22 + 0.6 * daylight;
+  const a = project(x, y, roofZE(x, y, eLo)), b = project(x + 1, y, roofZE(x + 1, y, eLo));
+  const c = project(x + 1, y, roofZE(x + 1, y, eHi)), d = project(x, y, roofZE(x, y, eHi));
+  const pl = PLASTER[(hash(clamp(x, 0, GW - 1), y * 11) * PLASTER.length) | 0];
+  const gr = g.createLinearGradient(0, d[1], 0, a[1]);
+  let hi = mix('#3f3a33', pl, clamp(wt + 0.10, 0, 1));
+  let lo = mix('#302b25', mix(pl, '#6f6552', 0.5), clamp(wt - 0.02, 0, 1));
+  if (snowCover > 0){ hi = mix(hi, SNOW_COL, snowCover * 0.25); lo = mix(lo, SNOW_COL, snowCover * 0.15); }
+  if (out){ hi = mix(hi, HAZE, 0.55); lo = mix(lo, HAZE, 0.55); }
+  gr.addColorStop(0, hi); gr.addColorStop(1, lo);
+  g.fillStyle = gr; poly(g, [d, c, b, a]); g.fill();
+  if (out) return;
+  g.fillStyle = 'rgba(238,228,208,.5)';                 // the coping along its top
+  const c2 = project(x + 1, y, roofZE(x + 1, y, eHi + 0.11)), d2 = project(x, y, roofZE(x, y, eHi + 0.11));
+  poly(g, [d2, c2, c, d]); g.fill();
 }
 function drawCrests(g, y){
   g.strokeStyle = 'rgba(244,208,178,.45)'; g.lineWidth = Math.max(1, cellW * 0.11);
   g.beginPath();
   for (let x = XLO; x < XHI; x++){
+    // a ridge belongs to the house under it, so it BREAKS at a party wall rather than
+    // ruling on across two roofs that are no longer at the same height
+    const ec = eaveAt(clamp(x, 0, GW - 1), y);
     const d0 = roofD(x, y), d1 = roofD(x + 1, y);
     if (d0 >= 0.9 && d1 >= 0.9 && roofD(x, y - 1) < d0 - 0.05 && roofD(x, y + 1) < d0 - 0.05 &&
         roofD(x + 1, y - 1) < d1 - 0.05 && roofD(x + 1, y + 1) < d1 - 0.05){
-      const a = project(x, y, roofZ(x, y)), b = project(x + 1, y, roofZ(x + 1, y));
+      const a = project(x, y, roofZE(x, y, ec)), b = project(x + 1, y, roofZE(x + 1, y, ec));
       g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]);
     }
     const e0 = roofD(x, y), e1 = roofD(x, y + 1);
     if (e0 >= 0.9 && e1 >= 0.9 && roofD(x - 1, y) < e0 - 0.05 && roofD(x + 1, y) < e0 - 0.05 &&
         roofD(x - 1, y + 1) < e1 - 0.05 && roofD(x + 1, y + 1) < e1 - 0.05){
-      const a = project(x, y, roofZ(x, y)), b = project(x, y + 1, roofZ(x, y + 1));
+      const a = project(x, y, roofZE(x, y, ec)), b = project(x, y + 1, roofZE(x, y + 1, ec));
       g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]);
     }
   }
   g.stroke();
 }
 function drawChimney(g, x, y){
-  const z = (roofZ(x, y) + roofZ(x + 1, y) + roofZ(x + 1, y + 1) + roofZ(x, y + 1)) / 4;
-  const h = 1.4 + hash(x, y * 3) * 1.0, w = 0.40, cy = y + 0.72;
-  const bl = project(x + 0.5 - w, cy, z - 0.5), br = project(x + 0.5 + w, cy, z - 0.5);
-  const tl = project(x + 0.5 - w, cy, z + h), tr = project(x + 0.5 + w, cy, z + h);
+  drawStack(g, x + 0.5, y + 0.72, roofTopAt(x, y), 1.4 + hash(x, y * 3) * 1.0);
+}
+function drawStack(g, cx, cy, z, h){
+  const w = 0.40;
+  const bl = project(cx - w, cy, z - 0.5), br = project(cx + w, cy, z - 0.5);
+  const tl = project(cx - w, cy, z + h), tr = project(cx + w, cy, z + h);
   const gr = g.createLinearGradient(tl[0], 0, tr[0], 0);
   gr.addColorStop(0, SUN[0] > 0 ? '#6b5a4a' : '#9a8770');
   gr.addColorStop(1, SUN[0] > 0 ? '#9a8770' : '#6b5a4a');
   g.fillStyle = gr; poly(g, [tl, tr, br, bl]); g.fill();
-  const cl = project(x + 0.5 - w - 0.1, cy, z + h), cr = project(x + 0.5 + w + 0.1, cy, z + h);
-  const ul = project(x + 0.5 - w - 0.1, cy - 0.22, z + h + 0.2), ur = project(x + 0.5 + w + 0.1, cy - 0.22, z + h + 0.2);
+  const cl = project(cx - w - 0.1, cy, z + h), cr = project(cx + w + 0.1, cy, z + h);
+  const ul = project(cx - w - 0.1, cy - 0.22, z + h + 0.2), ur = project(cx + w + 0.1, cy - 0.22, z + h + 0.2);
   g.fillStyle = '#b3a48c'; poly(g, [ul, ur, cr, cl]); g.fill();
   g.strokeStyle = '#a35e3c'; g.lineWidth = Math.max(1.5, cellW * 0.13);
   for (const px of [-0.17, 0.17]){
-    const p1 = project(x + 0.5 + px, cy - 0.1, z + h + 0.18), p2 = project(x + 0.5 + px, cy - 0.1, z + h + 0.66);
+    const p1 = project(cx + px, cy - 0.1, z + h + 0.18), p2 = project(cx + px, cy - 0.1, z + h + 0.66);
     g.beginPath(); g.moveTo(p1[0], p1[1]); g.lineTo(p2[0], p2[1]); g.stroke();
   }
 }
@@ -5856,8 +6016,11 @@ function drawFaceRow(g, y){
     const gx = clamp(x, 0, GW - 1);
     if (!solidM[y * GW + gx] || solidC(x, y + 1)) continue;
     const out = x !== gx;
-    const house = Math.floor((gx + 1) / 3.5);                 // the terrace is separate houses
-    const zL = roofZ(x, y + 1), zR = roofZ(x + 1, y + 1);
+    const house = houseIx(gx);                                // the terrace is separate houses
+    // ...and now they are separate HEIGHTS: the front goes up to its own eave, so the
+    // party wall the line below draws is a step in the facade as well as in the roof
+    const eh = eaveM[y * GW + gx];
+    const zL = roofZE(x, y + 1, eh), zR = roofZE(x + 1, y + 1, eh);
     const a = project(x, y + 1, 0), b = project(x + 1, y + 1, 0);
     const c = project(x + 1, y + 1, zR), d = project(x, y + 1, zL);
     const pl = PLASTER[(hash(house, y * 3) * PLASTER.length) | 0];
@@ -5876,7 +6039,7 @@ function drawFaceRow(g, y){
       }
     }
     g.strokeStyle = 'rgba(40,32,24,.18)'; g.lineWidth = 1;    // party wall between houses
-    if (Math.floor((gx + 2) / 3.5) !== house){
+    if (houseIx(gx + 1) !== house){
       g.beginPath(); g.moveTo(b[0], b[1]); g.lineTo(c[0], c[1]); g.stroke();
     }
     g.fillStyle = 'rgba(24,18,12,.16)';                       // ground line, so walls sit rather than float
@@ -7398,7 +7561,7 @@ function drawNearRoof(g){
         const y0 = a[1], dy = H - a[1];
         // u east across the column, s the fraction of the way off the bottom of the world
         const pt = (u, s) => [lerp(lerp(aX, bX, u), lerp(aB, bB, u), s), y0 + dy * s];
-        const sh = slateShade(x, WH - 1, roofShade(x, WH - 1)[0], amb, key, gx, false);
+        const sh = slateShade(x, WH - 1, roofShade(x, WH - 1, eaveM[(WH - 1) * GW + gx])[0], amb, key, gx, false);
         g.fillStyle = rgbs(slateTone(sh.pal, sh.hg, sh.t0 * SLATE_JOINT_T - 0.05, snowCover * 0.5 * sh.sun));
         poly(g, [pt(0, 0), pt(1, 0), pt(1, 1), pt(0, 1)]); g.fill();
         for (let j = 0; j + 1 < fs.length; j++){
@@ -8281,9 +8444,9 @@ function drawSmoke(t){
   const cold = hearthF();
   if (cold <= 0.05 || RM) return;
   for (let k = 0; k < CHIMNEYS.length; k++){
-    const [cx, cy] = CHIMNEYS[k];
+    const [cx, cy, cz] = CHIMNEYS[k];
     if (hash(cx, cy + day * 7) > clamp(cold, 0, 1) * 0.75) continue;
-    const z0 = (roofZ(cx, cy) + roofZ(cx + 1, cy + 1)) / 2 + 2.4;
+    const z0 = (cz === undefined ? roofTopAt(cx, cy) : cz) + 2.4;
     for (let p = 0; p < 6; p++){
       const ph = ((t * 0.28 + p * 0.166 + hash(cx, p) * 0.4) % 1);
       const rise = ph * 5.2, spread = 0.25 + ph * 1.5;

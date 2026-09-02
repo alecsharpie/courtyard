@@ -4136,3 +4136,12 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped
 **Surprise:** both failures were *uniformity*, at different scales. Flat-subtraction decay on an accumulator makes the map **binary** — a cell either out-earns the decay and pins at its cap or never leaves 0 — while proportional decay gives each cell an equilibrium proportional to its traffic, which is what a desire line is. And one per-cell hash scatters pools *evenly*, which reads as leopard print rather than water; a street has a **fall**, so the fine hash had to sit inside a coarse one over a ~4×2-cell dip before the lane grew dry stretches and the pools looked gathered.
 
+## Iteration 123 — the working roof stops being invisible at half the framings we ship (2026-09-02) [Roofs & skyline × Polish]
+
+**Brief:** b123 — #110's 24 pieces are covered by the sill at short windows; bound them in DEPTH and place them accordingly.
+**Premise held; both of the readings the brief asked me to reconcile were right.** On HEAD, 3 of 24 pieces are off-canvas in x at every desktop size (11 on a phone — `ROOF_FURN[0]` sits at world x −7.5); of the 21 on canvas, **0 were visible at 1280x700 and 1200x720**, 21 at 1600x950.
+**Did.** `furnRow()` solves each piece's row from a DEPTH target instead of stating it: step north from the eaves, take the first row whose deepest DRAWN point clears the bound, reading `nearZ` at the same `floor(y)` the paint and the pointer read. Deepest point is per kind (`furnEdges`). Bounded at BOTH ends, `FURN_DMAX` 81.70 / `FURN_DMIN` 79.15. Draw order is load-bearing now — parapet → furniture → dormers → party walls.
+**Gates:** all PASS. Drawn whole and answering the pointer for itself at all five tracked framings: 21/21 on-canvas, against 0/21 at two of them on HEAD.
+**Verdict:** shipped
+**Surprise:** the band does not fit. Between the parapet and the shortest framing's sill there is 2.55 of depth, and a water tank is **2.549** of depth tall — six thousandths to spare, which is why the scatter had to become per-kind. The first draft, bounded only at the sill, put twelve pieces' tops over the lane's footway, where live walkers draw on top of them. And the census churned everywhere on a change with no `R()` in it: pinning only the landing board's coordinates back to HEAD made all nine cells identical — the perch moving with its loft changes where a bird stands, which changes whether a *later* spot is rejected for proximity.
+
