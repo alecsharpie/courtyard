@@ -57,7 +57,7 @@ if (marks.length <= KEEP) {
 {
   const cur = readFileSync(LEDGER, 'utf8');
   const m = [...cur.matchAll(/^## Iteration \d+.*$/gm)];
-  const ENTRY_CAP = 2.5 * 1024;
+  const ENTRY_CAP = 1.8 * 1024;   // #120: was 2.5; three entries at 2.5 are 18% of the worker's whole read budget
   const last3 = m.slice(-3);
   let hot = 0, sum = 0;
   console.log('\nread by every worker — the last 3 entries:');
@@ -67,11 +67,11 @@ if (marks.length <= KEEP) {
     const bytes = Buffer.byteLength(cur.slice(start, end));
     sum += bytes;
     if (bytes > ENTRY_CAP) hot++;
-    console.log(`  ${(bytes / 1024).toFixed(1)} KB  ${last3[i][0].slice(3, 60)}${bytes > ENTRY_CAP ? '   ← over 3 KB' : ''}`);
+    console.log(`  ${(bytes / 1024).toFixed(1)} KB  ${last3[i][0].slice(3, 60)}${bytes > ENTRY_CAP ? '   ← over cap' : ''}`);
   }
   console.log(`  ${(sum / 1024).toFixed(1)} KB total`);
   if (hot) {
-    console.log(`\n  ${hot} of the last 3 entries is over the 2.5 KB per-entry cap.`);
+    console.log(`\n  ${hot} of the last 3 entries is over the 1.8 KB per-entry cap.`);
     console.log('  Condense them IN PLACE this pass: append the full text to LEDGER-archive.md');
     console.log('  first, then cut what stays to the brief, the change, the gate verdicts and');
     console.log('  the surprise. Laws belong in LAWS.md and loose ends in state.json — neither');
