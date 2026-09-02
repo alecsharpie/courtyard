@@ -18,7 +18,7 @@
   "avoid": "Do not move NIGHT_K or nightF's edges globally on a hunch — they are read by the evening half, by drawRiverLights, by catA's window and by every spawner that asks whether it is night, and the evening is not broken. Prove containment by canvas hash at pinned instants on both builds (identical outside the dawn band, differing inside it), the way #109 did; the census cannot see a draw-only vector. Remember the day rolls at hour 6.00 and a winter dawn band straddles it.",
   "budgetMin": 40,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 112,
   "issued": "2026-09-02T00:07:29.420Z",
