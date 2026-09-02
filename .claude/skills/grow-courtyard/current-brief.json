@@ -23,7 +23,7 @@
   "avoid": "Two figures nearer than ~0.9 cells render as one shape, so the boat and the landing both have to honour PAIR_MIN and a displacement must own its tick. Do not widen eastCap to pay for it — a companion travels under the SAME cap, which is what withCompanion already means. Price the crossing at the CHOICE for both riders: a pair is not a solo trip plus a passenger if the second person's stay is bounded differently, and eastCloseHour still has to leave a real stay.",
   "budgetMin": 30,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 128,
   "issued": "2026-09-02T09:27:50.887Z",
