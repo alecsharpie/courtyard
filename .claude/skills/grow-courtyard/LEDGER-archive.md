@@ -4069,3 +4069,26 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Surprise:** three of my four "failures" were my own instrument. A `day` index runs 06:00→06:00, so it holds TWO dawns — bucketing on it read the weather off one morning and the veil off the other, inventing a warm foggy day. And the containment gate said 854/12060 samples diverged until I ran HEAD against HEAD and got **441** — I had never called `__reseed()`, so page-load frames left each run on a different PRNG offset. With the reseed both went to **0**.
 **Law:** weather at a given `simT` is VIEWPORT-dependent — an instant found at 1280x700 does not reproduce at 1600x950. Find the instant at the size you will shoot it at.
 **Cue:** on a both-live morning the river's veil shifts maxΔ 15 on ~386 px: one shared low-res offscreen, so widening its extent resamples what was already in it.
+## Iteration 120 — the quarter cameras learn the world's real extent, and that a subject can stand UP (2026-09-02) [The sill & the observer × Scale/World]
+
+**Brief:** b120 — the five cameras frame GROUND, not the town. It cites `probes/world-edge-framing.mjs`, which was not on disk; I wrote it, and it prints every number below on either build.
+**Did.** (a) `WORLD_X0/WORLD_X1/FIELD_VIEW`: the camera's extent, no longer the grid's `0..GW`, and `drawFieldEdge`'s track now ends on `WORLD_X1` — one constant for the last drawn thing and the frame that must hold it. (b) **Vertical intent**: `air`, the DEPTH a quarter reaches up to, and `keep`, which end of the band survives an overflow. The height fit is priced on `air..y1`, and `tp` is one expression that is HEAD's *term for term* at `air = y0, keep = 1`, so a quarter declaring no intent cannot move. Street's `air −20.5, y1 44` keeps the band the height its box was: it slides UP into the air instead of zooming out of it. (c) the near-corner escape no longer *ends* at `held(1)` — that is now a candidate, held at the top row in its turn. +72/−24.
+**Gates:** census PASS (camera only) · motion PASS · shots clean · ease sampled into Far bank, the scaled cache covers the frame · `probes/quarter-hash.mjs`, 3 sizes × 2 seeds × 3 instants: Wide moved at 1/18 against a **HEAD-vs-HEAD control at 2/18**, and is unchanged by construction — `viewFor` returns before every changed line.
+**Measured, both framings:** arrow vane in Street OUT −204 px → **IN, cardinals 11.4 px**; weathercock in Far bank −404 → **IN +31**; field gate in NO quarter → **Far bank +21, Plaza +28**; Courtyard's west edge −8.6 cells → **0.0**.
+**Verdict:** shipped
+**Surprise:** **a quarter cannot reach the world's edge by zooming.** The frame's world x at a given row is a function of the hold's extent and the PINCH alone — `s` cancels — so the gate's row 31 is 3.1 cells short of the frame's top row at *every* zoom, and only the extent moves it. Which bounds the extent from the other side: the cache's east repeat is honest only where the edge column is, and column 137 is WALL for rows 0..2. Far bank must reach row 0 to reach the sky, so it carries ~5 cells of smeared block in its top corner; Plaza's band starts at row 3.6 and runs east to the gate over nothing but field. Two quarters, opposite constraints, one constant.
+
+## Iteration 121 — the town's namesake stops being its emptiest room: the lawn's cap was the only lever, and it was binding two thirds of the year (2026-09-02) [Courtyard & garden × Scale/World]
+
+**Brief:** b121 — measure courtyard presence over a full year, then find the binding lever: the cap, LAWN_RATE, the window, or a missing KIND.
+**Premise corrected:** `puntFits`' `pairLead` refusal was only half the lock. `spawnFarAgent` — the source the punt exists FOR — never called `withCompanion` at all; the 26 pair-leaders refused on HEAD all came from the OTHER jetty door, whose people land at 19–21h and were refused on TIME anyway.
+**Did.** `spawnFarAgent(room)` + `withCompanion`: the far bank arrives in twos out of the SAME cap (the companion inherits `far`, so `farHolds` counts it). `puntFits` drops `pairLead`. `punt.mate/pair/seating`; the passenger takes the thwart and the punter the open end, 0.96 apart, both picked so neither walks THROUGH the other to a seat. `puntSeatStep`: the punt owns the passenger's tick once the punter sits (`a.boarding` joins `a.aboard` in stepAgent's early return), where PAIR_MIN is a step ROUND, not a shove. +113 lines.
+**Gates:** census PASS/FAIL (<the histogram line that moved>) · visual PASS/FAIL ·
+motion PASS/FAIL/skipped · perf PASS/skipped
+**Verdict:** shipped | reverted | no-ship   ← your view; runlog.mjs decides from the diff
+**Surprise:** <what you did not expect — the most valuable line here, or "none">
+**Cue:** <a loose end you noticed and did not chase, or omit>
+```
+
+---
+

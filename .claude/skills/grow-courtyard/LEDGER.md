@@ -40,15 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 120 — the quarter cameras learn the world's real extent, and that a subject can stand UP (2026-09-02) [The sill & the observer × Scale/World]
-
-**Brief:** b120 — the five cameras frame GROUND, not the town. It cites `probes/world-edge-framing.mjs`, which was not on disk; I wrote it, and it prints every number below on either build.
-**Did.** (a) `WORLD_X0/WORLD_X1/FIELD_VIEW`: the camera's extent, no longer the grid's `0..GW`, and `drawFieldEdge`'s track now ends on `WORLD_X1` — one constant for the last drawn thing and the frame that must hold it. (b) **Vertical intent**: `air`, the DEPTH a quarter reaches up to, and `keep`, which end of the band survives an overflow. The height fit is priced on `air..y1`, and `tp` is one expression that is HEAD's *term for term* at `air = y0, keep = 1`, so a quarter declaring no intent cannot move. Street's `air −20.5, y1 44` keeps the band the height its box was: it slides UP into the air instead of zooming out of it. (c) the near-corner escape no longer *ends* at `held(1)` — that is now a candidate, held at the top row in its turn. +72/−24.
-**Gates:** census PASS (camera only) · motion PASS · shots clean · ease sampled into Far bank, the scaled cache covers the frame · `probes/quarter-hash.mjs`, 3 sizes × 2 seeds × 3 instants: Wide moved at 1/18 against a **HEAD-vs-HEAD control at 2/18**, and is unchanged by construction — `viewFor` returns before every changed line.
-**Measured, both framings:** arrow vane in Street OUT −204 px → **IN, cardinals 11.4 px**; weathercock in Far bank −404 → **IN +31**; field gate in NO quarter → **Far bank +21, Plaza +28**; Courtyard's west edge −8.6 cells → **0.0**.
-**Verdict:** shipped
-**Surprise:** **a quarter cannot reach the world's edge by zooming.** The frame's world x at a given row is a function of the hold's extent and the PINCH alone — `s` cancels — so the gate's row 31 is 3.1 cells short of the frame's top row at *every* zoom, and only the extent moves it. Which bounds the extent from the other side: the cache's east repeat is honest only where the edge column is, and column 137 is WALL for rows 0..2. Far bank must reach row 0 to reach the sky, so it carries ~5 cells of smeared block in its top corner; Plaza's band starts at row 3.6 and runs east to the gate over nothing but field. Two quarters, opposite constraints, one constant.
-
 ## Iteration 121 — the town's namesake stops being its emptiest room: the lawn's cap was the only lever, and it was binding two thirds of the year (2026-09-02) [Courtyard & garden × Scale/World]
 
 **Brief:** b121 — measure courtyard presence over a full year, then find the binding lever: the cap, LAWN_RATE, the window, or a missing KIND.
@@ -116,3 +107,14 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Surprise:** three of my four "failures" were my own instrument. A `day` index runs 06:00→06:00 and holds TWO dawns, so bucketing on it read the weather off one morning and the veil off the other, inventing a warm foggy day. And containment said 854/12060 diverged until HEAD-vs-HEAD gave **441**: no `__reseed()`, so page-load frames left each run on a different PRNG offset. With it, both went to **0**.
 **Law:** weather at a given `simT` is VIEWPORT-dependent — an instant found at 1280x700 does not reproduce at 1600x950.
 **Budget:** context-budget OVER at 46.5 KB (cap 46). I compressed my own inventory line and cues; the rest is structural — laws and the last 3 entries. Manager: distil.
+
+## Iteration 128 — the punt takes two (2026-09-02) [People & animals × Deepen]
+
+**Brief:** b128 — let a pair cross to the eyot: seat two, land two, bring them home together (c160).
+**Premise corrected:** `puntFits`' `pairLead` refusal was only half the lock. `spawnFarAgent` — the source the punt exists FOR — never called `withCompanion` at all ("Always solo", its own header); the 26 pair-leaders refused on HEAD all came from the OTHER jetty door, `overDeck`'s east agents, which land at 19–21h and were refused on TIME anyway.
+**Did.** `spawnFarAgent(room)` + `withCompanion` — the far bank arrives in twos out of the SAME cap, the companion inheriting `far` so `farHolds` already counts it. `puntFits` drops `pairLead`. `punt.mate/pair/seating`; `PUNT_SEAT_Y −0.62` (the thwart) and `PUNT_POLE_Y +0.34` (the open end), 0.96 apart, both ends picked so neither walks THROUGH the other to a seat. `puntSeatStep`: the punt owns the passenger's tick from the moment the punter sits (`a.boarding` joins `a.aboard` in stepAgent's early return) and PAIR_MIN becomes a step ROUND, not a shove. +113 lines.
+**Gates:** census PASS · filmstrip 0 POP · shots: the pair legible out/across/ashore/back, both inside the hull at three framings incl. mobile · motion FAIL `dusk/cart 0→1`, **dismissed on a HEAD control** — identical step distributions (max 3.90 both, 16/14 vs 17/16 over ABS_JUMP), only the MEDIAN moved.
+**Measured** (`probes/punt-pair.mjs`, 10 seeds × 14 days): paired crossings **0% → 50%**; 21/21 landed both ashore and came home together; boat code never under PAIR_MIN (seating 0.90, by construction) against a town control floor of 0.67.
+**Verdict:** shipped. Budget closed **OVER at 46.7/46 KB**.
+**Surprise:** the cap priced it for free. Crossings fell 62 → 42 but **people carried went 62 → 63** — a pair spends two of FAR_CAP's three, so fewer distinct walkers set out and the same humans reach the island, half now with someone. Nothing needed re-pricing: a companion keeps no clock of its own, so the trip is the leader's both ways.
+**Law:** a negative control must test a POSITION, not a PREDICATE. Mine first read 100% vs 3.7% — only because the control build's `pairStands` rejects EYOT *by definition*, so the instrument handed back its own definition. On a build-independent fact (is the cell underfoot WATER) the two are identical, and the fix I had written was worth nothing.

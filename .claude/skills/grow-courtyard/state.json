@@ -485,7 +485,8 @@
       "EYOT (124.3,46): onEyot/offEyot/eyotShore, drawEyot cached + drawWillow live, nestF ducks in spring",
       "the evening ends: EVE_GONE/EVE_HURRY/EVE_BELL, eveOutH -> a.eveOut, goHome(a,maxH); then night water — drawRiverLights, RIVER_LAMPS, a.nightRail, roseLit",
       "the far bank's own morning + the PUNT: spawnFarAgent/farOpen/farRate, FAR_CAP 3, FAR_GATE [GW+2,31], a.jetty; punt{leg 0..4}, PUNT_MOOR/SHORE/STAND/LAND, puntFits",
-      "FIELD EDGE on the world's east face: seasonal hedge, a five-bar gate standing open, a worn track — painted in the GROUND CACHE east of x=GW, not gridded; farWay routes far arrivals through FIELD_GAP [138,31]"
+      "FIELD EDGE on the world's east face: seasonal hedge, a five-bar gate standing open, a worn track — painted in the GROUND CACHE east of x=GW, not gridded; farWay routes far arrivals through FIELD_GAP [138,31]",
+      "the punt carries TWO (#128): punt.mate/pair/seating, PUNT_SEAT_Y -0.62 (the thwart) + PUNT_POLE_Y +0.34 (the open end), 0.96 apart; puntSit/puntRise/puntFree and puntSeatStep, which owns the passenger's tick from the moment the punter sits (a.boarding joins a.aboard in stepAgent's early return) and makes PAIR_MIN a step ROUND, not a shove. puntFits allows a pairLead (still refuses a.with/a.small, and needs the mate within 3 cells); the crew item draws both, passenger first, each with its own name. spawnFarAgent(room) calls withCompanion, so the far bank arrives in TWOS under the same FAR_CAP: 50% of crossings paired, people carried flat at ~62"
     ],
     "sky": [
       "day/night (55 s day), sun and moon arc, HAZE hills, a distant skyline with spires and lit windows, 120 stars, chimney smoke, a balloon; windowLit the ONE pane predicate + LIT[], relit AFTER applyLight",
@@ -504,7 +505,8 @@
       "arrivals in TWOS: withCompanion(a,room) under the SAME cap, b.with, pairTarget, PAIR_MIN 0.9",
       "catA's second act: lane->cross->climb->ridge, own R() roll; the near cat crosses the pitch on catLine(x,ph) to CAT_SOUTH 86.3, pinned by wellNear(). nearScale(y) ramps size to NEAR_SZ 1.95; nearHidden backstops the sill DRAW-side",
       "south of LN_WALK_S (79) the bed CA, the item sort and the seed scatter still bound their y loops. The ROWBOAT runs to row 92 between the near block's halves",
-      "EVERY bird answers the pointer: birdName/birdPlace, birdDown the ONE posture test. Each band counts its own: b.ground (GROUND_BIRDS 3, limited by RATE), b.plaza, b.roof (ROOF_BIRDS 3)"
+      "EVERY bird answers the pointer: birdName/birdPlace, birdDown the ONE posture test. Each band counts its own: b.ground (GROUND_BIRDS 3, limited by RATE), b.plaza, b.roof (ROOF_BIRDS 3)",
+      "arrivals in twos now reach the WATER (#128): the punt takes a pairLead and its companion, and spawnFarAgent is no longer the one solo source"
     ],
     "sill": [
       "#plate, #daytime, #season, #where, #ticker (TICK_DWELL 2.5 s), #stats, #ctrl; hidden under 640px. Two LAPSE buttons, one beginLapse",
@@ -590,6 +592,18 @@
       "id": "c201",
       "note": "Hollow wisp envelope (wfade 0.22) is untested insurance: an episode lasts ~10 s sim and a wisp crosses ~1.6 of 26 rows, so wfade:0 reproduced it frame for frame. A longer hold makes the wrap reachable.",
       "raisedBy": 126,
+      "seenBy": 0
+    },
+    {
+      "id": "c202",
+      "note": "pairStands() still excludes EYOT from the ground it will place a companion on — a leftover from before the island was reachable by boat. I built the fix (EYOT allowed + a fourth 'ahead' option) and REVERTED it: measured on both builds, the companion stands on water 3.7% of the eyot stay on each, 0.0% past the first 2 s. Latent, not live — worth cleaning only when something else touches pairTarget (#128)",
+      "raisedBy": 127,
+      "seenBy": 0
+    },
+    {
+      "id": "c203",
+      "note": "overDeck's east-sourced jetty standers (a.jetty via DECK_SHARE) are still refused by puntFits almost every time, on TIME: they land at 19-21h. 236 of 298 offers on HEAD. If a brief wants MORE crossings rather than fuller ones, that door is where the supply is — not the pair rule (#128)",
+      "raisedBy": 127,
       "seenBy": 0
     }
   ],
