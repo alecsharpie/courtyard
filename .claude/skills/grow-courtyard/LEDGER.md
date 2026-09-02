@@ -40,14 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 127 — the allotments get their own fog, and ghPane's dead term wakes up (2026-09-02) [Cross street & allotments × Connect]
-
-**Brief:** b127 — a SECOND mist source over the allotments so `ghPane`'s `mistAt()` term, 0 every day of every year, reads something. Full entry in LEDGER-archive.md.
-**Did.** Found b127 already built and uncommitted (attempt 2, no ledger entry): verified rather than rebuilt — "an uncommitted WIP is UNPROVEN". `hollowMist` is a second scalar in the `cloudCover()`/`wetF()` family, RADIATIVE where the river's is evaporative — stiller, clearer, cold-only, so a mild wet morning mists the river and not the beds. `MIST_SRC[]` makes a source a span+reach+weight, `mistAt` takes the strongest at that x, and the two never overlap; the announcement stays latched on the RIVER.
-**Gates:** census PASS · motion PASS · visual PASS at 1600x950 and 390x844 · fogged frame +3.3%, unfogged byte-identical. Fogs 12.7% of mornings and 0 of 594 warm ones; `mistAt(88)` p50 0.82 vs HEAD's dead 0; exactly 0 change west of the allotments.
-**Verdict:** shipped
-**Surprise:** three of my four "failures" were my own instrument. A `day` index runs 06:00→06:00 and holds TWO dawns, so bucketing on it read the weather off one morning and the veil off the other, inventing a warm foggy day. And containment said 854/12060 diverged until HEAD-vs-HEAD gave 441: no `__reseed()`, so page-load frames left each run on a different PRNG offset. With it, both went to 0.
-
 ## Iteration 128 — the punt takes two (2026-09-02) [People & animals × Deepen]
 
 **Brief:** b128 — let a pair cross to the eyot: seat two, land two, bring them home together (c160).
@@ -116,3 +108,16 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Proof** (seed 7, wet 0.75, 400 frames × 3 reps, interleaved): drawPuddles **−56% to −73%** at the four quarters, whole wet frame −8 to −12%; Wide ±2.5% both ways. Canvas hash **IDENTICAL 28 of 28**, fingerprint NONE.
 **Verdict:** shipped
 **Surprise:** the phone is the case that needed this most and the brief never named it. At 390×844 the **Wide** camera — the default, and effectively the only one a phone has — already culls **61%** of the wet pools, and Far bank there culls **100%**. At 1280×700 Courtyard **17 pools are kept only because the cull uses rx/ry** rather than the centre.
+
+## Iteration 135 — the roadway is laid instead of hatched (2026-09-03) [Lane & market × New CA]
+
+**Brief:** b135 — retire the carriageway's flat fill and three ruled hairlines; lay a bond that runs, a camber, a gutter and a repair.
+**Did.** `settGrid(y)` on `slateGrid`'s model — the sett count is solved off the cell AS DRAWN (2×2 at 1600×950, coarsening to 1×1 on a phone), and `settRun` lays a GLOBAL lattice keyed on the world axis, so a sett straddling a cell edge is one stone in two halves. Courses run ACROSS the direction of travel, so the bond turns through a right angle at the junction. `camberZ` (crown to kerb, 0 at both) plus `CAMBER_L` in the light; `gutterF` silts the channel; `roadPatches()`/`patchAt` make the road good in tar with a sett-quantised rim; `KERB_RUN` breaks the kerb into stones. `wetRGB`/`trodRGB` are `wetCol`/`trodStone` in triples so a sett takes the wet and the wear its own cell takes. +235 lines, all in the ground cache.
+**Gates:** census unchanged · motion PASS · filmstrip day/night 0 POP · `perf.mjs` ±0.0% and blind — `drawGround()` timed directly is **+11 to +21% (~+3 ms)** at three framings, the cost of 6,000 more `poly`+`fill`, not of arithmetic. Legible dry, wet, under snow 0.3, at night, and at 390×844.
+**HEAD → cand** (seed 42, day 3, 10.4 h, 1600×950): ROAD sd/mean **0.081 → 0.150**, class mean **−1.62** of 126; the cross street 0.032 → 0.121. Camber crown−gutter 3.9 → **14.9**. Rut against its MIRROR band (same camber, same depth, no wheels) −0.6 → **−13.5**. Every changed pixel outside the ROAD class is within **2 px** of one — the kerb, where the old hatch's 0.7 px stroke used to bleed.
+**Verdict:** shipped
+**Surprise:** the REPAIR half of the brief was reading a field that is empty. `?t=` sets the clock and does not run the days, so paveWear[] is 0 on a fresh page — and warping twelve days only takes the carriageway to mean **0.0019**, max 0.065 against PW_FULL 0.45. Nobody walks on a road, and the one thing that uses it, **the cart, is not an agent**: the accrual site is inside `stepAgent`, so no wheel has ever touched the accumulator. So the rut went into the FABRIC, placed on a measured histogram rather than a guess — the cart is on row 70 for 88 of 90 lane samples and in column 71 for 613, and 82% of every pedestrian sample on any carriageway is inside the junction. The tap's crossing the brief expected does not exist: the tap's door is on row 65 and its drinkers never leave the footway.
+**Law:** an accumulator is a rate as well as a field — a durable mark (a rut, a stain, a repair) whose source decays faster than it recurs belongs in the FABRIC, and only the recent term belongs in the CA.
+**Law:** a bucket mean needs a control bucket the CANDIDATE did not define and that differs in ONE thing — the rut read −10.9 against "everywhere else" and −13.5 against its mirror image across the crown, and only the second is the rut.
+**Cue:** `drawGround()` costs 22–25 ms before this and 25–27 ms after; the ground cache rebuild is now a dropped frame wherever it fires. `perf.mjs` cannot see it (vsync-locked over a whole day) — `probes/ground-cost.mjs` can.
+**Cue:** the cart lays no `paveWear[]` at all. One line at its step would make the town's own memory carry the track that `rutF` now paints.

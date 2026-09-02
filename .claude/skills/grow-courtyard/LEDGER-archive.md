@@ -4265,3 +4265,11 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Law:** `perf.mjs` is vsync-locked at 16.70 ms over a whole sim day — blind to a pass expensive only in a rare weather. Time the FUNCTION, in its weather, at every camera.
 **Law:** a screen cull is exact against the CANVAS rect, never the picture above `sillTop()`, and its margin is the DRAWN extent, never the centre.
 **Budget:** context-budget OVER, 50.2 KB (cap 46).
+## Iteration 127 — the allotments get their own fog, and ghPane's dead term wakes up (2026-09-02) [Cross street & allotments × Connect]
+
+**Brief:** b127 — a SECOND mist source over the allotments so `ghPane`'s `mistAt()` term, 0 every day of every year, reads something. Full entry in LEDGER-archive.md.
+**Did.** Found b127 already built and uncommitted (attempt 2, no ledger entry): verified rather than rebuilt — "an uncommitted WIP is UNPROVEN". `hollowMist` is a second scalar in the `cloudCover()`/`wetF()` family, RADIATIVE where the river's is evaporative — stiller, clearer, cold-only, so a mild wet morning mists the river and not the beds. `MIST_SRC[]` makes a source a span+reach+weight, `mistAt` takes the strongest at that x, and the two never overlap; the announcement stays latched on the RIVER.
+**Gates:** census PASS · motion PASS · visual PASS at 1600x950 and 390x844 · fogged frame +3.3%, unfogged byte-identical. Fogs 12.7% of mornings and 0 of 594 warm ones; `mistAt(88)` p50 0.82 vs HEAD's dead 0; exactly 0 change west of the allotments.
+**Verdict:** shipped
+**Surprise:** three of my four "failures" were my own instrument. A `day` index runs 06:00→06:00 and holds TWO dawns, so bucketing on it read the weather off one morning and the veil off the other, inventing a warm foggy day. And containment said 854/12060 diverged until HEAD-vs-HEAD gave 441: no `__reseed()`, so page-load frames left each run on a different PRNG offset. With it, both went to 0.
+

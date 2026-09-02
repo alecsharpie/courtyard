@@ -15,22 +15,19 @@
   "rationale": "I shot the town at seed 42, day 3, 10.4h and then MEASURED the shots rather than looking at them, because the last two bets that worked (#125's slate, #130's roofline) both came from a number and the ones that fizzled came from an impression. Classifying every canvas pixel back through project() into its ground class gives, as sd/mean over the class and share of a 1600x950 frame: ROAD 0.065 / 7.7%, GRASS 0.131 / 10.9%, PATH.court 0.143 / 9.3%, WATER 0.151 / 4.8%, SIDE.cross 0.185 / 4.1%, SIDE.quay 0.229 / 2.3%, WALL 0.240 / 12.3%. The roadway is three times flatter than the paving it runs beside, it is 7.7% of the frame, and it is the nearest big surface to the viewer — the one place LAWS says contrast should be HIGHEST. It is flat by construction and I found the two lines: groundBase's ROAD branch is the only ground colour whose hash term is halved (hv*0.5) over a pair six luma apart, and drawGround's ROAD branch strokes its setts at alpha .14 with off=(y%2)*0.5, so the bond alternates by row and never runs. That is #125's argument exactly — the biggest flat object in the picture, one iteration after the roof that held the title — and retiring a surface and laying it properly is rung 6 by name. The ladder did not force this climb (history 5, 6, 4b) and no signal is firing; the measurement forced it. The other four go to the four longest-untouched domains with every premise re-priced on HEAD by me, not by the cue that raised it: the quay really has no moorings and no hull ever ties there while the ticker has been saying 'a barge horn sounds somewhere far downstream' as one of its deliberately unplaced SOUNDS (b136, and it moves `structures`); LAWN_CAP is genuinely the only population cap whose knee has ever been swept, and the wide shot holds 42 people (b137); the plot lattice at ox 80..90 step 5 x oy 8..50 step 7 leaves a 1-cell way round every plot and there is not one shed, butt, cane or cloche on any of them (b138); and c205's 1.53 of GARDEN_ROWS 5 is #129's own measurement, so b139 arrives pre-counted and should be cheap. TWO PREMISES I KILLED BEFORE WRITING THEM: a brief about rain changing how people walk (coverF already puts umbrellas up before the first drop) and one about desire lines through the allotments (wear[] accrues on GRASS under every step in stepAgent, so they are already there). THE BUDGET, for the third time: it has been fixed at #119 and #124 and come back both times, so this pass I cut the file that is read MOST rather than the file that is biggest. LAWS.md was rewritten whole — nine laws promoted out of #130-#134 by MERGING into existing paragraphs (signature-widening into one-predicate; hash-is-not-seeded and hash-not-R-for-user-input into the R() law; clause-by-clause instrumentation into the rate-of-zero law; PAIR_GAP-all-round into the renderer traps; membership-drawn-per-sample into locate-before-you-judge; same-evaluate canvas reads and perf.mjs-is-vsync-blind into the probe law; the screen-cull rule into the framing law) and paid for by cutting roughly 1.9 KB of worked arithmetic from twelve laws, so it lands at 12,249 of 12,288 bytes with nine more claims in it than it had. Inventory 13.0 -> 10.7 KB rewritten as nouns (three lines that were really OBSERVATIONS, not nouns, moved into the briefs where they belong); six cues promoted or closed (14 -> 8, c205 became b139, c209 merged into c208, c183 declined for the third and last time because the only fix moves the Wide ground control every visual gate depends on); the last three ledger entries archived verbatim and condensed 6.7 -> 4.9 KB; two stale WATCH items replaced (the roofline is no longer one straight line, and structures has moved). Worker budget 51.0 -> 45.0 KB.",
   "queue": [
     {
-      "id": "b135",
-      "domain": "Lane & market",
-      "kind": "New CA",
-      "brief": "Retire the roadway's surface and lay it properly. Measured at 1600x950, seed 42, day 3, 10.4h, the ROAD class (the lane's carriageway rows LN_ROAD0 68..LN_ROAD1 76 and the cross street's XS_R0..XS_R1) is 7.7% of the frame at luma sd/mean 0.065, against PATH.court 0.143, GRASS 0.131, SIDE.cross 0.185 and SIDE.quay 0.229 — three times flatter than the paving beside it, and it is the nearest big surface to the viewer. It is flat by construction, in two lines: groundBase's ROAD branch is the only ground colour whose hash term is HALVED (hv*0.5) over a pair six luma apart, and drawGround's ROAD branch strokes three joint lines and a course line at rgba(66,60,50,.14) with off=(y%2)*0.5, so the bond alternates by row and never runs, plus one 12%-alpha ellipse where hv>0.9. What a laid road has that this one does not: courses that RUN across a cell boundary (solve the bond off the cell AS DRAWN, the way slateGrid(y) solved the slate lattice at #125), a camber falling to the gutter the sweeper already works on row ~70, a kerb line, and REPAIR — paveWear[] has existed since #122 and on the roadway only drawPuddles' hollow term and trodStone's tint read it, so the cart's line and the crossing outside the tap should be visible on dry stone: worn setts, a patched square, tar in the joints. This is a bet: a 150-300 line diff is expected and welcome, and it is cache-time work on the existing dirty flag.",
-      "seams": ["groundBase (t===ROAD, ~6748)", "drawGround ROAD branch (~7014)", "paveWear/trodStone/PW_FULL/PW_GAIN", "LN_ROAD0/LN_ROAD1/XS_R0/XS_R1", "slateGrid/slateRun as the model", "snowAt", "wearDirty"],
-      "successLooksLike": "On a dry day at 1600x950 the carriageway reads as laid stone with a bond you can follow across a cell boundary and a worn line where the cart runs; measured the same way, ROAD's sd/mean rises from 0.065 into the 0.13-0.20 band every other paved surface occupies without the class MEAN moving more than a few points; the cross street changes with it; and a same-code control run plus a canvas hash off the road show nothing outside the ROAD class moved.",
-      "avoid": "Do not buy the contrast by darkening the roadway — a mean shift is not texture, and a foreground is graded on sd/mean, not absolute sd. Do not touch drawPuddles or the sweeper's own machinery, and do not add a tile kind. Do not put it in a LIVE pass: this is 1,500+ cells and belongs in the ground cache.",
-      "budgetMin": 75,
-      "risk": "high"
-    },
-    {
       "id": "b136",
       "domain": "Plaza & quay",
       "kind": "New element",
       "brief": "The town has been telling you about barges for a hundred iterations — 'A barge horn sounds somewhere far downstream' is one of the ticker's deliberately unplaced SOUNDS — and the river has never carried one. Meanwhile the quay is a walkway, not a wharf: x112..114, a rail at 112.9, two benches, no steps to the water, nothing ever tied up. Bring a barge up the west channel on some days and let it work the quay. The water is clear for it: the eyot hugs the EAST channel (124.3, rx 1.75) and the punt lives off JETTY 128.4, so a hull around x 115-118 meets nothing, and the footbridge (DECK rows 30..32, PARAPET_Z 1.0) is the southern limit — the reach north of it is the barge's water. Model it on the punt: a hull that owns its own tick and its own schedule, never a share of laneCap. Then give the horn a subject — sayAt at the quay — so a sound the town has always made finally has somewhere to come from.",
-      "seams": ["WATERS/waterAt", "RIVER_X0 114/RIVER_X1 127/QUAY_X0 112", "punt/PUNT_MOOR/puntSeatStep as the model", "DECK/PARAPET_Z/boatUnderDeck", "QUAY_BENCHES/quay rail x112.9", "sayAt/AMBIENT_PLACES", "__census() structure block"],
+      "seams": [
+        "WATERS/waterAt",
+        "RIVER_X0 114/RIVER_X1 127/QUAY_X0 112",
+        "punt/PUNT_MOOR/puntSeatStep as the model",
+        "DECK/PARAPET_Z/boatUnderDeck",
+        "QUAY_BENCHES/quay rail x112.9",
+        "sayAt/AMBIENT_PLACES",
+        "__census() structure block"
+      ],
       "successLooksLike": "On a barge day the wide shot shows a long hull come down the west channel, tie alongside the quay, sit being worked for a stretch of the day and go; the horn is said with a SUBJECT at the quay instead of nowhere; and `structures` moves in the census (the moorings counted in __census()'s structure block), with the baseline re-pinned and said so.",
       "avoid": "Not a second ferry — the punt was worked at #128 and #131 and another passenger hull is c208's brief, not this one. Do not route it under the footbridge. Do not spend its people out of laneCap or eastCap; a rare thing needs its own source.",
       "budgetMin": 55,
@@ -41,7 +38,13 @@
       "domain": "People & animals",
       "kind": "Scale/World",
       "brief": "The wide shot is a big town with a small population: at seed 42, day 3, 10.4h the frame holds 42 people across 138x88 of world. Every population cap in the town was chosen rather than measured except one — capacity, laneCap (peaks at 9 and feeds the WHOLE east half through a single spawnLaneAgent roll), eastCap (max 7), FAR_CAP 3, EVE_CAP, FAM_CAP — while LAWN_CAP is the only one whose knee has ever been swept, at #121, where the answer was 4 -> 8 and the sub-caps took over. Do for the town what #121 did for the lawn: measure presence per PLACE across a whole day rather than a per-instant crop, sweep the caps one at a time, find where each stops binding, name which sub-cap absorbs the slack, and keep the knee.",
-      "seams": ["capacity/laneCap/eastCap/FAR_CAP/EVE_CAP/FAM_CAP", "maturity()/daylight/yearBusy", "spawnLaneAgent/spawnEastAgent", "LAWN_CAP and #121's sweep as the worked example", "PAIR_MIN/pairTarget"],
+      "seams": [
+        "capacity/laneCap/eastCap/FAR_CAP/EVE_CAP/FAM_CAP",
+        "maturity()/daylight/yearBusy",
+        "spawnLaneAgent/spawnEastAgent",
+        "LAWN_CAP and #121's sweep as the worked example",
+        "PAIR_MIN/pairTarget"
+      ],
       "successLooksLike": "A presence-per-place table at each cap value on both builds, the knee named for every cap you moved, and a wide shot at the same pinned instant that reads as a busy town — with no place going from empty to crowded, the filmstrip clean, and figures still legible at 390x844.",
       "avoid": "Do not raise a cap without the sweep: a ceiling that binds through a bug is usually non-binding after it, and a cap over place-holders is really a cap on the sub-caps beneath it. Do not add a new source — this is about the caps that already exist. `people` will churn; re-pin the census baseline and say so.",
       "budgetMin": 45,
@@ -52,7 +55,14 @@
       "domain": "Cross street & allotments",
       "kind": "New element",
       "brief": "Seventeen plots, a harvest cycle, a cart and a glasshouse — and not one tool. The allotments are the most worked ground in the town and carry no shed, no water butt, no bean canes, no cloche, no compost bay, no barrow: a plot is a rectangle of soil with a crop drawn on it. Give the plots their furniture on ROOF_FURN's model — a small set of pieces placed per plot off hash(plot), each one inside its own plot's rectangle (the lattice is ox 80..90 step 5 x oy 8..50 step 7, which leaves a 1-cell way round every plot), and each one named by the pointer the way roofFurnAt names the roof's. Let the set read the plot's own state: canes where something climbs, a cloche in the cold half of the year, a barrow only where somebody is working it, a butt against the fence.",
-      "seams": ["the plot lattice (the ox/oy loops near lines 3486 and 3510)", "harvestPlot/ripePlots/fallowPlots/bAge/speciesFor", "ROOF_FURN/roofFurnAt/roofFurnName/FURN_BOX as the model", "nameAt", "GH x84-93 y34-39/inAllotment", "__census() structure block"],
+      "seams": [
+        "the plot lattice (the ox/oy loops near lines 3486 and 3510)",
+        "harvestPlot/ripePlots/fallowPlots/bAge/speciesFor",
+        "ROOF_FURN/roofFurnAt/roofFurnName/FURN_BOX as the model",
+        "nameAt",
+        "GH x84-93 y34-39/inAllotment",
+        "__census() structure block"
+      ],
       "successLooksLike": "At the Street quarter the allotments read as seventeen worked plots rather than seventeen coloured rectangles; every piece sits inside its own plot and clear of the ways; the pointer names each kind; and `structures` moves (a new named array in __census()'s structure block), baseline re-pinned and said so.",
       "avoid": "Nothing on the 1-cell ways between plots and nothing inside the glasshouse footprint. Do not add a tile kind or a SPECIES — each moves tileKinds/speciesKinds by exactly 9 and that is not what this is measuring. Do not draw it live: the plots are ground-cache work.",
       "budgetMin": 40,
@@ -63,12 +73,23 @@
       "domain": "Courtyard & garden",
       "kind": "Deepen",
       "brief": "Pre-counted, from c205 and #129's own numbers. GARDEN_ROWS is 5 and GARDEN_MORE 0.8, so a gardener who kneels should work about three rows of a bed; measured after #129 it works 1.53. gardenerKneel's light-fit charges the second row two full rows plus the shuffle plus the walk back to the door, so on most days the second row is priced out and the gardener stands up and leaves with the bed half done. Re-price the continuation the way #129 re-priced the walk — at the choice, once, against the hour the lawn actually closes — so a gardener who has knelt finishes what is in front of them.",
-      "seams": ["gardenerKneel", "GARDEN_ROWS 5/GARDEN_MORE 0.8/GARDEN_REACH", "gardenFits/GARD_LAND", "lawnGone/lawnFits"],
+      "seams": [
+        "gardenerKneel",
+        "GARDEN_ROWS 5/GARDEN_MORE 0.8/GARDEN_REACH",
+        "gardenFits/GARD_LAND",
+        "lawnGone/lawnFits"
+      ],
       "successLooksLike": "Rows worked per gardener visit goes from 1.53 to at least 2.5 on a growing morning, measured over ten seeds the way #129 measured presence; the gardener still leaves before lawnGone(); and nothing else on the lawn is displaced — LAWN_CAP's other kinds hold their share AT THE CHOICE.",
       "avoid": "Do not raise GARDEN_ROWS or GARD_K: #129 counted the supply and it is not the problem. Do not let the fix reach the walk home — gardenFits bounds the pre-dawn walk at BOTH ends and that bound is load-bearing.",
       "budgetMin": 30,
       "risk": "low"
     }
   ],
-  "recommendStop": null
+  "recommendStop": null,
+  "consumed": [
+    {
+      "id": "b135",
+      "at": "2026-09-02T14:14:25.798Z"
+    }
+  ]
 }

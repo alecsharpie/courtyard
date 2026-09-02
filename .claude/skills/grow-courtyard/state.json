@@ -2,7 +2,7 @@
   "updated": "2026-09-02",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 134,
+  "lastIteration": 135,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -234,6 +234,9 @@
       ],
       "harness": [
         134
+      ],
+      "new-ca": [
+        135
       ]
     },
     "street": {
@@ -473,7 +476,8 @@
       "morning ROUND: mround/updateRound, doors 4 and 8, ROUND_H 5h, roundMarks",
       "STANDING WATER: PUDDLES[] off the GRID, pavedAt() the region predicate, a fine hash gated by a coarse dip + PUD_TROD*paveWear; drawPuddles live before applyLight, drawPuddleLights in the screen pass after; paveWear[] PW_GAIN/PW_DECAY",
       "the ROADWAY: LN_ROAD0 68..LN_ROAD1 76 plus the cross street XS_R0..XS_R1, ONE groundBase branch and ONE drawGround branch (t===ROAD), raised kerbs, sweeper.gutter on row ~70",
-      "the FRAME CULL: inFrameBox(sx,sy,rx,ry) beside project() — the ONE screen cull, on the CANVAS rect, margin = the drawn rx/ry; drawPuddles and drawPuddleLights both call it"
+      "the FRAME CULL: inFrameBox(sx,sy,rx,ry) beside project() — the ONE screen cull, on the CANVAS rect, margin = the drawn rx/ry; drawPuddles and drawPuddleLights both call it",
+      "The carriageway is LAID (#135): settGrid/settRun lay a GLOBAL sett lattice solved off the cell as drawn (2x2 at 1600x950, coarsening to 1x1 on a phone), courses running ACROSS the direction of travel so the bond turns through a right angle at the junction. camberZ + CAMBER_L crown it to its kerbs; gutterF silts the channel; roadPatches/patchAt make it good in tar with a sett-quantised rim; rutF is the DURABLE wheel track (paveWear stays the recent term over it, roadWorn is the max); KERB_RUN breaks the kerb into kerbstones. wetRGB/trodRGB are wetCol/trodStone in triples. ROAD sd/mean 0.081 -> 0.150 with the class mean off 1.6."
     ],
     "street": [
       "cross street: two footways, roadway XS_R0 68..XS_R1 74, kerbs, lamps, four TREE_PITS, alley ALLEY_Y",
@@ -585,6 +589,18 @@
       "note": "inFrameBox exists and only drawPuddles/drawPuddleLights call it. The same win may sit in drawWetLights, the LAMPS.concat(LANE_LAMPS) halo loop, CHIMNEYS/drawSmoke, VANES. Measure first: at Wide a cull saves nothing and pays a test.",
       "raisedBy": 132,
       "seenBy": 1
+    },
+    {
+      "id": "c214",
+      "note": "The cart is not an agent, so it lays no paveWear[]: after 12 sim days the lane's carriageway has mean 0.0019 and its busiest cell 0.065 against PW_FULL 0.45. #135 painted the rut into the fabric instead; one accrual line at the cart's step would let the town's own memory carry the track, and would feed drawPuddles' hollow term at the same time. probes/road-traffic.mjs measures it.",
+      "raisedBy": 134,
+      "seenBy": 0
+    },
+    {
+      "id": "c215",
+      "note": "drawGround() times 25-27 ms after #135 (22-25 before) and rebuilds on the wear/camera dirty flag, so it is a dropped frame wherever it fires. perf.mjs is blind to it (vsync-locked over a whole day) - probes/ground-cost.mjs times the function directly.",
+      "raisedBy": 134,
+      "seenBy": 0
     }
   ],
   "watch": [

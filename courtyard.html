@@ -6715,6 +6715,225 @@ function trodStone(c, i){
   const w = paveWear[i];
   return w > 0.01 ? mix(c, PW_TROD, PW_SHOW * Math.pow(Math.min(1, w / PW_FULL), 0.65)) : c;
 }
+/* ============ the carriageway, laid (#135) ============
+ * HEAD's roadway was a flat fill with three hairlines ruled inside each cell at .14
+ * alpha and a half-sett stagger per ROW: a hatch, not a bond. Nothing ran across a cell
+ * edge, every sett was the same colour, and the class measured luma sd/mean 0.065
+ * against 0.13-0.23 for every other paved surface in the town — three times flatter
+ * than the footway beside it, on the nearest big surface to the viewer.
+ *
+ * This lays it instead, on slateGrid/slateRun's model (#125): the count of setts is
+ * SOLVED off the cell as drawn, the lattice is GLOBAL in world coordinates so a sett
+ * straddling a cell edge is one stone in two halves, and every sett carries its own
+ * tone. Four things a laid road has that a hatch does not, and all four are here.
+ *   the BOND runs      — settRun, keyed on the world axis and never on the cell, and
+ *                        turned through a right angle at the junction because courses
+ *                        run ACROSS the direction of travel
+ *   the CAMBER falls   — camberZ, crown to kerb, which is at last why the sweeper's
+ *                        drift collects in the row he has been working since #72
+ *   the GUTTER silts   — a channel of damp, stained stone along each kerb
+ *   and it is REPAIRED — paveWear[] read BILINEARLY, so the cart's line and the crossing
+ *                        outside the tap are worn setts on a DRY day, and the road is
+ *                        made good in tar where it has been broken open
+ * All of it is cache-time, on the dirty flag caTick's wear tick already sets. */
+const SETT_W_PX = 4.4, SETT_H_PX = 3.2, SETT_JOINT = 0.60;
+const SETT_JOINT_T = 0.72;         // how much of the stone's own tone survives in the joint
+const SETT_LIFT = 0.115;           // the joints eat luma; the faces give it back, so the CLASS mean holds
+const SETT_VAR = 0.135, SETT_BATCH = 0.075, CAMBER_L = 0.15;
+/* Three barrow-loads off three faces of the same quarry. Their MEAN is HEAD's own road
+ * colour — mix('#87806f', '#8d8675', 0.25), the mean of its halved hash — so the class
+ * gains its variance without gaining or losing a shade of mean. */
+const SETTS = ['#828071', '#8b806e', '#918673'];
+const SETT_RGB = SETTS.map(cparse);
+const TAR_RGB = cparse('#4a4740'), GUT_RGB = cparse('#5f5b49');
+const WET_RGB = cparse('#3f4650'), PW_TROD_RGB = cparse(PW_TROD);
+/* wetCol() and trodStone() in triples. The sett pass works in RGB the way slateRun does,
+ * and a sett must take the wet and the wear the cell UNDER it takes or the two disagree
+ * the first time it rains: same targets, same curves, stated once each. */
+function wetRGB(c, hv){ return wetPainted > 0 ? blend(c, WET_RGB, wetPainted * (0.30 + 0.12 * hv)) : c; }
+function trodRGB(c, w){ return w > 0.01 ? blend(c, PW_TROD_RGB, PW_SHOW * Math.pow(Math.min(1, w / PW_FULL), 0.65)) : c; }
+/* How many setts a road cell is worth, solved off the cell AS DRAWN and never stated —
+ * the answer slateGrid(y) gives the roof, asked of the ground. A cell is ~30 px across
+ * and ~11 deep at the lane and half that at the head of the cross street, so a fixed
+ * setts-per-cell would be a cobble field at one end and a gravel wash at the other, and
+ * a phone would get the wash everywhere. */
+const SETT_ROW = new Map();                    // per rebuild: the answer is one per ROW, not one per cell
+function settGrid(y){
+  const got = SETT_ROW.get(y); if (got) return got;
+  const a = project(60, y, 0), b = project(61, y, 0), d = project(60, y + 1, 0);
+  const wPx = Math.max(1.5, Math.abs(b[0] - a[0])), hPx = Math.max(1.2, Math.abs(d[1] - a[1]));
+  const g = [clamp(Math.round(wPx / SETT_W_PX), 1, 6), clamp(Math.round(hPx / SETT_H_PX), 1, 4), wPx, hPx];
+  SETT_ROW.set(y, g); return g;
+}
+/* The fall, in cells of height: 0 at each kerb, CAMBER_Z at the crown. A made road is
+ * crowned, and that is the whole reason a gutter is a gutter — the sweeper has worked
+ * the drift in row ~70 since #72 on a carriageway that was dead flat and gave the leaves
+ * no reason to be there. project() lifts z northward, so the crown bows the courses about
+ * a pixel up the frame and the kerb not at all: the road meets the kerb it always met,
+ * and nothing outside LN_ROAD0..LN_ROAD1 / XS_R0..XS_R1 moves. */
+const CAMBER_Z = 0.10, GUT_W = 0.85, KERB_RUN = 1.7, LANE_CROWN = (LN_ROAD0 + LN_ROAD1) / 2;
+function camberV(x, y){                      // 0 at one kerb, 1 at the other, across the carriageway
+  return y < LN_ROAD0 ? (x - XS_R0) / (XS_R1 - XS_R0) : (y - LN_ROAD0) / (LN_ROAD1 - LN_ROAD0);
+}
+function camberF(x, y){ const v = clamp(camberV(x, y), 0, 1); return 4 * v * (1 - v); }   // 1 at the crown, 0 at each kerb
+function camberZ(x, y){ return CAMBER_Z * camberF(x, y); }
+function gutterF(x, y){                      // 1 in the channel against a kerb, 0 by the crown
+  const v = clamp(camberV(x, y), 0, 1);
+  const span = y < LN_ROAD0 ? XS_R1 - XS_R0 : LN_ROAD1 - LN_ROAD0;
+  return clamp(1 - Math.min(v, 1 - v) * span / GUT_W, 0, 1);
+}
+/* paveWear[] is per CELL, and a desire line read per cell is a run of squares. Sampled
+ * bilinearly it is a line — which is what the cart's wheels and the crossing outside the
+ * tap actually leave, and what #126 could not draw because trodStone only ever asked
+ * about the cell it was already filling. */
+function paveWearAt(wx, wy){
+  const fx = wx - 0.5, fy = wy - 0.5;
+  const x0 = clamp(Math.floor(fx), 0, GW - 1), y0 = clamp(Math.floor(fy), 0, WH - 1);
+  const x1 = Math.min(GW - 1, x0 + 1), y1 = Math.min(WH - 1, y0 + 1);
+  const tx = clamp(fx - x0, 0, 1), ty = clamp(fy - y0, 0, 1);
+  const a = paveWear[y0 * GW + x0], b = paveWear[y0 * GW + x1];
+  const c = paveWear[y1 * GW + x0], d = paveWear[y1 * GW + x1];
+  return (a + (b - a) * tx) * (1 - ty) + (c + (d - c) * tx) * ty;
+}
+/* Where the road has been dug up and made good. A repair is a DURABLE fact about a road,
+ * not a reading of today's wear — a patch that came and went with paveWear[] would blink
+ * on every rebuild — so the sites are hash-placed and permanent. But they are placed
+ * where a road actually fails: over the line the cart takes, and at the mouth of the
+ * cross street where every wheel turns. */
+let ROAD_PATCH = null;
+function roadPatches(){
+  if (ROAD_PATCH) return ROAD_PATCH;
+  ROAD_PATCH = [];
+  for (let k = 0; k < 22; k++){
+    if (hash(k, 607) > 0.22) continue;
+    ROAD_PATCH.push([1 + hash(k, 601) * (XS_W0 - 3), CART_LANE_Y - 0.7 + hash(k, 611) * 2.0,
+                     1.1 + hash(k, 613) * 1.7, 0.7 + hash(k, 617) * 0.9]);
+  }
+  ROAD_PATCH.push([XS_R0 + 1.2, LN_ROAD0 + 1.5, 2.0, 1.1]);     // the mouth of the cross street
+  return ROAD_PATCH;
+}
+function patchAt(wx, wy){
+  let v = 0;
+  for (const p of roadPatches()){
+    const d = Math.max(Math.abs(wx - p[0]) / p[2], Math.abs(wy - p[1]) / p[3]);
+    // the rim is ragged: a patch is cut round whole setts and never comes out square
+    const e = 1 - d + (hash(Math.floor(wx * 4), Math.floor(wy * 4)) - 0.5) * 0.30;
+    if (e > v) v = e;
+  }
+  return v;
+}
+/* The rut. paveWear[] is the town's memory of FEET, and it is the right instrument for
+ * a footway — but measured on HEAD over twelve days the carriageway's mean paveWear is
+ * 0.002 and its busiest single cell 0.053. Nobody walks on a road; the one thing that
+ * uses it, the cart, is not an agent and has never touched the accumulator at all; and
+ * PW_DECAY takes 46% back out a day against a cart that comes 0.8 days in 1, so even a
+ * track laid by wheels would fade between two markets. A rut does not fade. So the wheel
+ * line is a DURABLE fact about the road — in the fabric, beside the tar patches — and
+ * paveWear stays the RECENT term laid over it. One value, the max of the two, so the
+ * stone, its joints and its variance all read the same number.
+ *   Where, measured rather than guessed (12 days, seed 42): the cart is on row 70 for 87
+ * of its 89 lane samples (CART_LANE_Y) and in column 71 for 621 of its cross-street ones
+ * (CART_X), and 89% of every pedestrian sample taken on any carriageway in the town is
+ * inside the junction, x 68..73 — which is also where every wheel turns. The tap's
+ * crossing, which this was expected to show, does not exist: the tap's door is on row 65
+ * and its drinkers come along the footway without ever setting foot on the road. */
+const RUT_GAUGE = 1.15, RUT_W = 0.34, RUT_DEEP = 0.36, RUT_JUNC = 0.19;
+function rutLine(d, k){ return clamp(1 - Math.abs(d) / RUT_W, 0, 1) * k; }
+function rutF(wx, wy){
+  let v = 0;
+  if (wy >= LN_ROAD0){                       // the lane: the cart runs east and west along row 70
+    for (const sg of [-1, 1]) v = Math.max(v, rutLine(wy - (CART_LANE_Y + sg * RUT_GAUGE / 2), RUT_DEEP));
+    v = Math.max(v, rutLine(wy - CART_LANE_Y, RUT_DEEP * 0.5));      // the horse walks between its own wheels
+  } else {                                   // the cross street: the same cart, coming down column 71
+    for (const sg of [-1, 1]) v = Math.max(v, rutLine(wx - (CART_X + sg * RUT_GAUGE / 2), RUT_DEEP));
+    v = Math.max(v, rutLine(wx - CART_X, RUT_DEEP * 0.5));
+  }
+  // and the junction, where both streets turn over the same stone. Broken up by a coarse
+  // hash so a track is a worn PLACE and not a ruled stripe
+  const jx = clamp(1 - Math.abs(wx - (XS_R0 + XS_R1) / 2) / ((XS_R1 - XS_R0) / 2 + 0.7), 0, 1);
+  const jy = clamp(1 - Math.abs(wy - (LN_ROAD0 + LN_ROAD1) / 2) / ((LN_ROAD1 - LN_ROAD0) / 2 + 0.7), 0, 1);
+  return Math.max(v, RUT_JUNC * Math.sqrt(jx * jy)) * (0.80 + 0.40 * hash(Math.floor(wx * 3), Math.floor(wy * 3)));
+}
+/* How walked this stone is, ONE definition: the durable track under the recent feet. */
+function roadWorn(wx, wy){ return Math.max(paveWearAt(wx, wy), rutF(wx, wy)); }
+/* ONE course of setts across ONE cell. `pt(u, v)` is the caller's surface and `wp(u, v)`
+ * the world point under it — u along the course, v across the courses — so the lane and
+ * the cross street lay the same bond turned through a right angle without either knowing
+ * which it is. The lattice is GLOBAL: sett k spans [(k+off)/nu, (k+1+off)/nu] in world u,
+ * so a sett straddling a cell edge is drawn as two halves of one tone with no joint
+ * between them. That is the whole difference between a bond and a hatch. */
+function settRun(g, ui, nu, ck, v0, v1, gU, gV, hv, sn, nearPatch, pt, wp){
+  const off = 0.5 * (ck & 1);                        // half bond: every other course steps a half sett
+  const k0 = Math.floor(ui * nu - off), k1 = Math.ceil((ui + 1) * nu - off) - 1;
+  for (let k = k0; k <= k1; k++){
+    const r0 = clamp((k + off) / nu - ui, 0, 1), r1 = clamp((k + 1 + off) / nu - ui, 0, 1);
+    if (r1 - r0 < 0.004) continue;
+    const wpt = wp((r0 + r1) / 2, (v0 + v1) / 2), wx = wpt[0], wy = wpt[1];
+    const h1 = hash(k * 31 + 7, ck * 17 + 3);
+    /* One uniform hash is a texture and never a PLACE. Setts arrive by the barrow-load
+     * and are laid off the heap they came in, so the fine per-sett draw is GATED by a
+     * coarse run — four setts by two courses — and the road gets lighter and darker
+     * PATCHES of stone instead of an even sparkle. Both terms average 1. */
+    let col = SETT_RGB[(hash(k * 5 + 1, ck * 9 + 4) * SETTS.length) | 0];
+    // the coarse gate is keyed in WORLD space, at the scale a barrow-load covers, so the
+    // patch is the same shape whichever way the courses are running under it
+    const batch = 1 - SETT_BATCH / 2 + SETT_BATCH * hash(Math.floor(wx * 1.5), Math.floor(wy * 0.55));
+    const w = roadWorn(wx, wy), pol = Math.min(1, w / PW_FULL);
+    // a polished sett is a MORE uniform sett: feet take the arris off before they take
+    // the colour, so the per-stone draw closes up along a line before the line darkens
+    /* The camber in the LIGHT as well as in the geometry. A crowned road turns its face
+     * to the sky at the middle and away from it at the channel, where the kerb shades it
+     * too — so the fall reads as a gradient across the carriageway and not only as a
+     * bow in the courses. camberF averages 2/3 over the width, so the term averages 1. */
+    const vf = (1 + SETT_LIFT) * batch * (1 + CAMBER_L * (camberF(wx, wy) - 2 / 3))
+             * (1 + SETT_VAR * (1 - 0.55 * pol) * (h1 - 0.5));
+    col = [col[0] * vf, col[1] * vf, col[2] * vf];
+    const tar = nearPatch && patchAt(wx, wy) > 0;
+    if (tar) col = blend(col, TAR_RGB, 0.78 * (0.86 + 0.28 * h1));
+    else {
+      const gt = gutterF(wx, wy);
+      if (gt > 0.02) col = blend(col, GUT_RGB, 0.34 * gt * (0.55 + 0.45 * h1));
+    }
+    col = trodRGB(wetRGB(col, hv), w);
+    if (sn > 0) col = blend(col, SNOW_RGB, sn);
+    g.fillStyle = rgbs(col);
+    // tar has no joints: inside a patch the quads butt, so the repair reads as one
+    // surface with a sett-shaped edge rather than as setts painted black
+    const a0 = tar ? r0 : Math.min(r0 + gU, (r0 + r1) / 2), a1 = tar ? r1 : Math.max(r1 - gU, (r0 + r1) / 2);
+    const b1 = tar ? v1 + gV : v1;
+    poly(g, [pt(a0, v0), pt(a1, v0), pt(a1, b1), pt(a0, b1)]); g.fill();
+  }
+}
+/* One cell of carriageway, laid. Courses run ACROSS the direction of travel — down the
+ * frame in the lane, across it in the cross street — so the bond turns at the junction
+ * the way it does on any street corner. The junction itself is the lane's, which is how
+ * its kerbs are already broken (LN_ROAD0's run stops at XS_R0 and picks up at XS_R1). */
+function drawSetts(g, x, y, hv, sn){
+  const lane = y >= LN_ROAD0;
+  const grid_ = settGrid(lane ? LANE_CROWN : y);                 // one lattice for the whole lane, so its courses cannot step between rows
+  const nX = grid_[0], nY = grid_[1], wPx = grid_[2], hPx = grid_[3];
+  const nu = lane ? nY : nX, nv = lane ? nX : nY;
+  const uPx = lane ? hPx : wPx, vPx = lane ? wPx : hPx;
+  const ui = lane ? y : x, vi = lane ? x : y;
+  const wp = lane ? (u, v) => [x + v, y + u] : (u, v) => [x + u, y + v];
+  const pt = (u, v) => { const p = wp(u, v); return project(p[0], p[1], camberZ(p[0], p[1])); };
+  const gU = Math.min(0.5 * SETT_JOINT / uPx, 0.16 / nu);
+  const gV = Math.min(SETT_JOINT / vPx, 0.24 / nv);
+  // what shows in the joints: the same stone in its own shadow, and tar in it where the
+  // road has been walked — grit and pitch load a joint long before a sett wears through
+  /* patchAt is a loop over every repair in the town and it was being run per SETT.
+   * A cell is either near a patch or it is not, and 95% of them are not: ask once. */
+  const nearPatch = roadPatches().some(q => Math.abs(x + 0.5 - q[0]) < q[2] + 1.2 && Math.abs(y + 0.5 - q[1]) < q[3] + 1.2);
+  const jw = roadWorn(x + 0.5, y + 0.5);
+  let jc = [SETT_RGB[1][0] * SETT_JOINT_T, SETT_RGB[1][1] * SETT_JOINT_T, SETT_RGB[1][2] * SETT_JOINT_T];
+  jc = blend(jc, TAR_RGB, 0.5 * Math.min(1, jw / PW_FULL));
+  jc = wetRGB(jc, hv);
+  if (sn > 0) jc = blend(jc, SNOW_RGB, sn);
+  g.fillStyle = rgbs(jc);
+  poly(g, [pt(0, 0), pt(1, 0), pt(1, 1), pt(0, 1)]); g.fill();
+  for (let j = 0; j < nv; j++)
+    settRun(g, ui, nu, vi * nv + j, j / nv, (j + 1) / nv - gV, gU, gV, hv, sn, nearPatch, pt, wp);
+}
 function groundBase(x, y, t, hv, m){
   if (t === PATH){
     const i = y * GW + x;
@@ -6972,6 +7191,7 @@ function drawGround(){
   SUN = sunVec(); LIT.length = 0; WINDOWS.length = 0; HAZE = skyCols()[1];
   if (mistF() > 0) HAZE = mix(HAZE, mistCol(), 0.4 * mistF());   // the town beyond the frame goes into the mist too
   FACES.length = 0;                                // the cached faces are re-registered below; the live ones every frame
+  SETT_ROW.clear();                                // the sett lattice is solved off the CAMERA, so it is one rebuild's answer
   snowPainted = snowCover; wetPainted = wetBucket(); washPainted = washOut();
   const m = maturity();
   // the sky is *not* baked in here — it is painted fresh every frame underneath this
@@ -6990,8 +7210,15 @@ function drawGround(){
     }
     gtx.fillStyle = groundCol(gx, y, t, hv, m);
     quad(gtx, x, y, 0.03); gtx.fill();
+    const sn = snowAt(gx, y, t);
+    /* The carriageway is LAID (#135), and it is laid HERE for two reasons. Before the
+     * litter, because the leaves lie ON the road and not under it — HEAD's hairlines at
+     * .14 alpha let them through and opaque setts would bury the drift the sweeper is
+     * sent to. And outside the x === gx guard, because the lane runs on past both edges
+     * of the world and a flat strip butted against a setted one is a seam. */
+    if (t === ROAD && sn <= 0.5) drawSetts(gtx, x, y, hv, sn);
     if (x !== gx) continue;                              // detailing only inside the real world
-    if (snowAt(gx, y, t) > 0.5) continue;                // joints and setts are under the snow
+    if (sn > 0.5) continue;                              // joints and setts are under the snow
     if (litter[i]) drawLitter(gtx, x, y, litter[i]);         // #66: the autumn drift, on top of the cell
     if (t === BED && turned[i]){                         // dug over: two furrows and a lit ridge across the cell
       gtx.lineWidth = 0.8;
@@ -7011,23 +7238,6 @@ function drawGround(){
     // after the SIDE joints, so the green sits IN the seam it grows in. PATH never takes
     // that branch, so the plaza's draw order is HEAD's.
     if ((t === PATH || t === SIDE) && moss[i] > 0) drawMoss(gtx, x, y, moss[i]);
-    if (t === ROAD){                                     // cobbled setts, laid in courses
-      gtx.strokeStyle = 'rgba(66,60,50,.14)'; gtx.lineWidth = 0.7;
-      const off = (y % 2) * 0.5;
-      gtx.beginPath();
-      for (let k = 0; k < 3; k++){
-        const p1 = project(x + off + k / 3, y, 0), p2 = project(x + off + k / 3, y + 1, 0);
-        gtx.moveTo(p1[0], p1[1]); gtx.lineTo(p2[0], p2[1]);
-      }
-      const q1 = project(x, y, 0), q2 = project(x + 1, y, 0);
-      gtx.moveTo(q1[0], q1[1]); gtx.lineTo(q2[0], q2[1]);
-      gtx.stroke();
-      if (hv > 0.9){
-        gtx.fillStyle = 'rgba(70,63,52,.12)';
-        const [sx, sy] = project(x + 0.3, y + 0.3, 0);
-        gtx.beginPath(); gtx.ellipse(sx, sy, cellW * 0.3, cellH * 0.26, 0, 0, 7); gtx.fill();
-      }
-    }
     if (t === GRASS && x >= ALT_X0){                     // reeds where bank meets water (the eyot's are drawn with the island below)
       let nearWater = false;
       for (const d of [-1, 1, -GW, GW]) if (grid[i + d] === WATER) nearWater = true;
@@ -7114,6 +7324,20 @@ function drawGround(){
       gtx.fillStyle = col; poly(gtx, [d, c, b, a]); gtx.fill();
     }
   }
+  /* #135: the kerb is STONES, not a ribbon. A joint every KERB_RUN cells down the face,
+   * and the run is set off the kerb's OWN row, so the two sides of the lane do not line
+   * up with each other any more than a real pair of kerbs would. */
+  gtx.strokeStyle = 'rgba(48,43,36,.30)'; gtx.lineWidth = 1;
+  gtx.beginPath();
+  for (const yy of [LN_ROAD0, LN_ROAD1]){
+    const segs = yy === LN_ROAD0 ? [[XLO, XS_R0], [XS_R1, XHI]] : [[XLO, XHI]];
+    for (const [sx0, sx1] of segs)
+      for (let kx = Math.ceil(sx0 / KERB_RUN) * KERB_RUN; kx < sx1; kx += KERB_RUN){
+        const p1 = project(kx, yy, 0), p2 = project(kx, yy, 0.16);
+        gtx.moveTo(p1[0], p1[1]); gtx.lineTo(p2[0], p2[1]);
+      }
+  }
+  gtx.stroke();
   // curbs along the lane and the cross street, broken at the junction
   gtx.strokeStyle = 'rgba(70,62,50,.5)'; gtx.lineWidth = 1.2;
   for (const yy of [LN_ROAD0, LN_ROAD1]){
