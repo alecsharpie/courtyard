@@ -22,7 +22,7 @@
   "avoid": "Do not silence the ticker: a quarter with few subjects must still have something to say, so fall back to the whole town rather than going quiet — an empty ticker is worse than an off-screen one. Do not touch OFFERS[]'s order or TICK_DWELL; the advertising queue is a solved problem and this is about CONTENT. And the camera EASES, so `whereN` is the intent while `gview` is where the frame actually is — decide which one a line should be tested against, and say why.",
   "budgetMin": 35,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 132,
   "issued": "2026-09-02T11:47:15.362Z",
