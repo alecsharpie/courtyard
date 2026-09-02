@@ -262,7 +262,7 @@
 'use strict';
 /* ============ setup ============ */
 const cv = document.getElementById('cv');
-const ctx = cv.getContext('2d');
+let ctx = cv.getContext('2d');   // `let`: drawWaterMirror re-runs the town's own draws into an offscreen
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 // canvas 2d `filter` is missing on older Safari; feature-detect once, degrade quietly
 const CAN_BLUR = (() => { try { ctx.filter = 'blur(2px)'; const ok = ctx.filter !== 'none'; ctx.filter = 'none'; return ok; }
@@ -419,12 +419,20 @@ function agentZ(a){ return a.z || (onJetty(a.x, a.y) ? 0.5 : deckZAt(a.x, a.y));
 let W = 0, H = 0, DPR = 1, cellW = 12, cellH = 8, topPad = 40, originX = 0;
 const PINCH = 0.11;
 const LIFT = 1.15;
+/* project()'s z SIGN. 1 is the world; -1 is its image in the water plane, which is the
+ * same solve a shadow makes with the sun swapped for the eye. Held here rather than
+ * passed, so every existing draw is its own reflection for the price of a flag — see
+ * drawWaterMirror. A draw that puts something ON the water rather than IN it (a cast
+ * shadow, the wheel's foam) reads it and stands down. */
+let MIRROR = 1, LIFTM = LIFT;     // LIFTM is LIFT * MIRROR, folded: project() is the hottest
+                                  // function in the file and must not do the multiply twice
+function setMirror(m){ MIRROR = m; LIFTM = LIFT * m; }
 
 let FOCUS = GW / 2;
 function project(wx, wy, wz){
   // the pinch keys off screen depth, not world depth, so anything standing up
   // still lines up exactly with the ground beside it — no seams along walls
-  const d = wy - (wz || 0) * LIFT;
+  const d = wy - (wz || 0) * LIFTM;
   const p = 1 - PINCH * (1 - d / WH);
   return [ originX + (wx - FOCUS) * cellW * p, topPad + d * cellH ];
 }
@@ -8180,12 +8188,14 @@ function drawBridge(g){
   /* the bridge lays a shadow on the water downstream — but water under a deck is
    * dark because the SKY is occluded, not the sun, so the lid only takes the half
    * of it that the sun was casting, and the band retracts toward the span */
-  const bHard = shadowF();
-  g.fillStyle = 'rgba(18,24,26,' + (0.32 - 0.16 * (1 - bHard)) + ')';
-  const bTail = 2.2 - 2.1 * (1 - shOffset());
-  poly(g, [project(RIVER_X0, yS + 0.1, 0), project(RIVER_X1, yS + 0.1, 0),
-           project(RIVER_X1, yS + bTail, 0), project(RIVER_X0, yS + bTail, 0)]);
-  g.fill();
+  if (MIRROR > 0){
+    const bHard = shadowF();
+    g.fillStyle = 'rgba(18,24,26,' + (0.32 - 0.16 * (1 - bHard)) + ')';
+    const bTail = 2.2 - 2.1 * (1 - shOffset());
+    poly(g, [project(RIVER_X0, yS + 0.1, 0), project(RIVER_X1, yS + 0.1, 0),
+             project(RIVER_X1, yS + bTail, 0), project(RIVER_X0, yS + bTail, 0)]);
+    g.fill();
+  }
 }
 /* ============ the near block: the roof we are looking out over ============
  * Rows 79..WH used to be VOID, and drawGround skips VOID, so the bottom eighth of the
@@ -9227,6 +9237,12 @@ function drawScene(t, dt){
     ctx.restore();
   }
 
+  // the town's image in its own river. It goes down WITH the ground plane and before the
+  // item sort, so a swan, a punt and the deck's own shadow all sit ON the reflection
+  // rather than under a wash of it — the water surface is the last thing drawn over it
+  // (drawRiverFlow), exactly as it was before.
+  drawWaterMirror(t);
+
   const items = [];
   crowns.length = 0;                    // refilled by the tree draws below, in paint order
   for (let y=3;y<LN_WALK_S;y++) for (let x=0;x<GW;x++){
@@ -9716,9 +9732,11 @@ function drawWillow(it){
   const sw = RM ? 0 : Math.sin(windT * 1.4 + 2.1) * 0.10 * (1 - wf);   // the calm ripple
   // shadow on the turf and the water
   const shOff = shOffset(), shSp = shSpread();
-  ctx.fillStyle = 'rgba(25,32,18,' + 0.22 * daylight * (0.40 + 0.60 * out) * shadowF() + ')';
-  const shx = -SUN[0] / SUN[2] * h * cellW * 0.55 * shOff;
-  ctx.beginPath(); ctx.ellipse(bx + shx + WILLOW_LEAN * cellW * 0.5, by - h * cellH * 0.28 * shOff, r * cellW * 0.9 * shSp, r * cellH * 0.55 * shSp, 0, 0, 7); ctx.fill();
+  if (MIRROR > 0){
+    ctx.fillStyle = 'rgba(25,32,18,' + 0.22 * daylight * (0.40 + 0.60 * out) * shadowF() + ')';
+    const shx = -SUN[0] / SUN[2] * h * cellW * 0.55 * shOff;
+    ctx.beginPath(); ctx.ellipse(bx + shx + WILLOW_LEAN * cellW * 0.5, by - h * cellH * 0.28 * shOff, r * cellW * 0.9 * shSp, r * cellH * 0.55 * shSp, 0, 0, 7); ctx.fill();
+  }
   // the trunk leans over the channel
   const [tx2, ty2] = project(px + WILLOW_LEAN, py, h * 0.55);
   const tw = cellW * 0.15;
@@ -9729,7 +9747,7 @@ function drawWillow(it){
   ctx.closePath(); ctx.fill();
   const cx0 = px + WILLOW_LEAN + sw * 0.5;
   const [kx, ky] = project(cx0, py, h);
-  crowns.push({x:kx, y:ky, rx:r * cellW * 0.95, ry:r * cellH * 0.75 + h * cellH * 0.35, name:it.tname});
+  if (MIRROR > 0) crowns.push({x:kx, y:ky, rx:r * cellW * 0.95, ry:r * cellH * 0.75 + h * cellH * 0.35, name:it.tname});
   const blobs = [[0, 0, 1], [-0.55, -0.2, 0.7], [0.5, -0.22, 0.68], [-0.15, 0.4, 0.6]];
   const LTH = [0, 0.22, 0.28, 0.46];
   if (out < 0.92){                                            // the boughs, seen through a thin crown
@@ -10025,7 +10043,7 @@ function drawMillWheel(){
   const [hx, hy] = wheelPt(0, 0);
   ctx.fillStyle = '#3b2c1d'; ctx.beginPath(); ctx.arc(hx, hy, Math.max(1.5, cellW * 0.14), 0, 7); ctx.fill();
   // foam where the paddles break the water; still when the wheel is
-  if (spin > 0.02){
+  if (spin > 0.02 && MIRROR > 0){
     ctx.fillStyle = 'rgba(236,244,246,' + (0.45 * Math.min(1, spin) * Math.max(0.35, daylight)).toFixed(3) + ')';
     for (let k = 0; k < 5; k++){
       const fx = x - r * 0.7 + (hash(k, 91) + 0.3 * Math.sin(millAng * 3 + k)) * r * 1.4;
@@ -10046,10 +10064,12 @@ function millWheelName(){
 }
 function drawJetty(){
   const {x, y} = JETTY;
-  ctx.fillStyle = 'rgba(18,24,26,.35)';
-  const s1 = project(x - 2.6, y + 0.4, 0), s2 = project(x + 0.4, y + 0.4, 0);
-  const s3 = project(x + 0.4, y + 1.5, 0), s4 = project(x - 2.6, y + 1.5, 0);
-  poly(ctx, [s1, s2, s3, s4]); ctx.fill();
+  if (MIRROR > 0){
+    ctx.fillStyle = 'rgba(18,24,26,.35)';
+    const s1 = project(x - 2.6, y + 0.4, 0), s2 = project(x + 0.4, y + 0.4, 0);
+    const s3 = project(x + 0.4, y + 1.5, 0), s4 = project(x - 2.6, y + 1.5, 0);
+    poly(ctx, [s1, s2, s3, s4]); ctx.fill();
+  }
   const d1 = project(x - 2.6, y - 0.7, 0.5), d2 = project(x + 0.4, y - 0.7, 0.5);
   const d3 = project(x + 0.4, y + 0.7, 0.5), d4 = project(x - 2.6, y + 0.7, 0.5);
   ctx.fillStyle = '#7d6349'; poly(ctx, [d1, d2, d3, d4]); ctx.fill();
@@ -10085,7 +10105,7 @@ function deckRail(yy, front){
   }
 }
 function drawDeckSpan(){
-  if (boatUnderDeck()) drawBoat();             // the rower goes under; the planks go on top
+  if (boatUnderDeck() && MIRROR > 0) drawBoat();   // the rower goes under; the planks go on top
   const hv = 0.3 + 0.55 * daylight;
   // the ramps: a plank rising from each bank to the span
   ctx.fillStyle = mix('#5a4632', '#a78a62', hv);
@@ -10107,11 +10127,13 @@ function drawDeckSpan(){
 }
 function drawDeckFront(){
   // the shadow on the water downstream — sky occlusion, so it takes only the sun's half
-  const hard = shadowF(), tail = 1.6 - 1.5 * (1 - shOffset());
-  ctx.fillStyle = 'rgba(18,24,26,' + (0.30 - 0.15 * (1 - hard)).toFixed(3) + ')';
-  poly(ctx, [project(RIVER_X0 + 0.3, DECK_S + 0.05, 0), project(RIVER_X1 - 0.3, DECK_S + 0.05, 0),
-             project(RIVER_X1 - 0.3, DECK_S + tail, 0), project(RIVER_X0 + 0.3, DECK_S + tail, 0)]);
-  ctx.fill();
+  if (MIRROR > 0){
+    const hard = shadowF(), tail = 1.6 - 1.5 * (1 - shOffset());
+    ctx.fillStyle = 'rgba(18,24,26,' + (0.30 - 0.15 * (1 - hard)).toFixed(3) + ')';
+    poly(ctx, [project(RIVER_X0 + 0.3, DECK_S + 0.05, 0), project(RIVER_X1 - 0.3, DECK_S + 0.05, 0),
+               project(RIVER_X1 - 0.3, DECK_S + tail, 0), project(RIVER_X0 + 0.3, DECK_S + tail, 0)]);
+    ctx.fill();
+  }
   // two trestles standing in the river, and a post at each bank
   ctx.strokeStyle = '#3f3022'; ctx.lineWidth = Math.max(1.6, cellW * 0.16);
   for (const px of [RIVER_X0 + 0.7, RIVER_X0 + 4.6, RIVER_X1 - 4.6, RIVER_X1 - 0.7]){
@@ -10385,6 +10407,145 @@ function drawRiverFlow(t){
     }
     ctx.stroke();
   }
+}
+
+/* ============ the town in its river (#145) ============ *
+ * Thirteen columns of water ran down every wide shot and the only thing in them was the
+ * moon's glitter column and one static bank-smear baked over rows 3-12. The bridge stood
+ * OVER the river and not IN it, and so did the footbridge, the wheel, the jetty and the
+ * willow — the river read as a slab laid beside the town rather than a surface the town
+ * stands on.
+ *
+ * Nothing below is drawn a second time by hand. project() lifts z NORTHWARD, so the image
+ * of a point in the water plane is that point with its z NEGATED — the solve drawSunShade
+ * makes for a shadow, with the sun swapped for the eye. MIRROR is that sign and project()
+ * reads it, so each caster's reflection IS the caster's own draw: the wheel's image turns
+ * because the wheel turns, the arches in the water are the bridge's arches, and no copy
+ * can drift out of register with the thing it copies.
+ *
+ * What that reach CAN hold is geometry, not taste. The camera stands ~41 degrees up
+ * (LIFT 1.15) and looks north, so an image runs SOUTHWARD out of its caster's own feet and
+ * is seen only where there is water south of them. That is the five things below. It is
+ * NOT the clock tower (x 63.8-66.2, fifty cells west of the channel) and NOT the church
+ * (x 131-136, whose image falls on its own bank): from this height those two reflect onto
+ * dry land, and what a light off to one side really lays on water is the glitter column
+ * drawRiverLights has drawn since #78.
+ *
+ * Two composites, because a reflection is not a copy. It dies away with depth below the
+ * waterline (`destination-in`, one gradient per caster, REFL_FADE cells), and the wind
+ * breaks what is left into short drifting bars (`destination-out`, on drawRiverLights'
+ * vocabulary and its own downstream clock). It is all STRUCTURE and no light, so it goes
+ * down with the ground plane — before anything that floats, so a swan sits ON it — and
+ * takes applyLight's multiply with the water it lies in, which is what a dark stone bridge
+ * in a dark river should do. Every caster is culled on its projected box, so at the
+ * courtyard and lane framings this pass costs one loop over five rectangles. */
+const REFL_A = 0.42;        // what a still surface gives back of its caster
+const REFL_FADE = 3.6;      // cells of depth over which an image dies away
+const REFL_BAR = 0.85;      // what a full wind takes out of it again, in bars
+const rcv = document.createElement('canvas'), rtx = rcv.getContext('2d');
+
+/* the water, as a path: the two reaches of the channel, north and south of the lane. The
+ * eyot is punched out of the finished image rather than out of this, because it is a
+ * SHAPE the ring already owns and not a rectangle. */
+function riverWaterPath(g){
+  g.beginPath();
+  for (const [ya, yb] of [[0, LN_WALK_N], [LN_WALK_S, WH]]){
+    const a = project(RIVER_X0, ya, 0), b = project(RIVER_X1, ya, 0);
+    const c = project(RIVER_X1, yb, 0), d = project(RIVER_X0, yb, 0);
+    g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.lineTo(c[0], c[1]); g.lineTo(d[0], d[1]); g.closePath();
+  }
+}
+/* Everything that stands over the channel, with the row its image starts at (its feet on
+ * the water) and how far up it reaches. x0/x1 bound the DRAW, not the reflection: a caster
+ * paints its ramps and its bank posts too, and the water path is what keeps those out. */
+function riverCasters(){
+  return [
+    // the lane bridge, its three arches and its balustrade, straight down into the near
+    // water — the biggest surface in the picture and the closest to the eye
+    {x0:RIVER_X0 - 1.4, x1:RIVER_X1 + 1.4, y:LN_WALK_S, z:3.42, f:() => drawBridge(ctx)},
+    // the footbridge: the span, both rails, and the trestles standing in the river
+    {x0:DECK_X0 - 0.5, x1:DECK_X1 + 0.5, y:DECK_N, z:DECK_Z + 0.95, f:() => { drawDeckSpan(); drawDeckFront(); }},
+    // the wheel, turning the other way up
+    {x0:MILL_WHEEL.x - MILL_WHEEL.r - 0.7, x1:MILL_WHEEL.x + MILL_WHEEL.r + 0.7,
+     y:MILL_WHEEL.y, z:MILL_WHEEL.hub + MILL_WHEEL.r, f:drawMillWheel},
+    // the jetty and its four posts
+    {x0:JETTY.x - 3.1, x1:JETTY.x + 0.9, y:JETTY.y - 0.7, z:1.0, f:drawJetty},
+    // the willow: what of it clears its own island, which is the tip of the lean and not
+    // much else — a tree on an island at 41 degrees reflects mostly onto the island
+    {x0:WILLOW.x - 2.8, x1:WILLOW.x + 2.4, y:WILLOW.y, z:WILLOW_H * 1.35,
+     f:() => drawWillow({tname:'the willow on the eyot'})},
+  ];
+}
+function drawWaterMirror(t){
+  // a rained-on surface gives back less of what stands over it; rainFall is 0..1, so this
+  // is a range and never a switch, and there is no instant at which the pass stops running
+  const wf = windF(), fade = REFL_A * (1 - 0.5 * rainFall);
+  const cs = riverCasters(), boxes = [];
+  let ux0 = Infinity, uy0 = Infinity, ux1 = -Infinity, uy1 = -Infinity;
+  for (const c of cs){
+    const dT = c.y - 0.7, dB = c.y + c.z * LIFT + 0.5;
+    const l = project(c.x0, dB, 0)[0], r = project(c.x1, dB, 0)[0];
+    const yT = project(c.x0, dT, 0)[1], yB = project(c.x0, dB, 0)[1];
+    const b = {x:l - 8, y:yT - 3, w:r - l + 16, h:yB - yT + 6, wl:project(c.x0, c.y, 0)[1],
+               end:project(c.x0, c.y + REFL_FADE, 0)[1], f:c.f};
+    if (b.x + b.w < 0 || b.x > W || b.y + b.h < 0 || b.y > H) continue;   // exact: the canvas rect
+    boxes.push(b);
+    ux0 = Math.min(ux0, b.x); uy0 = Math.min(uy0, b.y);
+    ux1 = Math.max(ux1, b.x + b.w); uy1 = Math.max(uy1, b.y + b.h);
+  }
+  if (!boxes.length) return;
+  const cw = Math.round(W * DPR), ch = Math.round(H * DPR);
+  if (rcv.width !== cw || rcv.height !== ch){ rcv.width = cw; rcv.height = ch; }
+  rtx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  rtx.globalCompositeOperation = 'source-over';
+  rtx.clearRect(ux0 - 2, uy0 - 2, ux1 - ux0 + 4, uy1 - uy0 + 4);
+  const slide = t * FLOW_SPEED * riverRun();
+  for (const b of boxes){
+    rtx.save();
+    rtx.beginPath(); rtx.rect(b.x, b.y, b.w, b.h); rtx.clip();
+    const home = ctx;
+    ctx = rtx; setMirror(-1);
+    b.f();
+    setMirror(1); ctx = home;
+    // the image dies away with depth below the waterline
+    rtx.globalCompositeOperation = 'destination-in';
+    const g = rtx.createLinearGradient(0, b.wl, 0, b.end);
+    g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    rtx.fillStyle = g; rtx.fillRect(b.x, b.y, b.w, b.h);
+    // ...and the wind chops what is left into short bars, sliding downstream
+    if (wf > 0.04){
+      rtx.globalCompositeOperation = 'destination-out';
+      const bh = Math.max(1.1, cellH * 0.30), span = b.h + bh * 2;
+      const n = Math.ceil(b.h / (bh * 2.2)) + 2;
+      for (let k = 0; k < n; k++){
+        // each bar drifts downstream on its own share of the current and SHIVERS on the
+        // gust — the jitter is in the phase, not in x: a bar that spans the whole image
+        // moves nowhere by sliding sideways, and shifting it would only leave an
+        // unchopped sliver at whichever edge it came off
+        const j = (RM ? 0 : Math.sin(windT * 3.1 + k * 2.3)) * bh * 0.9 * wf;
+        const u = slide * (0.35 + hash(k, 67) * 0.5) + k * bh * 2.2 + hash(k, 71) * b.h + j;
+        const ph = ((u % span) + span) % span - bh;
+        rtx.fillStyle = 'rgba(0,0,0,' + (REFL_BAR * wf * (0.45 + hash(k, 73) * 0.55)).toFixed(3) + ')';
+        rtx.fillRect(b.x - 2, b.y + ph, b.w + 4, bh * (0.4 + hash(k, 79) * 0.9));
+      }
+    }
+    rtx.restore();
+  }
+  // the island is turf, not water: no image lies across it
+  rtx.globalCompositeOperation = 'destination-out';
+  rtx.fillStyle = '#000'; poly(rtx, eyotRing(1.08, 28)); rtx.fill();
+  rtx.globalCompositeOperation = 'source-over';
+  /* the water is taken at the COMPOSITE and not as a clip on the offscreen: a second
+   * clip per caster measured 0.689 ms at Plaza against this one's 0.528 (probes/refl-cost),
+   * because what it saves in rasterised area it spends re-intersecting an eight-point path
+   * five times a frame. */
+  ctx.save();
+  riverWaterPath(ctx); ctx.clip();
+  ctx.globalAlpha = fade;
+  ctx.drawImage(rcv, ux0 * DPR, uy0 * DPR, (ux1 - ux0) * DPR, (uy1 - uy0) * DPR,
+                ux0, uy0, ux1 - ux0, uy1 - uy0);
+  ctx.globalAlpha = 1;
+  ctx.restore();
 }
 /* ============ the night on the water ============ *
  * The lamps threw pools on the stone and nothing on the river; the moon lit a sky the

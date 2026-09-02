@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-03",
+  "updated": "2026-09-02",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
   "lastIteration": 144,
@@ -510,7 +510,8 @@
       "FOOTBRIDGE: DECK rows 30..32 at ALLEY_Y, drawDeckSpan/Front, boatUnderDeck, deckZAt, PARAPET_Z. WATERMILL x130-133: MILL_WHEEL/millSpin. EYOT (124.3,46): onEyot/eyotShore, drawEyot/drawWillow, nestF",
       "the far bank's day: spawnFarAgent/farOpen/farRate/FAR_CAP, FAR_GATE, a.jetty, overDeck's east door via DECK_SHARE; concert bandF/isBandDay/BAND_SLOTS; FIELD EDGE east of GW painted in the cache",
       "the evening ends: EVE_GONE/EVE_HURRY/EVE_BELL, eveOutH -> a.eveOut, goHome(a,maxH). Night water: drawRiverLights, RIVER_LAMPS, a.nightRail, roseLit",
-      "the PUNT, a FLEET of two (#141): PUNTS/PUNT_BERTHS, hull B berths and lands 0.95 west so the tracks are PARALLEL; punt{leg 0..4}, PUNT_MOOR/SHORE/STAND/LAND; puntFits -> OFFER {P,night,stand}; PUNT_LAMPS after applyLight"
+      "the PUNT, a FLEET of two (#141): PUNTS/PUNT_BERTHS, hull B berths and lands 0.95 west so the tracks are PARALLEL; punt{leg 0..4}, PUNT_MOOR/SHORE/STAND/LAND; puntFits -> OFFER {P,night,stand}; PUNT_LAMPS after applyLight",
+      "the town is IN the water (#145): drawWaterMirror + MIRROR/setMirror (project()'s z sign, LIFTM). Five casters mirrored by re-running their OWN draw - drawBridge, drawDeckSpan/Front, drawMillWheel, drawJetty, drawWillow - faded from each waterline, chopped into bars by windF, eyot punched out, composited under riverWaterPath. NOT the clock tower or the church: an image runs southward, so both land on dry land"
     ],
     "sky": [
       "day/night (55 s day), sun and moon arc, HAZE hills, a distant skyline, 120 stars, chimney smoke, a balloon; windowLit the ONE pane predicate + LIT[], relit AFTER applyLight",
@@ -590,6 +591,12 @@
     {
       "id": "c232",
       "note": "the NEAR EMBANKMENT under the lane is ~13% of a desktop frame and ~22% of a phone's, the closest surface to the eye, and reads as one ashlar texture. Measure it as its OWN luma class first - the WALL class (0.240) is the terraces' facades.",
+      "raisedBy": 144,
+      "seenBy": 0
+    },
+    {
+      "id": "c233",
+      "note": "the BOATS are the caster class #145 left out - the punts, the barge, the rowboat and a standing punter with a pole are still not in the water; and the rows-3-12 bank-smear baked into the ground cache is now the only un-live thing in it, stopping at row 12 for no recorded reason.",
       "raisedBy": 144,
       "seenBy": 0
     }

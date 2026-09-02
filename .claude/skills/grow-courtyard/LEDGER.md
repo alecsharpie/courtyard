@@ -40,15 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 137 — the lane's cap starts counting the lane (2026-09-03) [People & animals × Scale/World]
-
-**Brief:** b137 — presence per PLACE across whole days, sweep every cap, keep the knee. Full entry in LEDGER-archive.md.
-**Premise right, cause was a membership bug.** `laneCount` was a RESIDUAL — everyone eleven subtractions did not remove — so it annexed every population added after it (the LAWN's five kinds, the pickers, the sweeper, the loader). Summer day: **17.00 against a cap of 6.77, binding 100%** of daylight samples, of which the lane's own were 0.08. `spawnLaneAgent` — the source for the plaza, quay, far green, parapet and allotment detour too — had been dead in daylight for a year of iterations with no line changed and no gate fired.
-**Did.** `lane:true` on its object literal (every branch and `makeCompanion` inherit it); `laneCount = agents.filter(a => a.lane).length`. Then swept each cap alone, 3 seeds × 26 days (`probes/town-caps.mjs`): **capacity 6→10, laneCap 6.4→10, eastCap min(7,*6)→min(9,*8), FAR_CAP 3→5**; FAM_CAP kept 3, EVE_CAP kept 6, each with its reason at the site.
-**Gates:** census PASS (`people +99`, baseline re-pinned) · motion PASS · 0 POP · visual PASS 1600×950 + 390×844. Town presence **36.03 → 50.19**, every place up (courtyard +13% smallest, lane +90% largest); crowded pairs per person flat 0.068 → 0.078.
-**Verdict:** shipped
-**Surprise:** two caps refused to be raised, for opposite reasons — **FAM_CAP has three places and only two are reserved** (past 3 the slack is two families drawing as one shape, c218), and **laneCap has no knee at all** up to 19, because each destination is 5–6% of one roll so past 10 every marginal arrival is a lane walker (c219). The branch share is the cap beneath the cap.
-
 ## Iteration 138 — the plots get their tools (2026-09-03) [Cross street & allotments × New element]
 
 **Brief:** b138 — furniture for the seventeen plots, on ROOF_FURN's model, per plot off hash(plot). Full entry in LEDGER-archive.md.
@@ -116,3 +107,14 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **HEAD → shipped**, laneCap 10 → 16: plaza **+0.17 → +1.02**, quay −0.28 → +0.08, far bank −0.12 → +0.11; east half **9.73 → 10.96**, the lane holding. Plaza crowded pairs PER PERSON **0.237 → 0.153**.
 **Verdict:** shipped
 **Surprise:** the family half was right about the crowding and wrong about the cap. Reserving the stand does what the brief predicted (0.145–0.159 crowded pairs per person across `FAM_CAP` 3, 4, 5 and 7, against HEAD's 0.282 at 5). But the higher cap buys nobody: **5 and 7 return byte-identical numbers and bind 0.0%**. Past 4 the bound was never the places — it is `FAM_RATE` and the 9.5–17 window, which the source comment had guessed and nobody had tested. Kept the knee, `FAM_CAP` 3 → 4.
+
+## Iteration 145 — the town gets into its river (2026-09-03) [River & far bank × Deepen]
+
+**Brief:** b145 — the water held the moon and one baked bank-smear; put the standing things IN it. Full entry in LEDGER-archive.md.
+**Did.** One SIGN in `project()` — `MIRROR`, folded into `LIFTM = LIFT * MIRROR`. A negative z is the mirror, so **each caster's reflection is the caster's own draw** and nothing can drift out of register. `drawWaterMirror` runs five casters (bridge, footbridge, wheel, jetty, willow) into an offscreen at `setMirror(-1)`, fades each from its own waterline, chops the rest into bars on `FLOW_SPEED`/`windT`, punches the eyot, composites once under a water clip. Six `MIRROR > 0` guards stand down what is drawn ON the water: four shadows, the foam, the boat under the deck, the willow's `crowns` push.
+**Premise half-wrong:** the clock tower is at **x 63.8-66.2**, the church at **x 131-136**; an image runs *southward* out of its caster's feet, so both fall on dry land.
+**Gates:** census PASS, motion PASS, 0 POP day and night; `frame-diff.mjs` 0.362% moved, all the river column, courtyard/lane/mobile **byte-identical**; worst cost **+0.57 ms** (Plaza, windy).
+**HEAD -> cand.** `road-surface.mjs`: FRAME **WATER sd/mean 0.1737 -> 0.1772**, every other class 0.0%, **CACHE unchanged**. `refl-band.py`: hf/mean 0.065 calm -> 0.218 windy; the bridge's band moves **0.000 a frame calm, 1.4-2.0 windy**.
+**Verdict:** shipped
+**Surprise:** the pass is not its draws - they total **0.118 ms**, the other 0.41 is compositing, and both obvious savings made it worse (offscreen water clip 0.689, full-canvas `destination-in` **1.48**).
+**Law:** a cast image's TARGET SET is southward at this camera, and a caster's own draw is its image - put the sign in `project()`, and make every draw landing ON the plane read it.
