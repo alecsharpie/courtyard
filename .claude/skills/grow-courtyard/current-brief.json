@@ -25,7 +25,7 @@
   "avoid": "Do not site it on the POND or across `ALT_GATE`'s route — `spawnAllotAgent` enters and leaves there. Do not give it its own arrival source: the allotment band (.48) already feeds the block, and a second source is a different brief. Do not draw the glass as a live composite over the whole frame — the ground is a CACHE, so the fixed panes belong in it and only what changes is drawn live. Do not add a second new species 'while you are there'; one is the claim, and two makes the census delta unreadable.",
   "budgetMin": 75,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 116,
   "issued": "2026-09-02T01:37:42.713Z",
