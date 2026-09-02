@@ -2,7 +2,7 @@
   "updated": "2026-09-02",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 125,
+  "lastIteration": 126,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -280,7 +280,8 @@
       "connect": [
         50,
         59,
-        92
+        92,
+        126
       ],
       "new-ca": [
         103
@@ -473,7 +474,8 @@
       "FOUNTAIN (105.5,30) reading year, wind and frost (fountainPlay/fountainStand/fountainIce), paved roundel, four tree pits, PLAZA_BENCHES(2), QUAY_BENCHES(2), quay rail x112.9, crumbSpot, PIGEONS on their own roll and cap (b.plaza/plazaBirdSpot)",
       "pavingAt is the ONE paving predicate and a FALL-THROUGH — intersect the grid",
       "FAMILIES: spawnFamilyAgent/FAM_CAP/famOpen, a.fam + a.famKid via makeCompanion",
-      "paving AGES in TWO regions (plaza PATH, quay SIDE): moss[] + mossOwn[] mask, buildMossRegion/stepMossRegion/mossShelterAt/MOSS_WET/mossIn/scuffLitter; nameAt 'green in the joints'. Neither region has standing water"
+      "paving AGES in TWO regions (plaza PATH, quay SIDE): moss[] + mossOwn[] mask, buildMossRegion/stepMossRegion/mossShelterAt/MOSS_WET/mossIn/scuffLitter; nameAt 'green in the joints'. Neither region has standing water",
+      "the paving REMEMBERS: pavedAt() = lane band + cross columns + inPlaza + inQuay, so paveWear[] accrues on the roundel and the quay and PUDDLES build there (560 -> 792). trodStone() darkens walked stone in groundBase (PATH/SIDE/ROAD; PW_TROD/PW_SHOW/PW_FULL, exact at 0), so the desire line is a DRY-day thing and lives in the ground cache; decay is gated on paveWear itself, not the tile, plus a 6-cell sweep for quay rows 0-2. pudHollow[] feeds mossTop via MOSS_POOL — the joints that pool are the joints that go green"
     ],
     "river": [
       "river (13 cols), ONE rowboat, three-arch bridge, TOW_WALK 128.6 / FAR_WALK 133.2, church + clock tower + rose window, bandstand, ORCHARD, JETTY, PARK_GATE, a swan PAIR; byTheWater the ONE river-facing predicate, boatWatch its reader; riverRun/drawRiverFlow",
@@ -568,6 +570,12 @@
       "id": "c198",
       "note": "The near roof's lichen is bounded by roofMossF()'s season but its COVERAGE is not a fact about the slates: a colony is years old and should not thin in July. Splitting a per-slate colonisation mask from the seasonal green would let the roof carry a history the calendar does not erase.",
       "raisedBy": 124,
+      "seenBy": 0
+    },
+    {
+      "id": "c199",
+      "note": "drawPuddles culls nothing for the camera: at a quarter camera most of the 792 pools are off-frame. Cost of not culling is measured (probes/pool-cost.mjs): drawPuddles 0.221 -> 0.308 ms, wet frame +5.5%",
+      "raisedBy": 125,
       "seenBy": 0
     }
   ],

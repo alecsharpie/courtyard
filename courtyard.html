@@ -1377,7 +1377,15 @@ function pavedAt(x, y){
   // off the GRID, not off a naming box: pavingAt() is a fall-through and calls 845 cells
   // of river "quay" (#114). The lane band across the world, and the cross street above it.
   const t = grid[y * GW + x];
+  /* #126: and the two surfaces that already AGE. The plaza's roundel and the quay were
+   * the only paving in the town that remembered nothing at all — no feet, no water —
+   * while the joints between their setts have been going green since #103. These are
+   * the MOSS regions' own predicates, each already intersected with the grid, so the
+   * stone that holds water is exactly the stone that goes green: 730 + 130 cells, the
+   * same 860 mossOwn[] carries. One definition, not a second box. */
+  if (t === PATH) return inPlaza(x, y);          // the courtyard's paths are PATH too, and are not the plaza
   if (t !== ROAD && t !== SIDE) return false;
+  if (inQuay(x, y)) return true;                 // SIDE, but east of the cross street's columns
   return y >= LN_WALK_N ? y < LN_WALK_S : (x >= XS_W0 && x < XS_E1);
 }
 /* PUD_CUT is the share of the stone that sheds everything — most of it. What is left
@@ -1390,6 +1398,11 @@ const PUD_K = 173, PUD_DIP = 311, PUD_CUT = 0.66, PUD_SOFT = 0.22, PUD_TROD = 0.
 // hollows are still holding when the rest of the stone has stopped shining.
 const PUD_LO = 0.16, PUD_HI = 0.94;
 const PUDDLES = [];
+/* the fixed dish, per cell, so a consumer that is not the draw path can read it. The
+ * moss does: a joint that holds water after every shower is damp for hours the open
+ * stone is not, and that is a fact about the STONE, fixed at build like the shelter
+ * ceiling it feeds. 0 on every cell that never pools, which is most of them. */
+const pudHollow = new Float32Array(GW * WH);
 function buildPuddles(){
   for (let y = 0; y < LN_WALK_S; y++) for (let x = 0; x < GW; x++){
     if (!pavedAt(x, y)) continue;
@@ -1402,6 +1415,7 @@ function buildPuddles(){
     const h = 0.45 * hash(x, y + PUD_K) + 0.55 * hash(x >> 2, (y >> 1) + PUD_DIP);
     if (h <= PUD_CUT) continue;
     const hollow = (h - PUD_CUT) / (1 - PUD_CUT);
+    pudHollow[y * GW + x] = hollow;
     PUDDLES.push({ i: y * GW + x, hollow,
       cx: x + 0.18 + hash(x, y + 41) * 0.64,  cy: y + 0.22 + hash(x, y + 59) * 0.56,
       rx: 0.22 + hollow * 0.78 + hash(x, y + 71) * 0.30,
@@ -1682,7 +1696,8 @@ const MOSS_COLD = 0.26,      // below this warmth nothing grows and the frost te
       MOSS_CAP = 0.94, MOSS_BUCKET = 6,
       MOSS_FLOOR = 0.16,     // must stay UNDER 1/MOSS_BUCKET — see mossFloor()
       MOSS_SCUFF = 1.6,      // per second of a full-size walker standing on the cell
-      MOSS_WET = 0.55;       // #114: a WATER neighbour holds a joint damp on top of being an edge
+      MOSS_WET = 0.55,       // #114: a WATER neighbour holds a joint damp on top of being an edge
+      MOSS_POOL = 0.45;      // #126: what a full hollow is worth in shelter's own units
 function inPlaza(x, y){ return x >= PLAZA_X0 && x < PLAZA_X1 && grid[y * GW + x] === PATH; }
 /* #114: the quay is the SECOND surface that ages, and it is the one place the town most
  * obviously stands still — a stone edge against moving water, identical in February and
@@ -1746,7 +1761,15 @@ function buildMossRegion(x0, x1, y0, y1, own){
      * rather than as planting. The base is set just above 1/MOSS_BUCKET on purpose:
      * under it the open square could never draw at all and feet would be decorative,
      * because the ceiling would already be doing their work. */
-    mossTop[i] = MOSS_CAP * (0.22 + 0.78 * mossShel[i]) * (0.42 + 0.58 * hash(x, y + 337));
+    /* #126: and a joint that HOLDS WATER is damp for hours the open stone is not, so it
+     * enters the ceiling the way shelter does. Both these regions now pool (pavedAt
+     * reaches them), and mossShelterAt already counts a WATER neighbour MOSS_WET extra
+     * for exactly this reason — the river keeps the rail column green. This is the same
+     * claim about water that STANDS rather than water that runs past. It is geometry,
+     * fixed at build, and it is textured rather than constant along an edge because the
+     * hollow is buildPuddles' own two-grain hash: the green follows the low stretches. */
+    const damp = clamp(mossShel[i] + MOSS_POOL * pudHollow[i], 0, 1);
+    mossTop[i] = MOSS_CAP * (0.22 + 0.78 * damp) * (0.42 + 0.58 * hash(x, y + 337));
     // the square does not open at day 0 scrubbed: it starts wherever a spring plaza
     // would be. hash, not R(), so ?seed= owns it and a reload is the same square
     moss[i] = mossTop[i] * 0.45 * hash(x, y + 311);
@@ -2284,13 +2307,24 @@ function caTick(){
         const crowd = nm > 5 ? 0.03 : 0;
         if (R() < (0.0025 + crowd + bAge[i] * 0.0004) * die){ bSp[i] = 0; bSt[i] = 0; bAge[i] = 0; }
       }
-    } else if ((t === ROAD || t === SIDE) && paveWear[i] > 0){
+    } else if (paveWear[i] > 0){
+      // #126: the test is the WEAR, not the tile. paveWear only ever accrues where
+      // pavedAt() says so, and that now includes the plaza's PATH — gated on ROAD||SIDE
+      // the roundel's lines would have accrued forever and never faded. Identical on
+      // HEAD's cells: BED/CBED is taken above and nothing else can carry a value.
       paveWear[i] -= paveWear[i] * Math.min(1, PW_DECAY * boost);   // rain scours it out faster, as it does the wear on the grass
     } else if (t === GRASS){
       wear[i] = Math.max(0, wear[i] - 0.0035 * boost * vig);
       if (!daisy[i] && wear[i] < 0.08 && R() < 0.00012 * (0.2 + m) * vig) daisy[i] = 1 + (R() * 3 | 0);
       if (daisy[i] && (wear[i] > 0.3 || R() < 0.004 * die)) daisy[i] = 0;
     }
+  }
+  // the quay starts at row 0 and the sweep above starts at row 3. Six cells, decayed
+  // here rather than by moving the loop's start — three new rows of R() draws would
+  // reshuffle the whole seeded world for a strip of stone that grows nothing.
+  for (let y = 0; y < 3; y++) for (let x = QUAY_X0; x < RIVER_X0; x++){
+    const i = y * GW + x;
+    if (paveWear[i] > 0) paveWear[i] -= paveWear[i] * Math.min(1, PW_DECAY * boost);
   }
   wearDirty = true;   // slow accrual, like the feet: the tick throttles the repaint (acts stay immediate)
 }
@@ -6189,10 +6223,32 @@ function drawLitter(g, x, y, lt){                            // hash-placed leav
  * Paving only: grass, beds and the plots are the town's ground, and the rain reads
  * differently on the places people have laid than on the ground they have not. */
 function wetCol(c, hv){ return wetPainted > 0 ? mix(c, '#3f4650', wetPainted * (0.30 + 0.12 * hv)) : c; }
+/* #126: what feet do to stone. paveWear[] has existed since #122 and the ONLY thing that
+ * ever read it was drawPuddles, so the town's desire lines were a wet-day phenomenon —
+ * on a dry day the busiest crossing in the lane looked exactly like the far footway,
+ * even though the grass twenty metres away has darkened under its own wear[] since the
+ * first iteration. This is that same mix on the other surface, and it belongs in the
+ * GROUND CACHE for the same reason: it changes over days, not frames, so it is drawn
+ * once at whatever cadence caTick's wearDirty already sets and costs nothing per frame.
+ *
+ * The tone is grime, not earth. Grass wears through to soil, so wear[] mixes to
+ * '#a4906a'; stone does not wear through — it polishes, and the joints load with dirt,
+ * so a walked sett goes darker and slightly greyer while staying stone.
+ * PW_FULL is measured, not chosen: six days of feet put the 99th percentile of the
+ * paved town at 0.26..0.43 and the busiest single cell at 0.65, so a ramp normalised at
+ * 1.0 would spend nine tenths of its range on values the town cannot reach. At 0.45 the
+ * line is full where a line actually is. Exactly HEAD at paveWear 0, which is every
+ * cell of the courtyard's own paths, the roadway's crown and the far footways. */
+const PW_TROD = '#7c7568', PW_SHOW = 0.62, PW_FULL = 0.45;
+function trodStone(c, i){
+  const w = paveWear[i];
+  return w > 0.01 ? mix(c, PW_TROD, PW_SHOW * Math.pow(Math.min(1, w / PW_FULL), 0.65)) : c;
+}
 function groundBase(x, y, t, hv, m){
   if (t === PATH){
-    const p = wetCol(mix('#c3b18c', '#cfbd98', hv), hv);
-    const mo = moss[y * GW + x];                        // #103: 0 everywhere but the plaza, and the mix is exact at 0
+    const i = y * GW + x;
+    const p = trodStone(wetCol(mix('#c3b18c', '#cfbd98', hv), hv), i);   // #126: walked first, then greened — feet scuff the moss they cross
+    const mo = moss[i];                                 // #103: 0 everywhere but the plaza, and the mix is exact at 0
     return mo > 0 ? mix(p, '#74804e', 0.38 * mo) : p;
   }
   if (t === SLOT) return mix('#9d8f73', '#ab9d80', hv);
@@ -6208,7 +6264,8 @@ function groundBase(x, y, t, hv, m){
   if (t === BED || t === CBED) return turned[y * GW + x] ? mix('#31261c', '#3e3022', hv)   // dug over: darker, colder; furrowed in drawGround
                                                           : mix('#5c4832', '#6b563c', hv);
   if (t === SIDE){                                    // #114: the quay ages; moss is 0 on every other footway and the mix is exact at 0
-    const p = wetCol(mix('#b3a88f', '#bfb49b', hv), hv), mo = moss[y * GW + x];
+    const i = y * GW + x;
+    const p = trodStone(wetCol(mix('#b3a88f', '#bfb49b', hv), hv), i), mo = moss[i];
     return mo > 0 ? mix(p, '#74804e', 0.38 * mo) : p;   // the SAME tint the plaza takes — one definition of what moss does to a colour
   }
   if (t === EYOT){                                     // the island's turf: rougher and paler than the green, shingle where it meets the water
@@ -6217,7 +6274,7 @@ function groundBase(x, y, t, hv, m){
     const turf = mix('#9db06e', '#7d9a56', 0.5 + 0.5 * hash(x, y + 5) - 0.25 * (1 - m));
     return shore ? mix(turf, mix('#b9ae93', '#cbc2ac', hv), 0.35 + 0.25 * shore) : turf;
   }
-  if (t === ROAD) return wetCol(mix('#87806f', '#8d8675', hv * 0.5), hv);
+  if (t === ROAD) return trodStone(wetCol(mix('#87806f', '#8d8675', hv * 0.5), hv), y * GW + x);
   if (t === WATER){
     if (x >= RIVER_X0 - 1 && x <= RIVER_X1){
       // the deep channel is WIDER when the river runs high — the same gradient, pushed

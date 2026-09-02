@@ -40,15 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 118 — each bird band counts its own: the lawn and the lane get their three back (2026-09-02) [People × Deepen]
-
-**Brief:** b118 — the ground band's cap read `birds.filter(b => !b.plaza).length < 3`, so #106's roof birds and the belfry's flush filled it. Premise re-measured on HEAD first (`probes/ground-birds.mjs`, 12 seeds × 6 days, 7,744 daylight dry samples): mean present **0.05** ground vs 2.67 roof, 1.24 plaza; gate open 15.1%, and — the sharpest number — **100% of shut samples were shut on birds of another band**. Not throttled, evicted.
-**Did.** One predicate. The band's spawn carries `ground:true` and the cap counts `b.ground`, the way the other two already read themselves. The crumb birds a tap scatters are tagged too — they *were* members under `!b.plaza`, so tagging keeps the old behaviour instead of quietly handing the band a second budget. No new source, no new draw site; +9 lines, all comment.
-**Re-priced, not inherited.** Same probe, sweeping the cap once the count meant what it says: **0.33 at 2 · 0.41 at 3 · 0.39 at 4 · 0.40 at 5**. The knee is exactly 3, because the limiter is now the **rate** `0.06*(0.5+m)`. Shipped: ground **0.05 → 0.41** mean, **4.6% → 34.0%** of daylight samples with a bird on lawn or lane; roof and plaza sit in reshuffle noise.
-**Gates:** census PASS · shots clean plus a pinned instant with three ground birds · motion FAIL on one flag, `day/cart` 0→1 jumps, replayed on HEAD (`probes/cart-steps.mjs`): both builds median step 1.733. A cart trotting, not a teleport.
-**Verdict:** shipped
-**Surprise:** the cap was never the throttle it looked like — fixing membership moved the binding constraint to the rate in one step, and the whole 2..5 sweep lands inside 0.08 of a bird. A brief that had only raised the *number* would have measured nothing and concluded the band was fine.
-
 ## Iteration 119 — the far bank gets an edge: a hedge, a gate standing open, and a track worn to it (2026-09-02) [River & far bank × New element]
 
 **Brief:** b119 — `FAR_GATE` is a bare world edge; give the far bank's morning something to come *through*.
@@ -114,3 +105,13 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped
 **Surprise:** the APRON — the pitch running under us off row WH — is **62 px of a 119 px band**, more than the nine rows of roof above it. The first build slated the roof, measured +0 below f=0.52, and had only moved the boarding down.
 **Law:** absolute luma sd under a compositing wash is not a property of what you drew. `nearShadow` reaches ~0.6 alpha by the sill and scales contrast with luma, so sd MUST fall toward the viewer whatever the surface is; grade a foreground on **sd/mean** — flat at 0.18-0.23 here against HEAD's collapse from 0.24 to 0.06.
+
+## Iteration 126 — the plaza and the quay start remembering: a dry desire line, and stone that holds water (2026-09-02) [Plaza & quay × Connect]
+
+**Brief:** b126 — `paveWear[]` is read only by `drawPuddles`, and `pavedAt()` never reaches the roundel or the quay. Premise held: feet cross 130/730 roundel and 91/130 quay cells in 6 days (`probes/pave-wear.mjs`), all of it unrecorded.
+**Did.** (a) `pavedAt` widens onto `inPlaza`/`inQuay`, the **moss regions' own predicates**, so the stone that holds water is exactly the 860 cells `mossOwn[]` carries. (b) `trodStone()` in `groundBase`: `wear[]`'s idiom on the other surface, in the ground CACHE, exact at 0; `PW_FULL 0.45` is the measured p99. (c) the decay test is the WEAR, not the tile, plus a 6-cell sweep for quay rows 0–2. (d) `pudHollow[]` enters `mossTop` at `MOSS_POOL 0.45`.
+**Gates:** census PASS, only `mossy 2298 → 2646` · motion PASS · filmstrip 0 POP · shots clean · perf +0.0% (vsync-capped, blind).
+**Measured** vs HEAD-vs-HEAD controls: quay **51.4%** of its pixels changed dry (control 0%), plaza 6.7% (0.22%) dry, 16.4% wet; pools 560 → 792; over a year the pooling joints were LESS mossy than open stone on HEAD and are more so now — a sign flip — while cells that never pool moved +0.3%. Wet frame +5.5%.
+**Verdict:** shipped
+**Surprise:** the two halves were one line. Widening `pavedAt` bought the desire line *and* the water in one edit — what was missing was never the reader; `paveWear` had no way to accrue on a `PATH` cell at all. Only the DECAY needed saying twice: gated on the tile it would have pinned the lines forever.
+**Law:** a `?pause`d page still runs rAF, so a canvas read is unpinned even after a synchronous draw — one run of the diff gate reported 18.7% of "elsewhere" changed where three repeats since read 0.84%. Carry a SIM FINGERPRINT (clock, wind, cloud, agent positions) through any before/after frame comparison and refuse it unless it says NONE.

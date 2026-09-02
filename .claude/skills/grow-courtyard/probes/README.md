@@ -68,3 +68,21 @@ Probes resolve the artifact as `../../../../courtyard.html`. (moved at #11)
   share of band pixels that changed per step: HEAD 99%, a fixed sill 0%. `-modes` reduced motion,
   rain and snow. `-containment` the wide frame against HEAD, bounding box and worst Δ.
   `-camera-shots` a bottom-band crop per quarter per framing.
+
+- `pave-*.mjs` / `moss-pool.mjs` / `pool-cost.mjs` (#126) — the paving's memory.
+  `pave-wear` the PREMISE: cell counts off the grid per region, foot-presence per cell over
+  N days (the plaza's desire line exists on ~120 of its 730 cells, the quay's on ~90 of 130),
+  and the paveWear distribution where it already accrues — that p99 is where `PW_FULL` came
+  from. `pave-line` the RAMP alone, with no camera in the way: the RGB distance `groundBase()`
+  moves each paved cell against the same cell drawn with its wear zeroed, and `--show/--full`
+  rewrite the two consts so it sweeps. `pave-diff` the shipping-size gate, after `quay-diff`
+  (#114): HEAD's frame carried into the candidate page and attributed by the page's own
+  `unproject()` to plaza / quay / lane / other. It also prints a SIM FINGERPRINT (clock, wind,
+  cloud, agent-position sum, blooms) — a `?pause`d page still runs rAF, and one run of this
+  caught a frame read mid-flight and reported 18.7% of "elsewhere" changed where three
+  repeats since read 0.84%. Trust the number only when the fingerprint says NONE.
+  `moss-pool` walks a whole year and splits the 860 mossy cells by whether they pool, because
+  a CEILING only binds in the growing season and a summer instant sees nothing. `pool-cost`
+  the budget: `frame-cost.mjs` averages a whole sim-day and a day is mostly DRY, so
+  `drawPuddles` returns on line 1 for most of it and the day mean cannot see a pool count at
+  all. This pins the weather wet and times `drawScene` and `drawPuddles` alone, interleaved.
