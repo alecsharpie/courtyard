@@ -20,7 +20,7 @@
   "avoid": "Do not simply gate SOUNDS on `inView` - a bell heard from across the town is exactly the class that should reach a viewer who cannot see the tower. The lever is the strike's PRICE against everything else in the queue, not its visibility. Do not add a new ambient place to dilute it; that pays for the fix with volume.",
   "budgetMin": 30,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 142,
   "issued": "2026-09-02T20:37:46.679Z",
