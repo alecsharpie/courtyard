@@ -16,7 +16,7 @@
   "avoid": "Do not add a new entry to OFFERS[] — this is the existing touch offer doing its job, and a second offer waits 19.5 real seconds behind the queue. Keep the hit test on the same predicate everything else uses; do not give birds their own parallel path.",
   "budgetMin": 25,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 113,
   "issued": "2026-09-02T00:28:46.852Z",
