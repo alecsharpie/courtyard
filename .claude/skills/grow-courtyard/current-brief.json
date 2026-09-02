@@ -19,7 +19,7 @@
   "avoid": "Do not touch eaveBand itself - every generic consumer reads it; give the two towers their own entry into shTop[]. Watch the northward veto from #140: a volume lifts ~1.15 rows a cell UP the frame, so an un-vetoed throw paints the caster's own roof, and a tower is exactly where that goes wrong worst. Keep the merged-run fill - overlapping subpaths wind to 2 and double-darken.",
   "budgetMin": 45,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 146,
   "issued": "2026-09-02T22:21:22.662Z",
