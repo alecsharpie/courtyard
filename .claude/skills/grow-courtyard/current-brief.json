@@ -16,7 +16,7 @@
   "avoid": "Do not give the ground birds a new source: the band exists, it is only miscounted. This changes how often the roll is reached, so it reshuffles the seeded world — read the census for COLLAPSE, not delta, and replay any stray motion gate on HEAD before believing it.",
   "budgetMin": 30,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 118,
   "issued": "2026-09-02T02:26:19.306Z",
