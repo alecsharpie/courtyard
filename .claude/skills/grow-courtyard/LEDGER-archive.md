@@ -4296,3 +4296,12 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Law:** a light drawn in the item pass is slate by midnight — anything meant to READ as a flame must register its point and be repainted after `applyLight`, and "it is drawn" is not "it can be seen".
 **Cue:** `puntLampF()`'s lantern is drawn before `applyLight` and never registered, so the last punt's light does not read at night. `BARGE_LAMP` is the two-line pattern to copy.
 **Cue:** on a phone the Wide camera does not reach the river at all — 0 of the barge's pixels, and `inView` correctly says none of her lines. Everything east of the plaza is Plaza-quarter-only on 390×844.
+## Iteration 129 — the gardener gets a schedule, and a walk that is bounded at both ends (2026-09-02) [Courtyard & garden × Deepen]
+
+**Brief:** b129 — give the gardener its own source so someone works the beds on most growing mornings.
+**Premise corrected, twice.** (a) The gardener is not short of ARRIVALS: HEAD lands 1.17 per growing day. (b) The 0.65 the brief priced off is `inWall`, and 13 of 204 EDGE_BEDS sit OUTSIDE `wallR()`'s square — the axis beds a near-door walk picks. By POSITION HEAD's gardener is in the beds 0.06 of a growing morning: not rare, never there while it matters. The limiter was the WALK, not the supply.
+**Did.** `spawnLawnAgent(want)` takes a forced kind (fits unchanged — a schedule skips the lottery, not the pricing). `gardenDue()` on the bonfire's model: no roll, `hash(gardenIdx(), GARD_SALT) < GARD_K` over the beds' own season, off `gardenIdx()` because `day` rolls at hour 6. Outside `LAWN_CAP`. `gardenFits()` bounds the pre-dawn walk at BOTH ends; the bed is drawn from the near third by walk; `a.dawnWalk` licences the climb past `lawnGone()`.
+**Gates:** census/perf/filmstrip/visual PASS · motion FAIL dismissed on a HEAD control. In the beds on a growing morning 0.06 → 0.22 (3.7×), 0.08 → 0.26 when the lawn is BUSY, nothing displaced.
+**Verdict:** shipped
+**Surprise:** every lever was already in the source one level up, unused. #108 fixed the gardener's DOOR and left the BED a flat `pick()` over all 204; the dawn start made that WORSE, because with the whole day ahead every bed passes `lawnFits` — the priced walk went 5.8 h → 9.2 h, all spent crossing the town. `lawnFits` bounds the LANDING only, which is all a visitor needs because none sets out before the lawn opens. Ranking beds by walk and bounding both ends turned 0.06 into 0.22; the schedule alone gave 0.08.
+

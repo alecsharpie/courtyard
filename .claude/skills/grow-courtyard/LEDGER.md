@@ -40,15 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 129 — the gardener gets a schedule, and a walk that is bounded at both ends (2026-09-02) [Courtyard & garden × Deepen]
-
-**Brief:** b129 — give the gardener its own source so someone works the beds on most growing mornings.
-**Premise corrected, twice.** (a) The gardener is not short of ARRIVALS: HEAD lands 1.17 per growing day. (b) The 0.65 the brief priced off is `inWall`, and 13 of 204 EDGE_BEDS sit OUTSIDE `wallR()`'s square — the axis beds a near-door walk picks. By POSITION HEAD's gardener is in the beds 0.06 of a growing morning: not rare, never there while it matters. The limiter was the WALK, not the supply.
-**Did.** `spawnLawnAgent(want)` takes a forced kind (fits unchanged — a schedule skips the lottery, not the pricing). `gardenDue()` on the bonfire's model: no roll, `hash(gardenIdx(), GARD_SALT) < GARD_K` over the beds' own season, off `gardenIdx()` because `day` rolls at hour 6. Outside `LAWN_CAP`. `gardenFits()` bounds the pre-dawn walk at BOTH ends; the bed is drawn from the near third by walk; `a.dawnWalk` licences the climb past `lawnGone()`.
-**Gates:** census/perf/filmstrip/visual PASS · motion FAIL dismissed on a HEAD control. In the beds on a growing morning 0.06 → 0.22 (3.7×), 0.08 → 0.26 when the lawn is BUSY, nothing displaced.
-**Verdict:** shipped
-**Surprise:** every lever was already in the source one level up, unused. #108 fixed the gardener's DOOR and left the BED a flat `pick()` over all 204; the dawn start made that WORSE, because with the whole day ahead every bed passes `lawnFits` — the priced walk went 5.8 h → 9.2 h, all spent crossing the town. `lawnFits` bounds the LANDING only, which is all a visitor needs because none sets out before the lawn opens. Ranking beds by walk and bounding both ends turned 0.06 into 0.22; the schedule alone gave 0.08.
-
 ## Iteration 130 — the town gets houses, and the roofline stops being a ruled line (2026-09-02) [Roofs & skyline × Scale/World]
 
 **Brief:** b130 — a house index per terrace, an eave per house, and what the step implies.
@@ -122,3 +113,16 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Surprise:** the horn was the easy half; the LAMP was the trap. Drawn in the item pass it is invisible at ten o'clock — `applyLight`'s multiply had made it slate — and the rowboat only escapes it by registering `BOAT_LAMP` for the pass after. The punt does not, so the last punt has carried an unlit lantern since #131. Second: at the **Plaza** quarter, the camera that frames the quay, the arrival line was the one of four never heard — at row 0.6 she is inside Wide but above Plaza's box (y0 2). Moved to row 5.0, all four land at both.
 **Budget:** `context-budget.mjs` says **OVER** — 49.5 KB against the 46 KB cap (48.0 before this pass; state.json's inventory is 11.3 of its 9.5 KB). Distil next.
 **Law:** a light drawn in the item pass is slate by midnight — anything meant to READ as a flame must register its point and be repainted after `applyLight`; "it is drawn" is not "it can be seen".
+
+## Iteration 137 — the lane's cap starts counting the lane (2026-09-03) [People & animals × Scale/World]
+
+**Brief:** b137 — presence per PLACE across whole days, sweep every cap, keep the knee.
+**Premise right, cause was a membership bug.** `laneCount` was a RESIDUAL — everyone eleven subtractions did not remove — so it annexed every population added after it: the LAWN's five kinds (#95), the allotments' pickers, the sweeper, the loader. Summer day: **17.00 against a cap of 6.77, binding 100%** of daylight samples, of which the lane's own were **0.08**. `spawnLaneAgent` — the source for the plaza, quay, far green, parapet and allotment detour as well as the lane — had been dead in daylight for a year of iterations, no line changed, no gate fired.
+**Did.** `lane:true` on its object literal (every branch and `makeCompanion` inherit it); `laneCount = agents.filter(a => a.lane).length`. Then swept each cap alone, 3 seeds x 26 days: **capacity 6->10**, **laneCap 6.4->10**, **eastCap min(7,*6)->min(9,*8)**, **FAR_CAP 3->5**; **FAM_CAP kept 3, EVE_CAP kept 6**, each with its reason written at the site.
+**Gates:** census PASS (`people +99`, baseline re-pinned) · motion PASS · filmstrip 0 POP · visual PASS 1600x950 + 390x844.
+**HEAD -> cand** (daylight dry): town **36.03 -> 50.19**, and every place up — the smallest gain is the courtyard's +13%, the largest the lane's +90%. Same pinned instant, same ticker line: **51 -> 60**. Crowded pairs 0.068 -> 0.078 *per person* — flat.
+**Verdict:** shipped
+**Surprise:** two caps refused to be raised, for opposite reasons. **FAM_CAP has three places and only two are reserved** — `famBench` locks a bench, the 1.6-cell fountain strip locks nothing — so 5 saturated the count at 2.41 while doubling plaza crowding 0.93 -> 1.66: past 3 the slack is not presence, it is two families drawing as one shape. **laneCap has no knee at all** up to 19 — it buys people linearly, but each destination is 5-6% of one roll, so past 10 every marginal arrival is a lane walker and the plaza stays flat (4.84 -> 4.68 -> 4.71). The branch share is the cap beneath the cap.
+**Budget:** `context-budget.mjs` **OVER**, 49.4 KB before this pass, 52.5 after. Distil.
+**Law:** a cap must count a membership it DEFINES; a residual annexes every later population and the original starves silently.
+**Law:** a rate and a stock move opposite ways under one change — census `harvested -303`/`produce -83.8` looked like the allotments starving, but `probes/allot-source.mjs` says the lane detour is 6 of 76 arrivals and `harvestPlot` calls went UP 76->79. Count the CALLS before believing a census field about a stock.

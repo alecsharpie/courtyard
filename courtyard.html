@@ -3587,7 +3587,13 @@ function spawnLaneAgent(room){
   const fromW = R() < 0.5;
   const yLine = R() < 0.6 ? LANE_N_Y : LANE_S_Y;
   const a = {
-    kind:'lanewalker', street:true,
+    /* `lane:true` is what laneCount counts (#137). It is set HERE, on the object
+     * literal, so every branch below inherits it — the browser, the cafe table, the
+     * lane bench, the busker, the plot the walker detours into, the plaza, the quay,
+     * the green, the parapet, the cyclist, the dog — and so does a companion, which
+     * makeCompanion builds by Object.assign off the leader. The lane's roll is the
+     * source for the whole east half of the town, so this one flag IS its budget. */
+    kind:'lanewalker', street:true, lane:true,
     x: fromW ? -2.5 : GW + 2.5, y: yLine + (R() - 0.5),
     wp:[], i:0, speed:1.6 + R() * 0.8, state:'walk', timer:0,
     shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9, wary:R(),
@@ -4263,7 +4269,12 @@ function spawnEastAgent(nightRail, room){
  */
 const FAR_GATE = [GW + 2, 31];        // in from the east, off-frame: the field side of the church green, on the jetty's own row
 const FAR_SPINE = 137.2;              // the far bank's own north–south line, east of church (x<136), mill (x<133) and the orchard's east row
-const FAR_CAP = 3, FAR_RATE = 0.5, FAR_MARGIN = 1.25;
+/* #137: FAR_CAP 3 -> 5. It was the tightest cap in the town — at 3 it bound 76% of the
+ * daylit samples its window was open for. Swept 3/4/5/7: the far bank holds 4.31 / 5.06 /
+ * 5.91 / 6.91 people and the cap binds 76 / 72 / 56 / 33%. 7 still buys presence, but the
+ * far bank is the deepest thing in the frame and 5 is where the binding breaks; the sub-cap
+ * that takes the slack past it is the crossing itself — ONE punt hull at 5-7 h a trip. */
+const FAR_CAP = 5, FAR_RATE = 0.5, FAR_MARGIN = 1.25;
 const FAR_MILL = [132.6, 25.1];       // at the mill's south door — drawFrontDoor sits at MILL.x1 - 1, the wall ends at MILL.y1
 const FAR_CHURCH = [133.6, 17.8];     // under the church front, clear of the nave (CHURCH.ny1)
 const FAR_JETTY = [JETTY.x - 1.3, JETTY.y];
@@ -4377,6 +4388,13 @@ function spawnFarAgent(room){
  * plaza's three places — two benches and the fountain — released as a family starts
  * walking out (famCount), with a roll of 0.5/s so it fills by 10:30. A parent takes a
  * bench no other family holds (famBench), or the fountain: two on one seat draw as one.
+ * #137 swept it to 4, 5 and 7 and KEPT 3. It is a cap over PLACE-HOLDERS, and only two of
+ * its three places are reserved: famBench locks a bench, the fountain strip is 1.6 cells
+ * wide and locks nothing. So the count saturates at 2.41 by 5 (7 gives 2.40 and binds
+ * 1.3% — the rate and the window are what bind past here, not the cap), while the pairs of
+ * unrelated people standing inside PAIR_MIN of each other in the plaza go 0.93 -> 1.66.
+ * Past 3 the slack is not presence, it is two families drawing as one shape at the basin.
+ * Reserving the fountain stand the way famBench reserves a bench is what would move it.
  * The quay's north end was tried as a second gate and is 40 cells from the roundel —
  * a 16 h walk that fits the window never and left a parent on the quay at 03:00 — so
  * families come and go by the alley alone. And a walk is priced at its CHOICE: nobody
@@ -4495,6 +4513,9 @@ function plazaBirdSpot(){
  * stander's stretch (5..11), the deck's OWN lean posts on its upstream rail, the near
  * quay bench, and from the park gate the far bench and the towpath by the steps —
  * each `taken` so two never render as one shape (the 0.9-cell law). */
+/* #137 swept EVE_CAP too and left it: over 3 seeds x 26 days it binds 0.0% of the samples
+ * its window is open for — the count reaches 5 on 4% of them and 6 never. The warm evening
+ * is bounded by eveOpen()'s weather, not by its ceiling, so this number is already free. */
 const EVE_CAP = 6, EVE_RATE = 0.8, EVE_WARM = 0.6, EVE_WET = 0.3, EVE_WIND = 0.5, EVE_LEAD = 2.5, EVE_SPAN = 3, EVE_STAND = 1;
 /* ---- and the hour it is OVER (#101) ----
  * #79 priced the walk IN and nothing else, so the evening ended at eveEnd() and the
@@ -11998,19 +12019,26 @@ function simStep(sdt, dt){
 
   const courtyardCount = agents.filter(a => !a.street && !a.lawn).length;   // the ring's transit; the lawn's own people (#95) are under LAWN_CAP
   const lawnNow = lawnCount();
-  // the audience is subtracted from BOTH of the budgets it would otherwise be spent
-  // out of: eastCap, which it stands in the middle of, and laneCap, which is the
-  // residual of the other three and would silently absorb it.
+  // the audience stands in the middle of eastCap and is subtracted from it; it has
+  // never been a share of the lane's, which now counts a membership of its own.
   const bandCount = agents.filter(a => a.band).length;
   const eastCount = agents.filter(a => a.east && !a.band).length;
-  // the evening's custom comes off its own budget for the same reason the audience does
   const tapNow = tapCount();
-  const homeNow = homeCount();                   // the night's own arrivals: never a share of laneCap
-  const eveNow = eveCount(), eveAll = eveNow + stayCount();   // the warm evening's own arrivals (#79): likewise; the deck's stayers (#85) are off eastCount already
-  const cafeAll = agents.filter(a => a.cafe).length, cafeNow = cafeCount();   // the cafe's own custom (#74)
-  const famNow = famCount(), famAll = agents.filter(a => a.fam).length;   // the plaza's families (#92): their own source, parent + child off the residual
-  const farNow = farCount();                     // the far bank's morning (#107): its own source, off the residual like the round
-  const laneCount = agents.length - courtyardCount - eastCount - bandCount - tapNow - homeNow - cafeAll - eveAll - famAll - roundCount() - farNow;   // the morning round (#98) is its own source
+  const homeNow = homeCount();                   // the night's own arrivals (#77)
+  const eveNow = eveCount();                     // the warm evening's own arrivals (#79)
+  const cafeNow = cafeCount();                   // the cafe's own custom (#74)
+  const famNow = famCount();                     // the plaza's families (#92): their own source
+  const farNow = farCount();                     // the far bank's morning (#107): its own source, like the round
+  /* #137: laneCount was a RESIDUAL — everyone the ten subtractions above did not
+   * remove — and so it counted every population added after it that nobody thought to
+   * subtract. By seed 7/42/1234 x 26 days it was the courtyard LAWN's five kinds
+   * (#95), the allotments' own pickers, the sweeper and the cart's loader: on a summer
+   * day it read 17.00 against a cap of 6.77 and BOUND 100% of daylight samples, of
+   * which the lane's own people were 0.08. The lane's roll had been dead for a year of
+   * iterations without a line changing, and it is the source for the plaza, the quay,
+   * the far green, the parapet and the allotment detour as well as the lane itself.
+   * A cap must count a MEMBERSHIP it defines, so the lane counts its own flag. */
+  const laneCount = agents.filter(a => a.lane).length;
   /* Each cap is its old expression with the multiply-out done, so the fixed share is
    * visible as a number and the year rides the daylight term alone (see yearBusy).
    * At the anchor, warmth 0.5, all three are algebraically identical to what they
@@ -12019,14 +12047,29 @@ function simStep(sdt, dt){
   // #95: the five staying kinds left this roll for their own source, so the daylight
   // term is the old 9 × the ~0.64 of the roll that was transit — the ring holds what it
   // held; at daylight 0 it is identical in every season (the night floor).
-  const capacity = 2 + Math.round(maturity() * (3 + 6 * daylight * yearBusy(EX_COURT)));
-  const laneCap = 1 + Math.round(maturity() * (1.6 + 6.4 * daylight * yearBusy(EX_LANE)));
+  /* #137 swept the three expression caps one at a time, 3 seeds x 26 days, measuring
+   * PRESENCE PER PLACE rather than a per-instant crop. Only the DAYLIGHT headroom moved;
+   * the fixed term is untouched, so at daylight 0 all three are the number they have
+   * always been (5 / 3 / 1) and the night floor is bit-for-bit the old one.
+   *   capacity 6 -> 10 (peak 11 -> 15): the courtyard holds 10.36 -> 11.40 people over a
+   *     dry daylit day and the cap binds 62% -> 55% of them. 13 was swept too and buys
+   *     +0.21 for a ceiling of 18, so the knee is here.
+   *   laneCap 6.4 -> 10 (peak 9 -> 13): this one has NO knee in the swept range — 13 and
+   *     16 keep buying people linearly. What stops at 10 is WHO they are: the lane's roll
+   *     spends 5-6% on each of the plaza, the quay, the green and the parapet, so past
+   *     this the marginal arrival is always a lane walker and the places it feeds stay
+   *     flat (plaza 4.84 at 10, 4.68 at 13, 4.71 at 16). The BRANCH SHARE is the cap
+   *     beneath this cap; raising the ceiling further only thickens the lane. */
+  const capacity = 2 + Math.round(maturity() * (3 + 10 * daylight * yearBusy(EX_COURT)));
+  const laneCap = 1 + Math.round(maturity() * (1.6 + 10 * daylight * yearBusy(EX_LANE)));
   // the far side arrives on its own budget, so it no longer loses to the lane. It is
-  // the most exposed of the three and breathes hardest — but its ceiling does NOT
-  // move: east agents retrace their inbound route, so arrivals sharing a gate walk
-  // single-file and more than seven of them would queue (cue c10). Summer spends its
-  // lift on reaching the ceiling EARLIER in the day, not on raising it.
-  const eastCap = Math.min(7, 1 + Math.round(maturity() * 6 * daylight * yearBusy(EX_EAST)));
+  // the most exposed of the three and breathes hardest. Its ceiling is bounded by the
+  // GATE, not by the room: east agents retrace their inbound route, so arrivals sharing
+  // a gate walk single-file and enough of them would queue (cue c10). #137 swept it to
+  // 11 and stopped at 9: 7 -> 9 puts +0.50 in the plaza and +0.53 on the quay, and
+  // 9 -> 11 puts +0.19 and -0.06 — the second step is inside the noise, so the queue
+  // argument decides it. Summer still spends its lift on reaching the ceiling EARLIER.
+  const eastCap = Math.min(9, 1 + Math.round(maturity() * 8 * daylight * yearBusy(EX_EAST)));
   /* POP_FLOOR's mechanism: a lift on the arrival RATES, never on the caps. Nobody
    * pops into being — the town refills by people walking in, just sooner after one
    * another — and the caps still decide where it settles, so a rainy January night
