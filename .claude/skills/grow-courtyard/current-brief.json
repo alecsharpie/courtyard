@@ -18,7 +18,7 @@
   "avoid": "Do not solve it by moving drawSill out of the cache and repainting it live every frame without pricing that — it is a 7-stop gradient plus 22 grain runs plus 9 scuffs plus cast shadows, and drawGround's own spread is 0.90 ms. If you do lift it out, measure with frame-cost.mjs, not perf.mjs. And a quarter's share sets s from WIDTH alone, so sillTop() is not where you think it is in a zoomed frame — price the rows with project() on each target frame.",
   "budgetMin": 35,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 111,
   "issued": "2026-09-01T23:44:26.329Z",
