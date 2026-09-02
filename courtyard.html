@@ -11594,20 +11594,32 @@ function drawCat(){
 
 /* ============ lighting ============ */
 function applyLight(t){
-  // the evening's term is the hour it always was; the MORNING's was a hard-coded 6.4 —
+  // BOTH halves of this wash ride the sun now. The MORNING's was a hard-coded 6.4 —
   // which is 0.6 h BEFORE a midwinter sunrise and 2.4 h after a midsummer one, so the
   // longest mornings of the year got their warm wash in broad daylight and got none at
-  // all at first light. It rides sunUp now, like everything else at this end of the day.
+  // all at first light; #112 put it on sunUp. The EVENING's was a hard-coded 19 and had
+  // the same fault mirrored: 19.00 is 0.5 h AFTER a midwinter sunset and 2.5 h BEFORE a
+  // midsummer one. Read at sunset itself across the year (probes/dusk-year.mjs) it fell
+  // 0.72 midwinter to 0.00 midsummer — the longest evenings, the ones the town is
+  // actually out in, got no dusk at all, and what warmth they got landed mid-afternoon.
   //
-  // DAWN_WARM is not a taste constant, it is a MEASURED one. At dusk this wash and the
-  // sky's own (drawSky's sunDown-0.6 term) peak nearly two hours apart; re-keyed onto
-  // sunrise, this one and the sky's sunUp+0.8 term land almost together, and #112's
-  // curve has also taken the blue multiply off them — three amplifications at once. At
-  // full strength the sunrise measured R-B +45.9 over the frame against +28.3 for the
-  // warmest dusk the town has, i.e. the loudest colour in the piece by half again.
-  // 0.55 puts sunrise at +30.5: still the warmest moment of the day, and only just.
-  const DAWN_WARM = 0.55;
-  const dusk = clamp(1 - Math.abs(hour - 19) / 1.8, 0, 1)
+  // DUSK_OFF is where the wash peaks relative to SUNSET, and it is not a new taste: at
+  // SEASON_START (sunDown 20.00) sunDown + DUSK_OFF is 19.00 exactly, the constant it
+  // replaces, so the anchor day is provably the old evening and anything a gate catches
+  // is about the rest of the year. The half-width stays 1.8 and stays UNSCALED — that is
+  // what makes the wash identical at sunset + k in every season, which is the whole
+  // point. The sky's own dusk (skyCols' sunDown - 0.6) already knew this: the two used
+  // to drift from 0.4 h apart at the anchor to 1.9 h apart at midsummer, and now hold
+  // 0.4 h all year, which is the "nearly two hours apart" the note below was written to.
+  //
+  // DAWN_WARM is not a taste constant, it is a MEASURED one. Re-keyed onto sunrise, this
+  // wash and the sky's sunUp+0.8 term land almost together, and #112's curve has also
+  // taken the blue multiply off them — three amplifications at once. At full strength
+  // the sunrise measured R-B +45.9 over the frame against +28.3 for the warmest dusk the
+  // town has, i.e. the loudest colour in the piece by half again. 0.55 puts sunrise at
+  // +30.5: still the warmest moment of the day, and only just.
+  const DAWN_WARM = 0.55, DUSK_OFF = -1.0;
+  const dusk = clamp(1 - Math.abs(hour - (sunDown + DUSK_OFF)) / 1.8, 0, 1)
              + DAWN_WARM * clamp(1 - Math.abs(hour - (sunUp + 0.2)) / 1.6, 0, 1);
   if (dusk > 0){
     ctx.globalCompositeOperation = 'soft-light';

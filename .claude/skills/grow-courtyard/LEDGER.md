@@ -40,19 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 135 — the roadway is laid instead of hatched (2026-09-03) [Lane & market × New CA]
-
-**Brief:** b135 — retire the carriageway's flat fill and three ruled hairlines; lay a bond that runs, a camber, a gutter and a repair.
-**Did.** `settGrid(y)` on `slateGrid`'s model — the sett count is solved off the cell AS DRAWN (2×2 at 1600×950, coarsening to 1×1 on a phone), and `settRun` lays a GLOBAL lattice keyed on the world axis, so a sett straddling a cell edge is one stone in two halves. Courses run ACROSS the direction of travel, so the bond turns through a right angle at the junction. `camberZ` (crown to kerb, 0 at both) plus `CAMBER_L` in the light; `gutterF` silts the channel; `roadPatches()`/`patchAt` make the road good in tar with a sett-quantised rim; `KERB_RUN` breaks the kerb into stones. `wetRGB`/`trodRGB` are `wetCol`/`trodStone` in triples so a sett takes the wet and the wear its own cell takes. +235 lines, all in the ground cache.
-**Gates:** census unchanged · motion PASS · filmstrip day/night 0 POP · `perf.mjs` ±0.0% and blind — `drawGround()` timed directly is **+11 to +21% (~+3 ms)** at three framings, the cost of 6,000 more `poly`+`fill`, not of arithmetic. Legible dry, wet, under snow 0.3, at night, and at 390×844.
-**HEAD → cand** (seed 42, day 3, 10.4 h, 1600×950): ROAD sd/mean **0.081 → 0.150**, class mean **−1.62** of 126; the cross street 0.032 → 0.121. Camber crown−gutter 3.9 → **14.9**. Rut against its MIRROR band (same camber, same depth, no wheels) −0.6 → **−13.5**. Every changed pixel outside the ROAD class is within **2 px** of one — the kerb, where the old hatch's 0.7 px stroke used to bleed.
-**Verdict:** shipped
-**Surprise:** the REPAIR half of the brief was reading a field that is empty. `?t=` sets the clock and does not run the days, so paveWear[] is 0 on a fresh page — and warping twelve days only takes the carriageway to mean **0.0019**, max 0.065 against PW_FULL 0.45. Nobody walks on a road, and the one thing that uses it, **the cart, is not an agent**: the accrual site is inside `stepAgent`, so no wheel has ever touched the accumulator. So the rut went into the FABRIC, placed on a measured histogram rather than a guess — the cart is on row 70 for 88 of 90 lane samples and in column 71 for 613, and 82% of every pedestrian sample on any carriageway is inside the junction. The tap's crossing the brief expected does not exist: the tap's door is on row 65 and its drinkers never leave the footway.
-**Law:** an accumulator is a rate as well as a field — a durable mark (a rut, a stain, a repair) whose source decays faster than it recurs belongs in the FABRIC, and only the recent term belongs in the CA.
-**Law:** a bucket mean needs a control bucket the CANDIDATE did not define and that differs in ONE thing — the rut read −10.9 against "everywhere else" and −13.5 against its mirror image across the crown, and only the second is the rut.
-**Cue:** `drawGround()` costs 22–25 ms before this and 25–27 ms after; the ground cache rebuild is now a dropped frame wherever it fires. `perf.mjs` cannot see it (vsync-locked over a whole day) — `probes/ground-cost.mjs` can.
-**Cue:** the cart lays no `paveWear[]` at all. One line at its step would make the town's own memory carry the track that `rutF` now paints.
-
 ## Iteration 136 — a barge works the quay, and the horn gets a subject (2026-09-03) [Plaza & quay × New element]
 
 **Brief:** b136 — bring a barge up the west channel on some days, let it work the quay, give the ticker's unplaced barge horn a subject. Full entry in LEDGER-archive.md.
@@ -124,3 +111,15 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Law:** a contention price is only a price where there IS contention — a rule ranking callers on a shared surface cannot bind in a view that has already filtered the other callers out. There the CADENCE against the surface's CAPACITY is the whole answer: a 55 s day holds ~22 lines at `TICK_DWELL`, so eight strikes was a third of everything the town can say before one contest is lost. Count the slots before designing the queue.
 **Law:** staleness and untruth are two clocks — `TICK_STALE` is how long anyone will WAIT for a line; one that names an instant needs a second bound at the instant it stops being TRUE, or it is shown contradicting a readout two inches above it.
 **Note:** `context-budget.mjs` read OVER — 47.9 of 46 KB — before this entry.
+
+## Iteration 143 — the evening's warm wash rides the sun, as the morning already did (2026-09-03) [Sky, light & weather × Connect]
+
+**Brief:** b143 — `applyLight`'s dusk is `clamp(1 - |hour - 19|/1.8)`, a hard-coded hour in a light; #112 fixed the morning onto `sunUp` and left the evening.
+**Did.** One line: `DUSK_OFF = -1.0`, peak at `sunDown + DUSK_OFF`, which at SEASON_START is **19.00 exactly** — `kioskOpen`'s construction, so the anchor day is provably the old evening. Half-width unchanged at 1.8 and deliberately unscaled (see the law). Morning untouched. No hard-coded hour is left in any light term.
+**Gates:** census PASS, six groups unchanged (no `R()` spent) · motion PASS · visual PASS · filmstrip **0 POP** on a midwinter evening (t=1069) and a midsummer one (t=360), both a smooth amber→blue ramp · perf skipped.
+**HEAD → cand.** `probes/dusk-year.mjs`, over the year at eight offsets from sunset: HEAD's spread **0.72–1.00 at every k**, candidate's **0.000 at all eight**. At sunset itself midwinter 0.722 → 0.444, midsummer **0.000 → 0.444**. `probes/dusk-frame.mjs`, R−B above `sillTop()`: midsummer sunset−1 **−0.47 → +19.39**, while midwinter's peak holds at +27.07 against the +28.3 #112 measured for the warmest dusk the town then had — the peak is the *same*, it just now happens on every evening instead of one. Both probes carry controls that came back byte-identical.
+**Verdict:** shipped
+**Surprise:** the town's other dusk already knew. `skyCols` has ridden `sunDown - 0.6` since #11 — so the note inside `applyLight` reading "at dusk this wash and the sky's own peak nearly two hours apart" was never a taste observation. It was **this bug, measured and written down and left**: the gap is 0.4 h at the anchor and 1.9 h at midsummer *because one term was on the sun and the other on the clock*. #112 read that sentence, used it to justify damping the morning to 0.55, and did not notice it was a symptom of the half it was leaving alone.
+**Budget:** **OVER — 49.2 of 46 KB** before this entry. Fourth pass running over; #136, #141, #142 all flagged it.
+**Law:** re-keying a term onto the sun moves its OFFSET, and its WIDTH must then stay fixed — scaling both makes the value at sunset+k a function of the season again, which was the fault. Scale a width only when the thing is the night's clock (`dawnF`), never when it is a wash read at an offset.
+**Law:** a comment that measures two terms disagreeing is a BUG REPORT, not a description — when the source explains why a constant is damped, check what it is damped *against*.
