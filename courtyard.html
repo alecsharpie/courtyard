@@ -1805,6 +1805,10 @@ const BOAT_LAMP_ON = 0.3, BOAT_LAMP_FADE = 0.15;
 function boatLampF(){ return boat ? clamp((nightF - BOAT_LAMP_ON) / BOAT_LAMP_FADE, 0, 1) : 0; }
 let BOAT_LAMP = null;                          // screen [x, y] of the lit lamp this frame, or null
 let BARGE_LAMP = null;                         // and the barge's, registered the same way (#136)
+/* and the punts'. There is more than one hull, so this is a LIST of [[x, y], f] — and it
+ * exists at all because #136 found the punt's lantern drawn only in the item pass: lit
+ * since #131, and slate under applyLight's multiply every night since (#141). */
+const PUNT_LAMPS = [];
 /* ---- the fountain, the plaza's one reader of the year -------------------------
  * The plaza was the last place east of the bridge with no season in it: five jets at
  * one height, a basin one colour, and a coin-flip on whether a visitor stands at the
@@ -3373,7 +3377,7 @@ function stepAgent(a, dt){
       a.stopped = true;
       // the punt takes a jetty stander whose window fits the whole trip: the stand
       // at the rail becomes the crossing (#96) — deterministic, no draw
-      if (a.jetty && puntFits(a)){ puntClaim(a); return; }
+      if (a.jetty){ const o = puntFits(a); if (o){ puntClaim(o, a); return; } }
       // and nobody new sits down under a sky that is already going, or on a seat the
       // last shower left wet. Refused at SIT_REFUSE, released at 0.55+ above, so the gap
       // guarantees no one sits and stands right up. (ONE predicate — seatRefused().)
@@ -4530,8 +4534,12 @@ function farWalkH(t, speed){ return FAR_MARGIN * pathHours(FAR_GATE[0], FAR_GATE
  * five hours later, and a stand at the jetty head is a good stop on a windy day
  * whether or not the punt goes. One predicate, one definition: the choice prices the
  * WALK, because the walk is the only thing that cannot be re-priced on arrival. */
+/* the LOOSEST day trip the fleet can offer, which is the right price for a gate asked
+ * HOURS upstream of a choice that asks again: refusing here what puntFits would have
+ * taken is the one error this cannot make. (Two hulls, two prices, #141.) */
+function puntBestTripH(a){ return Math.min(...PUNTS.flatMap(P => PUNT_DAY_STANDS.map(s => puntTripH(P, a, s)))); }
 function farJettyFits(speed, phase){
-  const walk = farWalkH(FAR_JETTY, speed), arrive = hour + walk, trip = puntTripH({speed});
+  const walk = farWalkH(FAR_JETTY, speed), arrive = hour + walk, trip = puntBestTripH({speed});
   return arrive + trip + PUNT_MIN_STAY_H < eastCloseHour()
       && arrive + 2 * trip + puntStayH({phase}) + walk < EVE_GONE;
 }
@@ -5187,8 +5195,9 @@ function updateSwans(dt){
           s.ty = clamp(c.ty + Math.sin(th) * rr, 5, 58);
         }
         if (onEyot(s.tx, s.ty)){ const o = offEyot(s.tx, s.ty, 0.4); s.tx = clamp(o[0], x0, x1); s.ty = clamp(o[1], 5, 58); }   // a target on the turf is a target at its shore
-        if (puntAtShore() && Math.hypot(s.tx - PUNT_LAND.x, s.ty - PUNT_LAND.y) < 1.4)
-          s.ty = PUNT_LAND.y + (s.ty >= PUNT_LAND.y ? 1.6 : -1.6);   // the landing is the punt's while it lies there (#96)
+        for (const P of PUNTS)   // each landing is its own hull's while it lies there (#96, two hulls #141)
+          if (puntAtShore(P) && Math.hypot(s.tx - P.b.land.x, s.ty - P.b.land.y) < 1.4)
+            s.ty = P.b.land.y + (s.ty >= P.b.land.y ? 1.6 : -1.6);
         if (R() < 0.03) sayAt(s.x, s.y, 'A pair of swans work their way up the river, unhurried.');
       }
     }
@@ -5206,9 +5215,10 @@ function updateSwans(dt){
       if (dd < 0.9){ s.x = clamp(c.x + dx / dd * 0.9, x0, x1); s.y = clamp(c.y + dy / dd * 0.9, 5, 58);
                      if (onEyot(s.x, s.y)) [s.x, s.y] = offEyot(s.x, s.y, 0.15); }   // and never onto the turf
     }
-    if (puntAtShore()){   // nothing white sits on the landing while the punt is at it (the 0.9-cell law, #96)
-      const pdx = s.x - PUNT_LAND.x, pdy = s.y - PUNT_LAND.y, pd = Math.hypot(pdx, pdy) || 0.01;
-      if (pd < 1.2){ s.x = PUNT_LAND.x + pdx / pd * 1.2; s.y = PUNT_LAND.y + pdy / pd * 1.2;
+    for (const P of PUNTS){   // nothing white sits on a landing while a punt is at it (the 0.9-cell law, #96)
+      if (!puntAtShore(P)) continue;
+      const pdx = s.x - P.b.land.x, pdy = s.y - P.b.land.y, pd = Math.hypot(pdx, pdy) || 0.01;
+      if (pd < 1.2){ s.x = P.b.land.x + pdx / pd * 1.2; s.y = P.b.land.y + pdy / pd * 1.2;
                      if (onEyot(s.x, s.y)) [s.x, s.y] = offEyot(s.x, s.y, 0.15); }
     }
   }
@@ -9049,7 +9059,7 @@ function drawScene(t, dt){
   // LIT is a per-FRAME accumulator. It used to be reset only on a ground rebuild, so
   // the south band's live windows stacked into it ~13 a frame for a quarter-hour and
   // the glow pass drew hundreds of halos on top of each other.
-  LIT.length = 0; LIT_PANES.length = 0; BOAT_LAMP = null; BARGE_LAMP = null;
+  LIT.length = 0; LIT_PANES.length = 0; BOAT_LAMP = null; BARGE_LAMP = null; PUNT_LAMPS.length = 0;
   drawLitPanes();
   drawRoofLights();
 
@@ -9127,13 +9137,14 @@ function drawScene(t, dt){
              items.push({y:Math.max(cart.y, cart.y + cart.hy * 2.3) + 0.6, f:drawCartFront}); }
   for (const s of swans) items.push({y:s.y + 0.3, f:drawSwan, s});
   if (boat && (boat.y < 64.5 || boat.y > 79) && !boatUnderDeck()) items.push({y:boat.y + 0.6, f:drawBoat});
-  items.push({y:punt.y + 0.4, f:drawPuntHull, tname:'the punt'});
+  for (const P of PUNTS) items.push({y:P.y + 0.4, f:drawPuntHull, tname:'the punt', P});
   // the wharf: the moorings always, the hull only when there is one. Two items round her
   // crew on the footbridge's rule — the hull sorts before the sacks and the hands on it.
   for (const bo of BARGE_BOLLARDS) items.push({y:bo.y + 0.25, f:drawBollard, bo});
   if (barge){ items.push({y:barge.y - 0.5, f:drawBargeHull});
               items.push({y:barge.y + 1.2, f:drawBargeDeck}); }
-  if (punt.leg === 2 || punt.leg === 4 || punt.seating) items.push({y:punt.y + 0.5, f:drawPuntCrew});
+  for (const P of PUNTS)
+    if (P.leg === 2 || P.leg === 4 || P.seating) items.push({y:P.y + 0.5, f:drawPuntCrew, P});
   for (const tb of CAFE_TABLES) items.push({y:tb.y + 0.45, f:drawCafeTable, tb});
   if (kioskOpen()) items.push({y:KIOSK.y + 0.8, f:drawKiosk});
   for (let i = 0; i < MARKET_STALLS.length; i++){
@@ -10352,8 +10363,10 @@ function drawRiverLights(t){
   if (BOAT_LAMP && boat){
     column(boat.x + 0.3, boat.y + 0.9, 3.5, 'rgb(255,204,130)', 0.6 * boatLampF() * veil, 0.8, 8);
   }
-  const plf = puntLampF();   // and the last punt's, on its own hashes so it never rebuilds the fixed ones
-  if (plf > 0) column(punt.x - 0.2, punt.y + 0.8, 3, 'rgb(255,204,130)', 0.6 * plf * veil, 0.7, 7);
+  for (const P of PUNTS){   // and the late punts', on their own hashes so they never rebuild the fixed ones
+    const plf = puntLampF(P);
+    if (plf > 0) column(P.x - 0.2, P.y + 0.8, 3, 'rgb(255,204,130)', 0.6 * plf * veil, 0.7, 7);
+  }
   const ma = moonArc(), mh = Math.sin(Math.PI * ma);
   if (nightF > 0.25 && ma > 0 && ma < 1 && mh > 0.02){
     // the moon crosses the sky east to west; its light crosses the river the same way
@@ -10497,6 +10510,52 @@ const PUNT_SPEED = 2.3, PUNT_MIN_STAY_H = 0.75;
  * them home, on a clock set at the choice and never re-read. */
 const PUNT_NIGHT_STAND = {x:124.6, y:44.2};   // the island's north lawn: the ONE line with 1.3 cells of turf all round it, which is PAIR_GAP with a margin
 const PUNT_NIGHT_STAY = 0.55;                 // and the stand is short: it is dark, and the bell is coming
+/* ---- the second hull (#141) ---- *
+ * Counted on HEAD (probes/punt-supply.mjs, clause by clause in puntFits' own evaluation
+ * order): BUSY is the top refusal at 31.5% of offers, and the take rate is 25.9%. But the
+ * hull is MOORED 84% of the day — the scarcity is not the boat's hours, it is that one
+ * crossing blocks a 6.25 h median while the offers arrive in a 08..13 clump. And 57% of
+ * that block is leg 3, the hull BEACHED at the landing while its party stands under the
+ * willow. That is the number that decides between the brief's two answers: a ferryman who
+ * poled the empty boat home would win back 3.7 h of beaching and spend 2.3 h on the two
+ * empty legs it costs — 22% — where a second hull is +100%. So: a second hull.
+ *
+ * The hard part is that her water is one cell wide. Between the eyot and the towpath there
+ * is exactly ONE column of river (col 126; col 127 is SIDE), and a hull is 0.52 cells
+ * across — so two boats cannot pass, and a second landing placed further DOWN that column
+ * puts every one of her crossings straight through the first hull's berth at the shore.
+ * Measured on the first attempt: 505 of 6139 samples with both hulls off their moorings had
+ * them under 0.9 cells apart, least 0.04, and the picture is one long boat.
+ *
+ * So the two hulls do not share a channel; they run PARALLEL LANES, and the whole layout
+ * falls out of that one rule. Hull B's berth is 0.95 cells west along the planks, and her
+ * landing is offset west by the SAME 0.95 — nose-in at the island's north tip rather than
+ * down the east shore. The two tracks are then parallel and never converge: swept end to
+ * end against each other, their least separation is 0.95, which is the 0.9-cell law with a
+ * margin and holds for every instant of every crossing, by construction rather than by luck.
+ *
+ * The STANDS are a pool, not a berth's property. The island is three cells wide, so the turf
+ * with real clearance is one spine at x~124.5 — y 44.2 (clear 1.4), 46.0 (1.5), 48.6 (1.5) —
+ * plus the willow's east fringe the day trip has always used. A hull takes the NEAREST free
+ * one to its own shore, which gives hull A exactly the two stands it had before, keeps the
+ * night walk short at both ends, and can never set a party down on top of another party.
+ *
+ * And the trip is no longer two hard-coded lengths: it is SOLVED from whichever berth and
+ * stand this crossing actually uses. On hull A that reproduces the old constants (the night
+ * walk comes back 2.66 to three figures), which is how you know the constants WERE the
+ * geometry — hull B lands nearer and walks further, and is priced for both. */
+const PUNT_MOOR_2 = {x:125.9, y:36.2};        // the outboard berth, 0.95 west along the same planks
+const PUNT_LAND_2 = {x:125.45, y:40.4};       // and her landing offset west by the SAME 0.95: the lanes stay parallel
+const PUNT_SHORE_2 = {x:124.6, y:41.3};       // her footfall, on the island's north tip
+const PUNT_STAND_2 = {x:124.5, y:48.6};       // the turf beyond the willow, on the island's south-west shoulder
+const PUNT_NIGHT_STAND_2 = {x:124.5, y:46.0};  // and a second short one, in under the willow itself
+const PUNT_STAND_GAP = 1.6;                   // no party is set down this near another party's stand
+const PUNT_DAY_STANDS = [PUNT_STAND, PUNT_STAND_2];
+const PUNT_NIGHT_STANDS = [PUNT_NIGHT_STAND, PUNT_NIGHT_STAND_2];
+const PUNT_BERTHS = [
+  {moor:PUNT_MOOR,   land:PUNT_LAND,   shore:PUNT_SHORE},
+  {moor:PUNT_MOOR_2, land:PUNT_LAND_2, shore:PUNT_SHORE_2},
+];
 /* where in the boat each of them stands (#128). Solo, the punter has it to themselves
  * at the stern. Carrying a passenger, the passenger takes the THWART the hull is
  * already drawn with and the punter the open end beyond it — 0.96 cells apart, which
@@ -10506,67 +10565,107 @@ const PUNT_NIGHT_STAY = 0.55;                 // and the stand is short: it is d
  * they come off the turf from the west, and the passenger's end is the nearer one
  * both times. */
 const PUNT_SOLO_Y = -0.30, PUNT_SEAT_Y = -0.62, PUNT_POLE_Y = 0.34;
-let punt = {x:PUNT_MOOR.x, y:PUNT_MOOR.y, leg:0, rider:null, mate:null, pair:false, seating:0, seatT:0,
-            night:false, stand:PUNT_STAND};
+const PUNTS = PUNT_BERTHS.map(b => ({x:b.moor.x, y:b.moor.y, leg:0, rider:null, mate:null, pair:false,
+                                     seating:0, seatT:0, night:false, stand:PUNT_STAND, b}));
+const punt = PUNTS[0];   // hull A, at the inboard berth: the name the probes address the fleet by
 // leg 0 moored · 1 claimed (the rider is stepping down) · 2 poling out · 3 at the shore · 4 poling back
 // seating 0 nobody · 1 the passenger is stepping down at the mooring · 2 the same at the landing
-function puntSeatY(o){ return punt.pair ? (o === punt.mate ? PUNT_SEAT_Y : PUNT_POLE_Y) : PUNT_SOLO_Y; }
+function puntSeatY(P, o){ return P.pair ? (o === P.mate ? PUNT_SEAT_Y : PUNT_POLE_Y) : PUNT_SOLO_Y; }
 function puntMate(a){ return agents.find(o => o.with === a && !o.done) || null; }
 function puntStayH(a, night){ return night ? PUNT_NIGHT_STAY + ((a.phase * 1.7) % 1) * 0.4 : 1 + (a.phase * 1.7) % 1; }
+/* the stand this hull would set a party down on: the NEAREST free one to its own shore,
+ * out of the pool for the trip it is making. ONE definition of "free", read off the stands
+ * actually in use, so the day pool and the night pool cannot collide with each other
+ * either. Hull A alone reproduces exactly the two stands the town has always used. */
+function puntStandFor(P, night){
+  const free = s => PUNTS.every(o => o === P || !o.leg || Math.hypot(o.stand.x - s.x, o.stand.y - s.y) > PUNT_STAND_GAP);
+  const sh = P.b.shore;
+  let best = null, bd = Infinity;
+  for (const s of (night ? PUNT_NIGHT_STANDS : PUNT_DAY_STANDS)){
+    if (!free(s)) continue;
+    const d = Math.hypot(s.x - sh.x, s.y - sh.y);
+    if (d < bd){ bd = d; best = s; }
+  }
+  return best;
+}
 function eastCloseHour(){ return sunUp + (sunDown - sunUp) * (1 - Math.asin(0.16) / Math.PI); }   // where daylight falls through eastOpen()'s 0.16
-function puntTripH(a, night){   // the way OUT, at this walker's own pace: down from the jetty, across, up the shore to the stand
-  return ((1.3 + (night ? 2.66 : 4.6)) / (0.75 * a.speed) + 6.1 / PUNT_SPEED) * HOURS_PER_S;   // landing -> shore -> stand
+/* the way OUT, at this walker's own pace and over THIS hull's water: down from the jetty
+ * (1.3), across at PUNT_SPEED, then landing -> shore -> the stand they are going to. Solved
+ * from the berth rather than tabulated, so a second hull cannot be priced on the first's. */
+function puntTripH(P, a, stand){
+  const b = P.b;
+  const water = Math.hypot(b.land.x - b.moor.x, b.land.y - b.moor.y);
+  const walk = 1.3 + Math.hypot(b.shore.x - b.land.x, b.shore.y - b.land.y)
+                   + Math.hypot(stand.x - b.shore.x, stand.y - b.shore.y);
+  return (walk / (0.75 * a.speed) + water / PUNT_SPEED) * HOURS_PER_S;
 }
 /* the two trips, as two predicates over the same state, so the CLAIM can ask which one
  * it is by asking them again in the same frame. The handover is continuous: the day
  * trip is taken while it fits, and the short one the moment it stops — at ~16.4, not at
  * eastOpen()'s close. Refusing a 18:30 stander and taking a 20:30 one would be a step
  * in the middle of the evening with nothing under it. */
-function puntDayFits(a){   // the whole way up to the willow, ended by eastOpen()'s close
-  return eastOpen() && eastCloseHour() - hour > puntTripH(a) + PUNT_MIN_STAY_H;
+function puntDayFits(P, a, stand){   // the whole way up to the willow, ended by eastOpen()'s close
+  return eastOpen() && eastCloseHour() - hour > puntTripH(P, a, stand) + PUNT_MIN_STAY_H;
 }
 /* and the last punt. !eastOpen() is DAWN as well as dusk (LAW), so the hour is bounded
  * on both sides of noon — without it, ten of the deck's small-hours standers cross at
  * one in the morning. The round trip is priced HERE, once, because nothing downstream
  * re-prices it: the way back is the same water it went out on. */
-function puntNightFits(a){
+function puntNightFits(P, a, stand){
   if (hour < SOLAR_NOON) return false;
-  return hourEve() + 2 * puntTripH(a, true) + puntStayH(a, true) + EVE_BELL < EVE_GONE;
+  return hourEve() + 2 * puntTripH(P, a, stand) + puntStayH(a, true) + EVE_BELL < EVE_GONE;
 }
+/* the OFFER, asked once per jetty stander (stepAgent latches a.stopped). It answers with
+ * the hull, the stand and which of the two trips fitted, so the claim never has to re-ask
+ * a predicate that has already been decided. Clause order is deliberate and is what
+ * probes/punt-supply.mjs counts: BUSY, COMPANION, SMALL, RAIN, WIND, MATE, then TIME. */
 function puntFits(a){
-  if (punt.leg !== 0 || a.with || a.small) return false;
-  if (raining || windF() >= 0.5) return false;
+  if (!PUNTS.some(P => P.leg === 0) || a.with || a.small) return null;
+  if (raining || windF() >= 0.5) return null;
   // a pair crosses TOGETHER or not at all (#128). A companion keeps no clock of its
   // own — it gets up when the leader does and walks home at the leader's side — so the
   // whole trip is priced on the LEADER for both, and there is no second window to fit.
   // What the second person does need is to be beside them at the planks to step down.
-  if (a.pairLead){ const m = puntMate(a); if (!m || m.small || Math.hypot(m.x - a.x, m.y - a.y) > 3) return false; }
+  if (a.pairLead){ const m = puntMate(a); if (!m || m.small || Math.hypot(m.x - a.x, m.y - a.y) > 3) return null; }
   // arrival is priced against the window's END: the landing must leave a real stay
   // before eastOpen()'s close cuts it. The way back is the retire rule's business —
   // the punt brings its rider home whenever the stay ends, dusk included, the same
-  // walk-home-in-the-dark every east visitor already makes.
-  return puntDayFits(a) || puntNightFits(a);
+  // walk-home-in-the-dark every east visitor already makes. Each free hull is priced on
+  // ITS OWN water and the stand IT can offer; the first that fits takes them.
+  for (const P of PUNTS){
+    if (P.leg !== 0) continue;
+    const d = puntStandFor(P, false); if (d && puntDayFits(P, a, d)) return {P, night:false, stand:d};
+    const n = puntStandFor(P, true);  if (n && puntNightFits(P, a, n)) return {P, night:true, stand:n};
+  }
+  return null;
 }
-function puntClaim(a){
-  punt.leg = 1; punt.rider = a; a.boardI = a.i;
-  punt.night = !puntDayFits(a);   // asked again in the same frame as puntFits, over the same state
-  punt.stand = punt.night ? PUNT_NIGHT_STAND : PUNT_STAND;
-  if (punt.night){ a.puntNight = true; a.puntBack = hourEve() + puntTripH(a, true) + puntStayH(a, true); }
+/* a.jetty is CLEARED here, and that is not tidying. The offer is asked wherever a stop is
+ * performed, and the rider's stand ON THE EYOT is a stop — so a rider who is already across
+ * asks again the moment they reach the willow. With one hull the boat was its own guard
+ * (leg 3 is not leg 0); with two, the OTHER hull is free and re-claims a passenger who is
+ * standing on an island, splicing a second crossing into the middle of the first. Measured:
+ * 51 of 178 claims never completed a round trip, and the hull's median block went 6.2 h to
+ * 8.7 h with a 24 h tail. Membership is positive and it ends at the moment it is spent. */
+function puntClaim(o, a){
+  const P = o.P, b = P.b;
+  P.leg = 1; P.rider = a; a.boardI = a.i; a.jetty = false;
+  P.night = o.night; P.stand = o.stand;   // decided by the offer, in the frame the offer was made
+  if (P.night){ a.puntNight = true; a.puntBack = hourEve() + puntTripH(P, a, P.stand) + puntStayH(a, true); }
   const m = a.pairLead ? puntMate(a) : null;
-  punt.mate = m; punt.pair = !!m; punt.seating = 0; punt.seatT = 0;
-  a.wp.splice(a.i, 0, [PUNT_MOOR.x, PUNT_MOOR.y], [PUNT_SHORE.x, PUNT_SHORE.y], [punt.stand.x, punt.stand.y],
-                      [PUNT_SHORE.x, PUNT_SHORE.y], [PUNT_LAND.x, PUNT_LAND.y]);
+  P.mate = m; P.pair = !!m; P.seating = 0; P.seatT = 0;
+  a.wp.splice(a.i, 0, [b.moor.x, b.moor.y], [b.shore.x, b.shore.y], [P.stand.x, P.stand.y],
+                      [b.shore.x, b.shore.y], [b.land.x, b.land.y]);
 }
-function puntFree(){    // the boat is empty again, whatever emptied it
-  punt.leg = 0; punt.seating = 0; punt.seatT = 0; punt.x = PUNT_MOOR.x; punt.y = PUNT_MOOR.y;
-  if (punt.mate) punt.mate.boarding = false;
-  if (punt.rider) punt.rider.puntNight = false;   // off the water: the east half's own close owns them again
-  punt.rider = null; punt.mate = null; punt.pair = false; punt.night = false; punt.stand = PUNT_STAND;
+function puntFree(P){    // the boat is empty again, whatever emptied it
+  P.leg = 0; P.seating = 0; P.seatT = 0; P.x = P.b.moor.x; P.y = P.b.moor.y;
+  if (P.mate) P.mate.boarding = false;
+  if (P.rider) P.rider.puntNight = false;   // off the water: the east half's own close owns them again
+  P.rider = null; P.mate = null; P.pair = false; P.night = false; P.stand = PUNT_STAND;
 }
-function puntAbort(a){    // the sky turned in the one step down from the jetty
-  a.wp.splice(a.boardI, 5); a.i = a.boardI; puntFree();
+function puntAbort(P, a){    // the sky turned in the one step down from the jetty
+  a.wp.splice(a.boardI, 5); a.i = a.boardI; puntFree(P);
 }
-function puntSit(o){ o.aboard = true; o.state = 'punt'; o.boarding = false; o.x = punt.x; o.y = punt.y + puntSeatY(o); }
+function puntSit(P, o){ o.aboard = true; o.state = 'punt'; o.boarding = false; o.x = P.x; o.y = P.y + puntSeatY(P, o); }
 function puntRise(o, on){ o.aboard = false; o.boarding = false; o.state = 'walk'; o.eyot = on; }
 /* the passenger's own step down. The punt owns its tick from the moment the punter is
  * seated, so neither the companion's re-target nor its PAIR_MIN shove is running — and
@@ -10574,75 +10673,81 @@ function puntRise(o, on){ o.aboard = false; o.boarding = false; o.state = 'walk'
  * a candidate step that would cut inside the punter is pushed back out onto the circle,
  * which slides the passenger past them and still converges, because the seat itself is
  * outside it. */
-function puntSeatStep(dt){   // dt 0 is the shove alone: called once as the punter sits, so the
-  const m = punt.mate, L = punt.rider;   // passenger is clear of them from the first frame, in its own tick
+function puntSeatStep(P, dt){   // dt 0 is the shove alone: called once as the punter sits, so the
+  const m = P.mate, L = P.rider;   // passenger is clear of them from the first frame, in its own tick
   if (!m || m.done) return true;
   m.boarding = true;
-  const tx = punt.x, ty = punt.y + puntSeatY(m);
+  const tx = P.x, ty = P.y + puntSeatY(P, m);
   const dx = tx - m.x, dy = ty - m.y, d = Math.hypot(dx, dy), mv = Math.min(m.speed * dt, d);
-  punt.seatT += dt;
-  if (d <= Math.max(mv, 0.06) || punt.seatT > 4){ puntSit(m); return true; }
+  P.seatT += dt;
+  if (d <= Math.max(mv, 0.06) || P.seatT > 4){ puntSit(P, m); return true; }
   let nx = m.x + dx / d * mv, ny = m.y + dy / d * mv;
   const lx = nx - L.x, ly = ny - L.y, ld = Math.hypot(lx, ly) || 1e-6;
   if (ld < PAIR_MIN){ nx = L.x + lx / ld * PAIR_MIN; ny = L.y + ly / ld * PAIR_MIN; }
   m.faceL = nx < m.x; m.x = nx; m.y = ny; m.phase += mv * 2.2;
   return false;
 }
-function puntLampF(){ return punt.leg ? clamp((nightF - BOAT_LAMP_ON) / BOAT_LAMP_FADE, 0, 1) : 0; }
-function puntAtShore(){ return punt.leg >= 2 && Math.hypot(punt.x - PUNT_LAND.x, punt.y - PUNT_LAND.y) < 2.2; }
-function updatePunt(dt){
-  if (!punt.leg) return;
-  const a = punt.rider;
-  if (!a || a.done){ puntFree(); return; }
-  if (punt.mate && punt.mate.done) punt.mate = null;   // the pair lost one: the punter keeps their end and carries on
-  if (punt.seating){                                   // the boat waits with the punter aboard while the other steps in
-    if (puntSeatStep(dt)){ punt.leg = punt.seating === 1 ? 2 : 4; punt.seating = 0; }
+function puntLampF(P){ return (P || punt).leg ? clamp((nightF - BOAT_LAMP_ON) / BOAT_LAMP_FADE, 0, 1) : 0; }
+// with a hull: is THIS one lying at its landing. Without: is any of them (the swans' reader)
+function puntAtShore(P){
+  if (!P) return PUNTS.some(h => puntAtShore(h));
+  return P.leg >= 2 && Math.hypot(P.x - P.b.land.x, P.y - P.b.land.y) < 2.2;
+}
+function updatePunt(dt){ for (const P of PUNTS) updateOnePunt(P, dt); }
+function updateOnePunt(P, dt){
+  if (!P.leg) return;
+  const a = P.rider;
+  if (!a || a.done){ puntFree(P); return; }
+  if (P.mate && P.mate.done) P.mate = null;   // the pair lost one: the punter keeps their end and carries on
+  if (P.seating){                             // the boat waits with the punter aboard while the other steps in
+    if (puntSeatStep(P, dt)){ P.leg = P.seating === 1 ? 2 : 4; P.seating = 0; }
     return;
   }
-  if (punt.leg === 1){
-    if (!a.aboard && Math.hypot(a.x - punt.x, a.y - punt.y) < 0.35){
-      if (raining || (!eastOpen() && !punt.night)) return puntAbort(a);
-      puntSit(a); a.i = a.boardI + 1;
-      announce(punt.night
-        ? (punt.mate ? 'Two of them step down into the punt after dark, and it poles off for the eyot under the river lamps.'
-                     : 'Someone steps down into the punt after dark and poles off for the eyot, under the river lamps.')
-        : (punt.mate ? 'Two of them step down from the jetty into the punt, and it poles off for the eyot.'
-                     : 'Someone steps down from the jetty into the punt and poles off for the eyot.'));
-      if (punt.mate){ punt.seating = 1; punt.seatT = 0; puntSeatStep(0); } else punt.leg = 2;
+  if (P.leg === 1){
+    if (!a.aboard && Math.hypot(a.x - P.x, a.y - P.y) < 0.35){
+      if (raining || (!eastOpen() && !P.night)) return puntAbort(P, a);
+      puntSit(P, a); a.i = a.boardI + 1;
+      announce(P.night
+        ? (P.mate ? 'Two of them step down into the punt after dark, and it poles off for the eyot under the river lamps.'
+                  : 'Someone steps down into the punt after dark and poles off for the eyot, under the river lamps.')
+        : (P.mate ? 'Two of them step down from the jetty into the punt, and it poles off for the eyot.'
+                  : 'Someone steps down from the jetty into the punt and poles off for the eyot.'));
+      if (P.mate){ P.seating = 1; P.seatT = 0; puntSeatStep(P, 0); } else P.leg = 2;
     }
-  } else if (punt.leg === 2 || punt.leg === 4){
-    const tgt = punt.leg === 2 ? PUNT_LAND : PUNT_MOOR;
-    const d = Math.hypot(tgt.x - punt.x, tgt.y - punt.y), mv = Math.min(PUNT_SPEED * dt, d);
-    if (d > 1e-6){ punt.x += (tgt.x - punt.x) / d * mv; punt.y += (tgt.y - punt.y) / d * mv; }
-    a.x = punt.x; a.y = punt.y + puntSeatY(a);
-    if (punt.mate){ punt.mate.x = punt.x; punt.mate.y = punt.y + puntSeatY(punt.mate); }
+  } else if (P.leg === 2 || P.leg === 4){
+    const tgt = P.leg === 2 ? P.b.land : P.b.moor;
+    const d = Math.hypot(tgt.x - P.x, tgt.y - P.y), mv = Math.min(PUNT_SPEED * dt, d);
+    if (d > 1e-6){ P.x += (tgt.x - P.x) / d * mv; P.y += (tgt.y - P.y) / d * mv; }
+    a.x = P.x; a.y = P.y + puntSeatY(P, a);
+    if (P.mate){ P.mate.x = P.x; P.mate.y = P.y + puntSeatY(P, P.mate); }
     if (d <= mv + 0.02){
-      if (punt.leg === 2){       // ashore: the stand under the willow is a stop like any other,
-        punt.leg = 3;            // so rain, the sky and the light end it the way they end every stay
+      if (P.leg === 2){       // ashore: the stand under the willow is a stop like any other,
+        P.leg = 3;            // so rain, the sky and the light end it the way they end every stay
         puntRise(a, true); a.stopped = false;
-        a.stop = {x:punt.stand.x, y:punt.stand.y, act:'stand', dur:puntStayH(a, punt.night) * DAY_LEN / 24};
-        if (punt.mate) puntRise(punt.mate, true);   // and the one they came with lands with them
+        a.stop = {x:P.stand.x, y:P.stand.y, act:'stand', dur:puntStayH(a, P.night) * DAY_LEN / 24};
+        if (P.mate) puntRise(P.mate, true);   // and the one they came with lands with them
       } else {                   // home: up onto the planks, and the retrace goes on where it left off
         puntRise(a, false);
-        if (punt.mate) puntRise(punt.mate, false);
-        puntFree();
+        if (P.mate) puntRise(P.mate, false);
+        puntFree(P);
       }
     }
   } else if (!a.aboard && a.state === 'walk' && a.i === a.boardI + 4
-             && Math.hypot(a.x - PUNT_LAND.x, a.y - PUNT_LAND.y) < 0.45){
-    puntSit(a); a.i = a.boardI + 5;                   // back down into the punt
-    if (punt.mate){ punt.seating = 2; punt.seatT = 0; puntSeatStep(0); } else punt.leg = 4;
+             && Math.hypot(a.x - P.b.land.x, a.y - P.b.land.y) < 0.45){
+    puntSit(P, a); a.i = a.boardI + 5;                   // back down into the punt
+    if (P.mate){ P.seating = 2; P.seatT = 0; puntSeatStep(P, 0); } else P.leg = 4;
   }
 }
 /* two draw items in the rowboat's idiom: the hull, and over it the pole and the
  * figure. Flat-ended and shallow — squarer than the rowboat at both ends. The
  * crossing runs rows 35..43, so it is never under the DECK rows and needs no
  * boatUnderDeck() case. */
-function drawPuntHull(){
-  const [x, y] = project(punt.x, punt.y, 0), s = cellW / 13;
-  if (punt.leg === 2 || punt.leg === 4){
+function drawPuntHull(it){
+  const P = it.P;
+  const [x, y] = project(P.x, P.y, 0), s = cellW / 13;
+  if (P.leg === 2 || P.leg === 4){
     ctx.strokeStyle = 'rgba(220,235,238,.25)'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.arc(x, y + (punt.leg === 2 ? -8 : 8) * s, 5.5 * s, punt.leg === 2 ? Math.PI * 0.15 : Math.PI * 1.15, punt.leg === 2 ? Math.PI * 0.85 : Math.PI * 1.85); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x, y + (P.leg === 2 ? -8 : 8) * s, 5.5 * s, P.leg === 2 ? Math.PI * 0.15 : Math.PI * 1.15, P.leg === 2 ? Math.PI * 0.85 : Math.PI * 1.85); ctx.stroke();
   }
   const hw = 3.4 * s, hh = 9.5 * s, c = 2.2 * s;   // long, narrow, the ends cut square
   ctx.fillStyle = '#6a4c34';
@@ -10653,38 +10758,40 @@ function drawPuntHull(){
   ctx.fillStyle = '#543b28';
   ctx.fillRect(x - hw * 0.55, y - hh * 0.72, hw * 1.1, hh * 1.44);
   ctx.fillStyle = '#6a4c34'; ctx.fillRect(x - hw * 0.55, y - hh * 0.15, hw * 1.1, 1.6 * s);   // the thwart
-  if (punt.leg === 0){   // the pole laid across the hull at its mooring
+  if (P.leg === 0){   // the pole laid across the hull at its mooring
     ctx.strokeStyle = '#8a6a42'; ctx.lineWidth = 1.2;
     ctx.beginPath(); ctx.moveTo(x - hw * 1.4, y + 2.5 * s); ctx.lineTo(x + hw * 1.4, y - 3.5 * s); ctx.stroke();
   }
   // the evening crossing carries a lantern, on the rowboat's own fade and only while
-  // the punt is off its mooring; the warmth is in the column it lays on the water
-  const lf = puntLampF();
+  // the punt is off its mooring; the warmth is in the column it lays on the water — and
+  // the flame itself is REGISTERED, because everything drawn here is slate by ten (#141)
+  const lf = puntLampF(P);
   if (lf > 0){
     const lx = x - 2.4 * s, ly = y + hh - 1.5 * s;
     ctx.strokeStyle = '#3a2a1c'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx, ly - 6 * s); ctx.stroke();
     ctx.fillStyle = 'rgba(255,214,140,' + (0.9 * lf).toFixed(3) + ')';
     ctx.beginPath(); ctx.arc(lx, ly - 6.5 * s, 1.5 * s, 0, 7); ctx.fill();
+    PUNT_LAMPS.push([[lx, ly - 6.5 * s], lf]);
   }
 }
-function drawPuntCrew(){
-  const a = punt.rider; if (!a) return;
+function drawPuntCrew(it){
+  const P = it.P, a = P.rider; if (!a) return;
   const s = cellW / 13;
   // the passenger first: their end of the boat is the northern one, so they sort
   // behind the punter whichever way the crossing is going
-  const m = punt.mate && punt.mate.aboard ? punt.mate : null;
+  const m = P.mate && P.mate.aboard ? P.mate : null;
   if (m) drawPerson({a:{x:m.x, y:m.y, state:'sit', phase:0, greet:0,
-                        shirt:m.shirt, pants:m.pants, skin:m.skin, faceL:punt.leg === 4}});
+                        shirt:m.shirt, pants:m.pants, skin:m.skin, faceL:P.leg === 4}});
   if (!a.aboard) return;
   const [px, py] = project(a.x, a.y, 0);
   drawPerson({a:{x:a.x, y:a.y, state:'stand', phase:0, greet:0,
-                 shirt:a.shirt, pants:a.pants, skin:a.skin, faceL:punt.leg === 4}});
+                 shirt:a.shirt, pants:a.pants, skin:a.skin, faceL:P.leg === 4}});
   const st = Math.sin(simT * 2.2) * 0.5 + 0.5;   // the stroke: hands walk up, the pole trails astern
   ctx.strokeStyle = '#8a6a42'; ctx.lineWidth = 1.3;
   ctx.beginPath();
   ctx.moveTo(px + 2.5 * s, py - (13 + 3 * st) * s);
-  ctx.lineTo(px + (4.5 + 2.5 * st) * s, py + (7 - (punt.leg === 4 ? 14 : 0)) * s);
+  ctx.lineTo(px + (4.5 + 2.5 * st) * s, py + (7 - (P.leg === 4 ? 14 : 0)) * s);
   ctx.stroke();
 }
 /* ============ the barge (#136) ============ *
@@ -11537,7 +11644,7 @@ function applyLight(t){
      * brighter and tighter than a window's: a flame in the open, not a pane. It is
      * registered at its DRAW and painted HERE because anything drawn live before
      * applyLight is slate by midnight — which is the whole reason this pass exists. */
-    for (const [LP, lf] of [[BOAT_LAMP, boatLampF()], [BARGE_LAMP, bargeLampF()]]){
+    for (const [LP, lf] of [[BOAT_LAMP, boatLampF()], [BARGE_LAMP, bargeLampF()], ...PUNT_LAMPS]){
       if (!LP) continue;
       const [bx, by] = LP;
       ctx.fillStyle = 'rgba(255,214,140,' + (0.8 * lf).toFixed(3) + ')';
@@ -12112,9 +12219,12 @@ function personName(a){
 }
 function personName0(a){
   const st = a.state, k = a.kind;
-  if (a.aboard) return a === punt.mate
-    ? (punt.leg === 4 ? 'someone in the punt, being poled back to the jetty' : 'someone in the punt, being poled out to the eyot')
-    : (punt.leg === 4 ? 'someone poling the punt back to the jetty' : 'someone poling the punt out to the eyot');
+  if (a.aboard){   // whichever hull has them — the pointer names the boat this one is in (#141)
+    const P = PUNTS.find(h => h.rider === a || h.mate === a) || punt;
+    return a === P.mate
+      ? (P.leg === 4 ? 'someone in the punt, being poled back to the jetty' : 'someone in the punt, being poled out to the eyot')
+      : (P.leg === 4 ? 'someone poling the punt back to the jetty' : 'someone poling the punt out to the eyot');
+  }
   if (a.round) return st === 'stand' ? 'the morning round, leaving a bottle on the step'
                    : a.i >= a.wp.length - 2 ? 'the morning round, done and going back' : 'the morning round, working the doors';
   if (a.eyot) return st === 'stand' ? 'someone on the eyot, under the willow' : 'someone on the eyot';

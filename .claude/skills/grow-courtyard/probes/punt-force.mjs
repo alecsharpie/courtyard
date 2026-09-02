@@ -29,7 +29,7 @@ await p.waitForFunction(() => typeof window.__warp === 'function');
 
 const setup = await p.evaluate(`(() => {
   const uc = updateClock; updateClock = function(){ uc(); wind = 0; raining = false; rainFall = 0; };
-  const an0 = announce; window.__said = []; announce = function(t, ...r){ if (/punt/i.test(t)) __said.push({h:+hour.toFixed(2), t}); return an0(t, ...r); };
+  const an0 = announce; window.__said = []; announce = function(t, ...r){ if (/poles off for the eyot/.test(t)) __said.push({h:+hour.toFixed(2), t}); return an0(t, ...r); };
   window.__reseed(); window.__warp(5 * 55 - simT);
   while (hour < ${HOUR}) window.__warp(0.1);
   let a = null, tries = 0;
@@ -38,10 +38,11 @@ const setup = await p.evaluate(`(() => {
   if (!a) return {fail:'no jetty roll in 300 spawns'};
   a.x = TOW_WALK; a.y = JETTY.y + 1.3;
   a.i = a.wp.findIndex(q => q[0] === a.stop.x && q[1] === a.stop.y);
-  window.__R = a; window.__T = {legs:[{leg:0, h:+hour.toFixed(2)}], waterWalk:[], swanMin:9, swanNear:0,
+  window.__R = a; window.__T = {legs:[{leg:0, h:+hour.toFixed(2)}], waterWalk:[], swanMin:9, swanNear:0, hull:null,
     yMin:99, yMax:-99, stand:null, standH:[null, null], fits:null};
   return {ok:1, hour:+hour.toFixed(2), speed:+a.speed.toFixed(2), wary:+a.wary.toFixed(2),
-          close:+eastCloseHour().toFixed(2), trip:+puntTripH(a).toFixed(2), stay:+puntStayH(a).toFixed(2)};
+          close:+eastCloseHour().toFixed(2), stay:+puntStayH(a).toFixed(2),
+          trip:+(typeof PUNTS !== 'undefined' ? puntBestTripH(a) : puntTripH(a)).toFixed(2)};
 })()`);
 console.log('setup:', JSON.stringify(setup));
 if (setup.fail){ await br.close(); process.exit(1); }
@@ -49,26 +50,39 @@ if (setup.fail){ await br.close(); process.exit(1); }
 const stepUntil = cond => p.evaluate(`(() => {
   const T = window.__T, a = window.__R;
   const near = (x, y, px, py, r) => Math.hypot(x - px, y - py) < r;
-  let guard = 0;
+  // the fleet is two hulls since #141, and this rider may be on either: resolve THEIR
+  // hull every time. On a one-hull build FLEET is [punt] and every read is unchanged.
+  const FLEET = (typeof PUNTS !== 'undefined') ? PUNTS : [punt];
+  // THIS rider's hull only — the other one is busy with its own party and its legs are
+  // not this trace's. Before the claim there is no hull, and from the rider's side that
+  // is a boat at its mooring: leg 0.
+  const P = () => T.hull || FLEET.find(h => h.rider === a || h.mate === a) || null;
+  const MOORED = {leg:0, x:0, y:0, rider:null, b:null};
+  const BERTH = h => h.b || {moor:PUNT_MOOR, land:PUNT_LAND, shore:PUNT_SHORE};
+  let guard = 0, p0 = P() || MOORED;   // hoisted: the post-loop return reads it too
   while (guard++ < 12000){
     window.__warp(0.1);
-    if (punt.leg !== T.legs[T.legs.length - 1].leg) T.legs.push({leg:punt.leg, h:+hour.toFixed(2), y:+punt.y.toFixed(1)});
-    if (T.fits === null && a.stopped) T.fits = punt.rider === a;
-    if (punt.leg === 2 || punt.leg === 4){ T.yMin = Math.min(T.yMin, punt.y); T.yMax = Math.max(T.yMax, punt.y); }
+    p0 = P() || MOORED;
+    if (p0.rider === a) T.hull = p0;                       // remember it: after puntFree the link is gone
+    if (p0.leg !== T.legs[T.legs.length - 1].leg) T.legs.push({leg:p0.leg, h:+hour.toFixed(2), y:+p0.y.toFixed(1)});
+    if (T.fits === null && a.stopped) T.fits = FLEET.some(h => h.rider === a);
+    if (p0.leg === 2 || p0.leg === 4){ T.yMin = Math.min(T.yMin, p0.y); T.yMax = Math.max(T.yMax, p0.y); }
     if (a.state === 'walk' && a.x < 128 && a.y > 33 && !a.aboard){
       const legal = onEyot(a.x, a.y) || onJetty(a.x, a.y) || a.y < 36.4
-        || near(a.x, a.y, PUNT_MOOR.x, PUNT_MOOR.y, 0.9) || near(a.x, a.y, PUNT_LAND.x, PUNT_LAND.y, 0.9)
-        || Math.hypot(a.x - punt.x, a.y - punt.y) < 0.9;
+        || FLEET.some(h => near(a.x, a.y, BERTH(h).moor.x, BERTH(h).moor.y, 0.9)
+                        || near(a.x, a.y, BERTH(h).land.x, BERTH(h).land.y, 0.9)
+                        || Math.hypot(a.x - h.x, a.y - h.y) < 0.9);
       if (!legal && T.waterWalk.length < 5) T.waterWalk.push({h:+hour.toFixed(2), x:+a.x.toFixed(1), y:+a.y.toFixed(1), i:a.i});
     }
     if (a.eyot && a.state === 'stand' && !T.stand){ T.stand = {x:+a.x.toFixed(2), y:+a.y.toFixed(2)}; T.standH[0] = +hour.toFixed(2); }
     if (T.standH[0] !== null && T.standH[1] === null && a.state === 'walk' && a.eyot) T.standH[1] = +hour.toFixed(2);
-    if (puntAtShore()) for (const s of swans){ const d = Math.hypot(s.x - PUNT_LAND.x, s.y - PUNT_LAND.y);
-      T.swanMin = Math.min(T.swanMin, +d.toFixed(2)); if (d < 0.9) T.swanNear++; }
+    for (const h of FLEET){ if (!puntAtShore(h)) continue;
+      for (const s of swans){ const d = Math.hypot(s.x - BERTH(h).land.x, s.y - BERTH(h).land.y);
+        T.swanMin = Math.min(T.swanMin, +d.toFixed(2)); if (d < 0.9) T.swanNear++; } }
     if (T.fits === false) return {refused:1, h:+hour.toFixed(2)};
-    if (${cond}) return {done:1, h:+hour.toFixed(2), leg:punt.leg, ax:+a.x.toFixed(1), ay:+a.y.toFixed(1), st:a.state};
+    if (${cond}) return {done:1, h:+hour.toFixed(2), leg:p0.leg, ax:+a.x.toFixed(1), ay:+a.y.toFixed(1), st:a.state};
   }
-  return {done:0, h:+hour.toFixed(2), leg:punt.leg, ax:+a.x.toFixed(1), ay:+a.y.toFixed(1), st:a.state, i:a.i, wp:a.wp.length};
+  return {done:0, h:+hour.toFixed(2), leg:p0.leg, ax:+a.x.toFixed(1), ay:+a.y.toFixed(1), st:a.state, i:a.i, wp:a.wp.length};
 })()`);
 
 const shoot = async name => {
@@ -84,23 +98,39 @@ const shoot = async name => {
 };
 
 const bail = r => { if (r.refused){ console.log('REFUSED at the choice — pick another --hour'); process.exit(2); } return r; };
-console.log('to push-off:', JSON.stringify(bail(await stepUntil('punt.leg === 2 && punt.rider === __R'))));
+console.log('to push-off:', JSON.stringify(bail(await stepUntil('p0.leg === 2 && p0.rider === __R'))));
 if (SHOTS) await shoot('push');
-console.log('to mid-channel:', JSON.stringify(await stepUntil('punt.rider === __R && (punt.leg === 2 && punt.y > 39.2 || punt.leg > 2)')));
+console.log('to mid-channel:', JSON.stringify(await stepUntil('p0.rider === __R && (p0.leg === 2 && Math.abs(p0.y - 39.2) < 1.2 || p0.leg > 2)')));
 if (SHOTS) await shoot('channel');
-console.log('to the stand:', JSON.stringify(await stepUntil("punt.leg === 3 && __R.state === 'stand'")));
+console.log('to the stand:', JSON.stringify(await stepUntil("p0.leg === 3 && __R.state === 'stand'")));
 if (SHOTS) await shoot('willow');
-console.log('home:', JSON.stringify(await stepUntil('punt.rider !== __R && !__R.aboard && !__R.eyot')));
+console.log('home:', JSON.stringify(await stepUntil('!FLEET.some(h => h.rider === __R) && !__R.aboard && !__R.eyot')));
 console.log('retrace:', JSON.stringify(await stepUntil('__R.done || __R.x > 128.5 || __R.y < 32')));
 
 const T = await p.evaluate(`(() => { const T = window.__T, a = window.__R;
   return {...T, said:window.__said, eastOpenNow:eastOpen(), close:+eastCloseHour().toFixed(2),
           riderEyot:!!a.eyot, riderAboard:!!a.aboard, h:+hour.toFixed(2)}; })()`);
 console.log('\ntrace:', JSON.stringify(T, null, 1));
+// every stand the fleet can offer, day pool and night pool: --late lands on a night one
+const STANDS = await p.evaluate(`(typeof PUNT_DAY_STANDS !== 'undefined'
+  ? PUNT_DAY_STANDS.concat(PUNT_NIGHT_STANDS) : [PUNT_STAND, PUNT_NIGHT_STAND]).map(s => [s.x, s.y])`);
 const legs = T.legs.map(l => l.leg).join('');
-const ok = legs.includes('01234') && legs.endsWith('0') && T.waterWalk.length === 0 && T.said.length === 1
-  && T.stand && Math.hypot(T.stand.x - 125.35, T.stand.y - 46.4) < 0.4
-  && T.swanNear === 0 && T.yMin > 33 && !T.riderEyot && !T.riderAboard;
+// the announce is no longer unique to this rider: the OTHER hull carries its own parties
+// and announces them in the same run. What must hold is that THIS push-off was announced
+// once — so match on the hour the rider's own hull went to leg 2.
+const offH = (T.legs.find(l => l.leg === 2) || {}).h;
+const mine = T.said.filter(x => offH !== undefined && Math.abs(x.h - offH) < 0.1);
+const checks = {
+  legCycle:      legs.includes('01234') && legs.endsWith('0'),
+  noWaterWalk:   T.waterWalk.length === 0,
+  announcedOnce: mine.length === 1,
+  standIsAStand: !!T.stand && STANDS.some(q => Math.hypot(T.stand.x - q[0], T.stand.y - q[1]) < 0.4),
+  swansClear:    T.swanNear === 0,
+  clearOfDeck:   T.yMin > 33,
+  riderHome:     !T.riderEyot && !T.riderAboard,
+};
+console.log('checks:', JSON.stringify(checks), 'legs', legs, 'announces at my push-off', mine.length, 'of', T.said.length);
+const ok = Object.values(checks).every(Boolean);
 console.log(ok ? '\nVERDICT: PASS' : '\nVERDICT: FAIL');
 await br.close();
 process.exit(ok ? 0 : 1);
