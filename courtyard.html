@@ -5259,59 +5259,243 @@ function roofKey(){
 /* The town is pantiled and we are slated. That is not only a colour: the near block is a
  * third of the picture's area and a bright field there fights the town for the eye, so
  * the thing in the foreground is the DARK thing and the town reads past it — which is
- * also what looking out of a window is like. Four slates, picked per HOUSE off the same
- * `(gx+1)/3.5` the facades divide on, so the terrace reads as a terrace and not a slab. */
+ * also what looking out of a window is like. Four slates, picked per HOUSE, so the
+ * terrace reads as a terrace and not a slab; the near block reads them through
+ * SLATE_RGB, and tileCol is the town's pantile alone. */
 const SLATES = [['#2c3037', '#7c8590'], ['#31322f', '#848579'], ['#2b3138', '#76818c'], ['#35322e', '#827c74']];
-function tileCol(lam, hv, amb, key, house){
+function tileCol(lam, hv, amb, key){
   const t = clamp(amb + 0.8 * lam * key + hv * 0.08 - 0.04, 0, 1);
-  let col;
-  if (house === undefined) col = mix('#6f4a39', '#cd9268', t);
-  else {
-    const s = SLATES[(hash(house, 71) * SLATES.length) | 0];
-    col = mix(s[0], s[1], clamp(t * (0.92 + 0.16 * hash(house, 73)), 0, 1));
-  }
-  if (snowCover > 0) col = mix(col, SNOW_COL, snowCover * (0.6 + 0.4 * hv) * (0.75 + 0.25 * lam));
-  return col;
+  const col = mix('#6f4a39', '#cd9268', t);
+  return snowCover > 0 ? mix(col, SNOW_COL, snowCover * (0.6 + 0.4 * hv) * (0.75 + 0.25 * lam)) : col;
 }
 /* Our own houses are wider than the town's 3.5-cell terrace: at 3.5 the party walls come
  * every 31 px across a 1600 px frame and the roof reads as boarding rather than as a row
  * of houses. Seven cells is the same rhythm the eye reads on the far side, at our range. */
 const NEAR_HOUSE = 7;
 function houseOf(x){ return Math.floor((x + 1) / NEAR_HOUSE); }
+
+/* ============ the near block is SLATED, not tiled (#125) ============
+ * The town is painted one quad per CELL, and that is right for the town — up there a
+ * cell is a few pixels across. Down here the same quad is ~6 px wide and ~37 px tall on
+ * a phone, one hash tint with a course line only at the row boundary, and it reads as
+ * vertical BOARDING: on the flat pitch its horizontal luma sd measured 4.6-8 against
+ * 21-35 for the town behind it, and it FELL as the pitch came toward the viewer, because
+ * a nearer cell is simply a wider block of one colour.
+ *
+ * So the surface is laid at a SLATE's scale instead of the grid's. Three things make it
+ * a roof rather than a finer texture:
+ *   - the lattice is GLOBAL along the row. A slate is a run of the row's own lattice,
+ *     not a subdivision of a cell, so one that straddles a cell edge is drawn as two
+ *     halves of a single tone with no joint between them. Subdividing per cell would
+ *     have put a seam every 6 px and rebuilt the boarding at a finer pitch.
+ *   - courses run head to tail DOWN the pitch, which is north on rows 79-83 and south on
+ *     84-87. Slates butt sideways with a fine joint and are gapped only at the tail,
+ *     where the course below is lapped over them: that gap is the lap shadow, and it is
+ *     why the surface stripes across the pitch rather than along it.
+ *   - the slates are the ADDRESSING for everything that ages the roof — lichen on the
+ *     damp side, soot under the stacks, a slate slipped or swapped, snow lying course by
+ *     course. None of that is a new object on the band (#123 proved the band is full to
+ *     six thousandths of a cell); all of it is the surface itself.
+ * drawNearRoof is inside the ground cache, so this is cache-time cost: slates per cell
+ * scale with the PROJECTED cell, so the feature thins at a small size instead of being
+ * switched off there. */
+/* A slate is WIDER than it is deep once the pitch is foreshortened, and getting that
+ * ratio backwards is how the first draft turned the apron into a picket fence: 5 px
+ * slates under 12 px courses read as vertical boarding just as loudly as one quad a cell
+ * did. Wide face, shallow exposure, and the lap shadow heavier than the side joint. */
+const SLATE_W_PX = 9.0, SLATE_H_PX = 4.4, SLATE_JOINT = 0.8;
+const SLATE_JOINT_T = 0.26;        // how dark the shadow between and under the slates is
+const SLATE_LIFT = 0.055;          // the joints eat luma; the faces give it back, so the BAND mean holds
+const APRON_GROW = 1.24;           // the apron's courses, opening out as they come at us
+const SLATE_RGB = SLATES.map(s => [cparse(s[0]), cparse(s[1])]);
+const SNOW_RGB = cparse(SNOW_COL);
+/* Per-slate spread, and it is a VALUE factor rather than a step along the palette ramp.
+ * On the ramp it clipped: at a midsummer noon the key already pins t at 1, so half of
+ * every draw landed on the clamp and the spread came out one-sided — darker only, which
+ * both flattened the surface and pulled the band mean down 8 luma. A symmetric multiply
+ * has E[f] = 1, so the roof gets its variance and the composition keeps its mean. */
+const SLATE_VAR = 0.38, SLATE_BATCH = 0.30;
+const LICHEN = [[104, 112, 74], [158, 152, 118]];   // the moss, and the pale crustose that follows it
+const SOOT_RGB = [22, 19, 18];
+function rgbs(c){ return 'rgb(' + clamp(c[0] | 0, 0, 255) + ',' + clamp(c[1] | 0, 0, 255) + ',' + clamp(c[2] | 0, 0, 255) + ')'; }
+function blend(c, d, t){ return [c[0] + (d[0] - c[0]) * t, c[1] + (d[1] - c[1]) * t, c[2] + (d[2] - c[2]) * t]; }
+function slateTone(pal, hg, t, sn){
+  const q = clamp(t * hg, 0, 1), a = pal[0], b = pal[1];
+  const c = [a[0] + (b[0] - a[0]) * q, a[1] + (b[1] - a[1]) * q, a[2] + (b[2] - a[2]) * q];
+  return sn > 0 ? blend(c, SNOW_RGB, sn) : c;
+}
+/* How many slates a cell is worth, solved off the cell as DRAWN and never stated: the
+ * near pitch is foreshortened to under 2 px a row behind the parapet and stretched to 11
+ * at the eaves, so a fixed courses-per-cell would be a smear at one end and a comb at
+ * the other. This is also the small-size answer — the bond COARSENS on a phone rather
+ * than the surface reverting to a flat quad. */
+function slateGrid(y){
+  const solid = solidC(60, y + 1), sy = solid ? y + 1 : y + 1.3, dz = solid ? 0 : SLOPE * 0.3;
+  const a = project(60, y, roofZ(60, y)), b = project(61, y, roofZ(61, y));
+  const d = project(60, sy, roofZ(60, y + 1) - dz);
+  const wPx = Math.max(1.5, Math.abs(b[0] - a[0])), hPx = Math.max(1.2, Math.abs(d[1] - a[1]));
+  return [clamp(Math.round(wPx / SLATE_W_PX), 1, 5), clamp(Math.round(hPx / SLATE_H_PX), 1, 6), wPx, hPx];
+}
+/* The ridge row, ONE definition. This block is nine rows deep — an EVEN number of vertex
+ * rows — so its top is a two-row plateau and drawCrests, which wants a strict local
+ * maximum, finds nothing: the ridge has to be capped by hand. The damp map wants the same
+ * row, because the courses in a ridge's lee are the ones that never dry. */
+let NEAR_RIDGE = -1;
+function nearRidgeRow(){
+  if (NEAR_RIDGE >= 0) return NEAR_RIDGE;
+  let best = -1;
+  for (let y = LN_WALK_S; y <= WH; y++) if (roofD(60, y) > best){ best = roofD(60, y); NEAR_RIDGE = y; }
+  return NEAR_RIDGE;
+}
+/* The moss year, ONE definition: the damp side of a roof greens as the year cools and a
+ * lying cover hides it. Read by the per-slate tint and by the clumps drawn over them. */
+function roofMossF(){ return clamp(0.35 + 0.5 * (1 - warmth), 0, 1) * (1 - snowCover); }
+let SOOT_STACKS = null;
+function sootStacks(){
+  if (SOOT_STACKS) return SOOT_STACKS;
+  SOOT_STACKS = [];
+  for (const [sx0, sx1] of NEAR_SPANS) for (const bx of partyWalls(sx0, sx1))
+    if (nearStack(bx)) SOOT_STACKS.push([bx - 0.5, (hash(bx, 29) - 0.5) * 1.1]);
+  return SOOT_STACKS;
+}
+/* Soot below the stacks: decades of the same fire under the same prevailing wind, so the
+ * stain leans on a per-stack hash and never on today's windDir. This is painted INTO the
+ * ground cache, and a stain that swung with the weather would be a stain that flickered. */
+function sootAt(x, y){
+  if (y < STACK_Y) return 0;
+  const run = y - STACK_Y + 0.6, fade = clamp(1 - run / 4.2, 0, 1);
+  if (fade <= 0) return 0;
+  let s = 0;
+  for (const [cx, lean] of sootStacks()){
+    const w = 0.85 + run * 0.6;
+    const v = clamp(1 - Math.abs(x + 0.5 - (cx + lean * run)) / w, 0, 1);
+    if (v > s) s = v;
+  }
+  return s * s * fade;
+}
+/* Everything a column of the near block is worth before its slates are laid: its house's
+ * palette, the cell's own key, how damp this part of the pitch is and what the stacks
+ * have been doing to it. One object, so a cell and the apron under it agree. */
+function slateShade(x, y, lam, amb, key, gx, north){
+  const house = houseOf(x);
+  /* Where the water lingers, which is where the lichen is. The north pitch first, then
+   * the three places a south pitch stays wet anyway: the rows the parapet keeps the sun
+   * off, the courses in the ridge's own lee, and the angle against a party-wall upstand
+   * where the leaf and the grit collect. Bounded on the north side ALONE it reached
+   * 0.4% of the band — true of a roof and invisible in a picture, because the north
+   * pitch is under 2 px a row on screen. */
+  const wl = mod(x + 1, NEAR_HOUSE);
+  const damp = clamp((north ? 0.75 : 0.10)
+    + 0.50 * clamp(1 - (y - LN_WALK_S) / 2.4, 0, 1)
+    + 0.40 * clamp(1 - Math.abs(y + 0.5 - nearRidgeRow()) / 1.8, 0, 1)
+    + 0.45 * clamp(1 - Math.min(wl, NEAR_HOUSE - wl) / 1.4, 0, 1), 0, 1);
+  return { pal: SLATE_RGB[(hash(house, 71) * SLATES.length) | 0],
+           hg: 0.92 + 0.16 * hash(house, 73),
+           t0: clamp(amb + 0.8 * lam * key + hash(gx, y) * 0.08 - 0.04, 0, 1),
+           sun: 0.75 + 0.25 * lam, lam,
+           moss: roofMossF() * damp, soot: sootAt(x, y) };
+}
+/* ONE course of slate across ONE column. `pt(u, s)` is the caller's surface — u east
+ * across the column, s down the pitch — so the same run lays the roof's bilinear cells
+ * and the apron's flared bands without either knowing about the other.
+ * The lattice is GLOBAL: slate k spans [(k+off)/ns, (k+1+off)/ns] in world x, so a slate
+ * straddling a column edge is drawn as two halves of one tone with no joint between. */
+function slateRun(g, sh, x, ns, ck, s0, s1, gU, slipD, pt){
+  const off = 0.5 * (ck & 1);                      // half bond: every other course steps a half slate
+  const k0 = Math.floor(x * ns - off), k1 = Math.ceil((x + 1) * ns - off) - 1;
+  for (let k = k0; k <= k1; k++){
+    const u0 = clamp((k + off) / ns - x + gU, 0, 1), u1 = clamp((k + 1 + off) / ns - x - gU, 0, 1);
+    if (u1 - u0 < 0.004) continue;
+    const h1 = hash(k * 31 + 7, ck * 17 + 3), h2 = hash(k * 13 + 5, ck * 23 + 11);
+    let t = sh.t0, p = sh.pal, a0 = s0, a1 = s1;
+    if (h2 > 0.984){ p = SLATE_RGB[Math.abs(k * 7 + ck) & 3]; t -= 0.07; }   // one replaced, and never matching
+    else if (h2 < 0.011 && slipD){ a0 += slipD; a1 += slipD; t -= 0.10; }    // one slipped: the dark it leaves is the underlay
+    /* One uniform hash is a texture and never a PLACE. Slates arrive by the batch and
+     * are laid off the same pile, so the fine per-slate draw is GATED by a coarse run —
+     * five slates by two courses — and the roof gets lighter and darker PATCHES instead
+     * of an even sparkle. Both terms average 1, so neither moves the band mean. */
+    const batch = 1 - SLATE_BATCH / 2 + SLATE_BATCH * hash(Math.floor(k / 5) * 7 + 3, (ck >> 1) * 11 + 5);
+    const vf = (1 + SLATE_LIFT) * batch * (1 + SLATE_VAR * (h1 - 0.5));
+    let col = slateTone(p, sh.hg, t, 0);
+    col = [col[0] * vf, col[1] * vf, col[2] * vf];
+    if (sh.moss > 0.04){
+      // one uniform hash is a texture, never a PLACE: a fine draw GATED by a coarse patch
+      const cg = hash(Math.floor(k / 3) * 5 + 11, (ck >> 1) * 3);
+      if (cg > 0.55){
+        const m = sh.moss * ((cg - 0.55) / 0.45) * (0.3 + 0.7 * hash(k * 3 + 1, ck * 5 + 2));
+        col = blend(col, LICHEN[hash(k * 9, ck * 11) > 0.62 ? 1 : 0], m);
+      }
+    }
+    if (sh.soot > 0.02) col = blend(col, SOOT_RGB, 0.66 * sh.soot * (0.55 + 0.45 * h1));
+    g.fillStyle = rgbs(col);
+    poly(g, [pt(u0, a0), pt(u1, a0), pt(u1, a1), pt(u0, a1)]); g.fill();
+    if (snowCover > 0.02){
+      /* It lies COURSE BY COURSE. Snow on a pitch lodges in the angle where the course
+       * above laps over this one — a white line at every head, thickening down the face
+       * until at a full cover the courses close up and the roof is one field again. */
+      const lie = clamp(snowCover * (0.55 + 0.45 * hash(k * 5, ck * 7)) * (1.3 - 0.55 * sh.lam), 0, 1);
+      const b1 = a0 + (a1 - a0) * clamp(lie * 1.45, 0, 1);
+      if (Math.abs(b1 - a0) > 0.002){
+        g.fillStyle = 'rgba(226,232,242,' + (0.3 + 0.6 * lie).toFixed(3) + ')';
+        poly(g, [pt(u0, a0), pt(u1, a0), pt(u1, b1), pt(u0, b1)]); g.fill();
+      }
+    }
+  }
+}
+/* One cell of the near block, laid as slate. z is bilinear over the cell's own four
+ * corners, so every slate sits on exactly the surface the flat quad used to cover. */
+function drawSlateCell(g, x, y, r, sy, dz, amb, key, gx, ns, nc, wPx, hPx){
+  const zA = r[1], zB = r[2], zC = r[3] - dz, zD = r[4] - dz, dy = sy - y;
+  const north = r[4] > r[1] + 0.05;                    // the pitch rises southward: this face looks at the lane
+  const pt = (u, s) => { const v = north ? 1 - s : s;  // courses lap DOWN the pitch, whichever way that is
+    return project(x + u, y + v * dy, (zA * (1 - u) + zB * u) * (1 - v) + (zD * (1 - u) + zC * u) * v); };
+  const sh = slateShade(x, y, r[0], amb, key, gx, north);
+  // what shows in the joints and under the tails — the same slate, in its own shadow
+  g.fillStyle = rgbs(slateTone(sh.pal, sh.hg, sh.t0 * SLATE_JOINT_T - 0.05, snowCover * 0.5 * sh.sun));
+  poly(g, [pt(0, 0), pt(1, 0), pt(1, 1), pt(0, 1)]); g.fill();
+  const gU = Math.min(0.5 * SLATE_JOINT / wPx, 0.16 / ns);
+  const gS = Math.min(SLATE_JOINT / hPx, 0.24 / nc);
+  for (let j = 0; j < nc; j++)
+    slateRun(g, sh, x, ns, y * 8 + j, j / nc, (j + 1) / nc - gS, gU,
+             nc > 1 && j < nc - 1 ? 0.62 / nc : 0, pt);
+}
 function drawRoofRow(g, y){
   const [amb, key] = roofKey();
+  const near = y >= LN_WALK_S;
+  const sg = near ? slateGrid(y) : null;
   for (let x = XLO; x < XHI; x++){
     const gx = clamp(x, 0, GW - 1);
     if (!solidM[y * GW + gx]) continue;
     // beyond the frame the town is hazed — but the near block is the closest thing in
     // the world, and haze on the row under our own sill would read as fog at our feet
-    const out = x !== gx && y < LN_WALK_S;
+    const out = x !== gx && !near;
     const r = roofShade(x, y), lam = r[0];
     const hv = hash(gx, y);
     const sy = solidC(x, y + 1) ? y + 1 : y + 1.3;               // eaves overhang the wall below
     const dz = solidC(x, y + 1) ? 0 : SLOPE * 0.3;
-    let col = tileCol(lam, hv, amb, key, y >= LN_WALK_S ? houseOf(x) : undefined);
-    if (out) col = mix(col, HAZE, 0.55);
-    g.fillStyle = col;
-    const a = project(x, y, r[1]), b = project(x + 1, y, r[2]);
     const c = project(x + 1, sy, r[3] - dz), d = project(x, sy, r[4] - dz);
-    poly(g, [a, b, c, d]); g.fill();
-    if (out) continue;
-    g.strokeStyle = 'rgba(48,29,21,' + (0.13 + 0.14 * lam) * (1 - 0.8 * snowCover) + ')'; g.lineWidth = 0.8;
-    g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]);
-    // the down-joint is a tile's edge; on the near block, nine rows filling an eighth of
-    // the frame, one per cell across 160 columns reads as vertical boarding, not slate
-    if (y < LN_WALK_S){ g.moveTo(a[0], a[1]); g.lineTo(d[0], d[1]); }
-    g.stroke();
+    if (near) drawSlateCell(g, x, y, r, sy, dz, amb, key, gx, sg[0], sg[1], sg[2], sg[3]);
+    else {
+      const a = project(x, y, r[1]), b = project(x + 1, y, r[2]);
+      let col = tileCol(lam, hv, amb, key);
+      if (out) col = mix(col, HAZE, 0.55);
+      g.fillStyle = col;
+      poly(g, [a, b, c, d]); g.fill();
+      if (out) continue;
+      g.strokeStyle = 'rgba(48,29,21,' + (0.13 + 0.14 * lam) * (1 - 0.8 * snowCover) + ')'; g.lineWidth = 0.8;
+      g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]);
+      g.moveTo(a[0], a[1]); g.lineTo(d[0], d[1]);
+      g.stroke();
+    }
     if (dz){                                                     // shadow the wall under the eaves
       g.fillStyle = 'rgba(30,22,16,.32)';
       const e1 = project(x, y + 1, r[4]), e2 = project(x + 1, y + 1, r[3]);
       poly(g, [e1, e2, c, d]); g.fill();
     }
     // the near block's stacks stand on its party walls, and are placed there (drawNearRoof)
-    if (y < LN_WALK_S && hash(gx * 5, y * 3) > 0.965 && Math.min(roofD(x, y), roofD(x + 1, y + 1)) > 0.95){
+    if (!near && hash(gx * 5, y * 3) > 0.965 && Math.min(roofD(x, y), roofD(x + 1, y + 1)) > 0.95){
       drawChimney(g, x, y);
-      if (x === gx && !CHIMNEYS.some(c => c[0] === x && c[1] === y)) CHIMNEYS.push([x, y]);
+      if (x === gx && !CHIMNEYS.some(c2 => c2[0] === x && c2[1] === y)) CHIMNEYS.push([x, y]);
     }
   }
 }
@@ -6956,38 +7140,63 @@ function drawNearRoof(g){
   const [amb, key] = roofKey();
   ROOF_LIGHTS.length = 0;
   for (let y = LN_WALK_S; y < WH; y++) drawRoofRow(g, y);
-  // the near pitch does not stop at the world's south edge — it runs on under us, out of
-  // the picture. One column-wise apron off row WH, flared by the same trick the river's
-  // gradient uses, and darkening as it comes: down here it is in our own shadow.
-  for (const [sx0, sx1] of NEAR_SPANS){
-    for (let x = sx0; x < sx1; x++){
-      const gx = clamp(x, 0, GW - 1);
-      const a = project(x, WH, 0), b = project(x + 1, WH, 0);
-      const a4 = project(x, WH - 4, 0), b4 = project(x + 1, WH - 4, 0);
-      g.fillStyle = tileCol(roofShade(x, WH - 1)[0], hash(gx, WH), amb, key, houseOf(x));
-      poly(g, [a, b, [b[0] + (b[0] - b4[0]) * 4, H], [a[0] + (a[0] - a4[0]) * 4, H]]); g.fill();
+  /* The apron: the near pitch does not stop at the world's south edge, it runs on under
+   * us and out of the picture. On screen it is BIGGER than the nine rows of roof above
+   * it — 62 px of a 119 px band at 1600x950 — so slating the roof and leaving this as
+   * one flared quad a column would only have moved the boarding DOWN rather than retired
+   * it. It is slated on the same lattice: the courses open out as they come (a geometric
+   * run on APRON_F0/APRON_GROW, which is what the three hand-placed lines at .13/.30/.52
+   * already were), and each one re-solves its slates-per-cell off the width it is
+   * actually drawn at, so the bond coarsens toward the viewer as perspective asks.
+   *
+   * And it goes into shadow as it comes. That is not only true — the last four rows of
+   * roof are under our own wall — it is what makes the picture READ: bright town, slate
+   * mid-tone, then a foreground that falls away into the sill instead of competing with
+   * the courtyard for the eye.
+   * #105: the ramp that does that is no longer here. It was anchored on the roof's LAST
+   * ROW, and at 1200x720 that row projects 31 px BELOW sillTop(), so the whole gradient
+   * was painted under the sill band and never seen. It is now one wash priced off
+   * sillTop() in drawOurSide, over whatever strip of near roof the frame shows. */
+  {
+    /* The courses open out as they come — but only so far. The flare widens x by two per
+     * cent while it stretches y to the bottom of the frame, so a course left to grow
+     * unchecked ends up two and a half times taller than a slate is wide, and the apron
+     * goes straight back to reading as boarding: on a 390-wide phone the last visible
+     * course was 25 px deep over a 6 px slate. So the exposure is CAPPED against the
+     * slate's own width, and past the cap the courses simply repeat. */
+    const aDy = H - project(60, WH, 0)[1];                   // project()s y is row-only: x is free
+    const aW = Math.abs(project(61, WH, 0)[0] - project(60, WH, 0)[0]);
+    const hMax = Math.max(SLATE_H_PX, 0.85 * aW);
+    const fs = [0];
+    for (let f = 0, h = SLATE_H_PX; f < 0.999 && fs.length < 34; h = Math.min(h * APRON_GROW, hMax)){
+      f = Math.min(f + h / Math.max(aDy, 1), 1); fs.push(f);
     }
-    const l = project(sx0, WH, 0), r = project(sx1, WH, 0);
-    const l4 = project(sx0, WH - 4, 0), r4 = project(sx1, WH - 4, 0);
-    const L = [l[0] + (l[0] - l4[0]) * 4, H], R = [r[0] + (r[0] - r4[0]) * 4, H];
-    /* And it goes into shadow as it comes. That is not only true — the last four rows of
-     * roof are under our own wall — it is what makes the picture READ: bright town, slate
-     * mid-tone, then a foreground that falls away into the sill instead of competing with
-     * the courtyard for the eye. This is the one part of the band with nothing on it, and
-     * it is the part that should have nothing on it. */
-    /* #105: the ramp that does this is no longer here. It was anchored on l[1] — the
-     * roof's LAST ROW — and at 1200x720 that row projects 31 px BELOW sillTop(), so the
-     * whole gradient was painted under the sill band and never seen: the desktop frame
-     * cut full-brightness slate straight to black. It is now one wash priced off
-     * sillTop() in drawOurSide, over whatever strip of near roof the frame shows. */
-    g.strokeStyle = 'rgba(26,24,22,.35)'; g.lineWidth = Math.max(1, cellH * 0.16);
-    g.beginPath(); g.moveTo(l[0], l[1]); g.lineTo(r[0], r[1]); g.stroke();   // the last full course
-    g.strokeStyle = 'rgba(24,22,20,.28)'; g.lineWidth = 1;      // and the courses under it, opening out
-    for (const f of [0.13, 0.30, 0.52]){
-      g.beginPath();
-      g.moveTo(l[0] + (L[0] - l[0]) * f, l[1] + (H - l[1]) * f);
-      g.lineTo(r[0] + (R[0] - r[0]) * f, r[1] + (H - r[1]) * f);
-      g.stroke();
+    if (fs[fs.length - 1] < 1) fs.push(1);
+    for (const [sx0, sx1] of NEAR_SPANS){
+      for (let x = sx0; x < sx1; x++){
+        const gx = clamp(x, 0, GW - 1);
+        const a = project(x, WH, 0), b = project(x + 1, WH, 0);
+        const a4 = project(x, WH - 4, 0), b4 = project(x + 1, WH - 4, 0);
+        const aX = a[0], bX = b[0], aB = a[0] + (a[0] - a4[0]) * 4, bB = b[0] + (b[0] - b4[0]) * 4;
+        const y0 = a[1], dy = H - a[1];
+        // u east across the column, s the fraction of the way off the bottom of the world
+        const pt = (u, s) => [lerp(lerp(aX, bX, u), lerp(aB, bB, u), s), y0 + dy * s];
+        const sh = slateShade(x, WH - 1, roofShade(x, WH - 1)[0], amb, key, gx, false);
+        g.fillStyle = rgbs(slateTone(sh.pal, sh.hg, sh.t0 * SLATE_JOINT_T - 0.05, snowCover * 0.5 * sh.sun));
+        poly(g, [pt(0, 0), pt(1, 0), pt(1, 1), pt(0, 1)]); g.fill();
+        for (let j = 0; j + 1 < fs.length; j++){
+          const f0 = fs[j], f1 = fs[j + 1], fm = (f0 + f1) / 2;
+          const wPx = Math.abs(lerp(bX, bB, fm) - lerp(aX, aB, fm));
+          const ns = clamp(Math.round(wPx / SLATE_W_PX), 1, 5);
+          const gS = Math.min(SLATE_JOINT / dy, 0.24 * (f1 - f0));
+          slateRun(g, sh, x, ns, 704 + j, f0, f1 - gS, Math.min(0.5 * SLATE_JOINT / wPx, 0.16 / ns),
+                   j + 2 < fs.length ? 0.55 * (f1 - f0) : 0, pt);
+        }
+      }
+      // the last full course at the world's edge, heavier than the laps below it
+      const l = project(sx0, WH, 0), r = project(sx1, WH, 0);
+      g.strokeStyle = 'rgba(26,24,22,.35)'; g.lineWidth = Math.max(1, cellH * 0.16);
+      g.beginPath(); g.moveTo(l[0], l[1]); g.lineTo(r[0], r[1]); g.stroke();
     }
   }
   for (let y = LN_WALK_S; y < WH; y++) drawCrests(g, y);
@@ -6996,8 +7205,7 @@ function drawNearRoof(g){
    * two-row plateau (vD 4 at both 83 and 84) and no vertex is strictly higher than its
    * neighbours. Nothing was wrong with drawCrests; the ridge simply has width. Cap it. */
   {
-    let ry = LN_WALK_S, best = -1;
-    for (let y = LN_WALK_S; y <= WH; y++) if (roofD(60, y) > best){ best = roofD(60, y); ry = y; }
+    const ry = nearRidgeRow();
     for (const [sx0, sx1] of NEAR_SPANS){
       const a = project(sx0, ry, roofZ(sx0, ry)), b = project(sx1, ry, roofZ(sx1, ry));
       const c = project(sx1, ry + 0.62, roofZ(sx1, ry)), d = project(sx0, ry + 0.62, roofZ(sx0, ry));
@@ -7008,7 +7216,7 @@ function drawNearRoof(g){
     }
   }
   // moss and lichen on the north pitch — the damp side, in the parapet's own shade
-  const mossF = clamp(0.35 + 0.5 * (1 - warmth), 0, 1) * (1 - snowCover);
+  const mossF = roofMossF();
   if (mossF > 0.05){
     for (let y = LN_WALK_S; y < WH; y++) for (let x = XLO; x < XHI; x++){
       const gx = clamp(x, 0, GW - 1);

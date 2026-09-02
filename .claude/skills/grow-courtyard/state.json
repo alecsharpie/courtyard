@@ -2,7 +2,7 @@
   "updated": "2026-09-02",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 124,
+  "lastIteration": 125,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -432,6 +432,9 @@
       ],
       "interaction": [
         117
+      ],
+      "new-ca": [
+        125
       ]
     }
   },
@@ -514,7 +517,8 @@
       "the near block's edges: APRON below row WH, OUR_AWNINGS on the kerb, nearShadow the ONE ramp into the sill, off sillTop()",
       "near roof life: roofBirdSpot's own roll and cap, FIVE named perches, the first four capped by ROOF_DMAX 82.2 in DEPTH",
       "THE WORKING ROOF: ROOF_FURN, 24 pieces per BAY off hash(house) — drawWashLine (washOut() gates the cloth), drawWaterTank, drawPigeonLoft. It ANSWERS: roofFurnAt world-space + roofFurnName off what each piece IS; FURN_BOX the ONE size draw and hit test share",
-      "ROOF_FURN is bounded in DEPTH, not rows: furnRow() solves each row from FURN_DMAX 81.70 / FURN_DMIN 79.15 per kind — 2.55 of depth, and a water tank is 2.549 of it, so nothing TALLER fits and the pitch SOUTH of the band is bare at the tall framings"
+      "ROOF_FURN is bounded in DEPTH, not rows: furnRow() solves each row from FURN_DMAX 81.70 / FURN_DMIN 79.15 per kind — 2.55 of depth, and a water tank is 2.549 of it, so nothing TALLER fits and the pitch SOUTH of the band is bare at the tall framings",
+      "the near block is SLATED, not tiled: drawRoofRow forks at LN_WALK_S to drawSlateCell/slateRun. The lattice is GLOBAL along the row (slate k spans [(k+off)/ns,(k+1+off)/ns] in world x, half-bond by course parity), so a slate straddling a cell edge is two halves of one tone. slateGrid(y) solves slates- and courses-per-cell off the cell AS DRAWN; the APRON below row WH is slated on the same run, its exposure capped against the slate's width (APRON_GROW, hMax) because the flare widens x by 2% while stretching y to the frame's bottom. Per-slate ageing: lichen off roofMossF() x a damp map (north pitch + parapet shade + nearRidgeRow() lee + party-wall upstand), sootAt() below STACK_Y on a per-stack prevailing lean, ~1.6% replaced / ~1.1% slipped, snow lying course by course at each head. SLATE_VAR is a symmetric VALUE multiply, not a step along the palette ramp. tileCol is the town's pantile ALONE now"
     ]
   },
   "openCues": [
@@ -559,6 +563,12 @@
       "note": "hearthF() is the ONE hearth definition and nothing else reads it: windowLit, the tap and the cafe do not know the town is cold. A shared `chill` would connect the roofline to the rooms under it.",
       "raisedBy": 120,
       "seenBy": 1
+    },
+    {
+      "id": "c198",
+      "note": "The near roof's lichen is bounded by roofMossF()'s season but its COVERAGE is not a fact about the slates: a colony is years old and should not thin in July. Splitting a per-slate colonisation mask from the seasonal green would let the roof carry a history the calendar does not erase.",
+      "raisedBy": 124,
+      "seenBy": 0
     }
   ],
   "watch": [

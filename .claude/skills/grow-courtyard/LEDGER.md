@@ -40,15 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 117 — the hand goes where the words are: the working roof answers, and the sill stops naming what it hides (2026-09-02) [Roofs & skyline × Interaction/UX]
-
-**Brief:** b117 — the cursor keyed on the SOWABLE-cell test, the 24 pieces of roof furniture said nothing, and `nearHidden` guarded the renderer but not the hit test. All three premises held on HEAD.
-**Did.** (a) `cv.style.cursor` moved out of the `mousemove` listener into `updateNaming`, off `lookAt`'s own result — the affordance is the NAMING, not the sowing, and it costs nothing because `lookAt` already ran once a frame off that point. (b) `roofFurnName`/`roofFurnAt`: words read off what each piece IS (`washOut()` gates the cord's line as it gates the cloth; `snowCover` whitens the tank's lid; the loft counts birds through `birdDown()`). Hit-tested in WORLD space and projected live, so unlike `FACES` no screen box goes stale; `FURN_BOX` is one size definition for the draw and the hit test. (c) `nearHidden()` is read by the hit test too: in `lookAt` on the pointer's cell, and in `livingAt`'s `hit()` on the feet. +100 lines.
-**Gates:** census PASS · motion PASS · shots clean · canvas hash bit-identical to HEAD at 18 pinned instants (3 sizes × 2 seeds × 3 times) — the proof it is an interaction change · `lookAt` 7.2 µs vs HEAD 7.3 µs.
-**Measured** (`probes/affordance.mjs`, every reading a real `mousemove`/tap): hands at 1600×950 **HEAD 1/8 targets → 7/8**; on the three furniture targets HEAD named *the slates under them*. Phone 5/5. Behind the sill at 1280×700, where 20 of 24 pieces are covered, HEAD named "a pigeon on the loft's landing board" for a bird it refused to draw; the tree says nothing. All six branches of the cord fire over 40 days.
-**Verdict:** shipped
-**Surprise:** two instrument faults, zero code faults. The probe pointed into the void first — `ROOF_FURN[0]` sits at world x −7.5, off the west edge. Then the vane's words differed between builds **and survived a HEAD-vs-HEAD control**, which looked exactly like a regression. It was the run count: without `__reseed()` before the warp, HEAD's own `windF` at a pinned instant flips 0 / 0.339 across 8 runs, because frames drawn at page load move the PRNG. Two runs was too small a control to catch that the law had been broken.
-
 ## Iteration 118 — each bird band counts its own: the lawn and the lane get their three back (2026-09-02) [People × Deepen]
 
 **Brief:** b118 — the ground band's cap read `birds.filter(b => !b.plaza).length < 3`, so #106's roof birds and the belfry's flush filled it. Premise re-measured on HEAD first (`probes/ground-birds.mjs`, 12 seeds × 6 days, 7,744 daylight dry samples): mean present **0.05** ground vs 2.67 roof, 1.24 plaza; gate open 15.1%, and — the sharpest number — **100% of shut samples were shut on birds of another band**. Not throttled, evicted.
@@ -114,3 +105,12 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Gates:** all PASS, all six census groups unchanged (no new `R()`). Mean |peak − first light| across the year **1.26 h → 0.12 h**; at each build's own peak midsummer lights 24/27 stacks (07:00) → **5/27 (04:24)**.
 **Verdict:** shipped
 **Surprise:** the brief asked me to scale the fire by warmth *and* `greyF()`, and they are one axis — `greyF()` **is** `1 - 2*warmth`, so doing both would have squared the year rather than reading it twice. The season enters once; the honest second axis was the weather of the *day*, and `snowCover` is the one that says "cold house" when the calendar does not.
+
+## Iteration 125 — the biggest thing in the picture stops being one flat quad a cell: the near block is slated (2026-09-02) [Roofs & skyline × New CA]
+
+**Brief:** b125 — retire the near roof's flat fill; slate courses, staggered laps, per-slate variance, and let the surface AGE. Full entry in LEDGER-archive.md.
+**Did.** `drawRoofRow` forks at `LN_WALK_S`. `slateRun` walks a lattice GLOBAL along the row, so a slate straddling a cell edge is two halves of one tone — subdividing per cell only rebuilds the boarding at finer pitch. Courses lap DOWNSLOPE (north on 79-83, south on 84-87), gapped at the tail only; that gap is the lap shadow. Ageing is per SLATE: lichen (fine hash gated by a coarse batch over a `damp` map), soot under the stacks on a per-stack prevailing lean, a slate replaced or slipped, snow lodging course by course.
+**Gates:** census PASS, six groups unchanged (no new `R()`) · motion PASS · visual PASS at four framings and 390x844 · frame-cost 3.11→3.40 ms summer, 3.01→3.58 winter, rebuilds identical. `probes/near-roof-texture.mjs`: band sd 11.3→**20.3** at 1600x950, 9.0→**19.5** at 390x844; changed share **74/81%** on a same-code floor of **0.0%**; band mean luma **fell** 98.4→93.1, 89.6→81.5.
+**Verdict:** shipped
+**Surprise:** the APRON — the pitch running under us off row WH — is **62 px of a 119 px band**, more than the nine rows of roof above it. The first build slated the roof, measured +0 below f=0.52, and had only moved the boarding down.
+**Law:** absolute luma sd under a compositing wash is not a property of what you drew. `nearShadow` reaches ~0.6 alpha by the sill and scales contrast with luma, so sd MUST fall toward the viewer whatever the surface is; grade a foreground on **sd/mean** — flat at 0.18-0.23 here against HEAD's collapse from 0.24 to 0.06.
