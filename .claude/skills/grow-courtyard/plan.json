@@ -13,24 +13,7 @@
     "balance": "Coverage was two entries stale (#130 Roofs x Scale, #133 Sky x Connect were never recorded); with those in, the order back from #135 is Plaza & quay 9, Cross street & allotments 8, People & animals 7, Courtyard & garden 6, Roofs 5, River 4, Sill 3, Sky 2, Lane 1. The four longest-untouched all get a brief. The BET goes to Lane & market, which is 1 back — deliberately, and against rotation: #134 was a Harness cull that changed no pixel, and the surface I measured is the flattest large thing in the picture. Empty cells this batch fills: lane x new-ca (0), people x scale (0)."
   },
   "rationale": "I shot the town at seed 42, day 3, 10.4h and then MEASURED the shots rather than looking at them, because the last two bets that worked (#125's slate, #130's roofline) both came from a number and the ones that fizzled came from an impression. Classifying every canvas pixel back through project() into its ground class gives, as sd/mean over the class and share of a 1600x950 frame: ROAD 0.065 / 7.7%, GRASS 0.131 / 10.9%, PATH.court 0.143 / 9.3%, WATER 0.151 / 4.8%, SIDE.cross 0.185 / 4.1%, SIDE.quay 0.229 / 2.3%, WALL 0.240 / 12.3%. The roadway is three times flatter than the paving it runs beside, it is 7.7% of the frame, and it is the nearest big surface to the viewer — the one place LAWS says contrast should be HIGHEST. It is flat by construction and I found the two lines: groundBase's ROAD branch is the only ground colour whose hash term is halved (hv*0.5) over a pair six luma apart, and drawGround's ROAD branch strokes its setts at alpha .14 with off=(y%2)*0.5, so the bond alternates by row and never runs. That is #125's argument exactly — the biggest flat object in the picture, one iteration after the roof that held the title — and retiring a surface and laying it properly is rung 6 by name. The ladder did not force this climb (history 5, 6, 4b) and no signal is firing; the measurement forced it. The other four go to the four longest-untouched domains with every premise re-priced on HEAD by me, not by the cue that raised it: the quay really has no moorings and no hull ever ties there while the ticker has been saying 'a barge horn sounds somewhere far downstream' as one of its deliberately unplaced SOUNDS (b136, and it moves `structures`); LAWN_CAP is genuinely the only population cap whose knee has ever been swept, and the wide shot holds 42 people (b137); the plot lattice at ox 80..90 step 5 x oy 8..50 step 7 leaves a 1-cell way round every plot and there is not one shed, butt, cane or cloche on any of them (b138); and c205's 1.53 of GARDEN_ROWS 5 is #129's own measurement, so b139 arrives pre-counted and should be cheap. TWO PREMISES I KILLED BEFORE WRITING THEM: a brief about rain changing how people walk (coverF already puts umbrellas up before the first drop) and one about desire lines through the allotments (wear[] accrues on GRASS under every step in stepAgent, so they are already there). THE BUDGET, for the third time: it has been fixed at #119 and #124 and come back both times, so this pass I cut the file that is read MOST rather than the file that is biggest. LAWS.md was rewritten whole — nine laws promoted out of #130-#134 by MERGING into existing paragraphs (signature-widening into one-predicate; hash-is-not-seeded and hash-not-R-for-user-input into the R() law; clause-by-clause instrumentation into the rate-of-zero law; PAIR_GAP-all-round into the renderer traps; membership-drawn-per-sample into locate-before-you-judge; same-evaluate canvas reads and perf.mjs-is-vsync-blind into the probe law; the screen-cull rule into the framing law) and paid for by cutting roughly 1.9 KB of worked arithmetic from twelve laws, so it lands at 12,249 of 12,288 bytes with nine more claims in it than it had. Inventory 13.0 -> 10.7 KB rewritten as nouns (three lines that were really OBSERVATIONS, not nouns, moved into the briefs where they belong); six cues promoted or closed (14 -> 8, c205 became b139, c209 merged into c208, c183 declined for the third and last time because the only fix moves the Wide ground control every visual gate depends on); the last three ledger entries archived verbatim and condensed 6.7 -> 4.9 KB; two stale WATCH items replaced (the roofline is no longer one straight line, and structures has moved). Worker budget 51.0 -> 45.0 KB.",
-  "queue": [
-    {
-      "id": "b139",
-      "domain": "Courtyard & garden",
-      "kind": "Deepen",
-      "brief": "Pre-counted, from c205 and #129's own numbers. GARDEN_ROWS is 5 and GARDEN_MORE 0.8, so a gardener who kneels should work about three rows of a bed; measured after #129 it works 1.53. gardenerKneel's light-fit charges the second row two full rows plus the shuffle plus the walk back to the door, so on most days the second row is priced out and the gardener stands up and leaves with the bed half done. Re-price the continuation the way #129 re-priced the walk — at the choice, once, against the hour the lawn actually closes — so a gardener who has knelt finishes what is in front of them.",
-      "seams": [
-        "gardenerKneel",
-        "GARDEN_ROWS 5/GARDEN_MORE 0.8/GARDEN_REACH",
-        "gardenFits/GARD_LAND",
-        "lawnGone/lawnFits"
-      ],
-      "successLooksLike": "Rows worked per gardener visit goes from 1.53 to at least 2.5 on a growing morning, measured over ten seeds the way #129 measured presence; the gardener still leaves before lawnGone(); and nothing else on the lawn is displaced — LAWN_CAP's other kinds hold their share AT THE CHOICE.",
-      "avoid": "Do not raise GARDEN_ROWS or GARD_K: #129 counted the supply and it is not the problem. Do not let the fix reach the walk home — gardenFits bounds the pre-dawn walk at BOTH ends and that bound is load-bearing.",
-      "budgetMin": 30,
-      "risk": "low"
-    }
-  ],
+  "queue": [],
   "recommendStop": null,
   "consumed": [
     {
@@ -48,6 +31,10 @@
     {
       "id": "b138",
       "at": "2026-09-02T15:54:45.318Z"
+    },
+    {
+      "id": "b139",
+      "at": "2026-09-02T16:23:09.039Z"
     }
   ]
 }

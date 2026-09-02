@@ -1,23 +1,21 @@
 {
-  "id": "b138",
-  "domain": "Cross street & allotments",
-  "kind": "New element",
-  "brief": "Seventeen plots, a harvest cycle, a cart and a glasshouse — and not one tool. The allotments are the most worked ground in the town and carry no shed, no water butt, no bean canes, no cloche, no compost bay, no barrow: a plot is a rectangle of soil with a crop drawn on it. Give the plots their furniture on ROOF_FURN's model — a small set of pieces placed per plot off hash(plot), each one inside its own plot's rectangle (the lattice is ox 80..90 step 5 x oy 8..50 step 7, which leaves a 1-cell way round every plot), and each one named by the pointer the way roofFurnAt names the roof's. Let the set read the plot's own state: canes where something climbs, a cloche in the cold half of the year, a barrow only where somebody is working it, a butt against the fence.",
+  "id": "b139",
+  "domain": "Courtyard & garden",
+  "kind": "Deepen",
+  "brief": "Pre-counted, from c205 and #129's own numbers. GARDEN_ROWS is 5 and GARDEN_MORE 0.8, so a gardener who kneels should work about three rows of a bed; measured after #129 it works 1.53. gardenerKneel's light-fit charges the second row two full rows plus the shuffle plus the walk back to the door, so on most days the second row is priced out and the gardener stands up and leaves with the bed half done. Re-price the continuation the way #129 re-priced the walk — at the choice, once, against the hour the lawn actually closes — so a gardener who has knelt finishes what is in front of them.",
   "seams": [
-    "the plot lattice (the ox/oy loops near lines 3486 and 3510)",
-    "harvestPlot/ripePlots/fallowPlots/bAge/speciesFor",
-    "ROOF_FURN/roofFurnAt/roofFurnName/FURN_BOX as the model",
-    "nameAt",
-    "GH x84-93 y34-39/inAllotment",
-    "__census() structure block"
+    "gardenerKneel",
+    "GARDEN_ROWS 5/GARDEN_MORE 0.8/GARDEN_REACH",
+    "gardenFits/GARD_LAND",
+    "lawnGone/lawnFits"
   ],
-  "successLooksLike": "At the Street quarter the allotments read as seventeen worked plots rather than seventeen coloured rectangles; every piece sits inside its own plot and clear of the ways; the pointer names each kind; and `structures` moves (a new named array in __census()'s structure block), baseline re-pinned and said so.",
-  "avoid": "Nothing on the 1-cell ways between plots and nothing inside the glasshouse footprint. Do not add a tile kind or a SPECIES — each moves tileKinds/speciesKinds by exactly 9 and that is not what this is measuring. Do not draw it live: the plots are ground-cache work.",
-  "budgetMin": 40,
-  "risk": "medium",
-  "status": "done",
+  "successLooksLike": "Rows worked per gardener visit goes from 1.53 to at least 2.5 on a growing morning, measured over ten seeds the way #129 measured presence; the gardener still leaves before lawnGone(); and nothing else on the lawn is displaced — LAWN_CAP's other kinds hold their share AT THE CHOICE.",
+  "avoid": "Do not raise GARDEN_ROWS or GARD_K: #129 counted the supply and it is not the problem. Do not let the fix reach the walk home — gardenFits bounds the pre-dawn walk at BOTH ends and that bound is load-bearing.",
+  "budgetMin": 30,
+  "risk": "low",
+  "status": "active",
   "attempts": 1,
-  "nextIter": 138,
-  "issued": "2026-09-02T15:54:45.320Z",
+  "nextIter": 139,
+  "issued": "2026-09-02T16:23:09.041Z",
   "fromPlan": "2026-09-03T00:00:00.000Z"
 }

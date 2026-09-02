@@ -40,18 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 131 — the last punt: the crossing runs on after the east half has closed (2026-09-02) [River & far bank × Deepen]
-
-**Brief:** b131 — open the evening crossing; pick which end gives and price it.
-**The premise was wrong in its detail, and that decided it.** Instrumented `puntFits` clause by clause in its own evaluation order (`probes/punt-evening.mjs`, 10 seeds × 14 days): of HEAD's 181 refusals only **8** die on the TIME term. The deck supply dies on a BOOLEAN — 39 on `!eastOpen()`, median arrival at the planks **20.47** against a close at **20.17**. Nothing done to a stay reaches past a hard gate, so the jetty is the end that gives.
-**Did.** Two fits over the same state (the claim asks again which trip it is). The evening one stands on the eyot's north lawn instead of walking to the willow — out 2.99 h → 2.37 h, which lets the round trip be priced ONCE against `EVE_GONE`; `eastOpenFor`'s cover EXPIRES at `a.puntBack`, so the retire rule still brings them home. `eastOpen()` untouched.
-**Gates:** census PASS · visual PASS ×6 · filmstrip 0 POP · motion FAIL on 2 rows, both replayed as HEAD's own. **context-budget OVER at 48.0 KB.**
-**HEAD → candidate:** crossings 46 → **66**; **people carried 65 → 92**; boarded after the close **0 → 18**, carrying 25, **18/18 under lit lamps**; 66/66 home; nobody on the eyot at the bell; worst return 25.46 against the promised 26.15.
-**Verdict:** shipped
-**Surprise:** the first build forked on `!eastOpen()` and so refused an 18:30 stander while taking a 20:30 one — a step in the evening with nothing under it. Making the handover continuous (the short trip the moment the long one stops fitting, ~16.4) carried most of the gain: 52 → 66.
-**Law:** instrument a compound predicate CLAUSE BY CLAUSE in its own evaluation order — a refusal total says nothing about which clause to loosen, and the loudest is usually the cheap boolean in front of the arithmetic.
-**Law:** a stop needs PAIR_GAP of margin all round, not just legal ground under itself — the shore stand was on turf and put its COMPANION in the river on 9.9% of its samples.
-
 ## Iteration 132 — the ticker learns where you are looking (2026-09-02) [The sill & the observer × Connect]
 
 **Brief:** b132 — prefer a subject inside the frame; do not take the surface with a line about somewhere you cannot see. Full entry in LEDGER-archive.md.
@@ -126,3 +114,15 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Budget:** `context-budget.mjs` **OVER at 51.7 KB** against 46 KB, before this pass; #136 and #137 are also over the entry cap and are the manager's to condense.
 **Law:** at n = 15 a one-in-three hash threshold is not one in three — the first build put 7 sheds, 1 bay and 7 bare corners out, and a flat `h < 0.62` put a butt on all seven west plots (a 3.5% run, not a broken hash: 667 such lines in 20,000 against 704 expected). Rank the members by their own hash and cut at the quantiles.
 **Law:** a world offset added to a PROJECTED coordinate is a pixel — 0.46 of a cell became 1.4 px, and the canes' eight tops landed on each other. Solve both ends of a stroke in world space and project each.
+
+## Iteration 139 — the gardener works the stretch the light allows (2026-09-03) [Courtyard & garden × Deepen]
+
+**Brief:** b139 — re-price gardenerKneel's continuation so a gardener who has knelt finishes the bed. Full entry in LEDGER-archive.md.
+**Premise confirmed, diagnosis wrong.** `probes/gardener-rows.mjs` (10 seeds x 26 days) reads the branch off the R() call count *inside* the call: a growing morning is **1.54 rows/visit**, exactly #129's number. But the refusals are ARITHMETICALLY HONEST — the cheapest legal continuation finishes **2.75 h after the lawn closes**. Nothing was double-charged.
+**Did.** The row is drawn BEFORE it is priced, so a drawn length that did not fit refused the *whole* continuation. Now `room` is what is left for the row once the shuffle and the walk home are paid, and the row takes `min(nd, room)`, floored at `GARDEN_ROW_MIN` 2.5 s. Draw COUNT unchanged in every branch.
+**Gates:** census PASS, re-pinned · motion PASS · 0 POP · visual PASS at a *divergent* instant (s1234 t124) — my first HEAD/cand pair was byte-identical, the builds had not diverged there yet. Budget **OVER at 51.6 KB**.
+**HEAD -> cand:** growing morning **1.54 -> 1.79** rows/visit; continuation 33.4% -> 42.1%; growing-morning light refusals **10.6% -> 0.7%**; unspent light 2.38 -> **1.19 h**; refusals with >1 h of room 64/186 -> **3/165**. Choice shares hold (no kind moves >2 pp); latest departure 19.61 h, identical.
+**Verdict:** shipped — but the brief's **2.5 bar is not met and is not reachable**, and that is the finding.
+**Surprise:** the bar was set without pricing the row. Window 12.0 h; walk in 3.4 h, already optimised (#108's door, #129's near third); the nearest *other* edge bed is **4.08 cells**, so the shuffle is irreducible; a row is 2.91 h. From a 10.4 h first kneel the day holds 2.1 rows at best. Swept and rejected: halving the row buys +0.39 and costs the dwell; GARDEN_MORE 0.9 buys **+0.05** — the roll is no longer the binder, the light is.
+**Law:** a unit of work drawn BEFORE it is priced makes the price all-or-nothing — solve the test for the unit and take `min(drawn, room)`.
+**Law:** `__reseed()` REASSIGNS `R` rather than rewinding it, so a monkeypatch on `R` installed before it is silently eaten — and the probe then reports a clean, plausible, wrong attribution.

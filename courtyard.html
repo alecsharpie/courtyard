@@ -3023,25 +3023,39 @@ function spawnLawnAgent(want){
  * ceiling is 1.7 h dearer than the mean and by itself deleted the second row on nearly
  * every day. The bed is never blocked: the gardener is one of lawnHolds' place-holders
  * now, released as the walk out begins, so a long visit costs the next one nothing. */
-const GARDEN_ROWS = 5, GARDEN_MORE = 0.8, GARDEN_REACH = 10, GARDEN_ROW = 5, GARDEN_ROW_R = 3.5;
+const GARDEN_ROWS = 5, GARDEN_MORE = 0.8, GARDEN_REACH = 10, GARDEN_ROW = 5, GARDEN_ROW_R = 3.5, GARDEN_ROW_MIN = 2.5;
 function gardenerKneel(a){
   const dur = a.rowDur || (GARDEN_ROW + R() * GARDEN_ROW_R);
   a.rowDur = 0; a.tendBed = false; a.planted = false;   // a fresh row: the planting rule fires again at timer < 4
   a.state = 'kneel'; a.timer = dur; a.resume = true;
   a.rows = (a.rows || 0) + 1;
   if (a.rows >= GARDEN_ROWS || R() >= GARDEN_MORE) return;
-  // the next row, and whether the light lasts: this kneel, the shuffle along, THAT row
-  // and the walk out — to the DOOR, not off the frame. What lawnEnd() bounds is the
-  // garden, and exitLeg's south door walks the whole lane to the world edge: charging
-  // that leg here priced one row at 34 h and deleted the second row on every day.
-  const nd = GARDEN_ROW + R() * GARDEN_ROW_R, done = hour + (dur + nd) * HOURS_PER_S;
-  const fit = EDGE_BEDS.filter(b => { const d = Math.hypot(b.px - a.x, b.py - a.y);
-    return d > 1.2 && d < GARDEN_REACH
-      && done + d / a.speed * HOURS_PER_S + pathHours(b.px, b.py, [nearDoor(b.px, b.py).door], a.speed) < lawnEnd(); });
+  /* The next row, priced against the light: this kneel, the shuffle along, THAT row and
+   * the walk out — to the DOOR, not off the frame. What lawnEnd() bounds is the garden,
+   * and exitLeg's south door walks the whole lane to the world edge: charging that leg
+   * here priced one row at 34 h and deleted the second row on every day.
+   * #139: the row is drawn BEFORE it is priced, and a drawn length that does not fit
+   * used to refuse the whole continuation — so the gardener stood up and walked off a
+   * border they still had light to work, leaving 2.38 h of it unspent on the visits that
+   * DID fit. A row is a stretch of border, not an indivisible unit: work as much of it
+   * as the light allows. `room` is what is left for the row itself once the shuffle and
+   * the walk home are paid, and the row takes min(drawn, room) — the same test, solved
+   * for the row instead of thrown away. GARDEN_ROW_MIN is the floor under which a kneel
+   * is not worth the shuffle. The draw COUNT is unchanged in every branch (nd, then
+   * pick over a non-empty set), so the seeded stream past this point does not move. */
+  const nd = GARDEN_ROW + R() * GARDEN_ROW_R, done = hour + dur * HOURS_PER_S, close = lawnEnd();
+  const fit = [];
+  for (const b of EDGE_BEDS){
+    const d = Math.hypot(b.px - a.x, b.py - a.y);
+    if (!(d > 1.2 && d < GARDEN_REACH)) continue;
+    const room = (close - (done + d / a.speed * HOURS_PER_S
+                  + pathHours(b.px, b.py, [nearDoor(b.px, b.py).door], a.speed))) / HOURS_PER_S;
+    if (room >= GARDEN_ROW_MIN) fit.push({ b, dur: Math.min(nd, room) });
+  }
   if (!fit.length) return;
-  const b = pick(fit);
-  a.place = b; a.kneelAt = [b.px, b.py]; a.rowDur = nd; a.tendBed = true;
-  a.wp.push([b.px, b.py]);
+  const c = pick(fit);
+  a.place = c.b; a.kneelAt = [c.b.px, c.b.py]; a.rowDur = c.dur; a.tendBed = true;
+  a.wp.push([c.b.px, c.b.py]);
 }
 /* ============ …and comes on a SCHEDULE, not a lottery ticket (#129) ============ *
  * #108 gave the gardener a morning's WORK; they still had no reason to turn up for it.

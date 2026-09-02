@@ -468,7 +468,8 @@
       "bed planting CA over SPECIES: bSp/bSt, growF/dieF/bloomCap",
       "the lawn's OWN source: spawnLawnAgent(want), LAWN_RATE, LAWN_CAP 8 (the swept knee; sub-caps bind: 4 benches, 2 naps, LAWN_BLANKETS 3, 2 runs, 1 gardener), lawnStart/lawnEnd/lawnHolds/lawnGone",
       "the gardener on a SCHEDULE not a roll: gardenDue/gardenIdx/GARD_K/GARD_SALT over growSeason(), outside LAWN_CAP; gardenFits bounds the pre-dawn walk both ends (GARD_LAND), a.dawnWalk; gardenerKneel/GARDEN_REACH/GARDEN_ROWS 5/GARDEN_MORE 0.8",
-      "wallR() 27.5 is the courtyard's ruler; 13 of the 204 EDGE_BEDS lie outside it"
+      "wallR() 27.5 is the courtyard's ruler; 13 of the 204 EDGE_BEDS lie outside it",
+      "the gardener's row is FIT TO THE LIGHT (#139): gardenerKneel prices room = lawnEnd - (this row + shuffle + walk to the nearest door) and takes min(drawn nd, room), floored at GARDEN_ROW_MIN 2.5s; draw count unchanged in every branch. Growing morning 1.54 -> 1.79 rows/visit. probes/gardener-rows.mjs reads the continuation CLAUSE BY CLAUSE off the R() call count inside the call"
     ],
     "lane": [
       "kiosk, pavement cafe, awnings, washing lines, planters, LANE_LAMPS, LANE_BENCHES",
@@ -633,6 +634,12 @@
     {
       "id": "c220",
       "note": "plotCrop() returns the FIRST sown cell of a plot, but a kneel scatters over a 3x3 and crosses plot edges, so a plot under two species answers with whichever cell the loop reaches first. plotStands()/bedCap() read it — a plot with one hardy cell and five tender ones may be keeping the full winter ceiling on the strength of that one cell.",
+      "raisedBy": 136,
+      "seenBy": 0
+    },
+    {
+      "id": "c221",
+      "note": "rows/visit is bounded by the WALK IN, not the continuation price (#139). The gardener's first kneel is 10.4h against lawnStart 6.5 — 3.4 of the 12h window spent arriving. gardenDue's window runs to sunUp+GARD_WIN 4.5 and after sunrise gardenFits degenerates to lawnFits, which has NO landing bound, so most gardeners land hours after the beds opened; only ~16 of 186 growing visits take the pre-dawn walk #129 built. Bounding the post-sunrise landing (not the pre-dawn one) is the biggest remaining lever.",
       "raisedBy": 136,
       "seenBy": 0
     }
