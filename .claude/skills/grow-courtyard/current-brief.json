@@ -19,7 +19,7 @@
   "avoid": "Do not raise `laneCap` again - #137 already swept it and the ceiling is not the bound. Do not give the east its own new arrival source; the WATCH note says to check whether a feature needs one, and here the answer is no, the roll exists and is mis-weighted. Two figures nearer than ~0.9 cells render as one shape, so a reserved fountain stand needs PAIR_GAP of clearance for a family, not just legal ground.",
   "budgetMin": 40,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 144,
   "issued": "2026-09-02T21:06:40.861Z",
