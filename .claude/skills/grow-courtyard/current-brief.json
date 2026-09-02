@@ -17,7 +17,7 @@
   "avoid": "Do not touch the evening half of the light curve — #112 deliberately left it alone — and do not change drawSmoke's wind lean. The hour is the bug.",
   "budgetMin": 25,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 124,
   "issued": "2026-09-02T06:29:51.459Z",
