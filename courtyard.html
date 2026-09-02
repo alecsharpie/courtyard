@@ -460,50 +460,96 @@ if (window.ResizeObserver) new ResizeObserver(resize).observe(cv.parentElement);
  * which is what lets the ground cache be scaled through the ease instead of repainted.
  * Real clock, like a lapse: a deliberate act never runs on sim dt. Nothing persists. */
 let cellW0 = cellW, cellH0 = cellH, topPad0 = topPad, originX0 = originX;
+/* The world the CAMERA may show, which is not the world the GRID holds. The grid runs
+ * 0..GW; the ground cache paints XLO..XHI either side of it, and #119 stood real things
+ * out past the east face — the field hedge on x = FIELD_X, a five-bar gate hung open in
+ * it, and a track worn out to WORLD_X1. The hold below was priced on the GRID, so the one
+ * quarter named for the far bank could not contain the gate the far bank walks through.
+ *   WORLD_X1 is the last DRAWN thing out there — where the track fades out. The cache
+ * keeps painting past it, and what it paints is the open field the hedge stands in, which
+ * `fieldEdgeName` already calls "the fields beyond it"; so the camera's east edge is HELD
+ * on FIELD_VIEW, a few cells further, and the trapezoid does the rest. The hold is priced
+ * at the frame's TOP row (c126), where the frame is widest, so every row below it ends
+ * further west: the reach at a given row is a function of FIELD_VIEW and the PINCH ALONE,
+ * not of s, and the gate's row 31 needs GW+5 at the top to land inside the picture at all.
+ *   The cost is paid only by a frame that reaches row 0, because column GW-1 is WALL for
+ * rows 0..2 (the church green's north wall) and drawBlocks repeats it east like everything
+ * else. That repeat is in the WIDE view too and predates this pass. Far bank, which must
+ * reach the sky, carries it in its top corner; Plaza's band starts at row 3.6 and so runs
+ * east to the gate over nothing but field.
+ *   West there is no such licence: the cache repeats column 0, which out there is paving
+ * and roof, so WORLD_X0 stops the frame where the world starts. */
+const WORLD_X0 = 0, WORLD_X1 = GW + 2.9, FIELD_VIEW = GW + 5;   // drawFieldEdge runs its track out to WORLD_X1
 const QUARTERS = [
   { name:'Wide' },
-  { name:'Courtyard',  x0:1,    x1:63,  y0:1, y1:63 },
-  { name:'Street',     x0:63.5, x1:98,  y0:0, y1:64 },
-  { name:'Plaza',      x0:98,   x1:128, y0:2, y1:58, share:0.5 },   // #99: the plaza is the town's other room — on a desktop the height fit left it 40% of the frame; a half-frame share is the width it reads at (a phone already exceeds it, so nothing moves there)
-  { name:'Far bank',   x0:122,  x1:138, y0:0, y1:52, share:0.3 },   // #86: rose window to bandstand, ≥ 30% of a wide frame; #87: and the eyot (x 122.5–126, y 41–51); #99: y1 is the eyot's south shore + 1 — the share overflows the box on a desktop, and the overflow is held at the TOP (the tower, cut already), never the sill
+  { name:'Courtyard',  x0:1,    x1:63,  y0:1, y1:63 },   // #120: no air — the garden is what this quarter is FOR, and every row of sky is paid for out of its zoom
+  { name:'Street',     x0:63.5, x1:98,  y0:0, y1:44,  air:-20.5, keep:0.35 },   // #120: the CLOCK TOWER is this quarter's tall thing — its arrow vane sits at depth -18.4 and stood 200 px above the frame. y1 comes in from 64 (the lane's north kerb) to just past the allotments, so the BAND is the height the box was and s does not move: the frame slides up into the air rather than zooming out of it
+  { name:'Plaza',      x0:98,   x1:128, y0:2, y1:58,  share:0.5 },   // #99: the plaza is the town's other room — on a desktop the height fit left it 40% of the frame; a half-frame share is the width it reads at (a phone already exceeds it, so nothing moves there). #120: no air, deliberately — its band starts at row 3.6, BELOW the rows where column 137 is WALL, so it is the one quarter that can run east to the field gate without the cache's block repeat coming with it
+  { name:'Far bank',   x0:122,  east:true, y0:0, y1:33, air:-22.5, keep:0.2,  share:0.3 },   // #86: rose window to bandstand, ≥ 30% of a wide frame; #87: and the eyot (x 122.5–126, y 41–51). #120: the box ran to the eyot's south shore and stopped at the tower's FEET, so it held neither the weathercock (depth -21.4) nor the gate. It now runs from the tower's air down to the gate's row, and EAST to the world's painted edge; the eyot and the bandstand are the Plaza quarter's, which holds both
 ];
 const VIEW_SECS = 0.9, VIEW_SMAX = 3.6;
 let whereN = 0, whereEver = false;
 let viewS = 1, viewFrom = null, viewTo = null, viewAt = 0;
 function viewFor(n){
   const q = QUARTERS[n];
-  if (!q.x1) return { s:1, ox:originX0, tp:topPad0 };
+  if (!q.y1) return { s:1, ox:originX0, tp:topPad0 };
   // #99: the frame is the PICTURE — the canvas above the sill strip drawSill() paints over
   // its bottom 7.5%. The fit and the centring both read it: fitted to H and centred on H/2,
   // every box put its bottom 2–3 rows under the sill (c129: the eyot and the willow's fronds)
   const pic = sillTop();
-  const cx = (q.x0 + q.x1) / 2, cy = (q.y0 + q.y1) / 2, p = 1 - PINCH * (1 - cy / WH);
-  let s = clamp(Math.min(W * 0.96 / ((q.x1 - q.x0) * cellW0),
-                         pic * 0.96 / ((q.y1 - q.y0) * cellH0)), 1, VIEW_SMAX);
+  /* #120: the quarter's vertical INTENT. Every box here was a patch of GROUND and the fit
+   * was priced on it — so a quarter whose subject STANDS UP was framed on the ground the
+   * subject stands on, and cut the subject off. project() lifts z northward by LIFT, so
+   * the clock tower's arrow vane sits 18.4 rows of screen DEPTH above the roof it is bolted
+   * to, the church's weathercock 21.4, and the murmuration roosts at -9: all of them were
+   * 200-400 px above the frame in every quarter that held their ground.
+   *   `air` is the depth a quarter reaches UP to, and the fit is priced on air..y1 rather
+   * than y0..y1. `keep` says which end of that band survives when s — raised by `share`, or
+   * floored at 1 — leaves the band taller than the picture: 0 keeps the air, 1 keeps the
+   * near row, which is what every quarter did before. A quarter with neither reads exactly
+   * as it did: with air = y0 and keep = 1 the two expressions below are HEAD's, term for term. */
+  const air = q.air !== undefined ? q.air : q.y0;
+  const keep = q.keep !== undefined ? q.keep : 1;
+  // a quarter may run out to the world's painted edge rather than name a column (Far bank)
+  const qx1 = q.east ? WORLD_X1 : q.x1;
+  let s = clamp(Math.min(W * 0.96 / ((qx1 - q.x0) * cellW0),
+                         pic * 0.96 / ((q.y1 - air) * cellH0)), 1, VIEW_SMAX);
   // #86: a quarter at the world's edge on a wide frame — the height fit left the far bank
   // a 13-cell sliver at the side of a frame the east clamp then filled with the plaza, so
   // a desktop's Far bank WAS the Plaza. A quarter may ask for a share of the frame's
   // WIDTH; s rises to meet it (a phone's tall frame meets it already, so nothing moves there)
-  if (q.share) s = clamp(Math.max(s, W * q.share / ((q.x1 - q.x0) * cellW0)), 1, VIEW_SMAX);
-  // centred on the quarter; when the share has raised s past the height fit the box
-  // overflows the picture, and the overflow goes to the TOP: the near row is the ground a
-  // quarter leans in for, the far row is a roofline the frame top cuts already (c129)
-  const tp = Math.min(pic / 2 - cy * cellH0 * s, pic * 0.98 - q.y1 * cellH0 * s);
+  if (q.share) s = clamp(Math.max(s, W * q.share / ((qx1 - q.x0) * cellW0)), 1, VIEW_SMAX);
+  /* Where the band sits in the picture. While it fits, it is centred — with air = y0 this
+   * is HEAD's `pic/2 - cy*cellH0*s` exactly, the same number by a different route. When it
+   * does not fit, the overflow comes off the end `keep` does not name; at keep = 1 that is
+   * HEAD's other term, `pic*0.98 - y1*cellH0*s`, again exactly. So a quarter that declares
+   * no intent cannot move, and a quarter that declares one moves only as far as it asked. */
+  const rows = pic * 0.96 / (cellH0 * s), span = q.y1 - air;
+  const top = air + Math.max(0, span - rows) * keep - Math.max(0, rows - span) * 0.5;
+  const tp = pic * 0.02 - top * cellH0 * s;
   // then held inside the world's east and west edges. The world is a trapezoid (PINCH):
-  // narrowest at its top row, so a frame that ends at x = GW on its bottom row shows the
-  // void past GW at its top (c126). Both edges are worst at the top row — x = 0 swings
-  // right there and x = GW swings left — so price the clamp at the frame's own top row.
+  // narrowest at its top row, so a frame that ends at the world's edge on its bottom row
+  // shows what is past it at its top (c126). Both edges are worst at the top row —
+  // WORLD_X0 swings right there and WORLD_X1 swings left — so price the clamp at the
+  // frame's own top row. The frame is centred on the world x of its OWN middle row, which
+  // is the box's centre while the band fits and slides with the band once `keep` cuts it.
+  const cx = (q.x0 + qx1) / 2, pc = top + rows / 2, p = 1 - PINCH * (1 - pc / WH);
+  const nearRow = Math.min(q.y1, top + rows);
   const ox = W / 2 - (cx - FOCUS) * cellW0 * s * p;
-  const rowTop = Math.max(0, -tp / (cellH0 * s)), pTop = 1 - PINCH * (1 - rowTop / WH), pNear = 1 - PINCH * (1 - q.y1 / WH);
-  const held = (pp) => { const lo = W - (GW - FOCUS) * cellW0 * s * pp, hi = FOCUS * cellW0 * s * pp; return lo <= hi ? clamp(ox, lo, hi) : ox; };
+  const rowTop = Math.max(0, -tp / (cellH0 * s)), pTop = 1 - PINCH * (1 - rowTop / WH), pNear = 1 - PINCH * (1 - nearRow / WH);
+  const held = (pp, v = ox) => { const lo = W - (FIELD_VIEW - FOCUS) * cellW0 * s * pp, hi = (FOCUS - WORLD_X0) * cellW0 * s * pp; return lo <= hi ? clamp(v, lo, hi) : v; };
   let oxT = held(pTop);
-  // that top-row hold may push the box's own near corners out of frame; when it does the
-  // bottom row governs and the cache's over-paint covers the top's slack, as it always has.
-  // But a box sitting ON a world edge (far bank x1 = GW) cannot lose content past it — what
-  // runs off frame there is more world, not the box — and testing it anyway fired the escape
-  // every time and handed the far bank straight back to the bottom-row clamp (#99)
-  const nearL = oxT - (FOCUS - q.x0) * cellW0 * s * pNear, nearR = oxT + (q.x1 - FOCUS) * cellW0 * s * pNear;
-  if ((q.x0 > 0 && nearL < 0) || (q.x1 < GW && nearR > W)) oxT = held(1);
+  // that top-row hold may push the box's own near corners out of frame. A box sitting ON a
+  // world edge (far bank) cannot lose content past it — what runs off frame there is more
+  // world, not the box — and testing it anyway fired the escape every time and handed the
+  // far bank straight back to the bottom-row clamp (#99), so a box at the edge is exempt.
+  const nearL = oxT - (FOCUS - q.x0) * cellW0 * s * pNear, nearR = oxT + (qx1 - FOCUS) * cellW0 * s * pNear;
+  // #120: that slide used to go straight to held(1) and stop there, and the bottom-row
+  // answer let the TOP row run 8.5 cells west of x = 0 — the pale band of column-0 repeat
+  // the ground cache paints out there (c148). The bottom row's answer is now a CANDIDATE,
+  // held at the top row in its turn: the frame keeps as much of the box's near corner as
+  // the world's edge allows, and no frame shows the repeat.
+  if ((q.x0 > WORLD_X0 && nearL < 0) || (qx1 < WORLD_X1 && nearR > W)) oxT = held(pTop, held(1));
   return { s, ox: oxT, tp };
 }
 function applyView(v){
@@ -6297,14 +6343,15 @@ function drawGround(){
 function drawFieldEdge(g){
   const snow = snowAt(GW - 1, FIELD_GAP[1] | 0, GRASS), out = leafOut();
   // the track worn across the field to the gate: widest at the gap, where feet fan out,
-  // and a thread out where it leaves the frame. It runs PAST FAR_GATE (x = GW+2) so the
-  // arrival is already on it at the instant it appears.
+  // and a thread out where it leaves the frame. It runs PAST FAR_GATE (x = GW+2), out to
+  // WORLD_X1 — the same constant the camera reads as the last DRAWN thing on this face, so
+  // a quarter that frames the gate frames the whole of the track that leads to it.
   if (snow < 0.55){
     const gy = FIELD_GAP[1], al = 0.55 * (1 - snow / 0.55);
     for (const [w0, w1, col] of [[0.78, 0.5, 'rgba(164,144,106,' + al.toFixed(3) + ')'],
                                  [0.42, 0.24, 'rgba(146,126,92,' + (al * 0.7).toFixed(3) + ')']]){
-      const a = project(FIELD_X - 2.1, gy - w0, 0.02), b = project(FIELD_X + 2.9, gy - w1, 0.02);
-      const c = project(FIELD_X + 2.9, gy + w1, 0.02), d = project(FIELD_X - 2.1, gy + w0, 0.02);
+      const a = project(FIELD_X - 2.1, gy - w0, 0.02), b = project(WORLD_X1, gy - w1, 0.02);
+      const c = project(WORLD_X1, gy + w1, 0.02), d = project(FIELD_X - 2.1, gy + w0, 0.02);
       g.fillStyle = col; poly(g, [a, b, c, d]); g.fill();
     }
   }

@@ -2,7 +2,7 @@
   "updated": "2026-09-02",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 119,
+  "lastIteration": 120,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -390,7 +390,8 @@
         80
       ],
       "scale": [
-        28
+        28,
+        120
       ],
       "harness": [
         38,
@@ -506,7 +507,9 @@
       "the PAINTED sill: drawSill inside drawOurSide, baked into the ground cache; sillTop() = H - max(26, H*0.075) the ONE definition; gradient, grain runs, scuffs, nosing, cast() shadows",
       "the sill is drawn at EVERY camera: sillBoxes/sillOver/clipOffSill; sillU() priced off cellW0, so the sill does not zoom",
       "evPx maps the event into DRAWING space (border box vs padding box), upstream of livingAt/faceAt/treeAt/cellOf",
-      "census reports SIX groups: scalars, tiles, life, structure, species, planting; folded in summarize() via PLANTING_SKIP, each field's noise floor a comment beside it"
+      "census reports SIX groups: scalars, tiles, life, structure, species, planting; folded in summarize() via PLANTING_SKIP, each field's noise floor a comment beside it",
+      "the camera knows a WORLD, not the grid: WORLD_X0/WORLD_X1 (the last drawn thing east, which drawFieldEdge's track ends on) / FIELD_VIEW (the hold's extent, out over open field); held(pp, v) takes a candidate",
+      "quarters carry a VERTICAL INTENT: q.air the DEPTH the frame reaches up to, q.keep which end survives an overflow, q.east a box running to the world's edge. Fit and tp are priced on air..y1; at air=y0/keep=1 both are HEAD's expressions term for term. Street holds the clock tower + its cardinals, Far bank the weathercock + the field gate, Plaza the gate + the eyot"
     ],
     "roofs": [
       "emergent roofs from buildVolumes (footprint -> volume, eaveFor); CHIMNEYS[], drawSmoke leans windDir; drawRoofRow shades by sun, cloud, warmth, snowCover",
@@ -555,6 +558,18 @@
       "note": "motion.mjs reseeds, yet spawns/despawns churn run-to-run on UNCHANGED code (walker 165/106/126 over three runs of one build): __reseed() rewinds the PRNG, not the agents already alive from frames drawn at page load.",
       "raisedBy": 116,
       "seenBy": 1
+    },
+    {
+      "id": "c183",
+      "note": "the ground cache's east repeat is a BLOCK where column GW-1 is WALL (rows 0..2, the church green's north wall), so Far bank — which must reach row 0 to reach the sky — carries ~5 cells of smeared building in its top corner. Only fixable in drawBlocks, which would move the Wide control.",
+      "raisedBy": 119,
+      "seenBy": 0
+    },
+    {
+      "id": "c184",
+      "note": "Far bank is structurally a WIDE frame: its subject is 16 cells across and 56 rows tall against a picture that is ~1.08 cells wide per row, so no zoom makes the far bank more than a quarter of it. #120 gave the eyot and the bandstand to Plaza to buy the tower's sky.",
+      "raisedBy": 119,
+      "seenBy": 0
     }
   ],
   "watch": [

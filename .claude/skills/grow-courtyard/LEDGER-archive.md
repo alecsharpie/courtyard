@@ -3913,3 +3913,13 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Law:** the ground cache is composited early and lit late, so a cached foreground has TWO leaks: the town draws over it, and the town's own lights bloom through it. Cover it after the last town draw and before `applyLight`, and punch it out of the glow passes.
 **Budget:** OVER — 46.6 KB against the 46 KB cap the moment this entry landed. Two of the last three entries are over the 2.5 KB per-entry cap and `state.json`'s life and roofs lists are both over 8.
 
+## Iteration 112 — dawn becomes one event: the light curve, the last lamps and the sunrise wash all key on the sun (2026-09-02) [Sky, light & weather × Deepen]
+
+**Brief:** b112 — #109 re-keyed ONE clause of `windowLit` onto `sunUp`; the rest of dawn was still on the night's clock.
+**Premise held, and a third leftover found:** HEAD left 2.23 panes lit at sunUp+0.8, and `applyLight`'s warm dawn wash was hard-coded at **hour 6.4**, on no clock at all.
+**Did.** `nightF`'s morning half is now `dawnF(h)`, a smoothstep on `sunUp` (`DAWN_LEAD 1.1`/`DAWN_RUN 2.2`, scaled by `dayHours/MEAN_HOURS`), so **nightF is exactly 0.50 at sunrise every day of the year**. `DAWN_K` makes `dawnEdge()` and the curve one definition; `nightAt()`'s span reads it, so `w.last`, the burn-through and the HOMES cap fall back to first light with no constant touched. Dawn wash rides `sunUp+0.2` at `DAWN_WARM 0.55`. Evening untouched, and `Math.min` makes that structural. +45 lines.
+**Gates:** census PASS ×2 · motion PASS ×2 · filmstrip day/night/winter-dawn 0 POP · 8 framings.
+**Measured:** lamps after sunUp+0.5 on **26/26 days → 0/26**; the evening is **bit-identical across 26 days × 9 offsets**. Side effects: homers 2.07→1.85/night, cat on the roof 15.5%→9.6% (c166).
+**Verdict:** shipped.
+**Surprise:** re-keyed onto sunrise, this wash and `drawSky`'s own peak landed almost together — and the new curve had just taken the blue multiply off both. The sunrise measured **R−B +45.9** against **+28.3** for the town's warmest dusk. Priced against that dusk rather than its own old value, 0.55 puts it at +30.5.
+

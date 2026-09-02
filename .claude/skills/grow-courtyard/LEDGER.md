@@ -40,16 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 112 — dawn becomes one event: the light curve, the last lamps and the sunrise wash all key on the sun (2026-09-02) [Sky, light & weather × Deepen]
-
-**Brief:** b112 — #109 re-keyed ONE clause of `windowLit` onto `sunUp`; the rest of dawn was still on the night's clock.
-**Premise held, and a third leftover found:** HEAD left 2.23 panes lit at sunUp+0.8, and `applyLight`'s warm dawn wash was hard-coded at **hour 6.4**, on no clock at all.
-**Did.** `nightF`'s morning half is now `dawnF(h)`, a smoothstep on `sunUp` (`DAWN_LEAD 1.1`/`DAWN_RUN 2.2`, scaled by `dayHours/MEAN_HOURS`), so **nightF is exactly 0.50 at sunrise every day of the year**. `DAWN_K` makes `dawnEdge()` and the curve one definition; `nightAt()`'s span reads it, so `w.last`, the burn-through and the HOMES cap fall back to first light with no constant touched. Dawn wash rides `sunUp+0.2` at `DAWN_WARM 0.55`. Evening untouched, and `Math.min` makes that structural. +45 lines.
-**Gates:** census PASS ×2 · motion PASS ×2 · filmstrip day/night/winter-dawn 0 POP · 8 framings.
-**Measured:** lamps after sunUp+0.5 on **26/26 days → 0/26**; the evening is **bit-identical across 26 days × 9 offsets**. Side effects: homers 2.07→1.85/night, cat on the roof 15.5%→9.6% (c166).
-**Verdict:** shipped.
-**Surprise:** re-keyed onto sunrise, this wash and `drawSky`'s own peak landed almost together — and the new curve had just taken the blue multiply off both. The sunrise measured **R−B +45.9** against **+28.3** for the town's warmest dusk. Priced against that dusk rather than its own old value, 0.55 puts it at +30.5.
-
 ## Iteration 113 — every bird the town draws answers, and the pointer finally lands where the picture is (2026-09-02) [People & animals × Interaction/UX]
 
 **Brief:** b113 — `livingAt()` named only the near roof's birds; close the hole for the rest.
@@ -122,3 +112,12 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Measured** (`probes/far-gate-waypoints.mjs`, 10 seeds × 6 days): HEAD's 170 arrivals start at **39 distinct** points scattered down the bare spine x=137.2; the tree's **173/173** enter *and* leave at `[138, 31]`, all five branches intact. Containment: far-bank strip 3.68% changed, everything else bit-identical, peak 0. Hedge continuous at 40/40 samples.
 **Verdict:** shipped — but built by attempt 2, which never committed. A WIP is UNPROVEN, so this pass re-measured rather than inherited; it held, and came back sharper.
 **Surprise:** the world's east edge is off-canvas in **every camera but Wide** at desktop sizes — including the quarter *named* "Far bank" — and off-frame in all five on a phone. The bare arrival, and its fix, live in one of five cameras.
+
+## Iteration 120 — the quarter cameras learn the world's real extent, and that a subject can stand UP (2026-09-02) [The sill & the observer × Scale/World]
+
+**Brief:** b120 — the five cameras frame GROUND, not the town. It cites `probes/world-edge-framing.mjs`, which was not on disk; I wrote it, and it prints every number below on either build.
+**Did.** (a) `WORLD_X0/WORLD_X1/FIELD_VIEW`: the camera's extent, no longer the grid's `0..GW`, and `drawFieldEdge`'s track now ends on `WORLD_X1` — one constant for the last drawn thing and the frame that must hold it. (b) **Vertical intent**: `air`, the DEPTH a quarter reaches up to, and `keep`, which end of the band survives an overflow. The height fit is priced on `air..y1`, and `tp` is one expression that is HEAD's *term for term* at `air = y0, keep = 1`, so a quarter declaring no intent cannot move. Street's `air −20.5, y1 44` keeps the band the height its box was: it slides UP into the air instead of zooming out of it. (c) the near-corner escape no longer *ends* at `held(1)` — that is now a candidate, held at the top row in its turn. +72/−24.
+**Gates:** census PASS (camera only) · motion PASS · shots clean · ease sampled into Far bank, the scaled cache covers the frame · `probes/quarter-hash.mjs`, 3 sizes × 2 seeds × 3 instants: Wide moved at 1/18 against a **HEAD-vs-HEAD control at 2/18**, and is unchanged by construction — `viewFor` returns before every changed line.
+**Measured, both framings:** arrow vane in Street OUT −204 px → **IN, cardinals 11.4 px**; weathercock in Far bank −404 → **IN +31**; field gate in NO quarter → **Far bank +21, Plaza +28**; Courtyard's west edge −8.6 cells → **0.0**.
+**Verdict:** shipped
+**Surprise:** **a quarter cannot reach the world's edge by zooming.** The frame's world x at a given row is a function of the hold's extent and the PINCH alone — `s` cancels — so the gate's row 31 is 3.1 cells short of the frame's top row at *every* zoom, and only the extent moves it. Which bounds the extent from the other side: the cache's east repeat is honest only where the edge column is, and column 137 is WALL for rows 0..2. Far bank must reach row 0 to reach the sky, so it carries ~5 cells of smeared block in its top corner; Plaza's band starts at row 3.6 and runs east to the gate over nothing but field. Two quarters, opposite constraints, one constant.
