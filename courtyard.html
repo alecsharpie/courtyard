@@ -888,6 +888,39 @@ function season(){ return seasonPhase; }
  * sun vector, a colder palette and a weaker key. */
 const SOLAR_NOON = 12.75, WINTER_HOURS = 11.5, SUMMER_HOURS = 17.5;
 let dayHours = 14.5, sunUp = 5.5, sunDown = 20, sunArc = 0;
+/* DAWN IS ONE EVENT (#112). nightF used to be a pure function of `daylight`, and
+ * `daylight` is a SINE over the whole day: it is 0 AT sunrise and climbs slowly, so
+ * nightF was a flat 1.00 at first light and only reached 0 at sunUp + 0.216*dayHours —
+ * 2.5 h into a winter morning, 3.8 h into a summer one. The town was painted as night
+ * through an hour of real daylight (measured on the year: nightF 0.72 at sunUp+0.8,
+ * 0.58 at +1.2), and everything that reads the light as a proxy for the HOUR inherited
+ * it — the last lamps, the roof cat, the fireflies, the walk home. #109 re-keyed one
+ * clause of windowLit onto sunUp; this keys the CURVE.
+ *
+ * The morning half now runs on the sun: twilight opens DAWN_LEAD before sunrise and
+ * full day arrives DAWN_RUN - DAWN_LEAD after it, on a smoothstep so the night multiply
+ * has no corner at either end. The EVENING half is untouched — it is the same
+ * `1 - 1.6*daylight` it always was — and Math.min() makes that structural: the dawn side
+ * can never paint MORE night than the old curve did, only less.
+ *
+ * Both offsets BREATHE with the season, scaled off the mean day, because the gap between
+ * the night's clock and the sun's hour is not a constant. DAWN_K is where the ramp
+ * crosses nightF 0.3 — smoothstep inverted at 0.7 — so this curve and nightAt()'s dawn
+ * EDGE are one definition and cannot drift apart the way they did when the edge was
+ * derived from NIGHT_K and the curve from the sine. DAWN_LEAD is half of DAWN_RUN on
+ * purpose: sunrise lands on the ramp's midpoint, so nightF is exactly 0.50 at sunUp on
+ * every day of the year, and the edge falls sunUp + 0.24..0.36 in every season. */
+const MEAN_HOURS = (WINTER_HOURS + SUMMER_HOURS) / 2;
+const DAWN_LEAD = 1.1, DAWN_RUN = 2.2;          // hours of twilight before sunrise, and the ramp's whole width, on a mean day
+const DAWN_K = 0.5 - Math.sin(Math.asin(1 - 2 * 0.7) / 3);   // 0.6367: smoothstep(DAWN_K) = 0.7, i.e. nightF = 0.3
+function dawnF(h){                              // the morning half of nightF: 1 = still night, 0 = full day
+  const s = dayHours / MEAN_HOURS;
+  const k = clamp((h - (sunUp - DAWN_LEAD * s)) / (DAWN_RUN * s), 0, 1);
+  return 1 - k * k * (3 - 2 * k);
+}
+function dawnEdge(){                            // the hour nightF crosses 0.3 coming up: sunUp + 0.24 midwinter .. + 0.36 midsummer
+  return sunUp + (DAWN_K * DAWN_RUN - DAWN_LEAD) * (dayHours / MEAN_HOURS);
+}
 function updateClock(){
   day = Math.floor(simT / DAY_LEN);
   const p = (simT % DAY_LEN) / DAY_LEN;
@@ -897,7 +930,8 @@ function updateClock(){
   dayHours = lerp(WINTER_HOURS, SUMMER_HOURS, warmth);
   sunUp = SOLAR_NOON - dayHours / 2; sunDown = SOLAR_NOON + dayHours / 2;
   daylight = clamp(Math.sin(Math.PI * (hour - sunUp) / dayHours), 0, 1);
-  nightF = 1 - clamp(daylight * 1.6, 0, 1);
+  const nEve = 1 - clamp(daylight * 1.6, 0, 1);      // the evening's curve, exactly as it always was
+  nightF = hour < SOLAR_NOON ? Math.min(nEve, dawnF(hour)) : nEve;
   // ONE arc, read by the shading vector and by the disc — they each used to derive
   // their own from hard-coded hours, which is two definitions of where the sun is
   sunArc = clamp((hour - sunUp) / dayHours, 0, 1);
@@ -4271,7 +4305,11 @@ function updateWildlife(dt){
   /* #106: the near roof's own band. Its own roll and its own cap, never a share of the
    * three below — and open after dark as well as by day, because up here a bird does not
    * go home at dusk, it roosts (see the hop state). */
-  if (!raining && (daylight > 0.25 || nightF > 0.45) && birds.filter(b => b.roof).length < ROOF_BIRDS
+  // `daylight > 0.25 || nightF > 0.45` excluded the DIM SHOULDER at either end of the
+  // day. Since #112 there is no dim shoulder in the morning — dawn is one event — so the
+  // morning half opens flat, or the compressed curve would leave an hour after sunrise
+  // with no roll at all. The evening's shoulder is still excluded.
+  if (!raining && (hour < SOLAR_NOON || daylight > 0.25 || nightF > 0.45) && birds.filter(b => b.roof).length < ROOF_BIRDS
       && R() < dt * ROOF_BIRD_RATE){
     const sp = roofBirdSpot();
     if (sp) birds.push({x:sp[0], y:sp[1], z:sp[2] + 7, zf:sp[2], state:'land', hop:0, t:0,
@@ -5033,7 +5071,12 @@ function drawChimney(g, x, y){
  * plus one hash per house per day — so 58% of the town burned from dusk to dawn and
  * nobody went to bed. Now each window keeps its own hours, all read off ONE clock:
  * `t` = hours since the dusk edge (the instant nightF crosses 0.3, sunDown minus
- * NIGHT_K*dayHours), running to the dawn edge at `span`. A window comes on within the
+ * NIGHT_K*dayHours), running to the dawn edge at `span` — which is dawnEdge(), the hour
+ * nightF crosses 0.3 coming back UP, and since #112 that is sunUp + 0.24..0.36 rather
+ * than sunUp + NIGHT_K*dayHours. Everything hung off the far end of the span therefore
+ * lands at first light instead of an hour or two past it: `last` (the burn-through, and
+ * the cap on a homecomer's lamp) now falls between sunUp-0.7 and sunUp+0.3, and the
+ * `nightF <= 0.3` gate below puts the whole town's glass out at the same edge. A window comes on within the
  * first two hours of dark, goes out at its own bedtime (most by mid-evening, the tail
  * squared into the small hours, one in twenty burning through), and a few early risers
  * come back on in the dark before sunrise and are out again as the light arrives. The
@@ -5045,7 +5088,7 @@ function drawChimney(g, x, y){
 const NIGHT_K = Math.asin(0.4375) / Math.PI;       // nightF 0.3 = 1 - 1.6*daylight -> daylight 0.4375
 function nightAt(){                                // the night's own clock: id, hours since the dusk edge, its span
   const duskAt = sunDown - NIGHT_K * dayHours;
-  const span = 24 - dayHours + 2 * NIGHT_K * dayHours;   // dusk edge -> dawn edge, hours
+  const span = (dawnEdge() - duskAt + 24) % 24;          // dusk edge -> dawn edge, hours: BOTH read off where nightF crosses 0.3
   const nid = (hour >= 6 && hour < duskAt) ? day - 1 : day;
   const t = (hour - duskAt + 24) % 24;
   return { nid, t, span };
@@ -5094,7 +5137,8 @@ function windowLit(sa, sb){
   // no fixed point. Continuous across the 06.00 day roll, which `nid` already crosses whole.
   if (w.hRise < 0.14){
     const r = w.hRise / 0.14, s = hour - sunUp;                    // 0..1 within the early-rising seventh
-    if (s >= -2.2 + 1.4 * r && s < -0.3 + 0.7 * r) return true;    // up in the dark, out as the town wakes
+    const out = (dawnEdge() - sunUp) - 0.8 * (1 - r);              // #112: the LAST one goes out exactly at the dawn edge, so
+    if (s >= -2.2 + 1.4 * r && s < out) return true;               // the gate above never clips the stagger into one blink
   }
   return false;
 }
@@ -8755,7 +8799,21 @@ function drawCat(){
 
 /* ============ lighting ============ */
 function applyLight(t){
-  const dusk = clamp(1 - Math.abs(hour - 19) / 1.8, 0, 1) + clamp(1 - Math.abs(hour - 6.4) / 1.6, 0, 1);
+  // the evening's term is the hour it always was; the MORNING's was a hard-coded 6.4 —
+  // which is 0.6 h BEFORE a midwinter sunrise and 2.4 h after a midsummer one, so the
+  // longest mornings of the year got their warm wash in broad daylight and got none at
+  // all at first light. It rides sunUp now, like everything else at this end of the day.
+  //
+  // DAWN_WARM is not a taste constant, it is a MEASURED one. At dusk this wash and the
+  // sky's own (drawSky's sunDown-0.6 term) peak nearly two hours apart; re-keyed onto
+  // sunrise, this one and the sky's sunUp+0.8 term land almost together, and #112's
+  // curve has also taken the blue multiply off them — three amplifications at once. At
+  // full strength the sunrise measured R-B +45.9 over the frame against +28.3 for the
+  // warmest dusk the town has, i.e. the loudest colour in the piece by half again.
+  // 0.55 puts sunrise at +30.5: still the warmest moment of the day, and only just.
+  const DAWN_WARM = 0.55;
+  const dusk = clamp(1 - Math.abs(hour - 19) / 1.8, 0, 1)
+             + DAWN_WARM * clamp(1 - Math.abs(hour - (sunUp + 0.2)) / 1.6, 0, 1);
   if (dusk > 0){
     ctx.globalCompositeOperation = 'soft-light';
     ctx.fillStyle = 'rgba(255,140,70,' + (0.55 * dusk) + ')';

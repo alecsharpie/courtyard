@@ -16,27 +16,6 @@
   "rationale": "I shot the town before planning it, at 1600x950 and at 390x844, and the two pictures disagree with the prose. The town proper is dense and good. But #100's near roof — the rung-4b foreground that was the run's biggest single change, +408 lines and the only census move in 109 iterations — is the dullest object in the frame, and on a phone it is 20% of the picture: one flat blue-grey field with a few dormers, no life below the ridge, and a black apron under it. #106 gave it tenants and bounded them at ROOF_DMAX 82.2 because at a short 1200x720 the sill cuts the surface at row ~84.9; the entire visible roof at every OTHER framing is therefore empty by construction, and #106's own ledger entry handed that trade to me as 'the manager's call'. I am calling it: it is worth a blink at short framings to stop giving a fifth of the phone frame to nothing. That is b110, and it is a real 4b rather than a deepen because the WATCH note is right that passages, tileKinds and speciesKinds have never moved in 109 iterations — the brief is required to move one and re-pin the baseline. b111 is the same picture's other half: the sill is baked into the ground cache, so four of the five camera positions have no sill at all and fill that band with live content instead (max luma 221 at Courtyard against a painted 13). Together they fix the bottom quarter of the frame. b112 finishes what #109 started — the night clock and the sun still disagree by an hour at dawn, so lawn walkers cross a courtyard the town is still lighting as night and the last lamps go out after sunrise; it serves the stalest domain and sky-polish is saturated, so it is a Deepen. b113 and b114 are the low-risk rotation into People & animals and Plaza & quay. On curation: the budget was the real emergency and it took the whole pass. LAWS.md is at 12288/12288 bytes with 18 laws after promoting eight from #105-#109 — I merged rather than stacked (the #106 depth law and #105's foreground-ramp law folded into the framing law; #108's dawn law and #109's sunUp law became one; #107's two pricing findings became one corollary law; #106's motion-gate zero-median and #109's canvas-hash containment went into the two instrument laws), and I made one outright cut: the standalone 'A raised surface is two draw items' law (#73) is gone, its still-live half folded into the renderer law as trap (d) and its DECK-specific sort order dropped, because the deck is built and stable and that detail now lives in the inventory. Inventory 11.4 -> 7.2 KB by taking it back to nouns plus seams; seven cues closed (six promoted into this queue, c136 deleted after three passes declined it); the three fattest ledger entries condensed in place with full text appended to LEDGER-archive.md. Worker budget 53.5 -> 45.5 KB, OK. NOTE FOR THE NEXT PASS: LAWS.md has zero bytes of headroom, so the next promotion must be paid for by a cut first.",
   "queue": [
     {
-      "id": "b112",
-      "domain": "Sky, light & weather",
-      "kind": "Deepen",
-      "brief": "#109 re-keyed the early risers onto sunUp and the town now darkens through sunrise, but it was told to touch one clause and the rest of dawn is still on the night's clock. Two measured leftovers. (1) w.last = span - 0.05 - 0.9*hOn is still keyed on the dawn edge, so the ~5% burn-through windows darken at sunUp+0.7..+1.6 and winter holds a flat 2-3 panes from sunUp+0.4, dropping to 1 only by +1.2: the last lamps in town still go out after sunrise. (2) nightF's curve and daylight's disagree by about an hour — lawn walkers now cross the courtyard at nightF > 0.5, measured at hour 4.95-5.74 with sunrise at 4.01, so there is an hour of real daylight the town still paints as night (shots/b108-dawn-cand.png). Make dawn one event. Sky is seven iterations back and sky x polish is saturated since #32, so this is Deepen: the whole light curve at first light, not a nudge to one constant.",
-      "seams": [
-        "windowLit",
-        "nightAt",
-        "nightF",
-        "NIGHT_K",
-        "sunAt",
-        "sunUp",
-        "daylight",
-        "applyLight",
-        "updateClock"
-      ],
-      "successLooksLike": "From sunUp-1 to sunUp+1.5, on a winter day and a summer day, the light on the town and the lamps in the windows tell the same story: it gets lighter, and the lamps go out before or as it does. No pane is lit after sunUp+0.5.",
-      "avoid": "Do not move NIGHT_K or nightF's edges globally on a hunch — they are read by the evening half, by drawRiverLights, by catA's window and by every spawner that asks whether it is night, and the evening is not broken. Prove containment by canvas hash at pinned instants on both builds (identical outside the dawn band, differing inside it), the way #109 did; the census cannot see a draw-only vector. Remember the day rolls at hour 6.00 and a winter dawn band straddles it.",
-      "budgetMin": 40,
-      "risk": "medium"
-    },
-    {
       "id": "b113",
       "domain": "People & animals",
       "kind": "Interaction/UX",
@@ -84,6 +63,10 @@
     {
       "id": "b111",
       "at": "2026-09-01T23:44:26.327Z"
+    },
+    {
+      "id": "b112",
+      "at": "2026-09-02T00:07:29.418Z"
     }
   ]
 }

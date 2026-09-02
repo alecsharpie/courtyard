@@ -2,7 +2,7 @@
   "updated": "2026-09-02",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 110,
+  "lastIteration": 112,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -328,7 +328,8 @@
         39,
         48,
         58,
-        71
+        71,
+        112
       ],
       "connect": [
         6,
@@ -469,7 +470,7 @@
       "WIND: windF, windyDay/frontWind, windSign latched per spell, windDir the blend every x-lean reads",
       "MIST: one rate-capped scalar, mistAt(x), drawMist live before applyLight",
       "CLOUD SHADOW: drawCloudShade, CSH_N ellipses, one live multiply before applyLight; cloudDrift the ONE travel scalar",
-      "dawn FALLS: windowLit's early risers key on sunUp, not the night's dawn edge. w.last (burn-through) still on the dawn edge (c162)"
+      "DAWN IS ONE EVENT: nightF's morning half is dawnF() on sunUp (DAWN_LEAD/DAWN_RUN, seasonal, nightF=0.50 AT sunrise); dawnEdge() is the ONE dawn edge and nightAt()'s span reads it, so w.last/burn-through/HOMES cap land at first light; applyLight's dawn wash rides sunUp+0.2 at DAWN_WARM. The EVENING half is still 1-1.6*daylight"
     ],
     "life": [
       "ring transit via spawnAgent: walker, crosser, dogwalker (the five STAYING kinds are on the lawn's own source). drawPerson 12 px. Wildlife: butterflies, fireflies, birds[] (land/hop/fly, scared within 4.5 cells), ducks, swans, night cat catA, falling leaves",
@@ -538,6 +539,18 @@
     {
       "id": "c165",
       "note": "the sill hides the town at a quarter but does not stop it answering — a walker behind the sill is still hit-tested and still nameable under the pointer (#111)",
+      "raisedBy": 110,
+      "seenBy": 0
+    },
+    {
+      "id": "c166",
+      "note": "the roof cat's night is 22% shorter under #112's dawn curve and its time UP ON THE ROOF is down 15.5% -> 9.6% of samples: the roof phase is the tail of each cat's life, so it takes the whole hit. If #110's cat should keep its screen time the lever is CAT_ROOF_P or its spawn rate, never the light curve (#112)",
+      "raisedBy": 110,
+      "seenBy": 0
+    },
+    {
+      "id": "c167",
+      "note": "drawSmoke's hearth term is still clamp(1 - |hour - 7|/3.5) — a hard-coded hour of exactly the shape #112 moved off 6.4, and wrong by the same seasonal swing. It is about warmth rather than light, so it was left alone (#112)",
       "raisedBy": 110,
       "seenBy": 0
     }
