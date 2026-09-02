@@ -23,7 +23,7 @@
   "avoid": "Do not add a sixth quarter — the five that exist are the problem, not the count. Do not move any world geometry to suit a frame. Do not touch FOCUS: the ground-cache ease depends on it being fixed, and a moved FOCUS makes every quarter a cache repaint. And do not 'fix' a quarter by zooming out — a quarter that shows everything is the Wide shot again.",
   "budgetMin": 75,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 120,
   "issued": "2026-09-02T04:15:00.408Z",
