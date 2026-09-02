@@ -452,7 +452,8 @@
       "walled garden, bed ring, four arches, BENCH_SPOTS(4), daisies, ivy, ONE linden, pre-dawn sweeper; wear[]/trod[]/litter[]. The linden's SHADE is a PLACE (lindenShade/inLindenShade/shadeSpots/a.shaded); SUNDIAL at DIAL 32,35, dialThrow",
       "planting CA over SPECIES; beds read the year: growF/dieF/bloomCap",
       "gardener works a row at a time: gardenerKneel, GARDEN_REACH, a.rowDur; holds one lawn place, LAWN_W.gardener a 0.15 SHARE of the roll with a sub-cap of 1",
-      "the lawn's own source: spawnLawnAgent, LAWN_RATE (not a lever, swept 0.45..3.0), place-holders claimed at the choice, lawnStart/lawnEnd/lawnHolds/lawnGone. LAWN_CAP 8 is the measured knee; the SUB-CAPS are the limiter now — 4 benches + 2 naps + LAWN_BLANKETS 3 + 2 runs + 1 gardener"
+      "the lawn's own source: spawnLawnAgent, LAWN_RATE (not a lever, swept 0.45..3.0), place-holders claimed at the choice, lawnStart/lawnEnd/lawnHolds/lawnGone. LAWN_CAP 8 is the measured knee; the SUB-CAPS are the limiter now — 4 benches + 2 naps + LAWN_BLANKETS 3 + 2 runs + 1 gardener",
+      "the gardener has its OWN source (#129): gardenDue/gardenDay/gardenIdx/gard latch on the bonfire's model — no roll, hash(gardenIdx,GARD_SALT)<GARD_K over growSeason() (growF>dieF), NOT under LAWN_CAP (lawnCount excludes gardeners). spawnLawnAgent(want) forces a kind past the lottery but not past the fit. gardenFits bounds a pre-dawn walk at BOTH ends (GARD_LAND); the bed is drawn from the near third by walk; a.dawnWalk licences the climb past lawnGone(). In the beds on a growing morning 0.06 -> 0.22 by POSITION"
     ],
     "lane": [
       "kiosk, pavement cafe, awnings, washing lines, planters, LANE_LAMPS, LANE_BENCHES",
@@ -603,6 +604,18 @@
     {
       "id": "c203",
       "note": "overDeck's east-sourced jetty standers (a.jetty via DECK_SHARE) are still refused by puntFits almost every time, on TIME: they land at 19-21h. 236 of 298 offers on HEAD. If a brief wants MORE crossings rather than fuller ones, that door is where the supply is — not the pair rule (#128)",
+      "raisedBy": 127,
+      "seenBy": 0
+    },
+    {
+      "id": "c204",
+      "note": "wallR()'s 27.5 square is the courtyard's standard ruler (#121, probes/lawn-day.mjs) but 13 of 204 EDGE_BEDS lie OUTSIDE it — the axis beds nearest the doors. Any courtyard metric built on that square under-counts work done at the bed ring's edge by ~18%.",
+      "raisedBy": 127,
+      "seenBy": 0
+    },
+    {
+      "id": "c205",
+      "note": "GARDEN_ROWS is 5 and GARDEN_MORE 0.8, so a gardener should work ~3 rows; measured it is 1.19 on HEAD and 1.53 after #129. gardenerKneel's light-fit charges two full rows (4.4-7.4 h of kneeling) plus the shuffle plus the walk to the door, so the second row is priced out most days. The rows exist at a rate near one.",
       "raisedBy": 127,
       "seenBy": 0
     }

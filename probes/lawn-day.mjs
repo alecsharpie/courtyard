@@ -58,8 +58,16 @@ const SWEEP = (days) => `(async () => {
   const people = () => agents.filter(a => a.kind !== 'sweeper');
   let arrivals = 0;
   const orig = window.spawnLawnAgent;
-  window.spawnLawnAgent = function(){ const n = agents.length; orig(); if (agents.length > n) arrivals++; };
+  /* forward BOTH the argument and the return (#129). This wrapper used to call orig()
+   * bare: it swallowed the scheduled source's forced kind and returned undefined, so the
+   * latch that spends the morning never latched and the window re-fired every tick —
+   * the probe was measuring a build that does not exist, at 10.4 arrivals/day. */
+  window.spawnLawnAgent = function(...w){ const n = agents.length; const r = orig(...w); if (agents.length > n) arrivals++; return r; };
   const out = [];
+  /* rewind the PRNG the page's own load frames already moved (#127): without this the
+   * SAME build re-measures at a different offset and HEAD disagrees with itself —
+   * gardener 0.61 vs 0.52 on a summer afternoon across two runs of one file. */
+  __reseed();
   while (day < 1) __warp(1);                       // day 0 is the town filling; the lawn opens at day >= 1
   const d0 = day;
   while (day < d0 + ${days}){
@@ -74,6 +82,16 @@ const SWEEP = (days) => `(async () => {
                other: inw.filter(a => !a.lawn && a.street).length,
                kinds: ['gardener','kid','napper','picnic','sitter'].map(k => inw.filter(a => a.lawn && a.kind === k).length),
                holds: lc, open: open ? 1 : 0, atCap: open && lc >= LAWN_CAP ? 1 : 0,
+               ls: lawnStart(), le: lawnEnd(), grow: growF() > dieF() ? 1 : 0,
+               visitors: agents.filter(o => lawnHolds(o) && o.kind !== 'gardener').length,
+               /* the gardener measured by POSITION, not by the wall square: 13 of the 204
+                * EDGE_BEDS sit OUTSIDE wallR()'s half-width of 27.5 and they are the axis
+                * beds nearest the doors, so inWall scores a gardener zero for working
+                * exactly the border a near-door walk should take them to (#129). */
+               gAny: agents.filter(a => a.kind === 'gardener').length,
+               gWork: agents.filter(a => a.kind === 'gardener' && !a.lawnOut && a.kneelAt
+                        && Math.hypot(a.x - a.kneelAt[0], a.y - a.kneelAt[1]) < 1.5).length,
+               gKneel: agents.filter(a => a.kind === 'gardener' && a.state === 'kneel').length,
                win: (hour > lawnStart() && hour < lawnEnd()) ? 1 : 0 });
   }
   return { samples: out, arrivals, cap: LAWN_CAP, rate: LAWN_RATE, sun: LAWN_SUN };
@@ -103,6 +121,11 @@ const f2 = x => x.toFixed(2);
 const FINE = s => !s.rain && s.win;                       // the window, dry
 const AFT  = s => s.hour >= 12 && s.hour < 17;
 const SUMMER = s => s.warmth > 0.72, WINTER = s => s.warmth < 0.28;
+/* the beds' OWN growing season — growF() > dieF() is warmth > 0.5, the year's half in
+ * which a bed gains more than it loses — and the MORNING as a share of the lawn's own
+ * window, so neither selector is a hard-coded hour (#129) */
+const GROW = s => s.grow;
+const MORN = s => s.win && s.hour < s.ls + (s.le - s.ls) * 0.4;
 
 const row = (name, sel) => {
   const S = all.filter(sel);
@@ -126,6 +149,7 @@ console.log(row('the window, dry', FINE));
 console.log(row('summer afternoon, dry', s => FINE(s) && AFT(s) && SUMMER(s)));
 console.log(row('summer, dry, whole window', s => FINE(s) && SUMMER(s)));
 console.log(row('winter, dry, whole window', s => FINE(s) && WINTER(s)));
+console.log(row('growing-season morning, dry', s => !s.rain && GROW(s) && MORN(s)));
 console.log(row('wet, in the window', s => s.rain && s.win));
 console.log(row('night (window shut)', s => !s.win));
 
@@ -135,11 +159,42 @@ console.log(`  at cap ${(100 * mean(open.map(s => s.atCap))).toFixed(1)}% of ope
 const winOpen = all.filter(s => s.open && s.win && !s.rain);
 console.log(`  at cap ${(100 * mean(winOpen.map(s => s.atCap))).toFixed(1)}% of DRY IN-WINDOW samples (n=${winOpen.length})`);
 const KN = ['gardener','kid','napper','picnic','sitter'];
+/* "the lawn is busy" is a fact about the VISITORS, never about `holds` — the gardener is
+ * one of the holders, so a busy/quiet split on `holds` is partly the subject measuring
+ * itself, and on HEAD it read gardener 0.32 busy / 0.01 quiet out of that alone (#129). */
+const LAWN_BUSY = Math.ceil(CAPV * 0.75);   // three quarters of the visitors' cap
 const kindRow = (name, sel) => { const S = all.filter(sel); if (!S.length) return;
   console.log('  ' + name.padEnd(26) + KN.map((k, i) => k + ' ' + f2(mean(S.map(s => s.kinds[i])))).join('  ')); };
 console.log('\n-- who is inside, by kind (mean people) --');
 kindRow('summer afternoon, dry', s => FINE(s) && AFT(s) && SUMMER(s));
 kindRow('winter, dry, window', s => FINE(s) && WINTER(s));
+kindRow('growing morning, dry', s => !s.rain && GROW(s) && MORN(s));
+kindRow('  … of it, lawn BUSY', s => !s.rain && GROW(s) && MORN(s) && s.visitors >= LAWN_BUSY);
+kindRow('growing season, all window', s => FINE(s) && GROW(s));
+kindRow('wet, in the window', s => s.rain && s.win);
+/* the gardener is the subject: a scalar per slice, so a 3x claim is one number */
+const gard = sel => { const S = all.filter(sel); return S.length ? mean(S.map(s => s.kinds[0])) : 0; };
+console.log('\n-- the gardener alone (mean present) --');
+const at = (k, sel) => { const S = all.filter(sel); return S.length ? mean(S.map(s => s[k])) : 0; };
+console.log('  in the beds (at kneelAt, by position)   ' +
+  [['growing morning', s => !s.rain && GROW(s) && MORN(s)],
+   ['… lawn BUSY', s => !s.rain && GROW(s) && MORN(s) && s.visitors >= LAWN_BUSY],
+   ['growing window', s => FINE(s) && GROW(s)],
+   ['winter window', s => FINE(s) && WINTER(s)],
+   ['wet window', s => s.rain && s.win]]
+  .map(([n, sel]) => `${n} ${f2(at('gWork', sel))}`).join('  '));
+console.log('  present anywhere                        ' +
+  [['growing morning', s => !s.rain && GROW(s) && MORN(s)],
+   ['… lawn BUSY', s => !s.rain && GROW(s) && MORN(s) && s.visitors >= LAWN_BUSY],
+   ['growing window', s => FINE(s) && GROW(s)],
+   ['winter window', s => FINE(s) && WINTER(s)],
+   ['wet window', s => s.rain && s.win]]
+  .map(([n, sel]) => `${n} ${f2(at('gAny', sel))}`).join('  '));
+console.log(`  inside the wall square (the OLD ruler): growing morning ${f2(gard(s => !s.rain && GROW(s) && MORN(s)))}` +
+            `   busy lawn ${f2(gard(s => !s.rain && GROW(s) && MORN(s) && s.visitors >= LAWN_BUSY))}` +
+            `   quiet lawn ${f2(gard(s => !s.rain && GROW(s) && MORN(s) && s.visitors < LAWN_BUSY))}` +
+            `   winter window ${f2(gard(s => FINE(s) && WINTER(s)))}` +
+            `   wet window ${f2(gard(s => s.rain && s.win))}`);
 console.log(`  arrivals ${runs.map(r => r.arrivals).join('/')} = ${f2(mean(runs.map(r => r.arrivals)) / DAYS)} per day per seed`);
 
 if (argv.includes('--json')) console.log('\nJSON ' + JSON.stringify({ label: LABEL, runs: runs.map(r => ({ seed: r.seed, arrivals: r.arrivals })),

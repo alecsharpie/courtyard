@@ -2553,7 +2553,12 @@ function lawnStart(t){ const s = sunAt(t === undefined ? simT : t); return s.up 
 function lawnRate(){ return LAWN_RATE * (0.45 + 0.55 * clamp((warmth - 0.2) / 0.5, 0, 1)); }   // a winter noon keeps a child and a sitter (HEAD ± 1)
 function lawnOpen(){ return day >= 1 && !raining && hour > sunUp && hour < sunDown; }   // set-outs need dry weather and the sun UP; the arrival's daylight is priced in lawnFits (open a trip earlier than its hour) — without the sunrise gate every midnight roll picks the one door whose walk is long enough to land in the window, and the east arch feeds the lawn marathon walkers
 function lawnHolds(o){ return o.lawn && o.lawnLead && !o.with && !o.lawnOut; }   // on the way in or at the place; a holder walking out has given it up
-function lawnCount(){ return agents.filter(lawnHolds).length; }
+/* the cap counts the lawn's VISITORS. The gardener is not one: they come to WORK, on
+ * their own schedule (gardenDue, #129) and to a place — the edge beds — that no other
+ * kind can claim, so charging them one of LAWN_CAP's eight only meant the busiest
+ * mornings were the ones the garden went untended. They still hold their bed through
+ * lawnHolds, so `held` below still sees them and the sub-cap of one still binds. */
+function lawnCount(){ return agents.filter(o => lawnHolds(o) && o.kind !== 'gardener').length; }
 function lawnRelease(a){ a.lawnOut = true; for (const o of agents) if (o.with === a) o.lawnOut = true; }   // and the companion at their side goes with them
 /* the walk from off-frame through door `e` along `pts`, in hours; and whether it fits the
  * window — arrival with LAWN_MIN_DWELL to spare before the sun ends it, the sun read at
@@ -2563,6 +2568,20 @@ function lawnFits(e, pts, speed){
   const walk = LAWN_WALK_MARGIN * lawnHours(e, pts, speed);
   const tA = simT + walk / 24 * DAY_LEN;   // the arrival instant (LAW: an hour of the sun is solved at arrival, not departure)
   return hour + walk >= lawnStart(tA) && hour + walk + LAWN_MIN_DWELL < lawnEnd(tA);
+}
+/* The gardener's fit, and the reason it is not lawnFits (#129). lawnFits bounds the
+ * arrival from BELOW only — not before lawnStart() — which is all a visitor needs,
+ * because nobody sets out before the lawn opens. The dawn window does, and with the
+ * whole day ahead EVERY bed and every door passes that test: the draw went uniform over
+ * all 204 beds and priced walks of 9.9 h, so the earlier start was spent entirely on
+ * crossing the town. A window with only a landing bound is a marathon-walker factory.
+ * So a walk begun before sunrise must also land WITHIN GARD_LAND of lawnStart(); after
+ * sunrise this is lawnFits exactly, which is what the lottery's gardener still gets. */
+function gardenFits(e, pts, sp){
+  if (!lawnFits(e, pts, sp)) return false;
+  if (hour > sunUp) return true;                                   // after sunrise this IS lawnFits — what the lottery's gardener still gets
+  const walk = LAWN_WALK_MARGIN * lawnHours(e, pts, sp);
+  return hour + walk <= lawnStart(simT + walk / 24 * DAY_LEN) + GARD_LAND;   // the sun read at the arrival instant, as lawnFits reads it
 }
 function gapPoint(g){ return [CX + Math.cos(g) * (bedOut(g) + 0.8), CY + Math.sin(g) * (bedOut(g) + 0.8)]; }
 /* the way in from door `e` to a point on the lawn: a straight chord across the outer
@@ -2576,7 +2595,7 @@ function lawnWay(e, px, py){ return chordOK(e, px, py) ? [[px, py]] : ringWay(e,
 function gapWay(e, g){ const p = gapPoint(g); return lawnWay(e, p[0], p[1]); }
 function nearDoor(px, py){ return ENTR.reduce((p, q) => Math.abs(((Math.atan2(q.door[1] - CY, q.door[0] - CX) - Math.atan2(py - CY, px - CX) + Math.PI * 3) % (Math.PI * 2)) - Math.PI) < Math.abs(((Math.atan2(p.door[1] - CY, p.door[0] - CX) - Math.atan2(py - CY, px - CX) + Math.PI * 3) % (Math.PI * 2)) - Math.PI) ? q : p); }   // the door a chord from (px, py) is clean to
 function cheapGap(free){ return free.reduce((p, q) => Math.min(...ENTR.map(e => lawnHours(e, gapWay(e, q), 1))) < Math.min(...ENTR.map(e => lawnHours(e, gapWay(e, p), 1))) ? q : p); }
-function spawnLawnAgent(){
+function spawnLawnAgent(want){
   const roll = R(), speed = 1.5 + R() * 0.7;
   const held = agents.filter(lawnHolds);
   const has = (f) => held.some(f);
@@ -2592,15 +2611,21 @@ function spawnLawnAgent(){
   // one gardener at a time, but held like every other lawn place — the bed comes back
   // as the walk OUT begins (lawnRelease), not when they are finally off the frame (#108)
   if (EDGE_BEDS.length && !has(o => o.kind === 'gardener')
-      && ENTR.some(e => { const b = EDGE_BEDS.reduce((p, q) => Math.hypot(q.px - e.door[0], q.py - e.door[1]) < Math.hypot(p.px - e.door[0], p.py - e.door[1]) ? q : p); return lawnFits(e, lawnWay(e, b.px, b.py), speed); })) kinds.push('gardener');
+      && ENTR.some(e => { const b = EDGE_BEDS.reduce((p, q) => Math.hypot(q.px - e.door[0], q.py - e.door[1]) < Math.hypot(p.px - e.door[0], p.py - e.door[1]) ? q : p); return gardenFits(e, lawnWay(e, b.px, b.py), speed); })) kinds.push('gardener');
   if (held.filter(o => o.kind === 'kid').length < LAWN_RUNS && ENTR.some(e => lawnFits(e, [RING[e.k], [CX + (RING[e.k][0] - CX) * 0.6, CY + (RING[e.k][1] - CY) * 0.6]], 2.6))) kinds.push('kid');
   if (day >= 2 && lie && freeGaps.length && freeGaps.some(g => ENTR.some(e => lawnFits(e, gapWay(e, g).concat([nap(g)]), speed * 0.8)))) kinds.push('napper');
   if (day >= 3 && lie && held.filter(o => o.kind === 'picnic').length < LAWN_BLANKETS
       && ENTR.some(e => warmth > 0.65 && shadowF() > 0.5 ? GAP_ANGLES.some(g => lawnFits(e, gapWay(e, g).concat([[CX + Math.cos(g) * 3.3, CY + Math.sin(g) * 3.3]]), speed)) : lawnFits(e, lawnWay(e, CX + (RING[e.k][0] - CX) * 0.55, CY + (RING[e.k][1] - CY) * 0.55), speed))) kinds.push('picnic');
   if (freeBenches.some(b => ENTR.some(e => lawnFits(e, lawnWay(e, b.x + 0.5, b.y + 0.6), speed)))) kinds.push('sitter');
-  if (!kinds.length) return;
-  const tot = kinds.reduce((s, k) => s + LAWN_W[k], 0); let acc = 0, kind = kinds[kinds.length - 1];
-  for (const k of kinds){ acc += LAWN_W[k] / tot; if (roll < acc){ kind = k; break; } }
+  if (!kinds.length) return false;
+  /* `want` is a scheduled source's forced kind (#129). It skips the LOTTERY and nothing
+   * else: the kind is still only offered if the list above found it a free place and a
+   * door whose walk fits the window, so a schedule cannot put a gardener in the beds on
+   * a day the light will not hold them. */
+  let kind = kinds[kinds.length - 1];
+  if (want){ if (!kinds.includes(want)) return false; kind = want; }
+  else { const tot = kinds.reduce((s, k) => s + LAWN_W[k], 0); let acc = 0;
+    for (const k of kinds){ acc += LAWN_W[k] / tot; if (roll < acc){ kind = k; break; } } }
   const a = { kind, x:0, y:0, wp:[], i:0, speed, state:'walk', timer:0, lawn:true, lawnLead:true,
     shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), umbrella:false, phase:R() * 9, wary:R() };
   // the place, and the way in from each door (`way(e)` — the waypoints after the door)
@@ -2608,8 +2633,18 @@ function spawnLawnAgent(){
   if (kind === 'gardener'){
     // among the beds a door's walk FITS to, like the sitter's benches — pick() over all of
     // them let a far bed kill the roll at the bag, and the town never saw a gardener
-    const fit = EDGE_BEDS.filter(b => ENTR.some(e => lawnFits(e, lawnWay(e, b.px, b.py), speed)));
-    const spot = pick(fit); a.kneelAt = [spot.px, spot.py]; a.place = spot; a.shirt = '#5d7a4a'; a.tendBed = true;
+    const fit = EDGE_BEDS.filter(b => ENTR.some(e => gardenFits(e, lawnWay(e, b.px, b.py), speed)));
+    /* …and #108 fixed the DOOR and left the BED a flat pick over all 204 of them, which
+     * is the same mistake one level down: set out before dawn with the whole day ahead
+     * and every bed passes the fit, so the draw is uniform over the ring and the priced
+     * walk goes 5.8 h -> 9.2 h — the dawn start spent entirely on crossing the town.
+     * Rank by the walk, like the door, and draw from the NEAR THIRD: the gardener is at
+     * the border as the light clears and still works a different stretch of it each day
+     * rather than the one cheapest bed for ever. (#129) */
+    const near = fit.map(b => ({b, h: Math.min(...ENTR.map(e => lawnHours(e, lawnWay(e, b.px, b.py), speed)))}))
+                    .sort((p, q) => p.h - q.h);
+    const spot = pick(near.slice(0, Math.max(1, Math.ceil(near.length / 3))).map(r => r.b));
+    a.kneelAt = [spot.px, spot.py]; a.place = spot; a.shirt = '#5d7a4a'; a.tendBed = true;
     way = e => lawnWay(e, spot.px, spot.py);
   } else if (kind === 'kid'){
     a.speed = wsp = 2.6 + R(); a.small = true; run = [];
@@ -2669,8 +2704,9 @@ function spawnLawnAgent(){
   }
   // which door: the lane's south arch weighted double as ever, but only among the doors
   // the walk fits from — priced at the choice, so a late set-out takes a near door
-  const bag = [ENTR[0], ENTR[1], ENTR[1], ENTR[2], ENTR[3]].filter(e => lawnFits(e, (a.arrive || way)(e), wsp));
-  if (!bag.length) return;                    // too late in the day to be worth the walk
+  const fits = kind === 'gardener' ? gardenFits : lawnFits;
+  const bag = [ENTR[0], ENTR[1], ENTR[1], ENTR[2], ENTR[3]].filter(e => fits(e, (a.arrive || way)(e), wsp));
+  if (!bag.length) return false;              // too late in the day to be worth the walk
   // …except the gardener, who takes the SHORT door (#108). They come to WORK: every hour
   // of the lane's 40-cell leg is an hour not spent at the bed, and it is the walk in that
   // was putting the median kneel at 17 h with nothing left of the light for a second row.
@@ -2687,7 +2723,10 @@ function spawnLawnAgent(){
     const last = run[run.length - 1];
     a.wp.push(...exitLeg(nearDoor(last[0], last[1])));   // straight off the lawn to the nearest door
   }
-  if (kind === 'gardener') announce('A gardener arrives with a trowel and a tray of seedlings.');
+  if (kind === 'gardener' && hour < sunUp) a.dawnWalk = true;   // out before the sun: see the lawnGone() licence in stepAgent
+  if (kind === 'gardener') announce(pick(['A gardener arrives with a trowel and a tray of seedlings.',
+    'The gardener is in early, starting along the border.',
+    'Someone kneels at the edge beds, working a row.']));
   else if (kind === 'kid'){
     announce(pick(['Kids tear across the grass, shrieking.', 'A game of tag spills over the lawn.']));
     if (R() < 0.7){
@@ -2710,6 +2749,7 @@ function spawnLawnAgent(){
   agents.push(a);
   // a sitter's companion shares the bench (#75); the other kinds bring their own second or come alone
   withCompanion(a, kind === 'sitter');
+  return true;
 }
 /* ============ the gardener works ROWS (#108) ============ *
  * One kneel was the whole visit: they walked in, planted one patch and walked out, so
@@ -2746,6 +2786,46 @@ function gardenerKneel(a){
   a.place = b; a.kneelAt = [b.px, b.py]; a.rowDur = nd; a.tendBed = true;
   a.wp.push([b.px, b.py]);
 }
+/* ============ …and comes on a SCHEDULE, not a lottery ticket (#129) ============ *
+ * #108 gave the gardener a morning's WORK; they still had no reason to turn up for it.
+ * `LAWN_W.gardener` is a 0.15 SHARE of one roll among whichever kinds have a free place
+ * that day — and the growing season is exactly when the other four all do, so the share
+ * is at its thinnest in the months the beds most need working. Measured over a year
+ * (probes/lawn-day.mjs, 3 seeds), the gardener stood at 0.35 of a person on a dry
+ * growing-season morning against 0.36 in the DEAD of winter: the one kind the town is
+ * named for was, if anything, rarer while things were growing. #121's cap lift moved
+ * every other lawn kind and left this one at 0.63 -> 0.65, because a share of a roll is
+ * not a rate — so this gives the gardener its own source, on the bonfire's model
+ * (#93): no roll at all, a hash for the day and a window for the hour, latched once.
+ *   - the DAY is the beds' own season, `growF() > dieF()` — the half of the year in
+ *     which a bed gains more than it loses, which is warmth > 0.5 solved rather than a
+ *     month named — times a hash share of it. Outside it nothing changes: the winter
+ *     gardener is still the lottery's, at the rate it always was.
+ *   - the HOUR is not an hour. The window opens at sunUp and the set-out happens on the
+ *     first tick whose walk actually FITS (lawnFits, unchanged), so the gardener leaves
+ *     at first light and arrives as the light clears LAWN_SUN — an hour OF THE SUN,
+ *     solved at the instant it applies, and correct in July and in April alike.
+ *   - the latch is spent on ARRIVAL, not on the attempt: `gard.day` is set only when a
+ *     gardener actually set out, so a morning that rains itself out or finds no bed
+ *     within reach is retried through the rest of GARD_WIN and not silently lost.
+ * They are not charged to LAWN_CAP (see lawnCount): the beds are a place no visitor
+ * competes for, and the point of a schedule is that a busy lawn does not cancel it. */
+const GARD_K = 0.85, GARD_SALT = 611, GARD_EARLY = 3.5, GARD_WIN = 4.5, GARD_LAND = 1.0;   // share of growing days worked; the salt; the hours the window opens BEFORE sunrise and closes after it; and how long after lawnStart() a dawn walk may still land
+const GARD_ROLL = 6;                                    // `day` increments as `hour` wraps to 6 (updateClock): the pre-dawn hours belong to the morning AFTER them
+const gard = {day:-1};
+function growSeason(){ return growF() > dieF(); }       // the beds' own growing season: they gain more than they lose
+function gardenIdx(){ return hour < GARD_ROLL ? day + 1 : day; }   // ONE decision per morning: without this the window's two halves read two different days of the calendar and roll twice
+function gardenDay(){ return growSeason() && hash(gardenIdx(), GARD_SALT) < GARD_K; }   // seed-INDEPENDENT, like the bonfire's: the same calendar in every world, the weather is the seed's
+/* The window opens in the DARK. The walk in is 3.6 h and the sun clears LAWN_SUN only
+ * ~1.5 h after it rises, so a gardener who waits for sunrise reaches the beds at 9–10 h
+ * with the morning gone (measured: HEAD arrives 10.25). Opening at sunUp - GARD_EARLY
+ * does not make them set out then — lawnFits still refuses every walk that would land
+ * before lawnStart(), so the set-out happens on the first tick whose arrival is legal,
+ * which IS `lawnStart() - walk`. The hour solves itself, and it solves itself again in
+ * July. (sunUp - GARD_EARLY is 0.5 at midsummer's earliest, so the window never wraps
+ * past midnight; hour 23 fails the upper bound.) */
+function gardenDue(){ return gard.day !== gardenIdx() && !raining && hour > sunUp - GARD_EARLY && hour < sunUp + GARD_WIN
+  && !agents.some(o => o.kind === 'gardener') && gardenDay(); }
 const STAYING = {gardener:1, napper:1, picnic:1, sitter:1};
 function finishItinerary(a){
   const ex = a.exit;
@@ -2899,7 +2979,10 @@ function stepAgent(a, dt){
   // whoever is already walking out when the dusk edge crosses 0.3 is asked then.
   if (a.i === a.wp.length - 1 && !a.homeAsked && nightF > 0.3 && !a.home && !a.cycle && !a.east
       && !a.broom && !a.with && a.y > 65 && a.y < 79){ a.homeAsked = true; if (goHome(a)) return; }
-  if (a.lawn && !a.lawnOut && lawnGone()){ routeToExit(a); return; }   // dusk on the lawn: the run is over, the late walker turns round; in RAIN they walk on — the seat is judged at the seat (#95). NOT at dawn (#108)
+  // dusk on the lawn: the run is over, the late walker turns round; in RAIN they walk on — the seat is judged at the seat (#95). NOT at dawn (#108), and NOT on the gardener's
+  // pre-dawn climb (#129): their walk was priced to land at the beds as the light clears, and this clause would turn them round at the door on the very step it was priced to take.
+  // The licence lapses at lawnStart() by construction, so it can never shield anyone at dusk.
+  if (a.lawn && !a.lawnOut && lawnGone() && !(a.dawnWalk && hour < lawnStart())){ routeToExit(a); return; }
   const dx = tgt[0] - a.x, dy = tgt[1] - a.y;
   const d = Math.hypot(dx, dy);
   const sp = a.speed * (raining && !a.umbrella ? 1.5 : 1) * (a.kind === 'napper' ? 0.8 : 1)
@@ -11090,6 +11173,9 @@ function simStep(sdt, dt){
     if (daylight > 0.3 && day >= 1 && allotCount() < 3 && R() < allotRate) spawnAllotAgent();
     // the bonfire's holder (#93): no roll — the day is a hash and the hour is a window, once
     if (day >= 1 && bonfireDue()) spawnBonfireHolder();
+    // the garden's own morning (#129), the same shape and NOT under LAWN_CAP: the latch
+    // is spent only if someone actually set out, so the window can retry the morning
+    if (day >= 1 && gardenDue() && spawnLawnAgent('gardener')) gard.day = gardenIdx();
     // tapServing() is false on every hour that is not an evening, so this roll exists
     // only in the window it is spending
     if (tapServing() && tapNow < TAP_SLOTS.length && R() < tapRate()) spawnTapAgent();
