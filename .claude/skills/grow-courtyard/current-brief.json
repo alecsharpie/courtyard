@@ -21,7 +21,7 @@
   "avoid": "Do not make it global: a uniform wet sheen is what wetF already does and it reads as nothing. Do not extend the moss CA — this is water, it is fast, and it belongs to the rain, not to the year. A puddle that changes on a minute's scale is a LIVE overlay, not a ground-cache repaint; and a reflection drawn before applyLight's multiply is slate by midnight.",
   "budgetMin": 50,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 122,
   "issued": "2026-09-02T05:12:12.751Z",
