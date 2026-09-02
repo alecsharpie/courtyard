@@ -2,7 +2,7 @@
   "updated": "2026-09-02",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 112,
+  "lastIteration": 114,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -262,7 +262,8 @@
       "deepen": [
         5,
         40,
-        69
+        69,
+        114
       ],
       "polish": [
         20,
@@ -450,7 +451,7 @@
       "fountain reads year/wind/frost: fountainPlay, fountainStand, fountainIce",
       "FAMILIES: spawnFamilyAgent, FAM_CAP, famOpen, a.fam + a.famKid via makeCompanion",
       "PLAZA PIGEONS have their own roll and cap: b.plaza, plazaBirdSpot",
-      "paving AGES, PLAZA ONLY: moss[] CA on 730 PATH cells, stepMoss in caTick, mossShel[]/mossTop[], scuffed by feet"
+      "paving AGES in TWO regions: moss[] CA + mossOwn[] the region mask; buildMossRegion/stepMossRegion run for the plaza (730 PATH cells) and the QUAY (130 SIDE cells, x 112-113 x y<LN_WALK_N). mossShelterAt reads each region in its own stone; MOSS_WET weights a WATER neighbour, which is what makes the rail column greener than the walked one. Feet scuff via mossIn; scuffLitter() is #72's sweep factored out; nameAt says 'green in the joints' on both"
     ],
     "river": [
       "river (13 cols), ONE rowboat, three-arch bridge, towpath TOW_WALK 128.6 / FAR_WALK 133.2, church + tower + rose window, bandstand, ORCHARD, JETTY, PARK_GATE",
@@ -565,6 +566,24 @@
     {
       "id": "c169",
       "note": "the pointer CURSOR still only turns to a hand over answersTouch cells, so everything #113 made nameable on the roof, the windows, the vanes and the crowns is findable only by accident on a desktop — the naming and the affordance now disagree (#113)",
+      "raisedBy": 112,
+      "seenBy": 0
+    },
+    {
+      "id": "c170",
+      "note": "pavingAt() is a FALL-THROUGH, so the box it names is not the surface: PAVING.quay covers 975 cells of which 845 are the river, and lane/towpath/cross are the same shape. Any count, spot-picker or CA seeded off a PAVING box without intersecting the grid is wrong by that factor (#114)",
+      "raisedBy": 112,
+      "seenBy": 0
+    },
+    {
+      "id": "c171",
+      "note": "the census DROPS most of what __census() computes: summarize() keeps planting.bySpecies and throws away planted/blooming/daisies/mossy/matureTrees/worn, so #103's mossy has never reached the dashboard. A one-line fix in census.mjs, but it changes the baseline shape, so it is the manager's call not a worker's mid-run (#114)",
+      "raisedBy": 112,
+      "seenBy": 0
+    },
+    {
+      "id": "c172",
+      "note": "there are TWO probes/ dirs: the 199-file library at .claude/skills/grow-courtyard/probes/ and a root probes/ holding only #113's probe-birds.mjs. LAWS says 'ls probes/', which from the repo root shows the 3-file one — a worker checking whether a probe exists will conclude the library is empty (#114)",
       "raisedBy": 112,
       "seenBy": 0
     }

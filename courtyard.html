@@ -1518,27 +1518,69 @@ function stepSnow(dt){
  * wearDirty already throttles that to WEAR_REPAINT. */
 const moss = new Float32Array(GW * WH), mossShel = new Float32Array(GW * WH),
       mossTop = new Float32Array(GW * WH);
+const MOSS_PLAZA = 1, MOSS_QUAY = 2;               // #114: which region a cell belongs to
+const mossOwn = new Uint8Array(GW * WH);           // 0 = not a mossy surface; the creep stops at a change of owner
 const MOSS_COLD = 0.26,      // below this warmth nothing grows and the frost term rises
       MOSS_DRY = 0.66,       // above this warmth a dry spell starts to bleach it back
       MOSS_GROW = 0.0052, MOSS_DIE = 0.0038,
       MOSS_CAP = 0.94, MOSS_BUCKET = 6,
       MOSS_FLOOR = 0.16,     // must stay UNDER 1/MOSS_BUCKET — see mossFloor()
-      MOSS_SCUFF = 1.6;      // per second of a full-size walker standing on the cell
+      MOSS_SCUFF = 1.6,      // per second of a full-size walker standing on the cell
+      MOSS_WET = 0.55;       // #114: a WATER neighbour holds a joint damp on top of being an edge
 function inPlaza(x, y){ return x >= PLAZA_X0 && x < PLAZA_X1 && grid[y * GW + x] === PATH; }
+/* #114: the quay is the SECOND surface that ages, and it is the one place the town most
+ * obviously stands still — a stone edge against moving water, identical in February and
+ * August. It needs no new machinery: the same creep, the same shelter ceiling, the same
+ * feet. It needs two things said out loud.
+ *
+ * ONE, it is SIDE, not PATH, and it is small. pavingAt() answers "the quay" for 975
+ * cells, but the predicate is a FALL-THROUGH — everything east of QUAY_X0 and north of
+ * the lane that is not PATH and not past the towpath — so 845 of those are the RIVER.
+ * The box it names is an intersection with the stone, and the stone is 130 cells: two
+ * columns, 65 rows, against the plaza's 730. A number about "the quay" that has not
+ * been intersected with the grid is 7.5x too big.
+ *
+ * TWO, the creep must not cross. The plaza's east column (x = PLAZA_X1 - 1) is the
+ * quay's west neighbour, so an unmasked four-neighbour mean would feed quay moss back
+ * into the square and the plaza would stop being HEAD's plaza. mossOwn[] is the mask:
+ * a neighbour of another region reads 0, which is exactly what it read on HEAD, when
+ * the quay was bare. That is what makes the plaza bit-identical rather than merely
+ * close. */
+function inQuay(x, y){
+  return x >= QUAY_X0 && x < RIVER_X0 && y < LN_WALK_N && grid[y * GW + x] === SIDE;
+}
+function mossIn(x, y){ return inPlaza(x, y) || inQuay(x, y); }
 /* how damp a joint stays: the share of the eight neighbours that is not paving. Read off
  * the grid once, after buildGrid — one predicate, one definition. */
+/* How damp a joint stays, in the terms its OWN region is laid in. The plaza's rule is
+ * HEAD's, character for character: a neighbour that is not PATH is an edge. The quay's
+ * is the same idea read against its own stone (a neighbour that is not SIDE is an edge)
+ * with one term added, because the thing that keeps a quay green is not shade — it is
+ * the river. A WATER neighbour is an edge AND it is wet, so it counts MOSS_WET extra.
+ * That is the whole of the difference between the column against the rail and the
+ * column people walk: 3 water neighbours against none. */
+function mossShelterAt(x, y, own){
+  let n = 0;
+  for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++){
+    if (!dx && !dy) continue;
+    const gx = x + dx, gy = y + dy;
+    const g = (gx < 0 || gy < 0 || gx >= GW || gy >= WH) ? -1 : grid[gy * GW + gx];
+    if (own === MOSS_PLAZA){ if (g !== PATH) n++; }
+    else { if (g !== SIDE) n++; if (g === WATER) n += MOSS_WET; }
+  }
+  return clamp(n / 5, 0, 1);
+}
 function buildMoss(){
-  moss.fill(0); mossShel.fill(0);
-  for (let y = 3; y < 61; y++) for (let x = PLAZA_X0; x < PLAZA_X1; x++){
-    if (!inPlaza(x, y)) continue;
-    let n = 0;
-    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++){
-      if (!dx && !dy) continue;
-      const gx = x + dx, gy = y + dy;
-      if (gx < 0 || gy < 0 || gx >= GW || gy >= WH || grid[gy * GW + gx] !== PATH) n++;
-    }
+  moss.fill(0); mossShel.fill(0); mossOwn.fill(0);
+  buildMossRegion(PLAZA_X0, PLAZA_X1, 3, 61, MOSS_PLAZA);
+  buildMossRegion(QUAY_X0, RIVER_X0, 0, LN_WALK_N, MOSS_QUAY);
+}
+function buildMossRegion(x0, x1, y0, y1, own){
+  for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++){
+    if (own === MOSS_PLAZA ? !inPlaza(x, y) : !inQuay(x, y)) continue;
     const i = y * GW + x;
-    mossShel[i] = clamp(n / 5, 0, 1);
+    mossOwn[i] = own;
+    mossShel[i] = mossShelterAt(x, y, own);
     /* The ceiling, computed ONCE because it is geometry, not weather. Two terms, and
      * the second is why it is not a stripe: shelter says a joint against the basin, a
      * planter or the terrace wall holds moss where the middle of the square can only
@@ -1566,12 +1608,23 @@ function mossDieF(){
   const drought = clamp((warmth - MOSS_DRY) / (1 - MOSS_DRY), 0, 1) * (1 - wetF());
   return Math.max(drought, clamp(1 - warmth / MOSS_COLD, 0, 1));
 }
+/* the creep term, masked. A neighbour belonging to another region — or to none, which
+ * is the basin, the two planters and the water — contributes 0, which is the number it
+ * contributed on HEAD when it was bare. Also bounds the array: the quay starts at y 0,
+ * so i - GW is off the front of it. */
+function mossNb(i, own){ return mossOwn[i] === own ? moss[i] : 0; }
 function stepMoss(){
   const gf = mossGrowF(), df = mossDieF();
-  for (let y = 3; y < 61; y++) for (let x = PLAZA_X0; x < PLAZA_X1; x++){
-    if (!inPlaza(x, y)) continue;        // the basin and the two planters are not paving
-    const i = y * GW + x, v = moss[i];
-    const nb = (moss[i - 1] + moss[i + 1] + moss[i - GW] + moss[i + GW]) * 0.25;
+  stepMossRegion(PLAZA_X0, PLAZA_X1, 3, 61, MOSS_PLAZA, gf, df);
+  stepMossRegion(QUAY_X0, RIVER_X0, 0, LN_WALK_N, MOSS_QUAY, gf, df);
+}
+function stepMossRegion(x0, x1, y0, y1, own, gf, df){
+  for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++){
+    const i = y * GW + x;
+    if (mossOwn[i] !== own) continue;    // the basin and the two planters are not paving
+    const v = moss[i];
+    const nb = (mossNb(i - 1, own) + mossNb(i + 1, own)
+              + mossNb(i - GW, own) + mossNb(i + GW, own)) * 0.25;
     const rate = 0.45 + 0.55 * hash(x, y + 313);             // this joint's own speed, forever
     const nv = v + MOSS_GROW * gf * rate * (0.35 + 1.10 * nb)
                  - MOSS_DIE * df * rate * (1.15 - 0.50 * mossShel[i]);   // a deep joint goes back slower than an open seam
@@ -2676,29 +2729,37 @@ function stepAgent(a, dt){
       if (snowCover > 0) trod[j] = Math.min(1, trod[j] + (a.small?0.2:0.35) * dt * 6);   // feet cut a lying cover
       if (litter[j]) litter[j] = Math.max(0, litter[j] - Math.ceil(dt * (a.small ? 60 : 120)));   // and scuff the leaves (~2 s standing clears a cell)
       if (R()<dt*2) wearDirty = true;                        // pending: the tick throttles the repaint
-    } else if (moss[j] > 0 && inPlaza(gx, gy)){
+    } else if (moss[j] > 0 && mossIn(gx, gy)){
       // #103: the plaza's other half of wear[] — feet scuff the joints they cross, so
       // the roundel's rings, the mouth and the bench approaches stay clean. Bucketed:
       // the repaint is asked for only when a drawn level can have changed
+      // #114: and the quay's walked column, which is what keeps it off the rail line
       const wasB = moss[j] * MOSS_BUCKET | 0;
       moss[j] = Math.max(0, moss[j] - (a.small ? 0.6 : 1) * MOSS_SCUFF * dt);
       if ((moss[j] * MOSS_BUCKET | 0) !== wasB) wearDirty = true;
+      // the quay is SIDE, so this branch now shadows #72's footway sweep. Do that here
+      // too rather than let a mossy cell quietly stop clearing its leaves in October.
+      if (litter[j] && grid[j] === SIDE) scuffLitter(j, a, dt);
     } else if (a.broom && snowCover > 0 && trod[j] < 1){
       trod[j] = 1; wearDirty = true;                          // the sweeper clears the strip he walks
     } else if (a.broom && litter[j]){
       litter[j] = 0; wearDirty = true;                        // and sweeps the leaves off the paving
     } else if (litter[j] && (grid[j] === ROAD || grid[j] === SIDE)){
-      // #72: the street clears itself. A heap on the road or the footway is cut by the
-      // traffic that uses it — faster than the lawn's scuff, and a wheel scatters what a
-      // foot only treads (a cyclist crosses a cell in ~0.17 s and takes a whole leaf with
-      // him). The courtyard's PATH is left to the broom, so its sums do not move. No R():
-      // the repaint is asked for on a drawn-bucket change, the way landLeaf() asks
-      const was = litter[j];
-      litter[j] = Math.max(0, was - Math.ceil(dt * (a.cycle ? 480 : a.small ? 90 : 180)));
-      if ((litter[j] / LITTER_BUCKET | 0) !== (was / LITTER_BUCKET | 0)) wearDirty = true;
+      scuffLitter(j, a, dt);
     }
   }
   stepDog(a, sp, dt);
+}
+/* #72: the street clears itself. A heap on the road or the footway is cut by the
+ * traffic that uses it — faster than the lawn's scuff, and a wheel scatters what a foot
+ * only treads (a cyclist crosses a cell in ~0.17 s and takes a whole leaf with him).
+ * The courtyard's PATH is left to the broom, so its sums do not move. No R(): the
+ * repaint is asked for on a drawn-bucket change, the way landLeaf() asks.
+ * Factored out at #114 because the quay's moss branch now sits in front of it. */
+function scuffLitter(j, a, dt){
+  const was = litter[j];
+  litter[j] = Math.max(0, was - Math.ceil(dt * (a.cycle ? 480 : a.small ? 90 : 180)));
+  if ((litter[j] / LITTER_BUCKET | 0) !== (was / LITTER_BUCKET | 0)) wearDirty = true;
 }
 /* the dog trails its human. Called from the walk path AND from every beat the human
  * spends standing still, so a stopped owner never leaves a frozen dog beside them. */
@@ -5738,7 +5799,10 @@ function groundBase(x, y, t, hv, m){
   }
   if (t === BED || t === CBED) return turned[y * GW + x] ? mix('#31261c', '#3e3022', hv)   // dug over: darker, colder; furrowed in drawGround
                                                           : mix('#5c4832', '#6b563c', hv);
-  if (t === SIDE) return wetCol(mix('#b3a88f', '#bfb49b', hv), hv);
+  if (t === SIDE){                                    // #114: the quay ages; moss is 0 on every other footway and the mix is exact at 0
+    const p = wetCol(mix('#b3a88f', '#bfb49b', hv), hv), mo = moss[y * GW + x];
+    return mo > 0 ? mix(p, '#74804e', 0.38 * mo) : p;   // the SAME tint the plaza takes — one definition of what moss does to a colour
+  }
   if (t === EYOT){                                     // the island's turf: rougher and paler than the green, shingle where it meets the water
     let shore = 0;
     for (const d of [-1, 1, -GW, GW]) if (grid[y * GW + x + d] === WATER) shore++;
@@ -5860,11 +5924,13 @@ function drawGround(){
       gtx.strokeStyle = 'rgba(90,75,50,.25)'; gtx.lineWidth = 0.7;
       quad(gtx, x, y, -0.06); gtx.stroke();
     }
-    if (t === PATH && moss[i] > 0) drawMoss(gtx, x, y, moss[i]);
     if (t === SIDE && hv > 0.55){                        // paving joints
       gtx.strokeStyle = 'rgba(96,88,70,.16)'; gtx.lineWidth = 0.7;
       quad(gtx, x, y, -0.04); gtx.stroke();
     }
+    // after the SIDE joints, so the green sits IN the seam it grows in. PATH never takes
+    // that branch, so the plaza's draw order is HEAD's.
+    if ((t === PATH || t === SIDE) && moss[i] > 0) drawMoss(gtx, x, y, moss[i]);
     if (t === ROAD){                                     // cobbled setts, laid in courses
       gtx.strokeStyle = 'rgba(66,60,50,.14)'; gtx.lineWidth = 0.7;
       const off = (y % 2) * 0.5;
@@ -9369,7 +9435,7 @@ function nameAt(x, y){
   if (y >= LN_WALK_S) return g === VOID ? 'a light well, down through our own roof'
        : y < LN_WALK_S + 3 ? 'the parapet of our own roof'
        : 'our own roof, the slates below the window';
-  if (g === PATH && moss[y * GW + x] > 0.5)
+  if ((g === PATH || g === SIDE) && moss[y * GW + x] > 0.5)
     return pavingAt(x, y).what + ', green in the joints';
   if (g === SIDE || g === ROAD || g === PATH) return pavingAt(x, y).what;
   return '';                       // a wall, a roof, the inside of an archway: no name
