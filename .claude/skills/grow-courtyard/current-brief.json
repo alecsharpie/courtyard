@@ -27,7 +27,7 @@
   "avoid": "Do not hand-author a height per house — that is a table, not a system; derive it from `hash(house, k)` so `?seed=` still owns it and the terrace's rhythm survives `wrapVX`'s repeat past the west edge. Do not draw a roof: LAWS says roofs are EMERGENT from footprints, and `vZ` averages the FOUR corner cells, so a step between neighbours will arrive as a one-vertex RAMP unless you decide what a boundary means. Check `project()`'s northward lift before you make anything taller — a cell of height walks a volume ~1.15 rows UP the frame, so a raised house can climb into the row above and swallow what stands behind it. And the church at 7.8 and the clock tower are the skyline's two existing incidents: do not out-scale them.",
   "budgetMin": 75,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 130,
   "issued": "2026-09-02T10:39:02.956Z",
