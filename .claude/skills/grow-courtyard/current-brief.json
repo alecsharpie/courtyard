@@ -24,7 +24,7 @@
   "avoid": "No new `OFFERS[]` entry — the queue is full and this is the affordance for tools already advertised. No new `R()` draw: this should hash-match HEAD at pinned instants, which is the whole proof that it is an interaction change and not a draw change. And do not prove it with `lookAt(project(...))` — that skips the event, which is exactly where #113 found a 16 px screen-space bug.",
   "budgetMin": 35,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 117,
   "issued": "2026-09-02T02:02:10.516Z",
