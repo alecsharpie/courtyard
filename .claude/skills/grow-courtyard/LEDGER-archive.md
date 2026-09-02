@@ -4225,3 +4225,43 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Law:** `perf.mjs` is vsync-locked at 16.70 ms and means a whole sim day — it cannot see a pass that is expensive only in a rare weather. Time the FUNCTION, in its own weather, at every camera, or you will read ±0.0% off a 70% saving.
 **Law:** a screen cull is exact against the CANVAS rect, never the picture above `sillTop()` — a pass drawing before the sill is composited may legitimately paint under it — and its margin must be the DRAWN extent, never the centre.
 **Budget:** context-budget OVER at 50.2 KB (cap 46). Structural — laws + the last 3 entries. Manager: distil.
+
+
+<!-- archived verbatim by manager pass #135 before condensing in LEDGER.md -->
+
+## Iteration 132 — the ticker learns where you are looking (2026-09-02) [The sill & the observer × Connect]
+
+**Brief:** b132 — prefer a subject inside the frame; do not take the surface with a line about somewhere you cannot see.
+**Did.** `inView(x,y)`, the only reader `whereN` has ever had: a cell projected through `viewFor(whereN)` against the frame and `sillTop()`. Not the quarter's BOX (the fit's input, and not one of them is what you see) and not `gview` (the ground CACHE's view). Intent beats the live camera: the ease is 0.9 s, a line lives 2.5–9. `sayAt(x,y,txt)` = announce with a SUBJECT, 33 sites. `AMBIENT_PLACES` 8 → 30 placed lines, `ambientHere()` preferring the in-frame ones and falling back to the WHOLE pool, never to silence.
+**Premise correction, and it was the iteration.** That fallback was DEAD CODE: the roll wanted `tickerTimer < -8`, seventeen seconds of dead surface, and the town speaks every three — **0 ambient lines in 8 sim days at three quarters, `tickerTimer` never once reaching 0**, so no threshold on it was reachable at all. Re-gated on `tickerFree()` (tested at the roll, so a blocked line is DROPPED not queued), restraint moved into the cadence, driven by `hash(ambIdx)` not `R()`.
+**Gates:** census unchanged in every field · motion PASS · filmstrip 0 POP · canvas **bit-identical to HEAD** at three pinned instants, fingerprint NONE. **context-budget OVER at 47.4 KB.**
+**HEAD → cand** (`probes/probe-sill-view.mjs`, 3 seeds × 5 days × 5 quarters, both builds, one oracle): off-frame subjects, fixed-place only — Courtyard **40/78 → 1/69**, Far bank **69/78 → 2/25**, Street and Plaza to 2 and 1. In-frame share 19→33, 27→34, 14→25, 4→11%; Wide unchanged. HEAD says the same top five lines at every quarter.
+**Verdict:** shipped
+**Surprise:** the roll self-balances unasked — ambient lines a day Wide 1.6, Courtyard 2.3, Far bank 3.4. The offer rate is flat and `tickerFree()` decides how many land, so the emptier suppression leaves a frame, the more the town murmurs about it.
+**Law:** when a USER input starts gating what the town says or draws, key its schedule to `hash()`, never `R()` — else where someone looks spends the seeded stream.
+**Law:** read the canvas in the SAME evaluate as the draw (`toDataURL()`, not a screenshot after it) — a synchronous `drawScene` still races rAF, and three instants read DIFFERS one way and IDENTICAL the other at a fingerprint of NONE.
+
+
+
+
+## Iteration 133 — the cold gets out of the chimney and into the rooms (2026-09-02) [Sky, light & weather × Connect]
+
+**Brief:** b133 — share `hearthF()`'s private `chill`, give it a reader indoors, fix the pop at the day roll.
+**Did.** `chillF()` lifted verbatim out of `hearthF()` (the fire is bit-identical) and left OVERDRIVEN past 1 — 1.10 January, 1.35 under snow — because that saturation IS #124's winter fire; readers clamp at their own draw site, as both of `drawSmoke`'s already did. Its reader is the light the rooms throw out: the `LIT_PANES` screen fill and the window halo, both in the pass AFTER `applyLight`'s multiply. The lamp goes redder, not brighter — R held at full, the G and B the screen puts back falling away with the cold. Then `hearthIdx()` on `gardenIdx()`'s model at the other end of the clock (`HEARTH_ROLL 14`, the lull between the two fires) and `HEARTH_FADE`, so a stack crosses its own threshold on a ramp. `DAY_ROLL` is now written once.
+**Gates:** census unchanged in every field · motion PASS · perf ±0.0% · filmstrip 0 POP · legible at 1600×950 and 390×844, winter dawn / winter night / summer night. **context-budget OVER at 50.4 KB.**
+**HEAD → cand** (`probes/chill.mjs`, seed 7): worst single step **31 of 51 stacks flipping at hour 6.00 → 4 at 5.40**, worst alpha step L1 **5.690 → 0.360**. The glass, matched pane by pane over 32 deep nights a season: winter−summer R−B **+2.74 → +18.45**, winter R +9.3 / B −9.4 against HEAD while summer moves under 2.
+**Verdict:** shipped
+**Surprise:** neither gate the brief named could see either thing. A mean over "whatever panes were lit" is mostly pane IDENTITY — the lit set is hashed per night, so HEAD reads winter *colder* than summer (44.1 vs 50.0 R−B) at one instant and *warmer* (52.8 vs 50.0) matched. The filmstrip is blind too: cropped to the roofline the roll frame reads Δ0.296 against a median of 0.296, under the dawn ramp. It shows only as a difference BETWEEN the two builds' strips — that frame falls 0.296 → 0.248 while all ten others move ≤0.013.
+**Law:** a mean over a set whose MEMBERSHIP is drawn per sample measures the membership, not the property — match the members across conditions first.
+
+## Iteration 134 — the pools stop being drawn where nobody can see them (2026-09-02) [Lane & market × Harness]
+
+**Brief:** b134 — cull `drawPuddles` to the visible frame, byte-identical output. Full entry in LEDGER-archive.md.
+**Did.** `inFrameBox(sx,sy,rx,ry)` beside `project()`: ONE screen cull, on the CANVAS rect and deliberately not `sillTop()` — `drawPuddles` draws before the sill is composited and may legitimately paint under it, so the canvas is the only bound true of both callers, and the cull is exact by construction. `drawPuddleLights` calls the same one, being the lamp on the pool the other drew. Both ellipses of each pass sit inside (sx±rx, sy±ry).
+**Gates:** census unchanged in every field · motion PASS · filmstrip 0 POP · `perf.mjs` ±0.0% and **blind** (vsync-locked at 16.70 ms over a mostly dry day).
+**Proof** (`probes/pool-cull-cost.mjs`, seed 7, wet 0.75, 400 frames × 3 reps, interleaved): drawPuddles **−56% to −73%** at the four quarters (0.28 → 0.08–0.12 ms), whole wet frame −8 to −12%; Wide ±2.5% both ways, so the cull's own tax is under the noise. Canvas hash **IDENTICAL 28 of 28** (5 cameras × day/night; 3 viewports × 3 instants × 2 cameras), fingerprint NONE.
+**Verdict:** shipped
+**Surprise:** the phone is the case that needed this most and the brief never named it. At 390×844 the **Wide** camera — the default, and effectively the only one a phone has, since `#where` is hidden under 640 px — already culls **61%** of the wet pools, and Far bank there culls **100%**. The margin is not theoretical either: at 1280×700 Courtyard **17 pools are kept only because the cull uses rx/ry** rather than the centre, and a centre test would have popped all seventeen at the frame edge (`probes/pool-cull-exact.mjs`).
+**Law:** `perf.mjs` is vsync-locked at 16.70 ms over a whole sim day — blind to a pass expensive only in a rare weather. Time the FUNCTION, in its weather, at every camera.
+**Law:** a screen cull is exact against the CANVAS rect, never the picture above `sillTop()`, and its margin is the DRAWN extent, never the centre.
+**Budget:** context-budget OVER, 50.2 KB (cap 46).
