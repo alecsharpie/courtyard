@@ -15,27 +15,6 @@
   "rationale": "I shot the town before planning it and then measured the shots, and the picture is not where the work has been going.\n\nAt midsummer midday the near block's roof is ~21% of a 1600x950 frame and ~24% of a 390x844 one — the largest single object in the picture, and the LEAST detailed thing in it. Horizontal luma variance across its band is sd 4.6-11 against sd 21-35 for the town behind it, and it FALLS as the pitch comes toward the viewer: sd 21.9 at the parapet, 4.6 four fifths of the way down. A foreground losing detail as it approaches is backwards, and the cause is one line of drawRoofRow — our own block is one flat quad per grid CELL with a single hash tint, a course line only at each row boundary, and the down-joint deliberately suppressed. On a phone that is a quad ~6 px wide and ~37 px tall, which is exactly why it reads as vertical boarding.\n\nFour iterations have now worked that roof (#100 built it, #105 ramped it, #110 furnished it, #123 re-bounded the furniture) and not one has touched the surface. #123 handed me the reason in its own cue: between the parapet and the shortest framing's sill there is 2.55 of depth and a water tank is 2.549 of it, so nothing TALL fits and the pitch below the band is bare at the framings where it is biggest. It called that 'the manager's call'. The call is that the next move on that roof is IN the surface, not on it — which is rung 6, retire and rebuild the weakest system, and by every measurement I have the weakest system is the town's largest object. Rung history was 4b/2/4b/4b/5, so nothing forced this climb; the numbers did.\n\nThe other four are deliberately not roof work and go to the four longest-untouched domains. b126 is the town's two remaining paved regions joining its memory of feet and rain: paveWear[] is read by nothing but drawPuddles, and buildPuddles walks pavedAt(), which covers only the lane band and the cross street's columns — so the plaza roundel and the quay, the two regions the moss CA already owns, have neither desire lines nor standing water (c190 + c191, both re-priced on HEAD this pass). b127 kills a term I can prove is dead: ghPane() reads mistAt() at a world x where MIST_REACH puts it at exactly 0 every day of every year, and the source's own comment says so. b128 takes c160, open since #104 and seen by three passes: puntFits refuses a.with, a.pairLead and a.small, so the eyot the town built at #85 can only be reached alone, in a town that has arrived in twos since #77. b129 takes c185 and c186 together: raising LAWN_CAP 4 to 8 moved every lawn kind except the gardener, whose 0.15 is a SHARE of a roll with a sub-cap of 1 — the person the garden is named for is still the rarest thing in it.\n\nMemory is the other half of this pass and it took most of it. The budget went 53.4 -> 42.9 KB, the lowest of the run, but the number matters less than the mechanism, because I have now 'fixed' this twice and it has come back twice. What came back is structural: each worker adds a cue and an over-cap ledger entry, so the file grows ~1.5 KB an iteration no matter how well I rewrite the inventory. So this pass fixed the flow, not the level. Every one of the 21 open cues was promoted into a brief or closed with a reason (21 -> 7; five became b126-b129, nine closed, one of them — c180 — promoted into LAWS instead). The last three ledger entries were archived verbatim and condensed to 1.8/1.8/1.5 KB, inside the per-entry cap for the first time since #119, which answers c188 and c192: the cap is right and meeting it is the manager's job, and rotate-ledger.mjs already said so. LAWS.md opened at 12,286 of 12,288 bytes with zero headroom (my own note from last pass), so I cut before promoting: three PAIRS of laws merged into one each — the two R() laws, time-compress into the walk law, and 'a zero is evidence' into the probe law, all three pairs having been saying the same thing twice — plus two clauses cut outright (the gate-distance/nearer-door clause, which #107 built and #119 shipped, and the 'advertise it or nobody finds it' half of the rate-of-zero law, which duplicates state.json's OFFERS watch note verbatim). That paid for five promotions from #120-#124, every one merged into its subject rather than stacked: #120's extent-not-zoom into the framing law, #121's sub-cap composition into the cap law, #122's proportional decay and coarse-gates-fine into the scalar and difference-image laws, #123's return-the-value-you-tested into the one-predicate law, #124's two-scalars-one-axis into the scalar law. 15 laws -> 12, at 11.9/12 KB with real headroom. Also fixed: state.mjs printed '· undefined' four times because watch entries are strings and it read w.note; and the coverage grid was missing #121-#124 entirely.",
   "queue": [
     {
-      "id": "b127",
-      "domain": "Cross street & allotments",
-      "kind": "Connect",
-      "brief": "`ghPane()` multiplies by `mistAt(x)` at a world x where the answer is exactly 0 every day of every year — `MIST_REACH` is 8 cells off the river and the glasshouse stands 21 clear — and the source comment above it says so out loud. The town's mist is a river fact, but the allotments are its other water and its coldest open ground: the POND sits in them and a still cold morning gathers mist in a hollow at least as well as over a river. Give mist a second source over the allotments, so `ghPane`'s term finally has something to read, so the glasshouse becomes a thing you see weather THROUGH, and so a winter morning on the wide shot stops being identical across the whole east half.",
-      "seams": [
-        "mistAt",
-        "MIST_REACH",
-        "drawMist",
-        "ghPane",
-        "POND",
-        "ALT_X0",
-        "inAllotment",
-        "warmth",
-        "windF"
-      ],
-      "successLooksLike": "On a still cold morning the allotments carry a low veil that thins through the morning and is absent on a windy or a warm day; the glasshouse's panes soften in it; and on the days the allotments have none, the river's own mist is unchanged from HEAD.",
-      "avoid": "`mistAt` is one function with one consumer contract — do not fork it into two incompatible readings; give it a second SOURCE, not a second definition. Do not scale it by warmth AND greyF(): #124 proved they are one axis. The veil must be able to reach exactly zero, and any skip guard tests the REGION, never a value legitimately zero inside it.",
-      "budgetMin": 35,
-      "risk": "medium"
-    },
-    {
       "id": "b128",
       "domain": "People & animals",
       "kind": "Deepen",
@@ -94,6 +73,10 @@
     {
       "id": "b126",
       "at": "2026-09-02T07:43:31.389Z"
+    },
+    {
+      "id": "b127",
+      "at": "2026-09-02T08:08:11.674Z"
     }
   ]
 }

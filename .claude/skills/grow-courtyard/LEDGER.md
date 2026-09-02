@@ -40,16 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 119 — the far bank gets an edge: a hedge, a gate standing open, and a track worn to it (2026-09-02) [River & far bank × New element]
-
-**Brief:** b119 — `FAR_GATE` is a bare world edge; give the far bank's morning something to come *through*.
-**Premise held, and worse:** `drawGround` clamps `gx` to `GW-1`, painting the fields east of the world in grass, so `FAR_GATE` projects to **sx 1201 of a 1228-wide canvas** — on frame, on open grass, out of nothing.
-**Did.** A boundary at `FIELD_X = GW`: a hedge (seasonal through `leafOut`/`leafCol`/`snowAt`, so it flushes, turns and goes bare with the orchard), a five-bar gate hung open in a gap on `FAR_GATE`'s own row, a track worn to it, `fieldEdgeName` in `nameAt`. **Drawn, never gridded** — a WALL cell here would be a footprint and get a roof; this is a ground-cache line like the allotment fence, so not TUNNEL-class, and `passages` did not move. `farWay` gains `FIELD_GAP` as its first waypoint; since `spawnFarAgent` reverses the lead to build the way home, the walk OUT came free. +85 lines.
-**Gates:** census PASS (`structure: unchanged`) · motion PASS · shots clean. Perf out of scope — `drawFieldEdge` runs inside `drawGround`, cache-time.
-**Measured** (`probes/far-gate-waypoints.mjs`, 10 seeds × 6 days): HEAD's 170 arrivals start at **39 distinct** points scattered down the bare spine x=137.2; the tree's **173/173** enter *and* leave at `[138, 31]`, all five branches intact. Containment: far-bank strip 3.68% changed, everything else bit-identical, peak 0. Hedge continuous at 40/40 samples.
-**Verdict:** shipped — but built by attempt 2, which never committed. A WIP is UNPROVEN, so this pass re-measured rather than inherited; it held, and came back sharper.
-**Surprise:** the world's east edge is off-canvas in **every camera but Wide** at desktop sizes — including the quarter *named* "Far bank" — and off-frame in all five on a phone. The bare arrival, and its fix, live in one of five cameras.
-
 ## Iteration 120 — the quarter cameras learn the world's real extent, and that a subject can stand UP (2026-09-02) [The sill & the observer × Scale/World]
 
 **Brief:** b120 — the five cameras frame GROUND, not the town. It cites `probes/world-edge-framing.mjs`, which was not on disk; I wrote it, and it prints every number below on either build.
@@ -115,3 +105,13 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped
 **Surprise:** the two halves were one line. Widening `pavedAt` bought the desire line *and* the water in one edit — what was missing was never the reader; `paveWear` had no way to accrue on a `PATH` cell at all. Only the DECAY needed saying twice: gated on the tile it would have pinned the lines forever.
 **Law:** a `?pause`d page still runs rAF, so a canvas read is unpinned even after a synchronous draw — one run of the diff gate reported 18.7% of "elsewhere" changed where three repeats since read 0.84%. Carry a SIM FINGERPRINT (clock, wind, cloud, agent positions) through any before/after frame comparison and refuse it unless it says NONE.
+
+## Iteration 127 — the allotments get their own fog, and ghPane's dead term wakes up (2026-09-02) [Cross street & allotments × Connect]
+
+**Brief:** b127 — a SECOND mist source over the allotments so `ghPane`'s `mistAt()` term, 0 every day of every year, reads something. Full entry in LEDGER-archive.md.
+**Did.** Found b127 already built and uncommitted (attempt 2, no ledger entry): verified rather than rebuilt — "an uncommitted WIP is UNPROVEN". `hollowMist` is a second scalar in the `cloudCover()`/`wetF()` family, RADIATIVE where the river's is evaporative — stiller, clearer, cold-only, so a mild wet morning mists the river and not the beds. `MIST_SRC[]` makes a source a span+reach+weight, `mistAt` takes the strongest at that x, and the two never overlap; the announcement stays latched on the RIVER, so a hollow-only morning is one the ticker does not name.
+**Gates:** census PASS, six groups unchanged (no new `R()`) · motion PASS · visual PASS at 1600x950 and 390x844 · fogged frame +3.3%, unfogged byte-identical.
+**Measured** (`probes/hollow-year.mjs`, 3 seeds x a year): fogs **12.7%** of mornings, **0** of the 594 warm ones. `mistAt(88)` p50 **0.82** vs HEAD's dead **0**; pane dE p50 **10**. Change confined to the allotments, **exactly 0** west of them; a river-only morning is **identical to HEAD, 0 of 6,080,000 px**.
+**Verdict:** shipped
+**Surprise:** three of my four "failures" were my own instrument. A `day` index runs 06:00→06:00 and holds TWO dawns, so bucketing on it read the weather off one morning and the veil off the other, inventing a warm foggy day. And containment said 854/12060 diverged until HEAD-vs-HEAD gave **441**: no `__reseed()`, so page-load frames left each run on a different PRNG offset. With it, both went to **0**.
+**Law:** weather at a given `simT` is VIEWPORT-dependent — an instant found at 1280x700 does not reproduce at 1600x950.

@@ -1448,24 +1448,97 @@ function mistTarget(){
   if (!(wetF() > MIST_DAMP || warmth < MIST_COLD)) return 0;           // the night was neither wet nor cold
   return hour >= sunUp - MIST_LEAD_H && hour < Math.min(sunUp + MIST_HOLD_H, MIST_LAST_H) ? 1 : 0;
 }
+/* The HOLLOW (#127) — mist's second source, and the reason `ghPane`'s mistAt() term finally
+ * has something to read. The river is not the town's only water and it is nowhere near its
+ * coldest open ground: the allotments hold the POND, eighteen columns of bare bed, and no
+ * wall or roof to keep a night's heat in. What forms there is not the river's fog at all —
+ * that one is EVAPORATIVE (water warmer than the air, so a wet night will do it at any
+ * temperature), and this one is RADIATIVE: the ground gives its heat to a clear sky, the air
+ * on it drops to its dew point, and the fog sits in the hollow. So the two targets differ in
+ * exactly the way the physics differs, and neither is a copy of the other:
+ *
+ *   river   calm-ish, clear-ish, and the night was wet OR cold
+ *   hollow  STILLER and CLEARER (there is no warm water to help it), and the night was COLD.
+ *           Damp alone will not do it, so a mild wet morning mists the river and not the beds.
+ *
+ * One scalar each, stepped by the same rule, in the cloudCover()/wetF() family. The hollow
+ * opens EARLIER (the ground is coldest at dawn, not after it) and burns off SLOWER (the sun
+ * has to reach into a hollow, and there is no current under this one to carry it away), which
+ * is what makes it thin through the morning rather than switch off. It reaches exactly 0 on
+ * every warm, windy, cloudy or mild-wet morning, and on all of those mistAt() is HEAD's
+ * function term for term. */
+const HOL_RISE_H = 0.7, HOL_BURN_H = 1.35;
+const HOL_CALM = 0.22, HOL_CLEAR = 0.34, HOL_COLD = 0.46;
+const HOL_LEAD_H = 1.6, HOL_HOLD_H = 2.6, HOL_LAST_H = 9.5;
+let hollowMist = 0;
+function hollowTarget(){
+  if (raining || windF() >= HOL_CALM || cloudCover() >= HOL_CLEAR || warmth >= HOL_COLD) return 0;
+  return hour >= sunUp - HOL_LEAD_H && hour < Math.min(sunUp + HOL_HOLD_H, HOL_LAST_H) ? 1 : 0;
+}
+/* the burn is the same everywhere: the sun's height, a wind or a shower. A dark calm hour
+ * barely thins it. Named once so the two sources cannot drift apart. */
+function mistBurn(dt, burnH){
+  return dt * 24 / (burnH * DAY_LEN) * (0.3 + 1.4 * daylight + 1.5 * windF() + (raining ? 1.5 : 0));
+}
+/* ONE announcement for the town's mist, on the RIVER's own latch, at HEAD's instant, with
+ * HEAD's text whenever the river is the only thing out there. This is a stream decision, not
+ * a prose one: announce() takes the ticker, the ambient roll fires only on an IDLE ticker
+ * (`tickerTimer < -8`), and it draws R(). A second announcement — or the same one an hour
+ * earlier, which is what latching on the hollow gave, since the hollow opens first — is not
+ * a second sentence, it is a reshuffle of the whole seeded world. Measured: latched on
+ * either source, 99 of 8580 samples across 6 seeds x a year had the RIVER's scalar differ
+ * from HEAD; latched here, 0. So the fog says its piece through the line that was already
+ * being said, and a hollow-only morning is one the ticker does not name. */
+function mistLine(){
+  return hollowMist >= 0.5
+    ? 'Mist lies on the river and fog in the allotments; the far bank and the glasshouse come and go in it.'
+    : 'Mist lies on the river at first light; the far bank comes and goes in it.';
+}
 function stepMist(dt){
+  const ht = hollowTarget();                                       // the hollow first, so mistLine() reads it live
+  if (ht > hollowMist) hollowMist = Math.min(1, hollowMist + dt * 24 / (HOL_RISE_H * DAY_LEN));
+  else if (ht < hollowMist){ const r = mistBurn(dt, HOL_BURN_H); hollowMist = hollowMist <= r ? 0 : hollowMist - r; }
   const tgt = mistTarget();
   if (tgt > mist){
-    const r = dt * 24 / (MIST_RISE_H * DAY_LEN);
-    mist = Math.min(1, mist + r);
-    if (mist >= 0.5 && !mistSaid){ mistSaid = true; announce('Mist lies on the river at first light; the far bank comes and goes in it.'); }
+    mist = Math.min(1, mist + dt * 24 / (MIST_RISE_H * DAY_LEN));
+    if (mist >= 0.5 && !mistSaid){ mistSaid = true; announce(mistLine()); }
   } else if (tgt < mist){
-    const r = dt * 24 / (MIST_BURN_H * DAY_LEN) * (0.3 + 1.4 * daylight + 1.5 * windF() + (raining ? 1.5 : 0));   // the sun burns it off, a wind or a shower clears it; a dark calm hour barely thins it
+    const r = mistBurn(dt, MIST_BURN_H);
     mist = mist <= r ? 0 : mist - r;
     if (mist === 0) mistSaid = false;
   }
 }
-/* The veil's weight at a world x: full over the water, gone MIST_REACH cells inland on
- * either side — read by the veil's gradient and by the lamp halos that widen in it. */
+/* The veil's weight at a world x: full over a source, gone `reach` cells to either side of
+ * it — read by the veil's own gradient, by the lamp halos that widen in it, and by ghPane.
+ * TWO sources, ONE reading: a source is a span in x, a reach, and a weight, and mistAt is
+ * the strongest of them at that x. They do not overlap (the hollow dies at PLAZA_X0 99, the
+ * river's reach starts at 106), so the wide shot carries two banks with clear air between
+ * them rather than one smear across the east half.
+ *
+ * The hollow's core runs 82..94 — wider than the fence at both ends, because fog does not
+ * stop at a fence, and it must cover GH x84..93 whole, since ghPane reads it at the span's
+ * mid column. HOL_WT holds the beds BELOW the river at full weight: this is a ground fog
+ * lying in a dip, not the river's own bank of it. */
 const MIST_REACH = 8;
+const HOL_X0 = 82, HOL_X1 = 94, HOL_REACH = 5, HOL_WT = 0.82;
+const HOL_Y_HIGH = 3, HOL_Y_LOW = 32, HOL_LIFT = 0.8;   // the dip's profile: HOL_LIFT of the veil
+                                                        // taken back off at the block's north edge,
+                                                        // none of it by row 32 — so the glasshouse
+                                                        // (34..39) and the pond (49.5) are in it whole
+const MIST_SRC = [
+  { x0: RIVER_X0, x1: RIVER_X1, reach: MIST_REACH, wt: () => mist,
+    wn: 6, wy0: 6,  wspan: 56, wr: 1,    wfade: 0,    hk: [151, 153, 157, 159, 161] },
+  { x0: HOL_X0,   x1: HOL_X1,   reach: HOL_REACH,  wt: () => hollowMist * HOL_WT,
+    wn: 5, wy0: 34, wspan: 26, wr: 0.62, wfade: 0.22, hk: [401, 403, 407, 409, 411] },
+];
+function srcAt(s, x){
+  const d = x < s.x0 ? s.x0 - x : x > s.x1 ? x - s.x1 : 0;
+  return s.wt() * clamp(1 - d / s.reach, 0, 1);
+}
 function mistAt(x){
-  const d = x < RIVER_X0 ? RIVER_X0 - x : x > RIVER_X1 ? x - RIVER_X1 : 0;
-  return mist * clamp(1 - d / MIST_REACH, 0, 1);
+  let m = 0;
+  for (const s of MIST_SRC){ const v = srcAt(s, x); if (v > m) m = v; }
+  return m;
 }
 function mistCol(){ return mix(skyCols()[1], '#e6ebee', 0.55); }
 /* ---- reader eight: the river ---------------------------------------------------
@@ -6373,10 +6446,12 @@ function ghRoofZ(y){                            // the section: ridge down the m
   return GH_RIDGE - (GH_RIDGE - GH_EAVE) * clamp(Math.abs(y - GH_RIDGE_Y) / (GH_RIDGE_Y - GH.y0), 0, 1);
 }
 /* A pane has no colour of its own: it is the sky, cooled, plus whatever is ON it. mistAt()
- * is in here because the glass is the kind of surface a river mist would sit on — and it is
- * EXACTLY 0 at this x, every day of every year, because the veil reaches MIST_REACH 8 cells
- * off the river and the span stands 21 clear of it. Left in at zero and said out loud,
- * rather than left out silently: the term is correct, the geometry is what makes it dead. */
+ * was in here for eleven passes reading EXACTLY 0 at this x, every day of every year: the
+ * town's only mist came off the river, reached MIST_REACH 8 cells inland, and the span
+ * stands 21 clear of it. The term was correct and the geometry made it dead. #127 gave the
+ * mist its second source over the allotments, and the span sits in the middle of it — so on
+ * a still cold morning the glass now takes the fog's own colour, and the one surface in the
+ * town you look THROUGH is the one that shows you the weather it is standing in. */
 function ghPane(x){
   let c = mix('#7f9ea6', '#dce9ec', 0.22 + 0.60 * daylight);
   const w = wetF(); if (w > 0) c = mix(c, '#93aab8', 0.40 * w);      // rain beads and greys it
@@ -8843,24 +8918,31 @@ function drawFountain(it, t){
  * cold-blue streaks; August is a few short slow green ones. Every one of them is
  * exactly the constant it replaced at riverRun() 1, and none of it consumes an R()
  * draw — this is hash() and the clock, so the seeded world is untouched by it. */
-/* The mist's veil (#88): LIVE, never in the ground cache (it changes every frame), drawn
- * after the items and the streaks so the towpath walkers, the swans and the willow are
- * IN it, and before applyLight so the night multiply stays the last thing to touch a
- * colour. Two passes into one low-res offscreen: a horizontal gradient carries the weight
- * out from the water (mistAt's shape, built at the polygon's mid row — the pinch moves
- * the banks under 2 cells over the run), then a `destination-out` fade takes the far end
- * off so the church tower and the clock tower stand out of it at the top of the frame.
- * It stops at the lane: the near lane, and the water under the bridge, stay sharp. Reads
- * daylight, so a pre-dawn veil is faint and the dawn brings it up. */
+/* The mist's veil (#88, two-source since #127): LIVE, never in the ground cache (it changes
+ * every frame), drawn after the items and the streaks so the towpath walkers, the swans, the
+ * willow and — since the allotments got their own fog — the glasshouse, the plot markers and
+ * anyone digging are IN it, and before applyLight so the night multiply stays the last thing
+ * to touch a colour. Two passes into one low-res offscreen: a horizontal gradient carries the
+ * weight out from each live SOURCE (mistAt's shape, built at the polygon's mid row — the
+ * pinch moves the banks under 2 cells over the run), then a `destination-out` fade takes the
+ * far end off so the church tower and the clock tower stand out of it at the top of the
+ * frame. It stops at the lane: the near lane, and the water under the bridge, stay sharp.
+ * Reads daylight, so a pre-dawn veil is faint and the dawn brings it up. */
 const MIST_A = 0.58, MIST_RES = 0.25;
 const mcv = document.createElement('canvas'), mtx = mcv.getContext('2d');
 function drawMist(t){
-  const mf = mistF();
-  if (mf <= 0) return;
   const lit = 0.35 + 0.65 * clamp(daylight / 0.3, 0, 1);
   const c = cparse(mistCol()), rgb = c[0] + ',' + c[1] + ',' + c[2];
   const breathe = RM ? 0 : Math.sin(t * 0.21) * 0.8;                     // the bank breathes a cell in and out
-  const x0 = RIVER_X0 - MIST_REACH - breathe, x1 = RIVER_X1 + MIST_REACH + breathe;
+  // the offscreen spans the LIVE sources only, so a river-only morning is HEAD's canvas to
+  // the pixel and a hollow-only one costs the allotments' width, not the whole east half
+  let x0 = Infinity, x1 = -Infinity;
+  for (const s of MIST_SRC){
+    if (s.wt() <= 0) continue;
+    x0 = Math.min(x0, s.x0 - s.reach); x1 = Math.max(x1, s.x1 + s.reach);
+  }
+  if (x1 < x0) return;
+  x0 -= breathe; x1 += breathe;
   const yTop = 0, yLane = LN_WALK_N;
   const L = project(x0, yLane, 0)[0], Rr = project(x1, yTop, 0)[0], T = project(0, yTop, 0)[1], B = project(0, yLane, 0)[1];
   const w = Math.ceil((Rr - L) * MIST_RES * DPR) + 2, h = Math.ceil((B - T) * MIST_RES * DPR) + 2;
@@ -8868,29 +8950,71 @@ function drawMist(t){
   mtx.setTransform(MIST_RES * DPR, 0, 0, MIST_RES * DPR, -L * MIST_RES * DPR + 1, -T * MIST_RES * DPR + 1);
   mtx.globalCompositeOperation = 'source-over';
   mtx.clearRect(L - 4, T - 4, Rr - L + 8, B - T + 8);
+  // one gradient, one stop pair per live source: the ramp in, the core, the ramp out. The
+  // breathe rides each source's REACH rather than the polygon's edge, so with the river
+  // alone these are HEAD's four stops at HEAD's four offsets exactly.
   const fx = (ya, yb, k) => {
-    const ym = (ya + yb) / 2, a = MIST_A * mf * lit * k;
+    const ym = (ya + yb) / 2;
     const g = mtx.createLinearGradient(project(x0, ym, 0)[0], 0, project(x1, ym, 0)[0], 0);
-    const f0 = (RIVER_X0 - x0) / (x1 - x0), f1 = (RIVER_X1 - x0) / (x1 - x0);
-    g.addColorStop(0, 'rgba(' + rgb + ',0)'); g.addColorStop(f0, 'rgba(' + rgb + ',' + a.toFixed(3) + ')');
-    g.addColorStop(f1, 'rgba(' + rgb + ',' + a.toFixed(3) + ')'); g.addColorStop(1, 'rgba(' + rgb + ',0)');
+    const at = (wx, w) => g.addColorStop(clamp((wx - x0) / (x1 - x0), 0, 1),
+      'rgba(' + rgb + ',' + (MIST_A * w * lit * k).toFixed(3) + ')');
+    at(x0, 0);
+    for (const s of MIST_SRC){
+      const w = s.wt(); if (w <= 0) continue;
+      at(s.x0 - s.reach - breathe, 0); at(s.x0, w); at(s.x1, w); at(s.x1 + s.reach + breathe, 0);
+    }
+    at(x1, 0);
     mtx.fillStyle = g;
     poly(mtx, [project(x0, ya, 0), project(x1, ya, 0), project(x1, yb, 0), project(x0, yb, 0)]); mtx.fill();
   };
   fx(yTop, yLane, 1);
   // wisps: a few soft brighter banks sliding slowly downstream, so the veil reads as a
   // thing lying on the water and not a tint. hash() and the clock only; still under RM
-  { const a = MIST_A * mf * lit * 0.55, drift = RM ? 0 : t * 0.16;
-    for (let k = 0; k < 6; k++){
-      const wy = 6 + ((hash(k, 151) * 56 + drift * (0.6 + hash(k, 153) * 0.8)) % 56);
-      const wx = RIVER_X0 - 2 + hash(k, 157) * (RIVER_X1 - RIVER_X0 + 6);
-      const [sx, sy] = project(wx, wy, 0), rx = cellW * (5 + hash(k, 159) * 5), ry = cellH * (1.4 + hash(k, 161) * 1.2);
-      const g = mtx.createRadialGradient(sx, sy, 0, sx, sy, rx);
-      g.addColorStop(0, 'rgba(' + rgb + ',' + a.toFixed(3) + ')'); g.addColorStop(1, 'rgba(' + rgb + ',0)');
-      mtx.fillStyle = g;
-      mtx.save(); mtx.translate(sx, sy); mtx.scale(1, ry / rx); mtx.translate(-sx, -sy);
-      mtx.beginPath(); mtx.arc(sx, sy, rx, 0, 7); mtx.fill(); mtx.restore();
+  { const drift = RM ? 0 : t * 0.16;
+    for (const s of MIST_SRC){
+      const w = s.wt(); if (w <= 0) continue;
+      const a = MIST_A * w * lit * 0.55, H = s.hk;
+      for (let k = 0; k < s.wn; k++){
+        const m = (hash(k, H[0]) * s.wspan + drift * (0.6 + hash(k, H[1]) * 0.8)) % s.wspan;
+        const wy = s.wy0 + m;
+        // A wisp drifting off the end of its band reappears at the other end, which is a
+        // TELEPORT of a visible blob, and one no gate here can see: wisps are hash() and the
+        // clock, so they are not entities and the motion gate never samples them. The river's
+        // band is 56 rows deep, the hollow's only 26, so the hollow wraps twice as often. So
+        // each wisp fades out over the last `wfade` of its run and in over the first; wfade 0
+        // is no envelope at all, which is what the river keeps, term for term.
+        // MEASURED (#127): this is insurance, not a fix for something seen. A fog episode
+        // lasts ~10 s of sim and drift is 0.16 rows/s, so a wisp crosses ~1.6 of its 26 rows
+        // while it is visible and most episodes contain no wrap at all. Stepping a whole
+        // episode with `wfade: 0` reproduced the envelope build frame for frame — no POP, max
+        // 3.3x median. Keep it for the episodes that do straddle the seam; do not cite it as
+        // a defect that was caught.
+        const env = s.wfade ? clamp(Math.min(m, s.wspan - m) / (s.wfade * s.wspan), 0, 1) : 1;
+        if (env <= 0) continue;
+        const wx = s.x0 - 2 + hash(k, H[2]) * (s.x1 - s.x0 + 6);
+        const [sx, sy] = project(wx, wy, 0);
+        const rx = cellW * (5 + hash(k, H[3]) * 5) * s.wr, ry = cellH * (1.4 + hash(k, H[4]) * 1.2) * s.wr;
+        const g = mtx.createRadialGradient(sx, sy, 0, sx, sy, rx);
+        g.addColorStop(0, 'rgba(' + rgb + ',' + (a * env).toFixed(3) + ')'); g.addColorStop(1, 'rgba(' + rgb + ',0)');
+        mtx.fillStyle = g;
+        mtx.save(); mtx.translate(sx, sy); mtx.scale(1, ry / rx); mtx.translate(-sx, -sy);
+        mtx.beginPath(); mtx.arc(sx, sy, rx, 0, 7); mtx.fill(); mtx.restore();
+      }
     } }
+  // The hollow is a DIP, and a flat wash over the whole block reads as haze, not as fog: it
+  // is thin on the high ground at the north end of the allotments and full by the POND at
+  // row 49.5. A destination-out clipped to the hollow's own x span, so the river's veil —
+  // which lies on water all the way up the frame — is not touched by it. Inert at 0.
+  if (MIST_SRC[1].wt() > 0){
+    const s = MIST_SRC[1], xa = s.x0 - s.reach - breathe, xb = s.x1 + s.reach + breathe;
+    const gd = mtx.createLinearGradient(0, project(0, HOL_Y_HIGH, 0)[1], 0, project(0, HOL_Y_LOW, 0)[1]);
+    gd.addColorStop(0, 'rgba(0,0,0,' + HOL_LIFT + ')'); gd.addColorStop(1, 'rgba(0,0,0,0)');
+    mtx.globalCompositeOperation = 'destination-out';
+    mtx.fillStyle = gd;
+    poly(mtx, [project(xa, yTop, 0), project(xb, yTop, 0), project(xb, HOL_Y_LOW, 0), project(xa, HOL_Y_LOW, 0)]);
+    mtx.fill();
+    mtx.globalCompositeOperation = 'source-over';
+  }
   // the far end lifts clear: nothing above row 1.5, full weight by row 13 (the church
   // tower's foot is row 8, its top stands at row -3.5 in screen depth)
   const gv = mtx.createLinearGradient(0, project(0, 1.5, 0)[1], 0, project(0, 13, 0)[1]);

@@ -2,7 +2,7 @@
   "updated": "2026-09-02",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 126,
+  "lastIteration": 127,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -249,7 +249,8 @@
       ],
       "connect": [
         "pre7",
-        72
+        72,
+        127
       ],
       "new-ca": [
         7
@@ -491,10 +492,11 @@
       "season(): the year over SEASON_LEN 26 days, phase 0 midwinter, warmth a cosine; greyF (= 1 - 2*warmth) drives the weather year",
       "cloudCover, one slow rate-capped scalar; shadowF; drawClouds 11 hashed banks, SKY STRIP ONLY. CLOUD SHADOW: drawCloudShade, CSH_N ellipses, one live multiply before applyLight; cloudDrift the ONE travel scalar",
       "SNOW/WET: snowF, snowCover, snowAt on cached ground/roofs/awnings; wetF/stepWet is one GLOBAL scalar — only the lane and cross street read it per cell",
-      "WIND: windF, windyDay/frontWind, windSign latched per spell, windDir the blend every x-lean reads. MIST: mistAt(x), MIST_REACH 8 cells off the river ONLY",
+      "WIND: windF, windyDay/frontWind, windSign latched per spell, windDir the blend every x-lean reads. MIST: mistAt(x) over MIST_SRC[] -- river AND hollow since #127",
       "DAWN IS ONE EVENT: dawnF() on sunUp, dawnEdge() the ONE edge read by nightAt/w.last/burn-through/the HOMES cap. The EVENING half is untouched",
       "RAIN AND SNOW FALL and are DRAWN: raining/rainFall/nightDamp, drops lean windDir; weatherComing() the pre-rain reader",
-      "HEARTHS on the sun and the cold: hearthF() the ONE definition drawSmoke's two consumers read — morning term on dawnEdge(), height HEARTH_MIN + HEARTH_SWING*(1-warmth) + HEARTH_SNOW*snowCover"
+      "HEARTHS on the sun and the cold: hearthF() the ONE definition drawSmoke's two consumers read — morning term on dawnEdge(), height HEARTH_MIN + HEARTH_SWING*(1-warmth) + HEARTH_SNOW*snowCover",
+      "MIST has TWO sources (#127): MIST_SRC[] = {span, reach, weight}, mistAt(x) is the strongest at x. River x114+ reach 8; HOLLOW over the allotments x82..94 reach 5, wt hollowMist*0.82, dipped by HOL_LIFT so beds/pond/GH sit in it. hollowMist is RADIATIVE (still+clear+COLD, no damp branch), fogs 12.7% of mornings, 0 warm ones. ghPane's mistAt term is LIVE: p50 0.82 at x88. A river-only morning is byte-identical to pre-#127."
     ],
     "life": [
       "ring transit via spawnAgent: walker, crosser, dogwalker. drawPerson 12 px. Wildlife: butterflies, fireflies, birds[], ducks, swans, the night cat catA, falling leaves. The clock strikes nine and eighteen; greetPass/chatty; sitters read the sky (seatRefused/seatWet)",
@@ -576,6 +578,18 @@
       "id": "c199",
       "note": "drawPuddles culls nothing for the camera: at a quarter camera most of the 792 pools are off-frame. Cost of not culling is measured (probes/pool-cost.mjs): drawPuddles 0.221 -> 0.308 ms, wet frame +5.5%",
       "raisedBy": 125,
+      "seenBy": 0
+    },
+    {
+      "id": "c200",
+      "note": "drawMist uses ONE shared low-res offscreen for all live sources, so on a both-live morning widening its extent resamples the river's veil too: maxD 15 on ~386 px. Harmless now; it bounds how many sources can share that canvas.",
+      "raisedBy": 126,
+      "seenBy": 0
+    },
+    {
+      "id": "c201",
+      "note": "The hollow's wisp envelope (wfade 0.22) is untested insurance: a fog episode lasts ~10 s of sim and a wisp crosses only ~1.6 of its 26 rows, so wfade:0 reproduced it frame for frame. If a source ever gets a longer hold, the wrap becomes reachable.",
+      "raisedBy": 126,
       "seenBy": 0
     }
   ],
