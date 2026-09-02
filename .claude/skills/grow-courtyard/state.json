@@ -2,7 +2,7 @@
   "updated": "2026-09-02",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 118,
+  "lastIteration": 119,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -287,7 +287,8 @@
         "pre22",
         "pre30",
         32,
-        78
+        78,
+        119
       ],
       "polish": [
         "pre31",
@@ -472,7 +473,8 @@
       "FOOTBRIDGE: DECK rows 30..32 at ALLEY_Y, drawDeckSpan/Front, boatUnderDeck, agentZ/deckZAt, DECK_LEAD_A/Q. WATERMILL: MILL_WHEEL/millSpin, MILL_WIN",
       "EYOT at (124.3,46): onEyot/offEyot/eyotShore, drawEyot cached + drawWillow live, nestF ducks in spring",
       "the evening ends: EVE_GONE/EVE_HURRY/EVE_BELL, eveOutH -> a.eveOut, goHome(a,maxH), three far deck posts",
-      "far bank's own morning + the PUNT it feeds: spawnFarAgent/farOpen/farRate, FAR_CAP 3, FAR_GATE [GW+2,31], FAR_SPINE 137.2, five branches incl. a.jetty; farJettyFits prices on TIME alone; off laneCount. punt{leg 0..4}, PUNT_MOOR/SHORE/STAND/LAND, puntFits. SOLO only, by construction (c160)"
+      "far bank's own morning + the PUNT it feeds: spawnFarAgent/farOpen/farRate, FAR_CAP 3, FAR_GATE [GW+2,31], FAR_SPINE 137.2, five branches incl. a.jetty; farJettyFits prices on TIME alone; off laneCount. punt{leg 0..4}, PUNT_MOOR/SHORE/STAND/LAND, puntFits. SOLO only, by construction (c160)",
+      "field boundary on the world's east face: hedge (leafOut/leafCol/snowAt-seasonal), five-bar gate hung open in a gap on FAR_GATE's row, worn track to it — drawn in the ground cache, NOT gridded; farWay routes every far arrival in and out through FIELD_GAP [138,31]; named by fieldEdgeName"
     ],
     "sky": [
       "day/night (55 s day), sun and moon arc, HAZE hills, chimney smoke, a balloon; windowLit the ONE pane predicate + LIT[]; LIT_PANES relit AFTER applyLight",
@@ -600,6 +602,12 @@
       "id": "c181",
       "note": "The ground bird band's rate 0.06*(0.5+m) is now what bounds it: presence 0.41 spread over BOTH lawn and lane (~0.2 each) against the plaza's 1.24 in one place. If the lawn should read busier that is a RATE question, not a cap one. Also: the scare rule (any walker within 4.5) ends a ground bird's stay, and the lawn is the busiest ground in town.",
       "raisedBy": 117,
+      "seenBy": 0
+    },
+    {
+      "id": "c182",
+      "note": "The world's east edge — where #119's gate stands — is off-canvas in every camera but Wide at desktop sizes, including the quarter NAMED 'Far bank', and off-frame in all five on a phone (probes/world-edge-framing.mjs). The far bank's framing, not its content, is the limit.",
+      "raisedBy": 119,
       "seenBy": 0
     }
   ],
