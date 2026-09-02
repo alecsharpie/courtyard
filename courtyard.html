@@ -277,8 +277,13 @@ const WALL = 0, PATH = 1, GRASS = 2, BED = 3, CBED = 4, TRUNK = 5, SIDE = 6, ROA
                                // to the ground cache, paving to a walker, drawn live in two halves
       DIAL = 13,               // the sundial's plinth: one cell of the inner lawn nobody stands on —
                                // lawn to the ground cache, not ground to a companion, drawn live
-      EYOT = 14;               // the island in the river (#87): turf with a shingle rim, land to
+      EYOT = 14,               // the island in the river (#87): turf with a shingle rim, land to
                                // the census and the swans, nobody's waypoint; a willow stands on it
+      GLASS = 15;              // the glasshouse floor (#116): a ROOFED floor, so it takes the shape
+                               // TUNNEL already has — its own fill in the ground cache and an early
+                               // `continue`, so no snow, no litter and no moss ever reach it. Never a
+                               // volume: buildVolumes() reads WALL/TUNNEL and must not roof this one,
+                               // because the whole point of the tile is that you see through it
 /* the eyot: ONE ellipse, evaluated once in buildGrid() — everything else (the swans' third
  * bank, the ducks' nest, the streaks that part round it) reads the tile back off the grid.
  * Sited in the river's east half, clear of the boat's channel (x 116.5–121.5, hull ±0.5) by
@@ -324,6 +329,28 @@ const XS_WALK_W = 67, XS_WALK_E = 74.9;                 // walking lines
 /* the allotment gardens east of the cross street */
 const ALT_X0 = 78, ALT_GATE = 86.5;
 function inAllotment(x, y){ return x >= ALT_X0 && x < 96 && y >= 3 && y < 61; }
+/* ---- the glasshouse (#116) ------------------------------------------------------
+ * Fifteen tile kinds and eleven species since commit 1: every quarter built since #31 is
+ * brick, paving, grass, water and bed, and the one axis nobody had moved was what the map
+ * is made OF. GLASS is the sixteenth kind and the first surface in the town you can see
+ * THROUGH — a low span standing OVER two of the allotment's own plots.
+ *
+ * Over, not beside. The beds inside stay BED on the same 5x7 lattice plotOrigin(),
+ * ripePlots(), fallowPlots() and pickPlot() already walk, so the harvest, the fallow, the
+ * winter dig, the cart and the store find the span with no line changed anywhere: the
+ * block's own people work it because to every one of those readers it is simply two more
+ * plots. What the roof BUYS is the ceiling — bedCap() steps down on the open plots as
+ * bloomCap() falls, and under the span it does not, so the one tender crop stays at stage 3
+ * through a winter the plots around it spend stalled at 1.
+ *
+ * Sited clear of everything that already moves through here: the POND (y 46.4 south, and
+ * the ducks' furthest waddle is y 45.1), the bonfire heap at (84, 19.5), and ALT_GATE's
+ * route, which runs x 86.5 from y 62 up to y 58 and never enters these rows. */
+const GH = {x0:84, x1:93, y0:34, y1:39};        // inclusive cell bounds: 10 x 6, of which the 12 cells
+                                                // of plots (85,36) and (90,36) stay BED
+const GH_RIDGE_Y = 37;                          // (y0 + y1 + 1) / 2 — the ridge runs the long way, over both bed rows
+const GH_EAVE = 0.95, GH_RIDGE = 1.75;          // LOW. The tallest SPECIES is h 1.15, so nothing inside touches the glass
+function inGlass(x, y){ const gx = x | 0, gy = y | 0; return gx >= GH.x0 && gx <= GH.x1 && gy >= GH.y0 && gy <= GH.y1; }
 /* the river quarter: plaza, quay, river and the lane bridge */
 const DIV_X0 = 96, PLAZA_X0 = 99, PLAZA_X1 = 112, QUAY_X0 = 112, RIVER_X0 = 114;
 const FOUNTAIN = {x:105.5, y:30};
@@ -582,10 +609,15 @@ const SPECIES = [
   {name:'cabbages',  col:'#7f9a5d', col2:'#a3b876', h:0.35, style:'bush',  minDay:0, veg:1, hardy:1},
   {name:'beans',     col:'#4f7a3d', col2:'#d9c04a', h:1.1,  style:'spike', minDay:1, veg:1},
   {name:'pumpkins',  col:'#6a8a44', col2:'#d9822b', h:0.4,  style:'bush',  minDay:3, veg:1},
+  /* under glass only (#116). The one crop the open block cannot keep, which is what a roof
+     is FOR: speciesFor() will not offer it outside the span, and bedCap() holds it at the
+     full ceiling inside while every plot around it stalls at bloomCap(). Deliberately NOT
+     `hardy` — hardy means it stands the cold in the open, and this one does not. */
+  {name:'tomatoes',  col:'#4d7a3e', col2:'#cc4a33', h:1.0,  style:'spike', minDay:0, veg:1, glass:1},
 ];
 function speciesFor(x, y){
-  const veg = inAllotment(x, y);
-  return SPECIES.filter(s => s.minDay <= day && !s.veg === !veg);
+  const veg = inAllotment(x, y), gl = inGlass(x, y);
+  return SPECIES.filter(s => s.minDay <= day && !s.veg === !veg && (!s.glass || gl));
 }
 
 function nearEntrance(x, y){
@@ -682,6 +714,9 @@ function buildGrid(){
           const px = (x - 80) % 5, py2 = (y - 8) % 7;
           if (x >= 80 && x <= 93 && y >= 8 && y <= 56 && px < 3 && py2 < 2 &&
               !(x >= 84 && y >= 42)) grid[i] = BED;
+          // the span goes over two of those plots: the beds under it are left BED, so every
+          // reader that walks the lattice keeps finding them; only the aisle turns to GLASS
+          if (inGlass(x, y) && grid[i] !== BED) grid[i] = GLASS;
         }
       }
     } else if (y === 64){
@@ -1423,7 +1458,7 @@ let snowCover = 0, snowPainted = 0, snowAnnounced = false;
 function snowF(){ return clamp((greyF() - SNOW_G0) / SNOW_G1, 0, 1); }
 /* how much of the cover a cell of this kind takes — the trodden kinds take less, so the
  * paths and the road read dark through the white without touching the wear map */
-function snowTake(t){ return t === GRASS || t === BED || t === CBED || t === EYOT ? 1 : t === SIDE ? 0.7 : t === PATH || t === SLOT ? 0.5 : t === ROAD ? 0.4 : 0; }
+function snowTake(t){ return t === GRASS || t === BED || t === CBED || t === EYOT ? 1 : t === SIDE ? 0.7 : t === GLASS ? 0.55 : t === PATH || t === SLOT ? 0.5 : t === ROAD ? 0.4 : 0; }
 /* the cover also knows the wear VALUE, not just the kind: a line worn through the lawn
  * takes SNOW_WEAR less of it (full effect by wear SNOW_WEAR_AT, where a desire path is
  * unmistakably a path), so the paths people wear stay dark through a winter. trod[] is
@@ -1469,6 +1504,10 @@ function stepLitter(){                                      // called once per c
 }
 function snowAt(x, y, t){
   if (snowCover <= 0) return 0;
+  // #116: under the glasshouse is INDOORS. GLASS's own take is its ROOF's — the span asks
+  // with t = GLASS for the pitch it draws; the beds inside ask with t = BED and get nothing.
+  // One rule, one place, so the ground pass and its detailing guard cannot disagree.
+  if (t !== GLASS && inGlass(x, y)) return 0;
   const j = y * GW + x, cut = Math.max(Math.min(wear[j] / SNOW_WEAR_AT, 1), trod[j] || 0);
   return clamp(snowCover * snowTake(t) * (1 - SNOW_WEAR * cut) * (0.55 + 0.45 * hash(x, y + 53)), 0, 1);
 }
@@ -2043,7 +2082,9 @@ function bedCap(x, y){
   const cap = bloomCap();
   if (cap === 3) return 3;
   if (inAllotment(x, y)){
-    if (plotStands(x, y)) return 3;
+    // #116: a roof over a plot IS the full ceiling — that is the whole claim of the span,
+    // and it is grain-matched the same way the rest of this function is (a PLOT, not a cell)
+    if (inGlass(x, y) || plotStands(x, y)) return 3;
     const [ox, oy] = plotOrigin(x, y);      // a plot steps whole, but not with the next plot
     return capStep(cap, ox, oy + 53);
   }
@@ -2087,7 +2128,8 @@ function caTick(){
   const m = maturity(), boost = raining ? 3 : 1;
   const vig = growF(), die = dieF();          // the ceiling is per-cell now: bedCap(x, y)
   const availF = SPECIES.filter(s => s.minDay <= day && !s.veg);
-  const availV = SPECIES.filter(s => s.minDay <= day && s.veg);
+  const availV = SPECIES.filter(s => s.minDay <= day && s.veg && !s.glass);
+  const availG = SPECIES.filter(s => s.minDay <= day && s.glass);   // the span's own rows: what only a roof can keep
   for (let y = 3; y < LN_WALK_S; y++) for (let x = 0; x < GW; x++){
     const i = y * GW + x, t = grid[i];
     if (t === BED || t === CBED){
@@ -2099,7 +2141,7 @@ function caTick(){
           // other five follow it fast and under the same crop, so a row comes up as a row
           const crop = plotCrop(x, y);
           if (R() < (crop ? 0.30 : 0.055) * (0.25 + m) * boost * vig){
-            bSp[i] = crop || (SPECIES.indexOf(pick(availV)) + 1);
+            bSp[i] = crop || (SPECIES.indexOf(pick(inGlass(x, y) && availG.length ? availG : availV)) + 1);
             bSt[i] = 1; bAge[i] = 0; turned[i] = 0;
           }
         } else {
@@ -5888,6 +5930,144 @@ function drawEyot(g, m){
     }
   }
 }
+/* ============ the glasshouse, drawn (#116) ============
+ * Two halves, split at the RIDGE, for exactly the reason the footbridge and the cart are
+ * two items: what grows inside the span is drawn LIVE out of the item sort, so anything
+ * that has to stand in FRONT of the crop cannot live in the ground cache.
+ *   north of the ridge -> drawGlassBack, into the ground cache. It is behind everything.
+ *   south of the ridge -> drawGlassFront, one item at y GH.y1 + 1.7. It is the pane you
+ *     actually look through, and it is also where all the weather is (snow on a shallow
+ *     pitch, rain beading, the lamp) — so the half that CHANGES is the half drawn live,
+ *     and the fixed panes behind it are cached, which is the rule the ground cache wants.
+ * The ridge cap belongs to the live half and covers the join, so the quarter-hour the
+ * cache is stale by can never show as a seam along the top of the roof.
+ *
+ * project() has no x-shear, so the two ends of the span are seen exactly edge-on: there
+ * are no east and west FACES here, only the end rafters, drawn as the section's profile. */
+const GH_FRAME = '#46534a', GH_BRICK = '#6d5442';
+const GH_LAMP = {x:GH.x0 + 2.6, hw:1.5, sa:GH.x0 + 1, sb:GH.y1};   // one pane's worth of lamp, addressed into windowLit's hash
+function ghRoofZ(y){                            // the section: ridge down the middle, eave at both edges
+  return GH_RIDGE - (GH_RIDGE - GH_EAVE) * clamp(Math.abs(y - GH_RIDGE_Y) / (GH_RIDGE_Y - GH.y0), 0, 1);
+}
+/* A pane has no colour of its own: it is the sky, cooled, plus whatever is ON it. mistAt()
+ * is in here because the glass is the kind of surface a river mist would sit on — and it is
+ * EXACTLY 0 at this x, every day of every year, because the veil reaches MIST_REACH 8 cells
+ * off the river and the span stands 21 clear of it. Left in at zero and said out loud,
+ * rather than left out silently: the term is correct, the geometry is what makes it dead. */
+function ghPane(x){
+  let c = mix('#7f9ea6', '#dce9ec', 0.22 + 0.60 * daylight);
+  const w = wetF(); if (w > 0) c = mix(c, '#93aab8', 0.40 * w);      // rain beads and greys it
+  const mf = mistAt(x); if (mf > 0) c = mix(c, mistCol(), 0.5 * mf);
+  return c;
+}
+/* one slope, eave row -> ridge row: the glazing, then the bars that hold it, then the snow
+ * the pitch is still holding. Per COLUMN, so snowAt's hash grain shows as an uneven cover
+ * rather than a painted stripe along the eave. */
+function ghSlope(g, yE, alpha){
+  const xa = GH.x0, xb = GH.x1 + 1;
+  const a = project(xa, yE, GH_EAVE), b = project(xb, yE, GH_EAVE);
+  const c = project(xb, GH_RIDGE_Y, GH_RIDGE), d = project(xa, GH_RIDGE_Y, GH_RIDGE);
+  g.globalAlpha = alpha;
+  g.fillStyle = ghPane((GH.x0 + GH.x1) / 2);
+  poly(g, [a, b, c, d]); g.fill();
+  g.globalAlpha = 1;
+  // glazing bars: one up the slope per cell, and a purlin across the middle of it
+  g.strokeStyle = 'rgba(58,70,62,.55)'; g.lineWidth = 1;
+  g.beginPath();
+  for (let x = GH.x0; x <= GH.x1 + 1; x++){
+    const p1 = project(x, yE, GH_EAVE), p2 = project(x, GH_RIDGE_Y, GH_RIDGE);
+    g.moveTo(p1[0], p1[1]); g.lineTo(p2[0], p2[1]);
+  }
+  const my = (yE + GH_RIDGE_Y) / 2, mz = ghRoofZ(my);
+  const m1 = project(xa, my, mz), m2 = project(xb, my, mz);
+  g.moveTo(m1[0], m1[1]); g.lineTo(m2[0], m2[1]);
+  g.stroke();
+  if (snowCover > 0){                            // what a shallow glazed pitch is still holding
+    for (let x = GH.x0; x <= GH.x1; x++){
+      const sn = snowAt(x, yE | 0, GLASS);
+      if (sn <= 0.02) continue;
+      // it lies against the eave and creeps up the pitch as the cover deepens; the row is
+      // interpolated toward the ridge, so this works for either slope without a sign
+      const yb = yE + (GH_RIDGE_Y - yE) * (0.20 + 0.45 * sn);
+      const s1 = project(x, yE, GH_EAVE), s2 = project(x + 1, yE, GH_EAVE);
+      const s3 = project(x + 1, yb, ghRoofZ(yb)), s4 = project(x, yb, ghRoofZ(yb));
+      g.fillStyle = SNOW_COL; g.globalAlpha = clamp(0.55 + 0.45 * sn, 0, 1);
+      poly(g, [s1, s2, s3, s4]); g.fill();
+      g.globalAlpha = 1;
+    }
+  }
+}
+/* the half behind the crop: the back dwarf wall, the far slope, and the staging along it */
+function drawGlassBack(g){
+  const xa = GH.x0, xb = GH.x1 + 1, lit = 0.30 + 0.70 * daylight;
+  // the brick dwarf wall the frames stand on — seen from INSIDE, through both slopes
+  g.fillStyle = mix('#33281f', GH_BRICK, lit);
+  poly(g, [project(xa, GH.y0, 0), project(xb, GH.y0, 0),
+           project(xb, GH.y0, GH_EAVE), project(xa, GH.y0, GH_EAVE)]); g.fill();
+  // staging: a plank shelf on legs down the back wall, with pots on it
+  const sy = GH.y0 + 0.75, sz = 0.52;
+  g.fillStyle = mix('#3a3026', '#8a7458', lit);
+  poly(g, [project(xa + 0.4, sy, sz), project(xb - 0.4, sy, sz),
+           project(xb - 0.4, sy, sz - 0.09), project(xa + 0.4, sy, sz - 0.09)]); g.fill();
+  for (let k = 0; k < 9; k++){
+    const px = xa + 0.8 + k * (xb - xa - 1.6) / 8;
+    const [tx, ty] = project(px, sy - 0.08, sz + 0.16);
+    g.fillStyle = mix('#5a3524', '#a06848', lit);
+    g.beginPath(); g.ellipse(tx, ty, cellW * 0.16, cellH * 0.30, 0, 0, 7); g.fill();
+  }
+  ghSlope(g, GH.y0, 0.50);                       // the far slope, read through the near one
+}
+/* the half in front of the crop, one item at GH.y1 + 1.7 */
+function drawGlassFront(){
+  const g = ctx, xa = GH.x0, xb = GH.x1 + 1, lit = 0.30 + 0.70 * daylight;
+  ghSlope(g, GH.y1 + 1, 0.34);                   // the pane you look through: the lightest wash of the two
+  // the ridge cap, which also hides the join between the cached half and this one
+  g.strokeStyle = mix('#2c3630', '#7e8c7f', lit); g.lineWidth = Math.max(1.4, cellH * 0.16);
+  { const r1 = project(xa, GH_RIDGE_Y, GH_RIDGE), r2 = project(xb, GH_RIDGE_Y, GH_RIDGE);
+    g.beginPath(); g.moveTo(r1[0], r1[1]); g.lineTo(r2[0], r2[1]); g.stroke(); }
+  // the near eave beam, and the end rafters (the span is seen edge-on, so these are profiles)
+  g.strokeStyle = mix('#2c3630', GH_FRAME, lit); g.lineWidth = Math.max(1.1, cellH * 0.11);
+  { const e1 = project(xa, GH.y1 + 1, GH_EAVE), e2 = project(xb, GH.y1 + 1, GH_EAVE);
+    g.beginPath(); g.moveTo(e1[0], e1[1]); g.lineTo(e2[0], e2[1]); g.stroke(); }
+  g.lineWidth = Math.max(1, cellH * 0.09);
+  for (const x of [xa, xb]){
+    const p = [project(x, GH.y0, 0), project(x, GH.y0, GH_EAVE), project(x, GH_RIDGE_Y, GH_RIDGE),
+               project(x, GH.y1 + 1, GH_EAVE), project(x, GH.y1 + 1, 0)];
+    g.beginPath(); g.moveTo(p[0][0], p[0][1]);
+    for (let k = 1; k < p.length; k++) g.lineTo(p[k][0], p[k][1]);
+    g.stroke();
+  }
+  // the near dwarf wall, opaque brick, with the door in it. Live rather than cached because
+  // a walker crossing the span on the way to a northern plot passes BEHIND it.
+  const wy = GH.y1 + 1;
+  g.fillStyle = mix('#2a211a', GH_BRICK, lit);
+  poly(g, [project(xa, wy, 0), project(xb, wy, 0),
+           project(xb, wy, GH_EAVE), project(xa, wy, GH_EAVE)]); g.fill();
+  g.strokeStyle = 'rgba(28,22,17,.35)'; g.lineWidth = 0.8;
+  g.beginPath();
+  for (let x = GH.x0 + 1; x <= GH.x1; x++){
+    const c1 = project(x, wy, 0), c2 = project(x, wy, GH_EAVE);
+    g.moveTo(c1[0], c1[1]); g.lineTo(c2[0], c2[1]);
+  }
+  g.stroke();
+  const dx = GH.x1 - 1.4;                        // the door: a dark opening in the near wall
+  g.fillStyle = mix('#181410', '#3b332a', lit);
+  poly(g, [project(dx, wy, 0), project(dx + 1.1, wy, 0),
+           project(dx + 1.1, wy, GH_EAVE), project(dx, wy, GH_EAVE)]); g.fill();
+  // the lamp. windowLit is the town's ONE pane predicate and this is one more address in
+  // it — so the glasshouse keeps somebody's hours, not its own, and goes dark on the 42%
+  // of nights windowHours says nobody is about. The quad joins LIT_PANES so applyLight's
+  // multiply is put back on it in the same screen pass every other lit pane gets.
+  if (windowLit(GH_LAMP.sa, GH_LAMP.sb)){
+    const l0 = GH_LAMP.x - GH_LAMP.hw, l1 = GH_LAMP.x + GH_LAMP.hw;
+    const q = [project(l0, GH.y1 + 1, GH_EAVE), project(l1, GH.y1 + 1, GH_EAVE),
+               project(l1, GH_RIDGE_Y, GH_RIDGE), project(l0, GH_RIDGE_Y, GH_RIDGE)];
+    g.fillStyle = 'rgba(254,209,144,' + (0.72 * nightF).toFixed(3) + ')';
+    poly(g, q); g.fill();
+    LIT_PANES.push(q);
+    LIT.push([(q[0][0] + q[2][0]) / 2, (q[0][1] + q[2][1]) / 2]);
+  }
+}
 function drawGround(){
   const pad = gpadWant;
   gcv.width = (W + 2 * pad) * DPR; gcv.height = H * DPR;
@@ -5907,6 +6087,10 @@ function drawGround(){
     if (t === WALL || t === VOID) continue;
     if (t === TUNNEL){                                   // floor of a roofed passage
       gtx.fillStyle = '#241d16'; quad(gtx, x, y, 0.03); gtx.fill(); continue;
+    }
+    if (t === GLASS){                                    // the span's floor: ash, grit and swept. Takes
+      gtx.fillStyle = mix('#a2977f', '#b3a790', hv);     // the TUNNEL shape — its own fill, then out,
+      quad(gtx, x, y, 0.03); gtx.fill(); continue;       // so no snow, litter, moss or joints reach it
     }
     gtx.fillStyle = groundCol(gx, y, t, hv, m);
     quad(gtx, x, y, 0.03); gtx.fill();
@@ -6064,6 +6248,7 @@ function drawGround(){
     if (!open){ gtx.moveTo(p[0], p[1]); open = true; } else gtx.lineTo(p[0], p[1]);
   }
   gtx.stroke();
+  drawGlassBack(gtx);                            // #116: the half of the span that is behind everything
   drawQuayWalls(gtx);
   drawBlocks(gtx, 0, 61);
   drawBridge(gtx);
@@ -7045,6 +7230,10 @@ function drawScene(t, dt){
   // is drawn by the span itself so the deck lands on top of the rower
   items.push({y:DECK_Y0 - 0.1, f:drawDeckSpan});
   items.push({y:DECK_Y1 + 0.6, f:drawDeckFront});
+  // the glasshouse is two halves for the same reason: the far slope, the back wall and the
+  // staging are in the ground cache; the near slope, the ridge and the near wall sort AFTER
+  // the crop growing under them
+  items.push({y:GH.y1 + 1.7, f:drawGlassFront});
   // the cart is two items round the walkers' row: bed, far wheel and the horse's back before,
   // the near wheel, near board and near legs after (#73's rule)
   if (cart){ items.push({y:Math.min(cart.y, cart.y + cart.hy * CART_LEN) - 0.9, f:drawCartBody});
@@ -9417,7 +9606,8 @@ function plotName(x, y){
     const i = yy * GW + xx;
     if (i >= 0 && i < GW * WH && bSp[i]) st = Math.max(st, bSt[i]);
   }
-  return 'a plot of ' + SPECIES[sp - 1].name + ', ' + stageOf(SPECIES[sp - 1], st, bedCap(x, y));
+  return (inGlass(x, y) ? 'a row of ' : 'a plot of ') + SPECIES[sp - 1].name + ', ' +
+         stageOf(SPECIES[sp - 1], st, bedCap(x, y)) + (inGlass(x, y) ? ', under glass' : '');
 }
 function nameAt(x, y){
   if (x < 0 || y < 0 || x >= GW || y >= WH) return '';
@@ -9428,6 +9618,7 @@ function nameAt(x, y){
   if (g === GRASS) return daisy[j] ? 'the lawn, daisies in it'
                  : wear[j] > 0.45 ? 'the lawn, worn to a path' : 'the lawn';
   if (g === WATER){ const w = waterAt(x); return w.x0 === RIVER_X0 && mistF() > 0.3 ? 'mist on the river' : w.what; }
+  if (g === GLASS) return 'the glasshouse, warm under the panes';
   if (g === EYOT) return 'the eyot';
   if (g === DECK) return 'the footbridge';
   if (g === DIAL) return sundialName();
@@ -10225,7 +10416,7 @@ window.__entities = function(){
   return out;
 };
 window.__census = function(){
-  const tiles = {}, TN = ['WALL','PATH','GRASS','BED','CBED','TRUNK','SIDE','ROAD','VOID','WATER','TUNNEL','SLOT','DECK','DIAL','EYOT'];
+  const tiles = {}, TN = ['WALL','PATH','GRASS','BED','CBED','TRUNK','SIDE','ROAD','VOID','WATER','TUNNEL','SLOT','DECK','DIAL','EYOT','GLASS'];
   for (let i = 0; i < GW * WH; i++){ const n = TN[grid[i]] || ('T' + grid[i]); tiles[n] = (tiles[n] || 0) + 1; }
 
   /* planting CA: how much of the beds is actually growing, and how far along */

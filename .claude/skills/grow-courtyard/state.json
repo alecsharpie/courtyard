@@ -2,7 +2,7 @@
   "updated": "2026-09-02",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 114,
+  "lastIteration": 116,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -233,7 +233,8 @@
         "pre2",
         "pre4",
         82,
-        93
+        93,
+        116
       ],
       "polish": [
         "pre3",
@@ -448,7 +449,8 @@
       "seasonal canopy on all 13 trees: leafOut/Fresh/Deep/Turn/Shed, leafCol, blossomF/fruitF",
       "ONE cart: cartToday/cartDue, spawnLoader, market days to MARKET_STALLS[1]",
       "BONFIRE at (84,19.5): bon.fire/bon.ember, bonfireDay/bonfireWeather, spawnBonfireHolder, BON_PUFFS 18",
-      "the TILE VOCABULARY is frozen: WALL 0, PATH 1, GRASS 2, BED 3, CBED 4, TRUNK 5, SIDE 6, ROAD 7, VOID 8, WATER 9, TUNNEL 10 (+ 4 more) — 15 kinds, unchanged since commit 1; SPECIES is 11 (7 flowers + 4 veg, veg gated by inAllotment via speciesFor)"
+      "the TILE VOCABULARY is frozen: WALL 0, PATH 1, GRASS 2, BED 3, CBED 4, TRUNK 5, SIDE 6, ROAD 7, VOID 8, WATER 9, TUNNEL 10 (+ 4 more) — 15 kinds, unchanged since commit 1; SPECIES is 11 (7 flowers + 4 veg, veg gated by inAllotment via speciesFor)",
+      "THE GLASSHOUSE (#116): GLASS tile 15, the town's 16th kind and the first surface you see THROUGH. GH x84-93 x y34-39, a low span (eave 0.95, ridge 1.75) standing OVER lattice plots (85,36) and (90,36), whose BED cells are untouched — so ripePlots/fallowPlots/pickPlot/sendToPlot/harvestPlot/plotOrigin and the cart reach it unchanged. bedCap 3 inside; SPECIES gains tomatoes (veg, tender, not hardy), sown only under glass via speciesFor+availG. snowAt's one indoors rule; two halves round the live crop (drawGlassBack cached, drawGlassFront the item at GH.y1+1.7); lamp is a windowLit address into LIT_PANES; nameAt + plotName say 'under glass'"
     ],
     "plaza": [
       "FOUNTAIN (105.5,30), paved roundel, four tree pits, PLAZA_BENCHES(2), QUAY_BENCHES(2), quay rail x112.9, pavingAt the ONE paving predicate, crumbSpot",
@@ -559,6 +561,18 @@
     {
       "id": "c176",
       "note": "state.mjs save() writes state.json at indent 2 but the manager leaves it at indent 1, so the first worker write each pass reformats all ~3600 lines and buries the real edit (#115)",
+      "raisedBy": 114,
+      "seenBy": 0
+    },
+    {
+      "id": "c177",
+      "note": "mistAt is exactly 0 over the allotments — MIST_REACH is 8 cells off the river and the glasshouse stands 21 clear — so b116's 'mistAt hazes it' can never fire. The term is in ghPane() at zero rather than dropped silently (#116)",
+      "raisedBy": 114,
+      "seenBy": 0
+    },
+    {
+      "id": "c178",
+      "note": "state.json's inventory has listed a 'shed' on the allotments for many passes; there is none in courtyard.html — buildGrid's allotment branch paints only GRASS/WATER/BED. An inventory noun nothing in the source backs (#116)",
       "raisedBy": 114,
       "seenBy": 0
     }
