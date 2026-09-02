@@ -20,7 +20,7 @@
   "avoid": "Do NOT put new objects on the roof: that band is #110's and #123's and it is full to six thousandths of a cell. Do NOT raise the band's mean luma — the composition depends on the foreground being the dark thing (the comment above SLATES says so), so more detail must not mean a brighter roof. Leave ROOF_FURN placement, the parapet geometry and the dormers alone. `drawNearRoof` is inside the GROUND CACHE, so this is cache-time cost: measure with frame-cost.mjs, not perf.mjs, and if the sub-cell loop is dear, scale slates-per-cell with cellW rather than dropping the feature at small sizes.",
   "budgetMin": 75,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 125,
   "issued": "2026-09-02T07:07:17.595Z",
