@@ -16,7 +16,7 @@
   "avoid": "Do not buy the contrast by darkening the roadway — a mean shift is not texture, and a foreground is graded on sd/mean, not absolute sd. Do not touch drawPuddles or the sweeper's own machinery, and do not add a tile kind. Do not put it in a LIVE pass: this is 1,500+ cells and belongs in the ground cache.",
   "budgetMin": 75,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 135,
   "issued": "2026-09-02T14:14:25.800Z",
