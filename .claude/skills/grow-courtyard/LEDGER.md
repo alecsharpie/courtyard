@@ -39,16 +39,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 107 — the far bank gets a door of its own on the field side, and the punt finally runs (2026-09-02) [River & far bank × Connect]
-
-**Brief:** b107 — give the far bank a morning-side arrival source so the punt has a rider that fits.
-**Premise re-priced; half of it was wrong.** "HEAD has none before noon" is false as a daily claim (06–12 mean 0.985, someone on 36/40 days). "spawnEastAgent opens late" is false: 182 of 197 set-outs are before noon, median 10.0. What is late is every ARRIVAL — every far-side branch is 8–11 h of walking from its gate, so 0 of 35 HEAD stops near the jetty arrive before noon. The prescription was right, the diagnosis inverted. c143 counted: 29 riders offered in 40 days, all 29 refused (companion 10, wind 8, light 7, rain 2, hour 2).
-**Did:** `spawnFarAgent()` — own cap (`FAR_CAP` 3) and rate, subtracted out of `laneCount`, never a share of eastCap. `FAR_GATE [GW+2, 31]` in from the east, off-frame behind the church green, on the jetty's row; `FAR_SPINE 137.2` its N–S line, east of church, mill and the orchard's east row so no leg crosses a WALL. Five branches — mill door, orchard, church front, towpath, and the **jetty**, which sets `a.jetty`, the one thing `puntFits` reads. `farOpen()` bounds set-outs both ends; `farJettyFits()` prices on TIME alone. Solo always. +~100 lines.
-**Gates:** census PASS · motion PASS vs stashed HEAD, zero jumps/nan/oob/flicker · filmstrip day 0 POP · shots `farbank-{head,cand}`, `farbank-zoom-cand`, `punt-crossing`.
-**Measured** (7 probes): 06–12 mean 0.985 → 3.110, morning presence 36/40 → 40/40, first far-side arrival median 15.48 → 10.45. Punt 0 → 18 landings/40 days, a crossing on 15/26 fine days. Lifetimes sane (median 8.4–12.2 h). Two false alarms settled on HEAD's own spread: census people −9.2% is inside HEAD's 14%; the dusk-agent count is inside HEAD's 5–11 range.
-**Verdict:** shipped
-**Surprise:** my own first pricing repeated the brief's mistake one level down. Asking the weather in `farJettyFits` deleted the jetty branch on 36 of 94 mornings — charging dawn's wind against a boarding five hours later, when `puntFits` was going to ask again at the moment it mattered. Removing it took crossings 0.20 → 0.45/day. And the 42.7 h "stranded agent" was my instrument: the day rolls at hour 6.00, so an agent set out at sunUp−0.4 crosses the roll and every clock-delta lifetime reads +24.
-
 ## Iteration 108 — the gardener actually reaches the bed, and works a row at a time (2026-09-02) [Courtyard & garden × Deepen]
 
 **Brief:** b108 — the courtyard is the title object and the person who tends it is nearly never there; price presence as rate × visit, lengthen the stay, do not raise the set-out rate.
@@ -122,3 +112,17 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Measured:** plaza moss field **bit-identical 12/12**. Difference image at two sizes, masked per cell by `unproject`: **quay 0.85% → 37.4% of pixels changed, meanD 0.83 → 5.35**; plaza 0.86%/0.60, the control's own floor. Rail-minus-walked green excess −0.50 → **+1.02**.
 **Verdict:** shipped. Budget OVER at both ends (49.0 open, 50.5 close) — third consecutive over-budget open.
 **Surprise:** the difference image was unreadable until I ran the same probe **HEAD against HEAD**. Two runs of identical code differ over ~1.3% of the frame at peak 90+, because `__reseed()` + `__warp()` + one `drawScene` does not pin the ground cache or the live layer. Without that control I would have reported a whole-frame regression from a change touching 130 cells.
+
+## Iteration 115 — the census stops throwing away the planting group, and the new fields arrive with a measured noise floor (2026-09-02) [The sill & the observer × Harness]
+
+**Brief:** b115 — `summarize()` folds five groups and silently drops `c.planting`'s eight scalars; fold them, then measure their churn so a later brief can lean on one.
+**Premise held exactly.** `__census()` computes `planted, blooming, daisies, mossy, matureTrees, worn, harvested, produce` every run; `summarize()` read only `planting.bySpecies`. `mossy` was added by #103 *so the census could see the moss* and has been invisible to the gate ever since.
+**Did.** A `planting` group in `summarize()`, folded **generically** over the numeric fields with a `PLANTING_SKIP` set (`bySpecies` → its own group; `species` → a constant already reported as `scalars.speciesKinds`), so a future `__census()` planting field lands in the report with no code change. `produce` is the one float, so the sums are `toFixed(1)`. Printed after `species`, and on the `--save-baseline` path too — re-pinning is exactly when you want the absolutes. CORE untouched. `courtyard.html` **byte-identical to HEAD** (`git diff --exit-code`).
+**Gates:** census PASS ×5 · visual PASS (wide/courtyard/east/lane) · motion + perf skipped, justified by the page being unchanged.
+**Measured — the noise floor, now written into `census.mjs` beside the fields** (the ledger's 3-entry window would age it out): five runs of the gate on one unchanged HEAD, **72 per-cell readings, zero drift** — the instrument contributes *nothing*, so a delta in any of these is attributable. The floor that is not zero is the world: spread across seeds at day27 is `matureTrees` 0%, `planted`/`blooming` 1%, `mossy` 8%, `daisies` 22%, `harvested` 26%, `worn` 27%, `produce` **200%** (0, 10, 17 — a buffer the market empties every 4th day, unusable as a delta).
+**Also:** a pre-#115 baseline has no `planting` key, so `diffBlock` falls back to absolutes and reads like a total change. One line now says why. Proved it fires by running the gate against a baseline with the key deleted, then restoring.
+**Verdict:** shipped
+**Surprise:** the age axis is not an age axis for half of these fields. `mossy` sums **1095 / 30 / 1236** across day1 / day11 / day27 — at *identical* warmth 0.693, grow 0.2212 and die 0.0959, because #16 built the ladder to equalise the instant. Moss integrates, so it reads the arc just travelled: the day11 cell has crossed midsummer, where `warmth > MOSS_DRY` bleaches it to the floor. It reads 7% of its neighbours' value and nothing is wrong. Five fields behave this way.
+**Law:** the census ladder equalises the INSTANT (warmth), which makes it an age axis only for fields that are a pure function of that instant. Any field that INTEGRATES over the year — moss, wear, harvest, produce — reads the arc of the year just travelled, so a per-age reading of one is a season reading, not an age reading: use the matrix SUM.
+**Cue:** `census-history.jsonl` still carries only `scalars`, so the planting group is visible to a worker's diff but not to `build-stats.mjs`'s growth curves.
+**Budget:** opened OK (44.2/46), closed **OVER** (46.1/46) — my own inventory line pushed it over. `rotate-ledger` names six laws over the 900 B per-law cap.

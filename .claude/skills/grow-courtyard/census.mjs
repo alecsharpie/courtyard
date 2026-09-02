@@ -89,10 +89,44 @@ async function run() {
   return { when: new Date().toISOString(), pageerrors, errors, cells };
 }
 
+/* `planting` carries both a per-species histogram and eight scalars of its own.
+ * The histogram became the `species` group from the start; the scalars were folded
+ * nowhere and so were invisible to the gate for 114 iterations. #103 added `mossy`
+ * *so that the census could see the moss*, and at #114 it moved 265 -> 358 while
+ * this reporter printed nothing — a gate's PASS is only evidence about the fields
+ * it REPORTS. Folded generically, so a future `__census()` planting field arrives
+ * here without a code change.
+ *   bySpecies -> its own group already.
+ *   species   -> a constant (SPECIES.length), already reported as scalars.speciesKinds.
+ * `planted` and `blooming` are deliberately repeated from `scalars`: the group is
+ * the planting system read whole, and the scalars copy is the one CORE watches.
+ *
+ * NOISE FLOOR, measured at #115 (three runs of this gate on one unchanged HEAD;
+ * 72 per-cell readings, ZERO drift). The instrument adds nothing: a delta in any of
+ * these is attributable to the code change. What is NOT zero is the world — any new
+ * `R()` draw reshuffles it, so the honest floor is the spread ACROSS SEEDS at a
+ * fixed age. At day27, seeds 7/42/1234:
+ *
+ *   matureTrees  0%   |  planted 1%  blooming 1%   <- a 2% move is real
+ *   mossy        8%
+ *   daisies     22%   |  harvested 26%   worn 27%  <- a quarter-scale move is noise
+ *   produce    200%   (0, 10, 17)                  <- unusable as a delta, see below
+ *
+ * And a trap in the AGE axis. The ladder equalises WARMTH (see above), which makes
+ * it an age axis only for fields that are a pure function of the instant. Five of
+ * these INTEGRATE over the year, so they read the arc just travelled, not the age:
+ * `mossy` sums 1095 / 30 / 1236 across day1 / day11 / day27 at identical warmth,
+ * grow (0.2212) and die (0.0959) — the day11 cell has just crossed midsummer, where
+ * warmth > MOSS_DRY bleaches it to the floor. Read mossy, daisies, worn, harvested
+ * and produce as the MATRIX SUM; a per-age reading of one is a season reading.
+ * `produce` is a buffer the market empties every 4th day, so it also samples the
+ * market cycle — hence the 200%. */
+const PLANTING_SKIP = new Set(['bySpecies', 'species']);
+
 /* Sum the matrix into scalars + summed histograms. Summing across the matrix is
  * deliberate: one cell is a sample, nine cells is a measurement. */
 function summarize(data) {
-  const scalars = {}, tiles = {}, life = {}, structure = {}, species = {};
+  const scalars = {}, tiles = {}, life = {}, structure = {}, species = {}, planting = {};
   for (const key in data.cells) {
     const c = data.cells[key];
     for (const k in c.scalars) scalars[k] = (scalars[k] || 0) + c.scalars[k];
@@ -100,9 +134,15 @@ function summarize(data) {
     for (const t in c.life) life[t] = (life[t] || 0) + c.life[t];
     for (const t in c.structure) structure[t] = (structure[t] || 0) + c.structure[t];
     for (const t in c.planting.bySpecies) species[t] = (species[t] || 0) + c.planting.bySpecies[t];
+    for (const t in c.planting) {
+      if (PLANTING_SKIP.has(t) || typeof c.planting[t] !== 'number') continue;
+      planting[t] = (planting[t] || 0) + c.planting[t];
+    }
   }
+  /* `produce` is the one non-integer here; summing nine of them prints float dust. */
+  for (const t in planting) planting[t] = +planting[t].toFixed(1);
   return { when: data.when, ladder: LADDER, pageerrors: data.pageerrors, errors: data.errors,
-    scalars, tiles, life, structure, species, cells: data.cells };
+    scalars, tiles, life, structure, species, planting, cells: data.cells };
 }
 
 function diffBlock(label, now, was) {
@@ -126,6 +166,7 @@ if (save) {
   writeFileSync(baseFile, JSON.stringify(cur, null, 1));
   console.log(`census: baseline pinned — ${SEEDS.length}x${AGES.length} cells, ${cur.pageerrors} page errors.`);
   console.log(diffBlock('scalars', cur.scalars, null));
+  console.log(diffBlock('planting', cur.planting, null));
   process.exit(cur.pageerrors ? 1 : 0);
 }
 
@@ -150,6 +191,8 @@ console.log(diffBlock('tiles', cur.tiles, base && base.tiles));
 console.log(diffBlock('life', cur.life, base && base.life));
 console.log(diffBlock('structure', cur.structure, base && base.structure));
 console.log(diffBlock('species', cur.species, base && base.species));
+if (base && !base.planting) console.log('planting: (baseline predates #115 and holds no planting group — absolutes, no deltas; re-pin to diff it)');
+console.log(diffBlock('planting', cur.planting, base && base.planting));
 
 /* One line per run, appended forever. Survives baseline overwrites, and is what
  * build-stats.mjs plots as the town's growth curve. */

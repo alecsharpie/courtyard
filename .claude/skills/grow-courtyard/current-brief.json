@@ -1,24 +1,23 @@
 {
-  "id": "b114",
-  "domain": "Plaza & quay",
-  "kind": "Deepen",
-  "brief": "#103 gave the plaza's paving a moss CA and it works, but moss[] is deliberately plaza-only: it runs on 730 PATH cells and pavingAt's other five kinds are untouched, so the quay, the towpath, the lane and the cross street do not age at all. The town's oldest-looking surface is its newest one. Extend the ageing to at least the quay strip against the rail, which needs no new machinery — a second region in stepMoss, the same creep off the four-neighbour mean, the same scuffing by feet. Judge it at the shipping size: a difference image and a number, not two screenshots.",
+  "id": "b115",
+  "domain": "The sill & the observer",
+  "kind": "Harness",
+  "brief": "The census throws away most of what it computes. `summarize()` in `.claude/skills/grow-courtyard/census.mjs` folds `c.scalars`, `c.tiles`, `c.life`, `c.structure` and `c.planting.bySpecies` — and silently drops the rest of `planting`: `planted`, `blooming`, `daisies`, `mossy`, `matureTrees`, `worn`, `harvested` and `produce`. `mossy` was added by #103 precisely so the census could see the moss, and at #114 it moved 265 -> 358 while the gate printed 'planting: unchanged'. Fold the remaining `planting` fields into the summary as their own group and surface them in the report. Then run the census twice on HEAD and record what the NEW fields' own churn is, so the next brief that leans on one knows its noise floor. This is an instrument change: nothing in `courtyard.html` should differ. It reshapes the baseline, so re-pin with `--save-baseline` and say so in the ledger entry. It is first in the queue so that b116's re-pin is the only other one this batch needs.",
   "seams": [
-    "moss",
-    "stepMoss",
-    "caTick",
-    "mossShel",
-    "mossTop",
-    "pavingAt",
-    "QUAY_BENCHES"
+    "census.mjs summarize()",
+    "census.mjs CORE",
+    "__census() planting",
+    "mossy",
+    "worn",
+    "harvested"
   ],
-  "successLooksLike": "By late autumn the quay's joints against the rail are visibly greener than the line people walk, and the plaza's own moss is unchanged from HEAD.",
-  "avoid": "Do not widen the region by relaxing pavingAt's test — a threshold on a REGION is an intersection, so sample how much of the quay strip the consumer's set actually covers before believing a number. And the skip guard is the trap here: `!shelter && !value` means 'not my cell' only until the value first reaches zero, after which the cell is dead forever.",
-  "budgetMin": 30,
+  "successLooksLike": "`node census.mjs` prints mossy, worn, daisies, matureTrees and harvested with deltas, and the entry quotes each new field's HEAD-against-HEAD spread so it is usable as evidence rather than decoration.",
+  "avoid": "Do not add fields to `__census()` — it already computes everything you need. Do not widen the CORE collapse-gate list; a noisy new field in CORE turns the gate into a coin flip. Do not touch courtyard.html.",
+  "budgetMin": 20,
   "risk": "low",
   "status": "done",
   "attempts": 1,
-  "nextIter": 114,
-  "issued": "2026-09-02T00:49:53.142Z",
-  "fromPlan": "2026-09-02T00:00:00Z"
+  "nextIter": 115,
+  "issued": "2026-09-02T01:30:19.978Z",
+  "fromPlan": "2026-09-02T02:10:00Z"
 }
