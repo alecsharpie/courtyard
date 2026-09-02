@@ -1136,10 +1136,15 @@ function dawnF(h){                              // the morning half of nightF: 1
 function dawnEdge(){                            // the hour nightF crosses 0.3 coming up: sunUp + 0.24 midwinter .. + 0.36 midsummer
   return sunUp + (DAWN_K * DAWN_RUN - DAWN_LEAD) * (dayHours / MEAN_HOURS);
 }
+/* `day` increments as `hour` wraps to DAY_ROLL, so a calendar day holds TWO dawns —
+ * the pre-dawn hours 0..6 belong to the morning AFTER the day they are numbered with.
+ * Anything indexed on a MORNING keys off its own counter (gardenIdx, hearthIdx), and
+ * this is the one place the hour of the roll is written down. */
+const DAY_ROLL = 6;
 function updateClock(){
   day = Math.floor(simT / DAY_LEN);
   const p = (simT % DAY_LEN) / DAY_LEN;
-  hour = (6 + p * 24) % 24;
+  hour = (DAY_ROLL + p * 24) % 24;
   seasonPhase = (SEASON_START + simT / (SEASON_LEN * DAY_LEN)) % 1;
   warmth = 0.5 - 0.5 * Math.cos(2 * Math.PI * seasonPhase);
   dayHours = lerp(WINTER_HOURS, SUMMER_HOURS, warmth);
@@ -1396,6 +1401,25 @@ function stepWind(dt){
  * in opposite directions across the year, which is what makes the two seasons
  * unmistakable at a glance while leaving the annual rain total where it was. */
 function greyF(){ return 1 - 2 * warmth; }
+/* ---- how cold the town is, shared (#133) ---------------------------------------
+ * Lifted verbatim out of hearthF(), where it was a local called `chill` with exactly
+ * one reader in the whole source. The town knew how hard its chimneys were burning and
+ * nothing under those roofs knew anything: a January dusk and a July one differed only
+ * in the hour it got dark.
+ *
+ * It is ONE axis with `warmth`, not a second one. greyF() IS 1 - 2*warmth, so a reader
+ * that scales by chillF() and greyF() both squares the year — the season enters here
+ * once, through (1 - warmth), and the second term is the WEATHER OF THE DAY: snow lying
+ * says the house is cold in a way the calendar cannot.
+ *
+ * It is deliberately OVERDRIVEN past 1 — 1.10 in midwinter, 1.35 under snow — so that a
+ * reader which clamps holds at FULL across the cold instead of only touching it at the
+ * peak. Clamp at your own draw site, the way both of drawSmoke's consumers already do;
+ * that saturation is the whole of #124's winter fire and must not be clamped away here. */
+const CHILL_MIN = 0.16;        // a July day: a wisp, or nothing
+const CHILL_SWING = 0.94;      // ... against 1.10 in January, i.e. saturated across the peak
+const CHILL_SNOW = 0.25;       // snow lying is a cold house whatever the date says
+function chillF(){ return CHILL_MIN + CHILL_SWING * (1 - warmth) + CHILL_SNOW * snowCover; }
 const FRONT_HEAVY = 0.54;        // what `0.3 + 0.24 * richness()` reached and stayed at
 const FRONT_HEAVY_SWING = 0.24;  // 0.78 of midwinter's fronts are grey ones, 0.30 of midsummer's
 const FRONT_DEEP = 0.06;         // and the grey ones sit lower: floor 0.82 in January, 0.70 in July
@@ -3029,7 +3053,7 @@ function gardenerKneel(a){
  * They are not charged to LAWN_CAP (see lawnCount): the beds are a place no visitor
  * competes for, and the point of a schedule is that a busy lawn does not cancel it. */
 const GARD_K = 0.85, GARD_SALT = 611, GARD_EARLY = 3.5, GARD_WIN = 4.5, GARD_LAND = 1.0;   // share of growing days worked; the salt; the hours the window opens BEFORE sunrise and closes after it; and how long after lawnStart() a dawn walk may still land
-const GARD_ROLL = 6;                                    // `day` increments as `hour` wraps to 6 (updateClock): the pre-dawn hours belong to the morning AFTER them
+const GARD_ROLL = DAY_ROLL;                             // the pre-dawn hours belong to the morning AFTER them (see DAY_ROLL)
 const gard = {day:-1};
 function growSeason(){ return growF() > dieF(); }       // the beds' own growing season: they gain more than they lose
 function gardenIdx(){ return hour < GARD_ROLL ? day + 1 : day; }   // ONE decision per morning: without this the window's two halves read two different days of the calendar and roll twice
@@ -8512,25 +8536,29 @@ function drawScene(t, dt){
  * midwinter to 4.36 at midsummer with the season's own sunrise. The half-width is
  * unchanged at HEARTH_RUN 3.5: only the CENTRE was wrong.
  *
- * The height is the cold. `warmth` and `greyF()` are one axis, not two — greyF() IS
- * 1 - 2*warmth — so scaling by both would square the year, not read it twice; the season
- * enters once, through (1 - warmth), and the second axis is the WEATHER OF THE DAY:
- * snowCover on the ground says the house is cold in a way the calendar cannot. So
- * midwinter saturates (1.10, past the clamp both consumers apply, so the winter fire holds
- * at full THROUGH the peak instead of only touching it) and a July morning gives 0.16 —
- * a wisp from a stack or two, or nothing at all.
+ * The height is the cold, and #133 moved that out to chillF() — the town's ONE cold
+ * scalar, which the glass now reads too. The value is unchanged: 1.10 in midwinter, past
+ * the clamp both consumers apply, so the winter fire holds at full THROUGH the peak
+ * instead of only touching it; 0.16 on a July morning, a wisp from a stack or two.
  *
  * The other two terms are untouched: rain is not seasonal (a wet afternoon is a lit fire in
  * any month) and the EVENING half is deliberately left alone, as #112 left the evening half
- * of the light curve alone. */
+ * of the light curve alone.
+ *
+ * WHICH stacks are alight is hashed on hearthIdx(), not on `day`. `day` rolls at 06.00 and
+ * the winter fire runs ~03.7 to ~10.7, so the old `hash(cx, cy + day*7)` re-rolled every
+ * chimney in town in the MIDDLE of its own morning: measured on HEAD at seed 7, midwinter,
+ * 31 of 51 alight stacks flipped in a single 0.02 h step at hour 6.00. The hearth's day
+ * rolls at HEARTH_ROLL instead — mid-afternoon, between the morning fire's latest end and
+ * the evening's 18.5 — so the roll lands where nothing is burning. Same trick as
+ * gardenIdx(), same reason, opposite end of the clock. */
 const HEARTH_RUN = 3.5;        // hours either side of first light, as it always was
-const HEARTH_MIN = 0.16;       // a July morning: a wisp, or nothing
-const HEARTH_SWING = 0.94;     // ... against 1.10 in January, i.e. saturated across the peak
-const HEARTH_SNOW = 0.25;      // snow lying is a cold house whatever the date says
+const HEARTH_ROLL = 14;        // the hearth's own midnight: the afternoon lull between the two fires
+const HEARTH_FADE = 0.16;      // a stack arrives on a ramp of the threshold, never at full alpha
+function hearthIdx(){ return (hour >= DAY_ROLL && hour < HEARTH_ROLL) ? day - 1 : day; }
 function hearthF(){
   const morning = clamp(1 - Math.abs(hour - dawnEdge()) / HEARTH_RUN, 0, 1);
-  const chill = HEARTH_MIN + HEARTH_SWING * (1 - warmth) + HEARTH_SNOW * snowCover;
-  return morning * chill + rainFall * 0.7 + clamp((hour - 18.5) / 2, 0, 1) * 0.8;
+  return morning * chillF() + rainFall * 0.7 + clamp((hour - 18.5) / 2, 0, 1) * 0.8;
 }
 function drawSmoke(t){
   const drift = (1 + 1.6 * windF()) * windDir();   // calm: exactly 1; a full east wind: -2.6
@@ -8558,14 +8586,19 @@ function drawSmoke(t){
   if (cold <= 0.05 || RM) return;
   for (let k = 0; k < CHIMNEYS.length; k++){
     const [cx, cy, cz] = CHIMNEYS[k];
-    if (hash(cx, cy + day * 7) > clamp(cold, 0, 1) * 0.75) continue;
+    // each stack has its own threshold and CROSSES it on a ramp: at HEARTH_FADE 0.16 a
+    // chimney takes about three quarters of an hour to come up, instead of appearing at
+    // whatever alpha the town happened to be at. It also softens the one roll that is
+    // left — a wet afternoon at HEARTH_ROLL — from a step into a dissolve.
+    const up = clamp((clamp(cold, 0, 1) * 0.75 - hash(cx, cy + hearthIdx() * 7)) / HEARTH_FADE, 0, 1);
+    if (up <= 0) continue;
     const z0 = (cz === undefined ? roofTopAt(cx, cy) : cz) + 2.4;
     for (let p = 0; p < 6; p++){
       const ph = ((t * 0.28 + p * 0.166 + hash(cx, p) * 0.4) % 1);
       const rise = ph * 5.2, spread = 0.25 + ph * 1.5;
       const wob = Math.sin(t * 0.9 + p + cx) * 0.35 * ph;
       const [sx, sy] = project(cx + 0.5 + wob + ph * 1.4 * drift, cy + 0.72 - ph * 0.5, z0 + rise);
-      ctx.fillStyle = 'rgba(226,224,218,' + (0.30 * (1 - ph) * clamp(cold, 0, 1)) + ')';
+      ctx.fillStyle = 'rgba(226,224,218,' + (0.30 * (1 - ph) * clamp(cold, 0, 1) * up) + ')';
       ctx.beginPath(); ctx.arc(sx, sy, cellW * spread * 0.45, 0, 7); ctx.fill();
     }
   }
@@ -10436,10 +10469,22 @@ function applyLight(t){
     drawPuddleLights();       // the standing water gets the lamp the sheen only suggested
     // the warmth back into the glass: the multiply above turned every lit pane the
     // same grey as the wall (R - B was -5 at midnight); a screen fill of the pane's own
-    // quad restores it, and lights whoever stands in front of it, which is right
+    // quad restores it, and lights whoever stands in front of it, which is right.
+    //
+    // #133: and the ROOM behind it now knows what the roofline has always known. This is
+    // the same chillF() the chimneys burn on, so a night whose stacks are going hardest
+    // is a night whose windows read deepest — one cause, two effects, at opposite ends of
+    // the house. The lamp does not get brighter so much as REDDER: the green and blue the
+    // screen puts back fall away with the cold while the red stays at full, which is a
+    // fire-lit room rather than a bright one. Clamped here, not in chillF(), because the
+    // fire wants the overdrive and the glass does not.
+    // It has to sit in this screen pass and nowhere earlier: a colour drawn live before
+    // the multiply above is slate by midnight, whatever it was painted.
+    const chill = clamp(chillF(), 0, 1);
     {
-      const al = 0.7 * nightF;
-      ctx.fillStyle = 'rgba(255,190,90,' + al.toFixed(3) + ')';
+      const al = (0.70 + 0.07 * chill) * nightF;
+      ctx.fillStyle = 'rgba(255,' + (190 - 16 * chill).toFixed(1) + ',' + (90 - 30 * chill).toFixed(1) +
+                      ',' + al.toFixed(3) + ')';
       for (const q of LIT_PANES){ poly(ctx, q); ctx.fill(); }
     }
     // the rose window, live: the lit glass over the cached unlit disc, the night multiply
@@ -10478,11 +10523,14 @@ function applyLight(t){
       ctx.fillStyle = g;
       ctx.beginPath(); ctx.arc(bx, by, cellW * 1.1, 0, 7); ctx.fill();
     }
-    // every lit window casts a little halo onto the night
+    // every lit window casts a little halo onto the night — and it carries the same cold
+    // as the glass it comes off, so the warmth is legible from across the town and not
+    // only on a pane four pixels wide
+    const halo = 'rgba(255,' + (205 - 16 * chill).toFixed(1) + ',' + (130 - 38 * chill).toFixed(1) + ',';
     for (const [wx, wy] of LIT){
       const g = ctx.createRadialGradient(wx, wy, 0, wx, wy, cellW * 0.9);
-      g.addColorStop(0, 'rgba(255,205,130,' + 0.26 * nightF + ')');
-      g.addColorStop(1, 'rgba(255,205,130,0)');
+      g.addColorStop(0, halo + ((0.26 + 0.05 * chill) * nightF).toFixed(3) + ')');
+      g.addColorStop(1, halo + '0)');
       ctx.fillStyle = g;
       ctx.beginPath(); ctx.arc(wx, wy, cellW * 0.9, 0, 7); ctx.fill();
     }

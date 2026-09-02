@@ -40,16 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 126 — the plaza and the quay start remembering: a dry desire line, and stone that holds water (2026-09-02) [Plaza & quay × Connect]
-
-**Brief:** b126 — `paveWear[]` is read only by `drawPuddles`, and `pavedAt()` never reaches the roundel or the quay. Premise held: feet cross 130/730 roundel and 91/130 quay cells in 6 days (`probes/pave-wear.mjs`), all of it unrecorded.
-**Did.** (a) `pavedAt` widens onto `inPlaza`/`inQuay`, the **moss regions' own predicates**, so the stone that holds water is exactly the 860 cells `mossOwn[]` carries. (b) `trodStone()` in `groundBase`: `wear[]`'s idiom on the other surface, in the ground CACHE, exact at 0; `PW_FULL 0.45` is the measured p99. (c) the decay test is the WEAR, not the tile, plus a 6-cell sweep for quay rows 0–2. (d) `pudHollow[]` enters `mossTop` at `MOSS_POOL 0.45`.
-**Gates:** census PASS, only `mossy 2298 → 2646` · motion PASS · filmstrip 0 POP · shots clean · perf +0.0% (vsync-capped, blind).
-**Measured** vs HEAD-vs-HEAD controls: quay **51.4%** of its pixels changed dry (control 0%), plaza 6.7% (0.22%) dry, 16.4% wet; pools 560 → 792; over a year the pooling joints were LESS mossy than open stone on HEAD and are more so now — a sign flip — while cells that never pool moved +0.3%. Wet frame +5.5%.
-**Verdict:** shipped
-**Surprise:** the two halves were one line. Widening `pavedAt` bought the desire line *and* the water in one edit — what was missing was never the reader; `paveWear` had no way to accrue on a `PATH` cell at all. Only the DECAY needed saying twice: gated on the tile it would have pinned the lines forever.
-**Law:** a `?pause`d page still runs rAF, so a canvas read is unpinned even after a synchronous draw — one run of the diff gate reported 18.7% of "elsewhere" changed where three repeats since read 0.84%. Carry a SIM FINGERPRINT (clock, wind, cloud, agent positions) through any before/after frame comparison and refuse it unless it says NONE.
-
 ## Iteration 127 — the allotments get their own fog, and ghPane's dead term wakes up (2026-09-02) [Cross street & allotments × Connect]
 
 **Brief:** b127 — a SECOND mist source over the allotments so `ghPane`'s `mistAt()` term, 0 every day of every year, reads something. Full entry in LEDGER-archive.md.
@@ -121,3 +111,16 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Surprise:** the roll self-balances unasked — ambient lines a day Wide 1.6, Courtyard 2.3, Far bank 3.4. The offer rate is flat and `tickerFree()` decides how many land, so the emptier suppression leaves a frame, the more the town murmurs about it.
 **Law:** when a USER input starts gating what the town says or draws, key its schedule to `hash()`, never `R()` — else where someone looks spends the seeded stream.
 **Law:** read the canvas in the SAME evaluate as the draw (`toDataURL()`, not a screenshot after it) — a synchronous `drawScene` still races rAF, and three instants read DIFFERS one way and IDENTICAL the other at a fingerprint of NONE.
+
+
+
+
+## Iteration 133 — the cold gets out of the chimney and into the rooms (2026-09-02) [Sky, light & weather × Connect]
+
+**Brief:** b133 — share `hearthF()`'s private `chill`, give it a reader indoors, fix the pop at the day roll.
+**Did.** `chillF()` lifted verbatim out of `hearthF()` (the fire is bit-identical) and left OVERDRIVEN past 1 — 1.10 January, 1.35 under snow — because that saturation IS #124's winter fire; readers clamp at their own draw site, as both of `drawSmoke`'s already did. Its reader is the light the rooms throw out: the `LIT_PANES` screen fill and the window halo, both in the pass AFTER `applyLight`'s multiply. The lamp goes redder, not brighter — R held at full, the G and B the screen puts back falling away with the cold. Then `hearthIdx()` on `gardenIdx()`'s model at the other end of the clock (`HEARTH_ROLL 14`, the lull between the two fires) and `HEARTH_FADE`, so a stack crosses its own threshold on a ramp. `DAY_ROLL` is now written once.
+**Gates:** census unchanged in every field · motion PASS · perf ±0.0% · filmstrip 0 POP · legible at 1600×950 and 390×844, winter dawn / winter night / summer night. **context-budget OVER at 50.4 KB.**
+**HEAD → cand** (`probes/chill.mjs`, seed 7): worst single step **31 of 51 stacks flipping at hour 6.00 → 4 at 5.40**, worst alpha step L1 **5.690 → 0.360**. The glass, matched pane by pane over 32 deep nights a season: winter−summer R−B **+2.74 → +18.45**, winter R +9.3 / B −9.4 against HEAD while summer moves under 2.
+**Verdict:** shipped
+**Surprise:** neither gate the brief named could see either thing. A mean over "whatever panes were lit" is mostly pane IDENTITY — the lit set is hashed per night, so HEAD reads winter *colder* than summer (44.1 vs 50.0 R−B) at one instant and *warmer* (52.8 vs 50.0) matched. The filmstrip is blind too: cropped to the roofline the roll frame reads Δ0.296 against a median of 0.296, under the dawn ramp. It shows only as a difference BETWEEN the two builds' strips — that frame falls 0.296 → 0.248 while all ten others move ≤0.013.
+**Law:** a mean over a set whose MEMBERSHIP is drawn per sample measures the membership, not the property — match the members across conditions first.

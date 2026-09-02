@@ -499,7 +499,8 @@
       "SNOW/WET: snowF, snowCover, snowAt on cached ground/roofs/awnings; wetF/stepWet is one GLOBAL scalar — only the lane and cross street read it per cell. RAIN AND SNOW FALL and are DRAWN: raining/rainFall/nightDamp, drops lean windDir; weatherComing() the pre-rain reader",
       "WIND: windF, windyDay/frontWind, windSign latched per spell, windDir the blend every x-lean reads",
       "MIST: two sources via MIST_SRC[] {span,reach,wt}, mistAt = strongest at x. River x114+ reach 8; HOLLOW x82..94 reach 5, HOL_LIFT dipping it over beds/pond/GH. hollowMist is RADIATIVE (still + clear + COLD). drawMist shares ONE low-res offscreen",
-      "DAWN IS ONE EVENT: dawnF() on sunUp, dawnEdge() the ONE edge read by nightAt/w.last/burn-through/the HOMES cap; the EVENING half is untouched. HEARTHS: hearthF() the ONE definition drawSmoke's consumers read — HEARTH_MIN/HEARTH_SWING/HEARTH_SNOW"
+      "DAWN IS ONE EVENT: dawnF() on sunUp, dawnEdge() the ONE edge read by nightAt/w.last/burn-through/the HOMES cap; the EVENING half is untouched.",
+      "THE COLD IS SHARED (#133): chillF() = CHILL_MIN + CHILL_SWING*(1-warmth) + CHILL_SNOW*snowCover, ONE axis with warmth/greyF, deliberately OVERDRIVEN past 1 (1.10 Jan, 1.35 under snow) — readers clamp at their own draw site. Readers: hearthF (the fire, bit-identical) and applyLight's LIT_PANES screen fill + window halo (a cold night's glass reads redder, not brighter). The hearth has its OWN day counter: hearthIdx()/HEARTH_ROLL 14, the afternoon lull, and HEARTH_FADE ramps each stack across its threshold. DAY_ROLL 6 is written down once, in updateClock; GARD_ROLL points at it"
     ],
     "life": [
       "ring transit via spawnAgent: walker, crosser, dogwalker. drawPerson 12 px. Wildlife: butterflies, fireflies, birds[], ducks, swans, the night cat catA, falling leaves. The clock strikes nine and eighteen; greetPass/chatty; sitters read the sky (seatRefused/seatWet)",
@@ -599,6 +600,12 @@
       "id": "c211",
       "note": "a quarter's FRAME is far wider than its box at desktop sizes — Far bank at 1600x950 shows the allotments, Courtyard at 1280x700 shows the cross street — so inView() is generous by construction. A quarter that wants a tight voice needs a tighter frame, not a tighter predicate.",
       "raisedBy": 131,
+      "seenBy": 0
+    },
+    {
+      "id": "c212",
+      "note": "applyLight's dusk wash is clamp(1 - |hour - 19|/1.8) — a hard-coded HOUR in a light term. It is 0.53 at a midwinter nightF-0.85 dusk and 0.00 at a midsummer one, so any before/after taken at a matched sun angle in the evening carries it. #112 fixed the MORNING half of the same expression onto sunUp and left the evening.",
+      "raisedBy": 132,
       "seenBy": 0
     }
   ],

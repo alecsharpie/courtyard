@@ -4192,3 +4192,13 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Law:** when a USER input starts gating something the town says or draws, key that thing's schedule to `hash()`, never `R()` — otherwise where someone is looking spends the seeded stream and the world stops being a function of its seed.
 **Law:** read the canvas in the SAME evaluate as the draw (`toDataURL()`, not a screenshot after it). A synchronous `drawScene` still races rAF: three instants reported DIFFERS by screenshot and IDENTICAL when read in-evaluate, at a sim fingerprint of NONE both times.
 **Cue:** the clock strikes are the ticker's loudest voice, 4 a day, and are deliberately left unplaced as sounds — so at a quarter they are now most of the surface (Far bank 88% no-place). Pricing the strike is the next lever on a local-sounding ticker.
+## Iteration 126 — the plaza and the quay start remembering: a dry desire line, and stone that holds water (2026-09-02) [Plaza & quay × Connect]
+
+**Brief:** b126 — `paveWear[]` is read only by `drawPuddles`, and `pavedAt()` never reaches the roundel or the quay. Premise held: feet cross 130/730 roundel and 91/130 quay cells in 6 days (`probes/pave-wear.mjs`), all of it unrecorded.
+**Did.** (a) `pavedAt` widens onto `inPlaza`/`inQuay`, the **moss regions' own predicates**, so the stone that holds water is exactly the 860 cells `mossOwn[]` carries. (b) `trodStone()` in `groundBase`: `wear[]`'s idiom on the other surface, in the ground CACHE, exact at 0; `PW_FULL 0.45` is the measured p99. (c) the decay test is the WEAR, not the tile, plus a 6-cell sweep for quay rows 0–2. (d) `pudHollow[]` enters `mossTop` at `MOSS_POOL 0.45`.
+**Gates:** census PASS, only `mossy 2298 → 2646` · motion PASS · filmstrip 0 POP · shots clean · perf +0.0% (vsync-capped, blind).
+**Measured** vs HEAD-vs-HEAD controls: quay **51.4%** of its pixels changed dry (control 0%), plaza 6.7% (0.22%) dry, 16.4% wet; pools 560 → 792; over a year the pooling joints were LESS mossy than open stone on HEAD and are more so now — a sign flip — while cells that never pool moved +0.3%. Wet frame +5.5%.
+**Verdict:** shipped
+**Surprise:** the two halves were one line. Widening `pavedAt` bought the desire line *and* the water in one edit — what was missing was never the reader; `paveWear` had no way to accrue on a `PATH` cell at all. Only the DECAY needed saying twice: gated on the tile it would have pinned the lines forever.
+**Law:** a `?pause`d page still runs rAF, so a canvas read is unpinned even after a synchronous draw — one run of the diff gate reported 18.7% of "elsewhere" changed where three repeats since read 0.84%. Carry a SIM FINGERPRINT (clock, wind, cloud, agent positions) through any before/after frame comparison and refuse it unless it says NONE.
+
