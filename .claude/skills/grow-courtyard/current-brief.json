@@ -1,27 +1,30 @@
 {
-  "id": "b146",
-  "domain": "Roofs & skyline",
+  "id": "b147",
+  "domain": "Cross street & allotments",
   "kind": "Deepen",
-  "brief": "#140 gave every solid column a cast shadow, and its own surprise was that the binder is the SUN, not the shadow. But there is a second binder it did not name: shTop[] is filled from the eave, and the two tallest drawn things in this town are not eaves. The clock tower reaches z 10.2 and the church spire is higher; both currently throw from eaveBand's 6.3 and 7.8. The tallest volume in the picture casts a terrace's shadow. Give each tower its real height into shTop[] and let the throw be as long as the geometry says. Price the extent off -S/S[2] BEFORE you build, so you know at which hours it is worth anything: sunVec() is a stylised high sun and midday buys almost nothing, but a tower is tall enough that the early and late hours should be dramatic.",
+  "brief": "plotCrop() answers for a whole allotment plot off its FIRST sown cell, but a gardener's kneel scatters over a 3x3 and crosses plot edges, so a plot can hold six species and be described by whichever one the loop reached first. plotStands() and bedCap() both read it. Cabbages are the one hardy species in this town and hold the winter alone, which means one cabbage in the corner of a plot may be holding the full winter ceiling for five tender neighbours that should be stalled. Make the answer the PLOT's, not the first cell's - a plot's crop is what is mostly in it, or its readers ask a question that has a per-cell answer.",
   "seams": [
-    "shTop",
-    "shOpen",
-    "buildSunShade",
-    "drawSunShade",
-    "eaveFor",
-    "eaveBand",
-    "buildVolumes",
-    "dialThrow",
-    "sunVec",
-    "shadowF"
+    "plotCrop",
+    "plotStands",
+    "bedCap",
+    "harvestPlot",
+    "ripePlots",
+    "bSp",
+    "speciesFor",
+    "inAllotment"
   ],
-  "successLooksLike": "On a clear morning and again in the late afternoon the clock tower lays a shadow down the cross street and the spire one across the far bank's green, long enough to read at Wide and to swing visibly across the hour. Measured against HEAD with a shade-diff on the same seed and instant, with a same-code control.",
-  "avoid": "Do not touch eaveBand itself - every generic consumer reads it; give the two towers their own entry into shTop[]. Watch the northward veto from #140: a volume lifts ~1.15 rows a cell UP the frame, so an un-vetoed throw paints the caster's own roof, and a tower is exactly where that goes wrong worst. Keep the merged-run fill - overlapping subpaths wind to 2 and double-darken.",
-  "budgetMin": 45,
-  "risk": "medium",
-  "status": "done",
+  "successLooksLike": "Through a winter, a plot sown mostly tender stalls at stage 1 with its neighbours instead of riding a single cabbage's ceiling, and the glasshouse stays the one place in the town where a tender crop keeps going. Counted over a year, not read off one frame.",
+  "avoid": "Do not change what a kneel SOWS - the scatter is right and the bug is the read. Do not re-derive the footprint: a plot OWNS x [ox,ox+4) y [oy,oy+3) and never its west side, so read it back off the grid. And check every caller before you widen the signature.",
+  "budgetMin": 35,
+  "risk": "low",
+  "status": "rejected",
   "attempts": 1,
-  "nextIter": 146,
-  "issued": "2026-09-02T22:21:22.662Z",
-  "fromPlan": "2026-09-03T00:00:00.000Z"
+  "nextIter": 147,
+  "issued": "2026-09-02T22:36:56.001Z",
+  "fromPlan": "2026-09-03T00:00:00.000Z",
+  "briefRejected": {
+    "reason": "premise refuted on HEAD by count, not opinion",
+    "evidence": "probes/allot-year.mjs, a year x 3 seeds: 0 of 69,008 sown plot-samples held two species (mean species/plot 1.000), so plotCrop's first-cell answer WAS the plot's majority every time; 0 plot-samples had a hardy cell under a tender majority; in deep winter (bloomCap<1.5) tender cells in the open reach stage 3 0 times (0 promotions, 0 cell-samples) against hardy 21,474 and under glass 10,191. The brief's successLooksLike already holds exactly on HEAD. Root cause of the premise: a stale comment above plotClimbs() claiming a ~20% first-cell miss rate; re-counted, plotClimbs and plotCrop===BEANS agree on 13,012 of 13,012 bean plot-samples.",
+    "shipped": "the comment correction only - no behaviour change, census byte-identical"
+  }
 }

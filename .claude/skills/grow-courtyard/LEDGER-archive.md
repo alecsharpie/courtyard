@@ -4513,3 +4513,13 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped
 **Surprise:** the brief's cane gate was a feature at a rate of zero, through DWELL. Beans are **3.1%** of standing allotment cells against cabbages 47.1 — not because they are rarely sown but because cabbages are the one `hardy` species and stand the winter. Canes on a presence test showed on 1.5% of a year; gated on the season they are up 49.7%.
 
+## Iteration 139 — the gardener works the stretch the light allows (2026-09-03) [Courtyard & garden × Deepen]
+
+**Brief:** b139 — re-price gardenerKneel's continuation so a gardener who has knelt finishes the bed. Full entry in LEDGER-archive.md.
+**Premise confirmed, diagnosis wrong.** `probes/gardener-rows.mjs` (10 seeds × 26 days) reads the branch off the R() call count *inside* the call: a growing morning is **1.54 rows/visit**, exactly #129's number. But the refusals are ARITHMETICALLY HONEST — the cheapest legal continuation finishes 2.75 h after the lawn closes. Nothing was double-charged.
+**Did.** The row was drawn BEFORE it was priced, so a drawn length that did not fit refused the *whole* continuation. Now `room` is what is left for the row once the shuffle and the walk home are paid, and the row takes `min(nd, room)`, floored at `GARDEN_ROW_MIN` 2.5 s. Draw COUNT unchanged in every branch.
+**Gates:** census PASS, re-pinned · motion PASS · 0 POP · visual PASS at a *divergent* instant (my first HEAD/cand pair was byte-identical — the builds had not diverged there yet). Growing morning **1.54 → 1.79** rows/visit; continuation 33.4% → 42.1%; light refusals 10.6% → 0.7%; unspent light 2.38 → 1.19 h. Choice shares hold, latest departure identical.
+**Verdict:** shipped — but the brief's **2.5 bar is not met and is not reachable**, and that is the finding.
+**Surprise:** the bar was set without pricing the row. Window 12.0 h; walk in 3.4 h, already optimised; the nearest other edge bed is 4.08 cells so the shuffle is irreducible; a row is 2.91 h. From a 10.4 h first kneel the day holds 2.1 rows at best. Swept and rejected: halving the row buys +0.39 and costs the dwell; GARDEN_MORE 0.9 buys +0.05 — the roll is no longer the binder, the light is (c221).
+
+

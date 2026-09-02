@@ -40,16 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 139 — the gardener works the stretch the light allows (2026-09-03) [Courtyard & garden × Deepen]
-
-**Brief:** b139 — re-price gardenerKneel's continuation so a gardener who has knelt finishes the bed. Full entry in LEDGER-archive.md.
-**Premise confirmed, diagnosis wrong.** `probes/gardener-rows.mjs` (10 seeds × 26 days) reads the branch off the R() call count *inside* the call: a growing morning is **1.54 rows/visit**, exactly #129's number. But the refusals are ARITHMETICALLY HONEST — the cheapest legal continuation finishes 2.75 h after the lawn closes. Nothing was double-charged.
-**Did.** The row was drawn BEFORE it was priced, so a drawn length that did not fit refused the *whole* continuation. Now `room` is what is left for the row once the shuffle and the walk home are paid, and the row takes `min(nd, room)`, floored at `GARDEN_ROW_MIN` 2.5 s. Draw COUNT unchanged in every branch.
-**Gates:** census PASS, re-pinned · motion PASS · 0 POP · visual PASS at a *divergent* instant (my first HEAD/cand pair was byte-identical — the builds had not diverged there yet). Growing morning **1.54 → 1.79** rows/visit; continuation 33.4% → 42.1%; light refusals 10.6% → 0.7%; unspent light 2.38 → 1.19 h. Choice shares hold, latest departure identical.
-**Verdict:** shipped — but the brief's **2.5 bar is not met and is not reachable**, and that is the finding.
-**Surprise:** the bar was set without pricing the row. Window 12.0 h; walk in 3.4 h, already optimised; the nearest other edge bed is 4.08 cells so the shuffle is irreducible; a row is 2.91 h. From a 10.4 h first kneel the day holds 2.1 rows at best. Swept and rejected: halving the row buys +0.39 and costs the dwell; GARDEN_MORE 0.9 buys +0.05 — the roll is no longer the binder, the light is (c221).
-
-
 ## Iteration 140 — the buildings get their shadows (2026-09-03) [Roofs & skyline × Connect]
 
 **Brief:** b140 — nine cast shadows and every one an object; give the BUILDINGS theirs. Full entry in LEDGER-archive.md.
@@ -121,3 +111,14 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped — but the brief's bar is unreachable and that is the finding.
 **Surprise:** the clock tower gains **nothing, at any hour, in any season** — 0 novel sub-cells at both equinoxes and midwinter, ≤14 at midsummer. Its old 7.2 already saturated the two rows of world in front of it. And the church's win is not "across the far bank's green" but out onto the WATER: the spire's tip crosses the towpath at x 127 and lies on the river, and only in the warm half's morning — at midwinter the sun is steep enough (`uy` −1.27) that the whole throw is off the north edge by 5 cells of height.
 **Law:** a caster's value is bounded by the OPEN WORLD downwind of it, not by its height — price the reachable GROUND before raising a caster, because `-S/S[2]` prices the ray and says nothing about where it lands.
+
+## Iteration 147 — the allotments are monoculture, and the brief's bug does not exist (2026-09-03) [Cross street & allotments × Deepen]
+
+**Brief:** b147 — make `plotCrop()` answer for the PLOT, not its first sown cell, so one cabbage stops lifting a plot's tender cells to the winter ceiling.
+**Priced the premise first, and it is false.** A year x 3 seeds (`probes/allot-year.mjs`, 69,008 sown plot-samples): **0** held two species (species/plot **1.000**), so the first cell WAS the majority, and **0** had a hardy cell under a tender majority. In deep winter tender cells in the open reach stage 3 **0 times**, against hardy 21,474 and glass 10,191: `successLooksLike` already holds on HEAD, exactly. Monoculture because caTick's infill sows a bare cell with `plotCrop()` itself, `harvestPlot()` lifts the row whole, and the kneel plants nothing — none of it the read.
+**The premise's source:** `plotClimbs()`'s comment claimed the first-cell read missed "a fifth of the plots that actually had beans". Re-counted, they agree **13,012 of 13,012**.
+**Did.** Killed the false claim; wrote the measured invariant at `plotCrop()` — the three conditions holding it, and the successor read for the day one goes.
+**Gates:** census **byte-identical** · visual PASS · motion/perf skipped: no draw, no `R()`.
+**Verdict:** briefRejected — source corrected, feature not built.
+**Surprise:** the hand-sow branch is dead. 101 allot kneels a year = 71 harvests + 15 turns + 15 hand-sows, and the hand-sows plant **0 cells** — a kneel only reaches an UNRIPE plot, and by then the infill has filled it. A holder comes in through the gate, kneels, plants nothing, says nothing, walks out.
+**Law:** a stale source COMMENT is a brief generator — when you refute a premise, delete the sentence that produced it, or the loop pays for it again.

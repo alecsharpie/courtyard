@@ -2,7 +2,7 @@
   "updated": "2026-09-02",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 144,
+  "lastIteration": 147,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -268,7 +268,8 @@
       "deepen": [
         17,
         25,
-        52
+        52,
+        147
       ]
     },
     "plaza": {
@@ -495,7 +496,8 @@
       "harvest cycle: harvestPlot/bAge/ripePlots/fallowPlots/pickPlot/plotCrop/sendToPlot/spawnAllotAgent, digWeather; ONE cart cartToday/cartDue/spawnLoader into MARKET_STALLS[1]",
       "TILES 16 (WALL PATH GRASS BED CBED TRUNK SIDE ROAD VOID WATER TUNNEL SLOT DECK DIAL EYOT GLASS), SPECIES 12 via speciesFor; cabbages are the one hardy species and hold the winter alone",
       "GLASSHOUSE x84-93 y34-39, the one surface you see THROUGH: bedCap, drawGlassBack cached + drawGlassFront live, snowAt indoors rule, ghPane, availG",
-      "plot FURNITURE: ALLOT_FURN 38 pieces over 15 plots off hash(plot), PLOT_BOX the ONE size - shed/bay/butt/barrow/canes/cloche; drawAllotFurn cached, allotFurnAt/Name, plotTurn, barrowKey"
+      "plot FURNITURE: ALLOT_FURN 38 pieces over 15 plots off hash(plot), PLOT_BOX the ONE size - shed/bay/butt/barrow/canes/cloche; drawAllotFurn cached, allotFurnAt/Name, plotTurn, barrowKey",
+      "allotments are MONOCULTURE by construction (#147, a year x 3 seeds: 0 of 69,008 sown plot-samples held two species; 0 tender cells at stage 3 in the open in deep winter) - plotCrop's first-cell read is exact, and the glasshouse is already the only place a tender crop keeps going"
     ],
     "plaza": [
       "FOUNTAIN (105.5,30) reads year, wind and frost: fountainPlay/Stand/Ice/Skin/Jet/Line, FOUNT_*. Roundel, PLAZA_PITS, PLAZA_BENCHES, QUAY_BENCHES, quay rail x112.9, crumbSpot, PIGEONS",
@@ -604,6 +606,12 @@
     {
       "id": "c234",
       "note": "every tall caster in this town stands at the world's NORTH edge and the throw is always northward, so the sun shade can only ever reach the near half: #140's ROAD.lane 0.0% (c224) and #146's clock tower 0 are the same fact. The one surface that CAN take a long shadow is the river, and #146 put the spire on it.",
+      "raisedBy": 144,
+      "seenBy": 0
+    },
+    {
+      "id": "c235",
+      "note": "the allotment hand-sow branch is dead: 15 of 101 allot kneels a year take it and plant 0 cells, because a kneel only ever reaches an UNRIPE plot and caTick's infill has already filled every cell of it. A holder walks in, kneels, plants nothing, says nothing, walks out (#147).",
       "raisedBy": 144,
       "seenBy": 0
     }

@@ -2676,7 +2676,19 @@ function neighborsMature(x, y){
    harvest, fallow, sowing — is addressed by plot rather than by cell. A row that
    empties and refills one cell at a time is a speckle; a plot reads as a row. */
 function plotOrigin(x, y){ return [80 + Math.floor((x - 80) / 5) * 5, 8 + Math.floor((y - 8) / 7) * 7]; }
-function plotCrop(x, y){                      // whatever this plot is already under, at any stage
+/* Whatever this plot is already under, at any stage. Answering off the FIRST sown cell the
+   scan reaches is safe because the block is MONOCULTURE by construction — which is worth
+   writing down here, because it is not visible from this function. Three things hold it:
+   caTick's infill sows a bare allotment cell with plotCrop() itself, harvestPlot() lifts
+   the row whole, and the gardener's hand-sowing branch — the one path that could carry a
+   second species across a plot edge — plants nothing, because by the time a kneel reaches
+   an unripe plot the infill has already filled every cell of it (#147 counted 15 hand-sow
+   kneels a year over 3 seeds, planting 0 cells). Measured over a year x 3 seeds: 0 of
+   69,008 sown plot-samples held two species, so the first cell IS the majority, and 0 held
+   a hardy cell under a tender majority — nothing has ever ridden a cabbage's ceiling. The
+   read goes wrong the day any of those three change; the successor is a tally over the
+   plot's own cells, which are [ox,ox+4) x [oy,oy+3) intersected with BED. */
+function plotCrop(x, y){
   const [ox, oy] = plotOrigin(x, y);
   for (let yy = oy; yy < oy + 2; yy++) for (let xx = ox; xx < ox + 3; xx++){
     const i = yy * GW + xx;
@@ -3763,10 +3775,12 @@ function clocheOut(f){ return warmth < plotTurn(f); }
 function canesUp(f){ return warmth >= plotTurn(f); }
 /* Beans are the one thing in SPECIES that climbs — h 1.1 against 0.4 for a carrot — so
  * the canes go up where the crop needs them and come down when the plot turns over to
- * something that does not. Asked of the whole PLOT and not of plotCrop(), which returns
- * the FIRST sown cell it finds: a plot is sown by a kneel that scatters over a 3x3, so
- * two species in one plot is ordinary, and reading only the first cell had the canes up
- * on a fifth of the plots that actually had beans in them. */
+ * something that does not. Asked of the whole PLOT, which is belt and braces and not a
+ * fix: this comment used to claim reading plotCrop()'s first cell put the canes up on a
+ * fifth of the plots that had beans in them, and #147 re-counted it at 0 — plotClimbs()
+ * and plotCrop() === BEANS agree on 13,012 of 13,012 bean plot-samples over a year x 3
+ * seeds, because the block is monoculture. See plotCrop() for why, and for what would
+ * have to change before either read could disagree. */
 const BEANS = SPECIES.findIndex(s => s.name === 'beans') + 1;
 function plotClimbs(ox, oy){
   for (let y = oy; y < oy + 2; y++) for (let x = ox; x < ox + 3; x++)
