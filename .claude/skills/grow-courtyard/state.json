@@ -490,7 +490,8 @@
       "WIND: windF, windyDay/frontWind, windSign latched per spell, windDir the blend every x-lean reads",
       "MIST: one rate-capped scalar, mistAt(x), MIST_REACH 8 cells off the river, drawMist live before applyLight",
       "DAWN IS ONE EVENT: dawnF() on sunUp (DAWN_LEAD/DAWN_RUN), dawnEdge() the ONE edge read by nightAt/w.last/burn-through/the HOMES cap; applyLight's wash at sunUp+0.2/DAWN_WARM. The EVENING half is untouched",
-      "RAIN AND SNOW FALL and are DRAWN: raining/rainFall/nightDamp, drops lean windDir; snowF the per-DROP flake share; weatherComing() the pre-rain reader"
+      "RAIN AND SNOW FALL and are DRAWN: raining/rainFall/nightDamp, drops lean windDir; snowF the per-DROP flake share; weatherComing() the pre-rain reader",
+      "HEARTHS on the sun and the cold (#124): hearthF() the ONE definition drawSmoke's two consumers read — morning term centred on dawnEdge() solved at the instant, HEARTH_RUN 3.5 half-width, height HEARTH_MIN + HEARTH_SWING*(1-warmth) + HEARTH_SNOW*snowCover. Rain and the evening term untouched. probes/hearth-year.mjs measures the year, the pixels and the hour-6 reshuffle"
     ],
     "life": [
       "ring transit via spawnAgent: walker, crosser, dogwalker. drawPerson 12 px. Wildlife: butterflies, fireflies, birds[] (land/hop/fly, scared inside 4.5), ducks, swans, the night cat catA, falling leaves",
@@ -638,6 +639,18 @@
     {
       "id": "c195",
       "note": "probes/affordance.mjs section 2 ('behind the sill, 1280x700') has lost its subject — no roof furniture is covered there any more. It still tests the birds and the cat, which nearHidden alone bounds, but the section's premise wants rewriting rather than guarding.",
+      "raisedBy": 120,
+      "seenBy": 0
+    },
+    {
+      "id": "c196",
+      "note": "a chimney POPS on at full alpha when hash(cx,cy+day*7) crosses cold*0.75, and `day` increments at hour 6.00 — inside the winter morning fire — reshuffling the whole lit set (10-11 of 27 stacks flip in one step). Pre-existing; #124 measured it identical on both builds. A ramp on the gate, or moving the shuffle to a quiet hour, is the fix.",
+      "raisedBy": 120,
+      "seenBy": 0
+    },
+    {
+      "id": "c197",
+      "note": "hearthF() is now the ONE hearth definition but nothing else reads it: the windows (windowLit), the tap and the cafe do not know the town is cold. A shared `chill` would connect the roofline to the rooms under it.",
       "raisedBy": 120,
       "seenBy": 0
     }

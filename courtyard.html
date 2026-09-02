@@ -7796,6 +7796,41 @@ function drawScene(t, dt){
     }
   }
 }
+/* ---- the hearths, on the sun and on the cold (#124) -----------------------------
+ * ONE definition of how hard the chimneys burn, 0 = nothing to 1 = every stack the day
+ * allows. Two consumers, both in drawSmoke: the share of CHIMNEYS lit this day, and the
+ * alpha of each column.
+ *
+ * The morning term used to be `clamp(1 - |hour - 7|/3.5)` — a hard-coded hour, which is a
+ * seasonal bug a screenshot cannot see. 7.00 is EXACTLY midwinter's sunrise here
+ * (SOLAR_NOON 12.75, WINTER_HOURS 11.5), so the old fire was right in January and three
+ * hours late in July, when the sun is up at 4.00: the roofline lit its morning fire long
+ * after the town had been awake, all summer, every year. It keys on dawnEdge() now — the
+ * ONE first-light edge nightAt(), the last lamp and the burn-through already read — and it
+ * is solved at the instant it applies rather than read hours ahead, so it walks 7.24 in
+ * midwinter to 4.36 at midsummer with the season's own sunrise. The half-width is
+ * unchanged at HEARTH_RUN 3.5: only the CENTRE was wrong.
+ *
+ * The height is the cold. `warmth` and `greyF()` are one axis, not two — greyF() IS
+ * 1 - 2*warmth — so scaling by both would square the year, not read it twice; the season
+ * enters once, through (1 - warmth), and the second axis is the WEATHER OF THE DAY:
+ * snowCover on the ground says the house is cold in a way the calendar cannot. So
+ * midwinter saturates (1.10, past the clamp both consumers apply, so the winter fire holds
+ * at full THROUGH the peak instead of only touching it) and a July morning gives 0.16 —
+ * a wisp from a stack or two, or nothing at all.
+ *
+ * The other two terms are untouched: rain is not seasonal (a wet afternoon is a lit fire in
+ * any month) and the EVENING half is deliberately left alone, as #112 left the evening half
+ * of the light curve alone. */
+const HEARTH_RUN = 3.5;        // hours either side of first light, as it always was
+const HEARTH_MIN = 0.16;       // a July morning: a wisp, or nothing
+const HEARTH_SWING = 0.94;     // ... against 1.10 in January, i.e. saturated across the peak
+const HEARTH_SNOW = 0.25;      // snow lying is a cold house whatever the date says
+function hearthF(){
+  const morning = clamp(1 - Math.abs(hour - dawnEdge()) / HEARTH_RUN, 0, 1);
+  const chill = HEARTH_MIN + HEARTH_SWING * (1 - warmth) + HEARTH_SNOW * snowCover;
+  return morning * chill + rainFall * 0.7 + clamp((hour - 18.5) / 2, 0, 1) * 0.8;
+}
 function drawSmoke(t){
   const drift = (1 + 1.6 * windF()) * windDir();   // calm: exactly 1; a full east wind: -2.6
   // the bonfire's column (#93, thickened at #104): the chimneys' idiom, from the ground,
@@ -7818,9 +7853,7 @@ function drawSmoke(t){
       ctx.beginPath(); ctx.arc(sx, sy, cellW * spread * 0.45, 0, 7); ctx.fill();
     }
   }
-  // fires get lit on chilly mornings, damp afternoons and after dark
-  const cold = clamp(1 - Math.abs(hour - 7) / 3.5, 0, 1) + rainFall * 0.7 +
-               clamp((hour - 18.5) / 2, 0, 1) * 0.8;
+  const cold = hearthF();
   if (cold <= 0.05 || RM) return;
   for (let k = 0; k < CHIMNEYS.length; k++){
     const [cx, cy] = CHIMNEYS[k];

@@ -13,28 +13,7 @@
     "balance": "Back-counts from #119: Courtyard & garden 11, Lane & market 10, The sill & the observer 8, Sky 7, Plaza & quay 5, Cross street 3, Roofs 2, People 1, River 0. The two longest-untouched get b121 and b122; the sill gets the bet, which is where the frontier is. Empty cells that matter: Courtyard has never had a Scale/World brief (b121 is its first) and the sill has never had one either — b120 is the sill's first. sky x polish stays saturated."
   },
   "rationale": "Three consecutive passes have sat on rung 4b and all three worked: #110 gave the near roof a working surface, #116 put a sixteenth tile and the first transparent thing in the town, #119 built an edge on the world's east face. The town's SHAPE has moved four times in twenty iterations. What has not moved since #99 is the observer, and two independent measurements now say the five cameras no longer contain the town they were framed for. c182 (from #119's own surprise, probes/world-edge-framing.mjs): the world's east edge — the hedge, the open gate, the worn track a whole iteration just built — is off-canvas in every camera but Wide at desktop sizes, INCLUDING the quarter named 'Far bank', and off-frame in all five on a phone. c150 (open since #99, seen by three passes): the quarters frame GROUND, so Far bank holds no sky, no quarter reaches s > 1.02 on the clock tower and the vane's cardinals never leave their 6 px floor, and Courtyard shows void west of x=0. A quarter camera that does not contain its namesake is not a polish problem; it is the observer being stale, which is rung 5 by name. So this batch climbs, and b120 is the bet.\n\nThe other four are deliberately not observer work — five briefs on one theme is a monoculture, and #94's pass proved a batch of dear briefs is how cost runs away. b121 goes to the longest-untouched domain and, more to the point, to the town's namesake, which is measurably its emptiest room (c173: 4 figures inside the walls against 43 town-wide, and LAWN_CAP untouched since #95). b122 is the other long-untouched domain and the one flat physical system left: rain falls, and the ground has no memory of it — wetF is one global scalar and the grep for a per-cell water term returns nothing. b123 is cheap and is a defect: 20 of #110's 24 roof-furniture pieces are behind the sill at 1280x700, which is a law we already wrote (bound the near band in DEPTH for the shortest framing) applied to a system built after it. b124 closes the oldest small cue in the file.\n\nOne brief I wrote and then killed: connecting the allotments' harvest to what the market sells. stockMarket() already pays produce[] into the stalls and mkTrades() leaves an unstocked pitch empty all day — the connection has existed since before this pass. The law about pricing a brief's premise caught it before a worker spent 25 minutes rediscovering it, and the fact is now an inventory line so the next pass cannot propose it again.\n\nMemory, this pass: inventory 12.3 KB -> 9.0 (rewritten as nouns + seams; the prose that had crept in is what the ledger is for), cues 14 -> 6 (five promoted into these briefs, three closed as fixed or absorbed), the last three ledger entries 8.3 KB -> 6.0 by cutting promoted Law lines and stale budget complaints, and the per-entry cap tightened 2.5 KB -> 1.8 in rotate-ledger.mjs and the template, because three entries at 2.5 KB were 18% of the worker's entire read budget. Two laws promoted by MERGING rather than stacking (#118's cap-membership sweep into the rate-and-cap law, #119's before-the-divergence containment proof into the R()-reshuffle law), and to pay for them I cut the churn percentage out of LAWS (it duplicates state.json's watch line) and four sentences of worked arithmetic. LAWS.md is 12,286 of 12,288 bytes — the next pass to promote a law must replace one, not append.",
-  "queue": [
-    {
-      "id": "b124",
-      "domain": "Sky, light & weather",
-      "kind": "Connect",
-      "brief": "drawSmoke's hearth term is clamp(1 - |hour - 7|/3.5) — a hard-coded hour, which LAWS names as a seasonal bug invisible to a screenshot. It lights the morning fire at 7.00 whether sunrise is at 5.2 or 8.1, and it burns the same in August as in January. Connect the hearth to the two things it should obey: the sun (key the morning on sunUp / dawnEdge, the ONE definitions, solved at the instant it applies rather than read hours ahead) and the cold (scale it with warmth and greyF, so midwinter smokes hard and a summer morning gives a wisp or nothing). The bonfire and the glasshouse already read the year this way; the chimneys are the last thing on the roofline that does not.",
-      "seams": [
-        "drawSmoke",
-        "CHIMNEYS",
-        "sunUp",
-        "dawnEdge",
-        "warmth",
-        "greyF",
-        "snowCover",
-        "windDir"
-      ],
-      "successLooksLike": "A January morning has the chimneys working at first light, smoke the loudest thing on the roofline; a July morning has a wisp or nothing; and across the year the fire tracks the season's own sunrise instead of the clock's 7.00.",
-      "avoid": "Do not touch the evening half of the light curve — #112 deliberately left it alone — and do not change drawSmoke's wind lean. The hour is the bug.",
-      "budgetMin": 25,
-      "risk": "low"
-    }
-  ],
+  "queue": [],
   "recommendStop": null,
   "consumed": [
     {
@@ -52,6 +31,10 @@
     {
       "id": "b123",
       "at": "2026-09-02T05:52:55.750Z"
+    },
+    {
+      "id": "b124",
+      "at": "2026-09-02T06:29:51.457Z"
     }
   ]
 }
