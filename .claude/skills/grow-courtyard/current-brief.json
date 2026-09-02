@@ -15,7 +15,7 @@
   "avoid": "Nothing on the 1-cell ways between plots and nothing inside the glasshouse footprint. Do not add a tile kind or a SPECIES — each moves tileKinds/speciesKinds by exactly 9 and that is not what this is measuring. Do not draw it live: the plots are ground-cache work.",
   "budgetMin": 40,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 138,
   "issued": "2026-09-02T15:54:45.320Z",
