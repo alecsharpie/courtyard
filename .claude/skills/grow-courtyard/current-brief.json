@@ -20,7 +20,7 @@
   "avoid": "Do not raise LAWN_CAP and call it done — sweep it both ways and report the knee. Do not add bodies by widening the ring's transit: that is traffic THROUGH the courtyard, not life in it. Two figures nearer than ~0.9 cells render as one shape, so more people in one place needs the scatter's centre moved, not its members.",
   "budgetMin": 45,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 121,
   "issued": "2026-09-02T04:52:41.253Z",
