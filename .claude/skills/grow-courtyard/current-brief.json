@@ -22,7 +22,7 @@
   "avoid": "Do not answer this by widening the window - #131 already priced the round trip against EVE_GONE and the late offers are arithmetically unreturnable. Do not give a second hull its own arrival source; the passengers already exist and are being refused. If you add a hull, two hulls nearer than ~0.9 cells render as one shape, and a moored pair needs PUNT_MOOR to hold two berths.",
   "budgetMin": 45,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 141,
   "issued": "2026-09-02T19:56:25.490Z",
