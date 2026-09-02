@@ -450,7 +450,9 @@
       "MARKET every 4th day: isMarketDay/marketActive/marketOpen/marketRaise, three MARKET_STALLS stocked from the allotments' produce[] by stockMarket/mkTrades/mkBoards/mkShelfFor",
       "four sources besides the ring: spawnLaneAgent (in one edge, out the other via toX), spawnTapAgent/TAP_DOOR/tapOpen/callIn, spawnCafeAgent/cafeOpen/CAFE_WAY/CAFE_TABLES, spawnHomeAgent/homeRate",
       "morning ROUND: mround/updateRound, doors 4 and 8, ROUND_H 5h, roundMarks",
-      "routeToExit is the COURTYARD ring's exit, not the lane's"
+      "routeToExit is the COURTYARD ring's exit, not the lane's",
+      "STANDING WATER (#122): PUDDLES[] built once off the GRID ∩ lane band ∩ cross street, pavedAt() the region predicate; fill threshold = a fine hash(x,y+PUD_K) gated by a COARSE hash(x>>2,(y>>1)+PUD_DIP) dip + PUD_TROD*paveWear, so pools cluster and the trodden ones dry last. PUD_LO/PUD_HI the tail, PUD_SOFT the ramp. drawPuddles live BEFORE applyLight; drawPuddleLights in the screen pass AFTER, reach precomputed by pudLamps off WET_LAMPS",
+      "paveWear[] (#122): feet on STONE — wear[] is the grass's copy and is written only on GRASS. PW_GAIN in stepAgent, PW_DECAY PROPORTIONAL in caTick. Nothing but the puddles reads it yet"
     ],
     "street": [
       "cross street: two footways, roadway, curbs, lamps, four TREE_PITS; alley ALLEY_Y",
@@ -484,7 +486,7 @@
       "day/night (55 s day), sun and moon arc, HAZE hills, chimney smoke, a balloon; windowLit the ONE pane predicate + LIT[]; LIT_PANES relit AFTER applyLight",
       "season(): the year over SEASON_LEN 26 days, phase 0 midwinter, warmth a cosine; greyF drives the weather year",
       "cloudCover, one slow rate-capped scalar; shadowF; drawClouds 11 hashed banks, SKY STRIP ONLY. CLOUD SHADOW: drawCloudShade, CSH_N ellipses, one live multiply before applyLight; cloudDrift the ONE travel scalar",
-      "SNOW/WET: snowF, snowCover, snowAt on cached ground/roofs/awnings; wetF/stepWet is one GLOBAL scalar — no per-cell standing water anywhere",
+      "SNOW/WET: snowF, snowCover, snowAt on cached ground/roofs/awnings; wetF/stepWet is one GLOBAL scalar for how wet the town is — since #122 the lane and cross street read it PER CELL as PUDDLES (see inventory.lane); the plaza, quay and courtyard still do not",
       "WIND: windF, windyDay/frontWind, windSign latched per spell, windDir the blend every x-lean reads",
       "MIST: one rate-capped scalar, mistAt(x), MIST_REACH 8 cells off the river, drawMist live before applyLight",
       "DAWN IS ONE EVENT: dawnF() on sunUp (DAWN_LEAD/DAWN_RUN), dawnEdge() the ONE edge read by nightAt/w.last/burn-through/the HOMES cap; applyLight's wash at sunUp+0.2/DAWN_WARM. The EVENING half is untouched",
@@ -593,6 +595,30 @@
     {
       "id": "c188",
       "note": "LEDGER entries 119, 120 and 121 are all over the 1.8 KB cap (2.0/2.3/2.5); the 3-entry worker window is 6.8 KB. rotate-ledger.mjs asks the worker to condense PREDECESSORS' entries in place, which no worker should be doing to another's record — this is the manager's to curate.",
+      "raisedBy": 120,
+      "seenBy": 0
+    },
+    {
+      "id": "c189",
+      "note": "drawPuddles is the most expensive live pass in the town: 0.94 ms of a 2.0 ms frame at peak rain (560 pools). It draws every pool in PUDDLES whatever the camera, so in the four quarter cameras most are off-frame — a visibility cull is the obvious win if a later pass needs the budget.",
+      "raisedBy": 120,
+      "seenBy": 0
+    },
+    {
+      "id": "c190",
+      "note": "the plaza roundel and the quay still have NO standing water: b122 scoped them out because they are the two moss regions. mossShelterAt already reads WATER neighbours via MOSS_WET, so puddles and moss would have to agree about the same joints there.",
+      "raisedBy": 120,
+      "seenBy": 0
+    },
+    {
+      "id": "c191",
+      "note": "paveWear[] now records desire lines on the paving, and only drawPuddles reads it. The cached ground darkens worn GRASS via wear[] in groundBase; the same could darken the walked stone, which would show the lane's desire lines on a DRY day too.",
+      "raisedBy": 120,
+      "seenBy": 0
+    },
+    {
+      "id": "c192",
+      "note": "LEDGER entry 122 is 2.7 KB against the 1.8 KB cap — the FOURTH consecutive entry over it (120: 2.3, 121: 2.6). The cap has not been met since #119; either the cap is wrong or the template's 'write the surprise at full length' is in tension with it. Manager's call (see c188).",
       "raisedBy": 120,
       "seenBy": 0
     }

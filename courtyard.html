@@ -1342,6 +1342,77 @@ function stepWet(dt){
     wetness = wetness <= r ? 0 : wetness - r;
   }
 }
+
+/* ============ standing water (#122) ============
+ * wetF() is ONE number for how wet the whole town is, and a scalar cannot tell the hour
+ * after a shower from the hour before it: every stone darkened together and dried
+ * together, so the lane's whole story of a rainstorm was a slider. Water does not do
+ * that. It sheds off the crown and STANDS in the hollows, so the paving goes from a
+ * sheet to a scatter of pools over the same three hours the scalar spends walking back
+ * to zero, and the last of it lies exactly where the feet have been.
+ *
+ * Two terms, both per cell, neither with any state to step:
+ *   HOLLOW — hash(x, y + PUD_K), the permanent dish in the stone, fixed at build. The
+ *            grain the lane is ADDRESSED by is the cell, so that is the grain.
+ *   TROD   — paveWear[], because feet compact what they cross. wear[] only ever accrued
+ *            on GRASS, so before this the town's paving remembered nobody at all.
+ * The two add to a fill threshold: a cell holds water once wetF() passes it. A deep one
+ * fills in the first minutes of a shower and is the last thing dry; a shallow one needs
+ * a downpour and is gone while the gutters are still running. wetness is still one
+ * scalar — but the PATTERN it paints changes all the way down, which is the whole read.
+ *
+ * LIVE, never cached: drawGround buckets wetness to WET_STEPS and costs ~9 ms, and a
+ * pool that fills over minutes cannot wait on a dirty flag. The BODY goes before
+ * applyLight (water at midnight is slate, and should be); the LAMP in it goes after, in
+ * the screen pass, or the night multiply turns a sodium reflection blue (#93). */
+const paveWear = new Float32Array(GW * WH);      // feet on STONE — wear[] is the grass's copy of this
+/* PW_DECAY is PROPORTIONAL, not a flat subtraction, and that is the whole difference
+ * between a map and a stripe. Against a flat decay a cell either out-earns it and pins at
+ * 1 or never leaves 0, so the lane comes out BINARY: measured, 24 cells of 2,563 ever rose
+ * above 0.05 and the busiest sat at 0.18. Proportional decay gives every cell an
+ * equilibrium PROPORTIONAL TO ITS TRAFFIC — the crossing outside the tap sits high, the
+ * far footway low, and nothing saturates — which is what a desire line actually is. */
+const PW_GAIN = 0.18, PW_DECAY = 0.006;          // ~46%/day back out, so a line that stops being walked fades in a week
+function pavedAt(x, y){
+  // off the GRID, not off a naming box: pavingAt() is a fall-through and calls 845 cells
+  // of river "quay" (#114). The lane band across the world, and the cross street above it.
+  const t = grid[y * GW + x];
+  if (t !== ROAD && t !== SIDE) return false;
+  return y >= LN_WALK_N ? y < LN_WALK_S : (x >= XS_W0 && x < XS_E1);
+}
+/* PUD_CUT is the share of the stone that sheds everything — most of it. What is left
+ * gets a fixed shape at build (a pool is not a cell), so the draw path has no R() and no
+ * per-frame allocation; only the DEPTH is read each frame. */
+const PUD_K = 173, PUD_DIP = 311, PUD_CUT = 0.66, PUD_SOFT = 0.22, PUD_TROD = 0.90;
+// The wetness the deepest / shallowest cell first holds water at. PUD_LO is the length of
+// the TAIL and it is the whole point: at 0.30 the street went from streaming to bare stone
+// inside forty drying minutes, which is a switch, not an arc. At 0.16 the deep and trodden
+// hollows are still holding when the rest of the stone has stopped shining.
+const PUD_LO = 0.16, PUD_HI = 0.94;
+const PUDDLES = [];
+function buildPuddles(){
+  for (let y = 0; y < LN_WALK_S; y++) for (let x = 0; x < GW; x++){
+    if (!pavedAt(x, y)) continue;
+    // TWO grains, and the coarse one is what makes it look like water. A single per-cell
+    // hash is uniform, so it scatters pools evenly over every paved cell and the lane
+    // comes out a leopard print — even, textural, obviously a pattern. A street does not
+    // do that: it has a FALL, and water gathers in the low stretches and leaves the rest
+    // dry. So the fine hash sits inside a coarse one over a ~4x2-cell dip, and the pools
+    // cluster where the paving lies low.
+    const h = 0.45 * hash(x, y + PUD_K) + 0.55 * hash(x >> 2, (y >> 1) + PUD_DIP);
+    if (h <= PUD_CUT) continue;
+    const hollow = (h - PUD_CUT) / (1 - PUD_CUT);
+    PUDDLES.push({ i: y * GW + x, hollow,
+      cx: x + 0.18 + hash(x, y + 41) * 0.64,  cy: y + 0.22 + hash(x, y + 59) * 0.56,
+      rx: 0.22 + hollow * 0.78 + hash(x, y + 71) * 0.30,
+      ry: 0.14 + hollow * 0.44 + hash(x, y + 83) * 0.17, lamp: 0 });
+  }
+}
+buildPuddles();
+function pudDepth(p){
+  const hollow = clamp(p.hollow + PUD_TROD * paveWear[p.i], 0, 1);
+  return clamp((wetness - lerp(PUD_HI, PUD_LO, hollow)) / PUD_SOFT, 0, 1);
+}
 /* River mist (#88) — a weather nobody had seen. ONE slow scalar in the cloudCover()/
  * wetF() family: it rises off the water in the hour before sunrise when the night was
  * cold or wet and the air is still and clear, holds while the sun is low, and burns off
@@ -2213,6 +2284,8 @@ function caTick(){
         const crowd = nm > 5 ? 0.03 : 0;
         if (R() < (0.0025 + crowd + bAge[i] * 0.0004) * die){ bSp[i] = 0; bSt[i] = 0; bAge[i] = 0; }
       }
+    } else if ((t === ROAD || t === SIDE) && paveWear[i] > 0){
+      paveWear[i] -= paveWear[i] * Math.min(1, PW_DECAY * boost);   // rain scours it out faster, as it does the wear on the grass
     } else if (t === GRASS){
       wear[i] = Math.max(0, wear[i] - 0.0035 * boost * vig);
       if (!daisy[i] && wear[i] < 0.08 && R() < 0.00012 * (0.2 + m) * vig) daisy[i] = 1 + (R() * 3 | 0);
@@ -2836,6 +2909,11 @@ function stepAgent(a, dt){
   const gx = Math.round(a.x - .5), gy = Math.round(a.y - .5);
   if (gx>=0 && gy>=0 && gx<GW && gy<WH){
     const j = gy*GW+gx;
+    // #122: feet on STONE. The chain below is exclusive and wear[] stops at GRASS, so
+    // until now every sett in the town had forgotten everyone who ever crossed it. This
+    // is the same idea on the paving, and it is what decides where the water stands
+    // once the shower stops — so it is a statement, not another branch of the chain.
+    if (pavedAt(gx, gy)) paveWear[j] = Math.min(1, paveWear[j] + (a.small ? 0.6 : 1) * PW_GAIN * dt);
     if (grid[j]===GRASS){
       wear[j] = Math.min(1, wear[j] + (a.small?0.05:0.09) * dt * 6);
       if (daisy[j] && wear[j]>0.25){ daisy[j]=0; }
@@ -7321,6 +7399,34 @@ const LANE_LAMPS = [[5, 65.6], [28, 65.6], [37, 65.6], [60, 65.6], [82, 65.6], [
    NORTH of its own trunk, so a tree cannot be found by unprojecting the pointer, and a
    second derivation of the same geometry is the thing that drifts (see waterBox). */
 const crowns = [];
+/* The pools themselves. Water on stone reads as DARK first — that is what carries at the
+ * wide shot, where a puddle is eight pixels across — and only then as a mirror. So each
+ * pool is a dark body, then the sky's own low colour laid back on its NEAR half, which is
+ * where a surface seen at this grazing angle actually returns the sky. Flat fills, not
+ * gradients: ~700 pools stand in the lane at the top of a shower and a createLinearGradient
+ * apiece would be the most expensive thing in the frame. No R() — every shape was fixed at
+ * build, so a puddle is in the same place in the same world every time it rains. */
+function drawPuddles(){
+  if (wetness <= PUD_LO) return;
+  const sky = skyCols()[1], gl = 0.18 + 0.82 * daylight;
+  for (const p of PUDDLES){
+    const d = pudDepth(p);
+    if (d <= 0.03) continue;
+    const [sx, sy] = project(p.cx, p.cy, 0);
+    const rx = p.rx * cellW * (0.72 + 0.28 * d), ry = p.ry * cellH * (0.72 + 0.28 * d);
+    ctx.fillStyle = 'rgba(30,36,45,' + (0.38 * d).toFixed(3) + ')';
+    ctx.beginPath(); ctx.ellipse(sx, sy, rx, ry, 0, 0, 7); ctx.fill();
+    // The sky it gives back is a SLIVER along the NEAR rim, never a disc over the middle.
+    // A pool eight pixels across with a pale centre is a coin, and six hundred coins are
+    // bubble wrap — which is exactly what the first cut of this looked like on an overcast
+    // noon, when skyCols()[1] is paler than the paving. Everywhere but that rim, water is
+    // DARKER than the dry stone, and the dark is what carries at the wide shot.
+    ctx.globalAlpha = 0.30 * d * gl;
+    ctx.fillStyle = sky;
+    ctx.beginPath(); ctx.ellipse(sx, sy + ry * 0.52, rx * 0.62, ry * 0.30, 0, 0, 7); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+}
 function drawScene(t, dt){
   ctx.setTransform(DPR,0,0,DPR,0,0);
   if (groundDirty && !viewEasing()){ drawGround(); groundDirty = false; wearDirty = false; wearAcc = 0; }
@@ -7351,13 +7457,8 @@ function drawScene(t, dt){
     const c1 = project(XS_W0, 0, 0), c2 = project(XS_E1, 0, 0), c3 = project(XS_E1, LN_WALK_N, 0), c4 = project(XS_W0, LN_WALK_N, 0);
     poly(ctx, [c1, c2, c3, c4]); ctx.fill();
     ctx.globalCompositeOperation = 'source-over';
-    for (let k = 0; k < 8; k++){
-      const px2 = hash(k, 31) * GW, py2 = LN_ROAD0 + hash(k, 37) * (LN_ROAD1 - LN_ROAD0);
-      const [sx, sy] = project(px2, py2, 0);
-      ctx.fillStyle = 'rgba(225,235,245,' + al * (0.5 + 0.5 * Math.sin(t + k)) + ')';
-      ctx.beginPath(); ctx.ellipse(sx, sy, 5 + hash(k, 3) * 6, 2, 0, 0, 7); ctx.fill();
-    }
   }
+  drawPuddles();
 
   windT += dt * (RM ? 0.15 : 0.6) * (1 + 1.4 * windF());
   const sway = RM ? 0 : (Math.sin(windT) * 0.14 + Math.sin(windT*2.7)*0.05) * (1 + 0.7 * windF());
@@ -8473,6 +8574,40 @@ function drawWetLights(){
     ctx.closePath(); ctx.fill();
   }
 }
+/* and after dusk the lamps have something to sit IN. drawWetLights hangs one soft bar
+ * under every lamp standing on paving x the GLOBAL wetness — true of a wet road, but the
+ * same bar on a streaming night as on a drying one. This is the other half: a warm cap on
+ * each POOL inside a lamp's reach, so the light breaks up across standing water and then
+ * goes out pool by pool as they drain, an hour before the road stops shining. Reach is
+ * fixed at build — lamps do not move — and squared, so it falls off inside its own radius
+ * rather than ending at a rim. Screen pass, like every other warm light after #93. */
+const PUD_LAMP_RX = 3.4, PUD_LAMP_RY = 2.4;
+let pudLampReady = false;
+function pudLamps(){
+  if (pudLampReady) return;
+  pudLampReady = true;
+  for (const p of PUDDLES){
+    let best = 0;
+    for (const L of WET_LAMPS){
+      const dx = (p.cx - L[0]) / PUD_LAMP_RX, dy = (p.cy - (L[1] + 1.0)) / PUD_LAMP_RY;
+      best = Math.max(best, 1 - Math.min(1, Math.hypot(dx, dy)));
+    }
+    p.lamp = best;
+  }
+}
+function drawPuddleLights(){
+  if (wetness <= PUD_LO || nightF < 0.03) return;
+  pudLamps();
+  for (const p of PUDDLES){
+    if (p.lamp <= 0.03) continue;
+    const d = pudDepth(p);
+    if (d <= 0.05) continue;
+    const [sx, sy] = project(p.cx, p.cy, 0);
+    const rx = p.rx * cellW * (0.72 + 0.28 * d), ry = p.ry * cellH * (0.72 + 0.28 * d);
+    ctx.fillStyle = 'rgba(255,196,110,' + (0.55 * d * p.lamp * p.lamp * nightF).toFixed(3) + ')';
+    ctx.beginPath(); ctx.ellipse(sx, sy, rx * 0.9, ry * 0.85, 0, 0, 7); ctx.fill();
+  }
+}
 const RIVER_LAMPS = LANE_LAMPS.filter(L => Math.abs(L[0] - RIVER_X0) < 2 || Math.abs(L[0] - RIVER_X1) < 2.4);
 function drawRiverLights(t){
   const veil = 1 - cloudCover();
@@ -9281,6 +9416,7 @@ function applyLight(t){
     }
     drawRiverLights(simT);
     drawWetLights();
+    drawPuddleLights();       // the standing water gets the lamp the sheen only suggested
     // the warmth back into the glass: the multiply above turned every lit pane the
     // same grey as the wall (R - B was -5 at midnight); a screen fill of the pane's own
     // quad restores it, and lights whoever stands in front of it, which is right

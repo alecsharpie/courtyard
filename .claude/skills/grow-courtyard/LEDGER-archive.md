@@ -3932,3 +3932,13 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped, +55 lines. Budget opened OVER (48.4/46).
 **Surprise:** the pointer was never where the picture is. `resize()` takes W/H off `cv.parentElement` — the frame's BORDER box — while `#cv` is `inset:0`, i.e. its PADDING box: 20 px narrower and shorter at every size. The backing store is stretched to fit, so `evPx`'s point was up to 16 px out across the frame and 20 px down it — 3.3% of the height, against a walker 12 px tall. HEAD's roof-bird line, pointed at properly, answers **"the lane"**.
 
+## Iteration 114 — the quay ages too: a second region for the moss CA, greener against the rail than along the line people walk (2026-09-02) [Plaza & quay × Deepen]
+
+**Brief:** b114 — #103's moss is plaza-only; extend the ageing to the quay, judged by a difference image and a number.
+**Premise held; the brief's warning was the right one.** `pavingAt()` answers `PAVING.quay` for **975 cells — 845 are the RIVER**. It is a fall-through, so the box it names is an intersection with the stone, and the stone is **130 cells** against the plaza's 730.
+**Did.** `inQuay`/`mossIn`, `mossOwn[]` a region mask, `buildMoss`/`stepMoss` split into region builders run twice. `mossShelterAt` keeps the plaza's rule verbatim and reads the quay in its own stone plus `MOSS_WET 0.55` per WATER neighbour — that term *is* the rail-vs-walked difference (shelter 0.92 vs 0.60, ceiling 0.654 vs 0.481). `scuffLitter()` factored out of #72's branch, which the moss branch now sits in front of on SIDE and would have stopped the quay clearing leaves in October. `nameAt` says "the quay, green in the joints". +70 lines.
+**Gates:** census PASS · motion PASS · filmstrip day/night 0 POP · perf +0.0%.
+**Measured:** plaza moss field **bit-identical 12/12**. Difference image at two sizes, masked per cell by `unproject`: **quay 0.85% → 37.4% of pixels changed, meanD 0.83 → 5.35**; plaza 0.86%/0.60, the control's own floor. Rail-minus-walked green excess −0.50 → **+1.02**.
+**Verdict:** shipped. Budget OVER at both ends (49.0 open, 50.5 close) — third consecutive over-budget open.
+**Surprise:** the difference image was unreadable until I ran the same probe **HEAD against HEAD**. Two runs of identical code differ over ~1.3% of the frame at peak 90+, because `__reseed()` + `__warp()` + one `drawScene` does not pin the ground cache or the live layer. Without that control I would have reported a whole-frame regression from a change touching 130 cells.
+

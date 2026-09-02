@@ -40,16 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 114 — the quay ages too: a second region for the moss CA, greener against the rail than along the line people walk (2026-09-02) [Plaza & quay × Deepen]
-
-**Brief:** b114 — #103's moss is plaza-only; extend the ageing to the quay, judged by a difference image and a number.
-**Premise held; the brief's warning was the right one.** `pavingAt()` answers `PAVING.quay` for **975 cells — 845 are the RIVER**. It is a fall-through, so the box it names is an intersection with the stone, and the stone is **130 cells** against the plaza's 730.
-**Did.** `inQuay`/`mossIn`, `mossOwn[]` a region mask, `buildMoss`/`stepMoss` split into region builders run twice. `mossShelterAt` keeps the plaza's rule verbatim and reads the quay in its own stone plus `MOSS_WET 0.55` per WATER neighbour — that term *is* the rail-vs-walked difference (shelter 0.92 vs 0.60, ceiling 0.654 vs 0.481). `scuffLitter()` factored out of #72's branch, which the moss branch now sits in front of on SIDE and would have stopped the quay clearing leaves in October. `nameAt` says "the quay, green in the joints". +70 lines.
-**Gates:** census PASS · motion PASS · filmstrip day/night 0 POP · perf +0.0%.
-**Measured:** plaza moss field **bit-identical 12/12**. Difference image at two sizes, masked per cell by `unproject`: **quay 0.85% → 37.4% of pixels changed, meanD 0.83 → 5.35**; plaza 0.86%/0.60, the control's own floor. Rail-minus-walked green excess −0.50 → **+1.02**.
-**Verdict:** shipped. Budget OVER at both ends (49.0 open, 50.5 close) — third consecutive over-budget open.
-**Surprise:** the difference image was unreadable until I ran the same probe **HEAD against HEAD**. Two runs of identical code differ over ~1.3% of the frame at peak 90+, because `__reseed()` + `__warp()` + one `drawScene` does not pin the ground cache or the live layer. Without that control I would have reported a whole-frame regression from a change touching 130 cells.
-
 ## Iteration 115 — the census stops throwing away the planting group, and the new fields arrive with a measured noise floor (2026-09-02) [The sill & the observer × Harness]
 
 **Brief:** b115 — `summarize()` folds five groups and silently drops `c.planting`'s eight scalars; fold them, then measure their churn so a later brief can lean on one.
@@ -123,3 +113,14 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped. Budget closed **OVER at 47.4/46 KB** — four of the last five passes have.
 **Surprise:** raising the cap fills the WALL, not the green. 4→8 put +3.4 people on the four benches (sitter 1.17 → 3.96) and only +2.4 on the grass, because `BENCH_SPOTS` is the largest sub-cap and the benches sit between the ring and the wall. `LAWN_BLANKETS` 2→3 moved that back at zero cost in total (picnic 2.54 → 3.71, grass 5.71 → 6.28) — and the blanket is also the only lawn kind legible from the WIDE shot, where a person is three pixels and a red rectangle on grass is not.
 **Law:** a cap over place-holders is really a cap on the SUB-CAPS beneath it; when it stops binding the mix tips toward whichever sub-cap is largest — a composition change nobody asked for. Sweep the cap, then check WHICH kind absorbed the slack.
+
+## Iteration 122 — the lane stops forgetting the rain: per-cell standing water (2026-09-02) [Lane & market × New element]
+
+**Brief:** b122 — `wetF()` is one global scalar, so the hour after a shower looks like the hour before.
+**Premise held; half of it was unbuildable as written.** No `puddle`/`wet[]` anywhere — but "where the feet wear the ground (`trod[]`/`wear[]`)" cannot be read: `wear[]` is written only on `grid===GRASS`, `trod[]` only under snow. The paving had forgotten everyone who ever crossed it, so this needed its own memory first.
+**Did.** `paveWear[]`, feet on STONE, accrued in `stepAgent` as a *statement* — not another branch of the exclusive chain, where a cell holding litter would have skipped it. `PUDDLES[]` built once off the GRID ∩ lane ∩ cross street, fill threshold `hash + PUD_TROD·paveWear`, so a deep or trodden cell fills first and dries last. `drawPuddles()` live *before* `applyLight` (water at midnight *is* slate), `drawPuddleLights()` in the `screen` pass after. Retired the 8 ellipses that pulsed on `sin(t+k)`. +90 lines.
+**Gates:** census PASS, all groups unchanged (no new `R()`) · motion PASS · filmstrip 0 POP · shots incl. mobile clean · `perf.mjs` PASS but **blind — 16.70 ms both sides is vsync**; timed directly, `drawPuddles` is **0.94 ms at 560 pools on a 2.0 ms frame**, exactly 0 below `PUD_LO`.
+**Measured** (`probes/puddle-arc.mjs`, `dry-identical.mjs`): dry is **bit-identical to HEAD, whole canvas, 0 px**. Over the arc pools **560 → 17** while mean `paveWear` under those still holding rises monotonically **0.032 → 0.142**. Lane band vs HEAD at equal wetness **8.33% → 0.00%**, two-page HEAD|HEAD control exactly 0.00%.
+**Verdict:** shipped. Budget **OVER at both ends** (47.5 open, 50.2 close) — five of the last six passes have opened over, and my own cues and inventory are 2.7 KB of the close.
+**Surprise:** both failures were *uniformity*, at different scales. Flat-subtraction decay on an accumulator makes the map **binary** — a cell either out-earns the decay and pins at its cap or never leaves 0, measured 24 cells of 2,563 above 0.05 — while proportional decay gives each cell an equilibrium proportional to its traffic, which is what a desire line is. And one per-cell hash scatters pools *evenly*, which reads as leopard print rather than water; a street has a **fall**, so the fine hash had to sit inside a coarse one over a ~4×2-cell dip before the lane grew dry stretches and the pools looked like they had gathered somewhere.
+**Law:** an accumulator-fed per-cell field needs **proportional** decay — subtractive decay has no stable interior and quantises it to {0, cap}. And one uniform hash is a texture, never a *place*: to make scattered things look gathered, gate a fine hash by a coarse one at the scale the gathering happens on.

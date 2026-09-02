@@ -15,30 +15,6 @@
   "rationale": "Three consecutive passes have sat on rung 4b and all three worked: #110 gave the near roof a working surface, #116 put a sixteenth tile and the first transparent thing in the town, #119 built an edge on the world's east face. The town's SHAPE has moved four times in twenty iterations. What has not moved since #99 is the observer, and two independent measurements now say the five cameras no longer contain the town they were framed for. c182 (from #119's own surprise, probes/world-edge-framing.mjs): the world's east edge — the hedge, the open gate, the worn track a whole iteration just built — is off-canvas in every camera but Wide at desktop sizes, INCLUDING the quarter named 'Far bank', and off-frame in all five on a phone. c150 (open since #99, seen by three passes): the quarters frame GROUND, so Far bank holds no sky, no quarter reaches s > 1.02 on the clock tower and the vane's cardinals never leave their 6 px floor, and Courtyard shows void west of x=0. A quarter camera that does not contain its namesake is not a polish problem; it is the observer being stale, which is rung 5 by name. So this batch climbs, and b120 is the bet.\n\nThe other four are deliberately not observer work — five briefs on one theme is a monoculture, and #94's pass proved a batch of dear briefs is how cost runs away. b121 goes to the longest-untouched domain and, more to the point, to the town's namesake, which is measurably its emptiest room (c173: 4 figures inside the walls against 43 town-wide, and LAWN_CAP untouched since #95). b122 is the other long-untouched domain and the one flat physical system left: rain falls, and the ground has no memory of it — wetF is one global scalar and the grep for a per-cell water term returns nothing. b123 is cheap and is a defect: 20 of #110's 24 roof-furniture pieces are behind the sill at 1280x700, which is a law we already wrote (bound the near band in DEPTH for the shortest framing) applied to a system built after it. b124 closes the oldest small cue in the file.\n\nOne brief I wrote and then killed: connecting the allotments' harvest to what the market sells. stockMarket() already pays produce[] into the stalls and mkTrades() leaves an unstocked pitch empty all day — the connection has existed since before this pass. The law about pricing a brief's premise caught it before a worker spent 25 minutes rediscovering it, and the fact is now an inventory line so the next pass cannot propose it again.\n\nMemory, this pass: inventory 12.3 KB -> 9.0 (rewritten as nouns + seams; the prose that had crept in is what the ledger is for), cues 14 -> 6 (five promoted into these briefs, three closed as fixed or absorbed), the last three ledger entries 8.3 KB -> 6.0 by cutting promoted Law lines and stale budget complaints, and the per-entry cap tightened 2.5 KB -> 1.8 in rotate-ledger.mjs and the template, because three entries at 2.5 KB were 18% of the worker's entire read budget. Two laws promoted by MERGING rather than stacking (#118's cap-membership sweep into the rate-and-cap law, #119's before-the-divergence containment proof into the R()-reshuffle law), and to pay for them I cut the churn percentage out of LAWS (it duplicates state.json's watch line) and four sentences of worked arithmetic. LAWS.md is 12,286 of 12,288 bytes — the next pass to promote a law must replace one, not append.",
   "queue": [
     {
-      "id": "b122",
-      "domain": "Lane & market",
-      "kind": "New element",
-      "brief": "Rain falls on a town whose ground has no memory of it. wetF()/stepWet is ONE global scalar that seats, moss and the light read; grep returns no per-cell water term anywhere in the source. So a shower wets everything by the same amount and dries it by the same amount, and the half-hour after rain looks like the half-hour before. Give the paved ground PUDDLES: per-cell variance (hash(x, y+k) > c) at the grain the lane is addressed by, filling while raining, standing where the feet already wear the ground (trod[]/wear[]), drying back with wetF over its ~3 h, dark enough to read from the wide shot and holding the LANE_LAMPS after dusk. Scope it to the lane and the cross street; the plaza's paving belongs to the two moss regions and can come later.",
-      "seams": [
-        "wetF",
-        "stepWet",
-        "raining",
-        "rainFall",
-        "nightDamp",
-        "trod",
-        "wear",
-        "pavingAt",
-        "drawGround",
-        "groundDirty",
-        "applyLight",
-        "LANE_LAMPS"
-      ],
-      "successLooksLike": "The hour after a shower is visibly different from the hour before it at the wide shot — the lane holds water in the worn places and loses it slowly — and after dusk the lamps have something to sit in.",
-      "avoid": "Do not make it global: a uniform wet sheen is what wetF already does and it reads as nothing. Do not extend the moss CA — this is water, it is fast, and it belongs to the rain, not to the year. A puddle that changes on a minute's scale is a LIVE overlay, not a ground-cache repaint; and a reflection drawn before applyLight's multiply is slate by midnight.",
-      "budgetMin": 50,
-      "risk": "medium"
-    },
-    {
       "id": "b123",
       "domain": "Roofs & skyline",
       "kind": "Polish",
@@ -91,6 +67,10 @@
     {
       "id": "b121",
       "at": "2026-09-02T04:52:41.252Z"
+    },
+    {
+      "id": "b122",
+      "at": "2026-09-02T05:12:12.750Z"
     }
   ]
 }
