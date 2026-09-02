@@ -13,7 +13,7 @@
   "avoid": "Do not raise GARDEN_ROWS or GARD_K: #129 counted the supply and it is not the problem. Do not let the fix reach the walk home — gardenFits bounds the pre-dawn walk at BOTH ends and that bound is load-bearing.",
   "budgetMin": 30,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 139,
   "issued": "2026-09-02T16:23:09.041Z",
