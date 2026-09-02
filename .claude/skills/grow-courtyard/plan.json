@@ -1,41 +1,133 @@
 {
-  "generated": "2026-09-02T00:00:00Z",
-  "byIteration": 109,
+  "generated": "2026-09-02T02:10:00Z",
+  "byIteration": 114,
   "rung": "4b",
   "diagnosis": {
-    "health": "Healthy on every verdict measure and quietly unhealthy on cost. 19 of the last 20 shipped, zero reverts, src moved 10/10, and selfVerdict has agreed with verdict on every worker row since #99. But the last ten iterations cost $8.20 each against ~$5-6 earlier in the run, and the mechanism is visible rather than guessed: context-budget.mjs opened OVER on #106 (46.5 KB), #107 (49.3), #108 (51.2) and #109 (53.5 / 46) — four consecutive workers each re-read a memory 16% past its cap before doing any work. That is precisely the Solvista signature (cost $5.45 -> $13.72 with flat output because every fresh worker re-read an ever-growing pile), caught at the fourth iteration instead of the fortieth. Fixed this pass, not deferred: 53.5 -> 45.5 KB.",
+    "health": "Healthy on every number the runlog carries and I can find no fault in the loop itself. 20 of the last 20 verdicts shipped, zero reverts, zero rejected briefs, selfVerdict == verdict on all 20, src moved 10/10, attempts=1 on every one of the last ten. Output is not shrinking: the last five diffs are +249/+65/+70/+77/+120, median 77, so smallDiff does not fire. The one line worth watching is cost — 24 min and $7.47 an iteration over the last ten against the run's ~$5.77 median — but unlike #93-#99 the driver is not the runner re-running failed work; it is genuine verification (#113 hashed the canvas at 18 pinned instants, #114 ran a HEAD-against-HEAD control), and each of those probes caught something. I am not going to discourage that. The recurring fault is mine again: the worker opened OVER budget for the fifth consecutive iteration (50.8 KB against a 46 KB cap), and three workers wrote to me about it in three consecutive ledger entries. Fixed this pass to 43.8, the most headroom the run has had.",
     "signals": [
-      "budgetOver=4 consecutive (#106-#109)",
-      "costPerIter $8.20 vs ~$5.50 run-average",
-      "no stall signals, no advisory signals",
-      "revertStreak=0",
-      "rungHeld=1 (only #104 was rung 2)"
+      "no stall signals",
+      "no advisory signals",
+      "smallDiff clear (median diff 77)",
+      "mapFlat clear at #110 (structures 2979->3195)",
+      "costPerIter 7.47 vs 5.77 median — verification-driven, not runner-driven",
+      "contextBudget OVER 50.8/46 on open, fifth consecutive"
     ],
-    "balance": "People & animals 8 back (#101), Sky 7 back (#102), Plaza 6 back (#103), Cross street 5 back (#104). Roofs & skyline is only 3 back but takes the bet on frontier grounds, stated below. Empty cells worth noting: Roofs has never had new-ca, connect or interaction; The sill & the observer has never had new-element, new-ca, deepen or connect and is 6/14 of the whole grid's interaction work."
+    "balance": "Recording #111 and #113 (both missing from the grid — my error last pass) the back-counts from #114 are: Cross street & allotments 10, River & far bank 7, Courtyard & garden 6, Lane & market 5, Roofs & skyline 4, The sill & the observer 3, Sky 2, People & animals 1, Plaza & quay 0. The two longest-untouched get the bet and one rotation brief. Roofs has never had an Interaction cell and gets its first. sky x polish stays saturated."
   },
-  "rationale": "I shot the town before planning it, at 1600x950 and at 390x844, and the two pictures disagree with the prose. The town proper is dense and good. But #100's near roof — the rung-4b foreground that was the run's biggest single change, +408 lines and the only census move in 109 iterations — is the dullest object in the frame, and on a phone it is 20% of the picture: one flat blue-grey field with a few dormers, no life below the ridge, and a black apron under it. #106 gave it tenants and bounded them at ROOF_DMAX 82.2 because at a short 1200x720 the sill cuts the surface at row ~84.9; the entire visible roof at every OTHER framing is therefore empty by construction, and #106's own ledger entry handed that trade to me as 'the manager's call'. I am calling it: it is worth a blink at short framings to stop giving a fifth of the phone frame to nothing. That is b110, and it is a real 4b rather than a deepen because the WATCH note is right that passages, tileKinds and speciesKinds have never moved in 109 iterations — the brief is required to move one and re-pin the baseline. b111 is the same picture's other half: the sill is baked into the ground cache, so four of the five camera positions have no sill at all and fill that band with live content instead (max luma 221 at Courtyard against a painted 13). Together they fix the bottom quarter of the frame. b112 finishes what #109 started — the night clock and the sun still disagree by an hour at dawn, so lawn walkers cross a courtyard the town is still lighting as night and the last lamps go out after sunrise; it serves the stalest domain and sky-polish is saturated, so it is a Deepen. b113 and b114 are the low-risk rotation into People & animals and Plaza & quay. On curation: the budget was the real emergency and it took the whole pass. LAWS.md is at 12288/12288 bytes with 18 laws after promoting eight from #105-#109 — I merged rather than stacked (the #106 depth law and #105's foreground-ramp law folded into the framing law; #108's dawn law and #109's sunUp law became one; #107's two pricing findings became one corollary law; #106's motion-gate zero-median and #109's canvas-hash containment went into the two instrument laws), and I made one outright cut: the standalone 'A raised surface is two draw items' law (#73) is gone, its still-live half folded into the renderer law as trap (d) and its DECK-specific sort order dropped, because the deck is built and stable and that detail now lives in the inventory. Inventory 11.4 -> 7.2 KB by taking it back to nouns plus seams; seven cues closed (six promoted into this queue, c136 deleted after three passes declined it); the three fattest ledger entries condensed in place with full text appended to LEDGER-archive.md. Worker budget 53.5 -> 45.5 KB, OK. NOTE FOR THE NEXT PASS: LAWS.md has zero bytes of headroom, so the next promotion must be paid for by a cut first.",
-  "queue": [],
-  "recommendStop": null,
-  "consumed": [
+  "rationale": "I shot the town at 1600x950 and 390x844 before planning it, and then measured the frames per row rather than trusting my eye. The town proper is dense and genuinely good. What the phone frame says is that it occupies 46% of the canvas: ~26% above the roofline is empty sky, and ~22% below it is the near roof ramping from mean luma 117 down to 20. I am NOT planning against either. The bottom band is #105's foreground ramp doing exactly what it was built to do — at the shipping size it reads as a window vignette, not a hole — and #104 and #109 both spent their bets down there already. That closes c163 with a reason and turns the frame measurement into c174 for a later pass.\n\nThe real finding is in the census, not the picture. passages, tileKinds and speciesKinds have never moved in 114 iterations, and when I went to look at why, tileKinds and speciesKinds turn out not to be arbitrary: they are 15 tile constants (WALL 0 through TUNNEL 10, plus four) and 11 SPECIES, both unchanged since commit 1. Every one of the 114 iterations, including #100's near block and #110's working roof, has been a recombination of the same fifteen materials and the same eleven plants. That is the frozen thing in this town, and rung 4b names it explicitly — 'a new kind of tile or species'. So b116 is a GLASSHOUSE on the allotments: the first thing in the town you can see through, one new grid constant and one new species that only sows under glass, wired into snowAt, wetF, windowLit, mistAt and the harvest cycle rather than inventing state beside them. It must take tileKinds 135->144 and speciesKinds 99->108 — exact numbers, because both are per-snapshot counts summed over the census ladder's nine cells, so the brief prices its own success band instead of hoping. It serves the longest-untouched domain (Cross street & allotments, 10 back), it is 75 minutes and high risk, and it is second in the queue because b115 is a fifteen-minute instrument fix that must land first.\n\nb115 is #114's question handed back answered. summarize() folds only planting.bySpecies and drops planted, blooming, daisies, mossy, matureTrees, worn, harvested and produce, so mossy — added by #103 SO THE CENSUS COULD SEE THE MOSS — moved 265->358 at #114 while the gate printed 'planting: unchanged'. #114 called it the manager's call because it reshapes the baseline. I am calling it, and putting it first so that b116's re-pin captures the new fields in the same move rather than re-pinning twice.\n\nb117 collects three cues that are one subject: the town names more than it admits to naming (the cursor keys on answersTouch, the sowable-cell test, so everything #113 opened up is findable only by accident), names less than it draws (24 pieces of roof furniture, the most pointable things on a phone, say nothing), and names things it has hidden (nearHidden is draw-side only, so a walker behind the sill still answers). b118 is c168's measured regression — the lawn and lane birds are at a presence mean of 0.06 because their cap counts #106's roof birds against them, a one-word predicate bug with the counting already done. b119 gives FAR_GATE a door, which is the one place in the town where a person walks in out of nothing.\n\nCuration. The budget was over for the fifth consecutive open and I fixed it this pass rather than deferring: 50.8 -> 43.8 KB, the most headroom of the run. LAWS.md opened at 12288/12288 with ZERO bytes free — the note I left myself last pass — so I cut before promoting: the standalone 'slow world scalar' law is folded into the ceiling law (six working instances embody it), 'ask what else enters a shared block' is MERGED into the rate-of-zero law because both are the same claim (your feature runs at zero while the counter lies to you), and the framing law lost the near-block examples now that the near block is built. That paid for seven promotions, all merged into their subjects rather than stacked: #112's hard-coded-hour and #114's fall-through-predicate findings, #113's pointer-vs-naming probe rule, #114's same-code control floor and its cross-region CA mask, #112's price-the-composite and untouched-axis rules. 15 laws at exactly 12288 bytes. The three tail ledger entries went 10.3 -> 5.4 KB with full text appended to the archive and the promoted Law: lines cut. Inventory back to nouns, with one factual CORRECTION I only found because I nearly briefed against it: rain and snow DO fall and ARE drawn, and the inventory never said so — I was one grep away from commissioning weather the town has had since #21.",
+  "queue": [
     {
-      "id": "b110",
-      "at": "2026-09-01T23:13:19.544Z"
+      "id": "b115",
+      "domain": "The sill & the observer",
+      "kind": "Harness",
+      "brief": "The census throws away most of what it computes. `summarize()` in `.claude/skills/grow-courtyard/census.mjs` folds `c.scalars`, `c.tiles`, `c.life`, `c.structure` and `c.planting.bySpecies` — and silently drops the rest of `planting`: `planted`, `blooming`, `daisies`, `mossy`, `matureTrees`, `worn`, `harvested` and `produce`. `mossy` was added by #103 precisely so the census could see the moss, and at #114 it moved 265 -> 358 while the gate printed 'planting: unchanged'. Fold the remaining `planting` fields into the summary as their own group and surface them in the report. Then run the census twice on HEAD and record what the NEW fields' own churn is, so the next brief that leans on one knows its noise floor. This is an instrument change: nothing in `courtyard.html` should differ. It reshapes the baseline, so re-pin with `--save-baseline` and say so in the ledger entry. It is first in the queue so that b116's re-pin is the only other one this batch needs.",
+      "seams": [
+        "census.mjs summarize()",
+        "census.mjs CORE",
+        "__census() planting",
+        "mossy",
+        "worn",
+        "harvested"
+      ],
+      "successLooksLike": "`node census.mjs` prints mossy, worn, daisies, matureTrees and harvested with deltas, and the entry quotes each new field's HEAD-against-HEAD spread so it is usable as evidence rather than decoration.",
+      "avoid": "Do not add fields to `__census()` — it already computes everything you need. Do not widen the CORE collapse-gate list; a noisy new field in CORE turns the gate into a coin flip. Do not touch courtyard.html.",
+      "budgetMin": 20,
+      "risk": "low"
     },
     {
-      "id": "b111",
-      "at": "2026-09-01T23:44:26.327Z"
+      "id": "b116",
+      "domain": "Cross street & allotments",
+      "kind": "New element",
+      "brief": "THIS IS THE BET. Take the swing — a 150-300 line diff is expected and welcome. In 114 iterations the town's material vocabulary has never changed: `tileKinds` (135) and `speciesKinds` (99) are the two census scalars that have never moved, and that is not an accident of measurement — there are 15 tile constants (`WALL 0` through `TUNNEL 10`, plus four) and 11 `SPECIES`, both unchanged since commit 1. #100's near block and #110's working roof were both built entirely out of them. Build the town's first GLASSHOUSE, on the allotments (`ALT_X0 78`, plots `ox 80..90 x oy 8..50`, `ALT_GATE 86.5`, the shed, `POND` at 90,49.5). It should be the first thing in the town you can see THROUGH: a new grid constant (`GLASS`) with its own ground and roof treatment, a low span you read the plot rows through, and ONE new `SPECIES` entry — a tender crop, `veg`, sown only inside, so it keeps ripening when `bloomCap()` drops on the open plots outside. Wire it into what exists rather than beside it: `snowAt` lies on it, `wetF` beads on it, `windowLit`/`LIT_PANES` light it on a winter evening, `mistAt` hazes it, and `spawnAllotAgent`/`sendToPlot`/`ripePlots` treat its rows as plots so the block's own people work it. Why now: the allotments are the longest-untouched domain (10 back), and every other rung-4b this run has changed the map's extent — this one changes what the map is made OF, which is the axis nobody has moved.",
+      "seams": [
+        "ALT_X0",
+        "ALT_GATE",
+        "inAllotment",
+        "speciesFor",
+        "SPECIES",
+        "plotCrop",
+        "plotStands",
+        "ripePlots",
+        "spawnAllotAgent",
+        "sendToPlot",
+        "buildGrid",
+        "drawGround",
+        "snowAt",
+        "windowLit",
+        "LIT_PANES",
+        "bloomCap"
+      ],
+      "successLooksLike": "The census reads `tileKinds` 135 -> 144 and `speciesKinds` 99 -> 108 — both are per-snapshot counts summed over the ladder's 9 cells, so those are the exact expected numbers, not a hope — and the baseline is re-pinned with `--save-baseline`. At 1600x950 midday the allotment block visibly contains a building it did not have, graded by a difference image quoted as a ratio to a same-code control run. On a January evening the glass is lit and something is still growing under it when the open plots are bare.",
+      "avoid": "Do not site it on the POND or across `ALT_GATE`'s route — `spawnAllotAgent` enters and leaves there. Do not give it its own arrival source: the allotment band (.48) already feeds the block, and a second source is a different brief. Do not draw the glass as a live composite over the whole frame — the ground is a CACHE, so the fixed panes belong in it and only what changes is drawn live. Do not add a second new species 'while you are there'; one is the claim, and two makes the census delta unreadable.",
+      "budgetMin": 75,
+      "risk": "high"
     },
     {
-      "id": "b112",
-      "at": "2026-09-02T00:07:29.418Z"
+      "id": "b117",
+      "domain": "Roofs & skyline",
+      "kind": "Interaction/UX",
+      "brief": "Three faults, one subject: the town names more than it admits to naming, less than it draws, and some things it has deliberately hidden. (a) `cv.style.cursor = live ? 'pointer' : 'default'` keys on `answersTouch(x,y)`, which is the SOWABLE-cell test — so everything #113 opened up (roof birds, windows via `FACES`/`faceAt`, the vanes, the tree crowns) is findable on a desktop only by accident, and the naming and the affordance disagree. The cursor should become a hand wherever the town has a name to give. (b) The roof furniture is not named at all: `drawWashLine`, `drawWaterTank`, `drawPigeonLoft` and `LOFTS[]` put 24 pieces on the near roof — at a phone size the most pointable objects in the frame — and they say nothing, while `livingAt`, `pavingAt` and `FACES` answer for everything else in the town. Give them lines the way #113 gave the birds theirs: off what they ARE, in the town's own words, never a second table of boxes. (c) `nearHidden(y, sy)` is draw-side only — it is called inside `drawBird`/`drawCat`, not in the hit test — so a walker or bird behind the sill is still hit-tested and still named. Make the hit test read the same predicate the renderer does.",
+      "seams": [
+        "answersTouch",
+        "cv.style.cursor",
+        "hoverLive",
+        "livingAt",
+        "faceAt",
+        "vaneAt",
+        "nearHidden",
+        "sillTop",
+        "ROOF_FURN",
+        "LOFTS",
+        "drawWashLine",
+        "drawWaterTank",
+        "drawPigeonLoft",
+        "evPx",
+        "NAME_SETTLE"
+      ],
+      "successLooksLike": "At 390x844 and 1600x950, a real `mousemove`/tap driven onto a water tank, a pigeon loft, a line of washing, a window and a vane turns the cursor to a hand and returns a line; a point behind the sill returns nothing and shows no hand. Quote it as a table against HEAD, the way #113 did.",
+      "avoid": "No new `OFFERS[]` entry — the queue is full and this is the affordance for tools already advertised. No new `R()` draw: this should hash-match HEAD at pinned instants, which is the whole proof that it is an interaction change and not a draw change. And do not prove it with `lookAt(project(...))` — that skips the event, which is exactly where #113 found a 16 px screen-space bug.",
+      "budgetMin": 35,
+      "risk": "low"
     },
     {
-      "id": "b113",
-      "at": "2026-09-02T00:28:46.850Z"
+      "id": "b118",
+      "domain": "People & animals",
+      "kind": "Deepen",
+      "brief": "The town's ORIGINAL lawn and lane birds are all but extinct, and nobody decided that. Their band's cap is `birds.filter(b => !b.plaza).length < 3`, which counts #106's ROOF birds and the belfry flock against them. #113 measured it over 1551 daylight dry samples across 5 seeds: the gate is open 15.3% of the time and held shut by roof birds alone 84.7% of the time, and mean present is 0.06 lawn/lane against 2.66 roof and 1.31 plaza. The predicate is the bug — the roof band has its own roll and its own `ROOF_BIRDS 3` cap, and the plaza band has `b.plaza`, so the ground band should count only its own members. Fix the membership test, then RE-PRICE rather than leaving the old number in place: 3 was chosen when this was the only band, so measure what 3 actually delivers once it means what it says and set the cap from that.",
+      "seams": [
+        "birds",
+        "b.plaza",
+        "b.roof",
+        "roofBirdSpot",
+        "ROOF_BIRDS",
+        "ROOF_BIRD_RATE",
+        "plazaBirdSpot"
+      ],
+      "successLooksLike": "Mean lawn/lane birds present in daylight rises from HEAD's 0.06 to a number a wide shot can see, quoted as a presence mean over >= 10 seeds x several days with HEAD as the control — and the roof and plaza means barely move, which is what shows you fixed the count and not the world.",
+      "avoid": "Do not give the ground birds a new source: the band exists, it is only miscounted. This changes how often the roll is reached, so it reshuffles the seeded world — read the census for COLLAPSE, not delta, and replay any stray motion gate on HEAD before believing it.",
+      "budgetMin": 30,
+      "risk": "medium"
     },
     {
-      "id": "b114",
-      "at": "2026-09-02T00:49:53.140Z"
+      "id": "b119",
+      "domain": "River & far bank",
+      "kind": "New element",
+      "brief": "`FAR_GATE` at `[GW+2, 31]` is a bare world edge. `spawnFarAgent` walks a figure in at x ~ 140 across open grass, out of nothing — it is the only source in the town that does not come out of something, against `TAP_DOOR`, doors 4 and 8, `ALT_GATE` and the passages. Give the far bank's morning the same courtesy: a stile, a hedge gap or a field track on `FAR_SPINE 137.2` that the arrival visibly comes through, and that it leaves through on the way out. Keep it on the ground and along the fence line — the far bank is a shallow strip and a tall object out there will fight the church tower for the same piece of sky.",
+      "seams": [
+        "FAR_GATE",
+        "FAR_SPINE",
+        "spawnFarAgent",
+        "farOpen",
+        "farRate",
+        "FAR_CAP",
+        "drawGround",
+        "buildGrid"
+      ],
+      "successLooksLike": "At the morning lapse hour (the clock button's second stop, sunUp+0.5) a far-bank arrival is seen to come THROUGH something at the east edge rather than fade in on grass: its first waypoint is on the new feature, and a difference image quoted against a same-code control shows the feature's mass at that crop.",
+      "avoid": "Do not change `farOpen`, `farRate`, `FAR_CAP 3` or the five branches — #107 priced them and they work. If what you build is a TUNNEL-class cell it will move `passages`, which has never moved; that is allowed but it must be deliberate, so say which you chose and re-pin if it moves.",
+      "budgetMin": 30,
+      "risk": "low"
     }
-  ]
+  ],
+  "recommendStop": null
 }
