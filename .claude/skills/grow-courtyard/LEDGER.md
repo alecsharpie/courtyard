@@ -40,15 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 113 — every bird the town draws answers, and the pointer finally lands where the picture is (2026-09-02) [People & animals × Interaction/UX]
-
-**Brief:** b113 — `livingAt()` named only the near roof's birds; close the hole for the rest.
-**Did.** `birdName(b)`/`birdPlace(b)`; `livingAt` loops all of `birds`, not `b.roof && state==='hop'`. WHAT off the band it was spawned into, WHERE off the predicates the ground is already named with (`pavingAt`, the grid) — never a second table of boxes. DOWN is `birdDown(b)`, factored out of `drawBird`'s posture test, so words and picture cannot disagree; an airborne bird claims no place. All five roof perches have a line; hit box `0.9 * nearScale(b.y)`. **10 bird lines against HEAD's 4.**
-**And the tap:** it fell through `if (!answersTouch(x,y)) return` *before* the naming, so on a phone every nameable thing that cannot be sown on — a roof bird, a window, a vane, a crown — answered a mouse and said nothing to a finger. The cell test still decides what a tap DOES.
-**Gates:** census PASS (no new `R()`) · motion PASS · **canvas hash identical to HEAD at 18 pinned instants** (3 sizes × 2 seeds × 3 times): provably an interaction change, not a draw change · `probes/probe-birds.mjs` on HEAD as control — roof 53/53 both; plaza 0/8→8/8, lane 0/1→1/1, belfry 0/50→50/50, phone taps 0/13→13/13, pointer path 0/7→7/7.
-**Verdict:** shipped, +55 lines. Budget opened OVER (48.4/46).
-**Surprise:** the pointer was never where the picture is. `resize()` takes W/H off `cv.parentElement` — the frame's BORDER box — while `#cv` is `inset:0`, i.e. its PADDING box: 20 px narrower and shorter at every size. The backing store is stretched to fit, so `evPx`'s point was up to 16 px out across the frame and 20 px down it — 3.3% of the height, against a walker 12 px tall. HEAD's roof-bird line, pointed at properly, answers **"the lane"**.
-
 ## Iteration 114 — the quay ages too: a second region for the moss CA, greener against the rail than along the line people walk (2026-09-02) [Plaza & quay × Deepen]
 
 **Brief:** b114 — #103's moss is plaza-only; extend the ageing to the quay, judged by a difference image and a number.
@@ -121,3 +112,14 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Measured, both framings:** arrow vane in Street OUT −204 px → **IN, cardinals 11.4 px**; weathercock in Far bank −404 → **IN +31**; field gate in NO quarter → **Far bank +21, Plaza +28**; Courtyard's west edge −8.6 cells → **0.0**.
 **Verdict:** shipped
 **Surprise:** **a quarter cannot reach the world's edge by zooming.** The frame's world x at a given row is a function of the hold's extent and the PINCH alone — `s` cancels — so the gate's row 31 is 3.1 cells short of the frame's top row at *every* zoom, and only the extent moves it. Which bounds the extent from the other side: the cache's east repeat is honest only where the edge column is, and column 137 is WALL for rows 0..2. Far bank must reach row 0 to reach the sky, so it carries ~5 cells of smeared block in its top corner; Plaza's band starts at row 3.6 and runs east to the gate over nothing but field. Two quarters, opposite constraints, one constant.
+
+## Iteration 121 — the town's namesake stops being its emptiest room: the lawn's cap was the only lever, and it was binding two thirds of the year (2026-09-02) [Courtyard & garden × Scale/World]
+
+**Brief:** b121 — measure courtyard presence over a full year, then find the binding lever: the cap, LAWN_RATE, the window, or a missing KIND.
+**Premise corrected:** the brief's "4 inside the walls" is `lawnCount()` — the place-HOLDER count, which *is* LAWN_CAP and was at it. At the brief's own instant there are **10 people inside wallR()'s square, 7 of them the lawn's own**. The emptiness is RADIAL, not a headcount: only 3 were inside `gR()`.
+**Did.** `probes/lawn-day.mjs` (new, kept), then **`LAWN_CAP` 4 → 8** and **`LAWN_BLANKETS` 2 → 3**. No behaviour line changed; the sweep is written into the source beside the consts.
+**Measured.** HEAD sat AT its cap **66.5%** of every dry in-window sample of the year. `LAWN_RATE` is not a lever: swept **0.45 → 3.0**, afternoon presence moves 8.72 → 8.58. Sweeping the cap 2→12 instead, **the knee is 8** — grass +1.3 per pair of places below it, +0.4 above, and at 10 it binds only 12% of the time. Shipped: a dry summer afternoon 9.1 → 13.8 inside the wall, **3.3 → 6.0 on the grass**, share of the town 22.2% → 29.1%. Midwinter 2.8 → 2.9 and wet 2.6 → 2.8: the weather still owns it.
+**Gates:** census PASS (`inCourtyard` 119 → 154) · visual PASS wide/courtyard/mobile pinned on a summer afternoon, midwinter and rain still empty · filmstrip 0 POP · perf +0.0% · motion FAIL `day/cart: jumps 0→1`, **dismissed on a HEAD control** — the cart's steps are identical on both builds (**2002 vs 2001** of 5819 moving steps already over `ABS_JUMP`, median 1.733): the vacuous-median case. No walker jumped.
+**Verdict:** shipped. Budget closed **OVER at 47.4/46 KB** — four of the last five passes have.
+**Surprise:** raising the cap fills the WALL, not the green. 4→8 put +3.4 people on the four benches (sitter 1.17 → 3.96) and only +2.4 on the grass, because `BENCH_SPOTS` is the largest sub-cap and the benches sit between the ring and the wall. `LAWN_BLANKETS` 2→3 moved that back at zero cost in total (picnic 2.54 → 3.71, grass 5.71 → 6.28) — and the blanket is also the only lawn kind legible from the WIDE shot, where a person is three pixels and a red rectangle on grass is not.
+**Law:** a cap over place-holders is really a cap on the SUB-CAPS beneath it; when it stops binding the mix tips toward whichever sub-cap is largest — a composition change nobody asked for. Sweep the cap, then check WHICH kind absorbed the slack.

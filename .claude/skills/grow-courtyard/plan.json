@@ -15,29 +15,6 @@
   "rationale": "Three consecutive passes have sat on rung 4b and all three worked: #110 gave the near roof a working surface, #116 put a sixteenth tile and the first transparent thing in the town, #119 built an edge on the world's east face. The town's SHAPE has moved four times in twenty iterations. What has not moved since #99 is the observer, and two independent measurements now say the five cameras no longer contain the town they were framed for. c182 (from #119's own surprise, probes/world-edge-framing.mjs): the world's east edge — the hedge, the open gate, the worn track a whole iteration just built — is off-canvas in every camera but Wide at desktop sizes, INCLUDING the quarter named 'Far bank', and off-frame in all five on a phone. c150 (open since #99, seen by three passes): the quarters frame GROUND, so Far bank holds no sky, no quarter reaches s > 1.02 on the clock tower and the vane's cardinals never leave their 6 px floor, and Courtyard shows void west of x=0. A quarter camera that does not contain its namesake is not a polish problem; it is the observer being stale, which is rung 5 by name. So this batch climbs, and b120 is the bet.\n\nThe other four are deliberately not observer work — five briefs on one theme is a monoculture, and #94's pass proved a batch of dear briefs is how cost runs away. b121 goes to the longest-untouched domain and, more to the point, to the town's namesake, which is measurably its emptiest room (c173: 4 figures inside the walls against 43 town-wide, and LAWN_CAP untouched since #95). b122 is the other long-untouched domain and the one flat physical system left: rain falls, and the ground has no memory of it — wetF is one global scalar and the grep for a per-cell water term returns nothing. b123 is cheap and is a defect: 20 of #110's 24 roof-furniture pieces are behind the sill at 1280x700, which is a law we already wrote (bound the near band in DEPTH for the shortest framing) applied to a system built after it. b124 closes the oldest small cue in the file.\n\nOne brief I wrote and then killed: connecting the allotments' harvest to what the market sells. stockMarket() already pays produce[] into the stalls and mkTrades() leaves an unstocked pitch empty all day — the connection has existed since before this pass. The law about pricing a brief's premise caught it before a worker spent 25 minutes rediscovering it, and the fact is now an inventory line so the next pass cannot propose it again.\n\nMemory, this pass: inventory 12.3 KB -> 9.0 (rewritten as nouns + seams; the prose that had crept in is what the ledger is for), cues 14 -> 6 (five promoted into these briefs, three closed as fixed or absorbed), the last three ledger entries 8.3 KB -> 6.0 by cutting promoted Law lines and stale budget complaints, and the per-entry cap tightened 2.5 KB -> 1.8 in rotate-ledger.mjs and the template, because three entries at 2.5 KB were 18% of the worker's entire read budget. Two laws promoted by MERGING rather than stacking (#118's cap-membership sweep into the rate-and-cap law, #119's before-the-divergence containment proof into the R()-reshuffle law), and to pay for them I cut the churn percentage out of LAWS (it duplicates state.json's watch line) and four sentences of worked arithmetic. LAWS.md is 12,286 of 12,288 bytes — the next pass to promote a law must replace one, not append.",
   "queue": [
     {
-      "id": "b121",
-      "domain": "Courtyard & garden",
-      "kind": "Scale/World",
-      "brief": "The town's namesake is its emptiest room. Wide shot, seed 42, day 5, 12:33: 43 people town-wide and 4 inside the courtyard walls, which enclose the largest green in the town. LAWN_CAP has been 4 since #95, the ring's transit passes THROUGH, and the lawn's own source is the only thing that STAYS — the gardener is the single person who comes here to do something, and he holds one of the four places while he does it. Measure presence across a full year first (probes/lawn-day.mjs), then decide which lever is actually binding: the cap, LAWN_RATE, the window (lawnStart/lawnEnd), or a second KIND of visit the courtyard does not have. #118 is the precedent and the warning: a cap that looks binding often is not, and the number worth keeping is the knee, not a bigger number.",
-      "seams": [
-        "LAWN_CAP",
-        "LAWN_RATE",
-        "spawnLawnAgent",
-        "lawnStart",
-        "lawnEnd",
-        "lawnHolds",
-        "lawnGone",
-        "BENCH_SPOTS",
-        "shadeSpots",
-        "gardenerKneel",
-        "withCompanion"
-      ],
-      "successLooksLike": "On a fine summer afternoon the courtyard reads from the wide shot as the busiest green in town rather than the emptiest, and the Courtyard camera agrees; a wet day and midwinter still empty it, and the beds are never blocked.",
-      "avoid": "Do not raise LAWN_CAP and call it done — sweep it both ways and report the knee. Do not add bodies by widening the ring's transit: that is traffic THROUGH the courtyard, not life in it. Two figures nearer than ~0.9 cells render as one shape, so more people in one place needs the scatter's centre moved, not its members.",
-      "budgetMin": 45,
-      "risk": "medium"
-    },
-    {
       "id": "b122",
       "domain": "Lane & market",
       "kind": "New element",
@@ -110,6 +87,10 @@
     {
       "id": "b120",
       "at": "2026-09-02T04:15:00.407Z"
+    },
+    {
+      "id": "b121",
+      "at": "2026-09-02T04:52:41.252Z"
     }
   ]
 }

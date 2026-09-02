@@ -2324,14 +2324,39 @@ function spawnAgent(room){
  *     priced before it is drawn from;
  *   - PRICED before the cap was chosen: a holder is inside the wall for ~0.7 of its
  *     hold (walk in ~8 s, stay 12–34 s) and brings ~1.35 people (the kids' pairs, the
- *     picnic's two, a sitter's companion), so LAWN_CAP 5 at a filling rate reads ≈ 5
- *     people on the lawn at a summer 13 h; the places (4 + 2 + 2 + 2 + 1 = 11) are the
+ *     picnic's two, a sitter's companion); the places (4 + 2 + 3 + 2 + 1 = 12) are the
  *     sub-caps, not the cap.
  * Warmth thins it: nobody lies on cold grass (LAWN_LIE_WARMTH), and the rate falls to a
  * third in midwinter, so a clear winter noon reads what it always did — a child, a
- * sitter, the gardener. Rain closes it; a wet seat is still judged at the seat. */
-const LAWN_CAP = 4, LAWN_RATE = 0.9, LAWN_SUN = 0.35, LAWN_MIN_DWELL = 1.5, LAWN_WALK_MARGIN = 1.1,
-      LAWN_LIE_WARMTH = 0.45, LAWN_NAPS = GAP_ANGLES.length, LAWN_BLANKETS = 2, LAWN_RUNS = 2, LAWN_BLANKET_SEP = 0.7, LAWN_CHORD = 1.2;
+ * sitter, the gardener. Rain closes it; a wet seat is still judged at the seat.
+ * ---- #121: the cap was the ONLY lever, and it was binding hard ----
+ * At LAWN_CAP 4 the courtyard sat at its cap for 66.5% of every dry in-window sample of
+ * a full year (probes/lawn-day.mjs, 3 seeds x 26 days, sampled per sim second), and the
+ * town's largest green held 3.28 people ON THE GRASS at a dry summer afternoon against
+ * 41 town-wide. LAWN_RATE is not the lever and never was: swept 0.45 -> 3.0, nearly
+ * SEVENFOLD, afternoon presence moves 8.72 -> 8.58 — the cap absorbs the whole of it and
+ * arrivals/day only walk 3.3 -> 4.3, which is the standing law about a place-holder whose
+ * visit outlasts its window. Sweeping the CAP instead, 2,3,4,5,6,8,10,12 — people inside
+ * the wall on that same afternoon: 6.4, 7.4, 9.1, 10.2, 11.9, 14.4, 15.9, 15.2, and on
+ * the grass (4,6,8,10) 3.3, 4.5, 5.7, 6.1. The KNEE is 8: up to it each pair of places
+ * buys ~1.3 more people on the grass, past it ~0.4, and by 10 the cap is at its ceiling
+ * only 12% of the time — it has stopped being a cap and the sub-caps below are the
+ * limiter. At 8 holders are at the ceiling 32% of a dry window: still shaping the
+ * afternoon, no longer strangling it. LAWN_BLANKETS goes 2 -> 3 for the same reason — at
+ * cap 8 the mix skewed to the four benches at the WALL (sitter 1.17 -> 3.96) while the
+ * open grass gained least, and the blanket is the kind that puts a body in the middle of
+ * it: picnic 2.54 -> 3.71, grass 5.71 -> 6.28, total unchanged. Both placement paths
+ * already keep blankets far enough apart to draw as separate people — LAWN_BLANKET_SEP
+ * 0.7 rad is ~6.3 cells on the annulus, and shadeSpots' clear() holds 2.2 cells.
+ * Shipped, against HEAD, over 3 seeds x the whole year sampled per sim second: a dry
+ * summer afternoon inside the wall 9.1 -> 13.8 people, on the grass 3.3 -> 6.0, the
+ * courtyard's share of the whole town 22.2% -> 29.1%. The seasons and the weather still
+ * own it, untouched: a dry midwinter window keeps 2.9 (nobody lies on cold grass, so 5
+ * of the 12 places do not exist then), a wet window 2.8. And nobody is ever still
+ * HOLDING a place between 22 h and 5 h, on either build, across every seed — the small
+ * hours hold only people already walking out (#95's invariant, re-measured). */
+const LAWN_CAP = 8, LAWN_RATE = 0.9, LAWN_SUN = 0.35, LAWN_MIN_DWELL = 1.5, LAWN_WALK_MARGIN = 1.1,
+      LAWN_LIE_WARMTH = 0.45, LAWN_NAPS = GAP_ANGLES.length, LAWN_BLANKETS = 3, LAWN_RUNS = 2, LAWN_BLANKET_SEP = 0.7, LAWN_CHORD = 1.2;
 const LAWN_OFF = {north:5, south:40, west:5, east:35};   // the off-frame leg to each door, in cells (entryLeg's own routes)
 const LAWN_W = {gardener:0.15, kid:0.2, napper:0.2, picnic:0.25, sitter:0.2};
 function lawnSun(){ return daylight > LAWN_SUN; }

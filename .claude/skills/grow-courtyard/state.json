@@ -442,7 +442,8 @@
       "planting CA over SPECIES; beds read the year: growF/dieF/bloomCap",
       "linden SHADE is a PLACE: lindenShade/inLindenShade/shadeSpots/a.shaded. SUNDIAL: DIAL 32,35, dialThrow",
       "gardener works a row at a time: gardenerKneel, GARDEN_REACH, a.rowDur; holds one lawn place",
-      "the lawn's own source: spawnLawnAgent, LAWN_CAP 4 place-holders claimed at the choice, LAWN_RATE, lawnStart/lawnEnd/lawnHolds/lawnGone"
+      "the lawn's own source: spawnLawnAgent, LAWN_CAP 4 place-holders claimed at the choice, LAWN_RATE, lawnStart/lawnEnd/lawnHolds/lawnGone",
+      "LAWN_CAP 8 (#121, the measured knee — swept 2..12; at 4 the lawn sat at its cap 66.5% of every dry in-window sample of the year, and LAWN_RATE swept 0.45->3.0 moves nothing), LAWN_BLANKETS 3 | probes/lawn-day.mjs the year-long presence instrument: inside-wallR()/on-the-grass/per-kind, cap occupancy histogram, --cap/--rate/--sun/--set sweep a const into a temp copy"
     ],
     "lane": [
       "kiosk, pavement cafe, awnings, washing lines, planters, LANE_LAMPS, LANE_BENCHES",
@@ -569,6 +570,30 @@
       "id": "c184",
       "note": "Far bank is structurally a WIDE frame: its subject is 16 cells across and 56 rows tall against a picture that is ~1.08 cells wide per row, so no zoom makes the far bank more than a quarter of it. #120 gave the eyot and the bandstand to Plaza to buy the tower's sky.",
       "raisedBy": 119,
+      "seenBy": 0
+    },
+    {
+      "id": "c185",
+      "note": "the lawn's SUB-CAPS are the limiter now, not LAWN_CAP: 4 benches + 2 naps + 3 blankets + 2 runs + 1 gardener = 12 places, and only 7 of them exist below LAWN_LIE_WARMTH. A second KIND of visit (b121 raised it; #121 did not build it) is the next lever, not a bigger number.",
+      "raisedBy": 120,
+      "seenBy": 0
+    },
+    {
+      "id": "c186",
+      "note": "the gardener does NOT scale with the cap: presence 0.65 -> 0.63 over cap 4 -> 8, because LAWN_W.gardener 0.15 is a SHARE of the roll and its sub-cap is 1. The person the town is named for is still the rarest thing in it.",
+      "raisedBy": 120,
+      "seenBy": 0
+    },
+    {
+      "id": "c187",
+      "note": "the small hours are never quite empty: 0.3 (HEAD) / 0.45 lawn people inside the wall between 22h and 5h, max 5 -> 7. All are lawnOut and stillHolding is 0 on both builds across every seed, so #95's invariant holds — but the walk out from a far door is long enough to be seen, and the cap scales that tail.",
+      "raisedBy": 120,
+      "seenBy": 0
+    },
+    {
+      "id": "c188",
+      "note": "LEDGER entries 119, 120 and 121 are all over the 1.8 KB cap (2.0/2.3/2.5); the 3-entry worker window is 6.8 KB. rotate-ledger.mjs asks the worker to condense PREDECESSORS' entries in place, which no worker should be doing to another's record — this is the manager's to curate.",
+      "raisedBy": 120,
       "seenBy": 0
     }
   ],

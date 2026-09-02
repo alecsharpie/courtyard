@@ -3923,3 +3923,12 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped.
 **Surprise:** re-keyed onto sunrise, this wash and `drawSky`'s own peak landed almost together — and the new curve had just taken the blue multiply off both. The sunrise measured **R−B +45.9** against **+28.3** for the town's warmest dusk. Priced against that dusk rather than its own old value, 0.55 puts it at +30.5.
 
+## Iteration 113 — every bird the town draws answers, and the pointer finally lands where the picture is (2026-09-02) [People & animals × Interaction/UX]
+
+**Brief:** b113 — `livingAt()` named only the near roof's birds; close the hole for the rest.
+**Did.** `birdName(b)`/`birdPlace(b)`; `livingAt` loops all of `birds`, not `b.roof && state==='hop'`. WHAT off the band it was spawned into, WHERE off the predicates the ground is already named with (`pavingAt`, the grid) — never a second table of boxes. DOWN is `birdDown(b)`, factored out of `drawBird`'s posture test, so words and picture cannot disagree; an airborne bird claims no place. All five roof perches have a line; hit box `0.9 * nearScale(b.y)`. **10 bird lines against HEAD's 4.**
+**And the tap:** it fell through `if (!answersTouch(x,y)) return` *before* the naming, so on a phone every nameable thing that cannot be sown on — a roof bird, a window, a vane, a crown — answered a mouse and said nothing to a finger. The cell test still decides what a tap DOES.
+**Gates:** census PASS (no new `R()`) · motion PASS · **canvas hash identical to HEAD at 18 pinned instants** (3 sizes × 2 seeds × 3 times): provably an interaction change, not a draw change · `probes/probe-birds.mjs` on HEAD as control — roof 53/53 both; plaza 0/8→8/8, lane 0/1→1/1, belfry 0/50→50/50, phone taps 0/13→13/13, pointer path 0/7→7/7.
+**Verdict:** shipped, +55 lines. Budget opened OVER (48.4/46).
+**Surprise:** the pointer was never where the picture is. `resize()` takes W/H off `cv.parentElement` — the frame's BORDER box — while `#cv` is `inset:0`, i.e. its PADDING box: 20 px narrower and shorter at every size. The backing store is stretched to fit, so `evPx`'s point was up to 16 px out across the frame and 20 px down it — 3.3% of the height, against a walker 12 px tall. HEAD's roof-bird line, pointed at properly, answers **"the lane"**.
+
