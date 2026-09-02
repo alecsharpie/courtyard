@@ -1,41 +1,127 @@
 {
-  "generated": "2026-09-03T12:00:00.000Z",
-  "byIteration": 139,
-  "rung": "4a",
+  "generated": "2026-09-03T00:00:00.000Z",
+  "byIteration": 144,
+  "rung": 2,
   "diagnosis": {
-    "health": "Healthy on every number and, for the first time this run, I do not think the numbers are the interesting part. 20 of the last 20 shipped, zero reverts, selfVerdict == verdict on all 20, src moved 10 of 10, attempts=1 on 10 of 10; diffs over the last five are +260/+266/+81/+413/+38, so smallDiff is far off, and mapFlat cleared twice more since my last pass (structures 3564 -> 3609 at #136, -> 3951 at #138), so the census clock restarted at #138 and reads 1 of 15. Cost is 27 min / $9.24 over the last ten against the run's ~$5.77 median and this is the SIXTH consecutive pass above it, so I priced it against output a third time rather than excusing it: #138 shipped 413 lines for $10.42 ($0.025/line, the cheapest big diff of the run) and #135 260 lines for $11.20, while the two dear ones are #136 ($16.51, the run's most expensive iteration, for a barge plus a bollard array plus a lamp bug) and #139 ($6.18 for 38 lines, because most of its turns went into a probe that DISPROVED its own brief's bar). I am satisfied the money is buying work, but #139 is the shape to watch: a brief whose bar I set without pricing it cost a full iteration to find out it was unreachable. Two of this batch are therefore pre-counted by me, and the bet's success criterion is stated as a picture rather than as a number I have not solved. The budget is fixed and this time with room: 52.5 -> 43.8 KB, the first pass in fifteen to land with headroom rather than on the line.",
+    "health": "Healthy, and for the first time this run boringly so. 20 of the last 20 shipped, zero reverts, selfVerdict == verdict on all 20, src moved 10 of 10, attempts=1 on 10 of 10. No stall signal fires, advisory or otherwise. Cost is 28 min / $9.62 over the last ten, seventh consecutive pass above the run's ~$5.77 median, and I priced it against output a fourth time: the last five diffs are +142/+310/+76/+34/+129 and the two cheapest iterations of the batch (#143 at $3.18 for 34 lines, #142 at $5.03 for 76) were the two that shipped a one-line constant and a rank system, both correctly. #141 at $14.54 bought 310 lines and found the bug two hulls exposed. The money is buying work. The one number I do not like is the rung history — 4b, 6, 4a and now this pass is honestly a 2, which means the last four passes have run out of ladder in a town whose map is FULL.",
     "signals": [
-      "stall.mjs: no signals, advisory or otherwise",
-      "mapFlat cleared at #136 and again at #138; clock reads 1 of 15",
-      "cost $9.24/iter vs a ~$5.77 median, sixth consecutive pass above it, still tracking diff size",
-      "context budget OVER on the 20th consecutive worker open (52.5/46 KB) - now 43.8 with 2.2 KB spare",
-      "rung history 4b (#129), 6 (#134): no rungHeld exposure, the climb here is chosen not forced"
+      "stall.mjs: no signals, advisory or otherwise; 20/20 shipped",
+      "mapFlat clock reads 6 of 15 — structures last moved at #138",
+      "kind rut: 4 of the last 5 iterations were Connect",
+      "context budget OVER on the FIFTH consecutive worker open (50.2/46 KB at #144's) — fixed to 43.8 this pass, for the fifth time by a manager",
+      "developed frozen since #100 (44 iterations); passages has never moved — but GW is 138 and every quarter is allocated"
     ],
-    "balance": "Roofs & skyline has gone longest untouched (last #130, 9 back) and its CONNECT cell is EMPTY - zero entries in 139 iterations, the emptiest cell in the grid after sill x new-element. Then River (#131, 8), sill (#132, 7), Sky (#133, 6), Lane (#135, 4). The queue walks that list in order. Nothing is over-served: the busiest domain in the last twelve is a two-way tie at 2."
+    "balance": "The grid was five iterations stale; #140–#144 are entered now. Longest untouched: Plaza & quay (#136, 8 back), People & animals (#137, 7), Cross street & allotments (#138, 6), Courtyard & garden (#139, 5), Roofs & skyline (#140, 4). Nothing is over-served. The KIND grid is the rut, not the domain grid: Connect took four of the last five, so this queue has NONE — three Deepen, one Scale/World, one Harness. People & animals is the domain this batch leaves out, and it goes first in the next one."
   },
-  "rationale": "I SHOT THE TOWN BEFORE PLANNING IT again - wide at a clear summer afternoon (day 13, 16.9h, cloud 0.39), at a spring night, at a rainy morning, plus the Courtyard quarter - and the summer afternoon says something no ledger entry has ever said. THE COURTYARD FLOOR IS EVENLY LIT AT FOUR O'CLOCK. A five-cell terrace runs the whole west side of a walled square and throws nothing across the paving. I grepped it rather than trusting the picture: `sunVec()` is the one light vector, `shadowF()/shSpread()/shOffset()` are a written and tested hardness trio, `dialThrow(h)` already solves exactly 'where does a point h above the ground land, in cells', and the comment at SH_KNEE counts NINE cast shadows in this town - trees, benches, the barrow, the shed, the sundial, the boat, the mill wheel, people. Every one of them is an OBJECT. Not one BUILDING casts. The whole vocabulary is built and the walls simply never call it, so an hour of the day currently changes the town's TINT and nothing about its SHAPE. That is the biggest thing a viewer meets in the first ten seconds, it is rung 4a by name (an hour nobody has seen - not a new hour on the clock but a new hour in the picture), and it is Roofs & skyline x CONNECT, the emptiest cell in the grid, in the domain that has waited longest: #130 gave every house its own eave and made the skyline ragged, and nothing downstream has ever read that difference at ground level. b140 makes the roofline the shadow line. I have priced the two failure modes into the brief - cost (cast from wall RUNS, not per cell; the ground is a CACHE and this must be live, like drawCloudShade) and double-darkening (nearShadow, cloud shade and applyLight all already multiply). It goes FIRST with 90 minutes and a stated 150-300 line diff. The other four take the next four longest-untouched domains, in order, every premise re-priced by me on HEAD: b141 the punt is supply-bound not clock-bound and has carried an UNLIT lantern since #131 (c208+c216, river 8 back); b142 the clock strike is ~40 of ~52 unplaced ticker lines and SOUNDS bypass inView, so at a quarter camera the strike IS the ticker (c210, sill 7 back, its second Connect in 139 iterations); b143 applyLight's dusk wash is a hard-coded 19.00 that reads 0.53 at a midwinter dusk and 0.00 at a midsummer one - #112 fixed the MORNING half onto sunUp and left this (c212, sky 6 back); b144 the east half is starved by the BRANCH SHARE, not the ceiling, and the plaza's third family place reserves nothing, both measured by #137 itself (c219+c218, lane 4 back). ONE BRIEF KILLED AT THE GREP: giving the river a reflection (c222, raised from tonight's shot) - it is a genuine hole and it is the wrong week, because b140 is about to change every surface's light and a reflection built against the old light would be re-tuned within two iterations. CURATION, and this is the part I want on the record: the worker context budget has now opened OVER on TWENTY consecutive iterations and has been 'fixed' by four manager passes including two of mine, each of which landed it within 1 KB of the cap so that five more iterations put it back over. The pattern is the fix failing, not the file growing. So this pass cut for HEADROOM instead of for compliance: ledger tail 7.6 -> 5.2 KB (#137 archived verbatim first, then all three condensed), inventory 13.7 -> 9.5 KB and re-founded on a rule that is the actual cause - a landed iteration MERGES into the line that owns its system instead of appending a line of its own, 59 entries -> 55 with five iterations added - cues 16 -> 7 (seven PROMOTED into this queue, two closed on the evidence, one merged pair, one raised), watch rewritten because three of its four notes had gone stale under #135/#137/#138. LAWS.md rewritten whole for the second pass running: six new claims promoted from #135-#139 (the projected-coordinate pixel from #138, which b140 needs; min(drawn, room) from #139; positive cap membership from #137; the accumulator-as-rate from #135; __reseed REASSIGNS R from #139; hash quantiles at small n from #138) and paid for by CUTTING four claims outright - the region-instrument clip (subsumed by 'suspect the INSTRUMENT first'), the quarter-cannot-zoom-to-the-edge derivation (kept as a one-line claim, lost its arithmetic), the skip-guard-tests-the-REGION line, and the PAIR_GAP-margin half of renderer trap (c). 12 laws, 12.0/12 KB, more claims than it started with. Total 43.8/46 with 2.2 KB spare, which is the first real margin in fifteen passes. NOTE FOR A FUTURE HARNESS BRIEF, not acted on here: rotate-ledger.mjs's per-law 900 B advisory and its 12 KB file cap disagree - 12 bullets at 900 B is 10.8 KB, so the file can be inside its hard cap and flag seven laws forever. That is the tool's shape, not the file's, and changing a cap mid-pass is how a loop stops noticing.",
-  "queue": [],
-  "recommendStop": null,
-  "consumed": [
+  "rationale": "I SHOT THE TOWN BEFORE PLANNING IT — a midsummer afternoon (day 6, 16.5 h, cloud 0.08), a midsummer dusk at 20.0 h, an autumn morning, wide and river and mobile — and the river close-up settles a cue I deferred one pass ago. THE WATER HAS NOTHING OF THE TOWN IN IT. The bridge stands over it and is not in it; nor the mill wheel, the moorings, the lamps down both banks, the clock tower, the spire, the far terrace, the willow on the eyot, the punts. I grepped rather than trusting the picture: the river's only reflections are the MOON's disc (one arc, read by disc and reflection so the two agree) and ONE static linear gradient over rows 3–12 called 'the bank's reflection, smeared toward us' — baked into the GROUND CACHE, so it cannot move with the sun and cannot hold a lamp. The state file's own watch note has been saying the same thing as a number since #135: WATER sd/mean 0.151, and every bit of that variance is one ripple hash. So the flattest large surface in the frame is flat in the one way a new hash cannot fix. I deferred this at #139 with a stated reason — b140 was about to change every surface's light and a reflection built against the old light would be re-tuned within two iterations. #140 landed, the light is settled, and the reason has expired; deferring a cue twice on a reason that has expired is exactly the failure this manager exists to prevent. b145 is the bet: 90 minutes, 150–300 lines stated as expected, first in the queue. The vocabulary is already written — a NEGATIVE z in project() is the mirror of a positive one, which is the same solve dialThrow does for a shadow with the sun replaced by the eye — and both failure modes are priced into `avoid`: it must be a LIVE pass like drawSunShade/drawCloudShade rather than cache, and the lamps must register and repaint after applyLight the way BARGE_LAMP and PUNT_LAMPS already do. THE RUNG, and I want this on the record rather than dressed up. This batch is a 2 and I am not going to call it anything else. I looked hard for the 4b, because `developed` has not moved in forty-four iterations and `passages` has never moved at all, and the answer is that THE MAP IS FULL: GW is 138 and the courtyard, cross street, plaza, quay, river and far bank account for all of it, while the wide frame at 1600x950 already runs edge to edge. A spatial climb has to move the FRAME before it can move the MAP, and the mobile shot tonight shows what that costs — 390 px over 138 cells is 2.8 px a cell, so a phone's Wide cannot hold the river and no fit rule can make it. That closes c217 (the quarter button is the answer, and it is one tap) and it is also the standing blocker on rung 4b, which I have written into the watch notes for whoever plans next. The rung history is 4b, 6, 4a, 2, so the two-consecutive rule leaves this pass room; the NEXT pass climbs, and it climbs by moving the frame. The rest of the queue walks the staleness list and breaks the Connect rut: b146 is #140's own finding turned around (the clock tower reaches z 10.2 and the spire higher, and shTop reads eaveM, so the two tallest drawn things in town throw a terrace's shadow — visible, in the domain #140 already opened); b147 is a correctness bug with a seasonal picture attached (plotCrop answers for a whole plot off its FIRST sown cell, so one hardy cabbage may be holding the winter ceiling for five tender neighbours); b148 spends what #144 measured and was forbidden to act on (FAM_CAP is a DEAD constant past 4 — 5 and 7 return byte-identical numbers — so the seam is FAM_RATE and the window). b149 is the one I would rather not need. THE CONTEXT BUDGET HAS NOW OPENED OVER ON TWENTY-FIVE CONSECUTIVE WORKER ITERATIONS and has been 'fixed' by five manager passes, three of them mine. Last pass I cut for headroom instead of compliance and landed at 43.8/46 with 2.2 KB spare; five iterations put it back to 50.2. The pattern is not the file growing, and it is no longer the fix failing either — it is that the fix is a MOP and the cause is that every worker appends and nothing bounds what one iteration may add. So b149 makes the gate binding on the thing it can actually bound: a quota on an iteration's OWN additions, checked where the worker already looks. It carries c227 with it, because a gate that cries wolf on HEAD is a law in this file and probes/punt.mjs has been breaking it since #141. CURATION. Coverage was five iterations stale and #140–#144 are entered. LAWS.md rewritten whole for the third pass running: ten claims promoted out of #140–#144 and every one of them MERGED rather than stacked — the shadow target set and the one-path-filled-once rule became trap (f) of the renderer law (it is what b145 and b146 both need), the corridor-not-a-point rule joined trap (c), re-entrancy at the CLAIM and cap-versus-share and which-band-PAYS all folded into the rate-of-zero law, staleness-versus-untruth into the time law, contention-needs-contention and count-the-slots into the FRAMING law, offset-moves-width-stays into the sun's-hour law, and comment-is-a-bug-report into locate-before-you-judge. Paid for by CUTTING seven claims outright: the shared-helper-signature line (generic hygiene, not this town), the mean-over-drawn-membership line (subsumed by measure-a-share-at-the-CHOICE), the rut-versus-mirror control example, the byte-identical-instants line, the lookAt-proves-the-NAMING line, the LIT[]-is-reset-by-its-cache clause, the two-scalars-one-axis example, and the SCREEN-cull margin rule. 12 laws, 11.8 KB, more claims than it started with. INVENTORY, and this is the part that matters more than the laws: 12.1 KB and 60 lines down to 9.6 KB and 50, by MERGING within domains rather than trimming words — the roadway and the kerb are one line, the two punt lines are one line, the two camera lines are one line, the eave model and eaveBand are one line, snow and wet and wind and mist are one weather-scalars line — and the cap in the note is now 6 lines a domain and 250 B a line, which is a shape a worker can hold rather than a total it cannot see. Ledger tail 8.3 -> 5.0 KB (#143 archived VERBATIM first — it was the one entry of the five missing from the archive — then all three condensed, promoted Law lines cut). Cues 16 -> 10: five promoted into this queue (c222 -> b145, c223 -> b146, c220 -> b147, c231 -> b148, c227 -> b149), two CLOSED on the evidence (c217, because 2.8 px a cell is not a framing problem it is arithmetic; c198, four passes without promotion on a claim that reads at one framing only), one raised from tonight's shots (c232, the near embankment, and phrased as an instruction to MEASURE it as its own luma class before anyone briefs it, because the WALL class it currently hides inside is dominated by the terraces' facades). Watch rewritten: the east-budget note re-stated for #144's world, the census note now carries the map-is-full finding, the surface-luma note carries #140's movement. Total 51.5 -> 43.8/46.",
+  "queue": [
     {
-      "id": "b140",
-      "at": "2026-09-02T19:16:03.623Z"
+      "id": "b145",
+      "domain": "River & far bank",
+      "kind": "Deepen",
+      "brief": "The river has nothing of the town in it. Thirteen columns of water run down the middle of every wide shot and the only things reflected in them are the MOON's disc and one static linear gradient over rows 3-12, baked into the ground cache and called 'the bank's reflection, smeared toward us'. The bridge stands over the water and is not in it; nor the mill wheel, the moorings, the lamps down both banks, the clock tower, the spire, the far terrace, the willow, the punts. Put the town in its river. The geometry is already written: project() lifts z NORTHWARD, so a NEGATIVE z is the mirror of a positive one - the same solve dialThrow does for a shadow, with the sun replaced by the eye. Reflect the standing things that actually meet the water, fade them with depth and distance from the bank, and let windF break them: the source already describes the boat lantern's reflection as 'chopped into shorter, jittering bars' on a windy night, so that vocabulary exists too. A 150-300 line diff is expected and welcome. This is the bet - take the swing.",
+      "seams": [
+        "drawRiverFlow",
+        "riverRun",
+        "RIVER_X0",
+        "RIVER_X1",
+        "project",
+        "drawSunShade",
+        "drawCloudShade",
+        "applyLight",
+        "RIVER_LAMPS",
+        "PUNT_LAMPS",
+        "BARGE_LAMP",
+        "windF",
+        "onEyot",
+        "drawDeckSpan",
+        "MILL_WHEEL"
+      ],
+      "successLooksLike": "At Wide on a still evening the bridge, the clock tower, the church spire and the lit lamps are legible IN the water, so the river reads as a surface the town stands ON rather than a slab beside it - and a windy day chops the same images into bars. WATER's sd/mean moves off 0.151 and the moved pixels are the town's SHAPES, against a same-code control run.",
+      "avoid": "Do NOT bake it into the ground cache: the light moves through the day and the lamps are lit after applyLight, so this is a live pass on the drawSunShade/drawCloudShade model, and any lit reflection must REGISTER its point and repaint in a screen pass after the multiply, exactly as BARGE_LAMP and PUNT_LAMPS already do. Do NOT add a new water hash - the flatness is the absence of the TOWN, not of texture, and one uniform hash is a texture and never a place. Do not reflect everything: choose what meets the water, and price the pass with frame-cost.mjs in weather at every camera, because perf.mjs will not see it.",
+      "budgetMin": 90,
+      "risk": "high"
     },
     {
-      "id": "b141",
-      "at": "2026-09-02T19:56:25.488Z"
+      "id": "b146",
+      "domain": "Roofs & skyline",
+      "kind": "Deepen",
+      "brief": "#140 gave every solid column a cast shadow, and its own surprise was that the binder is the SUN, not the shadow. But there is a second binder it did not name: shTop[] is filled from the eave, and the two tallest drawn things in this town are not eaves. The clock tower reaches z 10.2 and the church spire is higher; both currently throw from eaveBand's 6.3 and 7.8. The tallest volume in the picture casts a terrace's shadow. Give each tower its real height into shTop[] and let the throw be as long as the geometry says. Price the extent off -S/S[2] BEFORE you build, so you know at which hours it is worth anything: sunVec() is a stylised high sun and midday buys almost nothing, but a tower is tall enough that the early and late hours should be dramatic.",
+      "seams": [
+        "shTop",
+        "shOpen",
+        "buildSunShade",
+        "drawSunShade",
+        "eaveFor",
+        "eaveBand",
+        "buildVolumes",
+        "dialThrow",
+        "sunVec",
+        "shadowF"
+      ],
+      "successLooksLike": "On a clear morning and again in the late afternoon the clock tower lays a shadow down the cross street and the spire one across the far bank's green, long enough to read at Wide and to swing visibly across the hour. Measured against HEAD with a shade-diff on the same seed and instant, with a same-code control.",
+      "avoid": "Do not touch eaveBand itself - every generic consumer reads it; give the two towers their own entry into shTop[]. Watch the northward veto from #140: a volume lifts ~1.15 rows a cell UP the frame, so an un-vetoed throw paints the caster's own roof, and a tower is exactly where that goes wrong worst. Keep the merged-run fill - overlapping subpaths wind to 2 and double-darken.",
+      "budgetMin": 45,
+      "risk": "medium"
     },
     {
-      "id": "b142",
-      "at": "2026-09-02T20:37:46.677Z"
+      "id": "b147",
+      "domain": "Cross street & allotments",
+      "kind": "Deepen",
+      "brief": "plotCrop() answers for a whole allotment plot off its FIRST sown cell, but a gardener's kneel scatters over a 3x3 and crosses plot edges, so a plot can hold six species and be described by whichever one the loop reached first. plotStands() and bedCap() both read it. Cabbages are the one hardy species in this town and hold the winter alone, which means one cabbage in the corner of a plot may be holding the full winter ceiling for five tender neighbours that should be stalled. Make the answer the PLOT's, not the first cell's - a plot's crop is what is mostly in it, or its readers ask a question that has a per-cell answer.",
+      "seams": [
+        "plotCrop",
+        "plotStands",
+        "bedCap",
+        "harvestPlot",
+        "ripePlots",
+        "bSp",
+        "speciesFor",
+        "inAllotment"
+      ],
+      "successLooksLike": "Through a winter, a plot sown mostly tender stalls at stage 1 with its neighbours instead of riding a single cabbage's ceiling, and the glasshouse stays the one place in the town where a tender crop keeps going. Counted over a year, not read off one frame.",
+      "avoid": "Do not change what a kneel SOWS - the scatter is right and the bug is the read. Do not re-derive the footprint: a plot OWNS x [ox,ox+4) y [oy,oy+3) and never its west side, so read it back off the grid. And check every caller before you widen the signature.",
+      "budgetMin": 35,
+      "risk": "low"
     },
     {
-      "id": "b143",
-      "at": "2026-09-02T20:57:11.156Z"
+      "id": "b148",
+      "domain": "Plaza & quay",
+      "kind": "Scale/World",
+      "brief": "#144 reserved the fountain's three stands and then proved its own cap dead: FAM_CAP 5 and 7 return byte-identical numbers and bind 0.0% of open daylight, so past 4 the bound was never the places. Families hold at ~1.9 against three stands and two benches because FAM_RATE 0.5 and the 9.5-17 window are what bind - which the source comment had guessed and nobody had tested. The plaza is the town's other room and it is the emptiest thing in a summer afternoon shot. Spend what #144 measured: price presence as rate x visit BEFORE moving either, then sweep the rate and the window and keep the knee.",
+      "seams": [
+        "FAM_RATE",
+        "famOpen",
+        "FAM_CAP",
+        "spawnFamilyAgent",
+        "FOUNT_STANDS",
+        "freeStand",
+        "famBench",
+        "withCompanion"
+      ],
+      "successLooksLike": "On a fine summer afternoon the fountain's three stands and the two plaza benches are held more often than not, and crowded pairs per person stays inside #144's 0.145-0.159 band rather than climbing back toward HEAD's 0.282.",
+      "avoid": "Do not raise FAM_CAP - it is a proved dead constant and raising it is how this brief fails silently. Do not widen the window at the LANDING end only: bound both ends, and the END is the hour the last family is GONE, so the walk home is priced at the choice. A family that can get neither bench nor stand must still decline to set out.",
+      "budgetMin": 35,
+      "risk": "low"
     },
     {
-      "id": "b144",
-      "at": "2026-09-02T21:06:40.860Z"
+      "id": "b149",
+      "domain": "The sill & the observer",
+      "kind": "Harness",
+      "brief": "Two gates in this loop are not telling the truth, and both are cheap. FIRST, the memory budget. context-budget.mjs has read OVER on twenty-five consecutive worker opens and has been reset by five manager passes; it is advisory, so a worker reads it, writes 'OVER 50.2 of 46 KB' into its ledger entry, and ships. The total is not something a worker can fix - but what ONE iteration ADDS is. Give the tool a second mode that reports an iteration's own additions against a quota (one ledger entry <= 1.8 KB, at most one inventory line <= 250 B, at most one cue <= 250 B, merging otherwise), prints the offending lines, and is non-zero when they are exceeded, so the worker's log step can hold it. SECOND, c227: probes/punt.mjs reports a stranding for every night rider, because its test is 'a.eyot after eastOpen() closed' and #131's eastOpenFor() legitimately covers that case. It has cried wolf on HEAD since #141. Fix its test or retire it.",
+      "seams": [
+        "context-budget.mjs",
+        "rotate-ledger.mjs",
+        "state.mjs",
+        "probes/punt.mjs",
+        "eastOpenFor",
+        "puntNightFits"
+      ],
+      "successLooksLike": "context-budget.mjs --additions exits non-zero on a staged over-quota inventory line and names it, and zero on HEAD. probes/punt.mjs passes on HEAD and can still be shown to FAIL on a build that really strands a night rider.",
+      "avoid": "Do not change the 46 KB cap or the 12 KB laws cap - changing a cap mid-run is how a loop stops noticing. Do not make the total budget block a worker: it is the manager's number, and a worker cannot fix it inside its own iteration. And do not retire the punt gate without showing the test it replaces can still go red.",
+      "budgetMin": 30,
+      "risk": "low"
     }
-  ]
+  ],
+  "recommendStop": null
 }

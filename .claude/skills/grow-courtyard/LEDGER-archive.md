@@ -4460,6 +4460,18 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Law:** a light drawn in the item pass is slate by midnight — anything meant to READ as a flame must register its point and be repainted after `applyLight`; "it is drawn" is not "it can be seen".
 
 
+## Iteration 143 — the evening's warm wash rides the sun, as the morning already did (2026-09-03) [Sky, light & weather × Connect]
+
+**Brief:** b143 — `applyLight`'s dusk is `clamp(1 - |hour - 19|/1.8)`, a hard-coded hour in a light; #112 fixed the morning onto `sunUp` and left the evening.
+**Did.** One line: `DUSK_OFF = -1.0`, peak at `sunDown + DUSK_OFF`, which at SEASON_START is **19.00 exactly** — `kioskOpen`'s construction, so the anchor day is provably the old evening. Half-width unchanged at 1.8 and deliberately unscaled (see the law). Morning untouched. No hard-coded hour is left in any light term.
+**Gates:** census PASS, six groups unchanged (no `R()` spent) · motion PASS · visual PASS · filmstrip **0 POP** on a midwinter evening (t=1069) and a midsummer one (t=360), both a smooth amber→blue ramp · perf skipped.
+**HEAD → cand.** `probes/dusk-year.mjs`, over the year at eight offsets from sunset: HEAD's spread **0.72–1.00 at every k**, candidate's **0.000 at all eight**. At sunset itself midwinter 0.722 → 0.444, midsummer **0.000 → 0.444**. `probes/dusk-frame.mjs`, R−B above `sillTop()`: midsummer sunset−1 **−0.47 → +19.39**, while midwinter's peak holds at +27.07 against the +28.3 #112 measured for the warmest dusk the town then had — the peak is the *same*, it just now happens on every evening instead of one. Both probes carry controls that came back byte-identical.
+**Verdict:** shipped
+**Surprise:** the town's other dusk already knew. `skyCols` has ridden `sunDown - 0.6` since #11 — so the note inside `applyLight` reading "at dusk this wash and the sky's own peak nearly two hours apart" was never a taste observation. It was **this bug, measured and written down and left**: the gap is 0.4 h at the anchor and 1.9 h at midsummer *because one term was on the sun and the other on the clock*. #112 read that sentence, used it to justify damping the morning to 0.55, and did not notice it was a symptom of the half it was leaving alone.
+**Budget:** **OVER — 49.2 of 46 KB** before this entry. Fourth pass running over; #136, #141, #142 all flagged it.
+**Law:** re-keying a term onto the sun moves its OFFSET, and its WIDTH must then stay fixed — scaling both makes the value at sunset+k a function of the season again, which was the fault. Scale a width only when the thing is the night's clock (`dawnF`), never when it is a wash read at an offset.
+**Law:** a comment that measures two terms disagreeing is a BUG REPORT, not a description — when the source explains why a constant is damped, check what it is damped *against*.
+
 ## Iteration 144 — the east gets a share of the lane's roll, and the plaza gets a third place (2026-09-03) [Lane & market × Connect]
 
 **Brief:** b144 — `laneCap` has no knee because the east branches are 5–6% bands each: re-weight the roll so raising the cap reaches the east. Reserve the fountain stand, then re-sweep `FAM_CAP`.
