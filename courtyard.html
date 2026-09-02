@@ -6510,6 +6510,14 @@ function wellNear(x){
 const ROOF_FURN = [];            // {kind, x, x1, y, h, house} — town state, counted by the census
 const LOFTS = [];                // [x, y, boardW, z] — the landing boards, which are a PERCH
 const WASH_H = 1.75, WASH_SAG = 0.16;    // the line's height over the leads, and its sag
+const WASH_DROP = 0.58, WASH_DROP_R = 0.95;   // how far a garment hangs below the cord
+/* How big each piece IS, in one place. drawWaterTank and drawPigeonLoft read these and
+ * so does roofFurnAt(), so the box under the pointer cannot drift from the box on the
+ * roof — the same rule the birds' hit box got from nearScale() at #113. */
+const FURN_BOX = {
+  tank: {w:0.80, d:0.55, legh:0.26, hgt:1.00},          // the cradle, then the tank on it
+  loft: {w:0.82, d:0.42, base:0.20, hgt:0.72, rid:0.30} // board, hutch, and its little ridge
+};
 function buildRoofFurn(){
   ROOF_FURN.length = 0; LOFTS.length = 0;
   for (const [sx0, sx1] of NEAR_SPANS){
@@ -6774,7 +6782,7 @@ function drawWashLine(g, f, lit, out){
     const u = (k + 0.5) / n, sx = f.x + (f.x1 - f.x) * u;
     const ha = hash(gx * 13 + k, 733), hb = hash(gx * 17 + k, 741), hc = hash(gx * 19 + k, 757);
     const top = zTop - Math.sin(u * Math.PI) * WASH_SAG;
-    const drop = 0.58 + ha * 0.95, w = 0.16 + hb * 0.20;      // a shirt, or somebody's sheet
+    const drop = WASH_DROP + ha * WASH_DROP_R, w = 0.16 + hb * 0.20;   // a shirt, or a sheet
     const q = [project(sx - w, f.y, top), project(sx + w, f.y, top),
                project(sx + w + lean, f.y, top - drop), project(sx - w + lean, f.y, top - drop)];
     g.fillStyle = mix('#2b2822', WASH_COL[(hc * WASH_COL.length) | 0], lit);
@@ -6791,7 +6799,7 @@ function drawWashLine(g, f, lit, out){
  * the shadow ramp, which is the strip this whole vector is for. */
 function drawWaterTank(g, f, lit){
   const z = nearZ(Math.floor(f.x), Math.floor(f.y));
-  const w = 0.80, d = 0.55, legh = 0.26, hgt = 1.00;
+  const {w, d, legh, hgt} = FURN_BOX.tank;
   const y0 = f.y - d, y1 = f.y + d, zb = z + legh, zt = zb + hgt;
   g.strokeStyle = 'rgba(26,20,15,.75)'; g.lineWidth = Math.max(1, cellW * 0.11);
   for (const sx of [f.x - w * 0.75, f.x + w * 0.75]){
@@ -6820,7 +6828,8 @@ function drawWaterTank(g, f, lit){
  * of furniture that is also a place, which is what stops the strip being a still life. */
 function drawPigeonLoft(g, f, lit){
   const z = nearZ(Math.floor(f.x), Math.floor(f.y));
-  const w = 0.82, d = 0.42, zb = z + 0.20, zt = zb + 0.72, rid = zt + 0.30;
+  const {w, d, base, hgt, rid: ridH} = FURN_BOX.loft;
+  const zb = z + base, zt = zb + hgt, rid = zt + ridH;
   const y0 = f.y - d, y1 = f.y + d;
   const bd = [project(f.x - w, y1, zb + 0.04), project(f.x + w, y1, zb + 0.04),
               project(f.x + w, y1 + 0.62, zb + 0.04), project(f.x - w, y1 + 0.62, zb + 0.04)];
@@ -9387,14 +9396,11 @@ function cellAt(ev){ return cellOf(evPx(ev)); }
 /* Only the transitions touch the DOM: mousemove fires at pointer rate, and setting
  * cv.style.cursor on every one of them is a style write per event for no change. The
  * naming is the same economy one step further — the event only RECORDS the pointer, and
- * updateNaming reads it once a frame. */
+ * updateNaming reads it once a frame, and the CURSOR is now decided there too, off that
+ * one read (see updateNaming). So this listener does nothing but note where the pointer
+ * is: no hit test, no style write, nothing per event at all. */
 let hoverLive = false, hoverPx = null;
-cv.addEventListener('mousemove', ev => {
-  hoverPx = evPx(ev);
-  const [x, y] = cellOf(hoverPx);
-  const live = answersTouch(x, y);
-  if (live !== hoverLive){ hoverLive = live; cv.style.cursor = live ? 'pointer' : 'default'; }
-});
+cv.addEventListener('mousemove', ev => { hoverPx = evPx(ev); });
 cv.addEventListener('mouseleave', () => {
   hoverLive = false; hoverPx = null; cv.style.cursor = 'default';
 });
@@ -9753,6 +9759,7 @@ function livingAt(p){
   livingHit = null;
   const hit = (x, y, z, h, sortY, name, w, who) => {      // h: figure height in cells above the feet
     const [sx, sy] = project(x, y, z || 0), hx = hw * (w || 1);
+    if (nearHidden(y, sy)) return;          // the sill covers it: drawBird's own test, on the same feet
     if (p[0] < sx - hx || p[0] > sx + hx || p[1] > sy + cellH * 0.25 || p[1] < sy - cellH * h) return;
     if (sortY > bestY){ bestY = sortY; best = name; livingHit = who || null; }
   };
@@ -9825,11 +9832,76 @@ function doorName(f){
   if (nightF <= 0.3) return 'a front door, with a window over it';
   return 'a front door; the lamp over it is ' + (windowLit(f.sa, f.sb) ? 'lit' : 'dark');
 }
+/* THE WORKING ROOF ANSWERS. Twenty-four pieces stand on rows 86-87 — at a phone size the
+ * biggest, nearest, most pointable objects in the frame — and until now they were the one
+ * thing the near roof holds that said nothing at all: livingAt names the birds that perch
+ * on the loft's own board, faceAt names the dormer beside it, nameAt names the slates
+ * under it, and the loft itself was silent.
+ *   What each one SAYS is read off what it IS doing, in the terms the draw call is drawn
+ * with — washOut() decides whether there is washing on the line for the words exactly as
+ * it does for the picture, snowCover is the same term that whitens the tank's lid, and the
+ * loft counts the birds actually standing on its board through birdDown(), the one posture
+ * test drawBird shares. No second table of boxes: a piece's kind and its own fields are
+ * the whole of it. */
+function roofFurnName(f){
+  if (f.kind === 'tank') return snowCover > 0.04 ? 'a water tank, snow lying on the lid'
+                              : raining ? 'a water tank, filling in the rain'
+                              : 'a water tank up on the leads';
+  if (f.kind === 'loft'){
+    let n = 0;
+    for (const b of birds) if (b.perch === 'loft' && birdDown(b) && Math.abs(b.x - f.x) < 1.4) n++;
+    if (n) return 'a pigeon loft, ' + (n > 1 ? 'pigeons on the landing board' : 'one on the landing board');
+    return nightF > 0.5 ? 'a pigeon loft, shut up for the night' : 'a pigeon loft, the board empty';
+  }
+  // the cord stays strung whatever the weather, so the line is named by what is NOT on it
+  if (washOut()) return windF() > 0.45 ? 'a line of washing, blowing about on the roof'
+                                       : 'a line of washing out to dry';
+  if (snowCover > 0.04) return 'a washing line, the cord under snow';
+  if (raining || wetF() > 0.22) return 'a washing line, nothing out on a wet day';
+  return hour < sunUp + 1.3 ? 'a washing line, not pegged out yet'
+                            : 'a washing line, the washing brought in';
+}
+/* Hit-tested in WORLD space and projected live. The pieces are drawn into the ground
+ * cache, but unlike FACES they are HELD as world coordinates, so there is no screen box
+ * to go stale through the camera ease — and what lag there is, is the same frame the cell
+ * naming under them already has, from the same cause. Screen x spreads with depth
+ * (project() pinches on d = y - z*LIFT), so the widest row is the bottom one and the
+ * highest is the far top corner: three projections bound the piece.
+ *   Painter's order — drawRoofFurn walks ROOF_FURN forward, so it is asked backward. */
+const FURN_PAD = 2;     // px of pointer tolerance; a bare cord is one pixel of picture
+function roofFurnAt(p){
+  for (let i = ROOF_FURN.length - 1; i >= 0; i--){
+    const f = ROOF_FURN[i], line = f.kind === 'line';
+    const cx = line ? (f.x + f.x1) / 2 : f.x;
+    const z = nearZ(clamp(Math.floor(cx), 0, GW - 1), Math.floor(f.y));
+    const b = line ? null : FURN_BOX[f.kind];
+    const x0 = line ? f.x : f.x - b.w, x1 = line ? f.x1 : f.x + b.w;
+    const d = line ? 0.30 : b.d;
+    const zt = z + (line ? WASH_H : f.kind === 'tank' ? b.legh + b.hgt : b.base + b.hgt + b.rid);
+    const zb = line ? (washOut() ? zt - (WASH_DROP + WASH_DROP_R) : zt - 0.10) : z;
+    const lo = project(x0, f.y + d, zb), hi = project(x1, f.y + d, zb), top = project(x0, f.y - d, zt);
+    if (p[0] < lo[0] - FURN_PAD || p[0] > hi[0] + FURN_PAD) continue;
+    if (p[1] < top[1] - FURN_PAD || p[1] > lo[1] + FURN_PAD) continue;
+    return f;
+  }
+  return null;
+}
 function lookAt(p){
+  /* Behind the sill nothing on the near block is DRAWN — nearHidden() is the renderer's
+   * own rule and it guarded drawBird and drawCat alone, so a bird the sill covers was
+   * still hit-tested and still named, and the words described a picture nobody could
+   * see. The hit test reads that predicate now: once here, on the cell the pointer is
+   * over, which closes it for every candidate at the bottom of the frame at a stroke,
+   * and again inside livingAt on each figure's feet, which is the very argument
+   * drawBird passes. */
+  const [cx, cy] = cellOf(p);
+  if (nearHidden(cy, p[1])) return '';
   const l = livingAt(p);
   if (l) return l;
   if (millWheelAt(p)) return millWheelName();
   { const v = vaneAt(p); if (v) return vaneName(v); }
+  // the furniture is drawn into the cache AFTER the dormers, so it is asked before them
+  { const rf = roofFurnAt(p); if (rf) return roofFurnName(rf); }
   const f = faceAt(p), c = treeAt(p);        // crowns paint over the cached facades; the live band over the crowns
   if (f && (f.live || !c)) return f.door ? doorName(f) : windowName(f.sa, f.sb);
   if (c) return c.name + ', ' + treeState(c.fruit);
@@ -9837,8 +9909,7 @@ function lookAt(p){
     const dx = (p[0] - murBox.x) / murBox.rx, dy = (p[1] - murBox.y) / murBox.ry;
     if (dx * dx + dy * dy <= 1) return 'starlings coming in to roost';
   }
-  const [x, y] = cellOf(p);
-  return nameAt(x, y);
+  return nameAt(cx, cy);
 }
 /* ============ the following ============
  * A name says what somebody is doing at the instant of the tap; two seconds later
@@ -9891,7 +9962,20 @@ function drawFollowMark(t){
   ctx.restore();
 }
 function updateNaming(now){
-  let want = HOVERS ? (hoverPx ? lookAt(hoverPx) : '') : (heldTo > now ? held : '');
+  const under = HOVERS && hoverPx ? lookAt(hoverPx) : '';
+  /* THE HAND AND THE WORDS NOW AGREE. The cursor keyed on answersTouch() — the SOWABLE
+   * cell test — while lookAt() answers for far more: every bird and walker, the windows
+   * and doors, the vanes, the tree crowns, the roosting flock, and the roof furniture
+   * above. So everything #113 opened up was findable with a mouse only by accident, and
+   * the town promised a response exactly where it would SOW and nowhere it would merely
+   * SPEAK. The affordance is the naming: a hand wherever there is a name to give.
+   *   It costs nothing. lookAt already ran once a frame off this same point, the label
+   * is its result, and the DOM is still only written on a transition — the per-event
+   * hit test the mousemove listener used to do is gone. What the click DOES is still
+   * answersTouch()'s decision; this only says that pointing will be answered. */
+  const live = !!under;
+  if (live !== hoverLive){ hoverLive = live; cv.style.cursor = live ? 'pointer' : 'default'; }
+  let want = HOVERS ? under : (heldTo > now ? held : '');
   // ...and never through a lapse: the label is read off a cell that is turning over
   // several times a second under it, which is the one way this label CAN be wrong
   if (want && (inviteHold || skipping() || (innerWidth > 640 && now - lineAt < lineDwell))) want = '';

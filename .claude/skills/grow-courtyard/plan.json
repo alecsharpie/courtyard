@@ -17,33 +17,6 @@
   "rationale": "I shot the town at 1600x950 and 390x844 before planning it, and then measured the frames per row rather than trusting my eye. The town proper is dense and genuinely good. What the phone frame says is that it occupies 46% of the canvas: ~26% above the roofline is empty sky, and ~22% below it is the near roof ramping from mean luma 117 down to 20. I am NOT planning against either. The bottom band is #105's foreground ramp doing exactly what it was built to do — at the shipping size it reads as a window vignette, not a hole — and #104 and #109 both spent their bets down there already. That closes c163 with a reason and turns the frame measurement into c174 for a later pass.\n\nThe real finding is in the census, not the picture. passages, tileKinds and speciesKinds have never moved in 114 iterations, and when I went to look at why, tileKinds and speciesKinds turn out not to be arbitrary: they are 15 tile constants (WALL 0 through TUNNEL 10, plus four) and 11 SPECIES, both unchanged since commit 1. Every one of the 114 iterations, including #100's near block and #110's working roof, has been a recombination of the same fifteen materials and the same eleven plants. That is the frozen thing in this town, and rung 4b names it explicitly — 'a new kind of tile or species'. So b116 is a GLASSHOUSE on the allotments: the first thing in the town you can see through, one new grid constant and one new species that only sows under glass, wired into snowAt, wetF, windowLit, mistAt and the harvest cycle rather than inventing state beside them. It must take tileKinds 135->144 and speciesKinds 99->108 — exact numbers, because both are per-snapshot counts summed over the census ladder's nine cells, so the brief prices its own success band instead of hoping. It serves the longest-untouched domain (Cross street & allotments, 10 back), it is 75 minutes and high risk, and it is second in the queue because b115 is a fifteen-minute instrument fix that must land first.\n\nb115 is #114's question handed back answered. summarize() folds only planting.bySpecies and drops planted, blooming, daisies, mossy, matureTrees, worn, harvested and produce, so mossy — added by #103 SO THE CENSUS COULD SEE THE MOSS — moved 265->358 at #114 while the gate printed 'planting: unchanged'. #114 called it the manager's call because it reshapes the baseline. I am calling it, and putting it first so that b116's re-pin captures the new fields in the same move rather than re-pinning twice.\n\nb117 collects three cues that are one subject: the town names more than it admits to naming (the cursor keys on answersTouch, the sowable-cell test, so everything #113 opened up is findable only by accident), names less than it draws (24 pieces of roof furniture, the most pointable things on a phone, say nothing), and names things it has hidden (nearHidden is draw-side only, so a walker behind the sill still answers). b118 is c168's measured regression — the lawn and lane birds are at a presence mean of 0.06 because their cap counts #106's roof birds against them, a one-word predicate bug with the counting already done. b119 gives FAR_GATE a door, which is the one place in the town where a person walks in out of nothing.\n\nCuration. The budget was over for the fifth consecutive open and I fixed it this pass rather than deferring: 50.8 -> 43.8 KB, the most headroom of the run. LAWS.md opened at 12288/12288 with ZERO bytes free — the note I left myself last pass — so I cut before promoting: the standalone 'slow world scalar' law is folded into the ceiling law (six working instances embody it), 'ask what else enters a shared block' is MERGED into the rate-of-zero law because both are the same claim (your feature runs at zero while the counter lies to you), and the framing law lost the near-block examples now that the near block is built. That paid for seven promotions, all merged into their subjects rather than stacked: #112's hard-coded-hour and #114's fall-through-predicate findings, #113's pointer-vs-naming probe rule, #114's same-code control floor and its cross-region CA mask, #112's price-the-composite and untouched-axis rules. 15 laws at exactly 12288 bytes. The three tail ledger entries went 10.3 -> 5.4 KB with full text appended to the archive and the promoted Law: lines cut. Inventory back to nouns, with one factual CORRECTION I only found because I nearly briefed against it: rain and snow DO fall and ARE drawn, and the inventory never said so — I was one grep away from commissioning weather the town has had since #21.",
   "queue": [
     {
-      "id": "b117",
-      "domain": "Roofs & skyline",
-      "kind": "Interaction/UX",
-      "brief": "Three faults, one subject: the town names more than it admits to naming, less than it draws, and some things it has deliberately hidden. (a) `cv.style.cursor = live ? 'pointer' : 'default'` keys on `answersTouch(x,y)`, which is the SOWABLE-cell test — so everything #113 opened up (roof birds, windows via `FACES`/`faceAt`, the vanes, the tree crowns) is findable on a desktop only by accident, and the naming and the affordance disagree. The cursor should become a hand wherever the town has a name to give. (b) The roof furniture is not named at all: `drawWashLine`, `drawWaterTank`, `drawPigeonLoft` and `LOFTS[]` put 24 pieces on the near roof — at a phone size the most pointable objects in the frame — and they say nothing, while `livingAt`, `pavingAt` and `FACES` answer for everything else in the town. Give them lines the way #113 gave the birds theirs: off what they ARE, in the town's own words, never a second table of boxes. (c) `nearHidden(y, sy)` is draw-side only — it is called inside `drawBird`/`drawCat`, not in the hit test — so a walker or bird behind the sill is still hit-tested and still named. Make the hit test read the same predicate the renderer does.",
-      "seams": [
-        "answersTouch",
-        "cv.style.cursor",
-        "hoverLive",
-        "livingAt",
-        "faceAt",
-        "vaneAt",
-        "nearHidden",
-        "sillTop",
-        "ROOF_FURN",
-        "LOFTS",
-        "drawWashLine",
-        "drawWaterTank",
-        "drawPigeonLoft",
-        "evPx",
-        "NAME_SETTLE"
-      ],
-      "successLooksLike": "At 390x844 and 1600x950, a real `mousemove`/tap driven onto a water tank, a pigeon loft, a line of washing, a window and a vane turns the cursor to a hand and returns a line; a point behind the sill returns nothing and shows no hand. Quote it as a table against HEAD, the way #113 did.",
-      "avoid": "No new `OFFERS[]` entry — the queue is full and this is the affordance for tools already advertised. No new `R()` draw: this should hash-match HEAD at pinned instants, which is the whole proof that it is an interaction change and not a draw change. And do not prove it with `lookAt(project(...))` — that skips the event, which is exactly where #113 found a 16 px screen-space bug.",
-      "budgetMin": 35,
-      "risk": "low"
-    },
-    {
       "id": "b118",
       "domain": "People & animals",
       "kind": "Deepen",
@@ -92,6 +65,10 @@
     {
       "id": "b116",
       "at": "2026-09-02T01:37:42.711Z"
+    },
+    {
+      "id": "b117",
+      "at": "2026-09-02T02:02:10.514Z"
     }
   ]
 }

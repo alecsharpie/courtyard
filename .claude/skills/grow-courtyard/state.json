@@ -2,7 +2,7 @@
   "updated": "2026-09-02",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 116,
+  "lastIteration": 117,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -419,6 +419,9 @@
       "scale": [
         100,
         110
+      ],
+      "interaction": [
+        117
       ]
     }
   },
@@ -503,7 +506,9 @@
       "the sill is drawn at EVERY camera: sillBoxes() its screen footprint, sillOver() copies those pixels back out of the ground cache, clipOffSill() punches them out of applyLight's glow passes. sillU() is priced off cellW0, so the sill does not zoom and does not move through the camera ease",
       "evPx maps the event into DRAWING space: resize() takes W/H off the frame's BORDER box, #cv fills its PADDING box, so a raw CSS point was up to 16x20 px out. One mapping, upstream of livingAt/faceAt/treeAt/cellOf",
       "the pointer's AFFORDANCE is answersTouch alone: cv.style.cursor = live ? 'pointer' : 'default', so only sowable cells look clickable while livingAt/faceAt/vaneAt/treeAt name far more (c169)",
-      "census reports SIX groups: scalars, tiles, life, structure, species and (since #115) planting — planted/blooming/daisies/mossy/matureTrees/worn/harvested/produce, folded generically in summarize() via PLANTING_SKIP; each field's measured noise floor is a comment beside it"
+      "census reports SIX groups: scalars, tiles, life, structure, species and (since #115) planting — planted/blooming/daisies/mossy/matureTrees/worn/harvested/produce, folded generically in summarize() via PLANTING_SKIP; each field's measured noise floor is a comment beside it",
+      "the CURSOR is the NAMING, not the sowing: updateNaming sets it from lookAt's own result (7/8 targets against HEAD's 1/8, c169 closed). answersTouch still decides what a click DOES",
+      "nearHidden() is read by the HIT TEST too (c165 closed) — once in lookAt on the pointer's cell, once in livingAt's hit() on the feet drawBird passes"
     ],
     "roofs": [
       "emergent roofs from buildVolumes (footprint -> volume, eaveFor); CHIMNEYS[], drawSmoke leans windDir; drawRoofRow shades by sun, cloud, warmth and snowCover",
@@ -512,7 +517,8 @@
       "OUR OWN ROOF below the lane: rows 79..WH are WALL, NEAR_SPANS the two halves, eaveFor 0, SLATES per house",
       "drawNearRoof (CACHED): drawRoofRow per row, drawCrests + capped ridge, moss on the north pitch, WELLS (the only VOID left), a dormer or rooflight per house at DORM_Y 85 (ROOF_LIGHTS -> LIT_PANES), drawPartyWalls + stacks at STACK_Y 86, drawParapet at PARA_Y. APRON below row WH: column-wise quads to the canvas bottom. OUR_AWNINGS are world quads on the kerb. nearShadow is the ONE ramp into the sill, priced off sillTop()",
       "near roof life: roofBirdSpot has its own roll/cap (ROOF_BIRDS 3) and FIVE perches — ridge, pitch, a WELL's north lip, the parapet, the loft landing board. The first four are capped by ROOF_DMAX 82.2 in DEPTH never rows; the loft board is the exception at depth 86.1, hidden at the two shortest framings",
-      "THE WORKING ROOF: ROOF_FURN, 24 pieces placed per BAY off hash(house), never R() — drawWashLine (washOut() gates the cloth, the cord stays strung), drawWaterTank, drawPigeonLoft, LOFTS[] the landing boards. Rows 86..87, the only level rows below the ridge. Census counts them as structure.roofFurniture. None of them is NAMED"
+      "THE WORKING ROOF: ROOF_FURN, 24 pieces placed per BAY off hash(house), never R() — drawWashLine (washOut() gates the cloth, the cord stays strung), drawWaterTank, drawPigeonLoft, LOFTS[] the landing boards. Rows 86..87, the only level rows below the ridge. Census counts them as structure.roofFurniture. None of them is NAMED",
+      "the working roof ANSWERS: roofFurnAt (world-space, projected live — no screen box to go stale) + roofFurnName off what each piece IS: washOut() for the cord, snowCover for the tank's lid, birdDown() for the loft's board. FURN_BOX is the ONE size definition the draw and the hit test share"
     ]
   },
   "openCues": [
@@ -574,6 +580,18 @@
       "id": "c178",
       "note": "state.json's inventory has listed a 'shed' on the allotments for many passes; there is none in courtyard.html — buildGrid's allotment branch paints only GRASS/WATER/BED. An inventory noun nothing in the source backs (#116)",
       "raisedBy": 114,
+      "seenBy": 0
+    },
+    {
+      "id": "c179",
+      "note": "at 1280x700 and 1200x720 the sill covers ALL 24 pieces of roof furniture — #110's whole working roof is invisible at two tracked framings, visible only at 1600x950 and on a phone (#117)",
+      "raisedBy": 116,
+      "seenBy": 0
+    },
+    {
+      "id": "c180",
+      "note": "motion.mjs reseeds, yet spawns/despawns churn run-to-run on UNCHANGED code (walker 165/106/126, three runs of one build): __reseed() rewinds the PRNG, not the agents already alive from frames drawn at page load (#117)",
+      "raisedBy": 116,
       "seenBy": 0
     }
   ],

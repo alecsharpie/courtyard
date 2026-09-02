@@ -3878,3 +3878,14 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped
 **Surprise:** my own guard deleted the feature I had just built. `if (a.tendBed){…}` in the retire block was meant for "the light went mid-row", but that block is entered by the **timer running out** too — the normal end of every row. The next bed was queued 7 times in 62 kneels and reached zero times, while the row histogram read `{1: 62}` and a wrapper on the choice said the choice was firing. Fix: `a.timer > 0 || lawnClosed()`. A distribution over the OUTCOME caught what a counter on the CHOICE could not.
 
+## Iteration 109 — the town stops lighting UP as the sun rises: the early risers key on sunrise, not on the night's dawn edge (2026-09-02) [Lane & market × Polish]
+
+**Brief:** b109 — re-key `windowLit`'s early risers so panes are lit BEFORE first light and go out as the town wakes.
+**Premise confirmed on HEAD, and worse than one hour.** Both ends keyed on the night clock's dawn EDGE (`t = span` = `sunUp + NIGHT_K*dayHours`) — 1.7 h past first light in winter, 2.5 h in summer — so a lamp could come ON at sunUp+1.1 and burn to +1.6. Year curve (26 days): the mean dips to 2.31 at sunUp−0.8 and climbs to 4.38 at +0.8; the trough sits exactly at first light.
+**Did:** one clause in `windowLit`, now reading `s = hour - sunUp` instead of `w.t` against `w.span`/`w.last`: `r = hRise/0.14`, on at `sunUp − 2.2 + 1.4r`, out at `sunUp − 0.3 + 0.7r`. All lit by sunUp−0.8, out one by one across −0.3…+0.4, latest-waker last. `sunUp` is `updateClock`'s, recomputed every frame, so no fixed point is needed. The 0.14 share, `windowHours`, `w.last`, the burn-through and every HOMES path untouched. +13/−2 lines.
+**Gates:** census PASS (all scalars unchanged — no new `R()` draw, so the seeded world is bit-identical) · motion PASS, zero jumps/nan/oob/flicker · filmstrip night 1 POP, identical to the digit on HEAD (pre-existing) · shots wide/courtyard/east/lane clean.
+**Measured** (HEAD vs candidate, same 26 days): winter day 19 inverts to `3 4 7 9 11 11 10 7 5 3 3 3` (HEAD `3 3 3 3 3 3 5 5 7 7 8 9`). Days RISING across sunUp+0.5 12/26 → 0/26; rises anywhere after sunUp 50 → 0; `(lit at −0.8) − (lit at +0.8)` mean −2.08 → +3.65, positive on 26/26 days against 1/26. Peak moves sunUp+0.8 → −0.5. All 234 evening rows identical. Containment proved by HASH: the canvas is bit-identical to HEAD at midday, dusk+1 and 01:30 and differs only at the two dawn instants.
+**Verdict:** shipped
+**Surprise:** the winter band now straddles the 06.00 day roll — the exact seam `nid` was built to survive, and it does: stepping 04:12→07:12 in 3-minute steps over five winter days, the worst simultaneous on/off swap is 0 on both builds. That zero needed an anchor, so I monkey-patched `nightAt` to return `nid = day`: the swap jumps to 2–5 windows at hour 6.03 on 4 of 5 days. `nid` is continuous because `day` increments in the same frame the ternary switches to `day − 1`.
+
+
