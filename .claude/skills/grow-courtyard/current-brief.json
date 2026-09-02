@@ -18,7 +18,7 @@
   "avoid": "`mistAt` is one function with one consumer contract — do not fork it into two incompatible readings; give it a second SOURCE, not a second definition. Do not scale it by warmth AND greyF(): #124 proved they are one axis. The veil must be able to reach exactly zero, and any skip guard tests the REGION, never a value legitimately zero inside it.",
   "budgetMin": 35,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 2,
   "nextIter": 127,
   "issued": "2026-09-02T08:08:11.675Z",

@@ -496,7 +496,7 @@
       "DAWN IS ONE EVENT: dawnF() on sunUp, dawnEdge() the ONE edge read by nightAt/w.last/burn-through/the HOMES cap. The EVENING half is untouched",
       "RAIN AND SNOW FALL and are DRAWN: raining/rainFall/nightDamp, drops lean windDir; weatherComing() the pre-rain reader",
       "HEARTHS on the sun and the cold: hearthF() the ONE definition drawSmoke's two consumers read — morning term on dawnEdge(), height HEARTH_MIN + HEARTH_SWING*(1-warmth) + HEARTH_SNOW*snowCover",
-      "MIST has TWO sources (#127): MIST_SRC[] = {span, reach, weight}, mistAt(x) is the strongest at x. River x114+ reach 8; HOLLOW over the allotments x82..94 reach 5, wt hollowMist*0.82, dipped by HOL_LIFT so beds/pond/GH sit in it. hollowMist is RADIATIVE (still+clear+COLD, no damp branch), fogs 12.7% of mornings, 0 warm ones. ghPane's mistAt term is LIVE: p50 0.82 at x88. A river-only morning is byte-identical to pre-#127."
+      "MIST: two sources via MIST_SRC[] {span,reach,wt}, mistAt=strongest at x (#127). River x114+ reach 8. HOLLOW x82..94 reach 5, wt hollowMist*0.82, HOL_LIFT dips it so beds/pond/GH sit in it. hollowMist RADIATIVE: still+clear+COLD, no damp branch; 12.7% of mornings, 0 warm. ghPane's mistAt term LIVE (p50 0.82 @x88). River-only morning = byte-identical to pre-#127."
     ],
     "life": [
       "ring transit via spawnAgent: walker, crosser, dogwalker. drawPerson 12 px. Wildlife: butterflies, fireflies, birds[], ducks, swans, the night cat catA, falling leaves. The clock strikes nine and eighteen; greetPass/chatty; sitters read the sky (seatRefused/seatWet)",
@@ -582,13 +582,13 @@
     },
     {
       "id": "c200",
-      "note": "drawMist uses ONE shared low-res offscreen for all live sources, so on a both-live morning widening its extent resamples the river's veil too: maxD 15 on ~386 px. Harmless now; it bounds how many sources can share that canvas.",
+      "note": "drawMist shares ONE low-res offscreen across live sources, so a both-live morning resamples the river's veil: maxD 15 on ~386 px. Bounds how many sources can share that canvas.",
       "raisedBy": 126,
       "seenBy": 0
     },
     {
       "id": "c201",
-      "note": "The hollow's wisp envelope (wfade 0.22) is untested insurance: a fog episode lasts ~10 s of sim and a wisp crosses only ~1.6 of its 26 rows, so wfade:0 reproduced it frame for frame. If a source ever gets a longer hold, the wrap becomes reachable.",
+      "note": "Hollow wisp envelope (wfade 0.22) is untested insurance: an episode lasts ~10 s sim and a wisp crosses ~1.6 of 26 rows, so wfade:0 reproduced it frame for frame. A longer hold makes the wrap reachable.",
       "raisedBy": 126,
       "seenBy": 0
     }
