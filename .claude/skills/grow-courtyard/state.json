@@ -522,7 +522,8 @@
       "the near block's edges: APRON below row WH, OUR_AWNINGS on the kerb, nearShadow the ONE ramp into the sill, priced off sillTop()",
       "near roof life: roofBirdSpot's own roll and cap, FIVE perches (ridge, pitch, a WELL's north lip, the parapet, the loft board), first four capped by ROOF_DMAX 82.2 in DEPTH",
       "THE WORKING ROOF: ROOF_FURN, 24 pieces per BAY off hash(house) — drawWashLine (washOut() gates the cloth), drawWaterTank, drawPigeonLoft, LOFTS[]. Rows 86..87; census structure.roofFurniture",
-      "it ANSWERS: roofFurnAt (world-space, projected live) + roofFurnName off what each piece IS (washOut, snowCover, birdDown); FURN_BOX the ONE size draw and hit test share"
+      "it ANSWERS: roofFurnAt (world-space, projected live) + roofFurnName off what each piece IS (washOut, snowCover, birdDown); FURN_BOX the ONE size draw and hit test share",
+      "ROOF_FURN is bounded in DEPTH, not rows (#123): furnRow() solves each piece's row from FURN_DMAX 81.70 / FURN_DMIN 79.15 per kind (furnEdges/furnExt), so all 21 on-canvas pieces draw whole and answer the pointer at all five tracked framings. Draw order in drawNearRoof is load-bearing now: parapet -> furniture -> dormers -> party walls. Cords are shortened to the clear run of their bay."
     ]
   },
   "openCues": [
@@ -619,6 +620,24 @@
     {
       "id": "c192",
       "note": "LEDGER entry 122 is 2.7 KB against the 1.8 KB cap — the FOURTH consecutive entry over it (120: 2.3, 121: 2.6). The cap has not been met since #119; either the cap is wrong or the template's 'write the surprise at full length' is in tension with it. Manager's call (see c188).",
+      "raisedBy": 120,
+      "seenBy": 0
+    },
+    {
+      "id": "c193",
+      "note": "the band between the parapet (79.15) and the 1280x700 sill (81.79) is 2.55 of depth and a water tank is 2.549 of it — the working roof cannot hold anything taller, and nothing visible at the two short framings can go on the south pitch at all. #110's flat field below the ridge is back at 1600x950 and on a phone.",
+      "raisedBy": 120,
+      "seenBy": 0
+    },
+    {
+      "id": "c194",
+      "note": "3 of the 24 ROOF_FURN pieces are off-canvas in x at every desktop framing and 11 of 24 on a phone (probes/furn-band.mjs): the block runs off both edges of the picture, so an eighth of the working roof has never been seen. Pre-existing, first quantified at #123.",
+      "raisedBy": 120,
+      "seenBy": 0
+    },
+    {
+      "id": "c195",
+      "note": "probes/affordance.mjs section 2 ('behind the sill, 1280x700') has lost its subject — no roof furniture is covered there any more. It still tests the birds and the cat, which nearHidden alone bounds, but the section's premise wants rewriting rather than guarding.",
       "raisedBy": 120,
       "seenBy": 0
     }

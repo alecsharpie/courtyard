@@ -6765,6 +6765,82 @@ const FURN_BOX = {
   tank: {w:0.80, d:0.55, legh:0.26, hgt:1.00},          // the cradle, then the tank on it
   loft: {w:0.82, d:0.42, base:0.20, hgt:0.72, rid:0.30} // board, hutch, and its little ridge
 };
+/* #123: WHERE the furniture stands is solved, not stated. #110 put it on rows 86..87
+ * because those are the only level rows below the ridge — a ROW bound, and the law says
+ * no world-space row bound on this block is safe at every window. Measured on HEAD
+ * (probe-furn-vis): at 1600x950, 1440x900 and 390x844 every on-canvas piece shows whole;
+ * at 1280x700 and 1200x720 the sill covers all 21 of them. The whole working roof, the
+ * largest built thing in the near frame, existed at two of five tracked framings.
+ *
+ * project()'s screen y is `topPad + d*cellH` and NOTHING else — pure depth — so "above
+ * the sill" IS a depth test, exact at every x and every z. The sill line solved on the
+ * pitch: 81.79 at 1280x700, 82.62 at 1200x720, off the bottom of the world at the other
+ * three. So the bound is the SHORTEST framing's, with margin, and it is on the piece's
+ * DEEPEST DRAWN POINT rather than its anchor — which is a different offset per kind:
+ * a box shows its base at f.y + d, a washing line shows the hem of its longest garment,
+ * which hangs WASH_DROP+WASH_DROP_R below a cord WASH_H up in the air, so the cord's own
+ * row may be a full row further south than a tank's.
+ *
+ * And the band has TWO ends, which the first draft of this got wrong: bounded only at
+ * the sill, every piece was visible and twelve of the twenty-four had their tops drawn
+ * NORTH of the lane's south walking line — a water tank's lid over the footway, which the
+ * live walkers are then drawn on top of, because our side of the picture is ground-cache
+ * work and they are not. LIFT carries a cell of height 1.15 of depth north, so a tall
+ * thing standing safely on the roof still reaches the road; that is the same arithmetic
+ * that keeps the parapet's coping under the lane by six thousandths of a cell.
+ *
+ * So the band is 79.15 (clear of the footway) to 81.70 (inside the shortest framing's
+ * sill), and it is 2.55 of depth deep. A water tank is 2.549 of depth TALL. It fits with
+ * six thousandths to spare and no freedom at all — so the scatter cannot be a constant
+ * either: each kind gets whatever room its own height leaves over, which is none for a
+ * tank, a third of a cell for a loft and three quarters for a line of washing. */
+const FURN_DMAX = 81.70;                 // the deepest drawn point: the 1280x700 sill is 81.79
+const FURN_DMIN = 79.15;                 // the northmost: the lane's south walking line is 79.0
+const FURN_DJIT = 0.8;                   // per-bay scatter, north of the bound, as far as it fits
+const FURN_YLO = 80.9, FURN_YHI = 87.6;  // the rows the solve may return
+/* Each kind's two edges, in depth off its anchor (f.y, the roof z under it). */
+function furnEdges(kind){
+  if (kind === 'line') return {dy:0, dzLo:WASH_H - (WASH_DROP + WASH_DROP_R), dzHi:WASH_H};
+  const b = FURN_BOX[kind];
+  return {dy:b.d, dzLo:0, dzHi:kind === 'tank' ? b.legh + b.hgt : b.base + b.hgt + b.rid};
+}
+// how deep the piece is on screen — independent of where it stands, so it is a constant
+function furnExt(kind){ const e = furnEdges(kind); return 2 * e.dy + (e.dzHi - e.dzLo) * LIFT; }
+/* The southmost row whose deepest drawn point still clears `dmax`. Depth is y - z*LIFT
+ * and z falls away monotonically down the south pitch, so depth climbs monotonically as
+ * you go south: step north from the eaves and take the first row that clears. The z is
+ * read at floor(y) exactly as drawWaterTank, drawWashLine and roofFurnAt read it, so the
+ * solve cannot disagree with either the paint or the pointer.
+ *
+ * Read per x, and that is the point of solving rather than stating: beside a light well
+ * the roof falls to nothing and the SAME row is 2.4 of depth lower, so those bays solve
+ * to a row two further north — and still land on the same screen line, because screen y
+ * is depth. A row bound cannot do that; this is the thing #110's comment says rows lie
+ * about, applied to the furniture instead of only to the birds. */
+function furnRow(x, kind, dmax){
+  const e = furnEdges(kind), gx = clamp(Math.floor(x), 0, GW - 1);
+  /* Stepped at 0.01 and not 0.05, because the shortfall is charged to the NORTH end: a
+   * piece that lands short of dmax has its top that much further north, and the band is
+   * six thousandths of a cell wider than the tallest piece in it. What shortfall is left
+   * is the roof's own quantisation — nearZ is per cell, so a bay beside a light well is
+   * stuck at the top of its shelf and lands 0.09 short. Measured worst case: the loft at
+   * x 24.3 tops out at depth 79.10, still south of the lane's 79.00. */
+  /* Walked in whole hundredths rather than by adding -0.01, and the row it returns is the
+   * row it TESTED. Both matter: `y -= 0.01` drifts to 81.99999999, which floors to 81 in
+   * the predicate, and rounding that to 82.00 on the way out hands the draw a cell one
+   * row further down the pitch — z 0.31 where the solve read 0.93, and the piece is 0.36
+   * of depth deeper than it was cleared for. Measured before the fix: the loft at x 24.3
+   * lost its bottom sixth to the sill at 1280x700, and nothing in the solve was wrong. */
+  for (let k = Math.round(FURN_YHI * 100); k >= Math.round(FURN_YLO * 100); k--){
+    const y = k / 100, z = nearZ(gx, Math.floor(y));
+    if ((y + e.dy) - (z + e.dzLo) * LIFT <= dmax) return y;
+  }
+  return FURN_YLO;
+}
+// the depth this piece is allowed to reach, scattered as far as its own height permits
+function furnDmax(kind, h){
+  return clamp(FURN_DMAX - h * FURN_DJIT, Math.min(FURN_DMIN + furnExt(kind), FURN_DMAX), FURN_DMAX);
+}
 function buildRoofFurn(){
   ROOF_FURN.length = 0; LOFTS.length = 0;
   for (const [sx0, sx1] of NEAR_SPANS){
@@ -6775,19 +6851,41 @@ function buildRoofFurn(){
       const house = houseOf(a);
       const h1 = hash(house + 300, 401), h2 = hash(house + 300, 409), h3 = hash(house + 300, 419);
       const line = h1 < 0.52;
-      if (line) ROOF_FURN.push({kind:'line', x:a + 0.45, x1:b - 0.45, y:85.95 + h3 * 0.5, h:h3, house});
       /* A bay with no line always gets a stand-alone piece. The first draft let both
        * rolls miss and put four bare bays in a row across the middle of the frame —
        * which is the flat field this vector exists to break, rebuilt at a smaller scale. */
       const stand = line ? h2 : h2 * 0.55;
-      if (stand < 0.34) ROOF_FURN.push({kind:'tank', x:a + 1.3 + h3 * 1.1, x1:0, y:86.95, h:h1, house});
-      else if (stand < 0.60){
-        const lx = a + 3.7 + h3 * 1.3;
-        ROOF_FURN.push({kind:'loft', x:lx, x1:0, y:86.8, h:h1, house});
-        LOFTS.push([lx, 87.52, 1.5, nearZ(Math.floor(lx), 86) + 0.26]);
+      const kind = stand < 0.34 ? 'tank' : stand < 0.60 ? 'loft' : null;
+      const sx = kind === 'tank' ? a + 1.3 + h3 * 1.1 : a + 3.7 + h3 * 1.3;
+      /* The cord is strung along the CLEAR run of the leads — the longer of the two gaps
+       * the stand-alone piece leaves — and not, as it used to be, straight through it.
+       * It could span the whole bay while the box stood a row and a half further south
+       * and the two never met on screen; inside one depth band they overlap, and a hit
+       * box that spans the bay swallows whatever is under it. Measured before this: four
+       * of the twenty-one on-canvas pieces answered the pointer with their neighbour's
+       * words. Fixing the picture and fixing the pointer are the same fix. */
+      if (line){
+        const pad = kind ? FURN_BOX[kind].w + 0.5 : 0;
+        const boxWest = !!kind && (sx - a) <= (b - sx);      // which side of the bay it stands in
+        const x0 = boxWest ? sx + pad : a + 0.45;
+        const x1 = kind && !boxWest ? sx - pad : b - 0.45;
+        // the same h3 that used to scatter the cord in ROWS now scatters it in DEPTH
+        ROOF_FURN.push({kind:'line', x:Math.min(x0, x1), x1:Math.max(x0, x1),
+                        y:furnRow((x0 + x1) / 2, 'line', furnDmax('line', h3)), h:h3, house});
+      }
+      if (kind === 'tank')
+        ROOF_FURN.push({kind:'tank', x:sx, x1:0, y:furnRow(sx, 'tank', furnDmax('tank', h1)), h:h1, house});
+      else if (kind === 'loft'){
+        const ly = furnRow(sx, 'loft', furnDmax('loft', h1));
+        ROOF_FURN.push({kind:'loft', x:sx, x1:0, y:ly, h:h1, house});
+        LOFTS.push([sx, ly + 0.72, 1.5, nearZ(Math.floor(sx), Math.floor(ly)) + 0.26]);
       }
     }
   }
+  /* Painter's order, and it has to be stated now that two pieces in one bay no longer
+   * land in the order they were pushed: larger y is NEARER, so the block is drawn from
+   * the back forward and roofFurnAt — which walks it backward — asks from the front. */
+  ROOF_FURN.sort((p, q) => p.y - q.y);
 }
 buildRoofFurn();      // the volumes are built above, and nothing here is seeded
 /* Washing goes out on a FINE day and is in before the light goes. Bounded on BOTH sides
@@ -6925,6 +7023,15 @@ function drawNearRoof(g){
     }
   }
   for (const w of WELLS) drawWell(g, w);
+  /* #123 moved the furniture north into the band the parapet and the dormers already
+   * occupy on screen, and the order between the three is now load-bearing where it used
+   * to be free. Back to front: the PARAPET is the roof's far edge, drawn depth 79.01 to
+   * 80.17, and everything standing on the roof is nearer than it — it used to be drawn
+   * last, which was harmless only while the furniture sat two rows south of its reach.
+   * Then the furniture. Then the DORMERS, which stand on row 85 and whose ridges reach
+   * back to depth 81.55, inside the furniture's band and nearer than all of it. */
+  drawParapet(g);
+  drawRoofFurn(g);
   for (let x = XLO; x < XHI; x++){
     // one per house, set just east of its party wall — and solidC is asked about the cell
     // the dormer actually stands on: at x 111 the wall is the block's last, and x + 1 is river
@@ -6933,9 +7040,7 @@ function drawNearRoof(g){
     if (h > 0.62) drawDormer(g, x + 1);
     else if (h > 0.34) drawRoofLight(g, x + 1, DORM_Y + 0.4, 0.42, 0.62);
   }
-  drawRoofFurn(g);
   drawPartyWalls(g);
-  drawParapet(g);
 }
 /* Drawn last of the roof, over the tiling and the dormers' cheeks: the upstands run from
  * the parapet clean off the bottom of the picture, and the stacks stand on them. */
@@ -7024,7 +7129,9 @@ function drawWashLine(g, f, lit, out){
   g.stroke();
   if (!out) return;                       // a wet morning: the line is there, the washing is in
   const lean = windSign * windF() * 0.20;
-  const n = 5 + ((f.h * 4) | 0);
+  // per CELL of cord, not per line: #123 shortened the cords that share a bay with a
+  // tank or a loft, and a fixed count over half the span is a rack, not a washing line
+  const n = Math.max(2, Math.round((f.x1 - f.x) * (0.82 + f.h * 0.5)));
   for (let k = 0; k < n; k++){
     const u = (k + 0.5) / n, sx = f.x + (f.x1 - f.x) * u;
     const ha = hash(gx * 13 + k, 733), hb = hash(gx * 17 + k, 741), hc = hash(gx * 19 + k, 757);

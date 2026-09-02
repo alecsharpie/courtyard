@@ -146,7 +146,11 @@ async function behind(url){
     return { cov: cov.length, pt: cov[0], ent, total: ROOF_FURN.length, W, H, st: +st.toFixed(0) };
   });
   const out = { cov: q.cov, total: q.total, st: q.st, ent: q.ent.length, rows: [] };
-  for (const [label, s] of [['roof furniture', q.pt], ...q.ent]){
+  /* #123 bounded ROOF_FURN in depth for the shortest framing, so at 1280x700 the sill
+   * covers NONE of it any more and q.pt is undefined. That is the fix landing, not a
+   * probe fault — the birds and the cat are still bounded by nearHidden alone, so the
+   * question this section asks is still live for them. */
+  for (const [label, s] of [...(q.pt ? [['roof furniture', q.pt]] : []), ...q.ent]){
     await p.mouse.move(Math.round(box.x + s[0] * box.width / q.W), Math.round(box.y + s[1] * box.height / q.H));
     await p.waitForTimeout(200);
     out.rows.push([label, await read(p)]);

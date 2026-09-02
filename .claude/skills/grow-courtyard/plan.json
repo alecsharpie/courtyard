@@ -15,29 +15,6 @@
   "rationale": "Three consecutive passes have sat on rung 4b and all three worked: #110 gave the near roof a working surface, #116 put a sixteenth tile and the first transparent thing in the town, #119 built an edge on the world's east face. The town's SHAPE has moved four times in twenty iterations. What has not moved since #99 is the observer, and two independent measurements now say the five cameras no longer contain the town they were framed for. c182 (from #119's own surprise, probes/world-edge-framing.mjs): the world's east edge — the hedge, the open gate, the worn track a whole iteration just built — is off-canvas in every camera but Wide at desktop sizes, INCLUDING the quarter named 'Far bank', and off-frame in all five on a phone. c150 (open since #99, seen by three passes): the quarters frame GROUND, so Far bank holds no sky, no quarter reaches s > 1.02 on the clock tower and the vane's cardinals never leave their 6 px floor, and Courtyard shows void west of x=0. A quarter camera that does not contain its namesake is not a polish problem; it is the observer being stale, which is rung 5 by name. So this batch climbs, and b120 is the bet.\n\nThe other four are deliberately not observer work — five briefs on one theme is a monoculture, and #94's pass proved a batch of dear briefs is how cost runs away. b121 goes to the longest-untouched domain and, more to the point, to the town's namesake, which is measurably its emptiest room (c173: 4 figures inside the walls against 43 town-wide, and LAWN_CAP untouched since #95). b122 is the other long-untouched domain and the one flat physical system left: rain falls, and the ground has no memory of it — wetF is one global scalar and the grep for a per-cell water term returns nothing. b123 is cheap and is a defect: 20 of #110's 24 roof-furniture pieces are behind the sill at 1280x700, which is a law we already wrote (bound the near band in DEPTH for the shortest framing) applied to a system built after it. b124 closes the oldest small cue in the file.\n\nOne brief I wrote and then killed: connecting the allotments' harvest to what the market sells. stockMarket() already pays produce[] into the stalls and mkTrades() leaves an unstocked pitch empty all day — the connection has existed since before this pass. The law about pricing a brief's premise caught it before a worker spent 25 minutes rediscovering it, and the fact is now an inventory line so the next pass cannot propose it again.\n\nMemory, this pass: inventory 12.3 KB -> 9.0 (rewritten as nouns + seams; the prose that had crept in is what the ledger is for), cues 14 -> 6 (five promoted into these briefs, three closed as fixed or absorbed), the last three ledger entries 8.3 KB -> 6.0 by cutting promoted Law lines and stale budget complaints, and the per-entry cap tightened 2.5 KB -> 1.8 in rotate-ledger.mjs and the template, because three entries at 2.5 KB were 18% of the worker's entire read budget. Two laws promoted by MERGING rather than stacking (#118's cap-membership sweep into the rate-and-cap law, #119's before-the-divergence containment proof into the R()-reshuffle law), and to pay for them I cut the churn percentage out of LAWS (it duplicates state.json's watch line) and four sentences of worked arithmetic. LAWS.md is 12,286 of 12,288 bytes — the next pass to promote a law must replace one, not append.",
   "queue": [
     {
-      "id": "b123",
-      "domain": "Roofs & skyline",
-      "kind": "Polish",
-      "brief": "#110's working roof — 24 pieces, the largest built thing in the near frame — is invisible at framings we ship. #117 measured 20 of the 24 covered by the sill at 1280x700; c179 says all 24 at 1280x700 and 1200x720, visible only at 1600x950 and on a phone. Count them yourself on HEAD at all five tracked sizes first; the two readings disagree and the difference matters. The cause is already a law: ROOF_FURN sits on rows 86..87 because they are the only level rows below the ridge, and sillTop() lands at world depth 81.7 at 1280x700 against 120 on a phone — a world-space ROW bound on the near block is safe at no size. Bound the furniture in DEPTH for the SHORTEST framing you support (ROOF_DMAX 82.2 is the number the roof birds already use) and place it accordingly, keeping FURN_BOX, roofFurnAt and roofFurnName reading the same pieces they read now.",
-      "seams": [
-        "ROOF_FURN",
-        "FURN_BOX",
-        "roofFurnAt",
-        "roofFurnName",
-        "LOFTS",
-        "ROOF_DMAX",
-        "sillTop",
-        "nearHidden",
-        "DORM_Y",
-        "STACK_Y",
-        "PARA_Y"
-      ],
-      "successLooksLike": "At every tracked framing a clear majority of ROOF_FURN is on screen — measured, not eyeballed — with nothing lost at 1600x950 or on a phone, and every piece still answers the pointer with the words it answers with today.",
-      "avoid": "Do not shrink the sill or change sillTop(): eight systems price off that line, including the foreground ramp. Do not delete pieces to raise the ratio.",
-      "budgetMin": 35,
-      "risk": "low"
-    },
-    {
       "id": "b124",
       "domain": "Sky, light & weather",
       "kind": "Connect",
@@ -71,6 +48,10 @@
     {
       "id": "b122",
       "at": "2026-09-02T05:12:12.750Z"
+    },
+    {
+      "id": "b123",
+      "at": "2026-09-02T05:52:55.750Z"
     }
   ]
 }
