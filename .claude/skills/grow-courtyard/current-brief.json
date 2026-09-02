@@ -22,7 +22,7 @@
   "avoid": "Do not add a second cold scalar beside `greyF()`: LAWS says two named scalars are often ONE axis and `greyF()` IS `1 - 2*warmth`, so read the definition before you multiply by both. And a night colour is set by the LAST composite that touches it — anything warm drawn live before `applyLight`'s multiply is slate by midnight, so put it back in a `screen` pass after, the way the window relight already does.",
   "budgetMin": 30,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 133,
   "issued": "2026-09-02T12:11:41.821Z",
