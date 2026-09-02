@@ -24,7 +24,7 @@
   "avoid": "Do NOT bake it into the ground cache: the light moves through the day and the lamps are lit after applyLight, so this is a live pass on the drawSunShade/drawCloudShade model, and any lit reflection must REGISTER its point and repaint in a screen pass after the multiply, exactly as BARGE_LAMP and PUNT_LAMPS already do. Do NOT add a new water hash - the flatness is the absence of the TOWN, not of texture, and one uniform hash is a texture and never a place. Do not reflect everything: choose what meets the water, and price the pass with frame-cost.mjs in weather at every camera, because perf.mjs will not see it.",
   "budgetMin": 90,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 145,
   "issued": "2026-09-02T21:46:29.550Z",
