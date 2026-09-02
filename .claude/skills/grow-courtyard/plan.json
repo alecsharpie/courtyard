@@ -17,25 +17,6 @@
   "rationale": "I shot the town at 1600x950 and 390x844 before planning it, and then measured the frames per row rather than trusting my eye. The town proper is dense and genuinely good. What the phone frame says is that it occupies 46% of the canvas: ~26% above the roofline is empty sky, and ~22% below it is the near roof ramping from mean luma 117 down to 20. I am NOT planning against either. The bottom band is #105's foreground ramp doing exactly what it was built to do — at the shipping size it reads as a window vignette, not a hole — and #104 and #109 both spent their bets down there already. That closes c163 with a reason and turns the frame measurement into c174 for a later pass.\n\nThe real finding is in the census, not the picture. passages, tileKinds and speciesKinds have never moved in 114 iterations, and when I went to look at why, tileKinds and speciesKinds turn out not to be arbitrary: they are 15 tile constants (WALL 0 through TUNNEL 10, plus four) and 11 SPECIES, both unchanged since commit 1. Every one of the 114 iterations, including #100's near block and #110's working roof, has been a recombination of the same fifteen materials and the same eleven plants. That is the frozen thing in this town, and rung 4b names it explicitly — 'a new kind of tile or species'. So b116 is a GLASSHOUSE on the allotments: the first thing in the town you can see through, one new grid constant and one new species that only sows under glass, wired into snowAt, wetF, windowLit, mistAt and the harvest cycle rather than inventing state beside them. It must take tileKinds 135->144 and speciesKinds 99->108 — exact numbers, because both are per-snapshot counts summed over the census ladder's nine cells, so the brief prices its own success band instead of hoping. It serves the longest-untouched domain (Cross street & allotments, 10 back), it is 75 minutes and high risk, and it is second in the queue because b115 is a fifteen-minute instrument fix that must land first.\n\nb115 is #114's question handed back answered. summarize() folds only planting.bySpecies and drops planted, blooming, daisies, mossy, matureTrees, worn, harvested and produce, so mossy — added by #103 SO THE CENSUS COULD SEE THE MOSS — moved 265->358 at #114 while the gate printed 'planting: unchanged'. #114 called it the manager's call because it reshapes the baseline. I am calling it, and putting it first so that b116's re-pin captures the new fields in the same move rather than re-pinning twice.\n\nb117 collects three cues that are one subject: the town names more than it admits to naming (the cursor keys on answersTouch, the sowable-cell test, so everything #113 opened up is findable only by accident), names less than it draws (24 pieces of roof furniture, the most pointable things on a phone, say nothing), and names things it has hidden (nearHidden is draw-side only, so a walker behind the sill still answers). b118 is c168's measured regression — the lawn and lane birds are at a presence mean of 0.06 because their cap counts #106's roof birds against them, a one-word predicate bug with the counting already done. b119 gives FAR_GATE a door, which is the one place in the town where a person walks in out of nothing.\n\nCuration. The budget was over for the fifth consecutive open and I fixed it this pass rather than deferring: 50.8 -> 43.8 KB, the most headroom of the run. LAWS.md opened at 12288/12288 with ZERO bytes free — the note I left myself last pass — so I cut before promoting: the standalone 'slow world scalar' law is folded into the ceiling law (six working instances embody it), 'ask what else enters a shared block' is MERGED into the rate-of-zero law because both are the same claim (your feature runs at zero while the counter lies to you), and the framing law lost the near-block examples now that the near block is built. That paid for seven promotions, all merged into their subjects rather than stacked: #112's hard-coded-hour and #114's fall-through-predicate findings, #113's pointer-vs-naming probe rule, #114's same-code control floor and its cross-region CA mask, #112's price-the-composite and untouched-axis rules. 15 laws at exactly 12288 bytes. The three tail ledger entries went 10.3 -> 5.4 KB with full text appended to the archive and the promoted Law: lines cut. Inventory back to nouns, with one factual CORRECTION I only found because I nearly briefed against it: rain and snow DO fall and ARE drawn, and the inventory never said so — I was one grep away from commissioning weather the town has had since #21.",
   "queue": [
     {
-      "id": "b118",
-      "domain": "People & animals",
-      "kind": "Deepen",
-      "brief": "The town's ORIGINAL lawn and lane birds are all but extinct, and nobody decided that. Their band's cap is `birds.filter(b => !b.plaza).length < 3`, which counts #106's ROOF birds and the belfry flock against them. #113 measured it over 1551 daylight dry samples across 5 seeds: the gate is open 15.3% of the time and held shut by roof birds alone 84.7% of the time, and mean present is 0.06 lawn/lane against 2.66 roof and 1.31 plaza. The predicate is the bug — the roof band has its own roll and its own `ROOF_BIRDS 3` cap, and the plaza band has `b.plaza`, so the ground band should count only its own members. Fix the membership test, then RE-PRICE rather than leaving the old number in place: 3 was chosen when this was the only band, so measure what 3 actually delivers once it means what it says and set the cap from that.",
-      "seams": [
-        "birds",
-        "b.plaza",
-        "b.roof",
-        "roofBirdSpot",
-        "ROOF_BIRDS",
-        "ROOF_BIRD_RATE",
-        "plazaBirdSpot"
-      ],
-      "successLooksLike": "Mean lawn/lane birds present in daylight rises from HEAD's 0.06 to a number a wide shot can see, quoted as a presence mean over >= 10 seeds x several days with HEAD as the control — and the roof and plaza means barely move, which is what shows you fixed the count and not the world.",
-      "avoid": "Do not give the ground birds a new source: the band exists, it is only miscounted. This changes how often the roll is reached, so it reshuffles the seeded world — read the census for COLLAPSE, not delta, and replay any stray motion gate on HEAD before believing it.",
-      "budgetMin": 30,
-      "risk": "medium"
-    },
-    {
       "id": "b119",
       "domain": "River & far bank",
       "kind": "New element",
@@ -69,6 +50,10 @@
     {
       "id": "b117",
       "at": "2026-09-02T02:02:10.514Z"
+    },
+    {
+      "id": "b118",
+      "at": "2026-09-02T02:26:19.305Z"
     }
   ]
 }

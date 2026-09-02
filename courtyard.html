@@ -4167,6 +4167,18 @@ function drawStepMarks(){                         // one small draw per delivere
 
 /* ============ wildlife & weather ============ */
 const butterflies = [], fireflies = [], birds = [], leaves = [], raindrops = [];
+/* The lawn/lane band's OWN cap. It used to read `!b.plaza`, which was the whole truth
+ * when this was the only band there was — but #92 added the plaza's pigeons and #106 the
+ * near roof's three, and both of those count against a predicate that means "not a plaza
+ * bird". The ground band was starved by its own neighbours without a line changing:
+ * 0.05 mean present in daylight against the roof's 2.67, and of the 85% of samples where
+ * the gate was shut, 100% were shut on birds belonging to another band. So each band now
+ * counts its own members — b.plaza, b.roof, b.ground — and the crumbs a tap scatters are
+ * ground birds too, which is what they always were to the old predicate.
+ * 3 is RE-PRICED, not inherited: with the count fixed, 12 seeds x 6 days read 0.33 mean
+ * at cap 2, 0.41 at 3, 0.39-0.40 at 4 and 5. The knee is exactly here — the band's
+ * limiter is now its RATE, and a cap above 3 buys nothing (#118). */
+const GROUND_BIRDS = 3;
 const LEAF_EDGE_W = -3, LEAF_EDGE_E = GW + 3;   // #76: a leaf past these is off the world and culled (landLeaf ignores it)
 let belfryRoost = 7;                 // pigeons currently sat on the church tower
 const ducks = [], swans = [];
@@ -4419,13 +4431,13 @@ function updateWildlife(dt){
                         roof:true, perch:sp[3], bx:sp[4], by:sp[1], bz:sp[2], bw:sp[5],
                         col:pick(['#5c5850','#33302c','#4a4640','#6e6a60'])});
   }
-  if (!raining && daylight>0.3 && birds.filter(b => !b.plaza).length < 3 && R() < dt*0.06*(0.5+m)){
+  if (!raining && daylight>0.3 && birds.filter(b => b.ground).length < GROUND_BIRDS && R() < dt*0.06*(0.5+m)){
     const onLane = R() < 0.4;
     const th=R()*Math.PI*2, r=6+R()*10;
     birds.push({
       x: onLane ? 8+R()*48 : CX+Math.cos(th)*r,
       y: onLane ? LN_ROAD0+1+R()*5 : CY+Math.sin(th)*r,
-      z:8, state:'land', hop:0, t:0,
+      z:8, state:'land', hop:0, t:0, ground:true,
       col:pick(['#33302c','#5a4636','#6e6a60','#7d8089'])});
     if (R()<0.4) announce(pick(['A blackbird drops onto the lawn.', 'Pigeons strut the lane like they own the freehold.']));
   }
@@ -9446,7 +9458,7 @@ cv.addEventListener('click', ev => {
     if (birds.length < 4 && daylight > 0.2){
       for (let k = 0; k < 3; k++){
         const [bx, by] = crumbSpot(p, x, y, k);
-        birds.push({x:bx, y:by, z:9, state:'land', hop:0, t:6+R()*6,
+        birds.push({x:bx, y:by, z:9, state:'land', hop:0, t:6+R()*6, ground:true,
           col:pick(['#7d8089','#6e6a60','#33302c'])});
       }
     }

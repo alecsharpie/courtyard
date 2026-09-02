@@ -2,7 +2,7 @@
   "updated": "2026-09-02",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 117,
+  "lastIteration": 118,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -360,7 +360,8 @@
         "pre13",
         19,
         44,
-        101
+        101,
+        118
       ],
       "polish": [
         "pre9",
@@ -494,7 +495,8 @@
       "catA's second act: lane->cross->climb->ridge, own R() roll, CAT_RIDGE_Y one row north of the wells. nearScale(y) ramps drawn size 1 -> NEAR_SZ 1.95 across the near block, exactly 1 elsewhere; nearHidden backstops the sill",
       "south of LN_WALK_S (79) the bed CA, item sort and seed scatter still bound their y loops. The ROWBOAT runs to row 92 between the block's halves — exclude the channel from any 'nothing lives here' control",
       "the near cat crosses the WHOLE pitch — catLine(x, ph), a cosine between CAT_RIDGE_Y and CAT_SOUTH 86.3, pinned north by wellNear(); height off roofWalkZ(), the BILINEAR read of nearZ. nearScale(y) ramps drawn size 1 -> NEAR_SZ 1.95 across the near block",
-      "EVERY bird answers the pointer: birdName/birdPlace (place off pavingAt + the grid, never a second table), birdDown the ONE posture test drawBird and the naming share; all five roof perches named; hit box 0.9*nearScale. nearHidden() is DRAW-side only — a thing behind the sill is still hit-tested (c165)"
+      "EVERY bird answers the pointer: birdName/birdPlace (place off pavingAt + the grid, never a second table), birdDown the ONE posture test drawBird and the naming share; all five roof perches named; hit box 0.9*nearScale. nearHidden() is DRAW-side only — a thing behind the sill is still hit-tested (c165)",
+      "Bird bands each count their own members (b.ground / b.plaza / b.roof); the lawn/lane band's cap GROUND_BIRDS=3 is priced at the knee — 0.41 mean present in daylight, 34% of samples — and its limiter is now the rate, not the cap (#118)"
     ],
     "sill": [
       "#plate, #daytime, #season, #where, #ticker (TICK_DWELL 2.5 s), #stats, #ctrl; hidden under 640px. Two LAPSE buttons, one beginLapse",
@@ -592,6 +594,12 @@
       "id": "c180",
       "note": "motion.mjs reseeds, yet spawns/despawns churn run-to-run on UNCHANGED code (walker 165/106/126, three runs of one build): __reseed() rewinds the PRNG, not the agents already alive from frames drawn at page load (#117)",
       "raisedBy": 116,
+      "seenBy": 0
+    },
+    {
+      "id": "c181",
+      "note": "The ground bird band's rate 0.06*(0.5+m) is now what bounds it: presence 0.41 spread over BOTH lawn and lane (~0.2 each) against the plaza's 1.24 in one place. If the lawn should read busier that is a RATE question, not a cap one. Also: the scare rule (any walker within 4.5) ends a ground bird's stay, and the lawn is the busiest ground in town.",
+      "raisedBy": 117,
       "seenBy": 0
     }
   ],
