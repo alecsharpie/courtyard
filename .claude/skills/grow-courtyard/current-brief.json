@@ -1,22 +1,23 @@
 {
-  "id": "b137",
-  "domain": "People & animals",
-  "kind": "Scale/World",
-  "brief": "The wide shot is a big town with a small population: at seed 42, day 3, 10.4h the frame holds 42 people across 138x88 of world. Every population cap in the town was chosen rather than measured except one — capacity, laneCap (peaks at 9 and feeds the WHOLE east half through a single spawnLaneAgent roll), eastCap (max 7), FAR_CAP 3, EVE_CAP, FAM_CAP — while LAWN_CAP is the only one whose knee has ever been swept, at #121, where the answer was 4 -> 8 and the sub-caps took over. Do for the town what #121 did for the lawn: measure presence per PLACE across a whole day rather than a per-instant crop, sweep the caps one at a time, find where each stops binding, name which sub-cap absorbs the slack, and keep the knee.",
+  "id": "b138",
+  "domain": "Cross street & allotments",
+  "kind": "New element",
+  "brief": "Seventeen plots, a harvest cycle, a cart and a glasshouse — and not one tool. The allotments are the most worked ground in the town and carry no shed, no water butt, no bean canes, no cloche, no compost bay, no barrow: a plot is a rectangle of soil with a crop drawn on it. Give the plots their furniture on ROOF_FURN's model — a small set of pieces placed per plot off hash(plot), each one inside its own plot's rectangle (the lattice is ox 80..90 step 5 x oy 8..50 step 7, which leaves a 1-cell way round every plot), and each one named by the pointer the way roofFurnAt names the roof's. Let the set read the plot's own state: canes where something climbs, a cloche in the cold half of the year, a barrow only where somebody is working it, a butt against the fence.",
   "seams": [
-    "capacity/laneCap/eastCap/FAR_CAP/EVE_CAP/FAM_CAP",
-    "maturity()/daylight/yearBusy",
-    "spawnLaneAgent/spawnEastAgent",
-    "LAWN_CAP and #121's sweep as the worked example",
-    "PAIR_MIN/pairTarget"
+    "the plot lattice (the ox/oy loops near lines 3486 and 3510)",
+    "harvestPlot/ripePlots/fallowPlots/bAge/speciesFor",
+    "ROOF_FURN/roofFurnAt/roofFurnName/FURN_BOX as the model",
+    "nameAt",
+    "GH x84-93 y34-39/inAllotment",
+    "__census() structure block"
   ],
-  "successLooksLike": "A presence-per-place table at each cap value on both builds, the knee named for every cap you moved, and a wide shot at the same pinned instant that reads as a busy town — with no place going from empty to crowded, the filmstrip clean, and figures still legible at 390x844.",
-  "avoid": "Do not raise a cap without the sweep: a ceiling that binds through a bug is usually non-binding after it, and a cap over place-holders is really a cap on the sub-caps beneath it. Do not add a new source — this is about the caps that already exist. `people` will churn; re-pin the census baseline and say so.",
-  "budgetMin": 45,
+  "successLooksLike": "At the Street quarter the allotments read as seventeen worked plots rather than seventeen coloured rectangles; every piece sits inside its own plot and clear of the ways; the pointer names each kind; and `structures` moves (a new named array in __census()'s structure block), baseline re-pinned and said so.",
+  "avoid": "Nothing on the 1-cell ways between plots and nothing inside the glasshouse footprint. Do not add a tile kind or a SPECIES — each moves tileKinds/speciesKinds by exactly 9 and that is not what this is measuring. Do not draw it live: the plots are ground-cache work.",
+  "budgetMin": 40,
   "risk": "medium",
-  "status": "done",
+  "status": "active",
   "attempts": 1,
-  "nextIter": 137,
-  "issued": "2026-09-02T15:35:20.314Z",
+  "nextIter": 138,
+  "issued": "2026-09-02T15:54:45.320Z",
   "fromPlan": "2026-09-03T00:00:00.000Z"
 }

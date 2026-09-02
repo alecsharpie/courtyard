@@ -40,17 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 130 — the town gets houses, and the roofline stops being a ruled line (2026-09-02) [Roofs & skyline × Scale/World]
-
-**Brief:** b130 — a house index per terrace, an eave per house, and what the step implies.
-**Premise held.** HEAD had **4 distinct eaves along its whole north row, 1 along each side wall**.
-**Did.** `houseAt(x,y)` indexes every terrace on `drawFaceRow`'s own 3.5-cell rhythm, counted the way the terrace RUNS: x for the long rows, y for the slivers. `houseLift` is a coarse hash (`runOf`, a builder's run of 1-6) with a fine one gated on it (one house in seven rebuilt). The step is **`roofZE(vx,vy,e)`**: a vertex read from INSIDE its own house, `e + SLOPE*min(vD)` — bit-identical to `vZ` in a block of one eave, different only where the town steps. Then its implications: `drawGable`, a party-wall line, `buildStacks` (a stack per party WALL, into `CHIMNEYS`). +213 lines.
-**Gates:** census PASS, **structures +369 / chimneys 27→68 a run**, tiles and life unchanged · motion PASS · filmstrip 0 POP · perf ±0.0% · legible at 1600x950, 390x844, night. Terrace eaves 4→20 / 18 steps (north row), 1→7 and 1→11 on the walls. Baseline re-pinned.
-**Verdict:** shipped
-**Surprise:** the near roof, which I never touched, came back **23.4% changed**. `roofShade` gained an `e` parameter and the APRON called it with none, so every apron slate shaded off NaN. Eyeballing two framings missed it; a difference image against a same-code control (0.000%) found it in one run.
-**Law:** widening a shared draw helper's SIGNATURE changes every caller — grep them all; the missing argument arrives `undefined`, and a colour off NaN still paints something plausible.
-**Law:** `hash(x,y)` is NOT seeded; `?seed=` swaps `R()` alone. The built FABRIC is one town in every world; only its life varies.
-
 ## Iteration 131 — the last punt: the crossing runs on after the east half has closed (2026-09-02) [River & far bank × Deepen]
 
 **Brief:** b131 — open the evening crossing; pick which end gives and price it.
@@ -126,3 +115,14 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Budget:** `context-budget.mjs` **OVER**, 49.4 KB before this pass, 52.5 after. Distil.
 **Law:** a cap must count a membership it DEFINES; a residual annexes every later population and the original starves silently.
 **Law:** a rate and a stock move opposite ways under one change — census `harvested -303`/`produce -83.8` looked like the allotments starving, but `probes/allot-source.mjs` says the lane detour is 6 of 76 arrivals and `harvestPlot` calls went UP 76->79. Count the CALLS before believing a census field about a stock.
+
+## Iteration 138 — the plots get their tools (2026-09-03) [Cross street & allotments × New element]
+
+**Brief:** b138 — furniture for the seventeen plots, on ROOF_FURN's model, per plot off hash(plot). Full entry in LEDGER-archive.md.
+**Did.** `ALLOT_FURN`/`PLOT_BOX`: shed, compost bay, water butt, barrow, bean canes, cloche — solved ONCE off `hash(plot)`, held in world coordinates, drawn into the ground cache before `drawGlassBack`, named by `allotFurnAt`/`allotFurnName` off the boxes the paint uses. **38 pieces over 15 plots**, zero `R()`. A plot owns x [ox, ox+4) y [oy, oy+3) — beds plus a south and east apron — leaving a whole cell of way in x, four rows in y, and the WEST side clear, where `sendToPlot` lands its holder at `[cell-0.6, cell+0.5]`. Canes/cloche are gated on the warm/cold half of `warmth` with per-plot slack; the barrow on somebody kneeling — live state under a cached surface, so `barrowKey()` drives `groundDirty` as `washPainted` does (2.5 extra rebuilds a sim day).
+**Gates:** census PASS — `structures +342`, new `plotFurniture 342`, **nothing else** across 9 cells; baseline **re-pinned** · motion PASS · filmstrip 0 POP · perf ±0.0%, `drawGround()` against HEAD interleaved **34.00 → 34.10 ms** · legible Street/Wide/390×844/night/cloches-out. `probes/plot-furniture.mjs`: 0 geometry violations, all five clauses FIRE on a moved piece, same set in 3 seeds. `probes/plot-naming.mjs` drives a **real mousemove**: all six kinds named, each distinct from the grass beside it.
+**Verdict:** shipped
+**Surprise:** the brief's cane gate was a feature at a rate of zero, through DWELL. Beans are **3.1%** of standing allotment cells against cabbages 47.1 — not because they are rarely sown (`speciesFor` offers four veg flat) but because cabbages are the one `hardy` species and stand the winter while the rest die back. Canes on a presence test showed on **1.5%** of a year. Gated on the season they are up 49.7%, and the crop now decides what the pointer SAYS instead of whether there is anything to point at.
+**Budget:** `context-budget.mjs` **OVER at 51.7 KB** against 46 KB, before this pass; #136 and #137 are also over the entry cap and are the manager's to condense.
+**Law:** at n = 15 a one-in-three hash threshold is not one in three — the first build put 7 sheds, 1 bay and 7 bare corners out, and a flat `h < 0.62` put a butt on all seven west plots (a 3.5% run, not a broken hash: 667 such lines in 20,000 against 704 expected). Rank the members by their own hash and cut at the quantiles.
+**Law:** a world offset added to a PROJECTED coordinate is a pixel — 0.46 of a cell became 1.4 px, and the canes' eight tops landed on each other. Solve both ends of a stroke in world space and project each.

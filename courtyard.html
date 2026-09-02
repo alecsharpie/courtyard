@@ -3532,6 +3532,167 @@ function turnPlot(a){
       'Someone turns a plot over for the winter, a row at a time.'])); }
   return n;
 }
+/* ---- the plots' FURNITURE (#138) -------------------------------------------------
+ * Seventeen plots, a harvest cycle, a cart, a glasshouse — and, until now, not one
+ * tool. Every plot was a rectangle of soil with a crop drawn on it, which is what the
+ * ground looks like the day it is dug and never again. This is ROOF_FURN's model
+ * brought down to the allotments: a set of pieces solved ONCE off hash(plot), held as
+ * town state, drawn into the ground cache, and named by the pointer off the same
+ * boxes the paint uses — so what is under the cursor cannot drift from what is on the
+ * screen.
+ *
+ * WHERE a piece may stand. buildGrid lays each plot as 3 cells x 2 on the 5 x 7
+ * lattice ripePlots()/fallowPlots()/plotOrigin() already walk, so the beds run
+ * x [ox, ox+3) and y [oy, oy+2). A plot's furniture OWNS one cell more to the east and
+ * one to the south — x [ox, ox+4), y [oy, oy+3) — which still leaves a whole cell of
+ * way between neighbouring plots in x and four rows of it in y. Nothing is ever placed
+ * on the WEST side: sendToPlot walks its holder to [plot[0] - 0.6, plot[1] + 0.5], so
+ * the west edge and the two bed rows' own screen line are the approach, and a barrow
+ * standing in it is a barrow somebody walks through twice a day.
+ *
+ * And the aprons are the two sides the DEPTH sort wants anyway. Everything on the plot
+ * except the crop is drawn in the ground cache, and the plants are items drawn over it,
+ * so a piece north of the beds would be painted on by the row in front of it. On the
+ * south apron the arithmetic goes the other way: LIFT carries a cell of height 1.15 of
+ * depth north, so a shed 0.95 tall on row oy+2.45 tops out at depth oy+1.36, still
+ * south of a bean's own top (oy+1.5 - 1.1*LIFT = oy+0.24). The one deliberate exception
+ * is the two BED pieces — canes and a cloche stand ON the soil, and being painted over
+ * by the crop is exactly right for both: beans climb their canes, and glass is a thing
+ * you see the row THROUGH. */
+const ALLOT_FURN = [];              // {kind, x, y, ox, oy, h} — town state, counted by the census
+/* How big each piece IS, in one place — the same contract FURN_BOX has with the roof:
+ * drawAllotFurn and allotFurnAt both read this, so the hit box cannot disagree with the
+ * picture. w and d are HALF extents about (x, y); hgt is the top, off the ground. */
+const PLOT_BOX = {
+  shed:   {w:0.62, d:0.40, hgt:0.86, rid:0.22},   // boarded, a felt roof, a door
+  bay:    {w:0.58, d:0.34, hgt:0.44},             // three boards and a heap: the compost bay
+  butt:   {w:0.26, d:0.26, hgt:0.78},             // a barrel on a stand under a length of gutter
+  barrow: {w:0.42, d:0.24, hgt:0.34},             // one wheel, two handles, a load of soil
+  canes:  {w:0.46, d:0.30, hgt:1.32},             // a wigwam of eight hazel rods, tied at the top
+  cloche: {w:0.62, d:0.42, hgt:0.46},             // a low glazed tunnel over one bed row
+};
+/* WHICH pieces a plot has is fixed off hash(plot) and never moves; WHETHER a piece is
+ * showing is read off the plot's own state at draw time, exactly as washOut() gates the
+ * washing on a line that stays strung. So the set is stable town state (the census counts
+ * slots, not weather) and the picture still answers to the year and to the work. */
+/* The cold HALF of the year and the warm half, off warmth — the cosine over SEASON_LEN,
+ * so 0.5 is exactly the mean and the two halves are the same length. Each plot has its own
+ * few days of slack either side of it (hash, so it is the same plot every year): a block
+ * whose fifteen holders all get the cloches out on the same afternoon is a block with one
+ * holder. NOT a hard-coded hour or day anywhere — this is the season axis the rest of the
+ * town already reads, so it moves with SEASON_LEN and cannot be a midwinter bug (#108). */
+const CLOCHE_WARMTH = 0.5, PLOT_SLACK = 0.09;
+function plotTurn(f){ return CLOCHE_WARMTH + (hash(f.ox + 71, f.oy + 211) * 2 - 1) * PLOT_SLACK; }
+function clocheOut(f){ return warmth < plotTurn(f); }
+/* Canes go up in the spring and come down with the frosts, which is what a row of hazel
+ * rods on an allotment does — and it has to be the SEASON and not the standing crop, which
+ * is what the first build of this gated on. Measured over a full sim year (probe-plotfurn):
+ * beans are 3.1% of standing allotment cells against carrots 27.8% and cabbages 47.1%,
+ * because cabbages are the one `hardy` vegetable and stand the winter while the rest die
+ * back — so a PRESENCE test on beans measures DWELL, not what gets sown, and the canes
+ * showed on 1.5% of a year's samples. What the crop still decides is what the pointer SAYS
+ * about them: canes with beans up them are named differently from canes standing empty. */
+function canesUp(f){ return warmth >= plotTurn(f); }
+/* Beans are the one thing in SPECIES that climbs — h 1.1 against 0.4 for a carrot — so
+ * the canes go up where the crop needs them and come down when the plot turns over to
+ * something that does not. Asked of the whole PLOT and not of plotCrop(), which returns
+ * the FIRST sown cell it finds: a plot is sown by a kneel that scatters over a 3x3, so
+ * two species in one plot is ordinary, and reading only the first cell had the canes up
+ * on a fifth of the plots that actually had beans in them. */
+const BEANS = SPECIES.findIndex(s => s.name === 'beans') + 1;
+function plotClimbs(ox, oy){
+  for (let y = oy; y < oy + 2; y++) for (let x = ox; x < ox + 3; x++)
+    if (bSp[y * GW + x] === BEANS) return true;
+  return false;
+}
+/* Somebody is WORKING this plot: an allotment holder down on their knees at it. Walking
+ * in does not count — the barrow arrives with the work, not with the person. */
+function plotWorked(ox, oy){
+  for (const a of agents){
+    if (a.kind !== 'allot' || a.state !== 'kneel' || !a.plot) continue;
+    const [px, py] = plotOrigin(a.plot[0], a.plot[1]);
+    if (px === ox && py === oy) return true;
+  }
+  return false;
+}
+/* The barrow is the one piece whose presence is LIVE state under a CACHED surface, so
+ * the cache has to be told. barrowKey() is the set of worked plots as a bitmask — the
+ * lattice is 21 slots, which fits in a number with room to spare — compared against what
+ * was last painted, exactly as washPainted gates the washing. It changes twice per kneel
+ * and a kneel is 9-14 sim seconds, so this is a handful of extra rebuilds a sim day. */
+let barrowPainted = 0;
+function barrowKey(){
+  let k = 0;                                   // one pass over the agents, not 21 of them
+  for (const a of agents){
+    if (a.kind !== 'allot' || a.state !== 'kneel' || !a.plot) continue;
+    const [px, py] = plotOrigin(a.plot[0], a.plot[1]);
+    k |= 1 << (((py - 8) / 7) * 3 + (px - 80) / 5);
+  }
+  return k;
+}
+function allotFurnOn(f){
+  return f.kind === 'canes'  ? canesUp(f)
+       : f.kind === 'cloche' ? clocheOut(f)
+       : f.kind === 'barrow' ? plotWorked(f.ox, f.oy)
+       : true;
+}
+/* Built once, off hash() alone. A draw from R() here would reshuffle the whole seeded
+ * world for a set of objects that never move (#96, #136) — the plots' furniture is
+ * FABRIC, the same in every seed, and only what it is doing varies. */
+function buildAllotFurn(){
+  ALLOT_FURN.length = 0;
+  const plots = [];
+  for (let oy = 8; oy <= 50; oy += 7) for (let ox = 80; ox <= 90; ox += 5){
+    let bed = 0;
+    for (let y = oy; y < oy + 2; y++) for (let x = ox; x < ox + 3; x++)
+      if (grid[y * GW + x] === BED) bed++;
+    if (!bed) continue;                          // the lattice has 21 slots and the block has 17 plots
+    if (inGlass(ox + 1, oy + 1)) continue;       // the span is somebody's furniture already (#116)
+    plots.push({ox, oy, h1: hash(ox * 7 + 311, oy * 13 + 29), h2: hash(ox * 11 + 907, oy * 5 + 61),
+                h3: hash(ox * 17 + 443, oy * 23 + 97), h4: hash(ox * 3 + 1289, oy * 19 + 131)});
+  }
+  /* STRATIFIED, not sampled. Fifteen plots is far too small an n for a one-in-three roll
+   * to come out one in three, and it did not: the first build of this put SEVEN sheds,
+   * ONE compost bay and seven bare corners on the block. So the corner piece is decided by
+   * each plot's RANK in its own hash rather than by the value — the answer is still the
+   * same in every seed and still fixed per plot, and the mix is right at this n instead of
+   * right in expectation. The butts go the same way over the seven plots of the west
+   * column, where a flat `h2 < 0.62` put a butt on ALL SEVEN — a 3.5% run, not a broken
+   * hash (swept: 667 such lines in 20,000 against 704 expected), which is exactly the
+   * point. Same reason #123 stopped letting both of a bay's rolls miss. */
+  const rank = (k, set) => { const o = (set || plots).map(p => p[k]).sort((a, b) => a - b);
+                             return v => o.indexOf(v) / o.length; };
+  const west = plots.filter(p => p.ox === 80);
+  const r1 = rank('h1'), r2 = rank('h2', west), r4 = rank('h4');
+  for (const p of plots){
+    const {ox, oy} = p;
+    const put = (kind, x, y, h) => ALLOT_FURN.push({kind, x, y, ox, oy, h});
+    /* The corner piece, on the south-east: a shed, a compost bay, or bare ground, a third
+     * each. Seventeen sheds is an allotment drawn by somebody who has never had one; four
+     * bare corners in a row is the flat field this vector exists to break. */
+    const c = r1(p.h1), sy = oy + 2.45;
+    if (c < 0.34)      put('shed', ox + 3.20, sy, p.h1);
+    else if (c < 0.67) put('bay',  ox + 3.24, sy + 0.06, p.h1);
+    /* The butt is against the FENCE, which runs the verge at ALT_X0 — so it belongs to the
+     * west column and to nothing else. It stands at the fence side of its own plot rather
+     * than out on the verge, because the verge IS the way in: sendToPlot lands its holder
+     * at [79, gateY] and they cross it to reach the beds. */
+    if (ox === 80 && r2(p.h2) < 0.58) put('butt', ox + 0.34, sy + 0.02, p.h2);
+    // the barrow parks between the butt and the corner, and only while the work is on
+    if (p.h3 < 0.62) put('barrow', ox + 1.15 + p.h3 * 0.55, oy + 2.55, p.h3);
+    /* The bed piece, and there is only ever ONE of them: canes on rather more than half the
+     * plots, a cloche on rather less. Both stand at the EAST end of the rows, because the
+     * west end is the approach — sendToPlot lands a holder at [cell - 0.6, cell + 0.5], so
+     * the westmost 1.7 cells of every plot are somewhere somebody kneels. */
+    const bc = r4(p.h4);
+    if (bc < 0.55)      put('canes',  ox + 2.35, oy + 1.00, p.h4);
+    else if (bc < 0.92) put('cloche', ox + 2.42, oy + 1.00, p.h4);
+  }
+  /* Painter's order: larger y is NEARER, so the block is drawn back to front and
+   * allotFurnAt — which walks it backward — asks front to back. */
+  ALLOT_FURN.sort((p, q) => p.y - q.y);
+}
+buildAllotFurn();     // the grid is laid above, and nothing here is seeded
 function spawnAllotAgent(){
   const a = {
     kind:'allot', street:true, x:0, y:0,
@@ -7098,6 +7259,200 @@ function ghPane(x){
   const mf = mistAt(x); if (mf > 0) c = mix(c, mistCol(), 0.5 * mf);
   return c;
 }
+/* ---- the plots' furniture, drawn (#138) -----------------------------------------
+ * Into the GROUND CACHE, with the fence and the beds and before the glasshouse's back
+ * half, so a piece north of the span is behind it and the crops — which are items —
+ * are drawn over all of it. Everything here is SOUTH-FACE-then-TOP: the camera is above
+ * and to the south, so a box shows the side turned toward the window and its lid, and
+ * nothing else. The one live-looking term is snow, and that is a term the cache already
+ * bakes for every other surface in the town. */
+function drawAllotFurn(g){
+  const lit = 0.26 + 0.62 * daylight;
+  for (const f of ALLOT_FURN){
+    if (!allotFurnOn(f)) continue;
+    const sn = snowAt(f.x | 0, f.y | 0, GRASS);
+    if (f.kind === 'shed') drawPlotShed(g, f, lit, sn);
+    else if (f.kind === 'bay') drawCompostBay(g, f, lit, sn);
+    else if (f.kind === 'butt') drawWaterButt(g, f, lit, sn);
+    else if (f.kind === 'barrow') drawBarrow(g, f, lit);
+    else if (f.kind === 'canes') drawCanes(g, f, lit);
+    else drawCloche(g, f, lit, sn);
+  }
+}
+/* The shed: boarded, a plank door slightly off centre, a felt roof pitched north-south.
+ * Its ridge runs east-west at f.y, so the slope we see is the whole of the roof — the
+ * same section drawPigeonLoft draws, at four times the size and standing on the ground. */
+function drawPlotShed(g, f, lit, sn){
+  const {w, d, hgt, rid} = PLOT_BOX.shed;
+  const y0 = f.y - d, y1 = f.y + d, rz = hgt + rid;
+  g.fillStyle = mix('#251f18', '#7a6244', lit);
+  poly(g, [project(f.x - w, y1, hgt), project(f.x + w, y1, hgt),
+           project(f.x + w, y1, 0), project(f.x - w, y1, 0)]); g.fill();
+  g.strokeStyle = 'rgba(18,14,10,.38)'; g.lineWidth = 1;      // the boarding
+  g.beginPath();
+  for (const u of [0.22, 0.44, 0.66, 0.88]){
+    const p0 = project(f.x - w + 2 * w * u, y1, hgt), p1 = project(f.x - w + 2 * w * u, y1, 0);
+    g.moveTo(p0[0], p0[1]); g.lineTo(p1[0], p1[1]);
+  }
+  g.stroke();
+  const dw = w * 0.34, dc = f.x - w * 0.30;                   // the door, and its dark gap
+  g.fillStyle = mix('#1d1811', '#4e3f2c', lit);
+  poly(g, [project(dc - dw, y1, hgt * 0.80), project(dc + dw, y1, hgt * 0.80),
+           project(dc + dw, y1, 0), project(dc - dw, y1, 0)]); g.fill();
+  g.fillStyle = 'rgba(200,206,196,' + (0.10 + 0.26 * daylight).toFixed(3) + ')';   // one small pane beside it
+  poly(g, [project(f.x + w * 0.28, y1, hgt * 0.74), project(f.x + w * 0.66, y1, hgt * 0.74),
+           project(f.x + w * 0.66, y1, hgt * 0.42), project(f.x + w * 0.28, y1, hgt * 0.42)]); g.fill();
+  const eave = 0.10;                                          // the pitch, the near slope first
+  const nSl = [project(f.x - w - eave, y0, hgt), project(f.x + w + eave, y0, hgt),
+               project(f.x + w + eave, f.y, rz), project(f.x - w - eave, f.y, rz)];
+  const sSl = [project(f.x - w - eave, f.y, rz), project(f.x + w + eave, f.y, rz),
+               project(f.x + w + eave, y1 + eave, hgt - 0.04), project(f.x - w - eave, y1 + eave, hgt - 0.04)];
+  g.fillStyle = mix(mix('#2d2921', '#6f6656', lit), SNOW_COL, sn * 0.85);
+  poly(g, nSl); g.fill();
+  g.fillStyle = mix(mix('#262219', '#5c5344', lit), SNOW_COL, sn * 0.7);
+  poly(g, sSl); g.fill();
+  g.strokeStyle = 'rgba(14,12,9,.45)'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(nSl[3][0], nSl[3][1]); g.lineTo(nSl[2][0], nSl[2][1]); g.stroke();
+}
+/* The compost bay: three boards open to the south, and what is in it. The heap sits
+ * PROUD of the boards — a bay level with its own sides is a box, and the whole point of
+ * a compost bay is that somebody has been filling it. */
+function drawCompostBay(g, f, lit, sn){
+  const {w, d, hgt} = PLOT_BOX.bay;
+  const y0 = f.y - d, y1 = f.y + d;
+  g.fillStyle = mix('#221c15', '#5f4c34', lit);               // the back board, seen over the heap
+  poly(g, [project(f.x - w, y0, hgt), project(f.x + w, y0, hgt),
+           project(f.x + w, y0, 0), project(f.x - w, y0, 0)]); g.fill();
+  const hz = hgt * 1.12;                                      // the heap, mounded over the sides
+  g.fillStyle = mix('#1c1611', '#4a3a26', lit);
+  poly(g, [project(f.x - w * 0.86, y0 + 0.06, hgt * 0.82), project(f.x, y0 + 0.04, hz),
+           project(f.x + w * 0.86, y0 + 0.06, hgt * 0.82), project(f.x + w * 0.9, y1, 0.06),
+           project(f.x - w * 0.9, y1, 0.06)]); g.fill();
+  if (sn > 0.02){ g.fillStyle = SNOW_COL; g.globalAlpha = clamp(0.4 + 0.5 * sn, 0, 1);
+    poly(g, [project(f.x - w * 0.8, y0 + 0.08, hgt * 0.80), project(f.x, y0 + 0.06, hz),
+             project(f.x + w * 0.8, y0 + 0.08, hgt * 0.80), project(f.x, f.y, hgt * 0.66)]); g.fill();
+    g.globalAlpha = 1; }
+  g.fillStyle = mix('#251e16', '#6b5539', lit);               // the two side boards, end-on
+  for (const sx of [f.x - w, f.x + w]){
+    poly(g, [project(sx, y0, hgt), project(sx, y1, hgt * 0.9),
+             project(sx, y1, 0), project(sx, y0, 0)]); g.fill();
+  }
+  g.strokeStyle = 'rgba(16,12,9,.45)'; g.lineWidth = 1;
+  poly(g, [project(f.x - w, y0, hgt), project(f.x + w, y0, hgt),
+           project(f.x + w, y0, 0), project(f.x - w, y0, 0)]); g.stroke();
+}
+/* The butt: a barrel on two blocks, its hoops, and the water standing in it. Against the
+ * fence, and the only piece that shows you what the weather has been doing — a butt fills
+ * in the rain and draws down through a dry spell, off the same wetF() the paving reads. */
+function drawWaterButt(g, f, lit, sn){
+  const {w, d, hgt} = PLOT_BOX.butt;
+  const y1 = f.y + d, zb = 0.14;
+  g.fillStyle = mix('#1e1a14', '#4a3f2e', lit);                       // the two blocks under it
+  for (const sx of [f.x - w * 0.6, f.x + w * 0.6]){
+    poly(g, [project(sx - 0.07, y1, zb), project(sx + 0.07, y1, zb),
+             project(sx + 0.07, y1, 0), project(sx - 0.07, y1, 0)]); g.fill();
+  }
+  g.fillStyle = mix('#221c15', '#6a5233', lit);                       // the staves
+  poly(g, [project(f.x - w, y1, hgt), project(f.x + w, y1, hgt),
+           project(f.x + w, y1, zb), project(f.x - w, y1, zb)]); g.fill();
+  g.strokeStyle = mix('#1a1611', '#8a8074', lit); g.lineWidth = Math.max(1, cellW * 0.05);
+  for (const u of [0.26, 0.74]){                                      // the iron hoops
+    const z = zb + (hgt - zb) * u;
+    const p0 = project(f.x - w, y1, z), p1 = project(f.x + w, y1, z);
+    g.beginPath(); g.moveTo(p0[0], p0[1]); g.lineTo(p1[0], p1[1]); g.stroke();
+  }
+  /* The water in it, or the lid of snow on it. The ellipse is the barrel's OWN footprint —
+   * rx = w, ry = d, both in cells — because project() maps a world offset of d to cellH of
+   * screen and nothing else; the first build used 1.9 d and the butt wore a blue disc twice
+   * its own width, floating clear of the staves. */
+  const [tx, ty] = project(f.x, f.y, hgt);
+  g.fillStyle = sn > 0.05 ? mix(SNOW_COL, '#b9c3cf', 0.3)
+                          : mix(mix('#16232a', '#33505c', 0.2 + 0.5 * daylight), '#4d6a76', wetF() * 0.5);
+  g.beginPath(); g.ellipse(tx, ty, cellW * w, cellH * d, 0, 0, 7); g.fill();
+  g.strokeStyle = 'rgba(16,13,10,.5)'; g.lineWidth = 1; g.stroke();
+}
+/* The barrow: one wheel, a body tipped forward, two handles. Parked on the south apron,
+ * and only while somebody is down on their knees at this plot — so it is the piece that
+ * says the allotments are WORKED rather than merely planted. */
+function drawBarrow(g, f, lit){
+  const {w, d, hgt} = PLOT_BOX.barrow;
+  const y1 = f.y + d, zb = 0.10;
+  g.strokeStyle = mix('#171410', '#4b453a', lit); g.lineWidth = Math.max(1, cellW * 0.05);
+  g.beginPath();                                                      // the handles, running back and down
+  for (const sx of [f.x - w * 0.5, f.x + w * 0.5]){
+    const p0 = project(sx, y1, hgt * 0.62), p1 = project(sx + w * 0.5, y1 + 0.22, hgt * 0.30);
+    g.moveTo(p0[0], p0[1]); g.lineTo(p1[0], p1[1]);
+  }
+  g.stroke();
+  g.fillStyle = mix('#1d1a15', '#6d6250', lit);                       // the body
+  poly(g, [project(f.x - w, y1, hgt), project(f.x + w, y1, hgt),
+           project(f.x + w * 0.62, y1, zb), project(f.x - w * 0.62, y1, zb)]); g.fill();
+  g.fillStyle = mix('#181310', '#43331f', lit);                       // the soil in it
+  poly(g, [project(f.x - w * 0.92, f.y + 0.02, hgt), project(f.x + w * 0.92, f.y + 0.02, hgt),
+           project(f.x + w * 0.86, y1, hgt - 0.02), project(f.x - w * 0.86, y1, hgt - 0.02)]); g.fill();
+  const [wx, wy] = project(f.x - w * 0.86, y1, zb * 0.5);              // the wheel, under the front
+  g.fillStyle = 'rgba(20,17,13,.85)';
+  g.beginPath(); g.ellipse(wx, wy, Math.max(1, cellW * 0.10), Math.max(1.2, cellH * 0.30), 0, 0, 7); g.fill();
+}
+/* The canes: eight hazel rods stood in a ring and tied at the top. Drawn UNDER the crop,
+ * which is the right way round — the beans are an item pass and they climb these. */
+function drawCanes(g, f, lit){
+  const {w, d, hgt} = PLOT_BOX.canes;
+  const TIE = 0.82;                    // where up the rods the twine goes, and where they cross
+  g.strokeStyle = mix('#2a2318', '#a8925f', lit); g.lineWidth = Math.max(1, cellW * 0.045);
+  g.beginPath();
+  /* Each rod runs from its place on the ring to a point PAST the centre and above the tie —
+   * a wigwam is eight rods crossing, not eight rods meeting, and the little splay over the
+   * knot is most of what says so. Solved in WORLD space at both ends: the first draft added
+   * the splay to the projected x, which is a world offset used as a pixel one, and the eight
+   * tops landed within a pixel and a half of each other. */
+  for (let k = 0; k < 8; k++){
+    const th = (k + 0.5) / 8 * Math.PI * 2;
+    const bx = f.x + Math.cos(th) * w, by = f.y + Math.sin(th) * d;
+    const p0 = project(bx, by, 0), p1 = project(f.x - (bx - f.x) * 0.16, f.y - (by - f.y) * 0.16, hgt);
+    g.moveTo(p0[0], p0[1]); g.lineTo(p1[0], p1[1]);
+  }
+  g.stroke();
+  // the twine, at the height the bundle is actually that wide — a hoop drawn any bigger is
+  // a black ring floating clear of the canes, which is what the first build of this drew
+  g.strokeStyle = 'rgba(30,26,18,.75)'; g.lineWidth = Math.max(1, cellW * 0.035);
+  const [ax, ay] = project(f.x, f.y, hgt * TIE);
+  g.beginPath(); g.ellipse(ax, ay, Math.max(1, cellW * w * (1 - TIE)), Math.max(0.8, cellH * d * (1 - TIE)), 0, 0, 7); g.stroke();
+}
+/* The cloche: a low glazed tunnel over one bed row, out through the cold half of the
+ * year and away for the warm one. It is a surface you see THROUGH, so it is drawn the
+ * way the span is — the sky, cooled, at low alpha — and the row inside it is the item
+ * pass drawing over the top, which is what looking through glass looks like. */
+function drawCloche(g, f, lit, sn){
+  const {w, d, hgt} = PLOT_BOX.cloche;
+  const y0 = f.y - d, y1 = f.y + d;
+  const arc = (yy) => {                                               // the tunnel's section at one row
+    const pts = [];
+    for (let k = 0; k <= 6; k++){
+      const u = k / 6, th = Math.PI * u;
+      pts.push(project(f.x - Math.cos(th) * w, yy, Math.sin(th) * hgt));
+    }
+    return pts;
+  };
+  const near = arc(y1), far = arc(y0);
+  g.globalAlpha = 0.62;
+  g.fillStyle = ghPane(f.x);
+  poly(g, [...far, ...near.slice().reverse()]); g.fill();
+  g.globalAlpha = 1;
+  g.strokeStyle = 'rgba(58,70,62,.5)'; g.lineWidth = 1;               // the hoops, and the ridge along them
+  g.beginPath();
+  for (const pts of [near, far]){ g.moveTo(pts[0][0], pts[0][1]); for (const p of pts) g.lineTo(p[0], p[1]); }
+  g.moveTo(far[3][0], far[3][1]); g.lineTo(near[3][0], near[3][1]);
+  g.stroke();
+  if (sn > 0.03){                                                     // snow slides off glass, and holds at the foot
+    g.fillStyle = SNOW_COL; g.globalAlpha = clamp(0.35 + 0.5 * sn, 0, 1);
+    poly(g, [project(f.x - w * 1.1, y1, 0.02), project(f.x - w * 0.55, y1, 0.02),
+             project(f.x - w * 0.72, y0, 0.02), project(f.x - w * 1.2, y0, 0.02)]); g.fill();
+    poly(g, [project(f.x + w * 0.55, y1, 0.02), project(f.x + w * 1.1, y1, 0.02),
+             project(f.x + w * 1.2, y0, 0.02), project(f.x + w * 0.72, y0, 0.02)]); g.fill();
+    g.globalAlpha = 1;
+  }
+}
 /* one slope, eave row -> ridge row: the glazing, then the bars that hold it, then the snow
  * the pitch is still holding. Per COLUMN, so snowAt's hash grain shows as an uneven cover
  * rather than a painted stripe along the eave. */
@@ -7215,7 +7570,7 @@ function drawGround(){
   if (mistF() > 0) HAZE = mix(HAZE, mistCol(), 0.4 * mistF());   // the town beyond the frame goes into the mist too
   FACES.length = 0;                                // the cached faces are re-registered below; the live ones every frame
   SETT_ROW.clear();                                // the sett lattice is solved off the CAMERA, so it is one rebuild's answer
-  snowPainted = snowCover; wetPainted = wetBucket(); washPainted = washOut();
+  snowPainted = snowCover; wetPainted = wetBucket(); washPainted = washOut(); barrowPainted = barrowKey();
   const m = maturity();
   // the sky is *not* baked in here — it is painted fresh every frame underneath this
   // layer, so the sun crosses smoothly instead of hopping when the layer is rebuilt
@@ -7391,6 +7746,7 @@ function drawGround(){
     if (!open){ gtx.moveTo(p[0], p[1]); open = true; } else gtx.lineTo(p[0], p[1]);
   }
   gtx.stroke();
+  drawAllotFurn(gtx);                            // #138: the plots' own sheds, butts, bays, canes and cloches
   drawFieldEdge(gtx);                            // #119: the world's east face, and the gate the far bank walks in through
   drawGlassBack(gtx);                            // #116: the half of the span that is behind everything
   drawQuayWalls(gtx);
@@ -11781,6 +12137,57 @@ function roofFurnAt(p){
   }
   return null;
 }
+/* What each piece SAYS, read off what it IS doing, in the terms the draw call is drawn
+ * with — the same contract roofFurnName has with drawRoofFurn. snowAt whitens the felt
+ * and names it; wetF() fills the butt in the picture and in the words; the barrow is only
+ * ever named while plotWorked() is what put it on screen. No second table. */
+function allotFurnName(f){
+  const sn = snowAt(f.x | 0, f.y | 0, GRASS), wet = wetF();
+  if (f.kind === 'shed') return sn > 0.05 ? 'a plot shed, snow lying along the felt'
+                              : plotWorked(f.ox, f.oy) ? 'a plot shed, the row in front of it being worked'
+                              : 'a plot shed, boarded and tarred';
+  if (f.kind === 'bay')  return sn > 0.05 ? 'a compost bay under a cap of snow'
+                              : warmth > 0.62 ? 'a compost bay, the heap sunk and dark'
+                              : 'a compost bay, heaped up over the boards';
+  if (f.kind === 'butt') return sn > 0.05 ? 'a water butt, snow standing on the water'
+                              : raining ? 'a water butt, filling in the rain'
+                              : wet > 0.22 ? 'a water butt, brim full after the rain'
+                              : 'a water butt against the fence';
+  if (f.kind === 'barrow') return 'a barrow, parked while the row is worked';
+  if (f.kind === 'canes'){
+    if (!plotClimbs(f.ox, f.oy)) return 'a wigwam of bean canes, nothing up them yet';
+    let st = 0;
+    for (let y = f.oy; y < f.oy + 2; y++) for (let x = f.ox; x < f.ox + 3; x++){
+      const i = y * GW + x; if (bSp[i] === BEANS) st = Math.max(st, bSt[i]);
+    }
+    return st >= 3 ? 'bean canes, the crop right up to the tie'
+         : st >= 2 ? 'bean canes with the beans halfway up them'
+                   : 'bean canes, the first shoots taking hold';
+  }
+  return sn > 0.03 ? 'a cloche, snow banked along its foot'
+       : warmth < 0.25 ? 'a cloche, keeping the frost off the row'
+       : 'a cloche over one row';
+}
+/* Hit-tested in WORLD space and projected live, exactly as roofFurnAt is and for the same
+ * reason: these are drawn into the ground cache but HELD as world coordinates, so there is
+ * no screen box to go stale through the camera ease. Screen x spreads with depth, so the
+ * widest row is the southern face at z 0 and the highest point is the far top corner —
+ * three projections bound the piece. A piece the state is not showing is not asked.
+ *   Painter's order: drawAllotFurn walks ALLOT_FURN forward, so it is asked backward. */
+const PLOT_PAD = 2;     // px of pointer tolerance, the same as the roof's
+function allotFurnAt(p){
+  for (let i = ALLOT_FURN.length - 1; i >= 0; i--){
+    const f = ALLOT_FURN[i];
+    if (!allotFurnOn(f)) continue;
+    const b = PLOT_BOX[f.kind], zt = b.hgt + (b.rid || 0);
+    const lo = project(f.x - b.w, f.y + b.d, 0), hi = project(f.x + b.w, f.y + b.d, 0);
+    const top = project(f.x - b.w, f.y - b.d, zt);
+    if (p[0] < lo[0] - PLOT_PAD || p[0] > hi[0] + PLOT_PAD) continue;
+    if (p[1] < top[1] - PLOT_PAD || p[1] > lo[1] + PLOT_PAD) continue;
+    return f;
+  }
+  return null;
+}
 function lookAt(p){
   /* Behind the sill nothing on the near block is DRAWN — nearHidden() is the renderer's
    * own rule and it guarded drawBird and drawCat alone, so a bird the sill covers was
@@ -11797,6 +12204,8 @@ function lookAt(p){
   { const v = vaneAt(p); if (v) return vaneName(v); }
   // the furniture is drawn into the cache AFTER the dormers, so it is asked before them
   { const rf = roofFurnAt(p); if (rf) return roofFurnName(rf); }
+  // the plots' furniture is cached under the crops, so it is asked after the living and before the ground
+  { const af = allotFurnAt(p); if (af) return allotFurnName(af); }
   const f = faceAt(p), c = treeAt(p);        // crowns paint over the cached facades; the live band over the crowns
   if (f && (f.live || !c)) return f.door ? doorName(f) : windowName(f.sa, f.sb);
   if (c) return c.name + ', ' + treeState(c.fruit);
@@ -12011,6 +12420,7 @@ function simStep(sdt, dt){
   if (Math.abs(snowCover - snowPainted) > SNOW_REPAINT) groundDirty = true;   // snow lies (or goes) in small steps
   if (wetBucket() !== wetPainted) groundDirty = true;                        // the paving soaks and dries in WET_STEPS steps
   if (washOut() !== washPainted) groundDirty = true;                         // #110: the washing goes out, and comes in
+  if (barrowKey() !== barrowPainted) groundDirty = true;                     // #138: a barrow appears at a plot somebody kneels at, and goes when they do
   wearAcc += sdt;
   if (wearDirty && wearAcc >= WEAR_REPAINT) groundDirty = true;               // the trodden paths, throttled
 
@@ -12459,6 +12869,7 @@ window.__census = function(){
      * it made the census non-reproducible. Census fields must be town state, not
      * render state. */
     chimneys: CHIMNEYS.length, roofFurniture: ROOF_FURN.length,
+    plotFurniture: ALLOT_FURN.length,
     ringNodes: RING.length, edgeBeds: EDGE_BEDS.length,
     benches: BENCH_SPOTS.length + LANE_BENCHES.length + QUAY_BENCHES.length + FAR_BENCHES.length,
     cafeTables: CAFE_TABLES.length, marketStalls: MARKET_STALLS.length,
