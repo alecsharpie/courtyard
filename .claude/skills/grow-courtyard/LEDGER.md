@@ -40,14 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 138 — the plots get their tools (2026-09-03) [Cross street & allotments × New element]
-
-**Brief:** b138 — furniture for the seventeen plots, on ROOF_FURN's model, per plot off hash(plot). Full entry in LEDGER-archive.md.
-**Did.** `ALLOT_FURN`/`PLOT_BOX`: shed, compost bay, water butt, barrow, bean canes, cloche — solved ONCE off `hash(plot)`, held in world coordinates, drawn into the ground cache before `drawGlassBack`, named by `allotFurnAt`/`allotFurnName` off the boxes the paint uses. **38 pieces over 15 plots**, zero `R()`. A plot owns x [ox, ox+4) y [oy, oy+3) — beds plus a south and east apron — leaving a whole cell of way in x and the WEST side clear, where `sendToPlot` lands its holder. Canes/cloche gated on the warm/cold half of `warmth` with per-plot slack; the barrow on somebody kneeling — live state under a cached surface, so `barrowKey()` drives `groundDirty` as `washPainted` does (2.5 extra rebuilds a sim day).
-**Gates:** census PASS — `structures +342`, new `plotFurniture 342`, nothing else across 9 cells; baseline **re-pinned** · motion PASS · 0 POP · perf ±0.0%, `drawGround()` interleaved 34.00 → 34.10 ms · legible Street/Wide/390×844/night. `probes/plot-furniture.mjs` 0 geometry violations, all five clauses fire on a moved piece; `probes/plot-naming.mjs` drives a real mousemove, all six kinds named.
-**Verdict:** shipped
-**Surprise:** the brief's cane gate was a feature at a rate of zero, through DWELL. Beans are **3.1%** of standing allotment cells against cabbages 47.1 — not because they are rarely sown but because cabbages are the one `hardy` species and stand the winter. Canes on a presence test showed on 1.5% of a year; gated on the season they are up 49.7%.
-
 ## Iteration 139 — the gardener works the stretch the light allows (2026-09-03) [Courtyard & garden × Deepen]
 
 **Brief:** b139 — re-price gardenerKneel's continuation so a gardener who has knelt finishes the bed. Full entry in LEDGER-archive.md.
@@ -118,3 +110,14 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped
 **Surprise:** the pass is not its draws - they total **0.118 ms**, the other 0.41 is compositing, and both obvious savings made it worse (offscreen water clip 0.689, full-canvas `destination-in` **1.48**).
 **Law:** a cast image's TARGET SET is southward at this camera, and a caster's own draw is its image - put the sign in `project()`, and make every draw landing ON the plane read it.
+
+## Iteration 146 — the two towers cast from their own height (2026-09-03) [Roofs & skyline × Deepen]
+
+**Brief:** b146 — `shTop[]` is filled from the eave, and the tallest drawn things in town are not eaves. Give each tower its real height.
+**Priced first, as asked, and the price is the finding.** `-S/S[2]` says a throw is long at a low sun; it does not say there is anywhere for it to GO. `sunVec()`'s `S[1]` is 0.32..0.58 at every hour of every season, so the throw is **always northward** — and both towers stand at the world's north edge (clock rows 1–2, church rows 4–7). A ray leaves the world at ~2 cells of height above the clock tower and ~5–22 above the church. Height past that is thrown into nothing.
+**Did.** `CT` hoisted beside `CHURCH` (it was declared 5,600 lines below the grid that now needs it) and `CHURCH` given `tBase/tTop/tRise`, so `drawChurchTower`/`drawClockTower`/`VANES` read one definition instead of four literals. `SH_TOWERS` + `towerShTop()` beside `buildShadowGrid`: `shTop[i] = max(roofTopAt, towerShTop)`. Not an `eaveBand` branch — a tower is a thing standing ON a block, not the block's height. A spire is a CONE, so the height a cell casts from tapers on `1 − max(dx/hx, dy/hy)` from the cell's NEAREST point to the axis: only the axis column reaches 23.1, its flanks 18.7.
+**Gates:** census PASS, unchanged · motion PASS · filmstrip day 0 POP · `frame-cost.mjs` summer 4.96→4.96 ms, winter 5.11→5.14, interleaved · wide/courtyard/east/lane clean · `shOpen[]` provably unmoved (rows north of both towers were already vetoed at the old height, so the northward veto could not regress).
+**HEAD → cand** (`probes/tower-reach.mjs`, the tower's OWN mask contribution, held out against a mask built without its cells): midsummer 7 h reach **7.35 → 13.85 cells**, 36 → 100 sub-cells; equinox 7 h 10.85 → 14.6, 15 → 30; midwinter **0 → 0**. `shade-diff.mjs` t=387.3: **1,328 px** changed against a same-code control of **462** (2.9×), 96.6% open ground, p0.1 luma 33→33.
+**Verdict:** shipped — but the brief's bar is unreachable and that is the finding.
+**Surprise:** the clock tower gains **nothing, at any hour, in any season** — 0 novel sub-cells at both equinoxes and midwinter, ≤14 at midsummer. Its old 7.2 already saturated the two rows of world in front of it. And the church's win is not "across the far bank's green" but out onto the WATER: the spire's tip crosses the towpath at x 127 and lies on the river, and only in the warm half's morning — at midwinter the sun is steep enough (`uy` −1.27) that the whole throw is off the north edge by 5 cells of height.
+**Law:** a caster's value is bounded by the OPEN WORLD downwind of it, not by its height — price the reachable GROUND before raising a caster, because `-S/S[2]` prices the ray and says nothing about where it lands.

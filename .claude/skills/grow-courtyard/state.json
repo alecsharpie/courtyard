@@ -511,7 +511,8 @@
       "the far bank's day: spawnFarAgent/farOpen/farRate/FAR_CAP, FAR_GATE, a.jetty, overDeck's east door via DECK_SHARE; concert bandF/isBandDay/BAND_SLOTS; FIELD EDGE east of GW painted in the cache",
       "the evening ends: EVE_GONE/EVE_HURRY/EVE_BELL, eveOutH -> a.eveOut, goHome(a,maxH). Night water: drawRiverLights, RIVER_LAMPS, a.nightRail, roseLit",
       "the PUNT, a FLEET of two (#141): PUNTS/PUNT_BERTHS, hull B berths and lands 0.95 west so the tracks are PARALLEL; punt{leg 0..4}, PUNT_MOOR/SHORE/STAND/LAND; puntFits -> OFFER {P,night,stand}; PUNT_LAMPS after applyLight",
-      "the town is IN the water (#145): drawWaterMirror + MIRROR/setMirror (project()'s z sign, LIFTM). Five casters mirrored by re-running their OWN draw - drawBridge, drawDeckSpan/Front, drawMillWheel, drawJetty, drawWillow - faded from each waterline, chopped into bars by windF, eyot punched out, composited under riverWaterPath. NOT the clock tower or the church: an image runs southward, so both land on dry land"
+      "the town is IN the water (#145): drawWaterMirror + MIRROR/setMirror (project()'s z sign, LIFTM). Five casters mirrored by re-running their OWN draw - drawBridge, drawDeckSpan/Front, drawMillWheel, drawJetty, drawWillow - faded from each waterline, chopped into bars by windF, eyot punched out, composited under riverWaterPath. NOT the clock tower or the church: an image runs southward, so both land on dry land",
+      "the two towers cast from their real height (#146): SH_TOWERS/towerShTop into shTop[], tapered on 1-max(dx/hx,dy/hy) from the axis, CT hoisted + CHURCH.tBase/tTop/tRise the one definition. Only the SPIRE reaches anything - out onto the water, warm half's morning"
     ],
     "sky": [
       "day/night (55 s day), sun and moon arc, HAZE hills, a distant skyline, 120 stars, chimney smoke, a balloon; windowLit the ONE pane predicate + LIT[], relit AFTER applyLight",
@@ -597,6 +598,12 @@
     {
       "id": "c233",
       "note": "the BOATS are the caster class #145 left out - the punts, the barge, the rowboat and a standing punter with a pole are still not in the water; and the rows-3-12 bank-smear baked into the ground cache is now the only un-live thing in it, stopping at row 12 for no recorded reason.",
+      "raisedBy": 144,
+      "seenBy": 0
+    },
+    {
+      "id": "c234",
+      "note": "every tall caster in this town stands at the world's NORTH edge and the throw is always northward, so the sun shade can only ever reach the near half: #140's ROAD.lane 0.0% (c224) and #146's clock tower 0 are the same fact. The one surface that CAN take a long shadow is the river, and #146 put the spire on it.",
       "raisedBy": 144,
       "seenBy": 0
     }

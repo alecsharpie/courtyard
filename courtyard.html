@@ -374,11 +374,15 @@ function freeStand(){ const f = FOUNT_STANDS.filter(s => !agents.some(o => o.fst
 const QUAY_BENCHES = [{x:112.1, y:18}, {x:112.1, y:46}];
 /* the far bank across the river: towpath, church green, bandstand */
 const RIVER_X1 = 127, TOW_X0 = 127, FAR_X0 = 130, PARK_GATE = 134;
-const CHURCH = {tx0:131, tx1:134, ty0:4, ty1:8, nx0:131, nx1:136, ny0:8, ny1:17};
+const CHURCH = {tx0:131, tx1:134, ty0:4, ty1:8, nx0:131, nx1:136, ny0:8, ny1:17,
+                tBase:6.0, tTop:13.6, tRise:9.5};   // parapet, and the spire's rise above it
 function churchAt(x, y){
   return (x >= CHURCH.nx0 && x < CHURCH.nx1 && y >= CHURCH.ny0 && y < CHURCH.ny1) ||
          (x >= CHURCH.tx0 && x < CHURCH.tx1 && y >= CHURCH.ty0 && y < CHURCH.ty1);
 }
+/* the clock tower on the sliver at x 64-66 — drawn by drawClockTower(), declared here
+ * because buildShadowGrid() needs its real height 5,600 lines before the draw does */
+const CT = {x0:63.8, x1:66.2, yF:3, yB:1.1, base:5.4, top:13.0, rise:3.4};   // rise: the pyramid cap above the cornice
 const BANDSTAND = {x:133.6, y:41};
 const FAR_BENCHES = [{x:131.4, y:27}, {x:136, y:48}];
 const ORCHARD = [[136.6,23],[136.8,31],[131.5,53],[136.4,55]];
@@ -1033,10 +1037,49 @@ function roofTopAt(x, y){                          // the roof surface at a cell
  * because the caster's own silhouette is subtracted from the target set at build time. */
 const shTop = new Float32Array(GW * WH);
 const shOpen = new Uint8Array(GW * WH);
+/* ...with one exception, and it is the two tallest drawn things in the town. roofTopAt()
+ * reads eaveBand(), which knows the clock tower's sliver as a 6.3 terrace and the church
+ * as a 7.8 one — so the 16.4-cell pyramid cap and the 23.1-cell spire were both throwing
+ * a terrace's shadow. They get their own entry here rather than a new eaveBand() branch,
+ * because eaveBand is the QUARTER's height and every generic consumer reads it: a tower
+ * is not how tall the block is, it is one thing standing ON the block.
+ *
+ * A spire is a CONE and a cap is a PYRAMID, so the height a cell casts from TAPERS to
+ * the silhouette rather than standing as a full-width slab to the tip: only the column
+ * under the axis reaches the apex. Distance is measured from the cell's NEAREST point to
+ * the axis, not its centre, which is the same convention the march uses — it walks the
+ * cell's four sub-columns, so what a cell casts is what its whole footprint casts.
+ *
+ * What this buys, measured (probes/tower-reach.mjs): the SPIRE's own morning shadow runs
+ * 7.4 -> 13.9 cells at a midsummer 7 h, off the towpath and out onto the water. The CLOCK
+ * TOWER's buys nothing and cannot: it stands in rows 1-2 and the throw is always NORTHWARD
+ * (sunVec()'s S[1] is 0.32..0.58 at every hour of every season), so its rays leave the
+ * world at a height of ~2 cells and the old 7.2 already saturated that. Correct, not
+ * visible. A caster is bounded by the OPEN WORLD downwind of it, not by how tall it is. */
+const SH_TOWERS = [
+  {x0:64,  x1:66,  y0:1, y1:3,                                   // the clock tower's cap
+   ax:(CT.x0 + CT.x1) / 2,          ay:(CT.yF + CT.yB) / 2,
+   hx:(CT.x1 - CT.x0) / 2 + 0.2,    hy:(CT.yF - CT.yB) / 2 + 0.2,
+   top:CT.top, rise:CT.rise},
+  {x0:CHURCH.tx0, x1:CHURCH.tx1, y0:CHURCH.ty0, y1:CHURCH.ty1,   // the church's spire
+   ax:(CHURCH.tx0 + CHURCH.tx1) / 2, ay:(CHURCH.ty1 + CHURCH.ty0 + 0.2) / 2,
+   hx:(CHURCH.tx1 - CHURCH.tx0) / 2 - 0.4, hy:(CHURCH.ty1 - CHURCH.ty0) / 2 - 0.05,
+   top:CHURCH.tTop, rise:CHURCH.tRise},
+];
+function towerShTop(x, y){
+  let h = 0;
+  for (const t of SH_TOWERS){
+    if (x < t.x0 || x >= t.x1 || y < t.y0 || y >= t.y1) continue;
+    const dx = Math.max(0, Math.abs(x + 0.5 - t.ax) - 0.5) / t.hx;
+    const dy = Math.max(0, Math.abs(y + 0.5 - t.ay) - 0.5) / t.hy;
+    h = Math.max(h, t.top + t.rise * Math.max(0, 1 - Math.max(dx, dy)));
+  }
+  return h;
+}
 function buildShadowGrid(){
   for (let y = 0; y < WH; y++) for (let x = 0; x < GW; x++){
     const i = y * GW + x;
-    shTop[i] = solidM[i] ? roofTopAt(x, y) : 0;
+    shTop[i] = solidM[i] ? Math.max(roofTopAt(x, y), towerShTop(x, y)) : 0;
   }
   for (let x = 0; x < GW; x++){
     let cover = 1e4;                                 // the highest screen row anything in front of us reaches
@@ -6722,7 +6765,6 @@ function drawBlocks(g, y0, y1){
 }
 
 /* ============ the clock tower, standing on the sliver's roofline ============ */
-const CT = {x0:63.8, x1:66.2, yF:3, yB:1.1, base:5.4, top:13.0};
 function towerFace(g, x0, x1, y, z0, z1, c0, c1){
   const a = project(x0, y, z1), b = project(x1, y, z1), c = project(x1, y, z0), d = project(x0, y, z0);
   const gr = g.createLinearGradient(a[0], 0, b[0], 0);
@@ -6771,7 +6813,7 @@ function drawClockTower(g){
   // cornice, then the pyramid cap
   towerFace(g, x0 - 0.28, x1 + 0.28, yF + 0.2, top - 0.35, top, '#9c8f75', '#cabb9c');
   towerTop(g, x0 - 0.28, x1 + 0.28, yF + 0.2, yB - 0.2, top, 'rgba(214,202,175,.9)');
-  const apex = project((x0 + x1) / 2, (yF + yB) / 2, top + 3.4);
+  const apex = project((x0 + x1) / 2, (yF + yB) / 2, top + CT.rise);
   const c1 = project(x0 - 0.2, yF + 0.2, top), c2 = project(x1 + 0.2, yF + 0.2, top);
   const c3 = project(x1 + 0.2, yB - 0.2, top), c4 = project(x0 - 0.2, yB - 0.2, top);
   g.fillStyle = mix('#3c4148', '#6d747c', 0.3 + 0.5 * daylight);
@@ -6801,7 +6843,7 @@ function drawClockTower(g){
  * hands (the rose window's model, #81): projected per frame, under applyLight. */
 const VANES = [
   {x:(CT.x0 + CT.x1) / 2, y:(CT.yF + CT.yB) / 2, z:CT.top + 4.8, len:5, fin:2, kind:'arrow', name:'the vane'},
-  {x:(CHURCH.tx0 + CHURCH.tx1) / 2, y:(CHURCH.ty1 + CHURCH.ty0 + 0.2) / 2, z:13.6 + 10.3, len:5, fin:1.6, kind:'cock', name:'the weathercock'},
+  {x:(CHURCH.tx0 + CHURCH.tx1) / 2, y:(CHURCH.ty1 + CHURCH.ty0 + 0.2) / 2, z:CHURCH.tTop + 10.3, len:5, fin:1.6, kind:'cock', name:'the weathercock'},
 ];
 const VANE_WOB = 0.14;                                  // ~8 degrees of calm drift
 const VANE_COL = '#4a4238';
@@ -6883,7 +6925,7 @@ function vaneName(v){
 /* ============ the church across the river ============ */
 function drawChurchTower(g){
   const x0 = CHURCH.tx0 + 0.15, x1 = CHURCH.tx1 - 0.15, yF = CHURCH.ty1, yB = CHURCH.ty0 + 0.2;
-  const base = 6.0, top = 13.6;
+  const base = CHURCH.tBase, top = CHURCH.tTop;
   towerFace(g, x0, x1, yF, base, top, '#8a8270', '#b5ad97');
   for (const z of [base + 2.2, base + 5.2]){
     towerFace(g, x0 - 0.12, x1 + 0.12, yF + 0.12, z, z + 0.22, '#867e6c', '#bdb59d');
@@ -6913,7 +6955,7 @@ function drawChurchTower(g){
     g.strokeStyle = '#a89f88'; g.lineWidth = Math.max(2, cellW * 0.2);
     g.beginPath(); g.moveTo(p0[0], p0[1]); g.lineTo(p1[0], p1[1]); g.stroke();
   }
-  const apex = project(mx, my, top + 9.5);
+  const apex = project(mx, my, top + CHURCH.tRise);
   const s1 = project(x0 + 0.25, yF + 0.05, top + 0.2), s2 = project(x1 - 0.25, yF + 0.05, top + 0.2);
   const s3 = project(x1 - 0.25, yB, top + 0.2), s4 = project(x0 + 0.25, yB, top + 0.2);
   g.fillStyle = mix('#3f444a', '#78808a', 0.28 + 0.5 * daylight); poly(g, [s1, s2, apex]); g.fill();
