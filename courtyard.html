@@ -579,6 +579,30 @@ function stepView(rdt){
   applyView({ s: a.s + (b.s - a.s) * u, ox: a.ox + (b.ox - a.ox) * u, tp: a.tp + (b.tp - a.tp) * u });
   if (viewAt >= VIEW_SECS){ viewFrom = viewTo = null; gpadWant = 0; groundDirty = true; }
 }
+/* The camera has been a pure SINK: whereN was read by the three lines that move the
+ * frame and by nothing else, so the town would tell you about a dog in the courtyard
+ * while you were parked on the far bank. This is the reader that closes the loop, and
+ * it answers one question — is this world cell inside the frame you asked for?
+ *   WHICH frame? Not gview: that is the view the GROUND CACHE was painted in, which
+ * during an ease is deliberately the WIDE one, so it is not where the picture is at
+ * all. The live eased transform is the honest "now", but a ticker line lives
+ * TICK_DWELL 2.5 s to TICK_LIFE 9 s against an ease of VIEW_SECS 0.9, so for all but
+ * the first tenth of a line's life the DESTINATION is the frame. So: viewFor(whereN),
+ * projected exactly — pinch, sill and all — and never the quarter's declared BOX,
+ * because a box is the fit's INPUT and not one of them is what you see: the bandstand
+ * at (133.6, 41) is outside BOTH Far bank's box (y1 33) and the Plaza's (x1 128), and
+ * is plainly in both frames. This is viewport-dependent, and rightly so — what you can
+ * see is a function of the window (the framing decides what exists).
+ *   Wide is exempt by name, which also makes this whole pass a no-op at whereN 0: no
+ * line is suppressed there, so no extra ambient roll fires, so the seeded world stays
+ * bit-identical to HEAD everywhere the census and the motion gate look. */
+function inView(x, y){
+  if (!whereN) return true;                       // Wide sees everything, so it may say anything
+  const v = viewFor(whereN);
+  const p = 1 - PINCH * (1 - y / WH);             // project(), under a view that is not the live one
+  const sx = v.ox + (x - FOCUS) * cellW0 * v.s * p, sy = v.tp + y * cellH0 * v.s;
+  return sx >= 0 && sx <= W && sy >= 0 && sy <= sillTop();
+}
 // how far the wide world overflows the frame on either side, in px, at the wide view
 function groundPad(){
   const left = originX0 - FOCUS * cellW0, right = originX0 + (GW - FOCUS) * cellW0;
@@ -2106,10 +2130,10 @@ function bandNews(){
   if (!isBandDay()) return;
   if (bandSetDay !== day && hour >= bandStart() - BAND_UP && hour < bandStart()){
     bandSetDay = day;
-    announce('Music stands are going up in the bandstand across the river.');
+    sayAt(BANDSTAND.x, BANDSTAND.y, 'Music stands are going up in the bandstand across the river.');
   } else if (bandPlayDay !== day && hour >= bandStart() && hour < bandEnd()){
     bandPlayDay = day;
-    announce('The band strikes up on the church green.');
+    sayAt(BANDSTAND.x, BANDSTAND.y, 'The band strikes up on the church green.');
   }
 }
 /* The market opens two and a half hours after sunrise and packs away three before
@@ -2316,6 +2340,17 @@ function announce(txt, then, dwell){
   tickerQ.push({ txt, then, age: 0 });
   while (tickerQ.length > TICK_QMAX) tickerQ.shift();   // stale goes, not the news
 }
+/* A line ABOUT A PLACE. announce() owns the surface; this is the only thing that knows
+ * a line has a SUBJECT and where it stands. Off frame it is not queued at all — better
+ * a quiet ticker than one describing somewhere you cannot see — and that quiet is what
+ * the ambient roll fills, preferring what IS in frame and falling back to the whole
+ * town rather than going silent.
+ *   The draw is always the CALLER's: sayAt(x, y, pick([...])) evaluates pick BEFORE the
+ * call, so where you are looking can never change how much of R() the town has spent.
+ * A seeded world that depended on the camera would be no seeded world at all. */
+function sayAt(x, y, txt, then){ if (inView(x, y)) announce(txt, then); }
+// no quarter frames the lane, so a line about it is a line about the middle of it
+const LANE_MID = { x: KIOSK.x, y: (LN_ROAD0 + LN_ROAD1) / 2 };
 // half a real second of ticker time — called from the same bucket as refreshStats
 function tickTicker(){
   tickerAge += 0.5;
@@ -2327,27 +2362,100 @@ function tickTicker(){
   }
   if (tickerQ.length && tickerFree()) showLine(tickerQ.shift());
 }
+/* The branches above are the SKY — rain, night, wind, cloud stand over all five
+ * quarters at once, and a line about them is true wherever you are looking. This pool
+ * is the town's PLACES, so it is the one that can be about somewhere you are not. Each
+ * line carries the cell it is about; ambientHere() prefers the ones in frame, and its
+ * fallback is the WHOLE pool rather than silence — a quarter with nothing of its own
+ * still speaks, it just speaks about the town. A line with no cell is a sound, and
+ * carries: you can hear a barge from anywhere. */
+const AMBIENT_PLACES = [
+  // the courtyard
+  {x:CX,   y:CY,   t:'Sparrows bicker somewhere in the linden.'},
+  {x:SUNDIAL.x, y:SUNDIAL.y, t:'The sundial\'s shadow has moved again and nobody watched it go.'},
+  {x:10,   y:32,   t:'Bees work the lavender in slow circles.'},
+  {x:CX,   y:2,    t:'Someone hums on their way through the arch.'},
+  {x:BENCH_SPOTS[0].x, y:BENCH_SPOTS[0].y, t:'A bench under the north wall holds nothing but a fallen leaf.'},
+  {x:CX,   y:26,   t:'The grass in the middle has come up a shade greener than last week.'},
+  {x:8,    y:12,   t:'A window box gets watered from a first-floor window.'},
+  {x:52,   y:40,   t:'Something is flowering in the east beds that nobody remembers planting.'},
+  // the cross street and the allotments
+  {x:84,   y:30,   t:'Somebody straightens a row of canes over the allotments.'},
+  {x:88,   y:36,   t:'The glasshouse ticks as it warms, and something inside is doing well out of it.'},
+  {x:POND.x, y:POND.y, t:'Something goes into the allotment pond and does not explain itself.'},
+  {x:70,   y:20,   t:'The cross street empties for a moment, and then does not.'},
+  {x:80,   y:12,   t:'A watering can is set down at the end of a row and left there.'},
+  // the plaza and the quay
+  {x:FOUNTAIN.x, y:FOUNTAIN.y, t:'The fountain keeps its own soft applause going.'},
+  {x:105,  y:34,   t:'Pigeons hold a meeting on the paving and settle nothing.'},
+  {x:112.9, y:30,  t:'The quay rail is cold under somebody\'s forearms.'},
+  {x:PLAZA_BENCHES[0].x, y:PLAZA_BENCHES[0].y, t:'A plaza bench is warm at one end and empty at both.'},
+  {x:120,  y:30,   t:'The river slides past, minding its own business.'},
+  // the far bank
+  {x:132.5, y:6,   t:'The church clock is half a minute out, and always has been.'},
+  {x:133.5, y:12,  t:'The rose window keeps the last of the light longer than the sky does.'},
+  {x:ORCHARD[0][0], y:ORCHARD[0][1], t:'Windfalls go quietly to ground in the orchard.'},
+  {x:JETTY.x, y:JETTY.y, t:'The punt knocks once against the jetty and is still again.'},
+  {x:MILL_WHEEL.x, y:MILL_WHEEL.y, t:'The mill wheel turns over heavily and shakes off its water.'},
+  {x:EYOT_AT.x, y:EYOT_AT.y, t:'On the eyot the willow moves, and nothing else does.'},
+  {x:BANDSTAND.x, y:BANDSTAND.y, t:'The bandstand stands empty, and sounds like it.'},
+  // the lane and the roofs over it — Wide's own, since no quarter frames them
+  {x:KIOSK.x, y:KIOSK.y, t:'The kiosk man rearranges tulips no one has bought yet.'},
+  {x:CAFE_TABLES[1].x, y:CAFE_TABLES[1].y, t:'A cup and saucer clink under the green awning.'},
+  {x:CX,   y:84,   t:'Washing hangs dead still on the roofs above the lane.'},
+  {x:LANE_BENCHES[0].x, y:LANE_BENCHES[0].y, t:'Somebody comes out, looks at the sky, and goes back in.'},
+  // and one that carries
+  {t:'A barge horn sounds somewhere far downstream.'},
+];
+function ambientHere(){
+  const here = AMBIENT_PLACES.filter(a => a.x === undefined || inView(a.x, a.y));
+  return here.length ? here : AMBIENT_PLACES;
+}
+/* MEASURED FIRST, and the premise did not survive: the ambient roll has NEVER FIRED.
+ * Its gate asked for tickerTimer < -8, which is SEVENTEEN seconds of dead surface
+ * (TICK_LIFE 9, then eight more), and the town says something every three or four —
+ * over 8 sim days at three quarters the gate passed on 0.000 of samples and 0 ambient
+ * lines were shown. The whole pool below was dead code, and so was the fallback this
+ * pass needs: the one that keeps a quarter with few subjects of its own from going
+ * quiet. Nor is it near-misses: tickerTimer floats between 3 and 9 over those days and
+ * never once reaches 0, so no threshold on it is reachable at all. The bar is therefore
+ * tickerFree() — the town's ONE definition of whose the surface is, the same one
+ * announce() routes every other caller on — and the murmur becomes a caller like any
+ * other. It is tested here rather than left to announce() because a blocked ambient
+ * line must be DROPPED and never queued: ambience shown late is news shown late.
+ * All the restraint now lives in the CADENCE: one chance every AMB_EVERY sim seconds,
+ * AMB_K of them taken.
+ *   Off hash() rather than R(), on the gardener's model (#129): a schedule, not a
+ * lottery. That is not tidiness. announce() is now camera-dependent, so a roll that
+ * SPENT the seeded stream would make the town's people depend on where you were
+ * looking; keyed to a hash it costs the world exactly zero draws, and every other
+ * system stays bit-identical to HEAD whatever the camera does. The price is that the
+ * murmur is the same in every seeded world, which is the right thing to spend: it is
+ * flavour on the surface, never state in the town. */
+const AMB_EVERY = 3, AMB_K = 0.6;    // a chance every ~5 s of sim; the surface decides how many land
+let ambIdx = 0;
+function ambPick(a){ return a[(hash(ambIdx, 977) * a.length) | 0]; }
+/* The branches below are the SKY — rain, night, wind and cloud stand over all five
+ * quarters at once, and a line about them is true wherever you are looking. Only the
+ * last pool is the town's PLACES, so it is the only one that can be about somewhere
+ * you are not. Each line carries the cell it is about; ambientHere() prefers the ones
+ * in frame and falls back to the WHOLE pool rather than to silence — a quarter with
+ * nothing of its own still speaks, it just speaks about the town. A line with no cell
+ * is a sound, and sounds carry: you can hear a barge from anywhere. */
 function ambientLine(){
-  if (raining) return pick(['Gutters murmur along the whole block.',
+  if (raining) return ambPick(['Gutters murmur along the whole block.',
     'Umbrellas bloom faster than the flower beds.']);
-  if (nightF > 0.5) return pick(['Somewhere above, a sash window closes.',
+  if (nightF > 0.5) return ambPick(['Somewhere above, a sash window closes.',
     'The lamps hum quietly to themselves.',
     'A floorboard creaks in the house across the lane.']);
-  if (isWindy()) return pick(['The washing snaps like little flags.',
+  if (isWindy()) return ambPick(['The washing snaps like little flags.',
     'The linden turns all its leaves silver-side out.']);
-  if (cloudCover() > 0.7) return pick(['The light goes flat and grey; the sky is thinking about it.',
+  if (cloudCover() > 0.7) return ambPick(['The light goes flat and grey; the sky is thinking about it.',
     'Someone brings the washing in early, just in case.',
     'The whole block sits under one low grey lid.']);
-  if (cloudCover() > 0.42) return pick(['Cloud comes over the rooftops from the west.',
+  if (cloudCover() > 0.42) return ambPick(['Cloud comes over the rooftops from the west.',
     'The sun keeps going in and out.']);
-  return pick(['Sparrows bicker somewhere in the linden.',
-    'A window box gets watered from a first-floor window.',
-    'The kiosk man rearranges tulips no one has bought yet.',
-    'Someone hums on their way through the arch.',
-    'Bees work the lavender in slow circles.',
-    'The fountain keeps its own soft applause going.',
-    'The river slides past, minding its own business.',
-    'A barge horn sounds somewhere far downstream.']);
+  return ambPick(ambientHere()).t;
 }
 
 /* ============ CA: gardens, grass, daisies ============ */
@@ -2440,7 +2548,7 @@ function harvestPlot(a){
   }
   // the basket now has somewhere to go: the store the lane's stalls are stocked from
   a.crop = sp; harvested += took; produce[sp - 1] += took; groundDirty = true;
-  announce(pick(['A row of ' + SPECIES[sp-1].name + ' comes up; the basket fills.',
+  sayAt(a.x, a.y, pick(['A row of ' + SPECIES[sp-1].name + ' comes up; the basket fills.',
     'The ' + SPECIES[sp-1].name + ' are ready — the plot is cleared in one go.',
     'Someone straightens up out of the ' + SPECIES[sp-1].name + ' with an armful.']));
   return took;
@@ -2577,7 +2685,7 @@ function spawnAgent(room){
     a.dog = { x:a.x, y:a.y, phase:R()*9, col:pick(['#4a3a2c','#c9b18a','#2c2c2c','#a6763f']) };
     const loops = 1 + (R() * 1.5 | 0);
     a.wp.push(...ringPath(e.k, (e.k + Math.round(RK * (0.5 + loops))) % RK, 1));
-    if (day >= 1 && R()<0.5) announce('A dog tows its human around the path, nose down.');
+    if (day >= 1 && R()<0.5) sayAt(a.x, a.y, 'A dog tows its human around the path, nose down.');
   } else if (roll < 0.52 && day >= 1){
     a.kind = 'crosser';
     a.wp.push(...crossPts(e.k, ex.k));
@@ -2834,17 +2942,17 @@ function spawnLawnAgent(want){
     a.wp.push(...exitLeg(nearDoor(last[0], last[1])));   // straight off the lawn to the nearest door
   }
   if (kind === 'gardener' && hour < sunUp) a.dawnWalk = true;   // out before the sun: see the lawnGone() licence in stepAgent
-  if (kind === 'gardener') announce(pick(['A gardener arrives with a trowel and a tray of seedlings.',
+  if (kind === 'gardener') sayAt(a.x, a.y, pick(['A gardener arrives with a trowel and a tray of seedlings.',
     'The gardener is in early, starting along the border.',
     'Someone kneels at the edge beds, working a row.']));
   else if (kind === 'kid'){
-    announce(pick(['Kids tear across the grass, shrieking.', 'A game of tag spills over the lawn.']));
+    sayAt(a.x, a.y, pick(['Kids tear across the grass, shrieking.', 'A game of tag spills over the lawn.']));
     if (R() < 0.7){
       const b = Object.assign({}, a, {shirt:pick(SHIRT), pants:pick(PANTS), speed:a.speed*0.94, lawnLead:false,
         wp:a.wp.map(p=>[p[0]+0.7,p[1]+0.5]), i:0, x:a.x+0.6, y:a.y, phase:R()*9});
       finishItinerary(b); agents.push(b);
     }
-  } else if (kind === 'napper') announce('Someone wanders in with a book, eyeing the shade under the tree.');
+  } else if (kind === 'napper') sayAt(a.x, a.y, 'Someone wanders in with a book, eyeing the shade under the tree.');
   else if (kind === 'picnic'){
     const b = Object.assign({}, a, {shirt:pick(SHIRT), pants:pick(PANTS), lawnLead:false,
       wp:a.wp.map(p=>[p[0]+0.9,p[1]+0.3]), i:0, x:a.x+0.7, y:a.y, phase:R()*9, lead:false});
@@ -3010,7 +3118,7 @@ function stepAgent(a, dt){
           const j = y*GW+x;
           if ((grid[j]===BED||grid[j]===CBED) && !bSp[j] && !bAge[j] && !(turned[j] && warmth < DIG_WARMTH) && R()<0.6){ bSp[j]=sp; bSt[j]=1; bAge[j]=0; turned[j]=0; planted++; }
         }
-        if (planted) announce('Fresh ' + SPECIES[sp-1].name + ' go into the bed, patted down gently.');
+        if (planted) sayAt(a.x, a.y, 'Fresh ' + SPECIES[sp-1].name + ' go into the bed, patted down gently.');
       }
       groundDirty = true;
     }
@@ -3114,7 +3222,7 @@ function stepAgent(a, dt){
       if (a.home){ arriveHome(a); a.done = true; return; }   // at the door: in they go
       if (a.kind === 'gardener' && a.tendBed){ gardenerKneel(a); return; }
       if (a.kind === 'napper' && a.napAt){ a.state='lie'; a.timer=16+R()*14; a.napAt=null;
-        if (R()<0.6) announce(inLindenShade(a.x, a.y) ? 'Asleep in the shade of the linden within minutes.'
+        if (R()<0.6) sayAt(a.x, a.y, inLindenShade(a.x, a.y) ? 'Asleep in the shade of the linden within minutes.'
                               : shadowF() > 0.5 ? 'Asleep out in the sun within minutes.' : 'Asleep under the tree within minutes.'); return; }
       /* A courtyard seat can be refused now, which is why c11 stayed open for 24
        * iterations: these two kinds are STAYING, so they arrive with an empty
@@ -3131,7 +3239,7 @@ function stepAgent(a, dt){
         // partner is a copy — so the release lifts them in the same frame.)
         if (seatRefused(a) && !(a.mate && a.mate.state === 'sit')){ routeToExit(a); return; }
         a.state='sit'; a.timer=dur; a.blanket=a.lead;
-        if (a.lead) announce(a.shaded ? 'A blanket unfurls in the shade of the linden — picnic hour.' : 'A blanket unfurls on the grass — picnic hour.');
+        if (a.lead) sayAt(a.x, a.y, a.shaded ? 'A blanket unfurls in the shade of the linden — picnic hour.' : 'A blanket unfurls on the grass — picnic hour.');
         return;
       }
       if (a.kind === 'sitter' && a.benchAt){
@@ -3146,7 +3254,7 @@ function stepAgent(a, dt){
         if (bonfireWeather() && !skyLifts(a)){        // and not under a front that would have them leave in the same frame
           bon.on = true; bon.lit = simT;
           a.state = 'stand'; a.timer = 1e9; a.resume = true; a.faceL = true;
-          announce('A bonfire is lit on the allotments; the smoke leans out over the fence.');
+          sayAt(a.x, a.y, 'A bonfire is lit on the allotments; the smoke leans out over the fence.');
         } else { a.tend = false; bon.holder = null; }
         return;
       }
@@ -3188,7 +3296,7 @@ function stepAgent(a, dt){
       // an hour on the post at least, then away in time to be off the frame by EVE_GONE (#101)
       if (a.dusk && a.eveOut !== undefined) a.eveLeave = Math.max(hourEve() + EVE_STAND, EVE_GONE - a.eveOut);
       if (a.stop.cup){ a.cup = true; a.tableRef = a.table; a.table = null; }
-      if (a.stop.say) announce(a.stop.say);
+      if (a.stop.say) sayAt(a.stop.x, a.stop.y, a.stop.say);
       return;
     }
     return;
@@ -3298,7 +3406,7 @@ function greetPass(){
       a.greet = b.greet = t;
       a.faceL = dx < 0; b.faceL = !a.faceL;
       a.chatCool = b.chatCool = t + 16 + R() * 10;
-      if (R() < 0.12) announce(pick([
+      if (R() < 0.12) sayAt(a.x, a.y, pick([
         'Two neighbours stop mid-path and fall into talk.',
         'A conversation breaks out on the lane and the walk waits for it.',
         'Someone stops someone else; hands go into pockets.',
@@ -3330,7 +3438,7 @@ function sendToPlot(a){
   else { a.wp.push([XS_WALK_E, gateY], [79, gateY]); }
   a.wp.push([plot[0] - 0.6, plot[1] + 0.5]);
   a.tendPlot = true; a.plot = plot;         // the plot they kneel at is the plot they pick
-  if (R() < 0.4) announce(pick(['Someone hoes a fresh row in the allotments.',
+  if (R() < 0.4) sayAt(plot[0], plot[1], pick(['Someone hoes a fresh row in the allotments.',
     'The smell of turned earth drifts over the fence.']));
 }
 /* Plots standing ready. This is what sets the gardener arrival rate: the crop calls
@@ -3381,7 +3489,7 @@ function turnPlot(a){
     if (grid[i] === BED && bSt[i] < 3){ bSp[i] = 0; bSt[i] = 0; bAge[i] = 0; turned[i] = 1; n++; }
   }
   if (n){ groundDirty = true;
-    if (R() < 0.5) announce(pick(['A fork goes into the cold ground; the plot comes up dark.',
+    if (R() < 0.5) sayAt(ox + 1, oy + 1, pick(['A fork goes into the cold ground; the plot comes up dark.',
       'Someone turns a plot over for the winter, a row at a time.'])); }
   return n;
 }
@@ -3479,7 +3587,7 @@ function spawnLaneAgent(room){
     tb.taken = 1; a.table = tb;
     a.stop = {x:tb.x + 0.85, y:tb.y + 0.15, act:'sit', dur:14 + R() * 12, cup:true};
     a.wp.push([a.stop.x, a.stop.y], [toX, LANE_S_Y]);
-    if (R() < 0.35) announce(pick(['Coffee smell drifts out from under the green awning.',
+    if (R() < 0.35) sayAt(tb.x, tb.y, pick(['Coffee smell drifts out from under the green awning.',
       'A cup and saucer clink at the pavement tables.']));
   } else if (sun && roll < 0.33){
     a.kind = 'lanesitter';
@@ -3543,7 +3651,7 @@ function spawnLaneAgent(room){
     a.kind = 'cyclist'; a.speed = 5.5 + R() * 1.5; a.cycle = true;
     const ry = LN_ROAD0 + 1.5 + R() * (LN_ROAD1 - LN_ROAD0 - 3);
     a.y = ry; a.wp.push([toX, ry + (R() - 0.5) * 2]);
-    if (R() < 0.3) announce('A bicycle bell rings twice; walkers drift aside.');
+    if (R() < 0.3) sayAt(LANE_MID.x, ry, 'A bicycle bell rings twice; walkers drift aside.');
   } else if (roll < 0.74 && day >= 1 && R() < 0.5){
     a.dog = { x:a.x, y:a.y, phase:R()*9, col:pick(['#4a3a2c','#c9b18a','#2c2c2c']) };
     a.wp.push([toX, yLine + (R() - 0.5)]);
@@ -3668,7 +3776,7 @@ function spawnCafeAgent(room){
   };
   a.stop = {x:tb.x + 0.85, y:tb.y + 0.15, act:'sit', dur:8 + R() * 8, cup:true};
   a.wp.push([a.stop.x, a.stop.y], [-2.5, LANE_S_Y]);
-  if (R() < 0.35) announce(pick(['Coffee smell drifts out from under the green awning.',
+  if (R() < 0.35) sayAt(tb.x, tb.y, pick(['Coffee smell drifts out from under the green awning.',
     'A cup and saucer clink at the pavement tables.']));
   agents.push(a); withCompanion(a, room);
 }
@@ -3707,7 +3815,7 @@ function spawnCart(){
   cart = { x:CART_X, y:-4, hx:0, hy:1, i:0, state:'drive', timer:0, ph:0, load:0, loadCol:null, at:'', out:false,
     sacks: wetF() > 0.35, loaded:false, loader:null,
     wp:[{x:CART_X, y:CART_GATE_Y, stop:'gate'}] };
-  announce(cart.sacks ? 'A cart comes down the cross street, sacks from the mill on its bed.'
+  sayAt(CART_X, 1, cart.sacks ? 'A cart comes down the cross street, sacks from the mill on its bed.'
                       : 'Hooves on the cross street: the carter is coming down from the north.');
 }
 /* The way home from the stalls has two ends (#90, c122): the lane runs out over the bridge
@@ -3752,7 +3860,7 @@ function stepCart(dt){
     if (c.timer > 0 || (c.at === 'gate' && L && !c.loaded && !L.done)) return;
     c.state = 'drive'; c.i++;
     if (c.at === 'gate') cartRouteOn();
-    else if (c.at === 'market'){ c.out = true; announce('The stalls take what the cart brought; the carter gathers the reins.'); }
+    else if (c.at === 'market'){ c.out = true; sayAt(MARKET_STALLS[1].x, MARKET_STALLS[1].y, 'The stalls take what the cart brought; the carter gathers the reins.'); }
     c.at = '';
   }
   const tgt = c.wp[c.i];
@@ -3760,11 +3868,11 @@ function stepCart(dt){
   const dx = tgt.x - c.x, dy = tgt.y - c.y, d = Math.hypot(dx, dy);
   if (d < 0.2){
     if (tgt.stop === 'market' && !marketActive()){   // the stalls packed up while it was on the road
-      c.out = true; c.i++; announce('The cart comes along the lane too late for the stalls and does not stop.'); return; }
+      c.out = true; c.i++; sayAt(MARKET_STALLS[1].x, MARKET_STALLS[1].y, 'The cart comes along the lane too late for the stalls and does not stop.'); return; }
     if (tgt.stop){
       c.state = 'stop'; c.at = tgt.stop; c.timer = tgt.stop === 'gate' ? CART_GATE_DUR : CART_MK_DUR;
-      if (tgt.stop === 'gate'){ spawnLoader(); announce('The cart draws up at the allotment gate; someone comes out with a basket.'); }
-      else announce(c.load ? 'The cart pulls in by the stalls with the allotments\' picking on its bed.'
+      if (tgt.stop === 'gate'){ spawnLoader(); sayAt(tgt.x, tgt.y, 'The cart draws up at the allotment gate; someone comes out with a basket.'); }
+      else sayAt(tgt.x, tgt.y, c.load ? 'The cart pulls in by the stalls with the allotments\' picking on its bed.'
                            : 'The cart pulls in by the stalls, its bed near enough empty.');
     } else c.i++;
     return;
@@ -3803,7 +3911,7 @@ let tapNewsDay = -1;
 function tapNews(){
   if (tapNewsDay === day || !tapOpen() || nightF < 0.4) return;
   tapNewsDay = day;
-  announce(pick(['The lamp over the door on the lane is lit, and the room behind it is open.',
+  sayAt(TAP_DOOR, LANE_N_Y, pick(['The lamp over the door on the lane is lit, and the room behind it is open.',
     'A door opens on the lane and lets out a bar of warm light and some noise.',
     'Somebody props the lane door open; the evening has somewhere to be.']));
 }
@@ -4274,7 +4382,7 @@ function spawnFamilyAgent(){
   k.kind = 'kid'; k.small = true; k.fam = true; k.famKid = true; k.famParent = a;
   k.speed = a.speed * 1.12; k.runSpeed = 2.8 + R() * 0.8;
   k.rest = 0.3 + R() * 0.5; k.chased = 0;      // the first rest is a glance: the child is off as soon as the parent has sat down
-  if (R() < 0.5) announce('A family comes through from the alley and the child makes straight for the pigeons.');
+  if (R() < 0.5) sayAt(a.x, a.y, 'A family comes through from the alley and the child makes straight for the pigeons.');
 }
 /* where a child runs next: a hopping pigeon within the leash of the parent, else an arc
  * of the roundel on the parent's side. Waypoints, like every route in the town. */
@@ -4577,7 +4685,7 @@ function updateSweeper(){
     }
     if (best >= 0 && bestSum > walkSum){ sweeper.y = best + 0.5; sweeper.wp[0][1] = best + 0.5; sweeper.gutter = true; }
     agents.push(sweeper);
-    announce('A sweeper works the lane before the town wakes.');
+    sayAt(LANE_MID.x, sweeper.y, 'A sweeper works the lane before the town wakes.');
   }
   if (sweeper && sweeper.done) sweeper = null;
 }
@@ -4619,7 +4727,7 @@ function updateRound(){
       left:0, doors:doors.length, wary:0.2,
     };
     agents.push(mround);
-    announce('The morning round comes in at the west end, bag on the shoulder.');
+    sayAt(x0, LANE_N_Y, 'The morning round comes in at the west end, bag on the shoulder.');
   }
   if (mround && mround.done) mround = null;
 }
@@ -4743,7 +4851,7 @@ function updateDucks(dt){
         d.tx = POND.x + Math.cos(th) * (POND.rx + 1.6);
         d.ty = POND.y + Math.sin(th) * (POND.ry + 1.3);
       }
-      if (R() < 0.02) announce(d.eyot ? 'On the eyot, a duck settles back onto the nest under the willow.' : 'The ducks argue briefly about nothing at all.');
+      if (R() < 0.02) sayAt(d.x, d.y, d.eyot ? 'On the eyot, a duck settles back onto the nest under the willow.' : 'The ducks argue briefly about nothing at all.');
     }
     const dd = Math.hypot(d.tx - d.x, d.ty - d.y);
     if (dd > 0.1){
@@ -4810,7 +4918,7 @@ function updateSwans(dt){
         if (onEyot(s.tx, s.ty)){ const o = offEyot(s.tx, s.ty, 0.4); s.tx = clamp(o[0], x0, x1); s.ty = clamp(o[1], 5, 58); }   // a target on the turf is a target at its shore
         if (puntAtShore() && Math.hypot(s.tx - PUNT_LAND.x, s.ty - PUNT_LAND.y) < 1.4)
           s.ty = PUNT_LAND.y + (s.ty >= PUNT_LAND.y ? 1.6 : -1.6);   // the landing is the punt's while it lies there (#96)
-        if (R() < 0.03) announce('A pair of swans work their way up the river, unhurried.');
+        if (R() < 0.03) sayAt(s.x, s.y, 'A pair of swans work their way up the river, unhurried.');
       }
     }
     // hold: 0..1 intensity of the pose, so the draw tilts in and out rather than snapping
@@ -4914,7 +5022,9 @@ function updateWildlife(dt){
       y: onLane ? LN_ROAD0+1+R()*5 : CY+Math.sin(th)*r,
       z:8, state:'land', hop:0, t:0, ground:true,
       col:pick(['#33302c','#5a4636','#6e6a60','#7d8089'])});
-    if (R()<0.4) announce(pick(['A blackbird drops onto the lawn.', 'Pigeons strut the lane like they own the freehold.']));
+    if (R()<0.4){ const ln = pick([['A blackbird drops onto the lawn.', CX, CY],
+                                   ['Pigeons strut the lane like they own the freehold.', LANE_MID.x, LANE_MID.y]]);
+      sayAt(ln[1], ln[2], ln[0]); }
   }
   for (let i=birds.length-1; i>=0; i--){
     const b = birds[i];
@@ -5473,7 +5583,7 @@ function stepMurm(){
     roosted = true;
     if (murAnnounced !== day){
       murAnnounced = day;
-      announce('Starlings come in over the river; the flock folds and turns against the last of the light.');
+      sayAt(MUR_ROOSTS[0][0], MUR_ROOSTS[0][1], 'Starlings come in over the river; the flock folds and turns against the last of the light.');
     }
   } else if (hour > sunUp + 0.7 && hour < sunDown - 1.5) roosted = false;
 }
@@ -11305,7 +11415,7 @@ function simStep(sdt, dt){
   stockMarket();                                       // must precede marketUp(): it decides who trades
   if (marketUp() && marketAnnounced !== day){          // now fires on the first trestle
     marketAnnounced = day;
-    announce(mkLine());                                // …and names what the plots sent
+    sayAt(MARKET_STALLS[1].x, MARKET_STALLS[1].y, mkLine());   // …and names what the plots sent
   }
   // fired at the FIRST stall coming down, not the last: it points at the pack-down
   // rather than reporting it afterwards. The hour used to be 17.00 and the line used to
@@ -11460,9 +11570,9 @@ function simStep(sdt, dt){
   statAcc += dt;
   if (statAcc > 0.5){ statAcc = 0; refreshStats(); tickTicker(); }
   ambientAcc += sdt;
-  if (ambientAcc > 20 && tickerTimer < -8){
-    ambientAcc = 0;
-    if (R() < 0.6) announce(ambientLine());
+  if (ambientAcc > AMB_EVERY){
+    ambientAcc = 0; ambIdx++;
+    if (hash(ambIdx, 5171) < AMB_K && tickerFree()) announce(ambientLine());
   }
 }
 /* ============ reaching another season ============

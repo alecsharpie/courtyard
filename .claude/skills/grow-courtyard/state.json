@@ -2,7 +2,7 @@
   "updated": "2026-09-02",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 131,
+  "lastIteration": 132,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -417,6 +417,9 @@
       ],
       "deepen": [
         111
+      ],
+      "connect": [
+        132
       ]
     },
     "roofs": {
@@ -511,7 +514,8 @@
       "NAMING under the pointer: beds, plots, pavingAt/WATERS places, trees, the living via livingAt, windows/doors via FACES[]/faceAt, roof furniture via roofFurnAt, vanes, the field edge. The CURSOR is the naming, off lookAt; evPx maps the event into DRAWING space",
       "quarter CAMERA: #where cycles QUARTERS Wide/Courtyard/Street/Plaza/Far bank; viewFor/whereGo/stepView, wide cache scaled through gview. It says it is clickable ONCE (answersTouch); OFFERS[]: touch -> clock -> season -> follow -> where; a tap also FOLLOWS",
       "the camera knows a WORLD, not the grid: WORLD_X0/WORLD_X1/FIELD_VIEW, held(pp,v). Quarters carry a VERTICAL INTENT: q.air the DEPTH the frame reaches up to, q.keep which end survives an overflow, q.east a box running to the world's edge",
-      "the PAINTED sill: drawSill inside drawOurSide, baked into the ground cache; sillTop() = H - max(26, H*0.075) the ONE definition. Drawn at EVERY camera (sillBoxes/sillOver/clipOffSill); sillU() priced off cellW0 so it does not zoom"
+      "the PAINTED sill: drawSill inside drawOurSide, baked into the ground cache; sillTop() = H - max(26, H*0.075) the ONE definition. Drawn at EVERY camera (sillBoxes/sillOver/clipOffSill); sillU() priced off cellW0 so it does not zoom",
+      "the ticker knows where you are LOOKING (#132): inView(x,y) the ONE reader of whereN — a cell projected through viewFor(whereN) against the frame and sillTop(), never the quarter's BOX and never gview; sayAt(x,y,txt) = announce with a SUBJECT at 33 sites, off frame it is not even queued. AMBIENT_PLACES 30 placed lines + ambientHere() preferring the in-frame ones, falling back to the WHOLE pool. The roll is a SCHEDULE off hash(ambIdx) — AMB_EVERY 3 / AMB_K 0.6 / ambPick — gated on tickerFree(), so it costs the seeded world zero draws and Wide stays bit-identical to HEAD"
     ],
     "roofs": [
       "roofs are EMERGENT from buildVolumes(): eaveFor(x,y) gives every solid cell an eave, vZ averages four corners, vD is a distance transform, SLOPE 0.62 lifts the inset. eaveFor is REGIONAL, not per-house — 5.1/5.6/5.8/6.2/6.6/6.3, church 7.8, mill 4.7, 0 south of LN_WALK_S. wrapVX repeats the terrace west",
@@ -583,6 +587,18 @@
       "id": "c209",
       "note": "28 of 87 deck offers to the punt land at 22-01h and can never be served: the water alone is 2.32 h round trip and EVE_GONE is 26.5, so the last boarding that can come home is ~23.5 even with a zero stay",
       "raisedBy": 129,
+      "seenBy": 0
+    },
+    {
+      "id": "c210",
+      "note": "the clock strikes are the ticker's loudest voice (4 a day, ~40 of ~52 unplaced lines over 6 days) and are deliberately left unplaced as SOUNDS, so at a quarter they are now most of the surface (Far bank 88% no-place). Pricing the strike is the next lever on a local-sounding ticker.",
+      "raisedBy": 131,
+      "seenBy": 0
+    },
+    {
+      "id": "c211",
+      "note": "a quarter's FRAME is far wider than its box at desktop sizes — Far bank at 1600x950 shows the allotments, Courtyard at 1280x700 shows the cross street — so inView() is generous by construction. A quarter that wants a tight voice needs a tighter frame, not a tighter predicate.",
+      "raisedBy": 131,
       "seenBy": 0
     }
   ],

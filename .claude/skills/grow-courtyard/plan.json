@@ -16,31 +16,6 @@
   "rationale": "I shot the wide frame at seed 42 before planning it, and the picture says one thing the prose has never said: THE ROOFLINE IS A STRAIGHT LINE. eaveFor() is a region function with seven bands, so every house in a terrace shares an eave and the skyline runs flat from the courtyard's west wall to the plaza — a horizontal edge across two thirds of the frame, broken only by the church (7.8) and the clock tower (6.3), both at the extremes. c174 has been calling the top of the frame 'empty sky' for three passes and I have declined it twice on the grounds that the sky has nothing to gain; the picture says the fault was never the sky's tenants, it is that the town presents a flat silhouette to it. That is a spatial fault, it is the first thing a visitor sees, and it is rung 4b by name — which matters, because mapFlat is at 13 of 15 (developed, green, water, passages, structures, tileKinds and speciesKinds have not moved since #116) and the ladder note says every rung-4 the run has taken picked TIME. So b130 goes into buildVolumes: give the terraces HOUSES, the way NEAR_HOUSE/houseOf already does for our own block, and let them differ in height. It is the town's spine — vZ, vD, roofs, CHIMNEYS, FACES/windowLit, ROOF_FURN, the murmuration's roosts and project()'s northward lift all sit downstream — so it is a real bet and it is priced as one. The other four go to the two stalest domains and to two premises I re-priced on HEAD myself this pass rather than trusting the cue: hearthF() has exactly ONE reader in 12,000 lines (grep says line 8281, inside drawSmoke) so the rooms genuinely do not know the town is cold; puntFits' last line is `eastCloseHour() - hour > puntTripH(a) + PUNT_MIN_STAY_H`, so a 19-21h jetty arrival is refused on TIME and #128 measured 236 of 298 offers dying there; and whereN is read by exactly three lines, all of them the camera moving itself, with `followed` carrying a comment that says 'following reads, it never writes' — the observer's state is a pure sink, which is why sill x Connect is the emptiest cell in the grid.",
   "queue": [
     {
-      "id": "b132",
-      "domain": "The sill & the observer",
-      "kind": "Connect",
-      "brief": "The observer's state is a pure sink. `whereN` — which of the five quarters you are looking at — is read by exactly three lines, all of them the camera moving itself, and `followPerson` carries a comment that says in so many words 'following reads, it never writes'. So the diorama never knows where you are looking, and the ticker will happily tell you about a dog in the courtyard while you are parked on the far bank. `sill x Connect` is empty in the coverage grid for that reason: nine domains of work have been wired to each other and none of it has been wired to the person watching. Close the loop in the cheapest honest way: what the town SAYS should know where you are looking. An ambient line should prefer a subject inside the frame you have chosen, and a line about somewhere you cannot see should not take the surface at all.",
-      "seams": [
-        "whereN",
-        "QUARTERS",
-        "whereGo",
-        "viewFor",
-        "announce",
-        "tickerQ",
-        "TICK_DWELL",
-        "TICK_QMAX",
-        "ambientAcc",
-        "followed",
-        "followPerson",
-        "OFFERS",
-        "gview"
-      ],
-      "successLooksLike": "Park the camera on the Far bank for a minute and the ticker talks about the river, the punt, the church and the orchard; park it on the Courtyard and it talks about the beds, the linden and the lawn. Wide is unchanged — it sees everything, so it should still say anything. Count the lines by subject at each quarter over several sim days on both builds and show the shift.",
-      "avoid": "Do not silence the ticker: a quarter with few subjects must still have something to say, so fall back to the whole town rather than going quiet — an empty ticker is worse than an off-screen one. Do not touch OFFERS[]'s order or TICK_DWELL; the advertising queue is a solved problem and this is about CONTENT. And the camera EASES, so `whereN` is the intent while `gview` is where the frame actually is — decide which one a line should be tested against, and say why.",
-      "budgetMin": 35,
-      "risk": "medium"
-    },
-    {
       "id": "b133",
       "domain": "Sky, light & weather",
       "kind": "Connect",
@@ -96,6 +71,10 @@
     {
       "id": "b131",
       "at": "2026-09-02T11:13:49.424Z"
+    },
+    {
+      "id": "b132",
+      "at": "2026-09-02T11:47:15.360Z"
     }
   ]
 }
