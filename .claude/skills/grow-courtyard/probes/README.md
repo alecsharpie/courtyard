@@ -56,3 +56,15 @@ Probes resolve the artifact as `../../../../courtyard.html`. (moved at #11)
   day's arc cancels. `-wind` travel per sim second by cross-correlating the darkening's column
   profile (mean-subtracted — a non-negative profile's DC term reports "it did not move").
   `-presence` how often the town actually sees it, at natural cover, by cover band.
+
+- `sill-*.mjs` (#111) — the sill at all five cameras. `-cameras` the gate: the BAND below
+  `sillTop()` (max luma / mean / share over 40) and OVERPAINT, the share of the sill's own
+  OPAQUE DARK pixels — cache luma < 20, alpha 255 — that read brighter than 40 live. Take the
+  second measure only that way: a raw RGB diff of live against `gcv` calls 4% of the pot boxes
+  overdrawn on a build where nothing is, because the cache's alpha there is 209–224 and
+  `getImageData` returns it UNPREMULTIPLIED. Night rows are the control (the band must still
+  darken). `-sweep` the blanket version — 54 instants × 5 cameras, worst band max, which is what
+  catches anything drawn after `sillOver`. `-ease` samples the 0.9 s camera ease and reports the
+  share of band pixels that changed per step: HEAD 99%, a fixed sill 0%. `-modes` reduced motion,
+  rain and snow. `-containment` the wide frame against HEAD, bounding box and worst Δ.
+  `-camera-shots` a bottom-band crop per quarter per framing.

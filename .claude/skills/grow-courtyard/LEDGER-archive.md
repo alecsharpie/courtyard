@@ -3771,3 +3771,13 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
+## Iteration 103 — the plaza's paving starts to age: moss creeps into the joints, thickens through the wet shoulders and is scuffed out of every line people walk (2026-09-02) [Plaza & quay × New CA]
+
+**Brief:** b103 — the plaza is the largest uniform surface in the town and does not age. Give it a per-cell rule.
+**Premise checked:** holds — nothing greens paving anywhere. (`moss` *does* appear on HEAD, on the near roof from #100. Not the plaza.)
+**Did:** `moss[]` over the plaza's 730 PATH cells, stepped in `caTick` beside the beds. Three terms and no more: **creep** (`nb`, the four-neighbour mean), **shelter** (`mossShel[]`, the share of a cell's eight neighbours that is not paving, read ONCE off the grid in `buildMoss`) and **the year** (`mossGrowF()`/`mossDieF()` off `warmth`, `greyF()`, `wetF()` — separate rates, because moss comes in over days and goes in hours). `mossTop[]` the ceiling, `mossFloor()` a hold under the drawn threshold. Feet cut it in `stepAgent` exactly where `wear[]` is cut in the courtyard. Drawn as the sett's own seam plus 0–4 hashed blades (`drawMoss`, `MOSS_BUCKET` 6) over a tint in `groundBase`; census gains `mossy`. No `R()`, no route or walkability change.
+**Gates:** census PASS, every group unchanged (no `R()` draw ⇒ no reshuffle) · motion PASS · filmstrip 0 POP · ground rebuilds 133/134 per day, identical to HEAD · `frame-cost` under the noise floor · night, snow and 390×844 clean.
+**Measured vs a HEAD control the probe regenerates itself** (`probes/moss-shots.mjs`, `moss-year.mjs`, `moss-feet.mjs`): green pixels over a paving-only band, HEAD **0.00% at every phase**; candidate 0.06% autumn · 0.02% spring · 0.00% midsummer · 0.00% midwinter, `mossy` 342/346/0/0 of 730. Two years × 3 seeds: peak 349–365, trough 0, sheltered/open cell mean 0.20/0.05. Feet are load-bearing: at *matched shelter*, walked cells mean 0.01 against quiet cells 0.44–0.68.
+**Verdict:** shipped, ~+130 lines.
+**Surprise:** the first draft was a green verge down both sides of the plaza, and the fault was not the colour — it was that **shelter is constant along an edge**, so every cell of the run sat at the same ceiling and the rule painted a stripe. A hashed term on the ceiling fixed it at the original colour (muting the palette had only made the feature invisible). Two seasons of the open square were also silently dead: the skip guard `!mossShel[i] && !moss[i]` treats a legitimate mid-square cell (shelter 0) as "not a plaza joint" the moment dieback zeroes it, so it is never stepped again.
+
