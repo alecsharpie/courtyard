@@ -2407,7 +2407,10 @@ function showLine(e){
 /* Is the surface anybody's to take right now? One definition: announce() routes on
  * it, and the invitation waits on it rather than queueing behind the news. */
 function tickerFree(){ return tickerTimer < 0 || tickerAge >= lineDwell; }
-function announce(txt, then, dwell){
+/* `until` is a SIM time after which this line stops being TRUE, as against TICK_STALE,
+ * which is how long anyone is willing to wait for it. Only a line that names an instant
+ * has one, and only the clock names an instant. */
+function announce(txt, then, dwell, until){
   // Deaf through a season skip. Six sim days go past in six real ones, and every
   // strike, market and wind line in them would either flood the surface or land on it
   // as stale news after the lapse ended. The lapse says one thing, on arrival: land().
@@ -2415,8 +2418,53 @@ function announce(txt, then, dwell){
   if (tickerFree()){ showLine({ txt, then, dwell }); return; }
   if (txt === tickerEl.textContent) return;
   if (tickerQ.some(q => q.txt === txt)) return;
-  tickerQ.push({ txt, then, age: 0 });
+  tickerQ.push({ txt, then, age: 0, until });
   while (tickerQ.length > TICK_QMAX) tickerQ.shift();   // stale goes, not the news
+}
+/* Three kinds of caller, and until this pass only two of them were named.
+ *   NEWS is contingent — it reports a thing that just happened. It takes the surface
+ * when the surface is free and QUEUES when it is not, because a beat late it is still
+ * true. That is announce(), above, and it is the right rule for almost everybody.
+ *   The MURMUR is filler. The ambient roll has always tested tickerFree() itself and
+ * DROPPED what it could not show, on the stated grounds that ambience shown late is
+ * news shown late.
+ *   The CLOCK is neither, and it has been miscast as news since it was written. It is
+ * the only caller on a SCHEDULE, so it is the only one guaranteed to come round again;
+ * and it is the only line whose text names an INSTANT, so shown late it is not stale,
+ * it is WRONG — the hour it announces is contradicted by the hour standing in the sill
+ * two inches above it. Measured on HEAD over 6 sim days x 3 seeds: 27% of every strike
+ * reached the surface an hour or more after the hour it named, the worst 2.3 hours.
+ * That persistence is what made it the loudest voice in the room. It queues, and it
+ * bypasses inView() by design (a bell carries), so at a quarter camera — where inView
+ * correctly withholds most of the town's own news — it took 46% of every line shown
+ * against the town's own 18%.
+ *   So neither background rank may ever take the surface from somebody, or hold a
+ * place in a queue somebody else is in. They differ in exactly one thing: the clock may
+ * WAIT for a busy surface, bounded by its own truth, and the murmur may not — a clock
+ * that only speaks into an instant of silence is heard at three in the morning and
+ * never at noon, which is the shape the first cut of this had (Wide: 0 of 18 seed-days
+ * at six, nine, three and six again). What that price cannot reach is the CADENCE, and
+ * at a quarter it is the cadence that binds; strikeClock() carries that half.
+ *   Nothing here touches the STRIKE itself: bellUntil is written whatever the ticker
+ * does, so the pigeons still come off the belfry and walkers still stop with their
+ * heads back on an hour the surface never mentions. The bell rings; the ticker is
+ * simply no longer obliged to say so. */
+const CLOCK = 1, MURMUR = 2;
+function background(rank, txt, then, until){
+  // The murmur is dropped the moment anybody else wants the surface — including
+  // somebody merely WAITING for it, since the queue drains on the half-second bucket
+  // and "free" and "empty" are not the same instant.
+  if (rank > CLOCK) { if (tickerFree() && !tickerQ.length) announce(txt, then); return; }
+  // The clock may WAIT for a busy surface where the murmur may not — but only into an
+  // EMPTY queue, and only while what it says is still true. Both bounds are load-
+  // bearing. announce() makes room on a full queue by shifting the oldest line off, so
+  // a clock allowed to queue behind somebody could evict a third caller, which is the
+  // one thing this pass exists to stop; entering only on an empty queue makes "the
+  // clock never displaces the town's own news" true by construction, and costs one
+  // line in 55 measured. And it is thrown away when its hour turns over rather than at
+  // TICK_STALE, six real seconds and 2.6 sim hours later.
+  if (tickerQ.length) return;
+  announce(txt, then, undefined, until);
 }
 /* A line ABOUT A PLACE. announce() owns the surface; this is the only thing that knows
  * a line has a SUBJECT and where it stands. Off frame it is not queued at all — better
@@ -2436,7 +2484,7 @@ function tickTicker(){
   if (tickerTimer < 0) tickerEl.classList.add('fade');
   for (let i = tickerQ.length - 1; i >= 0; i--){
     tickerQ[i].age += 0.5;
-    if (tickerQ[i].age > TICK_STALE) tickerQ.splice(i, 1);
+    if (tickerQ[i].age > TICK_STALE || tickerQ[i].until < simT) tickerQ.splice(i, 1);
   }
   if (tickerQ.length && tickerFree()) showLine(tickerQ.shift());
 }
@@ -2500,7 +2548,7 @@ function ambientHere(){
  * never once reaches 0, so no threshold on it is reachable at all. The bar is therefore
  * tickerFree() — the town's ONE definition of whose the surface is, the same one
  * announce() routes every other caller on — and the murmur becomes a caller like any
- * other. It is tested here rather than left to announce() because a blocked ambient
+ * other. It goes through background() rather than announce() because a blocked ambient
  * line must be DROPPED and never queued: ambience shown late is news shown late.
  * All the restraint now lives in the CADENCE: one chance every AMB_EVERY sim seconds,
  * AMB_K of them taken.
@@ -12601,6 +12649,7 @@ whereEl.addEventListener('click', () => whereGo(whereN + 1));
 let last = 0, caAcc = 0, spawnAcc = 0, statAcc = 0, lightBucket = -1;
 let lastStruck = -1, marketAnnounced = -1, marketClosed = -1, windAnnounced = -1, bellUntil = -1, bellSeen = -1;
 const HOUR_WORDS = ['twelve','one','two','three','four','five','six','seven','eight','nine','ten','eleven'];
+const CLOCK_SAID = [0, 9, 12, 18];   // the day's two poles and the two the church answers
 function strikeClock(){
   const hInt = Math.floor(hour);
   if (lastStruck === -1){ lastStruck = hInt; return; }
@@ -12613,8 +12662,21 @@ function strikeClock(){
       // never once answered. The answer rides as the strike's follow-on line, so it
       // reaches the ticker a beat later and only ever behind the strike itself.
       const answered = (hInt === 9 || hInt === 18) && day >= 2;
-      announce('The clock over the lane strikes ' + HOUR_WORDS[hInt % 12] + '.',
-        answered ? 'The church bell answers from across the river, half a beat behind.' : null);
+      // The bell RINGS every third hour and everything that answers a bell reads
+      // bellUntil, below, which is written whatever the ticker does. What is priced
+      // here is the REMARK, and only the remark. A day is 55 s and the surface holds
+      // one line for TICK_DWELL, so it has room for about twenty-two lines: eight
+      // strikes is over a third of everything the town can say, before a single
+      // contest is lost — and at a quarter camera, where inView withholds most of the
+      // town's own news, no queue-relative price can bind, because there is nothing in
+      // the queue to price against. So the ticker remarks on the four strikes that
+      // MARK something — the day's two poles, and the two the church answers — and
+      // lets the other four simply ring. A clock that names midnight, the morning
+      // bell, noon and the evening bell is a better clock than a metronome.
+      if (CLOCK_SAID.includes(hInt))
+        background(CLOCK, 'The clock over the lane strikes ' + HOUR_WORDS[hInt % 12] + '.',
+          answered ? 'The church bell answers from across the river, half a beat behind.' : null,
+          simT + (1 - (hour % 1)) * DAY_LEN / 24);      // true until the hour turns over
       bellUntil = simT + (answered ? 2.6 : 2.2);   // one flush, held longer — not a second one
     }
   }
@@ -12839,7 +12901,7 @@ function simStep(sdt, dt){
   ambientAcc += sdt;
   if (ambientAcc > AMB_EVERY){
     ambientAcc = 0; ambIdx++;
-    if (hash(ambIdx, 5171) < AMB_K && tickerFree()) announce(ambientLine());
+    if (hash(ambIdx, 5171) < AMB_K) background(MURMUR, ambientLine());
   }
 }
 /* ============ reaching another season ============

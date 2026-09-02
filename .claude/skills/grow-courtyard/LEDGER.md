@@ -40,15 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 134 — the pools stop being drawn where nobody can see them (2026-09-02) [Lane & market × Harness]
-
-**Brief:** b134 — cull `drawPuddles` to the visible frame, byte-identical output. Full entry in LEDGER-archive.md.
-**Did.** `inFrameBox(sx,sy,rx,ry)` beside `project()`: ONE screen cull, on the CANVAS rect and deliberately not `sillTop()` — `drawPuddles` draws before the sill is composited and may legitimately paint under it, so the canvas is the only bound true of both callers, and the cull is exact by construction. `drawPuddleLights` calls the same one.
-**Gates:** census unchanged · motion PASS · filmstrip 0 POP · `perf.mjs` ±0.0% and **blind** (vsync-locked at 16.70 ms over a mostly dry day).
-**Proof** (seed 7, wet 0.75, 400 frames × 3 reps, interleaved): drawPuddles **−56% to −73%** at the four quarters, whole wet frame −8 to −12%; Wide ±2.5% both ways. Canvas hash **IDENTICAL 28 of 28**, fingerprint NONE.
-**Verdict:** shipped
-**Surprise:** the phone is the case that needed this most and the brief never named it. At 390×844 the **Wide** camera — the default, and effectively the only one a phone has — already culls **61%** of the wet pools, and Far bank there culls **100%**. At 1280×700 Courtyard **17 pools are kept only because the cull uses rx/ry** rather than the centre.
-
 ## Iteration 135 — the roadway is laid instead of hatched (2026-09-03) [Lane & market × New CA]
 
 **Brief:** b135 — retire the carriageway's flat fill and three ruled hairlines; lay a bond that runs, a camber, a gutter and a repair.
@@ -121,3 +112,15 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Surprise:** the premise was an artifact of the bug the second hull exposed. `puntFits` is asked wherever a stop is PERFORMED, and the rider's stand on the eyot is a stop — so every rider re-asked from the island. One hull was its own guard (leg 3 is not leg 0) and refused it silently: **115 of HEAD's 174 BUSY refusals are one per crossing, by someone already across**; genuine BUSY was 13.9% and never the top refusal. With two hulls the free boat re-claimed a passenger standing on an island: 51 of 178 claims stopped completing. Then the channel — col 126 is the ONLY water between eyot and towpath and a hull is 0.52 across, so a landing further down it ran every crossing through the other hull's berth (505 of 6139 co-present samples under 0.9, least 0.04). Offsetting B's landing west by the same 0.95 as its berth makes the lanes parallel: swept end to end, least separation 0.95, 0 violations.
 **Law:** a one-shot choice guarded only by the state it CONSUMES is re-entrant the moment that state is duplicated — end the membership positively at the claim, never by trusting the resource to refuse.
 **Law:** two movers on a track share a CORRIDOR, not a point: sweep their whole paths against each other, and offset BOTH ends equally so the lanes are parallel by construction.
+
+## Iteration 142 — the clock stops being the loudest voice in the room (2026-09-03) [The sill & the observer × Connect]
+
+**Brief:** b142 — price the strike against everything else in the queue. Full entry in LEDGER-archive.md.
+**Did.** `background(rank, txt, then, until)` names the third rank the ticker always had. A MURMUR may never take a surface anyone holds *or is waiting for*; the CLOCK may also wait for a busy one, but only into an EMPTY queue — `announce()` makes room on a full queue by shifting the oldest line off, so that bound makes "the clock never displaces the town's own news" true by construction, for 1 line in 55. `announce()` gained `until`: a SIM time after which a line stops being TRUE, as against `TICK_STALE`, which is how long anyone will WAIT for it. `bellUntil` untouched — the bell still rings every third hour on hours the ticker never mentions. Second half: `CLOCK_SAID = [0, 9, 12, 18]`, the remark's cadence, keeping `answered` reachable.
+**Gates:** census unchanged, all six groups (no `R()` spent) · motion PASS · visual PASS, nothing drawn changed · perf skipped.
+**HEAD → cand** (`probes/ticker-price.mjs`, 6 days × 3 seeds, classed where each line is BORN, read at `showLine`). Courtyard: strike **46% → 20%**, the town's own places **118 → 164 lines (+39%)**, total 323 → 267. Wide: strike 30% → 8%, placed 53% → **71%**, total −9%, all four remarked hours sound. Lateness ≥1 h: **23% → 0%**, max 2.25 → 0.96 h.
+**Verdict:** shipped
+**Surprise:** the queue price alone cannot reach this, and the first cut proved it twice. At a quarter **there is nothing in the queue to price against** — `inView` withheld the competition, so a contention rule binds at Wide and slides off at Courtyard. And pure drop-if-busy makes the clock a function of how busy the *day* is: at Wide it was heard at midnight and 3 a.m. and **0 of 18 seed-days at six, nine, three and six again**.
+**Law:** a contention price is only a price where there IS contention — a rule ranking callers on a shared surface cannot bind in a view that has already filtered the other callers out. There the CADENCE against the surface's CAPACITY is the whole answer: a 55 s day holds ~22 lines at `TICK_DWELL`, so eight strikes was a third of everything the town can say before one contest is lost. Count the slots before designing the queue.
+**Law:** staleness and untruth are two clocks — `TICK_STALE` is how long anyone will WAIT for a line; one that names an instant needs a second bound at the instant it stops being TRUE, or it is shown contradicting a readout two inches above it.
+**Note:** `context-budget.mjs` read OVER — 47.9 of 46 KB — before this entry.

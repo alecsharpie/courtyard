@@ -16,29 +16,6 @@
   "rationale": "I SHOT THE TOWN BEFORE PLANNING IT again - wide at a clear summer afternoon (day 13, 16.9h, cloud 0.39), at a spring night, at a rainy morning, plus the Courtyard quarter - and the summer afternoon says something no ledger entry has ever said. THE COURTYARD FLOOR IS EVENLY LIT AT FOUR O'CLOCK. A five-cell terrace runs the whole west side of a walled square and throws nothing across the paving. I grepped it rather than trusting the picture: `sunVec()` is the one light vector, `shadowF()/shSpread()/shOffset()` are a written and tested hardness trio, `dialThrow(h)` already solves exactly 'where does a point h above the ground land, in cells', and the comment at SH_KNEE counts NINE cast shadows in this town - trees, benches, the barrow, the shed, the sundial, the boat, the mill wheel, people. Every one of them is an OBJECT. Not one BUILDING casts. The whole vocabulary is built and the walls simply never call it, so an hour of the day currently changes the town's TINT and nothing about its SHAPE. That is the biggest thing a viewer meets in the first ten seconds, it is rung 4a by name (an hour nobody has seen - not a new hour on the clock but a new hour in the picture), and it is Roofs & skyline x CONNECT, the emptiest cell in the grid, in the domain that has waited longest: #130 gave every house its own eave and made the skyline ragged, and nothing downstream has ever read that difference at ground level. b140 makes the roofline the shadow line. I have priced the two failure modes into the brief - cost (cast from wall RUNS, not per cell; the ground is a CACHE and this must be live, like drawCloudShade) and double-darkening (nearShadow, cloud shade and applyLight all already multiply). It goes FIRST with 90 minutes and a stated 150-300 line diff. The other four take the next four longest-untouched domains, in order, every premise re-priced by me on HEAD: b141 the punt is supply-bound not clock-bound and has carried an UNLIT lantern since #131 (c208+c216, river 8 back); b142 the clock strike is ~40 of ~52 unplaced ticker lines and SOUNDS bypass inView, so at a quarter camera the strike IS the ticker (c210, sill 7 back, its second Connect in 139 iterations); b143 applyLight's dusk wash is a hard-coded 19.00 that reads 0.53 at a midwinter dusk and 0.00 at a midsummer one - #112 fixed the MORNING half onto sunUp and left this (c212, sky 6 back); b144 the east half is starved by the BRANCH SHARE, not the ceiling, and the plaza's third family place reserves nothing, both measured by #137 itself (c219+c218, lane 4 back). ONE BRIEF KILLED AT THE GREP: giving the river a reflection (c222, raised from tonight's shot) - it is a genuine hole and it is the wrong week, because b140 is about to change every surface's light and a reflection built against the old light would be re-tuned within two iterations. CURATION, and this is the part I want on the record: the worker context budget has now opened OVER on TWENTY consecutive iterations and has been 'fixed' by four manager passes including two of mine, each of which landed it within 1 KB of the cap so that five more iterations put it back over. The pattern is the fix failing, not the file growing. So this pass cut for HEADROOM instead of for compliance: ledger tail 7.6 -> 5.2 KB (#137 archived verbatim first, then all three condensed), inventory 13.7 -> 9.5 KB and re-founded on a rule that is the actual cause - a landed iteration MERGES into the line that owns its system instead of appending a line of its own, 59 entries -> 55 with five iterations added - cues 16 -> 7 (seven PROMOTED into this queue, two closed on the evidence, one merged pair, one raised), watch rewritten because three of its four notes had gone stale under #135/#137/#138. LAWS.md rewritten whole for the second pass running: six new claims promoted from #135-#139 (the projected-coordinate pixel from #138, which b140 needs; min(drawn, room) from #139; positive cap membership from #137; the accumulator-as-rate from #135; __reseed REASSIGNS R from #139; hash quantiles at small n from #138) and paid for by CUTTING four claims outright - the region-instrument clip (subsumed by 'suspect the INSTRUMENT first'), the quarter-cannot-zoom-to-the-edge derivation (kept as a one-line claim, lost its arithmetic), the skip-guard-tests-the-REGION line, and the PAIR_GAP-margin half of renderer trap (c). 12 laws, 12.0/12 KB, more claims than it started with. Total 43.8/46 with 2.2 KB spare, which is the first real margin in fifteen passes. NOTE FOR A FUTURE HARNESS BRIEF, not acted on here: rotate-ledger.mjs's per-law 900 B advisory and its 12 KB file cap disagree - 12 bullets at 900 B is 10.8 KB, so the file can be inside its hard cap and flag seven laws forever. That is the tool's shape, not the file's, and changing a cap mid-pass is how a loop stops noticing.",
   "queue": [
     {
-      "id": "b142",
-      "domain": "The sill & the observer",
-      "kind": "Connect",
-      "brief": "The clock is the ticker's loudest voice and it is the one voice that does not know where you are looking. The strikes are ~40 of ~52 unplaced lines over six days, four a day, and they are emitted as SOUNDS, which bypass `inView` by design - so at a quarter camera, where `inView` correctly withholds most placed lines, the strike is most of the ticker's surface. Price the strike: it should not be able to crowd out what the visitor is actually looking at. Why now: sill is 7 back and this is only its second Connect in 139 iterations; `inView` (#132) built the machinery and the loudest speaker in the room was left outside it.",
-      "seams": [
-        "sayAt",
-        "inView",
-        "whereN",
-        "tickerFree",
-        "AMB_EVERY",
-        "AMB_K",
-        "ambPick",
-        "ambientHere",
-        "AMBIENT_PLACES",
-        "TICK_DWELL",
-        "TICK_QMAX"
-      ],
-      "successLooksLike": "Over six sim days at the Courtyard quarter, the strike's share of ticker lines falls well below half while the total line count does not collapse - and at Wide the strike still sounds. Count lines by CLASS over the whole run and print the before/after shares; the strike must not disappear, it must stop being the majority.",
-      "avoid": "Do not simply gate SOUNDS on `inView` - a bell heard from across the town is exactly the class that should reach a viewer who cannot see the tower. The lever is the strike's PRICE against everything else in the queue, not its visibility. Do not add a new ambient place to dilute it; that pays for the fix with volume.",
-      "budgetMin": 30,
-      "risk": "low"
-    },
-    {
       "id": "b143",
       "domain": "Sky, light & weather",
       "kind": "Connect",
@@ -90,6 +67,10 @@
     {
       "id": "b141",
       "at": "2026-09-02T19:56:25.488Z"
+    },
+    {
+      "id": "b142",
+      "at": "2026-09-02T20:37:46.677Z"
     }
   ]
 }
