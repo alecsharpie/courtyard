@@ -16,7 +16,7 @@
   "avoid": "Do not widen the region by relaxing pavingAt's test — a threshold on a REGION is an intersection, so sample how much of the quay strip the consumer's set actually covers before believing a number. And the skip guard is the trap here: `!shelter && !value` means 'not my cell' only until the value first reaches zero, after which the cell is dead forever.",
   "budgetMin": 30,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 114,
   "issued": "2026-09-02T00:49:53.142Z",
