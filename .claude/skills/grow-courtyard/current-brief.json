@@ -21,7 +21,7 @@
   "avoid": "Do not widen `eastOpen()` for the whole east half to buy this — that repopulates the plaza, the quay and the allotments as a side effect nobody briefed. LAWS: an arrival HOUR is a fact about GATE DISTANCE, not the source's window, and a choice must not be priced on something that gets re-priced on arrival. And #128's finding stands: a pair costs two of the cap, so measure PEOPLE CARRIED, not crossings alone.",
   "budgetMin": 40,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 131,
   "issued": "2026-09-02T11:13:49.425Z",
