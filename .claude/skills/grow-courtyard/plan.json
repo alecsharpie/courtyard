@@ -1,40 +1,137 @@
 {
-  "generated": "2026-09-02T09:40:00Z",
-  "byIteration": 119,
-  "rung": 5,
+  "generated": "2026-09-02T07:06:04.907Z",
+  "byIteration": 124,
+  "rung": 6,
   "diagnosis": {
-    "health": "Healthy, and cheaper than it has been in weeks. 20 of the last 20 verdicts shipped, zero reverts, zero rejected briefs, selfVerdict == verdict on all 20, attempts=1 throughout. The cost line I flagged last pass has come back down on its own: the last ten average 19 min and $6.19 against the run's ~$5.77 median, and the last two iterations ran 10 min/$2.97 and 8 min/$2.54 — #119 shipped +90 lines in eight minutes. Output is not shrinking either: the last six diffs are +120/+0/+209/+110/+18/+90 and the one zero was #115, a harness iteration with nothing to draw. No stall signals, no advisory signals. The one persistent fault is mine and it is now seven iterations old: the worker opened OVER budget on every iteration since #113, and #118 and #119 both wrote it into their ledger entries with the diagnosis attached (state.json's inventory had become the largest line item in the run, bigger than LAWS.md). Fixed properly this pass rather than shaved: 51.1 KB -> 44.9.",
+    "health": "The building is healthy and the memory was not. 20 of the last 20 verdicts shipped, zero reverts, zero rejected briefs, selfVerdict == verdict on all 20, attempts=1 on 9 of the last 10. Output is not shrinking: the last five diffs are +105/+35/+148/+125/+39, median 105, so smallDiff is clear. Cost is 22 min / $6.35 per iteration over the last ten against the run's ~$5.77 median — up from 19 min / $6.19 last pass, and the drivers are the three biggest diffs (#120 $12.05, #123 $10.50, #122 $8.58), each of which spent its extra turns on verification that found real defects. #124 ran 10 min / $2.99. I am not discouraging that. The one line trending the wrong way is mine: context-budget.mjs opened OVER on TWELVE consecutive worker iterations and reached 53.4 / 46 KB this pass, the worst of the run — worse than the 51.1 I 'fixed' at #119. That is the Solvista death signature (every fresh worker re-reading an ever-growing memory) and it has now recurred twice after being fixed, which means the fix was wrong, not late.",
     "signals": [
-      "no stall signals",
-      "no advisory signals: smallDiff clear (six-diff median 105), mapFlat clear (#116 moved tileKinds 126->135), rungHeld clear (4b/2/4b/4b/4b)",
-      "costPerIter 6.19 vs 5.77 median and falling — #118 $2.97, #119 $2.54",
-      "contextBudget OVER on seven consecutive worker opens (49.2 / 50.9 / 50.5 …), the only line trending the wrong way"
+      "no stall signals; no advisory signals (smallDiff clear at a five-diff median of 105, mapFlat clear since #116, rung history 4b/2/4b/4b/5)",
+      "contextBudget OVER on 12 consecutive worker opens, 53.4/46 KB at this pass — the largest overrun of the run",
+      "costPerIter 6.35 vs a 5.77 median, third pass in a row it has drifted up; drivers are the three largest diffs, not re-runs",
+      "structural census scalars unchanged since #116 (8 iterations): developed last moved #100, structures #110, tileKinds/speciesKinds #116"
     ],
-    "balance": "Back-counts from #119: Courtyard & garden 11, Lane & market 10, The sill & the observer 8, Sky 7, Plaza & quay 5, Cross street 3, Roofs 2, People 1, River 0. The two longest-untouched get b121 and b122; the sill gets the bet, which is where the frontier is. Empty cells that matter: Courtyard has never had a Scale/World brief (b121 is its first) and the sill has never had one either — b120 is the sill's first. sky x polish stays saturated."
+    "balance": "Back-counts from #124: Plaza & quay 10, Cross street & allotments 8, People & animals 6, River & far bank 5, The sill & the observer 4, Courtyard & garden 3, Lane & market 2, Roofs & skyline 1, Sky 0. Four of the five briefs go to the four longest-untouched domains. The bet goes to Roofs, touched one iteration ago, against balance and deliberately — see the rationale. Empty cells filled this batch: Roofs x New CA (b125) and Plaza x Connect (b126) have never been used. sky x polish stays saturated."
   },
-  "rationale": "Three consecutive passes have sat on rung 4b and all three worked: #110 gave the near roof a working surface, #116 put a sixteenth tile and the first transparent thing in the town, #119 built an edge on the world's east face. The town's SHAPE has moved four times in twenty iterations. What has not moved since #99 is the observer, and two independent measurements now say the five cameras no longer contain the town they were framed for. c182 (from #119's own surprise, probes/world-edge-framing.mjs): the world's east edge — the hedge, the open gate, the worn track a whole iteration just built — is off-canvas in every camera but Wide at desktop sizes, INCLUDING the quarter named 'Far bank', and off-frame in all five on a phone. c150 (open since #99, seen by three passes): the quarters frame GROUND, so Far bank holds no sky, no quarter reaches s > 1.02 on the clock tower and the vane's cardinals never leave their 6 px floor, and Courtyard shows void west of x=0. A quarter camera that does not contain its namesake is not a polish problem; it is the observer being stale, which is rung 5 by name. So this batch climbs, and b120 is the bet.\n\nThe other four are deliberately not observer work — five briefs on one theme is a monoculture, and #94's pass proved a batch of dear briefs is how cost runs away. b121 goes to the longest-untouched domain and, more to the point, to the town's namesake, which is measurably its emptiest room (c173: 4 figures inside the walls against 43 town-wide, and LAWN_CAP untouched since #95). b122 is the other long-untouched domain and the one flat physical system left: rain falls, and the ground has no memory of it — wetF is one global scalar and the grep for a per-cell water term returns nothing. b123 is cheap and is a defect: 20 of #110's 24 roof-furniture pieces are behind the sill at 1280x700, which is a law we already wrote (bound the near band in DEPTH for the shortest framing) applied to a system built after it. b124 closes the oldest small cue in the file.\n\nOne brief I wrote and then killed: connecting the allotments' harvest to what the market sells. stockMarket() already pays produce[] into the stalls and mkTrades() leaves an unstocked pitch empty all day — the connection has existed since before this pass. The law about pricing a brief's premise caught it before a worker spent 25 minutes rediscovering it, and the fact is now an inventory line so the next pass cannot propose it again.\n\nMemory, this pass: inventory 12.3 KB -> 9.0 (rewritten as nouns + seams; the prose that had crept in is what the ledger is for), cues 14 -> 6 (five promoted into these briefs, three closed as fixed or absorbed), the last three ledger entries 8.3 KB -> 6.0 by cutting promoted Law lines and stale budget complaints, and the per-entry cap tightened 2.5 KB -> 1.8 in rotate-ledger.mjs and the template, because three entries at 2.5 KB were 18% of the worker's entire read budget. Two laws promoted by MERGING rather than stacking (#118's cap-membership sweep into the rate-and-cap law, #119's before-the-divergence containment proof into the R()-reshuffle law), and to pay for them I cut the churn percentage out of LAWS (it duplicates state.json's watch line) and four sentences of worked arithmetic. LAWS.md is 12,286 of 12,288 bytes — the next pass to promote a law must replace one, not append.",
-  "queue": [],
-  "recommendStop": null,
-  "consumed": [
+  "rationale": "I shot the town before planning it and then measured the shots, and the picture is not where the work has been going.\n\nAt midsummer midday the near block's roof is ~21% of a 1600x950 frame and ~24% of a 390x844 one — the largest single object in the picture, and the LEAST detailed thing in it. Horizontal luma variance across its band is sd 4.6-11 against sd 21-35 for the town behind it, and it FALLS as the pitch comes toward the viewer: sd 21.9 at the parapet, 4.6 four fifths of the way down. A foreground losing detail as it approaches is backwards, and the cause is one line of drawRoofRow — our own block is one flat quad per grid CELL with a single hash tint, a course line only at each row boundary, and the down-joint deliberately suppressed. On a phone that is a quad ~6 px wide and ~37 px tall, which is exactly why it reads as vertical boarding.\n\nFour iterations have now worked that roof (#100 built it, #105 ramped it, #110 furnished it, #123 re-bounded the furniture) and not one has touched the surface. #123 handed me the reason in its own cue: between the parapet and the shortest framing's sill there is 2.55 of depth and a water tank is 2.549 of it, so nothing TALL fits and the pitch below the band is bare at the framings where it is biggest. It called that 'the manager's call'. The call is that the next move on that roof is IN the surface, not on it — which is rung 6, retire and rebuild the weakest system, and by every measurement I have the weakest system is the town's largest object. Rung history was 4b/2/4b/4b/5, so nothing forced this climb; the numbers did.\n\nThe other four are deliberately not roof work and go to the four longest-untouched domains. b126 is the town's two remaining paved regions joining its memory of feet and rain: paveWear[] is read by nothing but drawPuddles, and buildPuddles walks pavedAt(), which covers only the lane band and the cross street's columns — so the plaza roundel and the quay, the two regions the moss CA already owns, have neither desire lines nor standing water (c190 + c191, both re-priced on HEAD this pass). b127 kills a term I can prove is dead: ghPane() reads mistAt() at a world x where MIST_REACH puts it at exactly 0 every day of every year, and the source's own comment says so. b128 takes c160, open since #104 and seen by three passes: puntFits refuses a.with, a.pairLead and a.small, so the eyot the town built at #85 can only be reached alone, in a town that has arrived in twos since #77. b129 takes c185 and c186 together: raising LAWN_CAP 4 to 8 moved every lawn kind except the gardener, whose 0.15 is a SHARE of a roll with a sub-cap of 1 — the person the garden is named for is still the rarest thing in it.\n\nMemory is the other half of this pass and it took most of it. The budget went 53.4 -> 42.9 KB, the lowest of the run, but the number matters less than the mechanism, because I have now 'fixed' this twice and it has come back twice. What came back is structural: each worker adds a cue and an over-cap ledger entry, so the file grows ~1.5 KB an iteration no matter how well I rewrite the inventory. So this pass fixed the flow, not the level. Every one of the 21 open cues was promoted into a brief or closed with a reason (21 -> 7; five became b126-b129, nine closed, one of them — c180 — promoted into LAWS instead). The last three ledger entries were archived verbatim and condensed to 1.8/1.8/1.5 KB, inside the per-entry cap for the first time since #119, which answers c188 and c192: the cap is right and meeting it is the manager's job, and rotate-ledger.mjs already said so. LAWS.md opened at 12,286 of 12,288 bytes with zero headroom (my own note from last pass), so I cut before promoting: three PAIRS of laws merged into one each — the two R() laws, time-compress into the walk law, and 'a zero is evidence' into the probe law, all three pairs having been saying the same thing twice — plus two clauses cut outright (the gate-distance/nearer-door clause, which #107 built and #119 shipped, and the 'advertise it or nobody finds it' half of the rate-of-zero law, which duplicates state.json's OFFERS watch note verbatim). That paid for five promotions from #120-#124, every one merged into its subject rather than stacked: #120's extent-not-zoom into the framing law, #121's sub-cap composition into the cap law, #122's proportional decay and coarse-gates-fine into the scalar and difference-image laws, #123's return-the-value-you-tested into the one-predicate law, #124's two-scalars-one-axis into the scalar law. 15 laws -> 12, at 11.9/12 KB with real headroom. Also fixed: state.mjs printed '· undefined' four times because watch entries are strings and it read w.note; and the coverage grid was missing #121-#124 entirely.",
+  "queue": [
     {
-      "id": "b120",
-      "at": "2026-09-02T04:15:00.407Z"
+      "id": "b125",
+      "domain": "Roofs & skyline",
+      "kind": "New CA",
+      "brief": "The near block's roof is the biggest thing in the picture and the least detailed thing in it. Measured on HEAD at midsummer midday, it is ~21% of a 1600x950 frame and ~24% of a 390x844 one, and its horizontal luma variance is sd 4.6-11 against sd 21-35 for the town behind it — falling as the pitch comes TOWARD the viewer (sd 21.9 at the parapet, 4.6 four fifths of the way down). The cause is in `drawRoofRow`: our own block is painted one flat quad per grid CELL, tinted by a single `hash(gx,y)` through `tileCol`, with a course line only at each row boundary and the down-joint deliberately suppressed (`if (y < LN_WALK_S)`) — on a phone that is a quad ~6 px wide and ~37 px tall, which is why it reads as vertical boarding rather than slate. Four iterations have worked this roof's edges and its tenants and none has touched its surface, and #123 proved nothing TALL can be added: between the parapet and the shortest framing's sill there is 2.55 of depth and a water tank is 2.549 of it. So retire the flat fill and build a real slated roof: courses at SLATE scale rather than grid scale, with staggered laps and per-slate value variance, and then let the surface AGE — lichen and moss where the pitch is damp and in the parapet's shade, soot below the stacks, the odd slipped or replaced slate, snow lying course by course. This is the ladder's rung 6 and the swing is the point: a 150-300 line diff is expected and welcome.",
+      "seams": [
+        "drawRoofRow",
+        "tileCol",
+        "SLATES",
+        "NEAR_HOUSE",
+        "houseOf",
+        "drawNearRoof",
+        "roofShade",
+        "nearZ",
+        "snowAt",
+        "snowCover",
+        "mossF"
+      ],
+      "successLooksLike": "At 1600x950 and 390x844 on a dry midsummer midday, horizontal luma sd across the near roof's band is at least the town's own (>= 20) and no longer falls toward the viewer; the band's changed-pixel share against HEAD is >= 60% on a difference image whose same-code control floor is near 0; and at thirty seconds a visitor reads the foreground as a slate roof rather than as boarding — while the town still reads PAST it.",
+      "avoid": "Do NOT put new objects on the roof: that band is #110's and #123's and it is full to six thousandths of a cell. Do NOT raise the band's mean luma — the composition depends on the foreground being the dark thing (the comment above SLATES says so), so more detail must not mean a brighter roof. Leave ROOF_FURN placement, the parapet geometry and the dormers alone. `drawNearRoof` is inside the GROUND CACHE, so this is cache-time cost: measure with frame-cost.mjs, not perf.mjs, and if the sub-cell loop is dear, scale slates-per-cell with cellW rather than dropping the feature at small sizes.",
+      "budgetMin": 75,
+      "risk": "high"
     },
     {
-      "id": "b121",
-      "at": "2026-09-02T04:52:41.252Z"
+      "id": "b126",
+      "domain": "Plaza & quay",
+      "kind": "Connect",
+      "brief": "The plaza's roundel and the quay are the only paving in the town with no memory of anything. Two gaps, one subject, both re-priced on HEAD this pass. (1) `paveWear[]` records where feet cross STONE and the only thing that reads it is `drawPuddles`, so on a DRY day the desire lines are invisible — even though `groundBase` already darkens worn GRASS through `wear[]` under `if (t === GRASS)`. (2) `buildPuddles()` walks `pavedAt(x,y)`, which returns true only inside the lane band or the cross street's columns, so the plaza and the quay never hold water at all. Do both, in that order: darken walked stone in the cached ground the way worn grass is already darkened, then extend the standing water to these two regions. They must agree with the moss that already lives there — `mossShelterAt` reads WATER neighbours through `MOSS_WET`, so the joints that hold water should be the joints that go green.",
+      "seams": [
+        "paveWear",
+        "PW_GAIN",
+        "PW_DECAY",
+        "groundBase",
+        "wear",
+        "buildPuddles",
+        "pavedAt",
+        "PUDDLES",
+        "moss",
+        "mossShelterAt",
+        "MOSS_WET",
+        "buildMossRegion"
+      ],
+      "successLooksLike": "On a dry day the roundel shows the line people actually walk between the fountain and the quay, present at every camera because it is in the cached ground. An hour after a shower the same low joints are still holding water while the open roundel has dried, and the moss reads greener along them than across the middle.",
+      "avoid": "No new per-frame pass: the dry desire lines belong in the ground cache, and the new pools go into the existing PUDDLES array — c189 says drawPuddles is already 0.94 ms of a 2.0 ms frame at 560 pools and culls nothing for the camera, so adding pools without a cull is a cost you must at least measure. Extending the moss CA's agreement across regions is a second-region problem: mask the neighbour mean by region id or the plaza's growth feeds the quay's creep. Read `pavedAt`'s own comment before widening it — it is deliberately off the GRID, not off `pavingAt`, which is a fall-through.",
+      "budgetMin": 45,
+      "risk": "medium"
     },
     {
-      "id": "b122",
-      "at": "2026-09-02T05:12:12.750Z"
+      "id": "b127",
+      "domain": "Cross street & allotments",
+      "kind": "Connect",
+      "brief": "`ghPane()` multiplies by `mistAt(x)` at a world x where the answer is exactly 0 every day of every year — `MIST_REACH` is 8 cells off the river and the glasshouse stands 21 clear — and the source comment above it says so out loud. The town's mist is a river fact, but the allotments are its other water and its coldest open ground: the POND sits in them and a still cold morning gathers mist in a hollow at least as well as over a river. Give mist a second source over the allotments, so `ghPane`'s term finally has something to read, so the glasshouse becomes a thing you see weather THROUGH, and so a winter morning on the wide shot stops being identical across the whole east half.",
+      "seams": [
+        "mistAt",
+        "MIST_REACH",
+        "drawMist",
+        "ghPane",
+        "POND",
+        "ALT_X0",
+        "inAllotment",
+        "warmth",
+        "windF"
+      ],
+      "successLooksLike": "On a still cold morning the allotments carry a low veil that thins through the morning and is absent on a windy or a warm day; the glasshouse's panes soften in it; and on the days the allotments have none, the river's own mist is unchanged from HEAD.",
+      "avoid": "`mistAt` is one function with one consumer contract — do not fork it into two incompatible readings; give it a second SOURCE, not a second definition. Do not scale it by warmth AND greyF(): #124 proved they are one axis. The veil must be able to reach exactly zero, and any skip guard tests the REGION, never a value legitimately zero inside it.",
+      "budgetMin": 35,
+      "risk": "medium"
     },
     {
-      "id": "b123",
-      "at": "2026-09-02T05:52:55.750Z"
+      "id": "b128",
+      "domain": "People & animals",
+      "kind": "Deepen",
+      "brief": "`puntFits(a)` opens `if (punt.leg !== 0 || a.with || a.pairLead || a.small) return false` — a companion, a pair's leader and a child are each refused — so the eyot the town built at #85 can only ever be reached ALONE. The town has arrived in twos since #77 (`withCompanion(a, room)` under the SAME cap, `b.with`, `pairTarget`, `PAIR_MIN` 0.9); the one boat in it is the only place that rule does not reach. Let a pair cross: seat two, land two, and bring them back together. This is c160, raised at #104 and carried by three manager passes without being built.",
+      "seams": [
+        "puntFits",
+        "punt",
+        "PUNT_MOOR",
+        "PUNT_SHORE",
+        "PUNT_STAND",
+        "PUNT_LAND",
+        "puntTripH",
+        "PUNT_MIN_STAY_H",
+        "withCompanion",
+        "pairTarget",
+        "PAIR_MIN",
+        "onEyot",
+        "eyotShore",
+        "eastCloseHour"
+      ],
+      "successLooksLike": "Over ten seeds and a fortnight, at least a third of crossings carry two people; on the eyot they draw as two figures rather than one shape; and the pair leaves together rather than one of them walking home alone.",
+      "avoid": "Two figures nearer than ~0.9 cells render as one shape, so the boat and the landing both have to honour PAIR_MIN and a displacement must own its tick. Do not widen eastCap to pay for it — a companion travels under the SAME cap, which is what withCompanion already means. Price the crossing at the CHOICE for both riders: a pair is not a solo trip plus a passenger if the second person's stay is bounded differently, and eastCloseHour still has to leave a real stay.",
+      "budgetMin": 30,
+      "risk": "low"
     },
     {
-      "id": "b124",
-      "at": "2026-09-02T06:29:51.457Z"
+      "id": "b129",
+      "domain": "Courtyard & garden",
+      "kind": "Deepen",
+      "brief": "The gardener is the rarest person in the garden the town is named for. `LAWN_W = {gardener: 0.15, ...}` is a SHARE of a single roll and the gardener's sub-cap is 1, so #121's `LAWN_CAP` 4 -> 8 moved every lawn kind except this one: gardener presence went 0.65 -> 0.63. #121 also established that the SUB-CAPS, not the cap, are the limiter now — twelve places, of which only seven exist below `LAWN_LIE_WARMTH` — so the lever here is the gardener's own supply, not the lawn's. Give the gardener a schedule instead of a lottery ticket: someone works the beds on most growing-season mornings, at an hour that reads. The work itself is already legible (`gardenerKneel`, `GARDEN_REACH`, `a.rowDur` work a row at a time) and the beds already know their own state through `growF`/`dieF`/`bloomCap`. Closes c185 and c186 together.",
+      "seams": [
+        "LAWN_W",
+        "spawnLawnAgent",
+        "lawnStart",
+        "lawnHolds",
+        "LAWN_CAP",
+        "LAWN_LIE_WARMTH",
+        "gardenerKneel",
+        "GARDEN_REACH",
+        "a.rowDur",
+        "growF",
+        "dieF"
+      ],
+      "successLooksLike": "Measured with probes/lawn-day.mjs over a full year, gardener presence on a growing-season morning is at least 3x HEAD's and does not fall away when the lawn is busy; midwinter and wet days are unchanged.",
+      "avoid": "Do not raise LAWN_CAP — #121 swept it 2..12 and 8 is the knee. A share of a roll is not a rate: if the gardener needs its own source, give it one and follow spawnLawnAgent's pattern rather than reweighting LAWN_W and hoping. And raising one kind inside a fixed set of place-holders takes places from another — sweep it and report WHICH kind absorbed the change, because that composition shift is nobody's brief.",
+      "budgetMin": 35,
+      "risk": "low"
     }
-  ]
+  ],
+  "recommendStop": null,
+  "consumed": []
 }

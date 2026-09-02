@@ -70,7 +70,7 @@ if (has('--show')) {
   if (!s.openCues.length) console.log('  (none)');
   for (const c of s.openCues) console.log(`  ${c.id} (#${c.raisedBy}, seen by ${c.seenBy || 0} manager passes): ${c.note}`);
   console.log('\nWATCH');
-  for (const w2 of s.watch) console.log(`  · ${w2.note}`);
+  for (const w2 of s.watch) console.log(`  · ${typeof w2 === "string" ? w2 : w2.note}`);
   console.log('\nINVENTORY (counts)');
   for (const d of s.menu.domains) console.log(`  ${d.name.padEnd(w)}  ${(s.inventory[d.id] || []).length} entries`);
   process.exit(0);
