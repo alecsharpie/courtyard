@@ -990,6 +990,42 @@ function roofTopAt(x, y){                          // the roof surface at a cell
   return (roofZE(x, y, e) + roofZE(x + 1, y, e) + roofZE(x + 1, y + 1, e) + roofZE(x, y + 1, e)) / 4;
 }
 
+/* ---- the two grids a roof needs before it can reach the ground (#140) -------------
+ * Every cast shadow in this town belonged to an OBJECT — a tree, a bench, the barrow,
+ * the sundial's gnomon — and the buildings, which are the only things tall enough to
+ * shade a street, cast nothing. Giving them one needs two static fields, both solved
+ * once off the same footprint the volumes are, because neither depends on the hour.
+ *
+ * shTop: the whole height a solid cell casts from. Not its eave — its ROOF SURFACE, so
+ * the far edge of a shadow is the ragged thing #130 made of the skyline rather than one
+ * ruled line at a regional eave.
+ *
+ * shOpen: which cells can RECEIVE a shadow at all, and it is the load-bearing one. A
+ * shadow in this hemisphere is thrown NORTH, and north is exactly where project() has
+ * already drawn the caster: a volume is lifted ~LIFT rows UP the frame, so the ground
+ * behind a six-cell house is hidden BY that house for six rows, and painting a shadow
+ * there would darken the house's own slates instead of the street. One south-to-north
+ * sweep per column carries the deepest thing standing in front of each cell, so the
+ * pass can never touch a roof, a facade or the sky — no clip and no offscreen needed,
+ * because the caster's own silhouette is subtracted from the target set at build time. */
+const shTop = new Float32Array(GW * WH);
+const shOpen = new Uint8Array(GW * WH);
+function buildShadowGrid(){
+  for (let y = 0; y < WH; y++) for (let x = 0; x < GW; x++){
+    const i = y * GW + x;
+    shTop[i] = solidM[i] ? roofTopAt(x, y) : 0;
+  }
+  for (let x = 0; x < GW; x++){
+    let cover = 1e4;                                 // the highest screen row anything in front of us reaches
+    for (let y = WH - 1; y >= 0; y--){
+      const i = y * GW + x;
+      if (solidM[i]) cover = Math.min(cover, y - shTop[i] * LIFT);
+      shOpen[i] = (!solidM[i] && grid[i] !== VOID && cover >= y + 0.5) ? 1 : 0;
+    }
+  }
+}
+buildShadowGrid();
+
 /* ============ what the step carries ============
  * A terrace puts its stacks on the party walls, which is why a real roofline's chimneys
  * do not sit on one line: they sit wherever the height changed. One per WALL, not per
@@ -5691,6 +5727,111 @@ function drawCloudShade(){
   }
   ctx.restore();
 }
+/* ---- the town's own shadow (#140) ------------------------------------------------
+ * The roofline finally reaches the ground. Nothing here is a new idea: sunVec() is the
+ * one light vector the whole town already casts from, shadowF()/shSpread()/shOffset()
+ * are the hardness trio every object shadow fades, widens and retracts on, and the
+ * SHAPE of the pass is drawCloudShade's — one live multiply, after the items and before
+ * applyLight, so a person standing in the shade is in the shade too. What is new is the
+ * caster: a wall instead of a bench.
+ *
+ * It is rasterised rather than extruded as polygons, and that is the whole design. The
+ * shadow of a solid cell is the ground segment from its own foot to its foot plus the
+ * throw at its ROOF HEIGHT — march that segment and mark what it crosses, and the union
+ * over a terrace is the swept region exactly, ragged far edge and all, with the ridge
+ * reaching further than the eave because shTop knows the difference. Cost is a few
+ * thousand short marches, not a distance-transform's worth of quads, and marking (rather
+ * than filling) is what lets shOpen veto every cell the caster is drawn over.
+ *
+ * Three things it deliberately does NOT do. It is not in the ground cache: the sun moves
+ * every frame and drawGround rebuilds on a dirty flag, so a baked shadow would smear.
+ * It never adds a second darkening term for cover — shadowF() is the ONE hardness scalar
+ * and a shadow that also thinned itself under drawCloudShade would be two dimmer
+ * switches on one wire. And every run is one SUBPATH of one path, filled ONCE: adjacent
+ * cells share their edges exactly and overlapping marches wind to 2, so a nonzero fill
+ * paints the union flat. Filling per cell would seam and double-multiply at every joint. */
+const BSH_COL = '58,70,102';        // the shade a clear sky puts back into what the sun has left
+const BSH_MAX = 0.40;               // the strongest multiply alpha, at a clear solar noon
+const BSH_SUB = 4;                  // sub-cells across a cell: the edge steps at a QUARTER of one
+const BSH_STEP = 0.5;               // how far along the throw a march moves, in cells
+const BSH_W = GW * BSH_SUB;
+const shMask = new Uint8Array(BSH_W * WH);
+let shMaskKey = '';
+/* Zero after dark and zero under a lid, on shadowF() alone — so at or below SH_KNEE the
+ * shadow is at full strength and a fair day is the only day this changes. */
+function sunShadeF(){
+  if (daylight <= 0.06) return 0;
+  return BSH_MAX * daylight * shadowF();
+}
+function buildSunShade(){
+  const S = sunVec(), sz = Math.max(S[2], 0.18);
+  // the unit throw: dialThrow(h)'s own solve, held per cell of height instead of per object
+  const ux = -S[0] / sz * shOffset(), uy = -S[1] / sz * shOffset();
+  /* Quantised so the mask is solved ~200 times a sim day rather than 1,650 — and quantised
+   * FINER than the sub-cell it rasterises to (1/64 of a cell per unit height is under an
+   * eighth of a sub-cell at a six-cell roof), so the edge creeps one sub-cell at a time
+   * instead of jumping three at once. Coarser and the shadow visibly stutters westward. */
+  const key = Math.round(ux * 64) + '.' + Math.round(uy * 64);
+  if (key === shMaskKey) return;
+  shMaskKey = key;
+  shMask.fill(0);
+  const st = BSH_STEP / (Math.hypot(ux, uy) || 1e-3);
+  // our own block is the one volume with a FICTIONAL height — eaveFor() puts it at 0 so
+  // project() cannot walk it in front of the lane it is looking at — so it casts nothing
+  for (let y = 0; y < LN_WALK_S; y++) for (let x = 0; x < GW; x++){
+    const i = y * GW + x; if (!solidM[i]) continue;
+    const h = shTop[i], n = Math.ceil(h / st);
+    for (let s = 0; s < BSH_SUB; s++){
+      const bx = x + (s + 0.5) / BSH_SUB, by = y + 0.5;
+      for (let k = 1; k <= n; k++){
+        const t = k >= n ? h : k * st;               // the last step lands ON the tip, so the far edge is the eave's
+        const my = (by + uy * t) | 0; if (my < 0) break;
+        const fx = (bx + ux * t) * BSH_SUB;
+        if (fx < 0 || fx >= BSH_W) break;            // a straight ray leaves the world once
+        const mx = fx | 0;
+        if (shOpen[my * GW + ((mx / BSH_SUB) | 0)]) shMask[my * BSH_W + mx] = 1;
+      }
+    }
+  }
+}
+function drawSunShade(){
+  const f = sunShadeF();
+  if (f <= 0.004) return;
+  buildSunShade();
+  ctx.beginPath();
+  let runs = 0;
+  for (let y = 0; y < WH; y++){
+    const row = y * BSH_W;
+    const ty = project(0, y, 0)[1], byy = project(0, y + 1, 0)[1];   // project()'s y is row-only: x free
+    if (byy < 0 || ty > H) continue;
+    let x0 = -1;
+    for (let mx = 0; mx <= BSH_W; mx++){
+      if (mx < BSH_W && shMask[row + mx]){ if (x0 < 0) x0 = mx; continue; }
+      if (x0 < 0) continue;
+      const xa = x0 / BSH_SUB, xb = mx / BSH_SUB;
+      x0 = -1;
+      // both ends solved in WORLD space and projected separately (#138): the pinch keys
+      // off screen depth, so a run's top edge is not its bottom edge shifted by a pixel
+      const a = project(xa, y, 0), b = project(xb, y, 0), c = project(xb, y + 1, 0), d = project(xa, y + 1, 0);
+      if (Math.max(b[0], c[0]) < 0 || Math.min(a[0], d[0]) > W) continue;
+      ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(c[0], c[1]); ctx.lineTo(d[0], d[1]); ctx.closePath();
+      runs++;
+    }
+  }
+  if (!runs) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'multiply';
+  ctx.fillStyle = 'rgba(' + BSH_COL + ',' + f.toFixed(4) + ')';
+  /* the third of the trio. shadowF() has faded it and shOffset() has pulled the throw in;
+   * what is left is the WIDENING, and like drawShadows' grid this is a shape that can be
+   * softened for real rather than swelled — same trade, and the same graceful loss on an
+   * older Safari, where it degrades to fade-and-retract. Zero at a clear sky on purpose:
+   * a hard sun draws a hard edge, and at a hard sun the CELL is the grain of this town. */
+  const blur = CAN_BLUR ? (shSpread() - 1) * cellW * 1.1 : 0;
+  if (blur > 0.3){ ctx.filter = 'blur(' + blur.toFixed(2) + 'px)'; ctx.fill(); }
+  else ctx.fill();
+  ctx.restore();
+}
 // the moon's 0..1 arc, read by the disc and by its reflection so the two agree
 function moonArc(){
   const mUp = sunDown - 1.4, mSpan = 24 - dayHours + 2.8;
@@ -9135,6 +9276,7 @@ function drawScene(t, dt){
   }
   drawVanes();                    // live, like the hands: the towers are cached, the wind is not
 
+  drawSunShade();                 // what the roofline puts on the street, then what the sky puts on both
   drawCloudShade();               // the weather passes over the town, before the night's own multiply
   drawSmoke(t);
   // the sill is in FRONT of the town — at every camera, not just the wide one — and after
