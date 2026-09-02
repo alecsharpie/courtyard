@@ -1768,6 +1768,7 @@ function boatSpeed(){ return 1.05 * (1 + BOAT_DRIFT * greyF()) * (1 - BOAT_WIND_
 const BOAT_LAMP_ON = 0.3, BOAT_LAMP_FADE = 0.15;
 function boatLampF(){ return boat ? clamp((nightF - BOAT_LAMP_ON) / BOAT_LAMP_FADE, 0, 1) : 0; }
 let BOAT_LAMP = null;                          // screen [x, y] of the lit lamp this frame, or null
+let BARGE_LAMP = null;                         // and the barge's, registered the same way (#136)
 /* ---- the fountain, the plaza's one reader of the year -------------------------
  * The plaza was the last place east of the bridge with no season in it: five jets at
  * one height, a basin one colour, and a coin-flip on whether a visitor stands at the
@@ -2426,6 +2427,7 @@ const AMBIENT_PLACES = [
   {x:FOUNTAIN.x, y:FOUNTAIN.y, t:'The fountain keeps its own soft applause going.'},
   {x:105,  y:34,   t:'Pigeons hold a meeting on the paving and settle nothing.'},
   {x:112.9, y:30,  t:'The quay rail is cold under somebody\'s forearms.'},
+  {x:113.72, y:38.4, t:'A bollard on the quay wears a coil of rope and a hundred years of paint.'},   // BARGE_BOLLARDS[3], written out: this array is built long before that one exists
   {x:PLAZA_BENCHES[0].x, y:PLAZA_BENCHES[0].y, t:'A plaza bench is warm at one end and empty at both.'},
   {x:120,  y:30,   t:'The river slides past, minding its own business.'},
   // the far bank
@@ -8515,7 +8517,7 @@ function drawScene(t, dt){
   // LIT is a per-FRAME accumulator. It used to be reset only on a ground rebuild, so
   // the south band's live windows stacked into it ~13 a frame for a quarter-hour and
   // the glow pass drew hundreds of halos on top of each other.
-  LIT.length = 0; LIT_PANES.length = 0; BOAT_LAMP = null;
+  LIT.length = 0; LIT_PANES.length = 0; BOAT_LAMP = null; BARGE_LAMP = null;
   drawLitPanes();
   drawRoofLights();
 
@@ -8594,6 +8596,11 @@ function drawScene(t, dt){
   for (const s of swans) items.push({y:s.y + 0.3, f:drawSwan, s});
   if (boat && (boat.y < 64.5 || boat.y > 79) && !boatUnderDeck()) items.push({y:boat.y + 0.6, f:drawBoat});
   items.push({y:punt.y + 0.4, f:drawPuntHull, tname:'the punt'});
+  // the wharf: the moorings always, the hull only when there is one. Two items round her
+  // crew on the footbridge's rule — the hull sorts before the sacks and the hands on it.
+  for (const bo of BARGE_BOLLARDS) items.push({y:bo.y + 0.25, f:drawBollard, bo});
+  if (barge){ items.push({y:barge.y - 0.5, f:drawBargeHull});
+              items.push({y:barge.y + 1.2, f:drawBargeDeck}); }
   if (punt.leg === 2 || punt.leg === 4 || punt.seating) items.push({y:punt.y + 0.5, f:drawPuntCrew});
   for (const tb of CAFE_TABLES) items.push({y:tb.y + 0.45, f:drawCafeTable, tb});
   if (kioskOpen()) items.push({y:KIOSK.y + 0.8, f:drawKiosk});
@@ -10147,6 +10154,242 @@ function drawPuntCrew(){
   ctx.lineTo(px + (4.5 + 2.5 * st) * s, py + (7 - (punt.leg === 4 ? 14 : 0)) * s);
   ctx.stroke();
 }
+/* ============ the barge (#136) ============ *
+ * The town has been saying 'A barge horn sounds somewhere far downstream' since the
+ * ticker had a pool, and the river has never carried one: an unplaced SOUND with no
+ * subject anywhere in the world. And the quay was a walkway, not a wharf — two benches,
+ * a rail line at x 112.9, and nothing anything could ever be tied to.
+ *
+ * So BARGE_BOLLARDS: five iron posts along the quay's edge. They are FABRIC, standing
+ * there every day whether or not a hull is, and they are what the census counts. Then,
+ * on about two days in seven, a barge comes down the west channel to work them.
+ *
+ * The water is clear for her. The eyot hugs the EAST channel (124.3, rx 1.75) and the
+ * punt lives off the jetty at 128.4, so a hull hard alongside the quay wall at x 114.78
+ * meets neither; the rowboat spawns at x >= 116.5 and the swans clamp to x >= 115.6, so
+ * both pass her outboard. The footbridge (DECK rows 30..32) is the southern limit and she
+ * never goes near it — she works the reach NORTH of it and leaves the way she came in.
+ *
+ * She is the PUNT's shape and not the rowboat's: a hull that owns its own tick and its
+ * own schedule. Nothing about her is spent out of laneCap or eastCap — the two hands are
+ * the BOAT's, drawn by drawBargeDeck the way drawPuntCrew draws the punter, so a rare
+ * thing has its own source and no population pays for it. And nothing about her is drawn
+ * from R(): the day, the hour and the size of the load are all hash(day, ...), on the
+ * gardener's and the ambient roll's model, so the whole seeded world stays bit-identical
+ * beside her and the census diff is the five moorings and nothing else.
+ *
+ * Her clock is the ROWBOAT's, not a walker's. A hull crossing eighteen cells of river at
+ * a speed that looks like a hull cannot also take an hour — the rowboat runs the length
+ * of the town in 41 sim hours and nobody notices, because it never has an appointment.
+ * The barge does, so she gets the shortest reach that still reads as an arrival (in off
+ * the top of the frame, ~4.5 h down to the berth) and spends the rest of her day
+ * alongside, which is where a barge is supposed to be. */
+const BARGE_X = 114.86;                   // hard alongside the quay wall (RIVER_X0 = 114)
+const BARGE_MOOR_Y = 24.0;                // her berth: the deepest water north of the footbridge that
+                                          // still leaves her south tip 3 cells clear of the DECK's rows
+const BARGE_IN_Y = -3.6;                  // off the top of the drawn river
+const BARGE_HW = 0.74, BARGE_HH = 2.80;   // 5.6 cells of hull, 1.48 across: 3.8:1, and a ninth of the
+                                          // 13-cell channel. Narrower than this and she reads as a coffin
+const BARGE_Z = 0.30;                     // freeboard: the deck she is worked on
+const BARGE_SPEED = 2.6;                  // cells/s. Priced so the whole visit — 4.6 h down, 3.5-6.1 h
+                                          // alongside, 4.6 h back — fits inside one working day
+const BARGE_SALT = 6171;
+const BARGE_TRIP = 1.35;                  // seconds for one sack: quay -> hold -> quay
+/* iron posts on the quay's edge, in column 113 with their faces to the wall at 114. The
+ * northern PAIR is her berth; the rest are the wharf the quay always should have been.
+ * None of them stands under the footbridge's ramp, which crosses the quay at rows 30-32. */
+const BARGE_BOLLARDS = [{x:113.72, y:11.7}, {x:113.72, y:20.6}, {x:113.72, y:27.4},
+                        {x:113.72, y:38.4}, {x:113.72, y:44.6}];
+const BARGE_BERTH = [BARGE_BOLLARDS[1], BARGE_BOLLARDS[2]];   // the two she lies between
+const BARGE_HAND_Y = BARGE_MOOR_Y + 1.05;             // the line the hand shuttles along
+const BARGE_SHORE = {x:113.45, y:BARGE_MOOR_Y - 0.5}; // the load waiting on the quay, stacked northward
+const BARGE_ROW = 0.50;                               // one course of the stack, in cells of depth
+function isBargeDay(){ return day >= 1 && hash(day, BARGE_SALT) < 0.28; }
+function bargeHour(){ return 6.4 + hash(day, BARGE_SALT + 1) * 1.4; }   // in on the early tide, 6.4-7.8
+function bargeLoad(){ return 6 + ((hash(day, BARGE_SALT + 2) * 5) | 0); }   // 6..10 sacks: 3.5-6.1 h alongside
+let barge = null, bargeSeen = -1;
+/* the hand's position along her own shuttle, 0 on the quay and 1 at the coaming. One
+ * triangle per BARGE_TRIP, and the sack goes into the hold at the far end of it, so the
+ * two stacks between them are the clock: you can read how far through the day she is. */
+function bargeHandU(b){
+  if (b.leg !== 'work') return 1;
+  const u = (b.t / BARGE_TRIP) % 1;
+  return u < 0.5 ? u * 2 : (1 - u) * 2;
+}
+function bargeWorkS(b){ return b.total * BARGE_TRIP - BARGE_TRIP * 0.5; }   // ends with the hand ABOARD
+function updateBarge(dt){
+  if (!barge){
+    // one arrival per calendar day, and bounded at BOTH ends: `hour` runs 0..24 while the
+    // day rolls at 6, so an unbounded `hour >= bargeHour()` would also be true at 23.00
+    if (day !== bargeSeen && isBargeDay() && hour >= bargeHour() && hour < bargeHour() + 3){
+      bargeSeen = day;
+      const n = bargeLoad();
+      barge = {x:BARGE_X, y:BARGE_IN_Y, leg:'in', total:n, load:n, aboard:0, t:0, said:false, half:false};
+    }
+    return;
+  }
+  const b = barge;
+  if (b.leg === 'in'){
+    b.y = Math.min(BARGE_MOOR_Y, b.y + dt * BARGE_SPEED);
+    // MEASURED: at y 0.6 she is inside the WIDE frame but above the Plaza quarter's box
+    // (y0 = 2), so the arrival line was the one of the four the quay's own camera never
+    // heard. At row 5 she is in frame at every quarter that holds the river.
+    if (!b.said && b.y > 5.0){ b.said = true;
+      sayAt(b.x, b.y, 'A barge horn sounds off the top of the reach, and a long hull comes down the west channel.'); }
+    if (b.y >= BARGE_MOOR_Y - 1e-9){
+      b.y = BARGE_MOOR_Y; b.leg = 'work'; b.t = 0;
+      sayAt(b.x, b.y, 'The barge comes alongside the quay, and her ropes go over the bollards.');
+    }
+  } else if (b.leg === 'work'){
+    b.t += dt;
+    const u = (b.t / BARGE_TRIP) % 1;
+    b.aboard = Math.min(b.total, ((b.t / BARGE_TRIP) | 0) + (u >= 0.5 ? 1 : 0));
+    b.load = b.total - b.aboard;
+    if (!b.half && b.aboard * 2 >= b.total){ b.half = true;
+      sayAt(b.x, b.y, 'Sacks go aboard the barge one at a time, and the quay is a wharf again for the afternoon.'); }
+    if (b.t >= bargeWorkS(b)){
+      b.leg = 'out'; b.aboard = b.total; b.load = 0;   // the last sack is IN, not left standing on the quay
+      sayAt(b.x, b.y, 'The barge sounds her horn once, takes in her ropes and works back up the reach.');
+    }
+  } else {
+    b.y -= dt * BARGE_SPEED;
+    if (b.y <= BARGE_IN_Y) barge = null;
+  }
+}
+/* the hull, drawn from PROJECTED corners rather than pixel offsets round one point: at
+ * 5.1 cells she is long enough that project()'s pinch differs measurably between her two
+ * ends, and a flat rectangle would lie about her heading. The waterline outline and the
+ * deck are the same polygon at two heights, which is what gives her freeboard. */
+function bargeOutline(b, z){
+  const P = (dx, dy) => project(b.x + dx * BARGE_HW, b.y + dy * BARGE_HH, z);
+  return [P(-0.80, -1.00), P(0.80, -1.00), P(1.00, -0.80), P(1.00, 0.62),
+          P(0.52, 0.98),  P(-0.52, 0.98), P(-1.00, 0.62), P(-1.00, -0.80)];
+}
+function drawBargeHull(){
+  const b = barge, s = cellW / 13;
+  if (b.leg === 'in' || b.leg === 'out'){       // the wake, off whichever end is leading
+    const [wx, wy] = project(b.x, b.y + (b.leg === 'in' ? -BARGE_HH : BARGE_HH), 0);
+    ctx.strokeStyle = 'rgba(220,235,238,.22)'; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(wx, wy, 9 * s, b.leg === 'in' ? Math.PI * 1.12 : Math.PI * 0.12,
+                           b.leg === 'in' ? Math.PI * 1.88 : Math.PI * 0.88);
+    ctx.stroke();
+  }
+  const lo = bargeOutline(b, 0), hi = bargeOutline(b, BARGE_Z);
+  ctx.fillStyle = '#241f1b';                    // the hull in the water
+  poly(ctx, lo); ctx.fill();
+  ctx.fillStyle = '#38312a';                    // her sides, between waterline and gunwale
+  poly(ctx, [lo[3], lo[4], lo[5], hi[5], hi[4], hi[3]]); ctx.fill();
+  ctx.fillStyle = '#6d5c48';                    // the deck
+  poly(ctx, hi); ctx.fill();
+  ctx.strokeStyle = '#8a5a35'; ctx.lineWidth = Math.max(1, cellW * 0.08);   // the rubbing strake
+  poly(ctx, hi); ctx.stroke();
+  // the hold: a coaming with the floor of it in shadow, open to the sky the whole length
+  const C = (dx, dy) => project(b.x + dx * BARGE_HW, b.y + dy * BARGE_HH, BARGE_Z);
+  const HY0 = -0.50, HY1 = 0.72;
+  ctx.fillStyle = '#392f26';                    // her FLOOR, not a hole: an empty hold still has a bottom
+  poly(ctx, [C(-0.62, HY0), C(0.62, HY0), C(0.62, HY1), C(-0.62, HY1)]); ctx.fill();
+  ctx.strokeStyle = 'rgba(20,16,12,.45)'; ctx.lineWidth = 1;   // her floor timbers, across
+  for (let k = 1; k < 4; k++){
+    const yy = HY0 + (HY1 - HY0) * k / 4;
+    const q1 = C(-0.62, yy), q2 = C(0.62, yy);
+    ctx.beginPath(); ctx.moveTo(q1[0], q1[1]); ctx.lineTo(q2[0], q2[1]); ctx.stroke();
+  }
+  ctx.strokeStyle = '#54432f'; ctx.lineWidth = Math.max(1, cellW * 0.06);   // the coaming round it
+  poly(ctx, [C(-0.62, HY0), C(0.62, HY0), C(0.62, HY1), C(-0.62, HY1)]); ctx.stroke();
+  // the cabin, aft — which is the NORTH end, because she comes down the river bow-first
+  const cy0 = -0.92, cy1 = -0.56;
+  const kA = project(b.x - BARGE_HW * 0.66, b.y + cy1 * BARGE_HH, BARGE_Z);
+  const kB = project(b.x + BARGE_HW * 0.66, b.y + cy1 * BARGE_HH, BARGE_Z);
+  const kC = project(b.x + BARGE_HW * 0.66, b.y + cy1 * BARGE_HH, BARGE_Z + 0.72);
+  const kD = project(b.x - BARGE_HW * 0.66, b.y + cy1 * BARGE_HH, BARGE_Z + 0.72);
+  const rA = project(b.x - BARGE_HW * 0.66, b.y + cy0 * BARGE_HH, BARGE_Z + 0.72);
+  const rB = project(b.x + BARGE_HW * 0.66, b.y + cy0 * BARGE_HH, BARGE_Z + 0.72);
+  ctx.fillStyle = '#31473d'; poly(ctx, [kA, kB, kC, kD]); ctx.fill();   // the near face
+  ctx.fillStyle = '#26332c'; poly(ctx, [kD, kC, rB, rA]); ctx.fill();   // her roof
+  ctx.fillStyle = 'rgba(240,225,190,.32)';                              // one small window in it
+  const wA = project(b.x - BARGE_HW * 0.22, b.y + cy1 * BARGE_HH, BARGE_Z + 0.50);
+  const wB = project(b.x + BARGE_HW * 0.22, b.y + cy1 * BARGE_HH, BARGE_Z + 0.50);
+  const wC = project(b.x + BARGE_HW * 0.22, b.y + cy1 * BARGE_HH, BARGE_Z + 0.26);
+  const wD = project(b.x - BARGE_HW * 0.22, b.y + cy1 * BARGE_HH, BARGE_Z + 0.26);
+  poly(ctx, [wA, wB, wC, wD]); ctx.fill();
+  /* and her lamp. She is a working boat and her day can still be running at nine in
+   * November, so she carries the rowboat's lantern on the rowboat's own fade — hung
+   * off the cabin, which is the one part of her that is never under a sack. */
+  const lf = bargeLampF();
+  if (lf > 0){
+    // on her QUAY side, not her river side: the steerer stands at the tiller on the east
+    // and a lamp there sat exactly on his head
+    const [lx, ly] = project(b.x - BARGE_HW * 0.66, b.y + cy1 * BARGE_HH, BARGE_Z + 0.72);
+    ctx.strokeStyle = '#3a2a1c'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx, ly - 5 * s); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,214,140,' + (0.9 * lf).toFixed(3) + ')';
+    ctx.beginPath(); ctx.arc(lx, ly - 5.5 * s, 1.7 * s, 0, 7); ctx.fill();
+    BARGE_LAMP = [lx, ly - 5.5 * s];   // and again OVER applyLight, or it is slate by ten o'clock
+  }
+}
+function bargeLampF(){ return barge ? clamp((nightF - BOAT_LAMP_ON) / BOAT_LAMP_FADE, 0, 1) : 0; }
+/* one sack, at a world point on a surface of height z */
+function bargeSack(px, py, z, s){
+  const [x, y] = project(px, py, z);
+  ctx.fillStyle = '#8d7a55';
+  ctx.beginPath(); ctx.ellipse(x, y - 2.1 * s, 2.9 * s, 2.3 * s, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = 'rgba(226,212,178,.35)';
+  ctx.beginPath(); ctx.ellipse(x - 0.5 * s, y - 3.1 * s, 1.7 * s, 1.0 * s, 0, 0, 7); ctx.fill();
+}
+// a stack of n sacks, two abreast, running NORTHWARD from (px, py) so it never grows
+// toward the viewer over the hand's own shuttle line
+function bargeStack(px, py, z, n, s){
+  for (let i = 0; i < n; i++)
+    bargeSack(px + ((i % 2) ? 0.30 : -0.30), py - ((i / 2) | 0) * BARGE_ROW, z, s);
+}
+function drawBargeDeck(){
+  const b = barge, s = cellW / 13;
+  const u = bargeHandU(b);
+  const carry = b.leg === 'work' && (b.t / BARGE_TRIP) % 1 < 0.5;   // outward, with a sack up
+  if (b.leg === 'work'){    // her ropes, out to the two northern bollards
+    // a rope is 4 px of screen at the shipping size, so it is drawn as a lit line over a dark
+    // one rather than one thin stroke: at cellW 9.5 a single hairline in the hull's own brown
+    // disappears into the water behind it
+    for (const w of [[Math.max(1.6, cellW * 0.11), 'rgba(28,22,16,.55)'], [Math.max(1, cellW * 0.06), '#d3c197']]){
+      ctx.lineWidth = w[0]; ctx.strokeStyle = w[1];
+      for (let k = 0; k < 2; k++){
+        const bo = BARGE_BERTH[k];
+        const p1 = project(bo.x, bo.y, 0.30);
+        const p2 = project(b.x - BARGE_HW * 0.92, b.y + (k ? 0.86 : -0.86) * BARGE_HH, BARGE_Z);
+        ctx.beginPath(); ctx.moveTo(p1[0], p1[1]);
+        ctx.quadraticCurveTo((p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2 + 3.0 * s, p2[0], p2[1]);
+        ctx.stroke();
+      }
+    }
+    // the sack she is carrying is counted OUT of the quay stack: at any instant a sack is
+    // on the quay, on her shoulder or in the hold, and never in two of the three at once
+    bargeStack(BARGE_SHORE.x, BARGE_SHORE.y, 0, Math.max(0, b.load - (carry ? 1 : 0)), s);
+  }
+  bargeStack(b.x, b.y + 0.60 * BARGE_HH, BARGE_Z, b.aboard, s);   // stowed from her after end forward
+  // the steerer, aft by the cabin, and the hand on her shuttle. Neither is an agent:
+  // they are the boat's, so no cap pays for them and no route can be stalled by them.
+  drawPerson({a:{x:b.x + BARGE_HW * 0.55, y:b.y - BARGE_HH * 0.50, z:BARGE_Z, state:'stand',
+                 phase:0, greet:0, shirt:'#3f4a63', pants:'#2f2b26', skin:'#c98f62', faceL:true}});
+  const hx = BARGE_SHORE.x + 0.12 + u * (b.x - BARGE_HW * 0.30 - BARGE_SHORE.x - 0.12);
+  drawPerson({a:{x:hx, y:BARGE_HAND_Y, z:BARGE_Z * u, state:b.leg === 'work' ? 'walk' : 'stand',
+                 phase:b.t * 5.4, greet:0, shirt:'#7a4c3a', pants:'#3a3630', skin:'#e8c39a',
+                 faceL:!carry && b.leg === 'work'}});
+  if (carry) bargeSack(hx, BARGE_HAND_Y - 0.10, BARGE_Z * u + 1.05, s);
+}
+/* the moorings. Quay fabric, not the barge's — a sorted item apiece rather than a line in
+ * the ground cache, because a post stands UP and has to sort against the people beside it. */
+function drawBollard(it){
+  const bo = it.bo, s = cellW / 13;
+  const [fx, fy] = project(bo.x, bo.y, 0);
+  ctx.fillStyle = 'rgba(18,24,26,.30)';
+  ctx.beginPath(); ctx.ellipse(fx, fy, 3.2 * s, 1.5 * s, 0, 0, 7); ctx.fill();
+  const [tx, ty] = project(bo.x, bo.y, 0.40);
+  ctx.strokeStyle = '#2c2a28'; ctx.lineWidth = Math.max(1.8, cellW * 0.20);
+  ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(tx, ty); ctx.stroke();
+  ctx.fillStyle = '#3a3734';
+  ctx.beginPath(); ctx.ellipse(tx, ty, 1.9 * s, 1.3 * s, 0, 0, 7); ctx.fill();
+}
 /* ---- the cart (#82): drawn in its own frame — u along the heading, v across it, z up —
  * every point through project(), so it turns with the road and pinches with the depth.
  * The near side (larger world y) goes in drawCartFront; everything else in drawCartBody. */
@@ -10757,10 +11000,13 @@ function applyLight(t){
         LIT.push([rx, ry]);
       }
     }
-    if (BOAT_LAMP){
-      // the lantern's warmth back over the multiply, and a halo a little brighter and
-      // tighter than a window's: a flame in the open, not a pane
-      const lf = boatLampF(), [bx, by] = BOAT_LAMP;
+    /* the lit hulls. The lantern's warmth back over the multiply, and a halo a little
+     * brighter and tighter than a window's: a flame in the open, not a pane. It is
+     * registered at its DRAW and painted HERE because anything drawn live before
+     * applyLight is slate by midnight — which is the whole reason this pass exists. */
+    for (const [LP, lf] of [[BOAT_LAMP, boatLampF()], [BARGE_LAMP, bargeLampF()]]){
+      if (!LP) continue;
+      const [bx, by] = LP;
       ctx.fillStyle = 'rgba(255,214,140,' + (0.8 * lf).toFixed(3) + ')';
       ctx.beginPath(); ctx.arc(bx, by, cellW * 0.18, 0, 7); ctx.fill();
       const g = ctx.createRadialGradient(bx, by, 0, bx, by, cellW * 1.1);
@@ -11396,6 +11642,13 @@ function livingAt(p){
     s.state === 'upend' ? 'a swan, upended' : s.state === 'preen' ? 'a swan, preening' : 'a swan, on the river', 1.1);
   if (cart) hit(cart.x + cart.hx * 1.2, cart.y + cart.hy * 1.2, 0, 1.8, Math.max(cart.y, cart.y + cart.hy * 2.3) + 0.6, cartName(), 3.2);
   if (boat && (boat.y < 64.5 || boat.y > 79)) hit(boat.x, boat.y, 0, 1.4, boat.y + 0.6, boatLampF() > 0.5 ? 'the rowboat, going downriver by lantern' : 'the rowboat, going downriver');
+  if (barge) hit(barge.x, barge.y, BARGE_Z, 1.2, barge.y + 1.2,
+                 barge.leg === 'work' ? 'the barge, alongside the quay and loading'
+                 : barge.leg === 'in' ? 'the barge, coming down the west channel'
+                                      : 'the barge, working back up the reach', 2.6);
+  for (const bo of BARGE_BOLLARDS) hit(bo.x, bo.y, 0, 0.45, bo.y + 0.25,
+    barge && barge.leg === 'work' && BARGE_BERTH.indexOf(bo) >= 0
+      ? 'a mooring bollard, with the barge made fast to it' : 'a mooring bollard on the quay', 0.6);
   if (catA) hit(catA.x, catA.y, catA.z || 0, 0.6, catA.y + 0.3,
     catA.leg === 'ridge' ? 'the cat, up on the ridge' :
     catA.leg === 'lane'  ? 'the cat, out along the lane' : 'the cat, going up over the parapet');
@@ -11858,6 +12111,7 @@ function simStep(sdt, dt){
   updateBalloon(sdt);
   updateBoat(sdt);
   updatePunt(sdt);
+  updateBarge(sdt);
   updateMill(sdt);
   stepCart(sdt);
 
@@ -12113,6 +12367,7 @@ window.__entities = function(){
   if (balloon) take([balloon], 'balloon');
   if (boat) take([boat], 'boat');
   take([punt], 'punt', (o, p) => { o.act = ['moored', 'claimed', 'out', 'ashore', 'back'][p.leg]; if (p.rider) o.rider = 1; });
+  if (barge) take([barge], 'barge', (o, b) => { o.act = b.leg; o.load = b.load; o.aboard = b.aboard; });
   if (cart) take([cart], 'cart', (o, c) => { o.act = c.state; o.at = c.at; o.load = c.load; o.sacks = c.sacks ? 1 : 0; o.hx = +c.hx.toFixed(2); o.hy = +c.hy.toFixed(2); });
   /* Raindrops are the one population here in SCREEN space, not world space — x,y are
    * canvas pixels, so motion.mjs must exempt this kind from the world-bounds test or
@@ -12165,6 +12420,7 @@ window.__census = function(){
     benches: BENCH_SPOTS.length + LANE_BENCHES.length + QUAY_BENCHES.length + FAR_BENCHES.length,
     cafeTables: CAFE_TABLES.length, marketStalls: MARKET_STALLS.length,
     treePits: TREE_PITS.length, orchard: ORCHARD.length, plazaPits: PLAZA_PITS.length,
+    moorings: BARGE_BOLLARDS.length,
   };
   return {
     world: { GW, WH, cells: GW * WH },

@@ -4273,3 +4273,26 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped
 **Surprise:** three of my four "failures" were my own instrument. A `day` index runs 06:00→06:00 and holds TWO dawns, so bucketing on it read the weather off one morning and the veil off the other, inventing a warm foggy day. And containment said 854/12060 diverged until HEAD-vs-HEAD gave 441: no `__reseed()`, so page-load frames left each run on a different PRNG offset. With it, both went to 0.
 
+## Iteration 128 — the punt takes two (2026-09-02) [People & animals × Deepen]
+
+**Brief:** b128 — let a pair cross to the eyot: seat two, land two, bring them home together (c160).
+**Premise corrected:** `puntFits`' `pairLead` refusal was only half the lock. `spawnFarAgent` — the source the punt exists FOR — never called `withCompanion` at all ("Always solo", its own header); the 26 pair-leaders refused on HEAD all came from the OTHER jetty door, `overDeck`'s east agents, which land at 19–21h and were refused on TIME anyway.
+**Did.** `spawnFarAgent(room)` + `withCompanion` — the far bank arrives in twos out of the SAME cap, the companion inheriting `far` so `farHolds` already counts it. `puntFits` drops `pairLead`. `punt.mate/pair/seating`; `PUNT_SEAT_Y −0.62` (the thwart) and `PUNT_POLE_Y +0.34` (the open end), both ends picked so neither walks THROUGH the other to a seat. `puntSeatStep`: the punt owns the passenger's tick from the moment the punter sits, and PAIR_MIN becomes a step ROUND, not a shove. +113 lines.
+**Gates:** census PASS · filmstrip 0 POP · shots: the pair legible out/across/ashore/back at three framings incl. mobile · motion FAIL `dusk/cart 0→1` dismissed on a HEAD control. Paired crossings 0% → 50%; 21/21 landed both ashore and came home together.
+**Verdict:** shipped
+**Surprise:** the cap priced it for free. Crossings fell 62 → 42 but **people carried went 62 → 63** — a pair spends two of FAR_CAP's three, so fewer distinct walkers set out and the same humans reach the island, half now with someone. A companion keeps no clock of its own, so the trip is the leader's both ways.
+
+
+<!-- full text of #136, condensed in LEDGER.md at the pass that wrote it -->
+## Iteration 136 — a barge works the quay, and the horn gets a subject (2026-09-03) [Plaza & quay × New element]
+
+**Brief:** b136 — bring a barge up the west channel on some days, let it work the quay, and give the ticker's unplaced barge horn somewhere to come from.
+**Did.** `BARGE_BOLLARDS`: five iron posts on the quay's edge — FABRIC, there every day, and what `structure.moorings` counts. Then `barge`, on the punt's shape: its own tick (`updateBarge`), its own schedule, legs `in`/`work`/`out`, hard alongside at x 114.86 between the two berth bollards at rows 20.6 and 27.4, south tip 26.8 against `boatUnderDeck`'s 28.7. The crew are the BOAT's, not agents — a steerer at the cabin and a hand shuttling sacks quay→hold on a triangle wave, so the two stacks between them are the clock and no cap pays for anyone. Four `sayAt` lines at the hull. Her lantern registers `BARGE_LAMP` and is repainted in the screen pass beside `BOAT_LAMP`. **Zero `R()` draws** — day, hour and load are all `hash(day, …)`.
+**Gates:** census PASS, **`structures +45` and literally nothing else across 9 cells** — the seeded world is bit-identical beside her · motion PASS · filmstrip day 0 POP; cropped to the berth 0 POP against a **HEAD control with the same shape** (0.40/0.37 then 2.3+, the town's own light step, not mine) · perf skipped (7 items a frame).
+**HEAD → cand pixel diff** (`probes/frame-diff.mjs`, 5 instants, 2 seeds, day and night): every changed pixel in a **22–28 px column** of a 1228 px frame, 0.010% with no barge, 0.090% with her lit at night. At 390×844 Wide: **0 changed pixels** — the phone's Wide never reaches the river, and she needs the Plaza quarter.
+**Calendar** (520 days): 30.6% barge days, median gap 3, arrival 6.43–7.79 h, 6–10 sacks. Continuity (10 s samples, 14 days): worst y step = exactly one warp step, 0 NaN, 0 teleports, control fires 316.
+**Verdict:** shipped
+**Surprise:** the horn was the easy half; the *lamp* was the trap. Drawn in the item pass it was invisible at ten o'clock — `applyLight`'s multiply had made it slate, exactly as the law says — and the rowboat only escapes because it registers `BOAT_LAMP` for the pass AFTER. The punt does not, so **the last punt has been carrying an unlit lantern since #131**. Second surprise: `sayAt`'s gate is finer than the eye. At the Plaza quarter — the camera that FRAMES the quay — the arrival line was the one of four never heard, because at row 0.6 she was inside Wide but above Plaza's box (y0 2). Moved to row 5.0, all four land at both.
+**Law:** a light drawn in the item pass is slate by midnight — anything meant to READ as a flame must register its point and be repainted after `applyLight`, and "it is drawn" is not "it can be seen".
+**Cue:** `puntLampF()`'s lantern is drawn before `applyLight` and never registered, so the last punt's light does not read at night. `BARGE_LAMP` is the two-line pattern to copy.
+**Cue:** on a phone the Wide camera does not reach the river at all — 0 of the barge's pixels, and `inView` correctly says none of her lines. Everything east of the plaza is Plaza-quarter-only on 390×844.

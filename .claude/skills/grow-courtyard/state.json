@@ -2,7 +2,7 @@
   "updated": "2026-09-02",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 135,
+  "lastIteration": 136,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -270,7 +270,8 @@
     },
     "plaza": {
       "new-element": [
-        "pre22"
+        "pre22",
+        136
       ],
       "deepen": [
         5,
@@ -491,7 +492,9 @@
       "FOUNTAIN (105.5,30) reads year, wind and frost: fountainPlay/Stand/Ice/Skin/Jet/Line, FOUNT_SWING/ICE/STILL/WIND_SHY; roundel, four PLAZA_PITS, PLAZA_BENCHES 2, QUAY_BENCHES (112.1,18)+(112.1,46), quay rail x112.9, crumbSpot, PIGEONS b.plaza/plazaBirdSpot",
       "pavingAt is the ONE paving predicate and a FALL-THROUGH — intersect the grid before you count off it",
       "FAMILIES: spawnFamilyAgent/FAM_CAP/famOpen, a.fam + a.famKid via makeCompanion",
-      "the paving AGES in two regions (plaza PATH, quay SIDE): moss[]/mossOwn[], buildMossRegion/stepMossRegion/mossShelterAt/MOSS_WET/mossIn/scuffLitter; trodStone() in groundBase (PW_TROD/PW_SHOW/PW_FULL); pudHollow[] feeds mossTop via MOSS_POOL"
+      "the paving AGES in two regions (plaza PATH, quay SIDE): moss[]/mossOwn[], buildMossRegion/stepMossRegion/mossShelterAt/MOSS_WET/mossIn/scuffLitter; trodStone() in groundBase (PW_TROD/PW_SHOW/PW_FULL); pudHollow[] feeds mossTop via MOSS_POOL",
+      "the quay is a WHARF: BARGE_BOLLARDS 5 iron posts on the quay edge (BARGE_BERTH the northern pair, rows 20.6/27.4), counted as structure.moorings",
+      "the BARGE (#136), the punt's shape not the rowboat's: barge{leg in/work/out}/updateBarge on its OWN tick and an all-hash schedule (isBargeDay 30%, bargeHour, bargeLoad 6-10), alongside at BARGE_X 114.86 x BARGE_MOOR_Y 24, north of the DECK. Her crew belong to the HULL (drawBargeDeck: a steerer, a hand on bargeHandU's triangle) so no cap pays for them; bargeStack/bargeSack are the two loads; four sayAt lines give the ticker's barge horn a subject; BARGE_LAMP is repainted after applyLight"
     ],
     "river": [
       "river 13 cols (RIVER_X0 114..RIVER_X1 127), ONE rowboat, three-arch bridge, TOW_WALK 128.6/FAR_WALK 133.2, church + clock tower + rose window, bandstand, ORCHARD, JETTY 128.4, PARK_GATE, a swan PAIR; byTheWater/boatWatch; riverRun/drawRiverFlow",
@@ -600,6 +603,18 @@
       "id": "c215",
       "note": "drawGround() times 25-27 ms after #135 (22-25 before) and rebuilds on the wear/camera dirty flag, so it is a dropped frame wherever it fires. perf.mjs is blind to it (vsync-locked over a whole day) - probes/ground-cost.mjs times the function directly.",
       "raisedBy": 134,
+      "seenBy": 0
+    },
+    {
+      "id": "c216",
+      "note": "puntLampF()'s lantern is drawn in the item pass and never registered, so applyLight's multiply makes it slate: the last punt (#131) has an unlit light at night. BARGE_LAMP beside BOAT_LAMP is the two-line pattern to copy.",
+      "raisedBy": 135,
+      "seenBy": 0
+    },
+    {
+      "id": "c217",
+      "note": "on a phone (390x844) the Wide camera does not reach the river AT ALL: probes/frame-diff.mjs measures 0 changed pixels for the whole barge, and inView correctly withholds every line about her. Everything east of the plaza is Plaza-quarter-only on a phone.",
+      "raisedBy": 135,
       "seenBy": 0
     }
   ],
