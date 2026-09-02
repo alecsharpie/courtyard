@@ -2,7 +2,7 @@
   "updated": "2026-09-02",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 141,
+  "lastIteration": 144,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -228,7 +228,8 @@
         29,
         47,
         64,
-        90
+        90,
+        144
       ],
       "scale": [
         33
@@ -484,7 +485,8 @@
       "four sources besides the ring: spawnLaneAgent (in one edge, out the other via toX), spawnTapAgent/TAP_DOOR/tapOpen/callIn, spawnCafeAgent/cafeOpen/CAFE_WAY/CAFE_TABLES, spawnHomeAgent",
       "morning ROUND: mround/updateRound, ROUND_H, roundMarks",
       "STANDING WATER: PUDDLES[] off the GRID, pavedAt() the region predicate; drawPuddles live before applyLight, drawPuddleLights after; paveWear[]/PW_*/PUD_TROD, pudHollow[]",
-      "the ROADWAY, laid in setts: LN_ROAD0..LN_ROAD1 + XS_R0..XS_R1, ONE groundBase and ONE drawGround branch (t===ROAD). settGrid/settRun, camberZ/CAMBER_L, gutterF, roadPatches/patchAt, rutF, roadWorn, KERB_RUN, wetRGB/trodRGB"
+      "the ROADWAY, laid in setts: LN_ROAD0..LN_ROAD1 + XS_R0..XS_R1, ONE groundBase and ONE drawGround branch (t===ROAD). settGrid/settRun, camberZ/CAMBER_L, gutterF, roadPatches/patchAt, rutF, roadWorn, KERB_RUN, wetRGB/trodRGB",
+      "the east's SHARE of the lane roll, not its ceiling (#144): eastEdges(cap)/eastPull, EAST_BANDS/EAST_R0/EAST_TAIL/EAST_CAP0 6/EAST_CAP1 14/EAST_PULL 1.0. The four east bands scale 1x..2x with laneCap and the width comes out of the PLAIN passer-by alone; cyclist and dog keep a fixed 0.06. spawnLaneAgent(room, cap). Exactly HEAD's six thresholds below EAST_CAP0"
     ],
     "street": [
       "cross street: two footways, roadway XS_R0..XS_R1, kerbs, lamps, TREE_PITS, alley ALLEY_Y",
@@ -500,7 +502,8 @@
       "FAMILIES: spawnFamilyAgent/FAM_CAP/famOpen, a.fam + a.famKid via makeCompanion; famBench reserves a bench, the fountain strip reserves nothing",
       "the paving AGES in two regions (plaza PATH, quay SIDE): moss[]/mossOwn[], buildMossRegion/stepMossRegion/mossShelterAt/MOSS_WET/mossIn/MOSS_POOL/scuffLitter; trodStone() in groundBase (PW_TROD/SHOW/FULL)",
       "the quay is a WHARF: BARGE_BOLLARDS 5, BARGE_BERTH, structure.moorings. The BARGE on the punt's shape: barge{leg}/updateBarge, own tick, all-hash schedule (isBargeDay/bargeHour/bargeLoad), BARGE_X x BARGE_MOOR_Y",
-      "the quay is a WHARF: BARGE_BOLLARDS 5, BARGE_BERTH, structure.moorings. The BARGE on the punt shape: barge{leg}/updateBarge, own tick, all-hash schedule (isBargeDay/bargeHour/bargeLoad) at BARGE_X x BARGE_MOOR_Y; her crew belong to the HULL (drawBargeDeck), BARGE_LAMP repainted after applyLight"
+      "the quay is a WHARF: BARGE_BOLLARDS 5, BARGE_BERTH, structure.moorings. The BARGE on the punt shape: barge{leg}/updateBarge, own tick, all-hash schedule (isBargeDay/bargeHour/bargeLoad) at BARGE_X x BARGE_MOOR_Y; her crew belong to the HULL (drawBargeDeck), BARGE_LAMP repainted after applyLight",
+      "FOUNT_STANDS: the basin's third place made real (#144) - 3 stands on the roundel's inner ring r 3.5 at 130/90/50 deg, held one party each via a.fstand by freeStand(), shared by spawnFamilyAgent and spawnLaneAgent's plaza branch. Gap is PAIR_GAP+PAIR_MIN (a party is a parent AND a child), least 2.39. FAM_CAP 3 -> 4; 5 and 7 bind 0.0%. probes/fount-stands.mjs"
     ],
     "river": [
       "river 13 cols (RIVER_X0 114..RIVER_X1 127), ONE rowboat, three-arch bridge, TOW_WALK/FAR_WALK, church + clock tower + rose window, bandstand, ORCHARD, JETTY, a swan PAIR; riverRun/drawRiverFlow",
@@ -631,6 +634,18 @@
     {
       "id": "c229",
       "note": "applyLight's dusk wash peaks at sunDown-1.0 and skyCols' at sunDown-0.6: 0.4 h apart all year now, but nobody has asked whether ONE offset is right for both. They are the same event painted twice (#143).",
+      "raisedBy": 141,
+      "seenBy": 0
+    },
+    {
+      "id": "c230",
+      "note": "the laneCap CEILING can now be raised profitably: #144 made the east respond to it (cap 10->16 puts +1.02 in the plaza where HEAD put +0.17), and #137's 'no knee' finding was measured against the old flat share. Re-pricing the coefficient is the follow-up #144 was forbidden to take.",
+      "raisedBy": 141,
+      "seenBy": 0
+    },
+    {
+      "id": "c231",
+      "note": "FAM_CAP is no longer the plaza's bound - 5 and 7 return byte-identical numbers and bind 0.0% of open daylight (#144). Families hold at ~1.9 against 5 reserved places because FAM_RATE 0.5 and the 9.5-17 window are what bind. If more families are wanted, the RATE and the window are the seam, not the cap.",
       "raisedBy": 141,
       "seenBy": 0
     }

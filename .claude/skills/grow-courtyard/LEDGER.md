@@ -40,16 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 136 — a barge works the quay, and the horn gets a subject (2026-09-03) [Plaza & quay × New element]
-
-**Brief:** b136 — bring a barge up the west channel on some days, let it work the quay, give the ticker's unplaced barge horn a subject. Full entry in LEDGER-archive.md.
-**Did.** `BARGE_BOLLARDS`: five iron posts on the quay's edge — FABRIC, there every day, and what `structure.moorings` counts. Then `barge` on the PUNT's shape: own tick, own hash schedule, legs `in`/`work`/`out`, alongside at x 114.86 between the berth bollards at rows 20.6/27.4, south tip 26.8 against `boatUnderDeck`'s 28.7. Her crew are the BOAT's, not `agents` — a steerer at the cabin and a hand shuttling sacks quay→hold on a triangle wave, so the two stacks are the clock and no cap pays for anyone. Four `sayAt` lines at the hull; her lantern registers `BARGE_LAMP`. **Zero `R()` draws** — day, hour and load are `hash(day, …)`.
-**Gates:** census PASS — `structures +45` and **nothing else** across 9 cells, so the seeded world is bit-identical beside her; baseline **re-pinned** · motion PASS · filmstrip 0 POP at the berth against a HEAD control of the same shape · `probes/frame-diff.mjs` (5 instants × 2 seeds, day and night): every changed pixel inside a **22–28 px column** of a 1228 px frame · `probes/barge-day.mjs`: 30.6% barge days over 520, 0 NaN, 0 teleports with a control that fires.
-**Verdict:** shipped
-**Surprise:** the horn was the easy half; the LAMP was the trap. Drawn in the item pass it is invisible at ten o'clock — `applyLight`'s multiply had made it slate — and the rowboat only escapes it by registering `BOAT_LAMP` for the pass after. The punt does not, so the last punt has carried an unlit lantern since #131. Second: at the **Plaza** quarter, the camera that frames the quay, the arrival line was the one of four never heard — at row 0.6 she is inside Wide but above Plaza's box (y0 2). Moved to row 5.0, all four land at both.
-**Budget:** `context-budget.mjs` says **OVER** — 49.5 KB against the 46 KB cap (48.0 before this pass; state.json's inventory is 11.3 of its 9.5 KB). Distil next.
-**Law:** a light drawn in the item pass is slate by midnight — anything meant to READ as a flame must register its point and be repainted after `applyLight`; "it is drawn" is not "it can be seen".
-
 ## Iteration 137 — the lane's cap starts counting the lane (2026-09-03) [People & animals × Scale/World]
 
 **Brief:** b137 — presence per PLACE across whole days, sweep every cap, keep the knee. Full entry in LEDGER-archive.md.
@@ -123,3 +113,15 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Budget:** **OVER — 49.2 of 46 KB** before this entry. Fourth pass running over; #136, #141, #142 all flagged it.
 **Law:** re-keying a term onto the sun moves its OFFSET, and its WIDTH must then stay fixed — scaling both makes the value at sunset+k a function of the season again, which was the fault. Scale a width only when the thing is the night's clock (`dawnF`), never when it is a wash read at an offset.
 **Law:** a comment that measures two terms disagreeing is a BUG REPORT, not a description — when the source explains why a constant is damped, check what it is damped *against*.
+
+## Iteration 144 — the east gets a share of the lane's roll, and the plaza gets a third place (2026-09-03) [Lane & market × Connect]
+
+**Brief:** b144 — `laneCap` has no knee because the east branches are 5–6% bands each: re-weight the roll so raising the cap REACHES the east; reserve the fountain stand and re-sweep `FAM_CAP`. Full entry in LEDGER-archive.md.
+**Did.** Re-measured the premise on HEAD first (6 seeds x 14 days): cap 10 -> 16 buys the lane +3.05 and the east +0.17 plaza, **-0.28 quay, -0.12 far bank**. So `eastEdges(cap)`: the four east bands scale by `eastPull(cap)`, 1.0 below `EAST_CAP0` 6 and 2.0 at `EAST_CAP1` 14, the width taken from the PLAIN passer-by alone. Keyed on the CAP, not on fill — an east trip holds its `lane` slot for its whole ~40 s, so occupancy would feed back on itself. `FOUNT_STANDS`: three stands on the roundel's inner ring, each held by one party (`a.fstand`), shared by the family and the lane's plaza branch; a family that can get neither bench nor stand does not set out.
+**Gates:** census PASS, structure unchanged, baseline **re-pinned** · motion PASS · visual PASS · filmstrip 1 POP at seed 42 = **rain onset**, uniform across all 16 blocks of a block map, and HEAD rains through that whole window; seed 7 0 POP · `probes/fount-stands.mjs` 10/10.
+**HEAD -> shipped**, laneCap 10 -> 16: plaza **+0.17 -> +1.02**, quay -0.28 -> +0.08, far bank -0.12 -> +0.11; east half **9.73 -> 10.96** with the lane holding (17.38 -> 16.61). Plaza crowded pairs PER PERSON **0.237 -> 0.153**. Pull awake on 72.1% of daylit samples.
+**Verdict:** shipped
+**Surprise:** the family half was right about the crowding and wrong about the cap. Reserving the stand does what the brief predicted — HEAD at `FAM_CAP` 5 costs 0.193 -> **0.282** crowded pairs per person for +0.19 families, and the shipped build holds 0.145-0.159 across 3, 4, 5 and 7. But the higher cap still buys nobody: **5 and 7 return byte-identical numbers and bind 0.0%**, so past 4 the bound was never the places — it is `FAM_RATE` and the window, which the source comment had guessed and nobody had tested. Kept the knee, `FAM_CAP` 3 -> 4.
+**Budget:** **OVER — 50.2 of 46 KB** before this entry (inventory 16.3 KB against a 9.5 KB cap). Fifth pass running over; #136, #141, #142, #143 all flagged it.
+**Law:** a cap and a SHARE are two bounds and only one can be swept — when raising a ceiling buys only the branch nearest the source, re-weight the branch and re-sweep, because the sweep is what reveals the ceiling has stopped being a bound at all: identical numbers at two settings is a DEAD constant, not headroom.
+**Law:** re-weighting a threshold cascade must name which band PAYS. Taking the width proportionally from a whole tail is invisible to presence per place — presence counts people, not what they are doing — so a variety a picture would miss is spent silently. Take it from the band whose people stop nowhere, and let that bound the pull.

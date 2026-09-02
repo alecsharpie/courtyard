@@ -356,6 +356,21 @@ const DIV_X0 = 96, PLAZA_X0 = 99, PLAZA_X1 = 112, QUAY_X0 = 112, RIVER_X0 = 114;
 const FOUNTAIN = {x:105.5, y:30};
 const PLAZA_PITS = [[100.5, 15], [108.5, 15], [100.5, 45], [108.5, 45]];
 const PLAZA_BENCHES = [{x:102, y:34.2}, {x:107.6, y:23.8}];
+/* the plaza's THIRD place, made real (#144). The basin's south side was a 1.6-cell strip
+ * that anyone could stand anywhere in, so it reserved NOTHING: two parties drew it and
+ * landed inside PAIR_MIN of each other, which is why FAM_CAP saturated at 3 — past that
+ * the slack was not presence, it was two families rendering as one shape at the water.
+ * A place that reserves nothing is not a place. So: three discrete stands on the
+ * roundel's inner ring (r 3.6), on the arc that faces the viewer, held one party each by
+ * `a.fstand` the way famBench holds a bench. The gap is not PAIR_MIN but PAIR_GAP +
+ * PAIR_MIN — a party is a PARENT AND A CHILD, and the child rests at PAIR_GAP off the
+ * parent, so clearance for a family is wider than clearance for a person. Swept in
+ * probes/fount-stands.mjs: least separation 2.39, every stand on PATH and off the basin. */
+const FOUNT_STAND_R = 3.5, FOUNT_STAND_TH = [130, 90, 50];   // degrees, south arc; 40 deg apart is 2.39 cells at this radius
+const FOUNT_STANDS = FOUNT_STAND_TH.map(d => ({
+  x: FOUNTAIN.x + Math.cos(d * Math.PI / 180) * FOUNT_STAND_R,
+  y: FOUNTAIN.y + Math.sin(d * Math.PI / 180) * FOUNT_STAND_R }));
+function freeStand(){ const f = FOUNT_STANDS.filter(s => !agents.some(o => o.fstand === s)); return f.length ? pick(f) : null; }
 const QUAY_BENCHES = [{x:112.1, y:18}, {x:112.1, y:46}];
 /* the far bank across the river: towpath, church green, bandstand */
 const RIVER_X1 = 127, TOW_X0 = 127, FAR_X0 = 130, PARK_GATE = 134;
@@ -3846,7 +3861,55 @@ function spawnBonfireHolder(){                                 // sendToPlot's c
   bon.day = day; bon.holder = a;
   agents.push(a);
 }
-function spawnLaneAgent(room){
+/* THE CAP BENEATH THE CAP (#144). #137 swept laneCap 6.4 -> 10 -> 13 -> 16 and found the
+ * one ceiling with no knee: it keeps buying people linearly and they are all lane
+ * walkers. Re-measured on HEAD here, 3 seeds x 10 days, cap 10 -> 16: the lane gains
+ * +2.96 and the east gains nothing — plaza 5.40 -> 5.47, quay 1.83 -> 1.92, far bank
+ * 7.95 -> 7.59. The reason is arithmetic, not appetite. This roll is the source for the
+ * whole east half, and it spends only 0.06 / 0.05 / 0.05 / 0.04 of itself on the plaza,
+ * the quay, the far green and the parapet — 0.20 in all — so past the point where the
+ * near lane is served, every marginal arrival lands in the 0.38 TAIL and is another
+ * anonymous walker crossing the frame. The SHARE is the bound, so the share is what
+ * moves: the east window widens with the day's own ceiling, and it takes its width out
+ * of the TAIL alone, which is the only band whose people stop nowhere.
+ *
+ * Keyed on the CAP, deliberately, and not on how full the lane happens to be: an east
+ * trip is a ~40 s round trip and holds its `lane` slot for all of it, so keying on
+ * occupancy would feed back on itself — east arrivals raise the fill that sends more
+ * people east. The cap is already the town's own reading of how busy the hour is
+ * (maturity x daylight x yearBusy), so it carries the intent with no loop. Below
+ * EAST_CAP0 the pull is exactly 1 and every threshold is algebraically HEAD's, which
+ * holds the night, the winter and the shoulders bit-for-bit: cap <= 6 is 41% of all
+ * samples. The market, kiosk, cafe, bench, busker and allotment bands are untouched —
+ * they are the LANE's own life, and the allotment detour is behind allotCount() < 3
+ * anyway, so widening it would buy a sub-cap that already binds. */
+const EAST_BANDS = [0.06, 0.05, 0.05, 0.04];      // plaza, quay, far green, parapet — the roll they hold at rest
+const EAST_R0 = 0.42, EAST_TAIL = [0.06, 0.06];   // where the east window opens; the cyclist and the dog, at FIXED width
+const EAST_CAP0 = 6, EAST_CAP1 = 14, EAST_PULL = 1.0;
+const EAST_W = EAST_BANDS.reduce((s, w) => s + w, 0), TAIL_W = EAST_TAIL.reduce((s, w) => s + w, 0);
+function eastPull(cap){ return 1 + EAST_PULL * clamp((cap - EAST_CAP0) / (EAST_CAP1 - EAST_CAP0), 0, 1); }
+/* the four east edges and the two tail edges, at this hour's pull. At pull 1 they are
+ * 0.48 0.53 0.58 0.62 0.68 0.74 — the numbers this cascade was written with.
+ *
+ * The width comes out of the PLAIN PASSER-BY alone. The first cut scaled the whole
+ * 0.38 tail down proportionally, which reads the same in presence per place — the east
+ * numbers are identical either way, because the east window is — but it quietly took the
+ * cyclist and the dog down with it, to 0.028 of the roll from 0.06 at a full cap. Those
+ * two are the lane's own variety and presence cannot see them: a lane holding its 16
+ * people with a fifth of its bicycles measures exactly as full. So the cyclist and the
+ * dog keep their fixed 0.06, and the only band that pays is the one whose people stop
+ * nowhere. That also BOUNDS the pull, which is why EAST_PULL is 1.0 and not a taste:
+ * at k = 2 the east holds 0.40, the cyclist and dog 0.12, and the plain walker the 0.06
+ * that is left. Any more and the cascade would run past 1 and silently drop a branch. */
+function eastEdges(cap){
+  const k = eastPull(cap), e = [];
+  let x = EAST_R0;
+  for (const w of EAST_BANDS){ x += w * k; e.push(x); }
+  for (const w of EAST_TAIL){ x += w; e.push(x); }
+  return e;
+}
+function spawnLaneAgent(room, cap){
+  const [E_PLAZA, E_QUAY, E_GREEN, E_PARA, E_CYCLE, E_DOG] = eastEdges(cap === undefined ? EAST_CAP0 : cap);
   const fromW = R() < 0.5;
   const yLine = R() < 0.6 ? LANE_N_Y : LANE_S_Y;
   const a = {
@@ -3909,20 +3972,23 @@ function spawnLaneAgent(room){
     a.wp.push([a.stop.x, a.stop.y], [toX, LANE_N_Y]);
   } else if (sun && day >= 1 && roll < 0.42 && allotCount() < 3){
     sendToPlot(a);
-  } else if (sun && roll < 0.48){
+  } else if (sun && roll < E_PLAZA){
     // a wander into the plaza: fountain gaze or a bench by the trees
     a.kind = 'plaza';
     const ex2 = 104 + R() * 2;
     a.wp.push([ex2, LANE_N_Y], [ex2, 62.2]);
-    if (R() < 1 - 0.5 * fountainStand()){   // a bench, unless the fountain is worth standing at
+    // a bench, unless the fountain is worth standing at — and the stand is now a PLACE
+    // that can be full, so a refused stand falls back to a bench rather than crowding it
+    const st = R() < 1 - 0.5 * fountainStand() ? null : freeStand();
+    if (st){
+      a.fstand = st;
+      a.stop = {x:st.x, y:st.y, act:'stand', dur:6 + R() * 6, say: R() < 0.3 ? fountainLine() : null};
+    } else {
       const b = pick(PLAZA_BENCHES);
       a.stop = {x:b.x + 0.5, y:b.y + 1.0, act:'sit', dur:12 + R() * 12};
-    } else {
-      a.stop = {x:FOUNTAIN.x - 2.4 + R() * 1.6, y:FOUNTAIN.y + 3.1, act:'stand', dur:6 + R() * 6,
-        say: R() < 0.3 ? fountainLine() : null};
     }
     a.wp.push([a.stop.x, a.stop.y], [ex2, 62.2], [ex2, LANE_N_Y], [toX, LANE_N_Y]);
-  } else if (sun && roll < 0.53){
+  } else if (sun && roll < E_QUAY){
     // along the quay to watch the river
     a.kind = 'quay';
     const qy = 12 + R() * 40;
@@ -3930,7 +3996,7 @@ function spawnLaneAgent(room){
     else a.stop = {x:112.9, y:qy, act:'stand', dur:5 + R() * 6,
       say: R() < 0.25 ? 'Someone leans on the quay rail, watching the river go about its business.' : null};
     a.wp.push([112.9, LANE_N_Y], [112.9, a.stop.y], [a.stop.x, a.stop.y], [112.9, -2.5]);
-  } else if (sun && roll < 0.58){
+  } else if (sun && roll < E_GREEN){
     // over the bridge to the church green on the far bank
     a.kind = 'green';
     if (R() < 0.4){                                   // down the steps onto the towpath
@@ -3945,7 +4011,7 @@ function spawnLaneAgent(room){
       a.wp.push([PARK_GATE, LANE_N_Y], [PARK_GATE, 62], [FAR_WALK, 57], [a.stop.x, a.stop.y],
                 [FAR_WALK, 57], [PARK_GATE, 62], [PARK_GATE, LANE_N_Y], [toX, LANE_N_Y]);
     }
-  } else if (sun && roll < 0.62){
+  } else if (sun && roll < E_PARA){
     // halfway over and no further: the lane already CARRIES everyone across the
     // river, but nothing in the town has ever stopped anybody on it. This is the
     // only waypoint that puts a person at the parapet with the water under them.
@@ -3955,12 +4021,12 @@ function spawnLaneAgent(room){
       say: R() < 0.2 ? pick(['Someone stops halfway over the bridge and leans on the parapet.',
         'Halfway across, somebody stops to watch the water go under.']) : null};
     a.wp.push([a.stop.x, LANE_N_Y], [a.stop.x, a.stop.y], [toX, LANE_N_Y]);
-  } else if (roll < 0.68 && day >= 1){
+  } else if (roll < E_CYCLE && day >= 1){
     a.kind = 'cyclist'; a.speed = 5.5 + R() * 1.5; a.cycle = true;
     const ry = LN_ROAD0 + 1.5 + R() * (LN_ROAD1 - LN_ROAD0 - 3);
     a.y = ry; a.wp.push([toX, ry + (R() - 0.5) * 2]);
     if (R() < 0.3) sayAt(LANE_MID.x, ry, 'A bicycle bell rings twice; walkers drift aside.');
-  } else if (roll < 0.74 && day >= 1 && R() < 0.5){
+  } else if (roll < E_DOG && day >= 1 && R() < 0.5){
     a.dog = { x:a.x, y:a.y, phase:R()*9, col:pick(['#4a3a2c','#c9b18a','#2c2c2c']) };
     a.wp.push([toX, yLine + (R() - 0.5)]);
   } else {
@@ -4655,13 +4721,18 @@ function spawnFarAgent(room){
  * plaza's three places — two benches and the fountain — released as a family starts
  * walking out (famCount), with a roll of 0.5/s so it fills by 10:30. A parent takes a
  * bench no other family holds (famBench), or the fountain: two on one seat draw as one.
- * #137 swept it to 4, 5 and 7 and KEPT 3. It is a cap over PLACE-HOLDERS, and only two of
- * its three places are reserved: famBench locks a bench, the fountain strip is 1.6 cells
- * wide and locks nothing. So the count saturates at 2.41 by 5 (7 gives 2.40 and binds
- * 1.3% — the rate and the window are what bind past here, not the cap), while the pairs of
- * unrelated people standing inside PAIR_MIN of each other in the plaza go 0.93 -> 1.66.
- * Past 3 the slack is not presence, it is two families drawing as one shape at the basin.
- * Reserving the fountain stand the way famBench reserves a bench is what would move it.
+ * #137 swept it to 4, 5 and 7 and kept 3, because it is a cap over PLACE-HOLDERS and only
+ * TWO of its three places reserved anything: famBench locked a bench, the 1.6-cell fountain
+ * strip locked nothing, so the slack past 3 was not presence but two families drawing as one
+ * shape at the basin (raising it to 5 on that build took the plaza's crowded pairs PER PERSON
+ * 0.193 -> 0.282 for +0.19 families). #144 made the stand a place — FOUNT_STANDS, three of
+ * them, each held by one party — and re-swept: crowded pairs per person now hold at 0.145 to
+ * 0.159 across 3, 4, 5 and 7, so the crowding that made the higher caps worthless is gone.
+ * What the sweep also says is that the cap is no longer the bound. 5 and 7 return IDENTICAL
+ * numbers and bind 0.0% of open daylight; 4 still binds 10.7%. So the knee is 4, and past it
+ * the arrival rate and the window are what hold the plaza's families at ~1.9, exactly as the
+ * paragraph above suspected. Five reserved places, four allowed at once, and a family that
+ * can get neither a bench nor a stand does not set out.
  * The quay's north end was tried as a second gate and is 40 cells from the roundel —
  * a 16 h walk that fits the window never and left a parent on the quay at 03:00 — so
  * families come and go by the alley alone. And a walk is priced at its CHOICE: nobody
@@ -4670,7 +4741,7 @@ function spawnFarAgent(room){
  * others', three benches emptying on one frame. The window governs SET-OUTS only: a family
  * that is there stays for its dwell (a 12:40 set-out sits until ~20:00), and the one
  * thing that ends a stop early is the sun (famSun(), the way eastOpen() ends the quay). */
-const FAM_CAP = 3, FAM_RATE = 0.5, FAM_H0 = 9.5, FAM_H1 = 17, FAM_SUN = 0.35, FAM_MIN_DWELL = 1.5, FAM_WALK_MARGIN = 1.15;
+const FAM_CAP = 4, FAM_RATE = 0.5, FAM_H0 = 9.5, FAM_H1 = 17, FAM_SUN = 0.35, FAM_MIN_DWELL = 1.5, FAM_WALK_MARGIN = 1.15;
 const FAM_LEASH = 8,              // a child runs at a pigeon only this far from the parent
       FAM_ARC = 0.8,              // half-angle of the roundel arc a child loops, centred on the parent's side
       FAM_RUN_R0 = 4.7, FAM_RUN_R1 = 5.8,   // between the roundel's middle and outer rings
@@ -4686,13 +4757,22 @@ function spawnFamilyAgent(){
     x:0, y:0, wp:[], i:0, speed:1.4 + R() * 0.6, state:'walk', timer:0,
     shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9, wary:R(),
   };
+  /* the plaza's places, all THREE kinds of them now reserved (#144). A bench is held by
+   * famBench, a stand by fstand; a family that can get neither does not set out, the way
+   * one too late in the day does not — the draws are spent, nobody comes. That is what
+   * lets FAM_CAP be raised at all: it is a cap over PLACE-HOLDERS, so it could never
+   * exceed the places that actually hold. */
   const free = PLAZA_BENCHES.filter(b => !agents.some(o => o.famBench === b));
-  if (free.length && R() < 1 - 0.5 * fountainStand()){
+  const wantsBench = R() < 1 - 0.5 * fountainStand();
+  const st = wantsBench && free.length ? null : freeStand();
+  if (st){
+    a.fstand = st;
+    a.stop = {x:st.x, y:st.y, act:'stand', dur:7 + R() * 3};
+  } else if (free.length){
     const b = pick(free); a.famBench = b;
     a.stop = {x:b.x + 0.5, y:b.y + 1.0, act:'sit', dur:9 + R() * 4};
-  } else {
-    a.stop = {x:FOUNTAIN.x - 2.4 + R() * 1.6, y:FOUNTAIN.y + 3.1, act:'stand', dur:7 + R() * 3};
-  }
+  } else return;                                  // every bench and every stand is held
+
   const gate = EAST_GATE_A, lead = FAM_LEAD;
   const arrive = hour + FAM_WALK_MARGIN * pathHours(gate[0], gate[1], lead.concat([[a.stop.x, a.stop.y]]), a.speed);
   if (arrive + FAM_MIN_DWELL >= FAM_H1) return;   // too late in the day to be worth the walk: the draws are spent, nobody comes
@@ -12843,7 +12923,8 @@ function simStep(sdt, dt){
     if (courtyardCount < capacity && R() < rate) spawnAgent(courtyardCount + 1 < capacity);
     // the lawn's own roll (#95): lawnOpen() bars rain; the night bars itself, because no walk's ARRIVAL fits the sun's window (lawnFits)
     if (lawnOpen() && lawnNow < LAWN_CAP && R() < lawnRate()) spawnLawnAgent();
-    if (laneCount < laneCap && R() < laneRate) spawnLaneAgent(laneCount + 1 < laneCap);
+    // the cap goes in as well as bounding the count: it is what widens the east's share of the roll (#144)
+    if (laneCount < laneCap && R() < laneRate) spawnLaneAgent(laneCount + 1 < laneCap, laneCap);
     // the far bank's own morning (#107): farOpen() is a set-out window of ~5 h at first
     // light, so this roll exists only in the hours it is spending
     if (farOpen() && farNow < FAR_CAP && R() < farRate()) spawnFarAgent(farNow + 1 < FAR_CAP);

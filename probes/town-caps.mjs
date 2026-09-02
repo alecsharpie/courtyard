@@ -27,7 +27,11 @@ const SRC = resolve(arg('--file', 'courtyard.html'));
 const SEEDS = arg('--seeds', '7,42,1234').split(',').map(Number);
 const DAYS = +arg('--days', 14);
 const K = { court: arg('--cap-court', null), lane: arg('--cap-lane', null), east: arg('--cap-east', null),
-            eclamp: arg('--east-clamp', null), far: arg('--far', null), eve: arg('--eve', null), fam: arg('--fam', null) };
+            eclamp: arg('--east-clamp', null), far: arg('--far', null), eve: arg('--eve', null), fam: arg('--fam', null),
+            /* #144: the east's SHARE of the lane roll — the cap beneath laneCap. Swept the
+             * same way the ceilings are, so one probe answers "does raising the cap now
+             * reach the east" without a second instrument. */
+            pull: arg('--east-pull', null) };
 const any = Object.values(K).some(v => v !== null);
 const LABEL = arg('--label', any ? Object.entries(K).filter(([, v]) => v !== null).map(([k, v]) => `${k}=${v}`).join(' ') : 'HEAD');
 
@@ -42,6 +46,7 @@ if (any){
   if (K.far)    sub(/const FAR_CAP = \d+/, `const FAR_CAP = ${K.far}`);
   if (K.eve)    sub(/const EVE_CAP = \d+/, `const EVE_CAP = ${K.eve}`);
   if (K.fam)    sub(/const FAM_CAP = \d+/, `const FAM_CAP = ${K.fam}`);
+  if (K.pull)   sub(/EAST_CAP1 = 14, EAST_PULL = [\d.]+/, `EAST_CAP1 = 14, EAST_PULL = ${K.pull}`);
   if (src === before){ console.error('no rewrite applied'); process.exit(2); }
   FILE = join(dirname(SRC), `.caps-probe-${process.pid}.html`);
   writeFileSync(FILE, src);
