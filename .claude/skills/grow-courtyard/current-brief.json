@@ -14,7 +14,7 @@
   "avoid": "Do not raise a cap without the sweep: a ceiling that binds through a bug is usually non-binding after it, and a cap over place-holders is really a cap on the sub-caps beneath it. Do not add a new source — this is about the caps that already exist. `people` will churn; re-pin the census baseline and say so.",
   "budgetMin": 45,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 137,
   "issued": "2026-09-02T15:35:20.314Z",
