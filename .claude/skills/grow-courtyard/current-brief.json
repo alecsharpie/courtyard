@@ -17,7 +17,7 @@
   "avoid": "If b140 has landed, re-measure the dusk wash on HEAD before changing it - the building shadows change the frame's light at exactly this hour and the number you are correcting may have moved. Do not touch the morning half; it is already correct and byte-identical work is not the brief. `day` rolls at hour 6, so an evening term must not index off a counter that has already turned over.",
   "budgetMin": 30,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 143,
   "issued": "2026-09-02T20:57:11.158Z",
