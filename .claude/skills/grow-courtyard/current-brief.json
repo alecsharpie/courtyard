@@ -18,7 +18,7 @@
   "avoid": "A cull is only free if it is exact — cull on the projected BOX with the pool's own rx/ry as margin, not on world x alone, because `project()` pinches on depth and lifts z northward, so a world-x test is not a screen test. Remember `drawPuddleLights` runs in the SCREEN pass after `applyLight` and needs the same cull or the two disagree. And carry a SIM FINGERPRINT through the before/after comparison: a `?pause`d page still runs rAF, so a canvas read is unpinned even after a synchronous draw.",
   "budgetMin": 25,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 134,
   "issued": "2026-09-02T12:29:37.991Z",
