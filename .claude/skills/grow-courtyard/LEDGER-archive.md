@@ -4145,3 +4145,28 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped
 **Surprise:** the band does not fit. Between the parapet and the shortest framing's sill there is 2.55 of depth, and a water tank is **2.549** of depth tall — six thousandths to spare, which is why the scatter had to become per-kind. The first draft, bounded only at the sill, put twelve pieces' tops over the lane's footway, where live walkers draw on top of them. And the census churned everywhere on a change with no `R()` in it: pinning only the landing board's coordinates back to HEAD made all nine cells identical — the perch moving with its loft changes where a bird stands, which changes whether a *later* spot is rejected for proximity.
 
+## Iteration 124 — the morning fire stops burning on midwinter's clock all year (2026-09-02) [Sky, light & weather × Connect]
+
+**Brief:** b124 — `drawSmoke`'s hearth term is `clamp(1 - |hour - 7|/3.5)`; key it on the sun and scale it with the cold.
+**Premise held, and the hard-coded hour is worse than "a bit off".** 7.00 is *exactly* midwinter's sunrise here (`SOLAR_NOON` 12.75, `WINTER_HOURS` 11.5) — so HEAD was right in January by coincidence and three hours late in July, when the sun is up at 4.00. Sunrise runs **4.00 to 7.00**.
+**Did.** `hearthF()` — one named definition, two consumers (the share of `CHIMNEYS` lit, each column's alpha). Morning term re-centred on `dawnEdge()`, solved at the instant it applies; half-width unchanged at `HEARTH_RUN` 3.5, so only the CENTRE moved. Height is the cold: `HEARTH_MIN` + `HEARTH_SWING`·(1−warmth) + `HEARTH_SNOW`·snowCover. Rain and the evening term copied through untouched.
+**Gates:** all PASS, all six census groups unchanged (no new `R()`). Mean |peak − first light| across the year **1.26 h → 0.12 h**; at each build's own peak midsummer lights 24/27 stacks (07:00) → **5/27 (04:24)**.
+**Verdict:** shipped
+**Surprise:** the brief asked me to scale the fire by warmth *and* `greyF()`, and they are one axis — `greyF()` **is** `1 - 2*warmth`, so doing both would have squared the year rather than reading it twice. The season enters once; the honest second axis was the weather of the *day*, and `snowCover` is the one that says "cold house" when the calendar does not.
+
+
+<!-- full text of #131, condensed in LEDGER.md the same pass -->
+
+## Iteration 131 — the last punt: the crossing runs on after the east half has closed (2026-09-02) [River & far bank × Deepen]
+
+**Brief:** b131 — open the evening crossing; pick which end gives, price it, say which.
+**The premise was wrong in its detail, and that decided the answer.** Instrumented `puntFits` clause by clause in its own evaluation order (`probes/punt-evening.mjs`, 10 seeds × 14 days): of 181 refusals on HEAD, **8** die on the TIME term. The deck supply dies on a BOOLEAN — 39 on `!eastOpen()`, because its median arrival at the planks is **20.47** and eastOpen closes at **20.17**. No shortening of a stay reaches past a hard gate, so the end that gives is the jetty's.
+**Did.** `puntDayFits` / `puntNightFits` as two predicates over the same state, so `puntClaim` asks again in the same frame which trip it is. The evening trip lands and stands on the eyot's north lawn instead of walking down to the willow (2.66 cells of land against 4.54; out 2.99 h → 2.37 h) with `PUNT_NIGHT_STAY` 0.55. That is what lets the whole round trip be priced ONCE at the choice against `EVE_GONE` with `EVE_BELL` in hand. `eastOpenFor` covers a rider until `a.puntBack` — the hour they were priced to be off the island — and the cover EXPIRES there, so the ordinary retire rule is still what brings them home. `eastOpen()` itself is untouched. A lantern on the punt on `boatLampF`'s own fade, and its column in `drawRiverLights`.
+**Gates:** census PASS (stream reshuffle from held agents; structure/tiles unchanged) · visual PASS at six framings · filmstrip night 0 POP · motion FAIL on two rows, both replayed as HEAD phenomena: `cart` 2.60 at a median step of 0.000 (the vacuous-jump law; the same 2.60 sits in the baseline's day scene) and a rain shower landing inside the dusk sample (HEAD's own replay reports a +122 raindrop step).
+**Numbers, HEAD → candidate:** crossings 46 → **66** (0.33 → 0.47/day); **people carried 65 → 92** (0.46 → 0.66/day); crossings boarded after eastOpen's close **0 → 18**, carrying 25, **18/18 with the river lamps lit**; 66/66 came home; 0 samples with anyone on the eyot at the bell (latest 25.35 of 26.5), worst return to the mooring 25.46 against the 26.15 the fit promised. Deck offers accepted 2 → 21; TIME refusals 8 → 0.
+**Verdict:** shipped
+**Surprise:** the first build forked on `!eastOpen()` and so refused an 18:30 stander while taking a 20:30 one — a step in the middle of the evening with nothing under it. Making the handover continuous (the short trip the moment the long one stops fitting, ~16.4) is where most of the gain came from: 52 crossings → 66.
+**Law:** instrument a compound predicate CLAUSE BY CLAUSE in its own evaluation order — a refusal total says nothing about which clause to loosen, and the loudest is usually the cheap boolean sitting in front of the arithmetic.
+**Law:** a stop needs PAIR_GAP of margin all round, not just legal ground under itself: the shore stand was on turf and put its COMPANION in the river on 9.9% of the samples it stood for.
+**Cue:** the punt's biggest refusal is now `busy` (63 → 85 of a larger total): one boat, 5–7 h a trip. The next lever on crossings is a second hull or a faster turnaround, not the clock.
+**Cue:** 28 of 87 deck offers land at 22–01h and can never be served — the water alone is 2.32 h round trip and EVE_GONE is 26.5, so the last boarding that can come home is ~23.5 even with a zero stay.

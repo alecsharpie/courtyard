@@ -4001,7 +4001,10 @@ function eastOpen(){ return daylight > 0.16; }
  * and eastOpenFor(a) is what the three eastOpen() readers ask, so nobody else gets
  * to stand in the dark. */
 const NIGHT_RAIL_RATE = 0.22;                // per second, while nobody is at the rail
-function eastOpenFor(a){ return eastOpen() || (a.nightRail && tapOpen()); }
+/* and ONE crossing runs on past it (#131): a punt rider is covered until a.puntBack,
+ * the hour puntNightFits() priced them to be off the island. At it the cover lapses and
+ * the ordinary retire rule walks them down to the landing and the boat. */
+function eastOpenFor(a){ return eastOpen() || (a.nightRail && tapOpen()) || (a.puntNight && hourEve() < a.puntBack); }
 function nightRailFree(){ return !agents.some(a => a.nightRail); }
 /* The footbridge (#73) is a ROUTE, not a source: the same eastCap, the same rolls. The
  * plaza crossing skirts the fountain basin on its south side. Anyone bound for the
@@ -9420,6 +9423,8 @@ function drawRiverLights(t){
   if (BOAT_LAMP && boat){
     column(boat.x + 0.3, boat.y + 0.9, 3.5, 'rgb(255,204,130)', 0.6 * boatLampF() * veil, 0.8, 8);
   }
+  const plf = puntLampF();   // and the last punt's, on its own hashes so it never rebuilds the fixed ones
+  if (plf > 0) column(punt.x - 0.2, punt.y + 0.8, 3, 'rgb(255,204,130)', 0.6 * plf * veil, 0.7, 7);
   const ma = moonArc(), mh = Math.sin(Math.PI * ma);
   if (nightF > 0.25 && ma > 0 && ma < 1 && mh > 0.02){
     // the moon crosses the sky east to west; its light crosses the river the same way
@@ -9536,6 +9541,33 @@ const PUNT_LAND = {x:126.3, y:42.2};     // the eyot's east shore, clear of the 
 const PUNT_SHORE = {x:125.7, y:42.6};    // first footfall on the turf — the direct line to the willow wades
 const PUNT_STAND = {x:125.35, y:46.4};   // on the turf at the willow's eastern fringe
 const PUNT_SPEED = 2.3, PUNT_MIN_STAY_H = 0.75;
+/* ---- the last punt (#131) ---- *
+ * Counted on HEAD (probes/punt-evening.mjs, 10 seeds x 14 days): 78 of the punt's 227
+ * offers come off the DECK, and their median arrival at the planks is 20.47 — AFTER
+ * eastOpen() has closed at 20.17. So the evening supply is refused by a BOOLEAN (39 of
+ * those 78 on !eastOpen()) and not by the clock (8 on the time term); no shortening of
+ * a stay reaches past a hard gate. The end that gives is therefore the JETTY's: the
+ * crossing alone runs on after the east half has closed, under the river lamps. Nothing
+ * else about the east half moves — eastOpen() is untouched.
+ *
+ * The price is paid on the far side, where it is cheap. There is nothing to look at on
+ * the eyot after dark, so the evening trip does not walk the length of the island to the
+ * willow: it lands and stands on the north lawn, with the lamps breaking up in the water
+ * either side of it — 1.94 cells off the shore instead of 3.82, which takes the way out
+ * from 2.99 h to 2.37 h at a median pace. (The lawn and not the shore itself: the shore
+ * is half a cell off the water, and a companion placed beside a leader standing there
+ * went into the river on 9.9% of the samples it stood for. The lawn is the one line on
+ * the eyot with 1.3 cells of turf all round it, which is PAIR_GAP with a margin.) That is what
+ * lets the WHOLE crossing be priced ONCE, at the choice, against the hour the town
+ * already calls the last one gone: out, the stand, and back with EVE_BELL in hand
+ * before EVE_GONE. A rider the bell cannot fit is refused at the planks.
+ *
+ * Nobody is stranded because the exemption EXPIRES. a.puntBack is the hour they were
+ * priced to be off the island, and eastOpenFor() stops covering them at it — so the
+ * retire rule that already walks every ended stay back to the landing is what brings
+ * them home, on a clock set at the choice and never re-read. */
+const PUNT_NIGHT_STAND = {x:124.6, y:44.2};   // the island's north lawn: the ONE line with 1.3 cells of turf all round it, which is PAIR_GAP with a margin
+const PUNT_NIGHT_STAY = 0.55;                 // and the stand is short: it is dark, and the bell is coming
 /* where in the boat each of them stands (#128). Solo, the punter has it to themselves
  * at the stern. Carrying a passenger, the passenger takes the THWART the hull is
  * already drawn with and the punter the open end beyond it — 0.96 cells apart, which
@@ -9545,19 +9577,36 @@ const PUNT_SPEED = 2.3, PUNT_MIN_STAY_H = 0.75;
  * they come off the turf from the west, and the passenger's end is the nearer one
  * both times. */
 const PUNT_SOLO_Y = -0.30, PUNT_SEAT_Y = -0.62, PUNT_POLE_Y = 0.34;
-let punt = {x:PUNT_MOOR.x, y:PUNT_MOOR.y, leg:0, rider:null, mate:null, pair:false, seating:0, seatT:0};
+let punt = {x:PUNT_MOOR.x, y:PUNT_MOOR.y, leg:0, rider:null, mate:null, pair:false, seating:0, seatT:0,
+            night:false, stand:PUNT_STAND};
 // leg 0 moored · 1 claimed (the rider is stepping down) · 2 poling out · 3 at the shore · 4 poling back
 // seating 0 nobody · 1 the passenger is stepping down at the mooring · 2 the same at the landing
 function puntSeatY(o){ return punt.pair ? (o === punt.mate ? PUNT_SEAT_Y : PUNT_POLE_Y) : PUNT_SOLO_Y; }
 function puntMate(a){ return agents.find(o => o.with === a && !o.done) || null; }
-function puntStayH(a){ return 1 + (a.phase * 1.7) % 1; }
+function puntStayH(a, night){ return night ? PUNT_NIGHT_STAY + ((a.phase * 1.7) % 1) * 0.4 : 1 + (a.phase * 1.7) % 1; }
 function eastCloseHour(){ return sunUp + (sunDown - sunUp) * (1 - Math.asin(0.16) / Math.PI); }   // where daylight falls through eastOpen()'s 0.16
-function puntTripH(a){   // the way OUT, at this walker's own pace: down from the jetty, across, up the shore to the willow
-  return ((1.3 + 4.6) / (0.75 * a.speed) + 6.1 / PUNT_SPEED) * 24 / DAY_LEN;
+function puntTripH(a, night){   // the way OUT, at this walker's own pace: down from the jetty, across, up the shore to the stand
+  return ((1.3 + (night ? 2.66 : 4.6)) / (0.75 * a.speed) + 6.1 / PUNT_SPEED) * HOURS_PER_S;   // landing -> shore -> stand
+}
+/* the two trips, as two predicates over the same state, so the CLAIM can ask which one
+ * it is by asking them again in the same frame. The handover is continuous: the day
+ * trip is taken while it fits, and the short one the moment it stops — at ~16.4, not at
+ * eastOpen()'s close. Refusing a 18:30 stander and taking a 20:30 one would be a step
+ * in the middle of the evening with nothing under it. */
+function puntDayFits(a){   // the whole way up to the willow, ended by eastOpen()'s close
+  return eastOpen() && eastCloseHour() - hour > puntTripH(a) + PUNT_MIN_STAY_H;
+}
+/* and the last punt. !eastOpen() is DAWN as well as dusk (LAW), so the hour is bounded
+ * on both sides of noon — without it, ten of the deck's small-hours standers cross at
+ * one in the morning. The round trip is priced HERE, once, because nothing downstream
+ * re-prices it: the way back is the same water it went out on. */
+function puntNightFits(a){
+  if (hour < SOLAR_NOON) return false;
+  return hourEve() + 2 * puntTripH(a, true) + puntStayH(a, true) + EVE_BELL < EVE_GONE;
 }
 function puntFits(a){
   if (punt.leg !== 0 || a.with || a.small) return false;
-  if (raining || windF() >= 0.5 || !eastOpen()) return false;
+  if (raining || windF() >= 0.5) return false;
   // a pair crosses TOGETHER or not at all (#128). A companion keeps no clock of its
   // own — it gets up when the leader does and walks home at the leader's side — so the
   // whole trip is priced on the LEADER for both, and there is no second window to fit.
@@ -9567,19 +9616,23 @@ function puntFits(a){
   // before eastOpen()'s close cuts it. The way back is the retire rule's business —
   // the punt brings its rider home whenever the stay ends, dusk included, the same
   // walk-home-in-the-dark every east visitor already makes.
-  return eastCloseHour() - hour > puntTripH(a) + PUNT_MIN_STAY_H;
+  return puntDayFits(a) || puntNightFits(a);
 }
 function puntClaim(a){
   punt.leg = 1; punt.rider = a; a.boardI = a.i;
+  punt.night = !puntDayFits(a);   // asked again in the same frame as puntFits, over the same state
+  punt.stand = punt.night ? PUNT_NIGHT_STAND : PUNT_STAND;
+  if (punt.night){ a.puntNight = true; a.puntBack = hourEve() + puntTripH(a, true) + puntStayH(a, true); }
   const m = a.pairLead ? puntMate(a) : null;
   punt.mate = m; punt.pair = !!m; punt.seating = 0; punt.seatT = 0;
-  a.wp.splice(a.i, 0, [PUNT_MOOR.x, PUNT_MOOR.y], [PUNT_SHORE.x, PUNT_SHORE.y], [PUNT_STAND.x, PUNT_STAND.y],
+  a.wp.splice(a.i, 0, [PUNT_MOOR.x, PUNT_MOOR.y], [PUNT_SHORE.x, PUNT_SHORE.y], [punt.stand.x, punt.stand.y],
                       [PUNT_SHORE.x, PUNT_SHORE.y], [PUNT_LAND.x, PUNT_LAND.y]);
 }
 function puntFree(){    // the boat is empty again, whatever emptied it
   punt.leg = 0; punt.seating = 0; punt.seatT = 0; punt.x = PUNT_MOOR.x; punt.y = PUNT_MOOR.y;
   if (punt.mate) punt.mate.boarding = false;
-  punt.rider = null; punt.mate = null; punt.pair = false;
+  if (punt.rider) punt.rider.puntNight = false;   // off the water: the east half's own close owns them again
+  punt.rider = null; punt.mate = null; punt.pair = false; punt.night = false; punt.stand = PUNT_STAND;
 }
 function puntAbort(a){    // the sky turned in the one step down from the jetty
   a.wp.splice(a.boardI, 5); a.i = a.boardI; puntFree();
@@ -9606,6 +9659,7 @@ function puntSeatStep(dt){   // dt 0 is the shove alone: called once as the punt
   m.faceL = nx < m.x; m.x = nx; m.y = ny; m.phase += mv * 2.2;
   return false;
 }
+function puntLampF(){ return punt.leg ? clamp((nightF - BOAT_LAMP_ON) / BOAT_LAMP_FADE, 0, 1) : 0; }
 function puntAtShore(){ return punt.leg >= 2 && Math.hypot(punt.x - PUNT_LAND.x, punt.y - PUNT_LAND.y) < 2.2; }
 function updatePunt(dt){
   if (!punt.leg) return;
@@ -9618,10 +9672,13 @@ function updatePunt(dt){
   }
   if (punt.leg === 1){
     if (!a.aboard && Math.hypot(a.x - punt.x, a.y - punt.y) < 0.35){
-      if (raining || !eastOpen()) return puntAbort(a);
+      if (raining || (!eastOpen() && !punt.night)) return puntAbort(a);
       puntSit(a); a.i = a.boardI + 1;
-      announce(punt.mate ? 'Two of them step down from the jetty into the punt, and it poles off for the eyot.'
-                         : 'Someone steps down from the jetty into the punt and poles off for the eyot.');
+      announce(punt.night
+        ? (punt.mate ? 'Two of them step down into the punt after dark, and it poles off for the eyot under the river lamps.'
+                     : 'Someone steps down into the punt after dark and poles off for the eyot, under the river lamps.')
+        : (punt.mate ? 'Two of them step down from the jetty into the punt, and it poles off for the eyot.'
+                     : 'Someone steps down from the jetty into the punt and poles off for the eyot.'));
       if (punt.mate){ punt.seating = 1; punt.seatT = 0; puntSeatStep(0); } else punt.leg = 2;
     }
   } else if (punt.leg === 2 || punt.leg === 4){
@@ -9634,7 +9691,7 @@ function updatePunt(dt){
       if (punt.leg === 2){       // ashore: the stand under the willow is a stop like any other,
         punt.leg = 3;            // so rain, the sky and the light end it the way they end every stay
         puntRise(a, true); a.stopped = false;
-        a.stop = {x:PUNT_STAND.x, y:PUNT_STAND.y, act:'stand', dur:puntStayH(a) * DAY_LEN / 24};
+        a.stop = {x:punt.stand.x, y:punt.stand.y, act:'stand', dur:puntStayH(a, punt.night) * DAY_LEN / 24};
         if (punt.mate) puntRise(punt.mate, true);   // and the one they came with lands with them
       } else {                   // home: up onto the planks, and the retrace goes on where it left off
         puntRise(a, false);
@@ -9670,6 +9727,16 @@ function drawPuntHull(){
   if (punt.leg === 0){   // the pole laid across the hull at its mooring
     ctx.strokeStyle = '#8a6a42'; ctx.lineWidth = 1.2;
     ctx.beginPath(); ctx.moveTo(x - hw * 1.4, y + 2.5 * s); ctx.lineTo(x + hw * 1.4, y - 3.5 * s); ctx.stroke();
+  }
+  // the evening crossing carries a lantern, on the rowboat's own fade and only while
+  // the punt is off its mooring; the warmth is in the column it lays on the water
+  const lf = puntLampF();
+  if (lf > 0){
+    const lx = x - 2.4 * s, ly = y + hh - 1.5 * s;
+    ctx.strokeStyle = '#3a2a1c'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx, ly - 6 * s); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,214,140,' + (0.9 * lf).toFixed(3) + ')';
+    ctx.beginPath(); ctx.arc(lx, ly - 6.5 * s, 1.5 * s, 0, 7); ctx.fill();
   }
 }
 function drawPuntCrew(){

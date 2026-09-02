@@ -16,30 +16,6 @@
   "rationale": "I shot the wide frame at seed 42 before planning it, and the picture says one thing the prose has never said: THE ROOFLINE IS A STRAIGHT LINE. eaveFor() is a region function with seven bands, so every house in a terrace shares an eave and the skyline runs flat from the courtyard's west wall to the plaza — a horizontal edge across two thirds of the frame, broken only by the church (7.8) and the clock tower (6.3), both at the extremes. c174 has been calling the top of the frame 'empty sky' for three passes and I have declined it twice on the grounds that the sky has nothing to gain; the picture says the fault was never the sky's tenants, it is that the town presents a flat silhouette to it. That is a spatial fault, it is the first thing a visitor sees, and it is rung 4b by name — which matters, because mapFlat is at 13 of 15 (developed, green, water, passages, structures, tileKinds and speciesKinds have not moved since #116) and the ladder note says every rung-4 the run has taken picked TIME. So b130 goes into buildVolumes: give the terraces HOUSES, the way NEAR_HOUSE/houseOf already does for our own block, and let them differ in height. It is the town's spine — vZ, vD, roofs, CHIMNEYS, FACES/windowLit, ROOF_FURN, the murmuration's roosts and project()'s northward lift all sit downstream — so it is a real bet and it is priced as one. The other four go to the two stalest domains and to two premises I re-priced on HEAD myself this pass rather than trusting the cue: hearthF() has exactly ONE reader in 12,000 lines (grep says line 8281, inside drawSmoke) so the rooms genuinely do not know the town is cold; puntFits' last line is `eastCloseHour() - hour > puntTripH(a) + PUNT_MIN_STAY_H`, so a 19-21h jetty arrival is refused on TIME and #128 measured 236 of 298 offers dying there; and whereN is read by exactly three lines, all of them the camera moving itself, with `followed` carrying a comment that says 'following reads, it never writes' — the observer's state is a pure sink, which is why sill x Connect is the emptiest cell in the grid.",
   "queue": [
     {
-      "id": "b131",
-      "domain": "River & far bank",
-      "kind": "Deepen",
-      "brief": "The far bank's second door is shut on the clock. `overDeck` sends east agents to the jetty via `DECK_SHARE` and they land at 19-21h; `puntFits` ends on `eastCloseHour() - hour > puntTripH(a) + PUNT_MIN_STAY_H`, so the crossing is refused on TIME and #128 measured 236 of 298 such offers dying there. #128 made the punt carry two and crossings actually FELL 62 -> 42, because a pair spends two of FAR_CAP's three — so the boat now has capacity it cannot fill and the supply that would fill it is standing on the deck at seven in the evening being turned away. Open the evening crossing. The honest question the brief is asking you to answer is which end gives: an evening trip that is legitimately shorter than a daytime one (there is nothing to look at on the eyot after dark, so the stay can be), or a jetty that is open later than the east half generally is. Pick one, price it, and say which.",
-      "seams": [
-        "puntFits",
-        "eastCloseHour",
-        "puntTripH",
-        "PUNT_MIN_STAY_H",
-        "overDeck",
-        "DECK_SHARE",
-        "spawnFarAgent",
-        "FAR_CAP",
-        "punt",
-        "eastOpen",
-        "EVE_BELL",
-        "RIVER_LAMPS"
-      ],
-      "successLooksLike": "Over 10 seeds x 14 days the punt makes measurably more crossings than HEAD, at least some of them after sunset with the river lamps lit, and nobody is stranded on the eyot at the evening bell — every rider still comes home. Report crossings/day and people carried on both builds, the way #128 did.",
-      "avoid": "Do not widen `eastOpen()` for the whole east half to buy this — that repopulates the plaza, the quay and the allotments as a side effect nobody briefed. LAWS: an arrival HOUR is a fact about GATE DISTANCE, not the source's window, and a choice must not be priced on something that gets re-priced on arrival. And #128's finding stands: a pair costs two of the cap, so measure PEOPLE CARRIED, not crossings alone.",
-      "budgetMin": 40,
-      "risk": "medium"
-    },
-    {
       "id": "b132",
       "domain": "The sill & the observer",
       "kind": "Connect",
@@ -116,6 +92,10 @@
     {
       "id": "b130",
       "at": "2026-09-02T10:39:02.955Z"
+    },
+    {
+      "id": "b131",
+      "at": "2026-09-02T11:13:49.424Z"
     }
   ]
 }

@@ -2,7 +2,7 @@
   "updated": "2026-09-02",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 129,
+  "lastIteration": 131,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -311,7 +311,8 @@
       "deepen": [
         9,
         23,
-        63
+        63,
+        131
       ],
       "scale": [
         73,
@@ -485,7 +486,8 @@
       "the evening ends: EVE_GONE/EVE_HURRY/EVE_BELL, eveOutH -> a.eveOut, goHome(a,maxH); then night water — drawRiverLights, RIVER_LAMPS, a.nightRail, roseLit",
       "the far bank's own morning and the PUNT: spawnFarAgent(room)/farOpen/farRate, FAR_CAP 3, FAR_GATE [GW+2,31], a.jetty, overDeck's east door via DECK_SHARE; punt{leg 0..4}, PUNT_MOOR/SHORE/STAND/LAND, puntFits (ends on eastCloseHour() - hour > puntTripH + PUNT_MIN_STAY_H)",
       "the punt carries TWO (#128): punt.mate/pair/seating, PUNT_SEAT_Y -0.62 (the thwart) + PUNT_POLE_Y +0.34 (the open end); puntSit/puntRise/puntFree, puntSeatStep owning the passenger's tick (a.boarding joins a.aboard in stepAgent's early return). spawnFarAgent calls withCompanion",
-      "FIELD EDGE on the world's east face: seasonal hedge, a five-bar gate standing open, a worn track — painted in the GROUND CACHE east of x=GW, not gridded; farWay routes far arrivals through FIELD_GAP [138,31]"
+      "FIELD EDGE on the world's east face: seasonal hedge, a five-bar gate standing open, a worn track — painted in the GROUND CACHE east of x=GW, not gridded; farWay routes far arrivals through FIELD_GAP [138,31]",
+      "the LAST PUNT (#131): the crossing runs on past eastOpen()'s close — puntDayFits/puntNightFits over the same state (the claim asks again to know which trip), punt.night/punt.stand, PUNT_NIGHT_STAND on the eyot's north lawn + PUNT_NIGHT_STAY; the round trip priced ONCE at the claim against EVE_GONE, and a.puntNight/a.puntBack an eastOpenFor() cover that EXPIRES so the retire rule still brings them home; puntLampF() lantern + its column in drawRiverLights"
     ],
     "sky": [
       "day/night (55 s day), sun and moon arc, HAZE hills, a distant skyline with spires and lit windows, 120 stars, chimney smoke, a balloon; windowLit the ONE pane predicate + LIT[], relit AFTER applyLight",
@@ -568,6 +570,18 @@
     {
       "id": "c207",
       "note": "the clock tower's north-row neighbours (x 62-63, y<3) are excluded from the house grid so nothing drops out from under CT's base at z 5.4; a tower that read its own roof would not need the exclusion",
+      "raisedBy": 129,
+      "seenBy": 0
+    },
+    {
+      "id": "c208",
+      "note": "the punt's biggest refusal is now busy (63 -> 85 of a larger total): one hull, 5-7 h a trip. The next lever on crossings is a second boat or a faster turnaround, not the clock",
+      "raisedBy": 129,
+      "seenBy": 0
+    },
+    {
+      "id": "c209",
+      "note": "28 of 87 deck offers to the punt land at 22-01h and can never be served: the water alone is 2.32 h round trip and EVE_GONE is 26.5, so the last boarding that can come home is ~23.5 even with a zero stay",
       "raisedBy": 129,
       "seenBy": 0
     }

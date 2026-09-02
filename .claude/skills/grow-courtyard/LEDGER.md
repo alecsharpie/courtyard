@@ -40,15 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 124 — the morning fire stops burning on midwinter's clock all year (2026-09-02) [Sky, light & weather × Connect]
-
-**Brief:** b124 — `drawSmoke`'s hearth term is `clamp(1 - |hour - 7|/3.5)`; key it on the sun and scale it with the cold.
-**Premise held, and the hard-coded hour is worse than "a bit off".** 7.00 is *exactly* midwinter's sunrise here (`SOLAR_NOON` 12.75, `WINTER_HOURS` 11.5) — so HEAD was right in January by coincidence and three hours late in July, when the sun is up at 4.00. Sunrise runs **4.00 to 7.00**.
-**Did.** `hearthF()` — one named definition, two consumers (the share of `CHIMNEYS` lit, each column's alpha). Morning term re-centred on `dawnEdge()`, solved at the instant it applies; half-width unchanged at `HEARTH_RUN` 3.5, so only the CENTRE moved. Height is the cold: `HEARTH_MIN` + `HEARTH_SWING`·(1−warmth) + `HEARTH_SNOW`·snowCover. Rain and the evening term copied through untouched.
-**Gates:** all PASS, all six census groups unchanged (no new `R()`). Mean |peak − first light| across the year **1.26 h → 0.12 h**; at each build's own peak midsummer lights 24/27 stacks (07:00) → **5/27 (04:24)**.
-**Verdict:** shipped
-**Surprise:** the brief asked me to scale the fire by warmth *and* `greyF()`, and they are one axis — `greyF()` **is** `1 - 2*warmth`, so doing both would have squared the year rather than reading it twice. The season enters once; the honest second axis was the weather of the *day*, and `snowCover` is the one that says "cold house" when the calendar does not.
-
 ## Iteration 125 — the biggest thing in the picture stops being one flat quad a cell: the near block is slated (2026-09-02) [Roofs & skyline × New CA]
 
 **Brief:** b125 — retire the near roof's flat fill; slate courses, staggered laps, per-slate variance, and let the surface AGE. Full entry in LEDGER-archive.md.
@@ -115,3 +106,15 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Surprise:** the near roof, which I never touched, came back **23.4% changed**. `roofShade` gained an `e` parameter and the APRON called it with none, so every apron slate shaded off NaN. Eyeballing two framings missed it; a difference image against a same-code control (0.000%) found it in one run.
 **Law:** widening a shared draw helper's SIGNATURE changes every caller — grep them all; the missing argument arrives `undefined`, and a colour off NaN still paints something plausible.
 **Law:** `hash(x,y)` is NOT seeded; `?seed=` swaps `R()` alone. The built FABRIC is one town in every world; only its life varies.
+
+## Iteration 131 — the last punt: the crossing runs on after the east half has closed (2026-09-02) [River & far bank × Deepen]
+
+**Brief:** b131 — open the evening crossing; pick which end gives and price it.
+**The premise was wrong in its detail, and that decided it.** Instrumented `puntFits` clause by clause in its own evaluation order (`probes/punt-evening.mjs`, 10 seeds × 14 days): of HEAD's 181 refusals only **8** die on the TIME term. The deck supply dies on a BOOLEAN — 39 on `!eastOpen()`, median arrival at the planks **20.47** against a close at **20.17**. Nothing done to a stay reaches past a hard gate, so the jetty is the end that gives.
+**Did.** Two fits over the same state (the claim asks again which trip it is). The evening one stands on the eyot's north lawn instead of walking to the willow — out 2.99 h → 2.37 h, which lets the round trip be priced ONCE against `EVE_GONE`; `eastOpenFor`'s cover EXPIRES at `a.puntBack`, so the retire rule still brings them home. `eastOpen()` untouched.
+**Gates:** census PASS · visual PASS ×6 · filmstrip 0 POP · motion FAIL on 2 rows, both replayed as HEAD's own. **context-budget OVER at 48.0 KB.**
+**HEAD → candidate:** crossings 46 → **66**; **people carried 65 → 92**; boarded after the close **0 → 18**, carrying 25, **18/18 under lit lamps**; 66/66 home; nobody on the eyot at the bell; worst return 25.46 against the promised 26.15.
+**Verdict:** shipped
+**Surprise:** the first build forked on `!eastOpen()` and so refused an 18:30 stander while taking a 20:30 one — a step in the evening with nothing under it. Making the handover continuous (the short trip the moment the long one stops fitting, ~16.4) carried most of the gain: 52 → 66.
+**Law:** instrument a compound predicate CLAUSE BY CLAUSE in its own evaluation order — a refusal total says nothing about which clause to loosen, and the loudest is usually the cheap boolean in front of the arithmetic.
+**Law:** a stop needs PAIR_GAP of margin all round, not just legal ground under itself — the shore stand was on turf and put its COMPANION in the river on 9.9% of its samples.
