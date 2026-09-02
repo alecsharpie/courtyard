@@ -21,7 +21,7 @@
   "avoid": "No new per-frame pass: the dry desire lines belong in the ground cache, and the new pools go into the existing PUDDLES array — c189 says drawPuddles is already 0.94 ms of a 2.0 ms frame at 560 pools and culls nothing for the camera, so adding pools without a cull is a cost you must at least measure. Extending the moss CA's agreement across regions is a second-region problem: mask the neighbour mean by region id or the plaza's growth feeds the quay's creep. Read `pavedAt`'s own comment before widening it — it is deliberately off the GRID, not off `pavingAt`, which is a fall-through.",
   "budgetMin": 45,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 126,
   "issued": "2026-09-02T07:43:31.390Z",
