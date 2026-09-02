@@ -2,7 +2,7 @@
   "updated": "2026-09-02",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 132,
+  "lastIteration": 134,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -231,6 +231,9 @@
       ],
       "scale": [
         33
+      ],
+      "harness": [
+        134
       ]
     },
     "street": {
@@ -466,7 +469,8 @@
       "MARKET every 4th day: isMarketDay/marketActive/marketOpen/marketRaise, three MARKET_STALLS stocked from the allotments' produce[] by stockMarket/mkTrades/mkShelfFor",
       "four sources besides the ring: spawnLaneAgent (in one edge, out the other via toX), spawnTapAgent/TAP_DOOR/tapOpen/callIn, spawnCafeAgent/cafeOpen/CAFE_WAY/CAFE_TABLES, spawnHomeAgent/homeRate",
       "morning ROUND: mround/updateRound, doors 4 and 8, ROUND_H 5h, roundMarks",
-      "STANDING WATER: PUDDLES[] off the GRID, pavedAt() the region predicate (lane band + cross columns + inPlaza + inQuay); a fine hash gated by a COARSE dip + PUD_TROD*paveWear. drawPuddles live before applyLight, drawPuddleLights in the screen pass after. paveWear[] is feet on STONE: PW_GAIN in stepAgent, PW_DECAY in caTick"
+      "STANDING WATER: PUDDLES[] off the GRID, pavedAt() the region predicate (lane band + cross columns + inPlaza + inQuay); a fine hash gated by a COARSE dip + PUD_TROD*paveWear. drawPuddles live before applyLight, drawPuddleLights in the screen pass after. paveWear[] is feet on STONE: PW_GAIN in stepAgent, PW_DECAY in caTick",
+      "the FRAME CULL (#134): inFrameBox(sx,sy,rx,ry) beside project() — the ONE screen-space cull, on the CANVAS rect (not sillTop(): a pass before the sill composite may paint under it), margin = the drawn rx/ry. Both drawPuddles and drawPuddleLights call it and must call the SAME one"
     ],
     "street": [
       "cross street: two footways, roadway, curbs, lamps, four TREE_PITS; alley ALLEY_Y",
@@ -605,6 +609,12 @@
     {
       "id": "c212",
       "note": "applyLight's dusk wash is clamp(1 - |hour - 19|/1.8) — a hard-coded HOUR in a light term. It is 0.53 at a midwinter nightF-0.85 dusk and 0.00 at a midsummer one, so any before/after taken at a matched sun angle in the evening carries it. #112 fixed the MORNING half of the same expression onto sunUp and left the evening.",
+      "raisedBy": 132,
+      "seenBy": 0
+    },
+    {
+      "id": "c213",
+      "note": "inFrameBox now exists and nothing else calls it. The same shape of win may sit in the other live passes that walk a FIXED global set every frame regardless of camera — drawWetLights over WET_LAMPS, the LAMPS.concat(LANE_LAMPS) halo loop in the night screen pass (a radial gradient apiece, the expensive kind), CHIMNEYS/drawSmoke, VANES. Measure before culling: at Wide the cull saves nothing and pays a test, and only the puddles were ever shown to be a top-of-frame cost.",
       "raisedBy": 132,
       "seenBy": 0
     }

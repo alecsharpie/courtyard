@@ -43,17 +43,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 ## Iteration 127 — the allotments get their own fog, and ghPane's dead term wakes up (2026-09-02) [Cross street & allotments × Connect]
 
 **Brief:** b127 — a SECOND mist source over the allotments so `ghPane`'s `mistAt()` term, 0 every day of every year, reads something. Full entry in LEDGER-archive.md.
-**Did.** Found b127 already built and uncommitted (attempt 2, no ledger entry): verified rather than rebuilt — "an uncommitted WIP is UNPROVEN". `hollowMist` is a second scalar in the `cloudCover()`/`wetF()` family, RADIATIVE where the river's is evaporative — stiller, clearer, cold-only, so a mild wet morning mists the river and not the beds. `MIST_SRC[]` makes a source a span+reach+weight, `mistAt` takes the strongest at that x, and the two never overlap; the announcement stays latched on the RIVER, so a hollow-only morning is one the ticker does not name.
-**Gates:** census PASS, six groups unchanged (no new `R()`) · motion PASS · visual PASS at 1600x950 and 390x844 · fogged frame +3.3%, unfogged byte-identical.
-**Measured** (`probes/hollow-year.mjs`, 3 seeds x a year): fogs **12.7%** of mornings, **0** of the 594 warm ones. `mistAt(88)` p50 **0.82** vs HEAD's dead **0**; pane dE p50 **10**. Change confined to the allotments, **exactly 0** west of them; a river-only morning is **identical to HEAD, 0 of 6,080,000 px**.
-**Verdict:** shipped
-**Surprise:** three of my four "failures" were my own instrument. A `day` index runs 06:00→06:00 and holds TWO dawns, so bucketing on it read the weather off one morning and the veil off the other, inventing a warm foggy day. And containment said 854/12060 diverged until HEAD-vs-HEAD gave **441**: no `__reseed()`, so page-load frames left each run on a different PRNG offset. With it, both went to **0**.
-**Law:** weather at a given `simT` is VIEWPORT-dependent — an instant found at 1280x700 does not reproduce at 1600x950.
-**Budget:** context-budget OVER at 46.5 KB (cap 46). I compressed my own inventory line and cues; the rest is structural — laws and the last 3 entries. Manager: distil.
-
-## Iteration 127 — the allotments get their own fog, and ghPane's dead term wakes up (2026-09-02) [Cross street & allotments × Connect]
-
-**Brief:** b127 — a SECOND mist source over the allotments so `ghPane`'s `mistAt()` term, 0 every day of every year, reads something. Full entry in LEDGER-archive.md.
 **Did.** Found b127 already built and uncommitted (attempt 2, no ledger entry): verified rather than rebuilt — "an uncommitted WIP is UNPROVEN". `hollowMist` is a second scalar in the `cloudCover()`/`wetF()` family, RADIATIVE where the river's is evaporative — stiller, clearer, cold-only, so a mild wet morning mists the river and not the beds. `MIST_SRC[]` makes a source a span+reach+weight, `mistAt` takes the strongest at that x, and the two never overlap; the announcement stays latched on the RIVER.
 **Gates:** census PASS · motion PASS · visual PASS at 1600x950 and 390x844 · fogged frame +3.3%, unfogged byte-identical. Fogs 12.7% of mornings and 0 of 594 warm ones; `mistAt(88)` p50 0.82 vs HEAD's dead 0; exactly 0 change west of the allotments.
 **Verdict:** shipped
@@ -124,3 +113,15 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped
 **Surprise:** neither gate the brief named could see either thing. A mean over "whatever panes were lit" is mostly pane IDENTITY — the lit set is hashed per night, so HEAD reads winter *colder* than summer (44.1 vs 50.0 R−B) at one instant and *warmer* (52.8 vs 50.0) matched. The filmstrip is blind too: cropped to the roofline the roll frame reads Δ0.296 against a median of 0.296, under the dawn ramp. It shows only as a difference BETWEEN the two builds' strips — that frame falls 0.296 → 0.248 while all ten others move ≤0.013.
 **Law:** a mean over a set whose MEMBERSHIP is drawn per sample measures the membership, not the property — match the members across conditions first.
+
+## Iteration 134 — the pools stop being drawn where nobody can see them (2026-09-02) [Lane & market × Harness]
+
+**Brief:** b134 — cull `drawPuddles` to the visible frame, byte-identical output. Full entry in LEDGER-archive.md.
+**Did.** `inFrameBox(sx,sy,rx,ry)` beside `project()`: ONE screen cull, on the CANVAS rect and deliberately not `sillTop()` — `drawPuddles` draws before the sill is composited and may legitimately paint under it, so the canvas is the only bound true of both callers, and the cull is exact by construction. `drawPuddleLights` calls the same one, being the lamp on the pool the other drew. Both ellipses of each pass sit inside (sx±rx, sy±ry).
+**Gates:** census unchanged in every field · motion PASS · filmstrip 0 POP · `perf.mjs` ±0.0% and **blind** (vsync-locked at 16.70 ms over a mostly dry day).
+**Proof** (`probes/pool-cull-cost.mjs`, seed 7, wet 0.75, 400 frames × 3 reps, interleaved): drawPuddles **−56% to −73%** at the four quarters (0.28 → 0.08–0.12 ms), whole wet frame −8 to −12%; Wide ±2.5% both ways, so the cull's own tax is under the noise. Canvas hash **IDENTICAL 28 of 28** (5 cameras × day/night; 3 viewports × 3 instants × 2 cameras), fingerprint NONE.
+**Verdict:** shipped
+**Surprise:** the phone is the case that needed this most and the brief never named it. At 390×844 the **Wide** camera — the default, and effectively the only one a phone has, since `#where` is hidden under 640 px — already culls **61%** of the wet pools, and Far bank there culls **100%**. The margin is not theoretical either: at 1280×700 Courtyard **17 pools are kept only because the cull uses rx/ry** rather than the centre, and a centre test would have popped all seventeen at the frame edge (`probes/pool-cull-exact.mjs`).
+**Law:** `perf.mjs` is vsync-locked at 16.70 ms over a whole sim day — blind to a pass expensive only in a rare weather. Time the FUNCTION, in its weather, at every camera.
+**Law:** a screen cull is exact against the CANVAS rect, never the picture above `sillTop()`, and its margin is the DRAWN extent, never the centre.
+**Budget:** context-budget OVER, 50.2 KB (cap 46).
