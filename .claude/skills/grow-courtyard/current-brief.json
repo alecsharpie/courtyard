@@ -27,7 +27,7 @@
   "avoid": "Do NOT put it in the ground cache - the sun moves every frame and `drawGround` rebuilds on a dirty flag, so this is a live overlay or it will smear. Do NOT cast per solid CELL: derive casters from wall RUNS (contiguous spans at a shared eave, solved once where the volumes are built, held in WORLD coordinates) and extrude each run's top edge down-sun as one polygon - a few dozen quads, not thousands. Solve BOTH ends of every edge in world space and `project()` each; a world offset added to a projected coordinate is a pixel and the projection is not linear in it (#138's law). Watch for DOUBLE-DARKENING: `nearShadow`, `drawCloudShade` and `applyLight` already multiply this frame, so measure the stacked result at night and under cloud, not just at noon. And do not let it darken the sky strip or the roofs - clip below the horizon as drawCloudShade does. If the perf cost is real, `probes/ground-cost.mjs` and `frame-cost.mjs` are the instruments; `perf.mjs` is vsync-locked and will report nothing.",
   "budgetMin": 90,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 140,
   "issued": "2026-09-02T19:16:03.624Z",
