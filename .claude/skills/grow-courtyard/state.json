@@ -481,7 +481,8 @@
       "LAWN's own source: spawnLawnAgent, LAWN_CAP 4 place-holders claimed at the choice, lawnStart/lawnEnd; lawnGone is the TWO-SIDED light rule",
       "catA's second act: lane->cross->climb->ridge, own R() roll, CAT_RIDGE_Y one row north of the wells. nearScale(y) ramps drawn size 1 -> NEAR_SZ 1.95 across the near block, exactly 1 elsewhere; nearHidden backstops the sill",
       "south of LN_WALK_S (79) the bed CA, item sort and seed scatter still bound their y loops. The ROWBOAT runs to row 92 between the block's halves — exclude the channel from any 'nothing lives here' control (HEAD reads 4.6%, not 0)",
-      "the near cat now crosses the WHOLE pitch — catLine(x, ph), a 33-cell cosine between CAT_RIDGE_Y and CAT_SOUTH 86.3, phase-anchored at the climb hand-off, pinned north by wellNear() over a light well. Height off roofWalkZ(), the BILINEAR read of nearZ (the per-cell read steps 0.62 of a cell crossing rows 85/86)"
+      "the near cat now crosses the WHOLE pitch — catLine(x, ph), a 33-cell cosine between CAT_RIDGE_Y and CAT_SOUTH 86.3, phase-anchored at the climb hand-off, pinned north by wellNear() over a light well. Height off roofWalkZ(), the BILINEAR read of nearZ (the per-cell read steps 0.62 of a cell crossing rows 85/86)",
+      "EVERY bird answers the pointer: birdName/birdPlace (place off pavingAt + the grid, never a second table), birdDown the ONE posture test drawBird and the naming share; roof perches all five named; hit box 0.9*nearScale. A TAP now names what it cannot sow on (the answersTouch early return no longer eats the label)"
     ],
     "sill": [
       "#plate, #daytime, #season, #where, #ticker (TICK_DWELL 2.5 s), #stats, #ctrl; hidden under 640px. Two LAPSE buttons, one beginLapse",
@@ -490,7 +491,8 @@
       "quarter CAMERA: #where cycles QUARTERS Wide/Courtyard/Street/Plaza/Far bank; viewFor/whereGo/stepView, wide cache scaled through gview, q.share sets s from WIDTH",
       "the PAINTED sill: drawSill inside drawOurSide, baked into the GROUND CACHE — so the four quarter cameras have no sill at all (c156). sillTop() = H - max(26, H*0.075) is the ONE definition",
       "drawSill paints a SURFACE: 7-stop gradient on lit = 0.30 + 0.70*warm, 22 broken grain runs, 9 scuffs, a nosing, cast() shadows under the pots and cup",
-      "the sill is drawn at EVERY camera, not just the wide one: sillBoxes() is its screen footprint (strip + the two pots and the cup), sillOver() copies those pixels back out of the ground cache after drawSmoke and before applyLight, and clipOffSill() punches them out of applyLight's screen-glow passes. sillU() is priced off cellW0, so the sill does not zoom and does not move through the camera ease (#111)"
+      "the sill is drawn at EVERY camera, not just the wide one: sillBoxes() is its screen footprint (strip + the two pots and the cup), sillOver() copies those pixels back out of the ground cache after drawSmoke and before applyLight, and clipOffSill() punches them out of applyLight's screen-glow passes. sillU() is priced off cellW0, so the sill does not zoom and does not move through the camera ease (#111)",
+      "evPx maps the event into DRAWING space: resize() takes W/H off the frame's BORDER box, #cv fills its PADDING box, so a raw CSS point was up to 16x20 px out. One mapping, upstream of livingAt/faceAt/treeAt/cellOf"
     ],
     "roofs": [
       "emergent roofs from buildVolumes (footprint -> volume, eaveFor); CHIMNEYS[], drawSmoke leans windDir; drawRoofRow shades by sun, cloud, warmth and snowCover",
@@ -552,6 +554,18 @@
       "id": "c167",
       "note": "drawSmoke's hearth term is still clamp(1 - |hour - 7|/3.5) — a hard-coded hour of exactly the shape #112 moved off 6.4, and wrong by the same seasonal swing. It is about warmth rather than light, so it was left alone (#112)",
       "raisedBy": 110,
+      "seenBy": 0
+    },
+    {
+      "id": "c168",
+      "note": "the town's ORIGINAL lawn/lane birds are all but extinct: their band's cap is birds.filter(b => !b.plaza).length < 3, which counts #106's roof birds AND the belfry flock against them. Over 1551 daylight dry samples across 5 seeds the gate is open 15.3% of the time and closed by roof birds alone 84.7%; mean present is 0.06 lawn/lane against 2.66 roof and 1.31 plaza. A one-word predicate fix, but it changes how often the roll is reached and so reshuffles the seeded world (#113)",
+      "raisedBy": 112,
+      "seenBy": 0
+    },
+    {
+      "id": "c169",
+      "note": "the pointer CURSOR still only turns to a hand over answersTouch cells, so everything #113 made nameable on the roof, the windows, the vanes and the crowns is findable only by accident on a desktop — the naming and the affordance now disagree (#113)",
+      "raisedBy": 112,
       "seenBy": 0
     }
   ],

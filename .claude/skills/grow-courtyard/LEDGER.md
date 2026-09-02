@@ -39,17 +39,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 105 — the bottom band becomes a windowsill: a lit far edge, grain, a nosing, and three things that finally throw a shadow (2026-09-02) [The sill & the observer × Polish]
-
-**Brief:** b105 — the band below `sillTop()` is a flat black bar; separate its values without raising the mean.
-**Premise re-priced, and it moved twice.** (a) The brief's whole-band `min==max==8.4` does **not** reproduce (range 79.8) — its top ~6 px are the existing lit edge. Drop those and the claim is exact and stronger: rows 6→bottom are **min == max == 8.4, range 0.000** at all three sizes (48,384 / 71,224 / 19,074 px). The defect is the *surface*, not the band. (b) "The pots and cup cannot be seen" is **false** — they silhouette against the apron *above* the sill line (pot column min 8.1 vs a bare column's 80.5). What could not be seen is the surface they stand on, so they got shadows, not contrast.
-**Did.** The cliff's cause was backwards from the brief's guess: the apron's shadow gradient was anchored on `l[1]`, the roof's LAST ROW, which at 1200×720 projects **31 px below** sillTop — visible fraction **0.000**, the whole ramp painted under the band (1600×950 showed 51% of it, 390×844 70%, so only the desktop read as a cliff). Lifted it into `nearShadow(g)`, priced off `sillTop()` over whatever near roof the frame shows, bounded above by the south footway (`yWalk + 1`) — cached ground, and a live-drawn walker would not share the shadow. Rebuilt `drawSill`: a 7-stop surface gradient scaled by `lit = 0.30 + 0.70*warm`, 22 **broken** grain runs, 9 scuffs, a nosing, and `cast()` — a gradient trapezoid under each pot and the cup, lying toward the viewer. All `hash()`, no `R()`.
-**Gates:** census **PASS** ×2, all five groups unchanged (no `R()` ⇒ no reshuffle) · motion **PASS** · filmstrip day+night **0 POP** · ground rebuilds **133/134/day, identical to HEAD** · `drawGround()` −0.20 ms vs HEAD's own 0.90 ms spread, 40 interleaved.
-**Measured** (5 probes kept, each regenerating HEAD itself): surface range **0.0 → 37.7/36.8/38.4**, mean 8.4 → 12.7/12.9/13.2; band still **3.4–7.5× darker than the roof** at hours 10.4/11.2/17.8/23.5; roof→sill at 1200×720 ramps 79→50 where HEAD held ~125 flat into black. `sill-stands.mjs` (surface under an object vs beside it): **HEAD exactly −0.00 everywhere**, candidate −3.9 to −6.5.
-**Verdict:** shipped, ~+80 lines.
-**Surprise:** the per-column difference image against HEAD reads **backwards** as a test for "the pots are findable" — mass at the bare columns (6.9) *exceeded* the pot columns (4.3). An opaque silhouette covers the band in both versions, so the object's own column is the part that changed *least*; the diff was measuring how much bare surface each column had. The signal had to be taken inside the candidate, as shadow-vs-neighbour, with HEAD's 0.00 as the control.
-**Cue:** at every zoomed quarter the sill band fills with live content over the cached sill (max luma 221 Courtyard, 192 Plaza) — identical on HEAD, so pre-existing: `drawSill` is in the ground cache and agents sort after it, so the quarters have no sill at all.
-
 ## Iteration 106 — the near roof gets tenants: its own bird band on ridge, pitch, well-lip and parapet, and the lane cat comes up over the parapet after dark (2026-09-02) [Roofs & skyline × Deepen]
 
 **Brief:** b106 — #100's roof is the biggest thing in the frame and nothing lives on it; give it its own life, its own source and its own cap.
@@ -127,3 +116,19 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Law:** when you move a term to where another already peaks, price the COMPOSITE against the end of the day you did NOT touch. Its own old value is not the control — it was damped by something you have just removed.
 **Law:** containment for a shared scalar is provable on the axis you did not touch, and that beats a canvas hash — a bit-identical evening across the year survives the `R()` reshuffle a hash cannot.
 **Budget:** OVER, and worse — **46.9 KB** against the 46 KB cap when this iteration opened, **48.8 KB** when it closed (this entry, two cues, one inventory line). Three of the last three entries are over the per-entry cap and `life`/`roofs`/`sill` are each over theirs. Distil before the next brief.
+
+## Iteration 113 — every bird the town draws answers, and the pointer finally lands where the picture is (2026-09-02) [People & animals × Interaction/UX]
+
+**Brief:** b113 — `livingAt()` named only the near roof's birds; close the hole for the rest.
+**Did.** `birdName(b)`/`birdPlace(b)`; `livingAt` loops over *all* of `birds`, not `b.roof && state==='hop'`. WHAT off the band it was spawned into (`b.plaza` and the belfry flush are pigeons in the town's own words already); WHERE off the predicates the ground is named with — `pavingAt`, the grid — never a second table of boxes. DOWN is `birdDown(b)`, factored out of `drawBird`'s posture test, so words and picture cannot disagree about it; an airborne bird claims no place ("on the wing"), a descending one claims the spot it is dropping onto. All five roof perches have a line now; hit box `0.9 * nearScale(b.y)`, the factor `drawBird` uses. No new `OFFERS[]` entry, no census field. **10 bird lines** against HEAD's 4.
+**And the tap:** it fell through `if (!answersTouch(x,y)) return` *before* the naming, so on a phone every nameable thing that cannot be sown on — a roof bird, a window, a vane, a crown — answered a mouse and said nothing to a finger. The cell test still decides what a tap DOES, not whether it is told what it hit.
+**Gates:** census **PASS**, all five groups unchanged (no new `R()`) · motion **PASS** · **canvas hash identical to HEAD at 18 pinned instants** (3 sizes x 2 seeds x 3 times): provably an interaction change, not a draw change · `probes/probe-birds.mjs`, run on HEAD as the control:
+
+| | roof | plaza | lane | belfry | phone taps | pointer path |
+| --- | --- | --- | --- | --- | --- | --- |
+| HEAD | 53/53 | **0/8** | **0/1** | **0/50** | **0/13** | **0/7** |
+| now | 53/53 | 8/8 | 1/1 | 50/50 | 13/13 | 7/7 |
+
+**Verdict:** shipped, ~+55 lines. Context budget opened **OVER** (48.4 KB / 46 KB cap).
+**Surprise:** the pointer was never where the picture is. `resize()` takes W/H off `cv.parentElement` — the frame's BORDER box — while `#cv` is `inset:0` inside it, so the canvas element is the frame's PADDING box: 20 px narrower and shorter at every size measured. The backing store is stretched to fit, so `evPx`'s CSS-relative point was up to 16 px out across the frame and 20 px down it — 3.3% of the height, against a walker 12 px tall. Markers drawn at canvas (200,300)/(1000,500) photograph at (232.5,314.0)/(1019.4,507.4): the scaled prediction to a third of a pixel.
+**Law:** a probe calling `lookAt(project(...))` proves the NAMING, never the POINTER — it skips the event, and that is where a screen-space bug lives. Drive a real `mousemove`/`tap` onto the point the thing is DISPLAYED at (canvas coords x `rect/W`), wait past `NAME_SETTLE` (0.12 s) before reading the sill, and use ONE tap per page — two taps 320 ms apart on a mobile context are a double-tap zoom, which reads exactly like a hit-test bug. HEAD's roof-bird line, pointed at this way, answers **"the lane"**.

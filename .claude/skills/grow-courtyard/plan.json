@@ -16,25 +16,6 @@
   "rationale": "I shot the town before planning it, at 1600x950 and at 390x844, and the two pictures disagree with the prose. The town proper is dense and good. But #100's near roof — the rung-4b foreground that was the run's biggest single change, +408 lines and the only census move in 109 iterations — is the dullest object in the frame, and on a phone it is 20% of the picture: one flat blue-grey field with a few dormers, no life below the ridge, and a black apron under it. #106 gave it tenants and bounded them at ROOF_DMAX 82.2 because at a short 1200x720 the sill cuts the surface at row ~84.9; the entire visible roof at every OTHER framing is therefore empty by construction, and #106's own ledger entry handed that trade to me as 'the manager's call'. I am calling it: it is worth a blink at short framings to stop giving a fifth of the phone frame to nothing. That is b110, and it is a real 4b rather than a deepen because the WATCH note is right that passages, tileKinds and speciesKinds have never moved in 109 iterations — the brief is required to move one and re-pin the baseline. b111 is the same picture's other half: the sill is baked into the ground cache, so four of the five camera positions have no sill at all and fill that band with live content instead (max luma 221 at Courtyard against a painted 13). Together they fix the bottom quarter of the frame. b112 finishes what #109 started — the night clock and the sun still disagree by an hour at dawn, so lawn walkers cross a courtyard the town is still lighting as night and the last lamps go out after sunrise; it serves the stalest domain and sky-polish is saturated, so it is a Deepen. b113 and b114 are the low-risk rotation into People & animals and Plaza & quay. On curation: the budget was the real emergency and it took the whole pass. LAWS.md is at 12288/12288 bytes with 18 laws after promoting eight from #105-#109 — I merged rather than stacked (the #106 depth law and #105's foreground-ramp law folded into the framing law; #108's dawn law and #109's sunUp law became one; #107's two pricing findings became one corollary law; #106's motion-gate zero-median and #109's canvas-hash containment went into the two instrument laws), and I made one outright cut: the standalone 'A raised surface is two draw items' law (#73) is gone, its still-live half folded into the renderer law as trap (d) and its DECK-specific sort order dropped, because the deck is built and stable and that detail now lives in the inventory. Inventory 11.4 -> 7.2 KB by taking it back to nouns plus seams; seven cues closed (six promoted into this queue, c136 deleted after three passes declined it); the three fattest ledger entries condensed in place with full text appended to LEDGER-archive.md. Worker budget 53.5 -> 45.5 KB, OK. NOTE FOR THE NEXT PASS: LAWS.md has zero bytes of headroom, so the next promotion must be paid for by a cut first.",
   "queue": [
     {
-      "id": "b113",
-      "domain": "People & animals",
-      "kind": "Interaction/UX",
-      "brief": "livingAt() names every duck, swan, dog and person under the pointer, but birds are named only on the near roof. A pigeon on the courtyard lawn, on the lane, or standing on the plaza roundel — where #92 gave them their own roll and cap precisely so they would be there — answers nothing at all when you point at it. That is the one visible hole in the town's naming, and it is on the most-used offer after #where. Close it: every bird the town draws should say what it is and, where the town knows, where it is. People & animals is eight iterations back and has had exactly one interaction vector in the whole run.",
-      "seams": [
-        "livingAt",
-        "answersTouch",
-        "birds",
-        "plazaBirdSpot",
-        "roofBirdSpot",
-        "faceAt",
-        "followLine"
-      ],
-      "successLooksLike": "Pointing at a bird anywhere in the town names it, at every camera position and on a phone tap, and the naming survives the bird hopping or flying while the pointer is still on it.",
-      "avoid": "Do not add a new entry to OFFERS[] — this is the existing touch offer doing its job, and a second offer waits 19.5 real seconds behind the queue. Keep the hit test on the same predicate everything else uses; do not give birds their own parallel path.",
-      "budgetMin": 25,
-      "risk": "low"
-    },
-    {
       "id": "b114",
       "domain": "Plaza & quay",
       "kind": "Deepen",
@@ -67,6 +48,10 @@
     {
       "id": "b112",
       "at": "2026-09-02T00:07:29.418Z"
+    },
+    {
+      "id": "b113",
+      "at": "2026-09-02T00:28:46.850Z"
     }
   ]
 }

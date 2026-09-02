@@ -8773,7 +8773,7 @@ function drawBird(it){
   if (nearHidden(b.y, y)) return;
   const n = nearScale(b.y);            // 1 everywhere but the near block (#106)
   ctx.fillStyle = b.col;
-  if (b.state === 'hop' || (b.state === 'land' && b.z < (b.zf || 0) + 1)){
+  if (birdDown(b)){
     ctx.beginPath(); ctx.ellipse(x, y - 2 * n, 2.6 * n, 1.8 * n, 0, 0, 7); ctx.fill();
     ctx.beginPath(); ctx.arc(x + 2 * n, y - 3.6 * n, 1.2 * n, 0, 7); ctx.fill();
     ctx.fillStyle = '#c9903a'; ctx.fillRect(x + 3 * n, y - 3.8 * n, 1.6 * n, 0.8 * n);
@@ -9109,9 +9109,20 @@ function crumbSpot(p, x, y, k){
 }
 /* Screen point → cell, in two halves, because the naming needs the SCREEN point too:
  * a tree's crown is nowhere near the cell its trunk stands in. One rect read per event. */
+/* #113: and into the space the picture is DRAWN in, which is not the space the pointer
+ * arrives in. resize() takes W and H off cv.parentElement — the frame's BORDER box —
+ * while #cv is `inset:0` within it, so the canvas element is the frame's PADDING box:
+ * 20 px narrower and 20 px shorter at every size measured. The browser stretches the
+ * backing store to fit, so a thing drawn at canvas x lands at x*(rect.width/W) on
+ * screen, and an event read straight off the element was up to 16 px out across the
+ * frame and 20 px down it — 3.3% of the height, against a walker 12 px tall and a bird
+ * about 5. Measured, not reasoned: two markers drawn at canvas (200,300) and (1000,500)
+ * photograph at (232.5,314.0) and (1019.4,507.4), which is the scaled prediction to a
+ * third of a pixel and 16-20 px off the raw one. Every hit test in the town comes
+ * through here — livingAt, faceAt, treeAt, cellOf — so it is ONE mapping in one place. */
 function evPx(ev){
   const r = cv.getBoundingClientRect();
-  return [ev.clientX - r.left, ev.clientY - r.top];
+  return [(ev.clientX - r.left) * W / (r.width || W), (ev.clientY - r.top) * H / (r.height || H)];
 }
 function cellOf(p){
   const [wx, wy] = unproject(p[0], p[1]);
@@ -9142,7 +9153,15 @@ cv.addEventListener('click', ev => {
   { livingAt(evPx(ev)); const who = livingHit;
     if (who){ touched = true; followPerson(who === followed ? null : who); return; }
     if (followed) followPerson(null); }
-  if (!answersTouch(x, y)) return;
+  /* A tap has no hover to fall back on, so until #113 everything the picture names but
+   * cannot be SOWN or scattered on — a bird up on the roof, a window, a weathervane, a
+   * crown — answered a mouse and said nothing at all to a finger. The cell test still
+   * decides what a tap DOES; it no longer decides whether the tap is told what it hit. */
+  if (!answersTouch(x, y)){
+    if (!HOVERS){ const n = lookAt(evPx(ev));
+      if (n){ touched = true; held = n; heldTo = performance.now() / 1000 + NAME_HELD; } }
+    return;
+  }
   touched = true;              // they found it themselves; the invitation stands down
   const j = y * GW + x;
   if (grid[j] === BED || grid[j] === CBED){
@@ -9388,6 +9407,40 @@ function cartName(){
   return c.state === 'stop' ? (c.at === 'gate' ? 'the carter and his horse, waiting at the allotment gate' : 'the carter and his horse, drawn up by the stalls' + what)
        : c.out ? 'the carter and his horse, trotting home' + what : 'the carter and his horse' + what;
 }
+/* #113: the near roof's birds have answered since #106 and NO OTHER BIRD DID — a pigeon
+ * on the plaza roundel (which #92 gave its own roll and cap precisely so it would be
+ * there), one strutting the lane, a blackbird down on the lawn, the flock the bell puts
+ * up off the belfry: all silent under the pointer, on the most-used offer after #where.
+ * Every bird the town draws answers now.
+ *   WHAT it is comes off the band it was spawned into — b.plaza and the belfry flush are
+ * pigeons in the town's own words already (PLAZA_WORDS, the child who chases them), the
+ * rest are birds.
+ *   WHERE comes off the SAME predicates the ground is named with — pavingAt for paving,
+ * the grid for grass — never a second table of boxes, so the bird and the flags under it
+ * can no more disagree than the words and the crumbs can. An airborne bird is over
+ * nowhere it is standing, so it claims no place at all; on the way DOWN it is dropping
+ * straight onto the spot it was given (the land state moves z alone), so that one does.
+ *   And DOWN is drawBird's own test, not a second reading of the state machine: the words
+ * and the picture cannot disagree about whether a bird is on its feet. */
+function birdDown(b){ return b.state === 'hop' || (b.state === 'land' && b.z < (b.zf || 0) + 1); }
+function birdPlace(b){
+  const x = clamp(b.x | 0, 0, GW - 1), y = clamp(b.y | 0, 0, WH - 1), g = grid[y * GW + x];
+  if (g === GRASS) return 'the lawn';
+  return (g === SIDE || g === ROAD || g === PATH) ? pavingAt(x, y).what : '';
+}
+function birdName(b){
+  if (b.state === 'wheel') return 'a pigeon put up off the belfry by the bell';
+  const down = birdDown(b);
+  if (b.roof) return !down ? (b.state === 'land' ? 'a bird coming down onto our own roof' : 'a bird, up off our own roof')
+       : b.perch === 'well'    ? 'a bird on the lip of the light well, looking down'
+       : b.perch === 'parapet' ? 'a bird on the parapet, over the lane'
+       : b.perch === 'loft'    ? 'a pigeon on the loft\'s landing board'
+       : b.perch === 'ridge'   ? (nightF > 0.5 ? 'a bird roosting on the ridge' : 'a bird up on the ridge')
+                               : (nightF > 0.5 ? 'a bird roosting on the slates' : 'a bird up on the roof slates');
+  const what = b.plaza ? 'a pigeon' : 'a bird', where = birdPlace(b);
+  if (!down) return what + (b.state === 'land' && where ? ', coming down onto ' + where : ', on the wing');
+  return where ? what + ', down on ' + where : what + ', down on the ground';
+}
 function personName(a){
   if (a.famKid) return a.run ? (a.chasing ? 'a child, chasing the pigeons' : 'a child, running about the roundel')
                              : a.state === 'walk' ? 'a child, at someone\'s side' : 'a child, back at someone\'s side';
@@ -9461,14 +9514,16 @@ function livingAt(p){
   if (catA) hit(catA.x, catA.y, catA.z || 0, 0.6, catA.y + 0.3,
     catA.leg === 'ridge' ? 'the cat, up on the ridge' :
     catA.leg === 'lane'  ? 'the cat, out along the lane' : 'the cat, going up over the parapet');
-  // #106: the roof's own tenants are nameable, or nobody finds them — the sill is how
-  // this piece advertises what it contains. Only the ones that are DOWN: a bird still in
-  // the air is not standing anywhere the pointer can mean.
-  for (const b of birds) if (b.roof && b.state === 'hop')
-    hit(b.x, b.y, b.z, 0.5, b.y + 0.4,
-        b.perch === 'well'    ? 'a bird on the lip of the light well, looking down' :
-        b.perch === 'parapet' ? 'a bird on the parapet, over the lane' :
-        nightF > 0.5          ? 'a bird roosting on the ridge' : 'a bird up on the roof slates', 0.9);
+  /* #106 named the roof's tenants — the sill is how this piece advertises what it
+   * contains — and #113 gave the rest of the birds the same answer. The box is the one
+   * every living thing here gets, sized by nearScale() because that is the factor
+   * drawBird draws them at: on the near block a bird is up to 1.95x, and a hit box that
+   * ignored it missed the half of the sprite the pointer was actually over. sortY is
+   * b.y + 0.4, the key the draw pass itself sorts birds on, so the one in front wins. */
+  for (const b of birds){
+    const n = nearScale(b.y);
+    hit(b.x, b.y, b.z, (birdDown(b) ? 0.5 : 0.4) * n, b.y + 0.4, birdName(b), 0.9 * n);
+  }
   return best;
 }
 /* The windows and front doors, hit-tested in SCREEN space against FACES[] — painter's
