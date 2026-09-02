@@ -20,7 +20,7 @@
   "avoid": "Do not raise LAWN_CAP — #121 swept it 2..12 and 8 is the knee. A share of a roll is not a rate: if the gardener needs its own source, give it one and follow spawnLawnAgent's pattern rather than reweighting LAWN_W and hoping. And raising one kind inside a fixed set of place-holders takes places from another — sweep it and report WHICH kind absorbed the change, because that composition shift is nobody's brief.",
   "budgetMin": 35,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 129,
   "issued": "2026-09-02T09:54:57.929Z",
