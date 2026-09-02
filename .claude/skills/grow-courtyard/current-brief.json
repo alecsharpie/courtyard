@@ -17,7 +17,7 @@
   "avoid": "Do not change `farOpen`, `farRate`, `FAR_CAP 3` or the five branches — #107 priced them and they work. If what you build is a TUNNEL-class cell it will move `passages`, which has never moved; that is allowed but it must be deliberate, so say which you chose and re-pin if it moves.",
   "budgetMin": 30,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 2,
   "nextIter": 119,
   "issued": "2026-09-02T02:36:23.865Z",
