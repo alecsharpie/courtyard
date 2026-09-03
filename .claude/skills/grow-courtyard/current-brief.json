@@ -20,7 +20,7 @@
   "avoid": "Do not add a plot state or a species - the plots are monoculture BY CONSTRUCTION (#147, 0 of 69,008 sown plot-samples held two species) and this brief is about what the PERSON does, not what grows. Prefer hash(plot, k) to a new R() draw: any new draw reshuffles the whole seeded world and the census will churn everywhere. If the re-count on HEAD refutes the 15-of-101, say so and reject the brief - that is a good outcome, not a failure.",
   "budgetMin": 30,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 152,
   "issued": "2026-09-03T02:36:00.611Z",
