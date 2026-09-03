@@ -1580,7 +1580,7 @@ function isMarketDay(){ return day > 0 && day % 4 === 2; }
  * — washing, smoke, sway, bunting, the fountain's lean, the river streaks and the boat
  * all snapped at once, and snapped back the next morning. Now `wind` is stepped in
  * simStep like cloudCover(): it climbs to the day's target over WIND_RISE_H sim hours
- * and dies the same way, exact at 0 and at 1 (the last step lands ON the target, no
+ * and dies the same way, exact at either end (the last step lands ON the target, no
  * float residue). isWindy() is the behaviour boolean the agents and the leaves read;
  * every draw site multiplies by windF(); the gust is already on windT. windX is the
  * extra cloud drift the wind has accumulated, so cloud position is continuous too. */
@@ -1602,28 +1602,75 @@ const WIND_RISE_H = 2.5;                       // sim hours from calm to full, a
 const WIND_FRONT_LO = 0.46, WIND_FRONT_HI = 0.76;
 let frontSpent = false;
 function frontWind(){ return raining || frontSpent ? 0 : clamp((cloud - WIND_FRONT_LO) / (WIND_FRONT_HI - WIND_FRONT_LO), 0, 1); }
-function windTarget(){ return Math.max(windyDay() ? 1 : 0, frontWind()); }
+/* The wind's STRENGTH (#156). windyDay() was the coin AND the whole magnitude — the
+ * target was `max(windyDay() ? 1 : 0, frontWind())` — so windF at a call read 0 on 224
+ * samples and exactly 1.0 on 100 of 364 (probes/punt-wind.mjs, 10 seeds x 26 d): 89% at
+ * the two ends. Every term keyed on a windF strictly between them (the awning and
+ * washing sway, vaneAngle, the mirror's chop, the streaks, PUNT_WIND_SLOW/SHY,
+ * FOUNT_WIND_SHY, BOAT_WIND_SHY) was a ramp nobody stood in. Two draws replace the
+ * coin's magnitude, both hash-only — no R(), so the seeded calendar keeps its column:
+ *
+ *   windDayF() — HOW MUCH, one per day. windyDay() still decides WHICH distribution the
+ *   day is drawn from (its 0.28 share is untouched), and the draw decides the strength:
+ *   a windy day is BLOW_LO..1, a still day is STILL_LO..STILL_HI, both skewed low by
+ *   h**WIND_SKEW, so most windy days are fresh, a gale is rare, and a still day is not
+ *   dead flat. The two ranges do not overlap: a still day can never read as a blow.
+ *
+ *   windHourF() — WHEN, inside the day. Fair-weather wind is thermal: it builds through
+ *   the morning, peaks mid-afternoon and falls away overnight. Keyed on the SUN's hour
+ *   (the peak at sunUp + WIND_PEAK*dayHours), never a clock hour, so it moves with the
+ *   season; one cosine over the whole 24 h, so it is continuous across the hour-6 roll
+ *   and its trough sits pre-dawn — which is where the mist windows are, and why the
+ *   tightest wind bar in town (HOL_CALM 0.22) still clears on a breezy still day.
+ *
+ * A FRONT is not thermal and does not take the shape: frontWind() is maxed in after,
+ * unchanged. stepWind's rate cap still owns the slope, so nothing steps. */
+const WIND_STILL_LO = 0.04, WIND_STILL_HI = 0.30;   // a still day still has air moving in it
+const WIND_BLOW_LO = 0.45;                          // a windy day: fresh (0.45) .. gale (1)
+const WIND_SKEW = 1.6;                              // h**SKEW — the mass sits low in both ranges
+const WIND_PEAK = 0.65, WIND_NIGHT = 0.45;          // the thermal day: peak past noon, trough pre-dawn
+function windDayF(){
+  const h = Math.pow(hash(day, 151 + WIND_SALT), WIND_SKEW);
+  return windyDay() ? WIND_BLOW_LO + (1 - WIND_BLOW_LO) * h
+                    : WIND_STILL_LO + (WIND_STILL_HI - WIND_STILL_LO) * h;
+}
+function windHourF(){ return WIND_NIGHT + (1 - WIND_NIGHT) * (0.5 + 0.5 * Math.cos(2 * Math.PI * (hour - (sunUp + WIND_PEAK * dayHours)) / 24)); }
+function windTarget(){ return Math.max(windDayF() * windHourF(), frontWind()); }
 let wind = -1, windX = 0;                      // -1: not yet initialised — take the day's target at first step
-function windF(){ return wind < 0 ? (windyDay() ? 1 : 0) : wind; }
-function isWindy(){ return windF() > 0.5; }
+function windF(){ return wind < 0 ? windTarget() : wind; }
+/* The behaviour boolean stays SPLIT from the intensity (a law): windF() is what a draw
+ * site multiplies, isWindy() is whether the town treats today as a blow. Its bar moved
+ * 0.5 -> WIND_BEHAVE because the input did. The bar now sits BETWEEN the two ranges, so
+ * it is a statement about the day's kind and not a coin on its hour: every windy day
+ * crosses it at its peak (BLOW_LO 0.45 > 0.40) and no still day can ever reach it
+ * (STILL_HI 0.30). It also holds the share: the town reads windy on 31.7% of its
+ * daylight against HEAD's 36.9%, where the old 0.5 would have given 24.9%
+ * (probe-wind-strength, 4 seeds x 26 d). A blow is an afternoon, not a whole day. */
+const WIND_BEHAVE = 0.40;
+function isWindy(){ return windF() > WIND_BEHAVE; }
 /* The wind's SIGN (#71). The magnitude never had a direction: every consumer leaned
  * +x, so the washing, smoke, bunting, spray, streaks, clouds and the shed leaves all
  * went the same way in every seed, and the litter heaped east of every tree (c102).
  * windSign is +1 (west wind, the old lean) or -1 (east wind), one per spell: a hash
- * of the day it rises, latched while the wind is calm (windF <= WIND_SIGN_CALM) and a
- * target appears, so it cannot flip inside a blow — a front rising into a windy day
- * keeps the sign it rose with. Consumers whose lean is already x windF() multiply by
- * windSign; consumers with a calm +x drift (smoke, leaves, clouds) use windDir(), a
+ * of the day it rises, so it cannot flip inside a blow — a front rising into a windy
+ * day keeps the sign it rose with. Consumers whose lean is already x windF() multiply
+ * by windSign; consumers with a calm +x drift (smoke, leaves, clouds) use windDir(), a
  * blend from +1 at calm to the sign at full wind, so nothing steps when a sign latches
- * and everything reduces to today at sign +1. hash only — no R(). */
-const WIND_SIGN_CALM = 0.1;
-let windSign = 1;
+ * and everything reduces to today at sign +1. hash only — no R().
+ * #156: the latch was `wind <= WIND_SIGN_CALM` — the wind at rest. Now that still air
+ * has a strength the wind is never at rest, and that test would have latched once, on
+ * the first step, and then held one sign for every day of every world. The spell is the
+ * thing it was always asking about, so it now asks about the spell: the sign rolls once
+ * a day and only OUTSIDE one, which is HEAD's rule (a blow keeps the sign it rose with,
+ * consecutive windy days are one spell) with the magnitude taken out of it. */
+let windSign = 1, windSpell = false, signDay = -1;
 function signFor(d){ return hash(d, 7 + WIND_SALT) < 0.5 ? -1 : 1; }
 function windDir(){ return 1 + (windSign - 1) * windF(); }
 function stepWind(dt){
-  const tgt = windTarget();
-  if (wind < 0){ wind = tgt; if (tgt > 0) windSign = signFor(day); return; }
-  if (tgt > 0 && wind <= WIND_SIGN_CALM) windSign = signFor(day);   // latched from calm, held through the blow
+  const tgt = windTarget(), spell = windyDay() || frontWind() > 0;
+  if (wind < 0){ wind = tgt; windSign = signFor(day); signDay = day; windSpell = spell; return; }
+  if (signDay !== day && !windSpell){ windSign = signFor(day); signDay = day; }   // once a day, never inside a blow
+  windSpell = spell;
   const r = dt * 24 / (WIND_RISE_H * DAY_LEN);
   wind = Math.abs(tgt - wind) <= r ? tgt : wind + (tgt > wind ? r : -r);
   // drawClouds: drift 1.4*(simT + windX) -> 3.4 x simT at full wind, -3.4 under an east wind
@@ -4154,12 +4201,16 @@ function spawnAllotAgent(){
  * (litter's autumn bbox is x 4..71 — the trees are all west of the fence), so a consumer
  * here would run at a rate of zero. */
 const BONFIRE = {x:84.0, y:19.5};
-const BON_K = 0.8, BON_SALT = 285;                           // hash share of shed days offered one — 5–6 of the 7 in every year of 12 (histogram); the weather then takes ~2/3 (wind 1.0 on a third of autumn mornings; snow lies by day 18)
+const BON_K = 0.8, BON_SALT = 285;                           // hash share of shed days offered one — 5–6 of the 7 in every year of 12 (histogram); the weather then takes ~2/3 (snow lies by day 18; #156 re-keyed the wind clause onto isWindy())
 const BON_RISE_H = 1.0, BON_BURN_H = 3.5, BON_FALL_H = 1.2, BON_EMBER_H = 4.0, BON_RAIN_H = 0.25;
 const BON_PUFFS = 18, BON_THICK = 0.62, BON_EMB_THICK = 0.12;   // the column's mass (#104): nine puffs at 0.34 read as dots at 1x
 const bon = {fire:0, ember:0, on:false, lit:-1, day:-1, holder:null};
 function bonfireDay(){ return leafShed() > 0.1 && hash(day, BON_SALT) < BON_K; }   // the SHED, days 12–18: leafFallF() > 0.3 is also every spring day
-function bonfireWeather(){ return !raining && wetF() < 0.4 && windF() < 0.5 && snowCover <= 0; }
+// #156: this clause was `windF() < 0.5`, which with a windF of 0 or 1 was isWindy()
+// spelled by hand. Graded, a hand-spelled bar is a coin on the HOUR — the heap was
+// offered a match on 72.8% of its hours against 52.1% on HEAD, a drift nobody chose.
+// Whether to light a bonfire is the day's KIND, so it asks the town's one word for it.
+function bonfireWeather(){ return !raining && wetF() < 0.4 && !isWindy() && snowCover <= 0; }
 function bonfireHour(){ return sunUp + 0.3 + hash(day, 518) * 1.2; }   // set out early: the walk in is most of a working day
 function bonfireDue(){ return bon.day !== day && !bon.on && bon.fire === 0 && hour >= bonfireHour() && hour < bonfireHour() + 2 && bonfireDay() && bonfireWeather(); }
 function bonfireAlight(){ return bon.on || bon.fire > 0 || bon.ember > 0; }
@@ -5252,7 +5303,7 @@ function plazaBirdSpot(){
 /* #137 swept EVE_CAP too and left it: over 3 seeds x 26 days it binds 0.0% of the samples
  * its window is open for — the count reaches 5 on 4% of them and 6 never. The warm evening
  * is bounded by eveOpen()'s weather, not by its ceiling, so this number is already free. */
-const EVE_CAP = 6, EVE_RATE = 0.8, EVE_WARM = 0.6, EVE_WET = 0.3, EVE_WIND = 0.5, EVE_LEAD = 2.5, EVE_SPAN = 3, EVE_STAND = 1;
+const EVE_CAP = 6, EVE_RATE = 0.8, EVE_WARM = 0.6, EVE_WET = 0.3, EVE_LEAD = 2.5, EVE_SPAN = 3, EVE_STAND = 1;
 /* ---- and the hour it is OVER (#101) ----
  * #79 priced the walk IN and nothing else, so the evening ended at eveEnd() and the
  * walking home began there: traced over 10 seeds x 4 days, a dusk agent went off the
@@ -5290,7 +5341,9 @@ const EVE_SPOTS = [
 ];
 for (const s of EVE_SPOTS){ s.taken = 0; if (s.bench){ s.x = s.bench.x + 0.5; s.y = s.bench.y + 1.0; } }
 function eveEnd(){ return sunDown + EVE_SPAN; }                 // on hourEve()'s axis
-function eveWeather(){ return warmth >= EVE_WARM && !raining && wetF() < EVE_WET && windF() < EVE_WIND; }
+// EVE_WIND 0.5 went the same way as the bonfire's (#156): standing about by the river
+// all evening is a question about the day, and isWindy() is the town's answer to it.
+function eveWeather(){ return warmth >= EVE_WARM && !raining && wetF() < EVE_WET && !isWindy(); }
 function eveOpen(){ return day >= 1 && eveWeather() && hourEve() >= sunDown - EVE_LEAD && hourEve() < eveEnd(); }
 function eveCount(){ return agents.filter(a => a.dusk && !a.stay).length; }   // the gate arrivals, under EVE_CAP
 function stayCount(){ return agents.filter(a => a.stay).length; }               // the far side's own, under the two posts
@@ -6568,13 +6621,28 @@ const murBox = { on:false, x:0, y:0, rx:1, ry:1 };   // last frame's cloud, for 
 function murmSeason(){ return leafShed() > 0.1 || leafOut() <= 0; }
 // raining is a hard 0: rainFall is a TAIL measure (1 at onset, ramps only at the end),
 // so there is no smooth onset signal — and the town already treats rain as a cut
-function murmWx(){ return (raining ? 0 : 1) * clamp((0.7 - windF()) / 0.12, 0, 1); }
-function murmEnv(){
+/* #156: this was a STEP wearing a ramp's clothes. The ramp is 0.12 wide (0.58..0.70)
+ * and windF was a coin, so murmWx read exactly 0 or 1 at 95.3% of the dusks it is
+ * asked at (probe-wind-consumers, 6 seeds x 26 d): the flock came whole or not at all,
+ * and the town never once saw a wind-thinned one. Now the day has a strength, so the
+ * ramp can span the range it is actually read over — full while the air is no windier
+ * than a still day ever gets (WIND_STILL_HI), gone by MURM_WIND_OUT, which is HEAD's
+ * own upper edge, so a gale still empties the sky exactly where it always did. Measured
+ * over the dusks it is read at: the wind DELETED the flock on 47.4% of them and thinned
+ * it on 4.7%; it now deletes on 29.8% and thins on 25.2%. */
+const MURM_WIND_OUT = 0.70;
+const MURM_THIN = 0.35, MURM_LOOSE = 0.35;   // a breezy dusk: a third of the flock, a third wider
+function murmWx(){ return (raining ? 0 : 1) * clamp((MURM_WIND_OUT - windF()) / (MURM_WIND_OUT - WIND_STILL_HI), 0, 1); }
+/* the SHAPE is the forming and the fading, and it is split from the weather because the
+ * two are read separately now: the draw fades a bird on the shape and thins the flock on
+ * the weather. murmEnv() is their product, exactly as before. */
+function murmShape(){
   if (!murmSeason()) return 0;
   const rise = clamp((hour - (sunDown - 1.3)) / 0.35, 0, 1);    // ~0.8 s real: it FORMS, it does not appear
   const fall = clamp(((sunDown + 0.05) - hour) / 0.15, 0, 1);   // stragglers fade past the roost, never pop
-  return Math.min(rise, fall) * murmWx();
+  return Math.min(rise, fall);
 }
+function murmEnv(){ return murmShape() * murmWx(); }
 function skeinEnv(){
   if (!roosted || !murmSeason()) return 0;
   const rise = clamp((hour - (sunUp - 0.05)) / 0.1, 0, 1);
@@ -6584,7 +6652,11 @@ function skeinEnv(){
 /* Sim-side so a warped-to morning still knows last evening happened: the latch is
  * stepped, never written from the draw (__warp never draws). */
 function stepMurm(){
-  if (murmEnv() > 0.5){
+  // #156: `murmEnv() > 0.5` was this test when murmWx was a coin. Graded, it became a
+  // cliff — a dusk at wx 0.45 would never latch, so no announcement AND no morning
+  // skein. The latch asks whether they CAME IN, which is the shape and any weather at
+  // all; at wx 0/1 it is HEAD's test exactly.
+  if (murmShape() > 0.5 && murmWx() > 0){
     roosted = true;
     if (murAnnounced !== day){
       murAnnounced = day;
@@ -6593,14 +6665,16 @@ function stepMurm(){
   } else if (hour > sunUp + 0.7 && hour < sunDown - 1.5) roosted = false;
 }
 function drawMurmuration(g){
-  const e = murmEnv(), mo = skeinEnv();
+  const wx = murmWx(), e = murmEnv(), mo = skeinEnv();
   murBox.on = false;
   if (e < 0.01 && mo < 0.01) return;
   const tRM = RM ? 0.3 : 1, lean = windSign * windF();
   g.fillStyle = '#20242e';                       // dark against a bright sky; applyLight owns the rest
   const dotW = Math.max(1.5, cellW * 0.18), dotH = Math.max(1.5, cellH * 0.18);   // a starling is a dot at 1x, a fleck in a quarter
   if (e >= 0.01){
-    const N = 80 + Math.floor(hash(day, 601) * 81);          // the day's flock
+    // #156: the wind takes BIRDS and loosens the cloud; it does not make a starling
+    // translucent. Every term below is written so wx = 1 is HEAD's number exactly.
+    const N = Math.round((80 + Math.floor(hash(day, 601) * 81)) * (MURM_THIN + (1 - MURM_THIN) * wx));
     const wx0 = 121 + (hash(day, 607) - 0.5) * 6 + lean * 3; // over the river, leaning downwind
     const dd0 = -7.6 + (hash(day, 611) - 0.5) * 3;   // boiling just clear of the backdrop skyline
     const nA = 2 + (hash(day, 613) < 0.5 ? 1 : 0);           // two or three drifting attractors
@@ -6611,7 +6685,7 @@ function drawMurmuration(g){
       ad.push(dd0 + Math.sin(simT * 0.23 * tRM + hash(day, 630 + j) * 6.28) * (1.4 + j * 0.6));
     }
     const gatherF = clamp((hour - (sunDown - 1.3)) / 0.25, 0, 1);
-    const sp = lerp(4.6, 2.8, gatherF) * (1 - 0.45 * fu);
+    const sp = lerp(4.6, 2.8, gatherF) * (1 - 0.45 * fu) * (1 + MURM_LOOSE * (1 - wx));   // a breeze shears it wider
     for (let k = 0; k < N; k++){
       const h1 = hash(k, 101), h2 = hash(k, 103), h3 = hash(k, 107), h4 = hash(k, 109);
       const j = k % nA;
@@ -6622,7 +6696,7 @@ function drawMurmuration(g){
       const th = simT * (1.4 + h4 * 1.6) * tRM + h1 * 6.28;
       let wx = bx + Math.cos(th) * r * (1 + 0.35 * windF());
       let dd = bd + Math.sin(th) * r * 0.5;
-      let al = (0.5 + 0.4 * h2) * e;
+      let al = (0.5 + 0.4 * h2) * murmShape();   // the FADE is the hour's, not the weather's
       if (fu > 0){
         const landF = clamp((fu - h1 * 0.6) / 0.35, 0, 1);   // staggered, so the cloud thins rather than cuts
         if (landF > 0){
@@ -13295,8 +13369,17 @@ function roofFurnName(f){
     return nightF > 0.5 ? 'a pigeon loft, shut up for the night' : 'a pigeon loft, the board empty';
   }
   // the cord stays strung whatever the weather, so the line is named by what is NOT on it
-  if (washOut()) return windF() > 0.45 ? 'a line of washing, blowing about on the roof'
-                                       : 'a line of washing out to dry';
+  // #156: `windF() > 0.45` was the third hand-spelled isWindy(), and so the line had two
+  // states over an input with two values. But the washing is not a behaviour, it is a
+  // thing you can SEE, and its sway is x(1 + 0.7*windF()) — continuous, and never once
+  // named as such. Three rungs on the town's own two bands, and nothing invented: a
+  // blow (isWindy), breezier than any still day ever gets (WIND_STILL_HI), and the rest.
+  // The new middle rung is deliberately a THIN band — 0.30..0.40 — and it fires on 3.4%
+  // of the hours washing is out (probe-wind-consumers, 6 seeds x 26 d), which is a few
+  // afternoons a year rather than a common sight. Counted, not assumed.
+  if (washOut()) return isWindy()              ? 'a line of washing, blowing about on the roof'
+                      : windF() > WIND_STILL_HI ? 'a line of washing lifting in the breeze'
+                                               : 'a line of washing out to dry';
   if (snowCover > 0.04) return 'a washing line, the cord under snow';
   if (raining || wetF() > 0.22) return 'a washing line, nothing out on a wet day';
   return hour < sunUp + 1.3 ? 'a washing line, not pegged out yet'

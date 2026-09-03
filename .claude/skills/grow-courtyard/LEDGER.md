@@ -40,26 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 147 — the allotments are monoculture, and the brief's bug does not exist (2026-09-03) [Cross street & allotments × Deepen]
-
-**Brief:** b147 — make `plotCrop()` answer for the PLOT, not its first sown cell. Full entry in LEDGER-archive.md.
-**Priced the premise first, and it is false.** A year × 3 seeds (`probes/allot-year.mjs`, 69,008 sown plot-samples): **0** held two species (species/plot **1.000**), so the first cell WAS the majority, and **0** had a hardy cell under a tender majority. In deep winter tender cells in the open reach stage 3 **0 times**, against hardy 21,474 and glass 10,191: `successLooksLike` already holds on HEAD, exactly. Monoculture because caTick's infill sows a bare cell with `plotCrop()` itself, `harvestPlot()` lifts the row whole, and the kneel plants nothing.
-**The premise's source:** `plotClimbs()`'s comment claimed the first-cell read missed "a fifth of the plots that actually had beans". Re-counted, they agree **13,012 of 13,012**.
-**Did.** Killed the false claim; wrote the measured invariant at `plotCrop()` — the three conditions holding it, and the successor read for the day one goes.
-**Gates:** census **byte-identical** · visual PASS · motion/perf skipped: no draw, no `R()`.
-**Verdict:** briefRejected — source corrected, feature not built.
-**Surprise:** the hand-sow branch is dead. 101 allot kneels a year = 71 harvests + 15 turns + 15 hand-sows, and the hand-sows plant **0 cells** — a kneel only reaches an UNRIPE plot, and by then the infill has filled it. A holder comes in through the gate, kneels, plants nothing, says nothing, walks out.
-
-## Iteration 148 — the plaza's families are priced at both ends of a window the sun cuts (2026-09-03) [Plaza & quay × Scale/World]
-
-**Brief:** b148 — price presence as rate × visit, then sweep and keep the knee. Full entry in LEDGER-archive.md.
-**Priced first.** Five places at **7.7–12.6 h** apiece against a **7.5 h** window: no whole visit fit, "too late" ate **61.3%** of calls (cap 9.8%, places 2.6%), and half a family's day is walking.
-**Did.** `famWalk()` — one definition of the two legs, called by the roll's bounds and the set-out test alike. `famWin()` — `FAM_H0`/`FAM_H1` are the hours the plaza HOLDS families, first ARRIVED to last GONE, cut to the sun. The fit is a FILTER on free places, not a veto after the draw; the dwell clips to the room left against `FAM_DWELL_MIN`. `freeBench()`/`a.pbench` beside `freeStand()`/`a.fstand`, both nulled in `makeCompanion`.
-**Gates:** census FAIL `people −10%` and motion FAIL `cart 0→1` both **replayed and dismissed** — 9 seeds put the census gap entirely in 4 raining cells (DRY 1084→1089, re-pinned), and HEAD carries the identical `cart85 moved 2.60` at seed 7. Filmstrip 0 POP, shots clean.
-**Shipped** (6 seeds × 14 days): **held 1.83 → 2.70 of 5**; bench1 26.1→60.5%, stand2 22.4→55.6%. Arrivals/day 2.46→4.05, cap binds 11.3→47.7%, plaza 5.88→8.59.
-**Verdict:** shipped — the crowding bar is MISSED and that is the finding.
-**Surprise:** the crowding is not the families'. Pairs per person went 0.153→0.167, outside the band — but PER FAMILY they fell, 0.204→0.192, and with the family source off the plaza reads 0.114 on HEAD and 0.097 here. By kind, the plaza's commonest crowded pair is **`parent+plaza`, 27%, on BOTH builds**: #144 put its stands on the roundel's SOUTH arc and everything approaches from the south. The 90° stand is at (105.5, 33.5), the lane's plaza corridor `ex2` is 104–106 running due north through it, and a family's route to the far bench passes **0.4 cells** from it. Occupancy did not create the fault; it made the town walk through it more often.
-
 ## Iteration 149 — two gates that lied, and one of them now binds the worker (2026-09-03) [The sill & the observer × Harness]
 
 **Brief:** b149 — bound what ONE iteration ADDS; fix or retire `probes/punt.mjs`. Full entry in LEDGER-archive.md.
@@ -127,3 +107,15 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped
 **Surprise:** the coarse run-gate that makes a long margin GATHER is a coin on a short one. Right on the 68-cell bank columns it was written for; on the eyot's 17-cell rim it kept **4**, in two lumps — the exact fault it exists to prevent. A ring round an island is already a place, so the rim takes the fine gate only: 16 of 17.
 **Law:** a hash gate tuned as a SHARE over a long run is one COIN over a short one — split the population by the scale the gathering happens on before sweeping the constant.
+
+## Iteration 156 — the wind gets a real strength (2026-09-03) [Sky, light & weather × Deepen]
+
+**Brief:** b156 — windF was a coin, 88% at the ends. Full entry in LEDGER-archive.md.
+**Did.** Two hash-only draws replace the coin's magnitude, no `R()`: `windDayF()` is HOW MUCH (`windyDay()` picks the distribution — 0.45..1 against 0.04..0.30), `windHourF()` is WHEN (a cosine on the sun's hour). `isWindy` 0.5 -> **0.40**, BETWEEN the ranges; `windSign`'s latch asked about the wind AT REST.
+**Consumers, at the call.** `bonfireWeather`, `EVE_WIND` and the washing's name each spelled `windF() < 0.5` by hand, which over a 0/1 input IS `isWindy()`; all routed back through it. `murmWx`'s 0.12-wide ramp was a step in ramp's clothes: widened to 0.30..0.70, and a partial wx takes BIRDS, not opacity.
+**Gates:** census PASS · shots clean · day and dusk **0 POP** · motion `day/cart` FAIL dismissed (HEAD hops too).
+**HEAD -> cand.** End bins **86.9% -> 41.0%**; the four intensity ramps **15.9% -> 90.6% partial**. At a pinned dusk HEAD paints all 130 birds at fading alpha, cand **98/77/56** at windF .45/.55/.65.
+**Verdict:** shipped
+**Surprise:** the four intensity ramps were **not** mis-tuned, though the brief said they would be. Their means moved under 0.003 while the share inside (0,1) went 15.9% -> 90.6%: always tuned right, never once asked a question with an answer in the middle. What drifted was the opposite: the bonfire's bar is read at a CALM hour, now passing on **58.4% of hours against 40.2%**.
+**Law:** a bar spelled with a MAGIC NUMBER over a bimodal input is a silent COPY of the predicate naming it; give the input a middle and each copy becomes a coin on its consumer's hour.
+**Cue:** nothing re-asks `bonfireWeather()` once the heap is lit: a fire started in a calm dawn burns on through an afternoon gale.
