@@ -1,30 +1,25 @@
 {
-  "id": "b147",
-  "domain": "Cross street & allotments",
-  "kind": "Deepen",
-  "brief": "plotCrop() answers for a whole allotment plot off its FIRST sown cell, but a gardener's kneel scatters over a 3x3 and crosses plot edges, so a plot can hold six species and be described by whichever one the loop reached first. plotStands() and bedCap() both read it. Cabbages are the one hardy species in this town and hold the winter alone, which means one cabbage in the corner of a plot may be holding the full winter ceiling for five tender neighbours that should be stalled. Make the answer the PLOT's, not the first cell's - a plot's crop is what is mostly in it, or its readers ask a question that has a per-cell answer.",
+  "id": "b148",
+  "domain": "Plaza & quay",
+  "kind": "Scale/World",
+  "brief": "#144 reserved the fountain's three stands and then proved its own cap dead: FAM_CAP 5 and 7 return byte-identical numbers and bind 0.0% of open daylight, so past 4 the bound was never the places. Families hold at ~1.9 against three stands and two benches because FAM_RATE 0.5 and the 9.5-17 window are what bind - which the source comment had guessed and nobody had tested. The plaza is the town's other room and it is the emptiest thing in a summer afternoon shot. Spend what #144 measured: price presence as rate x visit BEFORE moving either, then sweep the rate and the window and keep the knee.",
   "seams": [
-    "plotCrop",
-    "plotStands",
-    "bedCap",
-    "harvestPlot",
-    "ripePlots",
-    "bSp",
-    "speciesFor",
-    "inAllotment"
+    "FAM_RATE",
+    "famOpen",
+    "FAM_CAP",
+    "spawnFamilyAgent",
+    "FOUNT_STANDS",
+    "freeStand",
+    "famBench",
+    "withCompanion"
   ],
-  "successLooksLike": "Through a winter, a plot sown mostly tender stalls at stage 1 with its neighbours instead of riding a single cabbage's ceiling, and the glasshouse stays the one place in the town where a tender crop keeps going. Counted over a year, not read off one frame.",
-  "avoid": "Do not change what a kneel SOWS - the scatter is right and the bug is the read. Do not re-derive the footprint: a plot OWNS x [ox,ox+4) y [oy,oy+3) and never its west side, so read it back off the grid. And check every caller before you widen the signature.",
+  "successLooksLike": "On a fine summer afternoon the fountain's three stands and the two plaza benches are held more often than not, and crowded pairs per person stays inside #144's 0.145-0.159 band rather than climbing back toward HEAD's 0.282.",
+  "avoid": "Do not raise FAM_CAP - it is a proved dead constant and raising it is how this brief fails silently. Do not widen the window at the LANDING end only: bound both ends, and the END is the hour the last family is GONE, so the walk home is priced at the choice. A family that can get neither bench nor stand must still decline to set out.",
   "budgetMin": 35,
   "risk": "low",
-  "status": "rejected",
-  "attempts": 1,
-  "nextIter": 147,
-  "issued": "2026-09-02T22:36:56.001Z",
-  "fromPlan": "2026-09-03T00:00:00.000Z",
-  "briefRejected": {
-    "reason": "premise refuted on HEAD by count, not opinion",
-    "evidence": "probes/allot-year.mjs, a year x 3 seeds: 0 of 69,008 sown plot-samples held two species (mean species/plot 1.000), so plotCrop's first-cell answer WAS the plot's majority every time; 0 plot-samples had a hardy cell under a tender majority; in deep winter (bloomCap<1.5) tender cells in the open reach stage 3 0 times (0 promotions, 0 cell-samples) against hardy 21,474 and under glass 10,191. The brief's successLooksLike already holds exactly on HEAD. Root cause of the premise: a stale comment above plotClimbs() claiming a ~20% first-cell miss rate; re-counted, plotClimbs and plotCrop===BEANS agree on 13,012 of 13,012 bean plot-samples.",
-    "shipped": "the comment correction only - no behaviour change, census byte-identical"
-  }
+  "status": "active",
+  "attempts": 2,
+  "nextIter": 148,
+  "issued": "2026-09-02T22:50:11.497Z",
+  "fromPlan": "2026-09-03T00:00:00.000Z"
 }

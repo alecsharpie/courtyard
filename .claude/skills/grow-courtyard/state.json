@@ -1,8 +1,8 @@
 {
-  "updated": "2026-09-02",
+  "updated": "2026-09-03",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 147,
+  "lastIteration": 148,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -298,6 +298,9 @@
       ],
       "new-ca": [
         103
+      ],
+      "scale": [
+        148
       ]
     },
     "river": {
@@ -504,7 +507,9 @@
       "FAMILIES: spawnFamilyAgent/FAM_CAP 4/famOpen, a.fam + a.famKid via makeCompanion, famBench; past 4 the bound is FAM_RATE and the 9.5-17 window, not the cap (#144)",
       "the paving AGES in two regions (plaza PATH, quay SIDE): moss[]/mossOwn[], buildMossRegion/stepMossRegion/mossShelterAt/MOSS_WET/mossIn/MOSS_POOL/scuffLitter; trodStone() in groundBase",
       "the quay is a WHARF: BARGE_BOLLARDS 5, BARGE_BERTH, structure.moorings; the BARGE on the punt's shape - barge{leg}/updateBarge, own tick, all-hash schedule, drawBargeDeck, BARGE_LAMP after applyLight",
-      "FOUNT_STANDS (#144): three stands on the roundel's inner ring r 3.5, one party each via a.fstand/freeStand(), shared by the family and the lane's plaza branch. probes/fount-stands.mjs"
+      "FOUNT_STANDS (#144): three stands on the roundel's inner ring r 3.5, one party each via a.fstand/freeStand(), shared by the family and the lane's plaza branch. probes/fount-stands.mjs",
+      "FAMILIES are priced at the CHOICE (#148): famWalk() the two legs, famWin() the hours the plaza HOLDS them (first ARRIVED to last GONE) intersected with the sun's own FAM_SUN hour, FAM_LEG the roll's span; the place is chosen from what FITS and the dwell CLIPS to the room left (FAM_DWELL_MIN). FAM_CAP 4, FAM_RATE 0.75, FAM_H0 10, FAM_H1 21. probes/fam-window.mjs, probes/plaza-shot.mjs",
+      "both plaza places RESERVED for both callers (#148): a.pbench/freeBench() beside a.fstand/freeStand(), nulled in makeCompanion so a place is held by the party's LEAD; a lane plaza-branch visitor who can get neither goes on to the quay rail"
     ],
     "river": [
       "river 13 cols (RIVER_X0 114..RIVER_X1 127), ONE rowboat, three-arch bridge, TOW_WALK/FAR_WALK, church + clock tower + rose window, bandstand, ORCHARD, JETTY, a swan PAIR; riverRun/drawRiverFlow",
@@ -613,6 +618,18 @@
       "id": "c235",
       "note": "the allotment hand-sow branch is dead: 15 of 101 allot kneels a year take it and plant 0 cells, because a kneel only ever reaches an UNRIPE plot and caTick's infill has already filled every cell of it. A holder walks in, kneels, plants nothing, says nothing, walks out (#147).",
       "raisedBy": 144,
+      "seenBy": 0
+    },
+    {
+      "id": "c236",
+      "note": "the plaza's commonest crowded pair is parent+plaza at 27% on EVERY build: #144's three stands sit on the roundel's SOUTH arc and every approach comes from the south. The 90-degree stand (105.5,33.5) is ON the lane's plaza corridor ex2 104-106, and a family's route to the far bench passes 0.4 cells from it. This is why #148 raised occupancy 48% and still missed the crowding band. The fix is a corridor, not a cap: skirt the stand ring, or move the arc off the approach.",
+      "raisedBy": 147,
+      "seenBy": 0
+    },
+    {
+      "id": "c237",
+      "note": "a cart teleports 2.60 cells in one step, once per run, at seed 7, on HEAD and on every candidate (motion.mjs names it cart85/cart181 depending on the reshuffle). Its median step is 0.000, so it is a parked cart being re-berthed. Pre-existing and never chased.",
+      "raisedBy": 147,
       "seenBy": 0
     }
   ],

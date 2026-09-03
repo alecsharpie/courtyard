@@ -40,18 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 140 — the buildings get their shadows (2026-09-03) [Roofs & skyline × Connect]
-
-**Brief:** b140 — nine cast shadows and every one an object; give the BUILDINGS theirs. Full entry in LEDGER-archive.md.
-**Did.** Two static grids beside `buildVolumes()`, one live pass beside `drawCloudShade()`. `shTop[]` is a solid cell's ROOF SURFACE, not its eave, so the far edge is #130's ragged skyline. `shOpen[]` — one south-to-north sweep per column carrying the deepest thing standing in FRONT of each cell — is the whole design. `buildSunShade()` marches each solid column down-sun (`dialThrow`'s solve, per cell of height) into a quarter-cell mask cached on a sun quantised to 1/64; `drawSunShade()` merges each row into runs and fills them as ONE path, ONCE. `shadowF()` fades it, `shOffset()` retracts the throw, `shSpread()` is the blur radius, zero at a clear sky.
-**Gates:** census unchanged · motion PASS · filmstrip day/dusk/dawn 0 POP · `frame-cost.mjs` 4.18 → **4.31 ms** · the edge creeps 0 or +1 sub-cell (2.2 px) a frame, never more.
-**HEAD → cand** (`probes/shade-diff.mjs`, seed 42, clear 16.9 h, 1600×950; same-code control 815 px): **25,343 px changed (2.40%)**, **94.8% open ground**, 4.6% the seam against the wall casting it, 37 px sky. Ground shaded **5.1%**; midwinter 10.5%; summer noon 0.1% — in under the eaves. No stacking (p0.1 luma 34→34). sd/mean: PATH.other **0.148→0.187**, ROAD.cross +16%, PATH.court +2.3%; CACHE 0.0%. 390×844: 1.20%.
-**Verdict:** shipped — but "half the courtyard in shade" is not reachable, and that is the finding.
-**Surprise:** the binder is `sunVec()`, not the shadow. Midday sun sits at 65–76°, so a throw is 0.33–1.0 × height: a 5.4-cell courtyard wall reaches TWO cells across a courtyard 58 wide — hence PATH.court +2.3% while the ten-cell cross street moves +16%. And ROAD.lane moved **0.0%**: the only volume south of the lane is our own block, whose eave is a fiction at 0.
-**Law:** a cast shadow's TARGET SET is a visibility question before a geometry one — `project()` lifts a volume ~LIFT rows UP the frame, so a northward throw must be vetoed per column or it paints the caster's own roof; and price its EXTENT off `-S/S[2]` before briefing it, because `sunVec()` is a stylised HIGH sun.
-**Law:** quads that must not double-darken are ONE path filled ONCE — overlapping subpaths wind to 2; per-quad fills seam and multiply twice.
-**Note:** `context-budget.mjs` reads **OVER — 47.2 KB of 46 KB** after this entry, its laws and its two cues.
-
 ## Iteration 141 — a second punt, in its own lane, and the lantern gets lit (2026-09-03) [River & far bank × Scale/World]
 
 **Brief:** b141 — answer the punt's SUPPLY; register `puntLampF()`'s lantern. Full entry in LEDGER-archive.md.
@@ -122,3 +110,16 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** briefRejected — source corrected, feature not built.
 **Surprise:** the hand-sow branch is dead. 101 allot kneels a year = 71 harvests + 15 turns + 15 hand-sows, and the hand-sows plant **0 cells** — a kneel only reaches an UNRIPE plot, and by then the infill has filled it. A holder comes in through the gate, kneels, plants nothing, says nothing, walks out.
 **Law:** a stale source COMMENT is a brief generator — when you refute a premise, delete the sentence that produced it, or the loop pays for it again.
+
+## Iteration 148 — the plaza's families are priced at both ends of a window the sun cuts (2026-09-03) [Plaza & quay × Scale/World]
+
+**Brief:** b148 — price presence as rate × visit, then sweep and keep the knee. Full entry in LEDGER-archive.md.
+**Priced first.** Five places at **7.7–12.6 h** apiece against a **7.5 h** window: no whole visit fit, "too late" ate **61.3%** of calls (cap 9.8%, places 2.6%), and half a family's day is walking.
+**Did.** `famWalk()` — one definition of the two legs, called by the roll's bounds and the set-out test alike. `famWin()` — `FAM_H0`/`FAM_H1` are the hours the plaza HOLDS families, first ARRIVED to last GONE, cut to the sun. The fit is a FILTER on free places, not a veto after the draw; the dwell clips to the room left against `FAM_DWELL_MIN`. `freeBench()`/`a.pbench` beside `freeStand()`/`a.fstand`, both nulled in `makeCompanion`.
+**Gates:** census FAIL `people −10%` and motion FAIL `cart 0→1` both **replayed and dismissed** — 9 seeds put the census gap entirely in 4 raining cells (DRY 1084→1089, town 54.26→57.42, re-pinned), and HEAD carries the identical `cart85 moved 2.60` at seed 7. Filmstrip 0 POP, shots clean, 0 claim clashes.
+**Shipped** (6 seeds × 14 days, 12–17 fine summer): **held 1.83 → 2.70 of 5**; bench1 **26.1→60.5%**, stand2 **22.4→55.6%**, rest 51/52/31→54/54/46. Arrivals/day 2.46→4.05, cap binds 11.3→47.7%, plaza 5.88→8.59.
+**Verdict:** shipped — the crowding bar is MISSED and that is the finding.
+**Surprise:** the crowding is not the families'. Pairs per person went 0.153→0.167 (0.141→0.184 on #144's instrument), outside the band — but PER FAMILY they fell, 0.204→0.192, and with the family source off the plaza reads 0.114 on HEAD and 0.097 here. By kind, the plaza's commonest crowded pair is **`parent+plaza`, 27%, on BOTH builds**: #144 put its stands on the roundel's SOUTH arc and everything approaches from the south. The 90° stand is at (105.5, 33.5), the lane's plaza corridor `ex2` is 104–106 running due north through it, and a family's route to the far bench passes **0.4 cells** from it. Occupancy did not create the fault; it made the town walk through it more often.
+**Law:** a window is a SET-OUT bound or a PRESENCE bound and the two differ by a whole visit — price the visit BEFORE naming the hours, and clip a drawn dwell to the room the day has left rather than refusing it whole.
+**Law:** a social window that a light term ALSO cuts is two bounds, and only one moves with the season — solve the sun's own hour and intersect, or the hard-coded end is dead in summer and a lie in winter.
+**Note:** `context-budget.mjs` reads **OVER — 48.0 KB of 46 KB**, and 2 of the last 3 entries are over the per-entry cap. Both are the manager's to distil.

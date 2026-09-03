@@ -362,7 +362,7 @@ const PLAZA_BENCHES = [{x:102, y:34.2}, {x:107.6, y:23.8}];
  * the slack was not presence, it was two families rendering as one shape at the water.
  * A place that reserves nothing is not a place. So: three discrete stands on the
  * roundel's inner ring (r 3.6), on the arc that faces the viewer, held one party each by
- * `a.fstand` the way famBench holds a bench. The gap is not PAIR_MIN but PAIR_GAP +
+ * `a.fstand` the way a.pbench holds a bench. The gap is not PAIR_MIN but PAIR_GAP +
  * PAIR_MIN — a party is a PARENT AND A CHILD, and the child rests at PAIR_GAP off the
  * parent, so clearance for a family is wider than clearance for a person. Swept in
  * probes/fount-stands.mjs: least separation 2.39, every stand on PATH and off the basin. */
@@ -371,6 +371,12 @@ const FOUNT_STANDS = FOUNT_STAND_TH.map(d => ({
   x: FOUNTAIN.x + Math.cos(d * Math.PI / 180) * FOUNT_STAND_R,
   y: FOUNTAIN.y + Math.sin(d * Math.PI / 180) * FOUNT_STAND_R }));
 function freeStand(){ const f = FOUNT_STANDS.filter(s => !agents.some(o => o.fstand === s)); return f.length ? pick(f) : null; }
+/* and the same for the two plaza benches (#148). #144 gave each stand one party via
+ * a.fstand and left the bench claimed by a.famBench, which only families ever set — so
+ * as the families' hold on the benches went from a quarter of the afternoon to three
+ * fifths, the lane's plaza branch sat down on top of them and parent+plaza became the
+ * plaza's commonest crowded pair. One claim, one name, both callers: a.pbench. */
+function freeBench(){ const f = PLAZA_BENCHES.filter(b => !agents.some(o => o.pbench === b)); return f.length ? pick(f) : null; }
 const QUAY_BENCHES = [{x:112.1, y:18}, {x:112.1, y:46}];
 /* the far bank across the river: towpath, church green, bandstand */
 const RIVER_X1 = 127, TOW_X0 = 127, FAR_X0 = 130, PARK_GATE = 134;
@@ -4038,21 +4044,30 @@ function spawnLaneAgent(room, cap){
   } else if (sun && day >= 1 && roll < 0.42 && allotCount() < 3){
     sendToPlot(a);
   } else if (sun && roll < E_PLAZA){
-    // a wander into the plaza: fountain gaze or a bench by the trees
-    a.kind = 'plaza';
+    // a wander into the plaza: fountain gaze or a bench by the trees — BOTH of them now
+    // places that can be full, so a refused one falls back rather than crowding it, and
+    // somebody who can get neither goes on to the quay rail instead. The plaza band pays
+    // the quay band, and only on the afternoons the plaza is actually full.
     const ex2 = 104 + R() * 2;
-    a.wp.push([ex2, LANE_N_Y], [ex2, 62.2]);
-    // a bench, unless the fountain is worth standing at — and the stand is now a PLACE
-    // that can be full, so a refused stand falls back to a bench rather than crowding it
     const st = R() < 1 - 0.5 * fountainStand() ? null : freeStand();
-    if (st){
-      a.fstand = st;
-      a.stop = {x:st.x, y:st.y, act:'stand', dur:6 + R() * 6, say: R() < 0.3 ? fountainLine() : null};
+    const bn = st ? null : freeBench();
+    if (st || bn){
+      a.kind = 'plaza';
+      a.wp.push([ex2, LANE_N_Y], [ex2, 62.2]);
+      if (st){
+        a.fstand = st;
+        a.stop = {x:st.x, y:st.y, act:'stand', dur:6 + R() * 6, say: R() < 0.3 ? fountainLine() : null};
+      } else {
+        a.pbench = bn;
+        a.stop = {x:bn.x + 0.5, y:bn.y + 1.0, act:'sit', dur:12 + R() * 12};
+      }
+      a.wp.push([a.stop.x, a.stop.y], [ex2, 62.2], [ex2, LANE_N_Y], [toX, LANE_N_Y]);
     } else {
-      const b = pick(PLAZA_BENCHES);
-      a.stop = {x:b.x + 0.5, y:b.y + 1.0, act:'sit', dur:12 + R() * 12};
+      a.kind = 'quay';
+      a.stop = {x:112.9, y:12 + R() * 40, act:'stand', dur:5 + R() * 6,
+        say: R() < 0.2 ? 'The plaza benches are all taken; someone goes on to the quay rail instead.' : null};
+      a.wp.push([112.9, LANE_N_Y], [112.9, a.stop.y], [a.stop.x, a.stop.y], [112.9, -2.5]);
     }
-    a.wp.push([a.stop.x, a.stop.y], [ex2, 62.2], [ex2, LANE_N_Y], [toX, LANE_N_Y]);
   } else if (sun && roll < E_QUAY){
     // along the quay to watch the river
     a.kind = 'quay';
@@ -4785,9 +4800,9 @@ function spawnFarAgent(room){
  * however high the rate (2 gave 2, measured; 4 gave 4 and a crowd). The cap is the
  * plaza's three places — two benches and the fountain — released as a family starts
  * walking out (famCount), with a roll of 0.5/s so it fills by 10:30. A parent takes a
- * bench no other family holds (famBench), or the fountain: two on one seat draw as one.
+ * bench no other party holds (a.pbench), or the fountain: two on one seat draw as one.
  * #137 swept it to 4, 5 and 7 and kept 3, because it is a cap over PLACE-HOLDERS and only
- * TWO of its three places reserved anything: famBench locked a bench, the 1.6-cell fountain
+ * TWO of its three places reserved anything: the bench claim locked a bench, the 1.6-cell fountain
  * strip locked nothing, so the slack past 3 was not presence but two families drawing as one
  * shape at the basin (raising it to 5 on that build took the plaza's crowded pairs PER PERSON
  * 0.193 -> 0.282 for +0.19 families). #144 made the stand a place — FOUNT_STANDS, three of
@@ -4806,15 +4821,53 @@ function spawnFarAgent(room){
  * others', three benches emptying on one frame. The window governs SET-OUTS only: a family
  * that is there stays for its dwell (a 12:40 set-out sits until ~20:00), and the one
  * thing that ends a stop early is the sun (famSun(), the way eastOpen() ends the quay). */
-const FAM_CAP = 4, FAM_RATE = 0.5, FAM_H0 = 9.5, FAM_H1 = 17, FAM_SUN = 0.35, FAM_MIN_DWELL = 1.5, FAM_WALK_MARGIN = 1.15;
+const FAM_CAP = 4, FAM_RATE = 0.75, FAM_H0 = 10, FAM_H1 = 21, FAM_SUN = 0.35, FAM_WALK_MARGIN = 1.15, FAM_DWELL_MIN = 4;
 const FAM_LEASH = 8,              // a child runs at a pigeon only this far from the parent
       FAM_ARC = 0.8,              // half-angle of the roundel arc a child loops, centred on the parent's side
       FAM_RUN_R0 = 4.7, FAM_RUN_R1 = 5.8,   // between the roundel's middle and outer rings
       FAM_REST0 = 0.8, FAM_REST1 = 1.6;     // seconds at the parent's side between runs (a run + the way back is ~4 s of an ~10 s dwell)
 const PLAZA_BIRDS = 3, PLAZA_BIRD_RATE = 0.5, PLAZA_BIRD_R0 = 4.2, PLAZA_BIRD_R1 = 6.0;
 const FAM_LEAD = [[99.8, ALLEY_Y + 0.4]];
-function famSun(){ return daylight > FAM_SUN; }
-function famOpen(){ return day >= 1 && !raining && famSun() && hour >= FAM_H0 && hour < FAM_H1; }
+const FAM_SPD0 = 1.4, FAM_SPD1 = 2.0;         // the speed a family is drawn between, in the spawn literal
+/* the two legs of a family's day, priced in HOURS: one definition, called both by the
+ * roll's bounds below and by the set-out test itself, so the window cannot drift from
+ * the walk it is pricing. The margin is the same slop on both — a family dodges pigeons
+ * on the way home too. */
+function famWalk(px, py, speed){
+  return { in:  FAM_WALK_MARGIN * pathHours(EAST_GATE_A[0], EAST_GATE_A[1], FAM_LEAD.concat([[px, py]]), speed),
+           out: FAM_WALK_MARGIN * pathHours(px, py, FAM_LEAD.slice().reverse().concat([EAST_GATE_A]), speed) };
+}
+/* FAM_H0 and FAM_H1 are the hours the plaza HOLDS families — the first has ARRIVED, the
+ * last is GONE — not the hours anyone sets out. They are a SOCIAL window, and the day
+ * cuts it: daylight is sin(pi (hour - sunUp) / dayHours), so the light passes FAM_SUN at
+ * FAM_SUN_U of the way along the arc and again that far from its end. A hard-coded hour
+ * in a light term is a seasonal bug invisible to a screenshot — FAM_H1 21 is two hours
+ * past the midsummer cut and five past the midwinter one, so before this the sun ended
+ * every visit early and the walk home was never priced at all. */
+const FAM_SUN_U = Math.asin(FAM_SUN) / Math.PI;
+function famWin(){
+  return { h0: Math.max(FAM_H0, sunUp + dayHours * FAM_SUN_U),
+           h1: Math.min(FAM_H1, sunUp + dayHours * (1 - FAM_SUN_U)) };
+}
+/* the roll's own bounds are the extremes of the price, solved ONCE off famWalk: the
+ * earliest set-out that can still land at h0 is the dearest leg in at the slowest walk
+ * (the far bench), and the latest that can still be gone by h1 is the cheapest whole
+ * visit at the fastest (a near stand, its shortest dwell). Outside that span no draw
+ * could pass, so no draw is made — and a family may well set out before first light to
+ * be at the fountain by ten, the way the punt and the far bank already do. */
+const FAM_LEG = (() => {
+  const places = PLAZA_BENCHES.map(b => ({ x:b.x + 0.5, y:b.y + 1.0, dwell:9 }))
+    .concat(FOUNT_STANDS.map(s => ({ x:s.x, y:s.y, dwell:7 })));
+  let inMax = 0, visitMin = Infinity;
+  for (const p of places){
+    inMax = Math.max(inMax, famWalk(p.x, p.y, FAM_SPD0).in);
+    const w = famWalk(p.x, p.y, FAM_SPD1);
+    visitMin = Math.min(visitMin, w.in + p.dwell * HOURS_PER_S + w.out);
+  }
+  return { inMax, visitMin };
+})();
+function famSun(){ return daylight > FAM_SUN; }   // the safety net only: a priced family is home before this
+function famOpen(){ const w = famWin(); return day >= 1 && !raining && hour >= w.h0 - FAM_LEG.inMax && hour < w.h1 - FAM_LEG.visitMin; }
 function famCount(){ return agents.filter(a => a.fam && !a.famKid && !(a.stopped && a.state === 'walk')).length; }   // on the way in or stopped; a family walking out has given its place up
 function spawnFamilyAgent(){
   const a = {
@@ -4822,25 +4875,45 @@ function spawnFamilyAgent(){
     x:0, y:0, wp:[], i:0, speed:1.4 + R() * 0.6, state:'walk', timer:0,
     shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9, wary:R(),
   };
-  /* the plaza's places, all THREE kinds of them now reserved (#144). A bench is held by
-   * famBench, a stand by fstand; a family that can get neither does not set out, the way
-   * one too late in the day does not — the draws are spent, nobody comes. That is what
-   * lets FAM_CAP be raised at all: it is a cap over PLACE-HOLDERS, so it could never
-   * exceed the places that actually hold. */
-  const free = PLAZA_BENCHES.filter(b => !agents.some(o => o.famBench === b));
+  /* the plaza's places, all THREE kinds of them reserved (#144). A bench is held by
+   * a.pbench, a stand by a.fstand — both shared with the lane's plaza branch (#148); a
+   * family that can get neither does not set out — and
+   * neither does one that cannot AFFORD the walk to what is left. Both ends are priced
+   * here, at the CHOICE, off this family's own place, speed and dwell: it must land no
+   * earlier than FAM_H0 and be GONE by FAM_H1, the walk home included.
+   * The fit is a FILTER on the candidates, not a veto after the draw. The five places
+   * are 7.7 to 12.6 hours apiece and the window is 9 — so drawing a place first and
+   * refusing it second spends the whole afternoon offering the far bench and turning it
+   * down, and the plaza's far corner is never held by anybody. Two dwells are drawn, one
+   * per kind, so the number of draws a call makes does not depend on how many places are
+   * free. */
+  const durB = 11 + R() * 5, durS = 8 + R() * 4;
+  const fits = [];
+  for (const b of PLAZA_BENCHES) if (!agents.some(o => o.pbench === b))
+    fits.push({ bench:b, x:b.x + 0.5, y:b.y + 1.0, act:'sit', dur:durB });
+  for (const t of FOUNT_STANDS) if (!agents.some(o => o.fstand === t))
+    fits.push({ stand:t, x:t.x, y:t.y, act:'stand', dur:durS });
+  /* the dwell is DRAWN before it is priced, so it is clipped to the room the day has
+   * left rather than refused whole: a family that would be out after dark sits a shorter
+   * while instead of never coming, and only a sit under FAM_DWELL_MIN is not worth the
+   * walk. This is what keeps the far bench — 12.6 h of visit against a 9 h midsummer
+   * window — reachable at all, and what leaves the plaza a short winter afternoon. */
+  const win = famWin(), afford = [];
+  for (const c of fits){
+    const w = famWalk(c.x, c.y, a.speed), arrive = hour + w.in;
+    if (arrive < win.h0) continue;
+    const room = (win.h1 - arrive - w.out) / HOURS_PER_S;      // seconds of sitting the day still has
+    if (room < FAM_DWELL_MIN) continue;
+    afford.push({ ...c, dur: Math.min(c.dur, room) });
+  }
+  if (!afford.length) return;                     // nothing free they can be home from in time
   const wantsBench = R() < 1 - 0.5 * fountainStand();
-  const st = wantsBench && free.length ? null : freeStand();
-  if (st){
-    a.fstand = st;
-    a.stop = {x:st.x, y:st.y, act:'stand', dur:7 + R() * 3};
-  } else if (free.length){
-    const b = pick(free); a.famBench = b;
-    a.stop = {x:b.x + 0.5, y:b.y + 1.0, act:'sit', dur:9 + R() * 4};
-  } else return;                                  // every bench and every stand is held
+  const benches = afford.filter(c => c.bench), stands = afford.filter(c => c.stand);
+  const c = pick(wantsBench ? (benches.length ? benches : stands) : (stands.length ? stands : benches));
+  if (c.bench) a.pbench = c.bench; else a.fstand = c.stand;
+  a.stop = {x:c.x, y:c.y, act:c.act, dur:c.dur};
 
   const gate = EAST_GATE_A, lead = FAM_LEAD;
-  const arrive = hour + FAM_WALK_MARGIN * pathHours(gate[0], gate[1], lead.concat([[a.stop.x, a.stop.y]]), a.speed);
-  if (arrive + FAM_MIN_DWELL >= FAM_H1) return;   // too late in the day to be worth the walk: the draws are spent, nobody comes
   a.x = gate[0]; a.y = gate[1];
   for (const p of lead) a.wp.push(p.slice());
   a.wp.push([a.stop.x, a.stop.y]);
@@ -5090,7 +5163,12 @@ function withCompanion(a, room){
 // the follower itself, no roll: a family's child (#92) is one by construction
 function makeCompanion(a){
   const b = Object.assign({}, a, {shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9,
-    speed:a.speed * 1.12, with:a, side:R() < 0.5 ? 1 : -1, stop:null, table:null, dog:null, wp:[], i:0, hx:1, hy:0});
+    speed:a.speed * 1.12, with:a, side:R() < 0.5 ? 1 : -1, stop:null, table:null, dog:null, wp:[], i:0, hx:1, hy:0,
+    /* a place is held by the party's LEAD, not by both of them (#148). Object.assign
+     * copied the claim onto the companion, so freeStand()/freeBench() counted a party of
+     * two as two holders — harmless while the pair always left together, and a lie the
+     * moment anything asks who holds what. The stop is nulled here for the same reason. */
+    fstand:null, pbench:null});
   a.pairLead = true;
   // a bench is 1.5 cells wide and its sitter takes the middle: shift the leader half a
   // cell left and seat the companion a cell to their right; at a cafe table the
