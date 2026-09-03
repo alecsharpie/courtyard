@@ -22,7 +22,7 @@
   "avoid": "NOT through the offscreen: #163 measured 18 clipped runs at 1.6 ms a frame in `rcv` against 0.03 for the identical 56 clumps on the visible canvas. A clip plus an alpha is a `save()` on `ctx`. The boats move every frame, so this is a LIVE pass, never the ground cache. Do not deepen the multiply — the cue's whole point is that it is the thing that does not work. `onChannel` must keep the fountain and the pond on the land path.",
   "budgetMin": 60,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 174,
   "issued": "2026-09-03T16:04:30.797Z",
