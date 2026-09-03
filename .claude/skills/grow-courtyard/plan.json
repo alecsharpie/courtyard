@@ -17,28 +17,6 @@
   "rationale": "The frontier is the plaza, and for once I do not have to guess: #158 measured it. Three callers — the lane's plaza band, the families and the east agents — share FIVE places, three FOUNT_STANDS and two PLAZA_BENCHES. Over a laneCap sweep of 10 to 20 the plaza's CHOICES go 28.7 -> 48.6 while its ADMISSIONS go 12.4 -> 17.3; the refused share climbs 56.7% -> 64.4% and every one of them leaves by the `else` onto the quay rail. That is why the plaza's presence is the one east number that will not move (+0.14, t 0.7) and why the town's civic centre holds one or two people while the lane streams past it. Two separate cues, c236 and c246, are the same room: c236 adds that all three stands sit on the roundel's SOUTH arc, every approach comes from the south, and the 90-degree stand at (105.5, 33.5) sits ON the lane corridor at ex2 104-106. So b160 is the bet, it goes first, and it gets 90 minutes: the plaza needs more places, spread off the south arc, and more than one thing to DO once you are there. A visitor sees that in the first ten seconds of the wide shot; a fourth bench does not.\n\nThe rung is 2 and I want to be plain about why that is legal rather than comfortable. No advisory signal is showing — mapFlat cleared at #155, the diff mean is 103 and rising, no rung has been held. The last two passes were both 4b, so this is the first of at most two consecutive passes at rung <= 2, and the pass after next must climb to 3 or higher whatever it finds. b160 is rung 2 done at full size — it compounds four systems that already exist (the places, the lane's roll, the families, the corridor) rather than adding a sixth — and rung 2 is the ladder's own stated highest-yield move when the basics are in place. I am not spending the climb on a season or a tile I do not need.\n\nThe other four are aimed at the four next-longest-untouched domains and at one recurring fault of mine. b161 is the morning: both lapse hours are ONE TAP from the wide shot, the source comment at courtyard.html:5679 says the morning lands at sunUp+0.5 with the sweeper, the cart and nobody else, and the night holds 6-9. b162 spends c238 and b163 spends c243 and c239 together, since both are things drawWaterMirror does not know about and one brief should own the seam. b164 is c241 and it is the manager's own instrument: stall.mjs does not read row.quota, so the memory gate #153 wired into the runner can fire on every single iteration and never raise a signal in the report I plan from — which is precisely the class of blindness this role exists to close.\n\nOn PRICE THE BRIEF'S PREMISE, the watch item aimed at me: b160's numbers are #158's own, from probes/plaza-door.mjs, and I have quoted them with their provenance. b161's and b162's premises I have NOT re-measured, and both briefs say so in their own text and make the measurement the deliverable if the premise does not reproduce. That is the honest version of putting a number in a brief.\n\nCuration: coverage entered for #155-158, which had never been recorded. Six cues promoted into briefs (c236+c246 -> b160, c238 -> b162, c239+c243 -> b163, c241 -> b164), taking openCues from 12 — over its cap of 8, and nothing had reported it — down to 6. Four laws promoted by MERGING rather than stacking: #158's fixed-number-of-places into the cap-and-share law, #156's magic-number-over-a-bimodal-input into the scalar-is-not-a-switch law, #157's lower-bound-on-arrival-with-no-bound-on-the-walk into the walk-pricing law, #155's coarse-gate-is-a-share-over-a-long-run-and-a-coin-over-a-short-one into the gathering law; #159's law was already in the file twice over (dead constant, two seeds is not a sample) and was folded into one clause rather than added. LAWS.md was exactly at its 12 KB cap, so all of that had to be paid for. The named cut is the accumulator-is-a-RATE sentence: every accumulator in the town (wear, trod, moss, paveWear, litter) is built and carries it, its only live consumer is cue c214, and the PROPORTIONAL-decay half of that law stays. Also cut: filmstrip.mjs's blind spot (a property of an instrument, not of the town), the zoom-cannot-reach-the-world's-edge sentence (settled, and WORLD_X0/X1 is inventory), the quads-filled-once drawing detail (built, sky[4]), and the cached-warm-pixel case, which restated the live case at length and is now one sentence. Budget 45.3 -> 43.7 KB, LAWS 12.0/12.0. One standing tension I am NOT fixing this pass and want on the record: rotate-ledger warns that 7 of the 12 laws are over its 900 B per-law advisory. The file is 12 fat compound laws rather than 60 thin ones. That is inside the binding cap and each one is a real cluster, but it is drifting toward the prose blob the previous loop died of, and a future pass should split before it appends.",
   "queue": [
     {
-      "id": "b163",
-      "domain": "River & far bank",
-      "kind": "Connect",
-      "brief": "#145 put the town in the water with five casters — bridge, deck, mill wheel, jetty, willow. Two things have landed on the river since and drawWaterMirror knows about neither. (a) #155's reeds: a 56-cell fringe footed along the bank, carrying an in-line image but absent from riverCasters(), whose per-caster clip+gradient+chop pass assumes ONE thing at ONE row and will need to handle a run. (b) #151's terrace shadow now falls on the NEAR river, 19 down to 1 sub-cells over rows 79-87, which is water-only there — so the town's own shade sits on top of the mirror instead of darkening it. Both are the same seam. Do them together.",
-      "seams": [
-        "riverCasters",
-        "drawWaterMirror",
-        "MIRROR",
-        "setMirror",
-        "drawReeds",
-        "reedShallow",
-        "shCast",
-        "shOpen",
-        "drawSunShade",
-        "NEAR_EAVE"
-      ],
-      "successLooksLike": "A reed run stands in the water beneath itself, and on a low sun the terrace's shadow on the near river reads as shade IN the water rather than a quad floating over it. Same-code pixel control 0; the feature's mass quoted as a ratio to that floor, day and evening.",
-      "avoid": "Leave the BOATS out — c233 names them as the class #145 omitted and they are a brief of their own, not a rider on this one. The mirror is the shadow solve with the eye for the sun, a NEGATIVE z, so a caster's own draw IS its image and every draw landing on the plane must read the sign. Watch that nothing double-darkens where the shadow and the image overlap.",
-      "budgetMin": 40,
-      "risk": "low"
-    },
-    {
       "id": "b164",
       "domain": "The sill & the observer",
       "kind": "Harness",
@@ -70,6 +48,10 @@
     {
       "id": "b162",
       "at": "2026-09-03T07:05:58.654Z"
+    },
+    {
+      "id": "b163",
+      "at": "2026-09-03T07:33:55.005Z"
     }
   ]
 }

@@ -632,7 +632,37 @@ function sowReeds(){
     grid[i] = REED; bSp[i] = sp; bSt[i] = reedStage(x, y); bAge[i] = 0;
     n++;
   }
+  buildReedRuns();
   return n;
+}
+/* The fringe, grouped for the river's MIRROR (#163). #155 gave each clump one flat stroke
+ * of its own image and stopped there; the reflection pass wants a CASTER, and a caster is
+ * a box with ONE waterline. A margin of rushes is neither — it is fifty-odd cells strung
+ * down two bank columns and round the island — so it is cut into RUNS of contiguous cells
+ * in one column. A run projects to a box the existing cull can price, which is what keeps
+ * the whole fringe off the bill at the courtyard and lane framings. Static: which cells
+ * carry rushes never changes after the sow, so this is built once and read every frame. */
+const REED_RUNS = [], REED_CASTERS = [];
+const REED_RUN_MAX = 6;              // rows per run: longer boxes cull worse and chop coarser
+function buildReedRuns(){
+  REED_RUNS.length = 0; REED_CASTERS.length = 0;
+  for (let x = RIVER_X0; x < RIVER_X1; x++){
+    let run = null;
+    for (let y = REED_Y0; y <= REED_Y1; y++){
+      const on = y < REED_Y1 && grid[y * GW + x] === REED;
+      if (on && run && y === run.yS + 1 && run.cells.length < REED_RUN_MAX){
+        run.yS = y; run.cells.push({x, gy:y, i:y * GW + x}); continue;
+      }
+      if (run) REED_RUNS.push(run);
+      run = on ? {x, yN:y, yS:y, cells:[{x, gy:y, i:y * GW + x}]} : null;
+    }
+    if (run) REED_RUNS.push(run);
+  }
+  for (const r of REED_RUNS)
+    // x0/x1 bound the DRAW and a reed LEANS: a full gale lays a 1.4-cell stand over by
+    // better than two cells, and the water path is what keeps the overhang off the bank
+    REED_CASTERS.push({x0:r.x - 2.4, x1:r.x + 3.4, y:r.yN, yS:r.yS, z:REED_H * 1.35,
+                       run:true, f:() => { for (const c of r.cells) drawReeds(c); }});
 }
 
 let W = 0, H = 0, DPR = 1, cellW = 12, cellH = 8, topPad = 40, originX = 0;
@@ -6690,19 +6720,34 @@ function buildSunShade(){
     }
   }
 }
-function drawSunShade(){
-  const f = sunShadeF();
-  if (f <= 0.004) return;
-  buildSunShade();
-  ctx.beginPath();
+/* The CHANNEL, and not simply "a WATER cell": the fountain's basin and the allotment pond
+ * are WATER too, and 25% of the wet sub-cells the mask lands on over a year are theirs.
+ * Neither flows, and what drawWaterShade does to the wet half of the mask is the RIVER's
+ * chop — a still pond has no current to ripple a shadow with, so those two stay on the
+ * land path and keep the flat quad they have always had. The near reach is wider than the
+ * far one, because the quay ends at the lane; that is where buildGrid cuts it. */
+function onChannel(x, y, t){
+  return (t === WATER || t === REED) && x < RIVER_X1 && x >= (y >= LN_WALK_S ? QUAY_X0 : RIVER_X0);
+}
+/* The mask, as quads on `g` — but only over the cells whose ground is the KIND asked for.
+ * The channel does not take a shadow the way stone does (see drawWaterShade), so the one
+ * rasterised mask is read TWICE and a run breaks wherever the surface under it changes.
+ * The two reads PARTITION the mask, which is what keeps the river from being darkened by
+ * both. `bb` is grown to the screen bounds of what was emitted, or null if nobody asked. */
+function sunShadeRuns(g, wet, bb){
   let runs = 0;
   for (let y = 0; y < WH; y++){
-    const row = y * BSH_W;
+    const row = y * BSH_W, grow = y * GW;
     const ty = project(0, y, 0)[1], byy = project(0, y + 1, 0)[1];   // project()'s y is row-only: x free
     if (byy < 0 || ty > H) continue;
     let x0 = -1;
     for (let mx = 0; mx <= BSH_W; mx++){
-      if (mx < BSH_W && shMask[row + mx]){ if (x0 < 0) x0 = mx; continue; }
+      let take = false;
+      if (mx < BSH_W && shMask[row + mx]){
+        const gx = (mx / BSH_SUB) | 0;
+        take = (onChannel(gx, y, grid[grow + gx]) === wet);
+      }
+      if (take){ if (x0 < 0) x0 = mx; continue; }
       if (x0 < 0) continue;
       const xa = x0 / BSH_SUB, xb = mx / BSH_SUB;
       x0 = -1;
@@ -6710,11 +6755,22 @@ function drawSunShade(){
       // off screen depth, so a run's top edge is not its bottom edge shifted by a pixel
       const a = project(xa, y, 0), b = project(xb, y, 0), c = project(xb, y + 1, 0), d = project(xa, y + 1, 0);
       if (Math.max(b[0], c[0]) < 0 || Math.min(a[0], d[0]) > W) continue;
-      ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(c[0], c[1]); ctx.lineTo(d[0], d[1]); ctx.closePath();
+      g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.lineTo(c[0], c[1]); g.lineTo(d[0], d[1]); g.closePath();
       runs++;
+      if (bb){
+        bb[0] = Math.min(bb[0], a[0], d[0]); bb[1] = Math.min(bb[1], a[1], b[1]);
+        bb[2] = Math.max(bb[2], b[0], c[0]); bb[3] = Math.max(bb[3], c[1], d[1]);
+      }
     }
   }
-  if (!runs) return;
+  return runs;
+}
+function drawSunShade(){
+  const f = sunShadeF();
+  if (f <= 0.004) return;
+  buildSunShade();
+  ctx.beginPath();
+  if (!sunShadeRuns(ctx, false, null)) return;   // the dry half; the river's went in earlier
   ctx.save();
   ctx.globalCompositeOperation = 'multiply';
   ctx.fillStyle = 'rgba(' + BSH_COL + ',' + f.toFixed(4) + ')';
@@ -10128,6 +10184,7 @@ function drawScene(t, dt){
   // item sort, so a swan, a punt and the deck's own shadow all sit ON the reflection
   // rather than under a wash of it — the water surface is the last thing drawn over it
   // (drawRiverFlow), exactly as it was before.
+  drawWaterShade(t);              // what the town puts INTO the water, before what the water gives back
   drawWaterMirror(t);
 
   const items = [];
@@ -10531,11 +10588,26 @@ function drawPlant(it, t){
  * every seed and on every frame; only the lean and the season move it.
  *
  * Drawn as an ITEM in the same y-sorted pass as the beds, so a swan, a duck and a punt
- * pass IN FRONT of the near margin and BEHIND the far one without a special case. The
- * faint stroke under each clump is #145's rule applied in the small: the image of a point
- * in the water plane is that point with its z NEGATED, and a stand of rushes is a stroke
- * rather than a caster worth its own offscreen pass. One path per clump per pass, so a
- * whole margin of reeds costs two strokes and one fill per CELL, not per blade. */
+ * pass IN FRONT of the near margin and BEHIND the far one without a special case. And
+ * drawn a SECOND time by the mirror (#163), with MIRROR negative, which is where its
+ * reflection comes from: the clump standing on its head is this same path with z negated,
+ * so it leans on the same gust and heads in the same fortnight as the stand above it.
+ * One path per clump per pass, so a margin of reeds costs one stroke and one fill per
+ * CELL, not per blade. */
+/* One colour, or its image's. Under MIRROR the same draw IS the reflection, so what it
+ * needs is the DEPTH FADE — and #145's per-caster gradient cannot give it one: that
+ * gradient assumes a box with a single waterline, and a run of rushes has one per ROW.
+ * So a reed pays for its own fade, in its own stroke: a screen-space ramp from THIS
+ * cell's waterline to REFL_FADE cells beyond it, which is the law the offscreen applies
+ * to the bridge, read at the grain the fringe is addressed by. It also means overlapping
+ * runs cannot double-fade each other, because nothing fades in the composite at all. */
+function reedInk(gx, gy, col){
+  if (MIRROR > 0) return col;
+  const c = cparse(col).join(',');
+  const g = ctx.createLinearGradient(0, project(gx, gy, 0)[1], 0, project(gx, gy + REFL_FADE, 0)[1]);
+  g.addColorStop(0, 'rgba(' + c + ',1)'); g.addColorStop(1, 'rgba(' + c + ',0)');
+  return g;
+}
 function drawReeds(it){
   const gx = it.x, gy = it.gy, st = bSt[it.i] || 1;
   const on = (st - 1) / 2;                                   // 0 in the winter stubble, 1 in high summer
@@ -10552,26 +10624,18 @@ function drawReeds(it){
     const h = REED_H * (0.42 + 0.58 * on) * (0.6 + hash(gx + k, gy * 7 + k) * 0.7);
     const sw = lean * h * (0.7 + hash(k * 3 + 1, gy) * 0.6);
     // both ends of a stroke are solved in WORLD space and projected separately: an offset
-    // added to a PROJECTED point is a pixel, and project() is not linear in it
-    P.push([project(px, py, 0), project(px + sw * 0.35, py, h * 0.6),
-            project(px + sw, py, h), project(px + sw * 0.5, py, -h * 0.55)]);
+    // added to a PROJECTED point is a pixel, and project() is not linear in it. The image
+    // used to be a fourth point at a NEGATED z drawn here; under MIRROR these three are it.
+    P.push([project(px, py, 0), project(px + sw * 0.35, py, h * 0.6), project(px + sw, py, h)]);
   }
   ctx.lineCap = 'round';
   ctx.lineWidth = Math.max(0.7, cellW * 0.05);
-  if (MIRROR > 0){
-    ctx.globalAlpha = REFL_A * 0.5 * (1 - 0.5 * rainFall) * (0.3 + 0.7 * Math.max(daylight, nightF * 0.4));
-    ctx.strokeStyle = mix('#6b5a3c', '#44622e', on);
-    ctx.beginPath();
-    for (const [b, , , r] of P){ ctx.moveTo(b[0], b[1]); ctx.lineTo(r[0], r[1]); }
-    ctx.stroke();
-    ctx.globalAlpha = 1;
-  }
-  ctx.strokeStyle = mix('#7d6a45', '#4e7238', on);
+  ctx.strokeStyle = reedInk(gx, gy, mix('#7d6a45', '#4e7238', on));
   ctx.beginPath();
   for (const [b, m, t] of P){ ctx.moveTo(b[0], b[1]); ctx.quadraticCurveTo(m[0], m[1], t[0], t[1]); }
   ctx.stroke();
   if (st === 3){                                             // the heads, only on a stand that has come on
-    ctx.fillStyle = SPECIES[bSp[it.i] - 1].col;
+    ctx.fillStyle = reedInk(gx, gy, SPECIES[bSp[it.i] - 1].col);
     ctx.beginPath();
     for (let k = 0; k < Math.min(3, P.length); k++){
       const t = P[k][2];
@@ -11402,7 +11466,12 @@ function riverWaterPath(g){
 }
 /* Everything that stands over the channel, with the row its image starts at (its feet on
  * the water) and how far up it reaches. x0/x1 bound the DRAW, not the reflection: a caster
- * paints its ramps and its bank posts too, and the water path is what keeps those out. */
+ * paints its ramps and its bank posts too, and the water path is what keeps those out.
+ *
+ * Five of these are ONE thing at ONE row. The sixth kind is a RUN — a stretch of the reed
+ * fringe — and it carries `yS`, the southernmost row it is footed on, so its box reaches
+ * from the first waterline to the last image. drawWaterMirror partitions on `run` and
+ * gives the two kinds different passes: see there for why a run cannot have its own. */
 function riverCasters(){
   return [
     // the lane bridge, its three arches and its balustrade, straight down into the near
@@ -11419,24 +11488,112 @@ function riverCasters(){
     // much else — a tree on an island at 41 degrees reflects mostly onto the island
     {x0:WILLOW.x - 2.8, x1:WILLOW.x + 2.4, y:WILLOW.y, z:WILLOW_H * 1.35,
      f:() => drawWillow({tname:'the willow on the eyot'})},
-  ];
+  ].concat(REED_CASTERS);
+}
+/* ============ the town's shade IN the river (#163) ============ *
+ * #151 gave our own block a CASTING height and its shadow reached the water: on a low sun
+ * the terrace throws 19 sub-cells north across rows 79-87 of the channel, which are water
+ * and nothing else. drawSunShade paints one flat multiply AFTER the item sort, so that
+ * throw landed on top of the reflection — and a shadow lying on water does not dim what
+ * the water gives BACK. It dims the water. A cloud passing over a river does not put out
+ * the bridge standing in it.
+ *
+ * So the wet half of the mask is lifted out of drawSunShade (the two halves partition it,
+ * so nothing is darkened twice) and drawn HERE, immediately before the mirror — the image
+ * then goes on top of the shade, which is the right order and the reason this is a
+ * separate pass rather than a reordered one. And it is broken by the surface it lies on:
+ * the same drifting bars the mirror's chop uses, on the same downstream clock, so the
+ * shade ripples with the current instead of holding a hard four-per-cell edge.
+ *
+ * It borrows the mirror's offscreen. Safe because the two run back to back and never
+ * overlap in time, and because drawWaterMirror clears its own union before it draws. */
+const WSH_BAR = 0.62;               // what a full wind takes out of the shade, in bars
+function drawWaterShade(t){
+  const f = sunShadeF();
+  if (f <= 0.004) return;
+  buildSunShade();
+  const bb = [Infinity, Infinity, -Infinity, -Infinity];
+  const cw = Math.round(W * DPR), ch = Math.round(H * DPR);
+  if (rcv.width !== cw || rcv.height !== ch){ rcv.width = cw; rcv.height = ch; }
+  rtx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  rtx.globalCompositeOperation = 'source-over';
+  rtx.beginPath();
+  if (!sunShadeRuns(rtx, true, bb)) return;      // most hours of most days: the sun is too high
+  const blur = CAN_BLUR ? (shSpread() - 1) * cellW * 1.1 : 0;
+  const pad = 6 + blur * 2;
+  const x0 = Math.max(0, bb[0] - pad), y0 = Math.max(0, bb[1] - pad);
+  const x1 = Math.min(W, bb[2] + pad), y1 = Math.min(H, bb[3] + pad);
+  if (x1 <= x0 || y1 <= y0) return;
+  rtx.clearRect(x0, y0, x1 - x0, y1 - y0);       // the path is already built; clearing does not touch it
+  if (blur > 0.3) rtx.filter = 'blur(' + blur.toFixed(2) + 'px)';
+  rtx.fillStyle = 'rgb(' + BSH_COL + ')';        // opaque here; the multiply below carries f
+  rtx.fill();
+  rtx.filter = 'none';
+  const wf = windF();
+  if (wf > 0.04){
+    rtx.globalCompositeOperation = 'destination-out';
+    chopBars(rtx, x0, y0, x1 - x0, y1 - y0, wf, t * FLOW_SPEED * riverRun(), WSH_BAR);
+    rtx.globalCompositeOperation = 'source-over';
+  }
+  ctx.save();
+  ctx.globalCompositeOperation = 'multiply';     // the same darkening drawSunShade does
+  ctx.globalAlpha = f;
+  ctx.drawImage(rcv, x0 * DPR, y0 * DPR, (x1 - x0) * DPR, (y1 - y0) * DPR, x0, y0, x1 - x0, y1 - y0);
+  ctx.restore();
+}
+/* The wind's chop, as short bars sliding downstream over a rectangle — the mirror's own
+ * vocabulary, and now the water shade's too. Each bar drifts on its own share of the
+ * current and SHIVERS on the gust; the jitter is in the PHASE, not in x, because a bar
+ * that spans the whole image moves nowhere by sliding sideways and shifting it would only
+ * leave an unchopped sliver at whichever edge it came off. Caller owns the composite. */
+function chopBars(g, x, y, w, h, wf, slide, amt){
+  const bh = Math.max(1.1, cellH * 0.30), span = h + bh * 2;
+  const n = Math.ceil(h / (bh * 2.2)) + 2;
+  for (let k = 0; k < n; k++){
+    const j = (RM ? 0 : Math.sin(windT * 3.1 + k * 2.3)) * bh * 0.9 * wf;
+    const u = slide * (0.35 + hash(k, 67) * 0.5) + k * bh * 2.2 + hash(k, 71) * h + j;
+    const ph = ((u % span) + span) % span - bh;
+    g.fillStyle = 'rgba(0,0,0,' + (amt * wf * (0.45 + hash(k, 73) * 0.55)).toFixed(3) + ')';
+    g.fillRect(x - 2, y + ph, w + 4, bh * (0.4 + hash(k, 79) * 0.9));
+  }
 }
 function drawWaterMirror(t){
   // a rained-on surface gives back less of what stands over it; rainFall is 0..1, so this
   // is a range and never a switch, and there is no instant at which the pass stops running
   const wf = windF(), fade = REFL_A * (1 - 0.5 * rainFall);
-  const cs = riverCasters(), boxes = [];
+  const cs = riverCasters(), boxes = [], runs = [];
   let ux0 = Infinity, uy0 = Infinity, ux1 = -Infinity, uy1 = -Infinity;
   for (const c of cs){
-    const dT = c.y - 0.7, dB = c.y + c.z * LIFT + 0.5;
+    const dT = c.y - 0.7, dB = (c.yS === undefined ? c.y : c.yS) + c.z * LIFT + 0.5;
     const l = project(c.x0, dB, 0)[0], r = project(c.x1, dB, 0)[0];
     const yT = project(c.x0, dT, 0)[1], yB = project(c.x0, dB, 0)[1];
     const b = {x:l - 8, y:yT - 3, w:r - l + 16, h:yB - yT + 6, wl:project(c.x0, c.y, 0)[1],
                end:project(c.x0, c.y + REFL_FADE, 0)[1], f:c.f};
     if (b.x + b.w < 0 || b.x > W || b.y + b.h < 0 || b.y > H) continue;   // exact: the canvas rect
+    if (c.run){ runs.push(b); continue; }                                 // the fringe: not an offscreen caster
     boxes.push(b);
     ux0 = Math.min(ux0, b.x); uy0 = Math.min(uy0, b.y);
     ux1 = Math.max(ux1, b.x + b.w); uy1 = Math.max(uy1, b.y + b.h);
+  }
+  /* The fringe, and it does NOT go through the offscreen — finding that out cost 0.93 ms
+   * a frame at Plaza (probe-cost.mjs). Fifty-six clumps stroked into `rcv` measured THIRTY
+   * TIMES what the same fifty-six cost on the visible canvas: an offscreen 2D context of
+   * this size is not the accelerated surface the real one is, and it earns its keep only
+   * for a draw that needs its two composites. A run needs neither. It brought its own
+   * depth fade (reedInk, because a run has a waterline per ROW and one gradient cannot);
+   * and the CHOP is what breaks a big flat image, which a stand of blades already is not —
+   * the reflected clump leans on windT with the clump standing above it, so the fringe
+   * answers the wind by MOVING rather than by being cut into bars. What is left is the
+   * water path and one alpha, and both are a save/clip on ctx. It goes down first, so the
+   * bridge's image lies over the reeds' where the two meet. */
+  if (runs.length){
+    ctx.save();
+    riverWaterPath(ctx); ctx.clip();
+    ctx.globalAlpha = fade;
+    setMirror(-1);
+    for (const b of runs) b.f();
+    setMirror(1);
+    ctx.restore();
   }
   if (!boxes.length) return;
   const cw = Math.round(W * DPR), ch = Math.round(H * DPR);
@@ -11452,27 +11609,18 @@ function drawWaterMirror(t){
     ctx = rtx; setMirror(-1);
     b.f();
     setMirror(1); ctx = home;
-    // the image dies away with depth below the waterline
-    rtx.globalCompositeOperation = 'destination-in';
-    const g = rtx.createLinearGradient(0, b.wl, 0, b.end);
-    g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)');
-    rtx.fillStyle = g; rtx.fillRect(b.x, b.y, b.w, b.h);
+    // the image dies away with depth below the waterline — unless it brought its own
+    // fade, which is what a run of many waterlines has to do
+    if (!b.noFade){
+      rtx.globalCompositeOperation = 'destination-in';
+      const g = rtx.createLinearGradient(0, b.wl, 0, b.end);
+      g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+      rtx.fillStyle = g; rtx.fillRect(b.x, b.y, b.w, b.h);
+    }
     // ...and the wind chops what is left into short bars, sliding downstream
     if (wf > 0.04){
       rtx.globalCompositeOperation = 'destination-out';
-      const bh = Math.max(1.1, cellH * 0.30), span = b.h + bh * 2;
-      const n = Math.ceil(b.h / (bh * 2.2)) + 2;
-      for (let k = 0; k < n; k++){
-        // each bar drifts downstream on its own share of the current and SHIVERS on the
-        // gust — the jitter is in the phase, not in x: a bar that spans the whole image
-        // moves nowhere by sliding sideways, and shifting it would only leave an
-        // unchopped sliver at whichever edge it came off
-        const j = (RM ? 0 : Math.sin(windT * 3.1 + k * 2.3)) * bh * 0.9 * wf;
-        const u = slide * (0.35 + hash(k, 67) * 0.5) + k * bh * 2.2 + hash(k, 71) * b.h + j;
-        const ph = ((u % span) + span) % span - bh;
-        rtx.fillStyle = 'rgba(0,0,0,' + (REFL_BAR * wf * (0.45 + hash(k, 73) * 0.55)).toFixed(3) + ')';
-        rtx.fillRect(b.x - 2, b.y + ph, b.w + 4, bh * (0.4 + hash(k, 79) * 0.9));
-      }
+      chopBars(rtx, b.x, b.y, b.w, b.h, wf, slide, REFL_BAR);
     }
     rtx.restore();
   }

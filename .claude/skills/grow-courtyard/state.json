@@ -528,7 +528,8 @@
       "the evening ends: EVE_GONE/EVE_HURRY/EVE_BELL, eveOutH -> a.eveOut, goHome(a,maxH). Night water: drawRiverLights, RIVER_LAMPS, a.nightRail, roseLit",
       "the PUNT, a FLEET of two (#141): PUNTS/PUNT_BERTHS, hull B lands 0.95 west so tracks are PARALLEL; punt{leg 0..4}, puntFits -> OFFER. Wind is a SHARE (#154): PUNT_WIND_SLOW/SHY",
       "the town is IN the water (#145): drawWaterMirror + MIRROR/setMirror (project z sign). Five casters re-run their OWN draw - bridge, deck, mill wheel, jetty, willow. NOT the boats",
-      "the SHALLOWS are a TILE (#155): REED + SPECIES 'rushes' (wild - nobody sows it). reedShallow/reedKeepOut/reedStage/sowReeds; drawReeds an item. No R(); census counts REED under water"
+      "the SHALLOWS are a TILE (#155): REED + SPECIES 'rushes' (wild - nobody sows it). reedShallow/reedKeepOut/reedStage/sowReeds; drawReeds an item. No R(); census counts REED under water",
+      "the fringe is IN the water, and the town's shade too (#163): REED_CASTERS/buildReedRuns, 18 runs in riverCasters (run+yS), fade in the STROKE via reedInk, drawn on ctx NOT rcv. onChannel splits sunShadeRuns; drawWaterShade before the mirror"
     ],
     "sky": [
       "day/night (55 s day), sun and moon arc, chimney smoke, a balloon; windowLit the ONE pane predicate + LIT[], relit AFTER applyLight. season() over SEASON_LEN 26 days; greyF the year",
@@ -615,6 +616,12 @@
     {
       "id": "c250",
       "note": "backKey has no camera term: a quarter camera moves topPad/hz but the cached backdrop stays put, so the hills and the live gradient's horizon part company across the ease",
+      "raisedBy": 159,
+      "seenBy": 0
+    },
+    {
+      "id": "c251",
+      "note": "the water shade is correct and barely reads (6021 px of mass, 1-86 px of change): what makes a shadow read on water is cutting the SHEEN - drawRiverFlow's streaks and the glitter column - not a deeper multiply",
       "raisedBy": 159,
       "seenBy": 0
     }
