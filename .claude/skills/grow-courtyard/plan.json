@@ -16,22 +16,21 @@
   "rationale": "mapFlat fires, so the rung is fixed at 4b before anything else is decided, and I am not allowed to re-derive the map-is-full argument a fourth time. The WATCH note left by an earlier pass names exactly two honest 4b moves: DEPTH beyond the grid, which #145 (the water mirror) and #150 (the far ranks) have both now spent, and a new TILE or SPECIES constant, +9 each in the census, with GLASS at #116 as the worked example. So the bet is the one that is left, and it goes where it will be seen: the river is the centre of every wide shot and its edge is a hard line — 13 columns of flat WATER meeting the quay at a pixel boundary with nothing growing in the shallows. b155 puts a REED tile and a rush species in the margins. It moves tileKinds AND speciesKinds, it changes the map in space and not in time, and it is the only brief here that a visitor would notice in the first ten seconds. It costs me domain balance — River was #154 — and I am taking that trade knowingly: the ladder binds first, and the other four briefs go to the four longest-untouched domains.\n\nThe rest of the queue is chosen against one theme: the town has several scalars that are secretly switches, and every one of them makes an existing system a ramp nobody stands in. b156 is the biggest of them — #154 histogrammed windF at the call and found 391 of 446 samples at exactly 0 or exactly 1.0, so sway, the mirror's chop, the streaks and #154's own PUNT_WIND_SLOW are all tuned against a coin. That is one change that reaches a dozen built systems, which is the definition of rung-2 interconnect done well and is why it sits second. b157 finally spends c221, raised at #136 and carried by five manager passes with 'FIRST BRIEF NEXT PASS' written on it by a previous me who then did not brief it — that is a small instance of the exact failure this role exists to catch, so it is in the queue this time. b158 spends c230 and the EAST'S BUDGET watch item together. b159 takes #147's own documented successor read: it wrote the invariant into plotCrop() along with the condition that would end it, and #152 then built the hand that could.\n\nCuration: coverage entered for #150-154; six cues closed (c221/c230/c242 promoted into b157/b156/b158; c200 shut after five passes as below the legibility floor; c237 shut as a non-fault replayed identical on HEAD twice; c240 shut into a law); c238-c242 re-attributed to the iterations that actually raised them. Inventory 52 lines back inside 6-per-domain and 200 B-per-line, which forced four merges — and one of them mattered: sky[1] still told every worker the backdrop had 'no depth, no season, no weather', which #150 ended 4 iterations ago. Four laws promoted by MERGING (#150's cached warm pixel into the cache law, #151's two-consumers-two-arrays into the one-definition law, #152's read-the-loop's-bounds into locate-before-you-judge, #154's bimodal-bar-is-a-coin into the two-seeds sentence) and paid for by CUTTING the ticker-slot arithmetic and the staleness/untruth pair from the framing and time laws (both are now inventory), the sillTop numbers, 'a place that RESERVES nothing is not a place' (now a built pattern), and two duplicated sentences. Budget 47.1 -> 43.5 KB.",
   "queue": [
     {
-      "id": "b155",
-      "domain": "River & far bank",
-      "kind": "Scale/World",
-      "brief": "THE BET, and the batch's rung-4b move. The river is 13 columns of flat WATER (RIVER_X0 114 .. RIVER_X1 127) meeting the quay's SIDE and the towpath at a pixel boundary, and nothing grows in the shallows. Add ONE new tile constant and ONE new species: a REED tile in the shallow margins — the west edge against the quay, the east edge against the towpath, and the eyot's rim — and rushes (or yellow iris) as the next entry in SPECIES, growing on the same bed CA the beds already use, so it comes and goes with the season and leans in the wind. The census must MOVE, and that is the point: expect tileKinds 144 -> 153 and speciesKinds 108 -> 117 (nine sample blocks x one new kind — check that arithmetic against census.mjs before you trust it; GLASS at #116 is the worked example). A season or an evening does not clear mapFlat; only a spatial change does. A 150-300 line diff is expected and welcome — take the swing.",
-      "seams": ["buildGrid", "the tile constants at ~line 273 (WALL..GLASS)", "SPECIES", "speciesFor", "caTick", "eyotAt/onEyot/eyotShore", "drawWaterMirror/MIRROR", "riverRun", "windF", "census.mjs --save-baseline"],
-      "successLooksLike": "From the wide shot the river no longer meets its banks at a line: a fringe stands IN the water along the margins and round the eyot, green in summer, brown and bent in winter, leaning when it blows. tileKinds and speciesKinds both move in the census, and the entry says by how much and against which baseline.",
-      "avoid": "Keep reeds out of the boat channel (x 116.5-121.5), off the deck rows (DECK_Y0 30 .. DECK_Y1 32), clear of MILL_WHEEL (126.35, 21.3, r 1.25) and off the punt berths and landings — #154 has just cleared that whole track and a reed bed may not re-block it: probes/punt.mjs and punt-track.mjs must still exit 0. Do NOT extend GW or WH; the grid is full and growing WH moves every hard-coded row in 13,900 lines. And `water` reads 8784 in the last six runlog rows while the census gate reads COLLAPSE, not delta — decide up front whether a REED cell is still water to the census (it is shallow water, not land); if the class changes, re-pin with `census.mjs --save-baseline` and SAY SO in the entry.",
-      "budgetMin": 75,
-      "risk": "high"
-    },
-    {
       "id": "b156",
       "domain": "Sky, light & weather",
       "kind": "Deepen",
       "brief": "windF is a coin, not a scalar, and it is the most widely-read scalar in the town. #154 histogrammed it AT THE CALL: 0 on 257 samples and exactly 1.0 on 134 of 446, because `windTarget()` (~line 1503) is `Math.max(windyDay() ? 1 : 0, frontWind())`. So every term keyed on a windF strictly between 0 and 1 — awning and washing-line sway, the water mirror's chop (#145), the streaks, and #154's own PUNT_WIND_SLOW/PUNT_WIND_SHY — is a ramp nobody stands in. Give the day a real wind STRENGTH with a distribution: a breezy day should not be a gale, and a still day should not be dead flat. Then go back through the consumers — anything tuned against a 0/1 input is now mis-tuned, and the interesting ones are those whose response has never been visible.",
-      "seams": ["windTarget", "windyDay", "frontWind", "windF", "WIND_RISE_H", "isWindy", "drawWaterMirror", "puntSpeed/PUNT_WIND_SLOW", "PUNT_WIND_SHY"],
+      "seams": [
+        "windTarget",
+        "windyDay",
+        "frontWind",
+        "windF",
+        "WIND_RISE_H",
+        "isWindy",
+        "drawWaterMirror",
+        "puntSpeed/PUNT_WIND_SLOW",
+        "PUNT_WIND_SHY"
+      ],
       "successLooksLike": "A histogram of windF at the call over a year x 3 seeds has real mass in the middle — no more than ~60% of samples at the two ends, against 88% (391 of 446) on HEAD — and a cropped difference image shows at least two consumers visibly differing between a windF 0.4 day and a windF 0.9 day.",
       "avoid": "`isWindy` (the behaviour boolean) and `windF` (the 0..1 intensity that draw sites multiply) are deliberately split — keep them split. This adds draws, so the seeded world reshuffles: read the census for COLLAPSE rather than delta, and replay every stray motion gate on HEAD before believing it.",
       "budgetMin": 45,
@@ -42,7 +41,17 @@
       "domain": "Courtyard & garden",
       "kind": "Connect",
       "brief": "`gardenFits()` (~line 3037) is `lawnFits()` plus a pre-dawn landing bound, and after sunrise it returns true unconditionally: `if (hour > sunUp) return true`. So #129's walk-priced-to-land-as-the-light-clears governs only a small minority of growing-season visits and the rest are unbounded at the landing end — the marathon-walker factory the both-ends law names. #148 built the fix for the plaza's families and it is the pattern to copy: famWalk() one definition of the two legs, famWin() the hours the place HOLDS anyone, called by the roll's bounds AND the set-out test alike. Bound the POST-sunrise landing the same way. The courtyard is 15 iterations back and it is the town's namesake.",
-      "seams": ["gardenFits", "lawnFits", "lawnStart", "lawnOpen", "GARD_LAND", "gardenDue/GARD_K", "growSeason", "a.dawnWalk", "sunUp"],
+      "seams": [
+        "gardenFits",
+        "lawnFits",
+        "lawnStart",
+        "lawnOpen",
+        "GARD_LAND",
+        "gardenDue/GARD_K",
+        "growSeason",
+        "a.dawnWalk",
+        "sunUp"
+      ],
       "successLooksLike": "Over a growing season x 3 seeds essentially every gardener visit is priced at BOTH ends instead of ~1 in 12, and no gardener sets out on a walk that lands after the beds are in shade.",
       "avoid": "The premise number — 16 of 186 growing visits — comes from cue c221, raised at #136, and has NEVER been re-measured. COUNT it on HEAD before you build on it; if it is wrong, say so and ship the measurement, as #147 did. Do not touch the pre-dawn branch, which #129 priced and which works. And do not widen GARD_K to compensate for visits the new bound refuses: the count falling is a legitimate outcome — report by how much.",
       "budgetMin": 30,
@@ -53,7 +62,17 @@
       "domain": "Lane & market",
       "kind": "Scale/World",
       "brief": "#137 swept laneCap 6.4 -> 10 -> 13 -> 16 and kept 10, because the east half did not respond to the cap at all. #144 changed that: `eastPull(cap)` now scales the four east bands 1x..2x between EAST_CAP0 6 and EAST_CAP1 14, and the sweep behind cue c230 says cap 10 -> 16 puts +1.02 people in the plaza. Re-price the ceiling — this is the follow-up #144 was explicitly forbidden to take. The law is that a cap and a share are two bounds and only one can be swept: re-weight, then RE-SWEEP, because the sweep is what reveals a ceiling that has stopped binding at all.",
-      "seams": ["laneCap", "eastEdges", "eastPull", "EAST_CAP0", "EAST_CAP1", "EAST_PULL", "spawnLaneAgent", "capacity", "probes/town-caps.mjs"],
+      "seams": [
+        "laneCap",
+        "eastEdges",
+        "eastPull",
+        "EAST_CAP0",
+        "EAST_CAP1",
+        "EAST_PULL",
+        "spawnLaneAgent",
+        "capacity",
+        "probes/town-caps.mjs"
+      ],
       "successLooksLike": "A presence-per-place sweep names a knee, the shipped cap sits on it, the plaza / quay / church green / deck all gain, and crowded pairs per person stay inside their band.",
       "avoid": "Re-measure the +1.02 on HEAD first — it is a number from a cue, not from a run you did. Do not give any east destination its own new source; that is a bigger move than this brief and it wants its own. If the sweep says the ceiling is now a DEAD constant (identical numbers at two settings), that is a real result: ship the measurement and the finding, not a number change for its own sake.",
       "budgetMin": 40,
@@ -64,12 +83,28 @@
       "domain": "Cross street & allotments",
       "kind": "Deepen",
       "brief": "#147 measured the allotments as monoculture BY CONSTRUCTION — species per plot 1.000 over 69,008 sown samples — and wrote the invariant into `plotCrop()` along with the successor read for the day it stops holding. #152 then built the hand that could stop it, but `plotAct()`'s sow rung still fills bare cells with `plotCrop()` itself, so the plot stays one crop (the comment at ~line 3996 says exactly that). Let a hand sow a DIFFERENT crop into a fallow cell — a holder inter-cropping, which is what the rung is for — and then make `plotCrop()` answer for the plot's MAJORITY, which is the read #147 left ready. One predicate, one definition: every downstream reader of plotCrop must be walked, not assumed.",
-      "seams": ["plotAct", "plotCrop", "plotStands", "plotClimbs", "harvestPlot", "caTick infill", "speciesFor", "SPECIES (veg/hardy/glass)", "bSp/bSt"],
+      "seams": [
+        "plotAct",
+        "plotCrop",
+        "plotStands",
+        "plotClimbs",
+        "harvestPlot",
+        "caTick infill",
+        "speciesFor",
+        "SPECIES (veg/hardy/glass)",
+        "bSp/bSt"
+      ],
       "successLooksLike": "Over a year x 3 seeds some plots hold two species (species/plot above 1.000 — say what it is), the beans still put their canes up on the plots that are actually beans, and the glasshouse crop still never appears outside the span.",
       "avoid": "Do not break the winter invariant #147 measured: tender crops in the open must still reach stage 3 zero times in deep winter, against hardy 21,474 and glass 10,191. Do not make every plot mixed — a plot that stays one crop is still the common case; the finding is that it has stopped being universal. And if a downstream reader of plotCrop turns out to want the FIRST cell rather than the majority, say which and why rather than changing them all.",
       "budgetMin": 40,
       "risk": "medium"
     }
   ],
-  "recommendStop": null
+  "recommendStop": null,
+  "consumed": [
+    {
+      "id": "b155",
+      "at": "2026-09-03T03:53:58.415Z"
+    }
+  ]
 }

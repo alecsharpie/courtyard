@@ -279,11 +279,15 @@ const WALL = 0, PATH = 1, GRASS = 2, BED = 3, CBED = 4, TRUNK = 5, SIDE = 6, ROA
                                // lawn to the ground cache, not ground to a companion, drawn live
       EYOT = 14,               // the island in the river (#87): turf with a shingle rim, land to
                                // the census and the swans, nobody's waypoint; a willow stands on it
-      GLASS = 15;              // the glasshouse floor (#116): a ROOFED floor, so it takes the shape
+      GLASS = 15,              // the glasshouse floor (#116): a ROOFED floor, so it takes the shape
                                // TUNNEL already has — its own fill in the ground cache and an early
                                // `continue`, so no snow, no litter and no moss ever reach it. Never a
                                // volume: buildVolumes() reads WALL/TUNNEL and must not roof this one,
                                // because the whole point of the tile is that you see through it
+      REED = 16;               // the river's shallow margin (#155): WATER with rushes standing in it.
+                               // Water to everything that reads the surface — the ground cache paints
+                               // it as river, the census counts it under `water`, nobody stands in it —
+                               // and a BED to the planting CA, which is what makes it seasonal
 /* the eyot: ONE ellipse, evaluated once in buildGrid() — everything else (the swans' third
  * bank, the ducks' nest, the streaks that part round it) reads the tile back off the grid.
  * Sited in the river's east half, clear of the boat's channel (x 116.5–121.5, hull ±0.5) by
@@ -425,6 +429,98 @@ function onJetty(x, y){ return x > JETTY.x - 2.6 && x < JETTY.x + 0.4 && y > JET
 // z is 0 for everybody who walks on the ground; the band's platform, the jetty and the
 // footbridge lift whoever stands on them — read off the place, never written at spawn
 function agentZ(a){ return a.z || (onJetty(a.x, a.y) ? 0.5 : deckZAt(a.x, a.y)); }
+
+/* ============ the reed margins (#155) ============ *
+ * Thirteen columns of flat WATER met the quay's paving and the towpath at a pixel
+ * boundary: the river had banks, but no EDGE. A reed bed is the edge, and the thing
+ * about a reed bed is that it stands IN the water — so it is a TILE of its own and not
+ * a decoration painted onto the bank, and a REED cell is counted under `water` by the
+ * census, because shallow water is what the rushes are standing in. Nothing about it is
+ * ground: `green` and `developed` do not move.
+ *
+ * WHERE it goes is read back off the grid and never re-derived (#151's law): a river
+ * cell one of whose neighbours is the quay's SIDE, the towpath's SIDE or the eyot's turf
+ * is a shallow. What comes back OUT of that set is everything the river WORKS with, and
+ * the keep-out list is the load-bearing half of this feature — #154 had just finished
+ * clearing the punt's whole track, and a reed bed may not re-block it.
+ *
+ * And not one R() draw anywhere in the system. Which shallows carry rushes is hash(),
+ * and how far on they are is a function of the year, so the seeded world is byte-for-byte
+ * the world it was and everything that moves in the census is the reeds themselves.
+ */
+const REED_Y0 = 4, REED_Y1 = 61;   // the reach the wide shot holds; below 61 the lane's bridge takes the river
+const REED_RUN = 5;                // a bed comes in RUNS of a few cells — one uniform hash is a texture, not a place
+const REED_STRETCH = 0.72;         // which runs of the long bank margins hold a bed at all
+const REED_FILL = 0.86;            // and which cells inside one actually carry rushes
+const REED_H = 1.1;                // a full stand, in cells: shoulder-high on the towpath, and it stands in water
+/* a river cell the bank or the island is next to — the shallow, as the grid cut it */
+function reedShallow(x, y){
+  if (y < REED_Y0 || y >= REED_Y1 || x < RIVER_X0 || x >= RIVER_X1) return false;
+  const i = y * GW + x;
+  if (grid[i] !== WATER) return false;
+  for (const d of [-1, 1, -GW, GW]){ const g = grid[i + d]; if (g === SIDE || g === EYOT) return true; }
+  return false;
+}
+function reedRim(x, y){   // a shallow the ISLAND is next to, as against the two bank margins
+  const i = y * GW + x;
+  for (const d of [-1, 1, -GW, GW]) if (grid[i + d] === EYOT) return true;
+  return false;
+}
+/* Right of way, and each line names what it is protecting. The punt's is a SEGMENT and
+ * not a point, because a hull under way owns the whole corridor moor -> landing. */
+function reedKeepOut(cx, cy){
+  if (cy > DECK_Y0 - 2.4 && cy < DECK_Y1 + 2.4) return true;                                  // the footbridge and both its ramps
+  if (Math.hypot(cx - MILL_WHEEL.x, cy - MILL_WHEEL.y) < MILL_WHEEL.r + 2.0) return true;     // the wheel, and the race it beats
+  if (onJetty(cx, cy) || Math.hypot(cx - (JETTY.x - 1.6), cy - JETTY.y) < 3.0) return true;   // the planks, and the water off their end
+  for (const b of BARGE_BERTH) if (Math.hypot(cx - b.x, cy - b.y) < 3.4) return true;         // the length the barge lies alongside
+  for (const b of PUNT_BERTHS){                                                               // the track #154 cleared, both hulls
+    const [nx, ny] = segNear(cx, cy, b.moor.x, b.moor.y, b.land.x, b.land.y);
+    if (Math.hypot(cx - nx, cy - ny) < 2.0) return true;
+    if (Math.hypot(cx - b.shore.x, cy - b.shore.y) < 1.8) return true;                        // and the footfall on the turf
+  }
+  return false;
+}
+/* A reed bed is not a flower bed. It does not self-seed, nobody weeds it and it never
+ * goes bare: it thickens through the summer, heads in high summer and dies back to a
+ * brown stubble. So its stage is a pure FUNCTION of the year and the cell's own hash —
+ * each cell keeps its own fortnight — rather than a die roll, and caTick's REED branch
+ * spends nothing. Stage never reaches 0, which is the whole difference from a bed. */
+const REED_UP = 0.30, REED_FULL = 0.62;      // the warmths a stand greens at, and heads at
+/* what the sill says about a margin, and what a tap on one answers with — both indexed by
+ * the SAME stage the draw reads, so the words and the picture cannot disagree about how
+ * far on the reeds are. There is no stage 0: a reed bed does not go bare. */
+const REED_NAMES = ['the reeds, brown and bent over the water',
+                    'the reeds, greening at the river\'s edge',
+                    'the reeds, headed and full'];
+const REED_WORDS = ['You part the dry reeds; they rattle and stand back up.',
+                    'You run a hand through the reeds. Something small goes away under the water.',
+                    'You part the reeds; a seed head nods and lets go a little cloud.'];
+function reedStage(x, y){
+  const w = warmth + (hash(x, y * 3 + 19) - 0.5) * 0.22;
+  return w > REED_FULL ? 3 : w > REED_UP ? 2 : 1;
+}
+/* Called from the opening state and NOT from buildGrid(), because half the geometry it
+ * keeps out of — the barge's berth, the punt's berths — is declared with those systems,
+ * ten thousand lines below where the grid is cut. It runs once, before the first frame. */
+function sowReeds(){
+  const sp = SPECIES.findIndex(s => s.name === 'rushes') + 1;
+  let n = 0;
+  for (let y = REED_Y0; y < REED_Y1; y++) for (let x = RIVER_X0; x < RIVER_X1; x++){
+    if (!reedShallow(x, y)) continue;
+    if (reedKeepOut(x + 0.5, y + 0.5)) continue;
+    // The coarse gate is what makes a bank margin GATHER into runs instead of dotting
+    // evenly down 57 cells. The eyot's rim does not get it: 17 cells round an island are
+    // already a place, and at that n a threshold is not a share but a coin — it took the
+    // rim from 17 candidates to 4 kept, in two lumps, which is the fault the gate exists
+    // to fix. So the ring takes the fine gate only, and reads as a fringe.
+    if (!reedRim(x, y) && hash(x * 3, (y / REED_RUN | 0) * 11 + 5) > REED_STRETCH) continue;
+    if (hash(x, y * 5 + 1) > REED_FILL) continue;                            // fine: which cells inside one
+    const i = y * GW + x;
+    grid[i] = REED; bSp[i] = sp; bSt[i] = reedStage(x, y); bAge[i] = 0;
+    n++;
+  }
+  return n;
+}
 
 let W = 0, H = 0, DPR = 1, cellW = 12, cellH = 8, topPad = 40, originX = 0;
 const PINCH = 0.11;
@@ -730,10 +826,16 @@ const SPECIES = [
      full ceiling inside while every plot around it stalls at bloomCap(). Deliberately NOT
      `hardy` — hardy means it stands the cold in the open, and this one does not. */
   {name:'tomatoes',  col:'#4d7a3e', col2:'#cc4a33', h:1.0,  style:'spike', minDay:0, veg:1, glass:1},
+  /* the river's own (#155). `wild` is the inverse of every other flag here: it does not
+     say where this species MAY grow, it says nobody plants it — no bed, no plot and no
+     gardener's trowel can ever offer it, and the only cells that carry it are the REED
+     tiles sowReeds() cut. Not `veg`, so it is never picked, never paid into produce[]
+     and never reaches a stall; not a bloom on the sill, which counts the garden. */
+  {name:'rushes',    col:'#7a6446', col2:'#a28f66', h:REED_H, style:'reed', minDay:0, wild:1},
 ];
 function speciesFor(x, y){
   const veg = inAllotment(x, y), gl = inGlass(x, y);
-  return SPECIES.filter(s => s.minDay <= day && !s.veg === !veg && (!s.glass || gl));
+  return SPECIES.filter(s => !s.wild && s.minDay <= day && !s.veg === !veg && (!s.glass || gl));
 }
 
 function nearEntrance(x, y){
@@ -2120,7 +2222,7 @@ function mossShelterAt(x, y, own){
     const gx = x + dx, gy = y + dy;
     const g = (gx < 0 || gy < 0 || gx >= GW || gy >= WH) ? -1 : grid[gy * GW + gx];
     if (own === MOSS_PLAZA){ if (g !== PATH) n++; }
-    else { if (g !== SIDE) n++; if (g === WATER) n += MOSS_WET; }
+    else { if (g !== SIDE) n++; if (g === WATER || g === REED) n += MOSS_WET; }
   }
   return clamp(n / 5, 0, 1);
 }
@@ -2797,7 +2899,7 @@ function caTick(){
   stepMoss();
   const m = maturity(), boost = raining ? 3 : 1;
   const vig = growF(), die = dieF();          // the ceiling is per-cell now: bedCap(x, y)
-  const availF = SPECIES.filter(s => s.minDay <= day && !s.veg);
+  const availF = SPECIES.filter(s => !s.wild && s.minDay <= day && !s.veg);   // `wild` is nobody's to sow (#155)
   const availV = SPECIES.filter(s => s.minDay <= day && s.veg && !s.glass);
   const availG = SPECIES.filter(s => s.minDay <= day && s.glass);   // the span's own rows: what only a roof can keep
   for (let y = 3; y < LN_WALK_S; y++) for (let x = 0; x < GW; x++){
@@ -2837,6 +2939,12 @@ function caTick(){
         const crowd = nm > 5 ? 0.03 : 0;
         if (R() < (0.0025 + crowd + bAge[i] * 0.0004) * die){ bSp[i] = 0; bSt[i] = 0; bAge[i] = 0; }
       }
+    } else if (t === REED){
+      // the shallows step on the same tick as the beds and out of the same arrays, but
+      // with no die roll in them at all: a stand of rushes is where it was last year, and
+      // only how far ON it is answers to the season. Zero R() — so adding the whole reed
+      // system left every other seeded draw in this loop on exactly the sequence it had.
+      bSt[i] = reedStage(x, y);
     } else if (paveWear[i] > 0){
       // #126: the test is the WEAR, not the tile. paveWear only ever accrues where
       // pavedAt() says so, and that now includes the plaza's PATH — gated on ROAD||SIDE
@@ -5351,7 +5459,7 @@ function pairStands(x, y){
   const gx = Math.round(x - .5), gy = Math.round(y - .5);
   if (gx < 0 || gy < 0 || gx >= GW || gy >= WH) return true;   // off the frame is where they came from
   const g = grid[gy * GW + gx];
-  return g !== WATER && g !== VOID && g !== WALL && g !== BED && g !== CBED && g !== TRUNK && g !== DIAL && g !== EYOT;
+  return g !== WATER && g !== REED && g !== VOID && g !== WALL && g !== BED && g !== CBED && g !== TRUNK && g !== DIAL && g !== EYOT;
 }
 /* the dawn sweeper */
 let sweeper = null;
@@ -5878,7 +5986,7 @@ function updateWildlife(dt){
 /* ============ stats ============ */
 function refreshStats(){
   let people = agents.length, blooms = 0;
-  for (let i=0;i<GW*WH;i++){ if (bSt[i]===3 && SPECIES[bSp[i]-1].style!=='bush') blooms++; if (daisy[i]) blooms++; }
+  for (let i=0;i<GW*WH;i++){ const sp = bSt[i]===3 && SPECIES[bSp[i]-1]; if (sp && sp.style!=='bush' && !sp.wild) blooms++; if (daisy[i]) blooms++; }
   stats.people = people; stats.blooms = blooms;
   document.getElementById('stats').textContent = people + (people===1?' person · ':' people · ') + blooms + ' blooms'
     + (ducks.length ? ' · ' + ducks.length + ' ducks' : '');
@@ -7501,7 +7609,7 @@ function drawSouthBand(){
 }
 function groundCol(x, y, t, hv, m){
   const c = groundBase(x, y, t, hv, m);
-  const sn = t === WATER ? 0 : snowAt(x, y, t);
+  const sn = (t === WATER || t === REED) ? 0 : snowAt(x, y, t);   // #155: a reed cell is water under the rushes
   // #61: a dusted lawn whitens faster than its cover — 0.36 of cover mixed linearly is a
   // pale green in any daylight (c83); the curve is exact at 0 and 1, so no pop as the
   // first flakes settle and nothing changes under a full cover. Grass only: the beds,
@@ -7819,7 +7927,7 @@ function groundBase(x, y, t, hv, m){
   }
   if (t === EYOT){                                     // the island's turf: rougher and paler than the green, shingle where it meets the water
     let shore = 0;
-    for (const d of [-1, 1, -GW, GW]) if (grid[y * GW + x + d] === WATER) shore++;
+    for (const d of [-1, 1, -GW, GW]){ const g = grid[y * GW + x + d]; if (g === WATER || g === REED) shore++; }
     const turf = mix('#9db06e', '#7d9a56', 0.5 + 0.5 * hash(x, y + 5) - 0.25 * (1 - m));
     return shore ? mix(turf, mix('#b9ae93', '#cbc2ac', hv), 0.35 + 0.25 * shore) : turf;
   }
@@ -8252,7 +8360,7 @@ function drawGround(){
   // ground, drawn well past the frame so the town never stops in mid-air
   for (let y = 0; y < WH; y++) for (let x = XLO; x < XHI; x++){
     const gx = clamp(x, 0, GW - 1);
-    const i = y * GW + gx, t = grid[i] === DECK || grid[i] === EYOT ? WATER : grid[i] === DIAL ? GRASS : grid[i], hv = hash(gx, y);   // the cache sees the water under the deck AND under the eyot (painted whole below), the lawn under the sundial
+    const i = y * GW + gx, g0 = grid[i], t = g0 === DECK || g0 === EYOT || g0 === REED ? WATER : g0 === DIAL ? GRASS : g0, hv = hash(gx, y);   // the cache sees the water under the deck, under the eyot (painted whole below) and under the rushes, the lawn under the sundial
     if (t === WALL || t === VOID) continue;
     if (t === TUNNEL){                                   // floor of a roofed passage
       gtx.fillStyle = '#241d16'; quad(gtx, x, y, 0.03); gtx.fill(); continue;
@@ -8293,7 +8401,7 @@ function drawGround(){
     if ((t === PATH || t === SIDE) && moss[i] > 0) drawMoss(gtx, x, y, moss[i]);
     if (t === GRASS && x >= ALT_X0){                     // reeds where bank meets water (the eyot's are drawn with the island below)
       let nearWater = false;
-      for (const d of [-1, 1, -GW, GW]) if (grid[i + d] === WATER) nearWater = true;
+      for (const d of [-1, 1, -GW, GW]){ const g = grid[i + d]; if (g === WATER || g === REED) nearWater = true; }
       if (nearWater){
         const rs = cellW / 13;
         gtx.strokeStyle = '#5d7a42'; gtx.lineWidth = Math.max(0.8, rs);
@@ -9622,6 +9730,7 @@ function drawScene(t, dt){
   for (let y=3;y<LN_WALK_S;y++) for (let x=0;x<GW;x++){
     const i=y*GW+x;
     if (bSp[i] && (grid[i]===BED || grid[i]===CBED)) items.push({y:y+0.5, f:drawPlant, x, gy:y, i});
+    else if (grid[i]===REED) items.push({y:y+0.5, f:drawReeds, x, gy:y, i});   // #155: the shallows sort with the beds
   }
   for (const b of BENCH_SPOTS) items.push({y:b.y+0.2, f:drawBench, b});
   for (const b of LANE_BENCHES) items.push({y:b.y+0.2, f:drawBench, b});
@@ -10011,6 +10120,63 @@ function drawPlant(it, t){
     }
   }
 }
+/* the rushes themselves (#155). A CLUMP, not a plant: a fan of blades out of one root,
+ * every blade leaning on the same wind term, with seed heads on the tallest three once
+ * the stand has come on. Every term is hash() off the cell, so a bed is the same bed in
+ * every seed and on every frame; only the lean and the season move it.
+ *
+ * Drawn as an ITEM in the same y-sorted pass as the beds, so a swan, a duck and a punt
+ * pass IN FRONT of the near margin and BEHIND the far one without a special case. The
+ * faint stroke under each clump is #145's rule applied in the small: the image of a point
+ * in the water plane is that point with its z NEGATED, and a stand of rushes is a stroke
+ * rather than a caster worth its own offscreen pass. One path per clump per pass, so a
+ * whole margin of reeds costs two strokes and one fill per CELL, not per blade. */
+function drawReeds(it){
+  const gx = it.x, gy = it.gy, st = bSt[it.i] || 1;
+  const on = (st - 1) / 2;                                   // 0 in the winter stubble, 1 in high summer
+  const wf = windF();
+  // the dead stand is the BENT one: a brown reed keeps last winter's lean whether it is
+  // blowing or not, and a green one stands up until the wind puts it over
+  const sway = RM ? 0 : Math.sin(windT * 2.0 + gx * 0.9 + gy * 0.4);
+  const lean = windSign * (0.30 - 0.18 * on + wf * (0.55 + 0.35 * sway));
+  const n = 4 + (hash(gx * 5, gy * 3) * 3 | 0);
+  const P = [];
+  for (let k = 0; k < n; k++){
+    const px = gx + 0.15 + hash(gx + k * 7, gy * 2 + 3) * 0.7;
+    const py = gy + 0.25 + hash(gx * 2 + 1, gy + k * 5) * 0.55;
+    const h = REED_H * (0.42 + 0.58 * on) * (0.6 + hash(gx + k, gy * 7 + k) * 0.7);
+    const sw = lean * h * (0.7 + hash(k * 3 + 1, gy) * 0.6);
+    // both ends of a stroke are solved in WORLD space and projected separately: an offset
+    // added to a PROJECTED point is a pixel, and project() is not linear in it
+    P.push([project(px, py, 0), project(px + sw * 0.35, py, h * 0.6),
+            project(px + sw, py, h), project(px + sw * 0.5, py, -h * 0.55)]);
+  }
+  ctx.lineCap = 'round';
+  ctx.lineWidth = Math.max(0.7, cellW * 0.05);
+  if (MIRROR > 0){
+    ctx.globalAlpha = REFL_A * 0.5 * (1 - 0.5 * rainFall) * (0.3 + 0.7 * Math.max(daylight, nightF * 0.4));
+    ctx.strokeStyle = mix('#6b5a3c', '#44622e', on);
+    ctx.beginPath();
+    for (const [b, , , r] of P){ ctx.moveTo(b[0], b[1]); ctx.lineTo(r[0], r[1]); }
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+  ctx.strokeStyle = mix('#7d6a45', '#4e7238', on);
+  ctx.beginPath();
+  for (const [b, m, t] of P){ ctx.moveTo(b[0], b[1]); ctx.quadraticCurveTo(m[0], m[1], t[0], t[1]); }
+  ctx.stroke();
+  if (st === 3){                                             // the heads, only on a stand that has come on
+    ctx.fillStyle = SPECIES[bSp[it.i] - 1].col;
+    ctx.beginPath();
+    for (let k = 0; k < Math.min(3, P.length); k++){
+      const t = P[k][2];
+      ctx.moveTo(t[0] + cellW * 0.06, t[1]);
+      ctx.ellipse(t[0], t[1], cellW * 0.06, cellH * 0.17, 0, 0, 7);
+    }
+    ctx.fill();
+  }
+}
+
 /* A bare tree has to read as a CROWN, not as an asterisk. The first cut drew each bough
  * as one uniform stroke from a single point and the winter linden looked like a spider.
  * So: a tapered quad with a slight curve, forking two twigs at 62% of its length, which
@@ -12496,7 +12662,7 @@ function applyLight(t){
 function answersTouch(x, y){
   if (x < 0 || y < 0 || x >= GW || y >= WH) return false;
   const g = grid[y * GW + x];
-  return g === BED || g === CBED || g === GRASS || g === WATER ||
+  return g === BED || g === CBED || g === GRASS || g === WATER || g === REED ||
          g === SIDE || g === ROAD || g === PATH;
 }
 /* SIDE, ROAD and PATH are the paving of the WHOLE town — the courtyard's flags,
@@ -12693,6 +12859,8 @@ cv.addEventListener('click', ev => {
   } else if (grid[j] === GRASS){
     daisy[j] = 2; groundDirty = true;
     announce('You flick a daisy seed down onto the lawn.');
+  } else if (grid[j] === REED){
+    announce(REED_WORDS[bSt[j] - 1] || REED_WORDS[0]);
   } else if (grid[j] === WATER){
     const w = waterAt(x);
     announce(w.line);
@@ -12883,6 +13051,7 @@ function nameAt(x, y){
   if (x === GW - 1 && y >= FIELD_Y0 && y < FIELD_Y1) return fieldEdgeName(x, y);
   if (g === GRASS) return daisy[j] ? 'the lawn, daisies in it'
                  : wear[j] > 0.45 ? 'the lawn, worn to a path' : 'the lawn';
+  if (g === REED) return REED_NAMES[bSt[j] - 1] || REED_NAMES[0];
   if (g === WATER){ const w = waterAt(x); return w.x0 === RIVER_X0 && mistF() > 0.3 ? 'mist on the river' : w.what; }
   if (g === GLASS) return 'the glasshouse, warm under the panes';
   if (g === EYOT) return 'the eyot';
@@ -13332,6 +13501,12 @@ daytimeEl.addEventListener('click', beginEvening);
 whereEl.addEventListener('click', () => whereGo(whereN + 1));
 
 /* ============ opening state ============ */
+/* The shallows are cut FIRST, and before the scatter below, for two reasons. It is the
+ * only place in the load order where every keep-out it reads — the barge's berth, both
+ * punt berths — has been declared; and the scatter's own R() draws walk the grid looking
+ * for BED, so cutting water into REED after it would have moved nothing but still had to
+ * be explained. It spends no R(), so the eight opening beds are the eight they were. */
+sowReeds();
 (function seed(){
   let planted = 0, guard = 0;
   while (planted < 8 && guard++ < 4000){
@@ -13868,7 +14043,7 @@ window.__entities = function(){
   return out;
 };
 window.__census = function(){
-  const tiles = {}, TN = ['WALL','PATH','GRASS','BED','CBED','TRUNK','SIDE','ROAD','VOID','WATER','TUNNEL','SLOT','DECK','DIAL','EYOT','GLASS'];
+  const tiles = {}, TN = ['WALL','PATH','GRASS','BED','CBED','TRUNK','SIDE','ROAD','VOID','WATER','TUNNEL','SLOT','DECK','DIAL','EYOT','GLASS','REED'];
   for (let i = 0; i < GW * WH; i++){ const n = TN[grid[i]] || ('T' + grid[i]); tiles[n] = (tiles[n] || 0) + 1; }
 
   /* planting CA: how much of the beds is actually growing, and how far along */
@@ -13933,7 +14108,10 @@ window.__census = function(){
     scalars: {
       developed: (tiles.WALL || 0) + (tiles.PATH || 0) + (tiles.ROAD || 0) + (tiles.SIDE || 0),
       green: (tiles.GRASS || 0) + (tiles.BED || 0) + (tiles.CBED || 0) + (tiles.TRUNK || 0),
-      water: tiles.WATER || 0,
+      // #155: a REED cell is shallow water, not land — it is cut OUT of WATER, so
+      // without this the whole reed bed would read as the river losing 400 cells.
+      // `green` and `developed` are untouched: nothing here is ground.
+      water: (tiles.WATER || 0) + (tiles.REED || 0),
       passages: (tiles.TUNNEL || 0) + (tiles.SLOT || 0),
       people: agents.length, planted, blooming,
       creatures: life.ducks + life.swans + life.birds + life.butterflies + life.fireflies,

@@ -523,7 +523,8 @@
       "the far bank's day: spawnFarAgent/farOpen/FAR_CAP, FAR_GATE, a.jetty, overDeck's east door; concert bandF/isBandDay; FIELD EDGE east of GW painted in the cache",
       "the evening ends: EVE_GONE/EVE_HURRY/EVE_BELL, eveOutH -> a.eveOut, goHome(a,maxH). Night water: drawRiverLights, RIVER_LAMPS, a.nightRail, roseLit",
       "the PUNT, a FLEET of two (#141): PUNTS/PUNT_BERTHS, hull B lands 0.95 west so tracks are PARALLEL; punt{leg 0..4}, puntFits -> OFFER. Wind is a SHARE (#154): PUNT_WIND_SLOW/SHY",
-      "the town is IN the water (#145): drawWaterMirror + MIRROR/setMirror (project z sign). Five casters re-run their OWN draw - bridge, deck, mill wheel, jetty, willow. NOT the boats"
+      "the town is IN the water (#145): drawWaterMirror + MIRROR/setMirror (project z sign). Five casters re-run their OWN draw - bridge, deck, mill wheel, jetty, willow. NOT the boats",
+      "the SHALLOWS are a TILE (#155): REED + SPECIES 'rushes' (wild - nobody sows it). reedShallow/reedKeepOut/reedStage/sowReeds; drawReeds an item. No R(); census counts REED under water"
     ],
     "sky": [
       "day/night (55 s day), sun and moon arc, chimney smoke, a balloon; windowLit the ONE pane predicate + LIT[], relit AFTER applyLight. season() over SEASON_LEN 26 days; greyF the year",
@@ -600,6 +601,12 @@
       "note": "stall.mjs does not read row.quota, so a worker that breaches the memory quota every iteration still cannot fire a stall signal; and the RUNNER's own three files are now the only unbounded growth in the 46 KB total.",
       "raisedBy": 153,
       "seenBy": 1
+    },
+    {
+      "id": "c243",
+      "note": "the reeds are the sixth caster class #145 left out: they carry an in-line image but are not in riverCasters(), whose per-caster clip+gradient+chop pass assumes ONE thing at ONE row, not a 56-cell fringe footed at 56",
+      "raisedBy": 154,
+      "seenBy": 0
     }
   ],
   "watch": [
