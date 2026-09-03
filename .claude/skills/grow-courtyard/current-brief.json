@@ -22,7 +22,7 @@
   "avoid": "Do not close this by making the census report only viewport-independent fields, or by pinning the gate at one framing — the bug is the FORK, not the report. Do not fix it by seeding per-viewport. If the divergence turns out to be legitimate (a spawn that genuinely should depend on visible area), that is a finding, not a pass: say so, and make the gate assert the invariant that IS true. LAWS: any new draw reshuffles the whole seeded world, so read the census for collapse rather than delta, and keep each branch on the half of [0,1) it owned.",
   "budgetMin": 75,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 2,
   "nextIter": 176,
   "issued": "2026-09-03T17:09:39.767Z",
