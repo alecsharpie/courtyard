@@ -4273,15 +4273,26 @@ function spawnBonfireHolder(){                                 // sendToPlot's c
 }
 /* THE CAP BENEATH THE CAP (#144). #137 swept laneCap 6.4 -> 10 -> 13 -> 16 and found the
  * one ceiling with no knee: it keeps buying people linearly and they are all lane
- * walkers. Re-measured on HEAD here, 3 seeds x 10 days, cap 10 -> 16: the lane gains
- * +2.96 and the east gains nothing — plaza 5.40 -> 5.47, quay 1.83 -> 1.92, far bank
- * 7.95 -> 7.59. The reason is arithmetic, not appetite. This roll is the source for the
+ * walkers. The reason is arithmetic, not appetite. This roll is the source for the
  * whole east half, and it spends only 0.06 / 0.05 / 0.05 / 0.04 of itself on the plaza,
  * the quay, the far green and the parapet — 0.20 in all — so past the point where the
  * near lane is served, every marginal arrival lands in the 0.38 TAIL and is another
- * anonymous walker crossing the frame. The SHARE is the bound, so the share is what
- * moves: the east window widens with the day's own ceiling, and it takes its width out
- * of the TAIL alone, which is the only band whose people stop nowhere.
+ * anonymous walker crossing the frame. So the share is what moves: the east window
+ * widens with the day's own ceiling, and it takes its width out of the TAIL alone,
+ * which is the only band whose people stop nowhere.
+ *
+ * #158 re-swept the ceiling behind this and measured the widened share AT THE CHOICE
+ * (probes/plaza-door.mjs), 7 seeds x 60 days, cap 10 -> 20. The window does exactly what
+ * it was built to do: eastPull rides 1.61 -> 1.95, the four east bands take +65% to +80%
+ * more of the roll, and the TAIL is flat to within a person (32.7 -> 32.3). What #144
+ * could not know is that widening a share does not reach a destination with a FIXED
+ * NUMBER OF PLACES. The plaza band is behind a five-place door — three FOUNT_STANDS and
+ * two PLAZA_BENCHES, shared with the families and the east agents — and over that sweep
+ * its choices go 28.7 -> 48.6 while its ADMISSIONS go only 12.4 -> 17.3: the refused
+ * share climbs 56.7% -> 64.4% and the whole surplus leaves by the `else` below, onto the
+ * quay rail. That is why the plaza's presence is the one east number that will not move
+ * (+0.14 over the same sweep, t 0.7). The cap beneath this cap is no longer the SHARE.
+ * It is the DOOR.
  *
  * Keyed on the CAP, deliberately, and not on how full the lane happens to be: an east
  * trip is a ~40 s round trip and holds its `lane` slot for all of it, so keying on
@@ -13794,12 +13805,19 @@ function simStep(sdt, dt){
    *   capacity 6 -> 10 (peak 11 -> 15): the courtyard holds 10.36 -> 11.40 people over a
    *     dry daylit day and the cap binds 62% -> 55% of them. 13 was swept too and buys
    *     +0.21 for a ceiling of 18, so the knee is here.
-   *   laneCap 6.4 -> 10 (peak 9 -> 13): this one has NO knee in the swept range — 13 and
-   *     16 keep buying people linearly. What stops at 10 is WHO they are: the lane's roll
-   *     spends 5-6% on each of the plaza, the quay, the green and the parapet, so past
-   *     this the marginal arrival is always a lane walker and the places it feeds stay
-   *     flat (plaza 4.84 at 10, 4.68 at 13, 4.71 at 16). The BRANCH SHARE is the cap
-   *     beneath this cap; raising the ceiling further only thickens the lane. */
+   *   laneCap 6.4 -> 10 (peak 9 -> 16): this one has NO knee in the swept range — 13, 16
+   *     and 20 keep buying people linearly. What stops at 10 is WHO they are.
+   * #158 RE-SWEPT it after #144 widened the east's share of this roll, which is the one
+   * thing that could have put a knee in it — 7 seeds x 20 days, paired per seed, 10 ->
+   * 13 -> 16 -> 20. It did not. The town gains +1.33 / +3.55 / +6.46 people and the LANE
+   * takes 69% of every step (+1.67 / +2.62 / +4.47, t 4.7 to 12.3). The east destinations
+   * split +1.33 between them at the very top — quay +0.61 (t 4.7), far bank +0.48 (t 5.5),
+   * bridge +0.24 — and the plaza, the place the widened share was aimed at, does not move
+   * at all: +0.14, t 0.7, and -0.06 at cap 16, where a cue had claimed +1.02. Crowding is
+   * NOT what holds the ceiling: unrelated pairs per person go 0.080 -> 0.084 and stay
+   * inside their band at every setting. What holds it is that the marginal person is a
+   * lane walker, and the one destination with a real claim on the extra people is refused
+   * at a five-place door (see THE CAP BENEATH THE CAP). Held at 10. */
   const capacity = 2 + Math.round(maturity() * (3 + 10 * daylight * yearBusy(EX_COURT)));
   const laneCap = 1 + Math.round(maturity() * (1.6 + 10 * daylight * yearBusy(EX_LANE)));
   // the far side arrives on its own budget, so it no longer loses to the lane. It is

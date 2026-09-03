@@ -129,3 +129,14 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped
 **Surprise:** the exemption was eaten by the population it excluded — 108 of the 123 SCHEDULED gardeners took it, not the 70 lottery ones. The lower bound refuses a near door at sunrise-minus-a-tick and the clause admits that walk a tick later, so the gardener bought the wait by WALKING it: 4.07 h at the median.
 **Law:** a lower bound on ARRIVAL with no bound on the WALK is a wait a walker can pay by walking — the door bag keeps only the DEAR doors, and "the cheapest door" is the cheapest expensive one.
+
+## Iteration 158 — laneCap HELD at 10; the cap beneath it is the plaza's DOOR (2026-09-03) [Lane & market × Scale/World]
+
+**Brief:** b158 — re-sweep laneCap now #144 widened the east's share of its roll; a cue claimed cap 10 -> 16 buys +1.02 in the plaza.
+**Did.** Swept laneCap 10/13/16/20, 7 seeds x 20 d, **paired per seed** (`town-caps.mjs`), then measured the share **at the CHOICE**, which nothing here did: `probes/plaza-door.mjs` (new) counts the roll per east branch in a temp copy. The two source comments carrying the refuted premise now hold the full numbers; the diff is **comments only**.
+**Measured.** The cue does not reproduce: plaza +0.14 (t 0.7) at cap 20, **-0.06 at cap 16**, its claimed setting. No knee. Town +6.46 at 20 and the **lane takes 69%**; the east splits the other +1.33. Pairs per person 0.080 -> 0.084 — crowding is not the bound either.
+**Why the plaza is deaf.** #144's share works (eastPull 1.61 -> 1.95, bands +65..80% of roll, TAIL flat) — but the plaza is behind a **five-place door**: choices 28.7 -> 48.6, **admissions only 12.4 -> 17.3**, refused 56.7% -> **64.4%**, all leaving by the `else` onto the quay rail. The quay's +0.61 IS the plaza's rejects.
+**Gates:** census unchanged all six blocks · visual PASS · motion n/a (no executable line)
+**Verdict:** shipped — a measurement, a refutation
+**Surprise:** the first sweep ran four settings and printed four identical tables. In zsh an unquoted `$A` does **not** word-split, so `--cap-lane 13` arrived as ONE argv entry, matched nothing, and every run fell back to HEAD. Only the probe printing its own LABEL caught it.
+**Law:** A share widened at a destination with a FIXED number of PLACES becomes overflow into its NEIGHBOUR, not presence: measure it at the CHOICE and count ADMISSIONS apart — the refused fraction is the cap.
