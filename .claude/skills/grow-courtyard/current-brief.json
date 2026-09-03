@@ -20,7 +20,7 @@
   "avoid": "Do not add places — there are fourteen and #160 measured 14/14 in use. Do not widen the east branch's share; #158 measured the lane taking 69% of any widening and the plaza +0.14 at t 0.7, which is nothing. Count ADMISSIONS apart from choices.",
   "budgetMin": 60,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 173,
   "issued": "2026-09-03T15:41:23.451Z",
