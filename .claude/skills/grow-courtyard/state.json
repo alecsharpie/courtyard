@@ -2,7 +2,7 @@
   "updated": "2026-09-03",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 164,
+  "lastIteration": 166,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -429,7 +429,8 @@
         42,
         55,
         67,
-        80
+        80,
+        166
       ],
       "scale": [
         28,
@@ -560,7 +561,8 @@
       "the PAINTED sill: drawSill inside drawOurSide, baked into the ground cache; sillTop() the ONE definition; sillBoxes/sillOver/clipOffSill; nearShadow(g) ramps the near roof down to it",
       "the ticker knows where you are LOOKING: inView(x,y) the ONE reader of whereN; sayAt at 37 sites; AMBIENT_PLACES/ambientHere; SOUNDS bypass inView",
       "the ticker THREE ranks (#142): background(rank,txt,then,until) beside announce(); CLOCK and MURMUR; until = when a line stops being TRUE. run-loop step 4 -> row.quota (#153)",
-      "stall.mjs READS the row's quota — quotaBreach (trigger; names the surface off over[]) and quotaUnmeasured (advisory; the field present and never filled); --report also carries the four uncapped files' size and per-iteration slope (#164)"
+      "stall.mjs READS the row's quota — quotaBreach (trigger; names the surface off over[]) and quotaUnmeasured (advisory; the field present and never filled); --report also carries the four uncapped files' size and per-iteration slope (#164)",
+      "the camera FOLLOWS a person (#166): followQuarter, a quarter-shaped box on the feet (FOLLOW_S 2.6, ANCHOR 0.68); viewFor takes a box OR an index; viewEasing() true for its length so the wide cache is held (holdWideGround/followPad); inView reads it"
     ],
     "roofs": [
       "the town is HOUSES not regions: buildVolumes() makes roofs EMERGENT - eaveFor(x,y), vZ four-corner average, vD a distance transform, SLOPE; houseAt/houseIx, EAVE_LO 4.62/EAVE_HI 7.15",
@@ -617,6 +619,12 @@
     {
       "id": "c254",
       "note": "the sharpening SNAP: an eased frame rides a wide-resolution cache and the destination repaint lands on the frame the motion stops, so the distance crisps at u=1 (worst 390x844 Far bank, s 3.04). The ground cache has done it since #86; nobody looked.",
+      "raisedBy": 164,
+      "seenBy": 0
+    },
+    {
+      "id": "c255",
+      "note": "a follow holds the WIDE ground cache for minutes where an ease pays 0.9 s: the frame carries 54.1% of the detail of one repainted in its own view (follow-cam #8) - c254's snap made continuous. A supersample is bounded by a phone's canvas budget.",
       "raisedBy": 164,
       "seenBy": 0
     }

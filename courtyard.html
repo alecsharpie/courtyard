@@ -776,7 +776,9 @@ const VIEW_SECS = 0.9, VIEW_SMAX = 3.6;
 let whereN = 0, whereEver = false;
 let viewS = 1, viewFrom = null, viewTo = null, viewAt = 0;
 function viewFor(n){
-  const q = QUARTERS[n];
+  // an index into QUARTERS, or a quarter-shaped box of the same fields: the follow
+  // camera (below) is a box that MOVES, and it is fitted by exactly this function
+  const q = typeof n === 'number' ? QUARTERS[n] : n;
   if (!q.y1) return { s:1, ox:originX0, tp:topPad0 };
   // #99: the frame is the PICTURE — the canvas above the sill strip drawSill() paints over
   // its bottom 7.5%. The fit and the centring both read it: fitted to H and centred on H/2,
@@ -840,10 +842,29 @@ function viewFor(n){
 function applyView(v){
   viewS = v.s; cellW = cellW0 * v.s; cellH = cellH0 * v.s; originX = v.ox; topPad = v.tp;
 }
-function viewEasing(){ return viewTo !== null; }
-function viewSnap(){ viewFrom = viewTo = null; bpadWant = 0; applyView(viewFor(whereN)); }
+function viewEasing(){ return viewTo !== null || followOn; }   // a follow is a move that never arrives
+/* A resize LANDS the camera — no ease across it. If the camera is on somebody it lands
+ * ON them and keeps them, because the thing that fires this most often is the SILL's own
+ * height (the ResizeObserver above), and the follow's line is one of the things that
+ * changes it: a follow that dropped itself here would switch off in the frame it began.
+ * The caches are the old canvas's size, and drawScene will not rebuild the ground while
+ * a follow holds viewEasing() true, so the wide paint is FORCED rather than asked for. */
+function viewSnap(){
+  viewFrom = viewTo = null; bpadWant = 0;
+  if (followOn && followed){
+    followAt = VIEW_SECS;                              // landed, not easing
+    applyView(viewFor(followQuarter(followed)));
+    followFrom = { s: viewS, ox: originX, tp: topPad };
+    followPad(); holdWideGround(followFrom, true);
+    return;
+  }
+  dropFollowCam(); applyView(viewFor(whereN));
+}
 function viewEase(u){ return u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2; }
 function whereGo(n){
+  // pressing the place name is a camera act, so it takes the camera back off whoever
+  // had it — the sill keeps them (the line and the ring), the FRAME does not
+  dropFollowCam();
   whereN = ((n % QUARTERS.length) + QUARTERS.length) % QUARTERS.length; whereEver = true;
   whereEl.textContent = QUARTERS[whereN].name;
   const to = viewFor(whereN);
@@ -865,17 +886,94 @@ function whereGo(n){
    * the ease's extremes are its endpoints: the two below ARE the worst case. */
   const wpad = (v) => Math.max(v.ox / v.s - originX0, originX0 + (W - v.ox) / v.s - W);
   bpadWant = Math.max(0, Math.min(W, Math.ceil(Math.max(wpad(viewFrom), wpad(to))) + 2));
-  if (gview.s !== 1 || gview.pad < groundPad()){
-    const cur = viewFrom; applyView(viewFor(0)); gpadWant = groundPad(); drawGround(); applyView(cur);
-    groundDirty = false; wearDirty = false; wearAcc = 0;
-  }
+  holdWideGround(viewFrom);
+}
+/* The ground cache, painted ONCE in the padded WIDE view, to be scaled through whatever
+ * move comes next: a quarter's ease, or a follow that never arrives at all. drawGround
+ * costs 25-27 ms (c214), so the ONE thing a move may not do is set groundDirty per
+ * frame — it holds this paint for its whole length and repaints the destination once,
+ * where stepView lands. `cur` is the live view the caller is easing FROM. */
+function holdWideGround(cur, force){
+  if (!force && gview.s === 1 && gview.pad >= groundPad()) return;
+  applyView(viewFor(0)); gpadWant = groundPad(); drawGround(); applyView(cur);
+  groundDirty = false; wearDirty = false; wearAcc = 0;
 }
 function stepView(rdt){
+  if (followOn){ stepFollow(rdt); return; }
   if (!viewTo) return;
   viewAt += rdt;
   const u = viewEase(Math.min(1, viewAt / VIEW_SECS)), a = viewFrom, b = viewTo;
   applyView({ s: a.s + (b.s - a.s) * u, ox: a.ox + (b.ox - a.ox) * u, tp: a.tp + (b.tp - a.tp) * u });
   if (viewAt >= VIEW_SECS){ viewFrom = viewTo = null; gpadWant = 0; bpadWant = 0; groundDirty = true; }
+}
+/* ============ the frame follows a person ============
+ * The camera could go to five fixed quarters and had never once been pointed at
+ * something that MOVES — so a town of seventy-five people, every one of them on an
+ * errand, read at Wide as weather. A tap already HOLDS a person (the following, below:
+ * the sill line, the ring under the feet, the closing line when they despawn). This
+ * gives that tap the FRAME as well: it eases onto them at a readable zoom, keeps them
+ * in the picture for the whole of their errand, and eases back where it came from when
+ * they are let go.
+ *   A quarter is DATA — a box with air/keep/share that viewFor() fits — so a follow is
+ * the cheapest honest shape there is: a box that MOVES with its subject, fitted by the
+ * same viewFor(), held inside the world by the same held(), read by the same inView().
+ * Nothing in the fit knows the difference. The box is sized so that the fit RETURNS
+ * FOLLOW_S at every framing rather than being sized in cells, because a zoom is what a
+ * person is read at and a span of world is not that on a phone.
+ *   The cost is the GROUND CACHE. drawGround is 25-27 ms, so a frame that moves every
+ * frame may not rebuild it: a follow is exactly an ease that never arrives. It paints
+ * the padded WIDE cache once at the tap (holdWideGround), scales the blit by
+ * k = viewS/gview.s like every other move, and repaints the destination once, where the
+ * release ease lands. viewEasing() is what says so, and the backdrop rides it too.
+ *   RM keeps the sill's follow and refuses the camera's: a frame that tracks a walker
+ * is the largest motion this piece has. */
+const FOLLOW_S = 2.6;        // the zoom a followed person is read at — under VIEW_SMAX
+const FOLLOW_ANCHOR = 0.68;  /* where in the band their feet sit. NOT the centre: everybody in
+                              * this town walks on the ground, and the ground below a walker is
+                              * the near block's roof, the market and the sill — 55% of the frame
+                              * at 0.52 and half of it a wall. Two thirds down puts the town they
+                              * are walking INTO in the picture with them. */
+let followOn = false, followFrom = null, followAt = 0;
+// the box whose WIDTH fit and HEIGHT fit both come out at FOLLOW_S, centred on the feet
+function followQuarter(a){
+  const wide = W * 0.96 / (FOLLOW_S * cellW0), band = sillTop() * 0.96 / (FOLLOW_S * cellH0);
+  const air = a.y - band * FOLLOW_ANCHOR;
+  return { x0: a.x - wide / 2, x1: a.x + wide / 2, y0: air, y1: air + band, air, keep: 0 };
+}
+/* What the DISTANCE needs padded. whereGo prices this off its two endpoints; a follow
+ * has no endpoint, so it is priced off the WORLD: every frame a follow can reach is held
+ * inside WORLD_X0..FIELD_VIEW by held(), so the world's own overflow past the wide frame
+ * bounds all of them. Priced at the pinch's widest row, the bottom one, so it is a bound
+ * and not an estimate. One paint, at the tap. */
+function followPad(){
+  const left = originX0 - (FOCUS - WORLD_X0) * cellW0, right = originX0 + (FIELD_VIEW - FOCUS) * cellW0;
+  bpadWant = Math.max(0, Math.min(W, Math.ceil(Math.max(-left, right - W)) + 2));
+}
+function startFollowCam(){
+  if (RM) return;
+  followFrom = { s: viewS, ox: originX, tp: topPad }; followAt = 0; followOn = true;
+  viewFrom = viewTo = null;                       // a follow outranks a quarter ease in flight
+  followPad();
+  holdWideGround(followFrom);
+}
+function dropFollowCam(){ followOn = false; followFrom = null; }
+// the camera gives them back and eases home; the sill may still be holding them
+function releaseFollowCam(){
+  if (!followOn) return;
+  dropFollowCam();
+  viewFrom = { s: viewS, ox: originX, tp: topPad }; viewTo = viewFor(whereN); viewAt = 0;
+}
+/* A moving destination, eased into over VIEW_SECS and then held. The target is
+ * continuous in their position, so the frame is continuous at the join as well as
+ * through it — no smoothing term is needed and none is wanted: a lagged frame on a
+ * walker who turns a corner reads as the camera losing them. */
+function stepFollow(rdt){
+  if (!followed){ releaseFollowCam(); return; }
+  const to = viewFor(followQuarter(followed));
+  if (followAt >= VIEW_SECS){ applyView(to); return; }
+  followAt += rdt;
+  const u = viewEase(Math.min(1, followAt / VIEW_SECS)), a = followFrom;
+  applyView({ s: a.s + (to.s - a.s) * u, ox: a.ox + (to.ox - a.ox) * u, tp: a.tp + (to.tp - a.tp) * u });
 }
 /* The camera has been a pure SINK: whereN was read by the three lines that move the
  * frame and by nothing else, so the town would tell you about a dog in the courtyard
@@ -895,8 +993,13 @@ function stepView(rdt){
  * line is suppressed there, so no extra ambient roll fires, so the seeded world stays
  * bit-identical to HEAD everywhere the census and the motion gate look. */
 function inView(x, y){
-  if (!whereN) return true;                       // Wide sees everything, so it may say anything
-  const v = viewFor(whereN);
+  /* A FOLLOW is a frame like any other, and the one the observer asked for most
+   * plainly: while it is on, "where you are looking" is a box round one person, so the
+   * ticker carries that person's errand and not the town's. Wide stays exempt while
+   * nothing is being followed — which is every frame a gate has ever rendered. */
+  const q = followOn && followed ? followQuarter(followed) : whereN;
+  if (q === 0) return true;                       // Wide sees everything, so it may say anything
+  const v = viewFor(q);
   const p = 1 - PINCH * (1 - y / WH);             // project(), under a view that is not the live one
   const sx = v.ox + (x - FOCUS) * cellW0 * v.s * p, sy = v.tp + y * cellH0 * v.s;
   return sx >= 0 && sx <= W && sy >= 0 && sy <= sillTop();
@@ -14071,7 +14174,9 @@ const FOLLOW_CLOSE = 6;     // real seconds the closing line stays before the si
 let followed = null, followHome = null, followEnd = '', followEndAt = 0, followedEver = false;
 function followPerson(a){
   followed = a; followHome = a ? a.home : null; followEnd = '';
-  if (a) followedEver = true;
+  // and the FRAME goes with them (the follow camera, up with the rest of the camera)
+  if (a){ followedEver = true; startFollowCam(); announce('You are following ' + personName(a) + '.'); }
+  else releaseFollowCam();
 }
 function followLine(now){
   if (followed){ followHome = followed.home || followHome; return 'following ' + personName(followed); }
@@ -14092,6 +14197,7 @@ function followLost(a){
   followEnd = 'the one you were following ' + how;
   followEndAt = performance.now() / 1000 + FOLLOW_CLOSE;
   followed = null; followHome = null;
+  releaseFollowCam();          // an agent is transient: the errand ending gives the frame back
 }
 // a ring under the feet, in screen space, over everything but the weather
 function drawFollowMark(t){

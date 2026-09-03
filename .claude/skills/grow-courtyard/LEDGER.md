@@ -136,3 +136,13 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped
 **Surprise:** Wide came back 6202 px OFF at 900x560 and identical at the other three. `bcv.height/DPR` is not H — a canvas's height is an INTEGER, the frame there is 484.625 CSS px, and HEAD's `drawImage(bcv,0,0,W,H)` had been stretching the cache by 1.0013 to cover the remainder. Blitting the bitmap at its own size was the arithmetically honest thing and the wrong one.
 **Law:** a cache's bitmap size is not its DESTINATION rect — `canvas.width/height` FLOOR, so blitting one back through `cv.width/DPR` loses the frame's fractional remainder. Blit the CSS rect the cache stands for.
+
+## Iteration 166 — the camera comes off its quarters onto a person (2026-09-03) [The sill & the observer × Interaction/UX]
+
+**Brief:** b166 — click a walker; the frame takes them and lets go on three exits.
+**Did.** A quarter is DATA, so a follow is a quarter that MOVES: `followQuarter(a)`, a box on the feet sized so `viewFor`'s own width and height fits BOTH return `FOLLOW_S` 2.6. `viewFor` takes a box or an index, untouched otherwise; `inView` reads it, so the ticker carries THEIR errand. The cache was the risk, and a follow is an ease that never ARRIVES: `viewEasing()` holds for its length so the ground is never rebuilt, `holdWideGround` paints the padded wide cache once, `followPad()` prices the backdrop off the WORLD.
+**Gates:** census · motion · 0 POP · perf +0.0% · `where-identity` IDENTICAL · `frame-cost` 108/108
+**Proved** (`probes/follow-cam.mjs`, new): **0** ground rebuilds over 40 follow frames against **11** in a same-code 6 s control; 0 pops; 1 repaint on release. Price: **54.1%** of a frame repainted in its own view (control 1.0000).
+**Verdict:** shipped
+**Surprise:** `probes/follow.mjs` has been dead since #60 and its ten failures reproduce on HEAD. `evPx` maps x by `W/rect.width` and y by `H/rect.height`, and the rect is the CSS box PLUS the 10 px frame, so one k for both axes misses. Every assertion was reading a follow that never started, silently: a click on nobody is the RELEASE branch. It hid my own first bug: the follow line changes the sill's height, the frame's ResizeObserver fires `resize()`, and `viewSnap` dropped the follow in the frame it began.
+**Law:** a probe driving the page through a real EVENT must invert the page's own mapping term for term, and assert the event LANDED before asserting what it did: a synthetic miss does not fail, it takes the other branch.

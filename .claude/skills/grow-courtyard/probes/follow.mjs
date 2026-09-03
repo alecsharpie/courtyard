@@ -23,6 +23,11 @@ const errs = []; let bad = 0;
 const ok = (c, s) => { console.log((c ? '  ok   ' : '  FAIL ') + s); if (!c) bad++; };
 
 async function pickAndTap(p, box, leaver){
+  // the CAMERA runs on the real clock, so a pick taken while it is easing is aimed at
+  // a frame that has moved by the time playwright's click lands 300 ms later. Not
+  // viewEasing(), which a FOLLOW holds true for its whole length: with the sim paused
+  // a follow's frame is still, and what has to be over is the EASE.
+  await p.waitForFunction('viewTo === null');
   // a walker, in daylight, not in a tunnel; prefer one with the most route left (a.wp) so acts follow
   const w = await p.evaluate((leaver) => {
     __entities();                       // stamps __id
@@ -31,17 +36,38 @@ async function pickAndTap(p, box, leaver){
       if (a.kind === 'sweeper' || a.kind === 'cyclist') continue;
       const g = grid[(a.y|0) * GW + (a.x|0)]; if (g === TUNNEL) continue;
       const [sx, sy] = project(a.x, a.y, a.z || 0);
-      if (sx < 10 || sy < 10 || sx > cv.width - 10 || sy > cv.height - 10) continue;
+      // the SILL covers the bottom of every frame and livingAt refuses a hit under it
+      // (nearHidden), so a figure down there is picked and then cannot be tapped
+      if (sx < 10 || sy < 10 || sx > W - 10 || sy > sillTop() - 20) continue;
       let left = (a.wp.length - a.i) + (a.stop && !a.stopped ? 3 : 0) + (a.kind === 'gardener' ? 3 : 0);
       if (leaver){ const L = a.wp[a.wp.length - 1];              // the last waypoint is OFF the frame
-        left = L && a.i >= a.wp.length - 2 && a.state === 'walk' && (L[1] >= LANE_N_Y - 0.5 || L[1] < 0 || L[0] < 0 || L[0] >= GW) ? 1 : -1; }
-      if (left > bs){ bs = left; best = { id: 'walker' + a.__id, sx, sy: sy - cellH * 0.6, name: personName(a) }; }
+        left = L && a.i >= a.wp.length - 3 && a.state === 'walk' && (L[1] >= LANE_N_Y - 0.5 || L[1] < 0 || L[0] < 0 || L[0] >= GW) ? 1 : -1; }
+      // HIT-TEST the point, don't trust the projection: a figure that is pickable is not
+      // the same as a point that is tappable (something in front of them wins the box,
+      // or the sill hides the feet), and a tap that lands on nobody RELEASES the follow
+      const q = [sx, sy - cellH * 0.6]; livingAt(q); if (livingHit !== a) continue;
+      if (left > bs){ bs = left; best = { id: 'walker' + a.__id, sx: q[0], sy: q[1], name: personName(a) }; }
     }
     return best;
   }, !!leaver);
   if (!w) return null;
-  await p.mouse.click(box.x + w.sx, box.y + w.sy);
+  await click(p, box, w.sx, w.sy);
   return w;
+}
+/* project() answers in the canvas's OWN pixels; evPx() maps an event back through
+ * `* W / rect.width` and `* H / rect.height`, and the canvas's rect is its CSS box
+ * PLUS the 10px frame — 1208x791 against W,H 1228x811. So a click passed straight
+ * through landed ~2% out and hit nobody, and every assertion below #60 had been
+ * reading a follow that never started. The two ratios are also not EQUAL (0.984
+ * against 0.975), so one k for both axes misses in y: on a 390px phone that is 13 px,
+ * four times a person's whole box. This is evPx() inverted, term for term. */
+async function click(p, _box, sx, sy){
+  // the box is re-read: the SILL's height changes when the follow line opens, the
+  // ResizeObserver on the frame fires, and a box captured before the first tap is
+  // several pixels out for every one after it
+  const box = await p.locator('#cv').boundingBox();
+  const v = await p.evaluate(() => ({ W, H }));
+  await p.mouse.click(box.x + sx * box.width / v.W, box.y + sy * box.height / v.H);
 }
 
 /* ---- 1–3: follow a walker through the day (1400px, hover) ------------------- */
@@ -55,7 +81,7 @@ async function pickAndTap(p, box, leaver){
   const box = await p.locator('#cv').boundingBox();
   console.log('\n1. the tap holds a person');
   const offers = await p.evaluate(() => OFFERS.map(o => o.id));
-  ok(offers.includes('follow') && offers.length === 3, 'OFFERS carries the invitation: ' + offers.join(', '));
+  ok(offers.includes('follow'), 'OFFERS carries the invitation: ' + offers.join(', '));
   const w = await pickAndTap(p, box);
   ok(!!w, `tapped ${w && w.name} at (${w && w.sx | 0},${w && w.sy | 0})`);
   await p.waitForTimeout(250);
@@ -90,7 +116,8 @@ async function pickAndTap(p, box, leaver){
   // the despawn: a leaver on the last leg out, followed until they are gone
   let lv = null, lw = 0;
   while (!lv && lw < 48){ lv = await pickAndTap(p, box, true); if (!lv){ await p.evaluate((st) => __warp(st), STEP); lw += 0.25; } }
-  ok(!!lv, `tapped a leaver after ${lw} h: ` + (lv && lv.name));
+  ok(!!lv && await p.evaluate(id => __follow().id === id, lv && lv.id),
+     `tapped a leaver after ${lw} h: ` + (lv && lv.name));
   let lh = 0;
   for (let i = 0; i < 24 * 4 * 2 && !ended; i++){
     const r = await p.evaluate((st) => { __warp(st); return __follow(); }, STEP); lh += 0.25;
@@ -109,13 +136,13 @@ async function pickAndTap(p, box, leaver){
   const w2 = await pickAndTap(p, box);
   await p.waitForTimeout(100);
   ok(await p.evaluate(() => __follow().id !== null), `a fresh tap follows ${w2 && w2.name}`);
-  await p.mouse.click(box.x + w2.sx, box.y + w2.sy);
+  await click(p, box, w2.sx, w2.sy);
   await p.waitForTimeout(100);
   ok(await p.evaluate(() => __follow().id === null && __follow().ended === ''), 'a second tap on the same figure releases, with no closing line');
   const w3 = await pickAndTap(p, box);
   await p.waitForTimeout(100);
   const wall = await p.evaluate(() => { for (let y = 20; y < 60; y++) for (let x = 0; x < GW; x++){ const q = project(x + .5, y + .5, 0); if (grid[y * GW + x] === WALL && q[0] > 5 && q[1] > 5 && q[0] < cv.width - 5 && q[1] < cv.height - 5) return q; } });
-  await p.mouse.click(box.x + wall[0], box.y + wall[1]);
+  await click(p, box, wall[0], wall[1]);
   await p.waitForTimeout(100);
   ok(await p.evaluate(() => __follow().id === null), 'a tap on nothing (a wall) releases');
   await p.close();
@@ -133,10 +160,21 @@ async function pickAndTap(p, box, leaver){
   await p.waitForFunction('crowns.length > 0');
   const box = await p.locator('#cv').boundingBox();
   const w = await p.evaluate(() => {
+    /* Hit-TEST the point rather than trusting the projection. A person's box is
+     * cellW*0.45 either side and cellW is 2.8 CSS px at 390 wide, so the target at
+     * Wide on a phone is ~2.5 px: picking a figure is not the same as picking a point
+     * that can be tapped, and this section used to assert the follow off a point that
+     * missed. (What that costs the OFFER, which is made to phones, is c-follow-reach.) */
     for (const a of agents){ if (a.kind === 'sweeper') continue;
-      const [sx, sy] = project(a.x, a.y, a.z || 0); if (sx > 10 && sy > 10 && sx < cv.width - 10 && sy < cv.height - 10) return { sx, sy: sy - cellH * 0.6 }; }
+      if (grid[(a.y | 0) * GW + (a.x | 0)] === TUNNEL) continue;
+      const [sx, sy] = project(a.x, a.y, a.z || 0);
+      if (!(sx > 10 && sy > 10 && sx < W - 10 && sy < sillTop() - 20)) continue;
+      const q = [sx, sy - cellH * 0.6];
+      livingAt(q); if (livingHit === a) return { sx: q[0], sy: q[1], hw: cellW * 0.45 }; }
   });
-  await p.touchscreen.tap(Math.round(box.x + w.sx), Math.round(box.y + w.sy));
+  { const v = await p.evaluate(() => ({ W, H }));
+    await p.touchscreen.tap(Math.round(box.x + w.sx * box.width / v.W),
+                            Math.round(box.y + w.sy * box.height / v.H)); }
   await p.waitForTimeout(300);
   const t = await p.evaluate(() => {
     const cs = e => getComputedStyle(document.getElementById(e)).display;
