@@ -19,7 +19,7 @@
   "avoid": "Keep reeds out of the boat channel (x 116.5-121.5), off the deck rows (DECK_Y0 30 .. DECK_Y1 32), clear of MILL_WHEEL (126.35, 21.3, r 1.25) and off the punt berths and landings — #154 has just cleared that whole track and a reed bed may not re-block it: probes/punt.mjs and punt-track.mjs must still exit 0. Do NOT extend GW or WH; the grid is full and growing WH moves every hard-coded row in 13,900 lines. And `water` reads 8784 in the last six runlog rows while the census gate reads COLLAPSE, not delta — decide up front whether a REED cell is still water to the census (it is shallow water, not land); if the class changes, re-pin with `census.mjs --save-baseline` and SAY SO in the entry.",
   "budgetMin": 75,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 155,
   "issued": "2026-09-03T03:53:58.417Z",
