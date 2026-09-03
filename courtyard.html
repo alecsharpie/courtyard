@@ -4211,7 +4211,7 @@ function stepAgent(a, dt){
         a.lit = true;
         a.wp.push([79, 20], [XS_WALK_E, 20], [XS_WALK_E, -2.5]);   // the way out, walked when it dies
         if (bonfireWeather() && !skyLifts(a)){        // and not under a front that would have them leave in the same frame
-          bon.on = true; bon.lit = simT;
+          bon.on = true; bon.spent = 0; bon.blown = false;
           a.state = 'stand'; a.timer = 1e9; a.resume = true; a.faceL = true;
           sayAt(a.x, a.y, 'A bonfire is lit on the allotments; the smoke leans out over the fence.');
         } else { a.tend = false; bon.holder = null; }
@@ -4822,7 +4822,8 @@ const BONFIRE = {x:84.0, y:19.5};
 const BON_K = 0.8, BON_SALT = 285;                           // hash share of shed days offered one — 5–6 of the 7 in every year of 12 (histogram); the weather then takes ~2/3 (snow lies by day 18; #156 re-keyed the wind clause onto isWindy())
 const BON_RISE_H = 1.0, BON_BURN_H = 3.5, BON_FALL_H = 1.2, BON_EMBER_H = 4.0, BON_RAIN_H = 0.25;
 const BON_PUFFS = 18, BON_THICK = 0.62, BON_EMB_THICK = 0.12;   // the column's mass (#104): nine puffs at 0.34 read as dots at 1x
-const bon = {fire:0, ember:0, on:false, lit:-1, day:-1, holder:null};
+const BON_WIND_HURRY = 0.9;                                  // how much faster moving air eats the heap: dead calm 1.0x, at the blow bar 1.36x
+const bon = {fire:0, ember:0, on:false, spent:0, blown:false, day:-1, holder:null};
 function bonfireDay(){ return leafShed() > 0.1 && hash(day, BON_SALT) < BON_K; }   // the SHED, days 12–18: leafFallF() > 0.3 is also every spring day
 // #156: this clause was `windF() < 0.5`, which with a windF of 0 or 1 was isWindy()
 // spelled by hand. Graded, a hand-spelled bar is a coin on the HOUR — the heap was
@@ -4832,16 +4833,45 @@ function bonfireWeather(){ return !raining && wetF() < 0.4 && !isWindy() && snow
 function bonfireHour(){ return sunUp + 0.3 + hash(day, 518) * 1.2; }   // set out early: the walk in is most of a working day
 function bonfireDue(){ return bon.day !== day && !bon.on && bon.fire === 0 && hour >= bonfireHour() && hour < bonfireHour() + 2 && bonfireDay() && bonfireWeather(); }
 function bonfireAlight(){ return bon.on || bon.fire > 0 || bon.ember > 0; }
-function bonfireName(){ return bon.fire > 0.3 ? 'the bonfire, smoking' : bon.ember > 0.05 ? 'the bonfire, down to embers' : 'a heap on the allotments, waiting for a match'; }
+function bonfireName(){ return bon.fire > 0.3 ? (bon.blown ? 'the bonfire, going over in the wind' : 'the bonfire, smoking')
+  : bon.ember > 0.05 ? (bon.blown ? 'the bonfire, raked apart before the wind' : 'the bonfire, down to embers')
+  : 'a heap on the allotments, waiting for a match'; }
+/* #178 — THE FIRE RE-ASKS ITS WEATHER. bonfireWeather() is read once, at the match, and
+ * this step re-asked only the WET half of it (`raining || snowCover > 0`): the WIND clause
+ * had no re-ask at all, so a heap lit in a calm dawn burned straight on through an
+ * afternoon the same predicate would have refused outright. Counted on HEAD before
+ * building (probe-bonfire-wind, 6 seeds x 4 years): 8 of 33 fires outlived their weather,
+ * 7.85 of 113.45 fed hours, one of them 2.40 h with windF up at 0.76 — and every hour of
+ * it the wind, never the wet, because the wet was the half already re-asked.
+ *
+ * The wind is re-asked here on BOTH its faces, which is the split the town already keeps:
+ *   isWindy() ENDS it. The town's one word for a blow, and the very clause the match
+ *     read — a fire cannot go on burning in weather that would not have lit it. Nothing
+ *     is done to the holder: #93's `!bon.on && bon.fire < 0.15` already walks them home,
+ *     down the way out their own lighting pushed onto the route.
+ *   windF() HURRIES it. A fed fire eats its heap faster in moving air, so BON_BURN_H
+ *     stops being a CLOCK and becomes a fuel budget in still-air hours, spent at
+ *     1 + BON_WIND_HURRY * windF(). The same rate eats the fall and the embers, because
+ *     it is one fact about the heap and not three about the flame. Rain still owns the
+ *     wet branch outright (BON_RAIN_H), so a quench is never slowed by a still evening.
+ * No new weather scalar: both faces are re-asks of the one the town already has. */
 function stepBonfire(dt){
   const h = dt * 24 / DAY_LEN, wet = raining || snowCover > 0;   // sim hours this step
-  if (bon.on && (wet || simT - bon.lit > BON_BURN_H * DAY_LEN / 24)) bon.on = false;
+  const eat = wet ? 1 : 1 + BON_WIND_HURRY * windF();            // still-air hours per sim hour
+  if (bon.on){
+    bon.spent += h * eat;
+    const blow = !wet && isWindy();                              // the EDGE: read it here, where it flips
+    if (wet || blow || bon.spent > BON_BURN_H){
+      bon.on = false; bon.blown = blow;
+      if (blow) sayAt(BONFIRE.x, BONFIRE.y, 'The wind gets up over the allotments; the bonfire is raked apart before it can travel.');
+    }
+  }
   const tgt = bon.on ? 1 : 0;
   if (tgt > bon.fire) bon.fire = Math.min(1, bon.fire + h / BON_RISE_H);
-  else if (tgt < bon.fire){ const r = h / (wet ? BON_RAIN_H : BON_FALL_H); bon.fire = bon.fire <= r ? 0 : bon.fire - r; }
+  else if (tgt < bon.fire){ const r = h * eat / (wet ? BON_RAIN_H : BON_FALL_H); bon.fire = bon.fire <= r ? 0 : bon.fire - r; }
   const etgt = bon.fire > 0.05 ? 1 : 0;
   if (etgt > bon.ember) bon.ember = Math.min(1, bon.ember + h / 0.5);
-  else if (etgt < bon.ember){ const r = h / (wet ? BON_RAIN_H : BON_EMBER_H); bon.ember = bon.ember <= r ? 0 : bon.ember - r; }
+  else if (etgt < bon.ember){ const r = h * eat / (wet ? BON_RAIN_H : BON_EMBER_H); bon.ember = bon.ember <= r ? 0 : bon.ember - r; }
 }
 function spawnBonfireHolder(){                                 // sendToPlot's cross-street entry, by the row-20 gate, to the heap's east side
   const a = {

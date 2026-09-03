@@ -567,7 +567,7 @@
       "it FOLLOWS THE CAMERA (#165): drawBackdrop draws in WIDE screen space, bview/bpadWant, blit k=viewS/bview.s; clouds draw after it",
       "cloudCover one slow rate-capped scalar, drawClouds 11 hashed banks SKY STRIP ONLY; drawCloudShade/cloudShadeF ONE live multiply after the items, before applyLight",
       "the SUN: sunVec() the one vector every cast shadow reads (lx 0.8..-0.8, ly 0.58..0.32, ALWAYS northward), shadowF/shSpread/shOffset, dialThrow(h); BUILDING SHADOW shTop/shOpen, buildSunShade (#140)",
-      "weather scalars: snowF/snowCover/snowAt, wetF, raining/rainFall/coverF, MIST_SRC[]/mistAt, chillF/hearthF, dawnF/dawnEdge, bonfireWeather; WIND a STRENGTH windF = windDayF x windHourF, isWindy (#156)",
+      "weather: snowF/Cover/At, wetF, raining/rainFall/coverF, mistAt, chillF/hearthF, dawnF; windF=windDayF x windHourF, isWindy (#156); bonfireWeather RE-ASKED while lit: bon.spent x BON_WIND_HURRY (#178)",
       "the world's PRNG and the picture's are two streams (#176): R() for the town, RS (SEED^RS_SALT, rewound by __reseed) for canvas-space draws — the rain only: stepDrops() outside the raining branch"
     ],
     "life": [
@@ -631,6 +631,12 @@
       "id": "c267",
       "note": "the LIT WINDOWS still have nothing at them - ~20 panes a night, and #177's moths bind to NIGHT_LAMPS only. A pane is a FACES SCREEN-space register, not a world point: a different solve.",
       "raisedBy": 176,
+      "seenBy": 0
+    },
+    {
+      "id": "c268",
+      "note": "HEAD had 37 bonfires and the candidate 44 over identical hash-only calendars (#178): the fire COUNT rides on bonfireWeather() at TWO gates, the spawn hour and the match, and nobody has bounded that swing.",
+      "raisedBy": 177,
       "seenBy": 0
     }
   ],

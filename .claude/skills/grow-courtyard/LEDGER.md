@@ -221,3 +221,26 @@ onto the INFLOW, `MOTH_CAP` left a pure ceiling: **20.2 / 27.0 / 29.2 / 18.6**, 
 binding in midsummer, rate in winter and rain.
 **Law:** a cap and a rate are both alive only if they bind at DIFFERENT times — put the
 modulating scalar on whichever is SLACK, and prove it by sweeping the AXIS, not the constant.
+
+## Iteration 178 — the bonfire re-asks its weather (2026-09-04) [Sky, light & weather × Deepen]
+
+**Brief:** b178 — c244: `bonfireWeather()` is asked once, at the match, never again.
+**Premise CONFIRMED, NARROWER.** `stepBonfire` already re-asked the WET half
+(`raining || snowCover > 0`); the WIND clause had no re-ask at all, so every refused hour on HEAD
+is wind, none wet: **3 of 37 fires, 3.49 of 129.60 fed hours** (probe-bonfire-wind, 6 seeds x 4 y).
+**Did.** Both faces of one scalar, no new weather term. `isWindy()` ENDS the feeding at its edge
+in `stepBonfire`, latching `bon.blown` (`bonfireName()` reads it) and a sayAt; the holder needs no
+code — #93's `!bon.on && bon.fire < 0.15` walks them home. `windF()` HURRIES it: BON_BURN_H stops
+being a clock (`simT - bon.lit`, deleted) and becomes a fuel budget `bon.spent` spent at
+`1 + BON_WIND_HURRY * windF()` still-air hours, same rate on fall and embers.
+**HEAD -> cand.** Outliving their weather **3/37 -> 0/44**, refused hours **3.49 -> 0.00**; 3 raked apart,
+0.73 h mean vs 3.15 h; mean burn 3.50 -> 2.98 h, town fed hours flat.
+**Gates:** census PASS (reshuffle, no collapse) · motion PASS · shots · filmstrip seed 42 t 2114,
+0 POP: the plume climbs, thins as windF crosses 0.40, embers by #9.
+**Verdict:** shipped
+**Surprise:** the first HEAD/cand pair read **8/33 -> 0/33** and did not reproduce. A `?pause`
+page still runs rAF, so entering without `?t=` starts ~2.2 s of un-reseeded world in, and
+`__reseed()` rewinds neither `simT` nor the latches: same seed, same warp, windF **0.35 vs 0.94** at
+the same clock hour. Two towns; `filmstrip.mjs`/`shoot.mjs` pin `?t=0`, so an unpinned probe
+measures a world they cannot show.
+**Law:** pin `?t=` on every probe page — the default entry is a DIFFERENT WORLD from `?t=0`.
