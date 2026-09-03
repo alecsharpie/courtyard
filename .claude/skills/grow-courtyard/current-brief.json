@@ -15,7 +15,7 @@
   "avoid": "Do not change the 46 KB cap or the 12 KB laws cap - changing a cap mid-run is how a loop stops noticing. Do not make the total budget block a worker: it is the manager's number, and a worker cannot fix it inside its own iteration. And do not retire the punt gate without showing the test it replaces can still go red.",
   "budgetMin": 30,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 149,
   "issued": "2026-09-03T00:28:46.500Z",
