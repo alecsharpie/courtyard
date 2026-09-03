@@ -37,7 +37,7 @@
   "avoid": "Do not freeze the whole channel: a solid white band is a worse picture than a teal one, and RIVER_SWING already says winter water runs 1.45x FASTER, so the middle stays open — the shelter term is what keeps it open, exactly as mossShel[] keeps the middle of the plaza bare. Do not re-implement the fountain's ice beside this; read it, and share what can be shared. Do not touch RIVER_TINT, RIVER_COLD or RIVER_GREEN — the seasonal tint is not the thing that is missing.",
   "budgetMin": 80,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 181,
   "issued": "2026-09-03T22:17:05.796Z",
