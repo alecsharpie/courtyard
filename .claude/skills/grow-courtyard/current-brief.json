@@ -25,7 +25,7 @@
   "avoid": "Supply for either lapse hour is its OWN source, never a share of laneCap — that is the standing rule, and #144's east share and #158's plaza door are both what happens when a rare thing is paid for out of a shared budget. Do not raise laneCap: #158 swept it 10 -> 20 and found the cap beneath it was the plaza's door, not the ceiling. Define the new population's membership POSITIVELY on the spawn literal, not as a residual of a filter. Keep each new draw on the half of [0,1) it owns, and read the census for collapse, not delta.",
   "budgetMin": 45,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 169,
   "issued": "2026-09-03T11:55:51.149Z",
