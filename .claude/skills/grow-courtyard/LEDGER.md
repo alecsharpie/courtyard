@@ -149,3 +149,13 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped
 **Surprise:** the bug was a world-width CONSTANT, not the CA. `N = 64` predates the allotments: a loop written for the courtyard, inherited by a block past its bound. Two passes explained the zero with the simulation, not the loop's first line.
 **Law:** a count of exactly zero: read the loop's BOUNDS before explaining it with the world — a shared branch carries the constant of the region it was written for.
+
+## Iteration 153 — the memory quota gets a caller (2026-09-03) [The sill & the observer × Harness]
+
+**Brief:** b153 — `--additions` existed from #149 and `run-loop.sh` never called it. Wire it; report, never revert.
+**Did.** A step 4 in the runner: `context-budget.mjs --additions --since "$PRE_SHA"`, its `✗` lines logged, then `runlog.mjs --quota-out/--quota-rc` folds them into the iteration's own row as `quota {rc, over[]}` and marks the console line. `verdictOf` does not read the field: a breach is priced by the manager, not by a runner throwing away gate-passed work over a 260 B cue.
+**The baseline is not `HEAD~1`.** That is the right ref only when an iteration made exactly ONE commit, and `runlog.mjs`'s preBlob fallback exists because they do not. The runner takes `PRE_SHA` beside `PRE_BLOB` at the pop, so the diff is against the commit the worker started from — and one who never committed is measured too.
+**Gates:** `courtyard.html` byte-identical — census PASS, six groups unchanged; shots clean. `--status` and `DRY_RUN=1` unchanged.
+**Proved** (`probes/quota-gate.sh`, new: it extracts step 4 from `run-loop.sh` VERBATIM, so deleting the block fails the probe). Clean tree **silent, exit 0**. Staged over-quota tree **exit 3, 6 named offenders across all three surfaces** — 2.50 KB entry, 2 entries, 302 B line, 2 lines, 291 B cue, 2 cues. Merge: the worker's own runlog call writes `quota: null`, the runner's fills it, the row keeps it.
+**Verdict:** shipped
+**Surprise:** the runner is LIVE while I edit it (pid 29205). Bash re-reads a script by byte offset, but the whole `while :; do … done` is ONE parsed compound command, so the running loop finishes on the OLD text — **this gate does not bind until `run-loop.sh` is restarted.**

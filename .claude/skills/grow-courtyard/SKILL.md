@@ -181,7 +181,9 @@ Whatever happened, record it. In order:
    `--cue "…"` for a loose end you noticed but did not chase.
 3. **Quota** — `node .claude/skills/grow-courtyard/context-budget.mjs --additions`.
    It diffs the working tree against HEAD, so run it **before** you commit. Non-zero
-   names the line that broke the quota: merge it and re-run.
+   names the line that broke the quota: merge it and re-run. The runner re-runs it
+   after your commit against the commit you started from, and records the breach in
+   your RUNLOG row — it will not revert you, but the manager sees it.
 4. **Commit** — subject line exactly:
    ```
    Iter <N>: <what changed> (<Domain> × <Kind>)

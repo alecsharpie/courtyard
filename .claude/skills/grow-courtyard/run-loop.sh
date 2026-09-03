@@ -325,6 +325,11 @@ while :; do
   # evidence rather than self-report: whatever the worker writes about itself, this
   # hash either changed or it did not.
   PRE_BLOB="$(git -C "$REPO" hash-object courtyard.html)"
+  # ...and the commit it starts FROM, for the memory quota below. Not HEAD~1: that
+  # is the right baseline only when the iteration made exactly one commit, and a
+  # worker that commits its source and its ledger row separately would have half of
+  # its own append measured against itself.
+  PRE_SHA="$(git -C "$REPO" rev-parse HEAD)"
 
   # ---- 3. the worker ----------------------------------------------------------
   log "--- iteration $((done_ok + 1)) starting${MODEL_NOW:+ (model: $MODEL_NOW)} ---"
@@ -340,10 +345,28 @@ while :; do
     nap "$wait_s"; reset_model; continue
   fi
 
-  # ---- 4. record what actually happened --------------------------------------
+  # ---- 4. the memory quota ----------------------------------------------------
+  # --additions bounds what ONE iteration appends to the three surfaces every future
+  # open re-reads. It existed from #149 and nothing ever CALLED it, so it bound only
+  # a worker that chose to obey SKILL.md — a gate at a rate of zero, while the read
+  # budget opened OVER on thirty consecutive iterations. So the runner checks it, on
+  # the same baseline it took the blob from.
+  #
+  # It REPORTS. It does not revert, does not fail the iteration and does not count
+  # against MAX_FAILS: a runner that threw away gate-passed work over a 260 B cue
+  # would be worse than the drift it is correcting. A clean iteration says nothing.
+  QUOTA_OUT="$(mktemp)"
+  node "$HERE/context-budget.mjs" --additions --since "$PRE_SHA" > "$QUOTA_OUT" 2>&1
+  quota_rc=$?
+  if [ "$quota_rc" -ne 0 ]; then
+    log "    memory quota: OVER (exit $quota_rc) — reported, not reverted."
+    awk '/^OVER QUOTA:/{f=1} f && /✗/{print "      " $0}' "$QUOTA_OUT" | tee -a "$LOG"
+  fi
+
+  # ---- 5. record what actually happened --------------------------------------
   node "$HERE/runlog.mjs" --repo "$REPO" --elapsed "$elapsed" --raw "$raw" \
-       --pre-blob "$PRE_BLOB" --rc "$rc" 2>&1 | tee -a "$LOG" || true
-  rm -f "$raw"
+       --pre-blob "$PRE_BLOB" --rc "$rc" --quota-out "$QUOTA_OUT" --quota-rc "$quota_rc" 2>&1 | tee -a "$LOG" || true
+  rm -f "$raw" "$QUOTA_OUT"
 
   if [ "$rc" -ne 0 ]; then
     fails=$((fails + 1))
@@ -380,7 +403,7 @@ while :; do
   done_ok=$((done_ok + 1))
   log "--- iteration $done_ok landed in ${elapsed}s ---"
 
-  # ---- 5. publish -------------------------------------------------------------
+  # ---- 6. publish -------------------------------------------------------------
   # The dashboard is regenerated HERE, in bash, and never inside the `claude -p`
   # agent: if an iteration rebuilt its own scoreboard, that work would inflate the
   # very cost and time the page reports.

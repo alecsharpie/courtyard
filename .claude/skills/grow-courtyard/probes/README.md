@@ -86,3 +86,10 @@ Probes resolve the artifact as `../../../../courtyard.html`. (moved at #11)
   the budget: `frame-cost.mjs` averages a whole sim-day and a day is mostly DRY, so
   `drawPuddles` returns on line 1 for most of it and the day mean cannot see a pool count at
   all. This pins the weather wet and times `drawScene` and `drawPuddles` alone, interleaved.
+
+- `quota-gate.sh` — the only test of a HARNESS gate rather than of the town. `--additions`
+  existed from #149 with no caller, so it bound nothing for thirty iterations; this extracts
+  step 4 of `run-loop.sh` VERBATIM and runs it both ways — clean tree silent and exit 0,
+  over-quota tree naming an offender on all three surfaces at exit 3. It fails if the block
+  is deleted or renamed, which is the failure mode it exists for. Writes to `LEDGER.md` and
+  `state.json` and restores them, so it refuses to start on a dirty one. (#153)

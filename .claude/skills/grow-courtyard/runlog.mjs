@@ -2,6 +2,7 @@
 /* runlog.mjs — append ONE structured row per iteration to RUNLOG.jsonl.
  *
  *   node runlog.mjs --repo <path> --elapsed <s> --pre-blob <hash> [--raw <stream.jsonl>] [--rc <n>]
+ *                   [--quota-out <context-budget --additions output>] [--quota-rc <n>]
  *
  * THE VERDICT IS DERIVED FROM EVIDENCE, NOT FROM THE WORKER'S SELF-REPORT.
  *
@@ -45,6 +46,11 @@ const PRE_BLOB = arg('--pre-blob', '');
 const RAW = arg('--raw', null);
 const RC = parseInt(arg('--rc', '0'), 10) || 0;
 const KIND_ARG = arg('--kind', 'worker');        // worker | manager
+/* context-budget.mjs --additions, already RUN by the runner against the commit the
+ * iteration started from. Read, never re-run: the check needs a baseline ref only
+ * the runner has, and this is called a second time by the worker itself. */
+const QUOTA_OUT = arg('--quota-out', null);
+const QUOTA_RC = parseInt(arg('--quota-rc', '0'), 10) || 0;
 
 /* --- cost, from the raw stream -------------------------------------------- */
 let costUsd = 0, turns = 0, tokens = null, model = null;
@@ -173,6 +179,24 @@ if (entryLine) {
   if (selfVerdict) selfVerdict = selfVerdict.toLowerCase().replace(/\s+/g, '-');
 }
 
+/* --- the memory quota ------------------------------------------------------
+ * The three surfaces a worker appends to are re-read by every future iteration, so
+ * the append is what makes the read budget climb. #149 built the bound and nothing
+ * called it; the runner calls it now, and this carries the result into the row so
+ * the manager sees WHICH iteration spent the budget rather than only that it is
+ * gone. A breach is recorded, never graded: `verdict` does not read this field.
+ * `over` is null when clean, so a row that never measured it and a row that passed
+ * are distinguishable (`quota === null` vs `quota.rc === 0`). */
+let quota = null;
+if (QUOTA_OUT && existsSync(QUOTA_OUT)) {
+  const txt = readFileSync(QUOTA_OUT, 'utf8');
+  const at = txt.indexOf('\nOVER QUOTA:');
+  const over = at === -1 ? [] : txt.slice(at).split('\n')
+    .filter(l => l.trim().startsWith('\u2717'))
+    .map(l => l.trim().replace(/^\u2717\s*/, ''));
+  quota = { rc: QUOTA_RC, over: over.length ? over : null };
+}
+
 const now = new Date().toISOString();
 
 /* --- the verdict ---------------------------------------------------------- */
@@ -248,6 +272,7 @@ let row = {
   evidence: { srcChanged, srcLines, committed, logged, reverted: revertMark, rc: RC, sha, subject: subject.slice(0, 120), preBlob: preBlob.slice(0, 12), preFrom, postBlob: postBlob.slice(0, 12) },
   census: census ? { when: census.when, pageerrors: census.pageerrors, scalars: census.scalars } : null,
   censusDelta,
+  quota,
 };
 
 /* --- merge, or append ------------------------------------------------------ */
@@ -283,6 +308,7 @@ if (prior) {
     briefRejected: known(prior.briefRejected, row.briefRejected),
     census: known(prior.census, row.census),
     censusDelta: known(prior.censusDelta, row.censusDelta),
+    quota: known(prior.quota, row.quota),
     evidence: {
       ...pe, ...ne,
       /* Monotone: once the source moved, or a commit landed, or the ledger gained
@@ -329,4 +355,4 @@ const verdict = row.verdict, self = row.selfVerdict, ev = row.evidence;
 const mm = String(Math.floor(row.secs / 60)), ss = String(row.secs % 60).padStart(2, '0');
 const mark = { shipped: '✔', reverted: '↩', 'no-ship': '○', failed: '✗', 'rejected-brief': '⊘', 'launch-failed': '⚡' }[verdict] || '?';
 const claim = self && self.replace(/[^a-z]/g, '') !== verdict.replace(/[^a-z]/g, '') ? `  (claimed: ${self})` : '';
-console.log(`${mark} Iter ${String(iter).padEnd(4)} ${String((row.domain || '—') + ' x ' + (row.changeKind || '—')).padEnd(34)} ${verdict.padEnd(15)} ${mm}m${ss}s  $${row.costUsd.toFixed(2)}  ${ev.srcLines ? `${ev.srcLines}L` : '0L'}  ${ev.sha}${prior ? `  [merged +${row.merges}]` : ''}${claim}${launchFailed ? `  (no worker started — brief ${brief ? brief.id : '?'} stays claimed)` : ''}${retryOnce ? `  (worker crashed — brief ${brief ? brief.id : '?'} re-issued once)` : ''}${row.harnessTouchedSrc ? '  ⚠ harness brief moved courtyard.html' : ''}`);
+console.log(`${mark} Iter ${String(iter).padEnd(4)} ${String((row.domain || '—') + ' x ' + (row.changeKind || '—')).padEnd(34)} ${verdict.padEnd(15)} ${mm}m${ss}s  $${row.costUsd.toFixed(2)}  ${ev.srcLines ? `${ev.srcLines}L` : '0L'}  ${ev.sha}${prior ? `  [merged +${row.merges}]` : ''}${claim}${launchFailed ? `  (no worker started — brief ${brief ? brief.id : '?'} stays claimed)` : ''}${retryOnce ? `  (worker crashed — brief ${brief ? brief.id : '?'} re-issued once)` : ''}${row.harnessTouchedSrc ? '  ⚠ harness brief moved courtyard.html' : ''}${row.quota && row.quota.over ? `  ⚠ memory quota: ${row.quota.over.length} over — ${row.quota.over[0].slice(0, 72)}` : ''}`);

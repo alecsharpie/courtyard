@@ -24,6 +24,12 @@
  * what it ADDS. The total grows because every iteration appends and nothing bounds
  * the append; --additions bounds the append, at the step where the worker is already
  * writing (log, state, commit), by diffing the working tree against HEAD.
+ *
+ * And #153 gave it a caller. run-loop.sh runs it after every worker iteration
+ * against the commit that iteration started from, logs the named offender and puts
+ * the breach in the iteration's RUNLOG row. It REPORTS: the runner does not revert
+ * over a quota, so this stays a bound the manager can price, not a tripwire that
+ * destroys gate-passed work.
  */
 import { readFileSync, existsSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
