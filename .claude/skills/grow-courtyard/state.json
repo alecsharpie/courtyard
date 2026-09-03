@@ -2,7 +2,7 @@
   "updated": "2026-09-03",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 171,
+  "lastIteration": 174,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -335,7 +335,8 @@
         63,
         131,
         145,
-        154
+        154,
+        174
       ],
       "scale": [
         73,
@@ -542,7 +543,8 @@
       "the PUNT, a FLEET of two (#141): PUNTS/PUNT_BERTHS, hull B lands 0.95 west so tracks are PARALLEL; punt{leg 0..4}, puntFits -> OFFER. Wind is a SHARE (#154): PUNT_WIND_SLOW/SHY",
       "the town is IN the water (#145): drawWaterMirror + MIRROR/setMirror (project z sign). Five casters re-run their OWN draw - bridge, deck, mill wheel, jetty, willow. NOT the boats",
       "the SHALLOWS are a TILE (#155): REED + SPECIES 'rushes' (wild - nobody sows it). reedShallow/reedKeepOut/reedStage/sowReeds; drawReeds an item. No R(); census counts REED under water",
-      "the fringe is IN the water, and the town's shade too (#163): REED_CASTERS/buildReedRuns, 18 runs in riverCasters (run+yS), fade in the STROKE via reedInk, drawn on ctx NOT rcv. onChannel splits sunShadeRuns; drawWaterShade before the mirror"
+      "the fringe is IN the water, and the town's shade too (#163): REED_CASTERS/buildReedRuns, 18 runs in riverCasters (run+yS), fade in the STROKE via reedInk, drawn on ctx NOT rcv. onChannel splits sunShadeRuns; drawWaterShade before the mirror",
+      "the boats are IN the water (#174): spriteMirror(fy) flips a sprite about its OWN foot - MIRROR alone moves no pixel-space draw. drawBoatMirror is LIVE on ctx under riverWaterPath's clip: punts+crew, rowboat, barge, one alpha per hull, no chop"
     ],
     "sky": [
       "day/night (55 s day), sun and moon arc, chimney smoke, a balloon; windowLit the ONE pane predicate + LIT[], relit AFTER applyLight. season() over SEASON_LEN 26 days; greyF the year",
@@ -621,6 +623,12 @@
     {
       "id": "c262",
       "note": "plaza-visit reads 13 second acts ARMED and only 6 REACHED over 5 seeds x 14 days: the lane band is the sole caller that takes one and it is 0.29 people in the square, so half of the plaza's rarest act never happens",
+      "raisedBy": 171,
+      "seenBy": 0
+    },
+    {
+      "id": "c263",
+      "note": "a low hull hides its own reflection: the barge's cabin image lands ~0.4 rows NORTH of her stern, so 5.6 cells of hull cover it (85 px vs the punt's 120). And the water shade's bound is AREA, not depth: a clear noon wets 7 sub-cells, h8.18 616.",
       "raisedBy": 171,
       "seenBy": 0
     }

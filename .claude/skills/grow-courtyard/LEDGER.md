@@ -183,3 +183,25 @@ only because its windows had missed a trot. `ABS_JUMP_KIND={cart:4.5}`; HEAD sti
 **Law:** many PLACES is not many WAYS IN — split crowded pairs WALKING vs STOPPED before widening.
 **Law:** a jump threshold under a kind's cruising speed is a speedometer: its zero is a fact about
 the sampling window, so the next reshuffle names the wrong change.
+
+## Iteration 174 — the boats get their image; a premise dies (2026-09-04) [River & far bank × Deepen]
+
+**Brief:** b173/#174 — the BOATS into the water; re-price #159's cue that the shade needs its sheen cut.
+**(b) REFUTED, both halves** (`probes/water-sheen`, new; control 0 px). Not "1-86 px of change": at
+h8.18, the year's largest wet mask, FULL vs NOSHADE moves **8138 channel px at d 7.4**, widening the
+wet-vs-open luma gap 3.47 → **11.07**, ~1 sd of the open channel. `drawRiverFlow` killed outright moves
+~2% of that; streaks cut inside `shMask`, **0-41 px**.
+**(a) Did.** `spriteMirror(fy)`, then `drawBoatMirror` — live on `ctx` under `riverWaterPath`'s clip:
+two punts + crew, the rowboat, the barge. One alpha per hull for the ramp (deepest image 1.17 cells vs
+REFL_FADE's 3.6), no chop. The barge needs no flip (real z); `drawPerson` flips itself.
+**Measured** (`probes/boat-mirror`, new; BEFORE = this source, members emptied): control **0 px**;
+image **266 px** (punt 120, barge 85, boat 61), none north of a hull; the rowboat's image centroid
+tracks her foot to **1.6 px** as she runs 21 px a step.
+**Gates:** all PASS; the pass is 0.236 ms at Wide. **Verdict:** shipped
+**Surprise:** giving the barge a reflection found a PERSON in the wrong place. Her shore hand is drawn
+at `BARGE_HAND_Y`, the berth's shuttle line, and `bargeHandU` returns 1 off `'work'` — so her x followed
+the hull and her y never did: on every barge day a figure stood in the open channel at row 25 for the
+whole approach and departure. 74 px of image, her hull fifteen cells north.
+**Law:** `project()` reflects only what is solved with a real z; a SPRITE — pixel offsets off a
+projected foot — is blind to the mirror's sign and flips about ITS OWN foot. A reflection is a POSITION
+test too: a stale anchor shows as ink in open water.

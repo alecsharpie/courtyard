@@ -14,31 +14,6 @@
   "rationale": "mapFlat is showing at 15 iterations, so the rung is 4b by name and a season or an evening does not clear it. The watch already forbids re-deriving the map-is-full argument a fourth time and names the two honest moves that remain: a new TILE or SPECIES constant, or DEPTH beyond the grid. I SHOT THE TOWN BEFORE PLANNING IT (day 6 12.98h midsummer, day 9 19.09h late summer, wide + mobile + a crop of the near band) and the picture named the move without my having to choose it. The bottom ~15% of every wide frame is our own block, the nearest quarter, at the largest pixels in the picture — and it is 1095 cells of ONE tile, 45% of all the WALL in the town, broken only by the river slot and two light wells. Everything needed to make it a place was built years of iterations ago and never used by anything human: roofWalkZ reads the pitch bilinearly for a walker, nearScale ramps a figure to NEAR_SZ 1.95, ROOF_FURN stands 24 washing lines, tanks and lofts on rows 86-87 (the source's own note says row 87 is the one line dead level across the whole block), LOFTS are landing boards, wellNear keeps a line off a hole, and the cat already crosses it. Twenty-four objects a tenant would own, and in 169 iterations no tenant. That is a spatial 4b (a new tile, +9 in the summed census, GLASS #116 and REED #155 the precedents), it is the domain 7 back, and it is the one change that alters what a visitor sees in the first ten seconds — because it happens closer to them than anything else in the town. Every other brief in this queue carries the number it rests on and where the number came from, per the standing watch note aimed at this seat; two of them (b172, b173) carry premises I have NOT re-measured myself and say so, with the measurement named as the deliverable if they do not reproduce.",
   "queue": [
     {
-      "id": "b173",
-      "domain": "River & far bank",
-      "kind": "Deepen",
-      "brief": "Two loose ends on one subject: the river's SURFACE. (a) #145 put the town in the water and five casters re-run their own draw — bridge, deck, mill wheel, jetty, willow — and #163 added 18 reed runs. The BOATS are the class it left out, and they are the only things on the water that MOVE: two punts, the barge, the rowboat, a standing punter. A hull with no image is the one object the eye checks. (b) PREMISE NOT RE-MEASURED BY ME: the cue raised at #159 says #163's water shade is correct and barely reads — 6021 px of mass but only 1-86 px of change — and that what makes a shadow read on water is cutting the SHEEN (`drawRiverFlow`'s streaks and the glitter column) rather than deepening the multiply. Verify that on HEAD with a SAME-CODE control before building on it. Quote every mass as a ratio to that control floor, never as an absolute.",
-      "seams": [
-        "riverCasters",
-        "drawWaterMirror",
-        "MIRROR",
-        "setMirror",
-        "drawWaterShade",
-        "chopBars",
-        "onChannel",
-        "drawRiverFlow",
-        "PUNTS",
-        "updateBoat",
-        "barge",
-        "probes/mirror-fringe.mjs",
-        "probes/refl-cost.mjs"
-      ],
-      "successLooksLike": "A punt under way carries its own image and the image moves with it; the mirror's mass for the boats is a stated multiple of a same-code control's zero. On a bright afternoon the town's shade on the near river is legible in the wide shot, and the number that changed is the sheen's, not the multiply's.",
-      "avoid": "NOT through the offscreen: #163 measured 18 clipped runs at 1.6 ms a frame in `rcv` against 0.03 for the identical 56 clumps on the visible canvas. A clip plus an alpha is a `save()` on `ctx`. The boats move every frame, so this is a LIVE pass, never the ground cache. Do not deepen the multiply — the cue's whole point is that it is the thing that does not work. `onChannel` must keep the fountain and the pond on the land path.",
-      "budgetMin": 60,
-      "risk": "medium"
-    },
-    {
       "id": "b174",
       "domain": "The sill & the observer",
       "kind": "Harness",
@@ -70,6 +45,10 @@
     {
       "id": "b172",
       "at": "2026-09-03T15:41:23.449Z"
+    },
+    {
+      "id": "b173",
+      "at": "2026-09-03T16:04:30.795Z"
     }
   ]
 }

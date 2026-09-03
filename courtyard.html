@@ -727,6 +727,20 @@ const LIFT = 1.15;
 let MIRROR = 1, LIFTM = LIFT;     // LIFTM is LIFT * MIRROR, folded: project() is the hottest
                                   // function in the file and must not do the multiply twice
 function setMirror(m){ MIRROR = m; LIFTM = LIFT * m; }
+/* A SPRITE's image (#174). project() reflects any point solved with a real z, which is
+ * why the bridge, the deck, the wheel and the reeds are their own reflections for the
+ * price of MIRROR's sign. A hull, a punter, a person is NOT solved that way: it is drawn
+ * as pixel offsets from a projected FOOT, z never enters, and setMirror(-1) moves not one
+ * pixel of it. That is the whole reason the boats were the caster class #145 left out —
+ * a mechanism gap, not a matter of taste.
+ *   Their image is the same reflection taken in screen space. project() puts a point at
+ * topPad + (wy - z*LIFTM)*cellH, so reflecting z is EXACTLY reflecting the drawn y about
+ * topPad + wy*cellH — the foot's own row. So: flip about the foot. The only term it
+ * cannot carry is the pinch, which reads screen depth and so widens an image by
+ * PINCH*2*z*LIFT/WH — under half a percent at every height anything here stands.
+ * Callers own the save()/restore(); a sprite with more than one foot flips per FOOT, so
+ * the axis is never borrowed from the item it is drawn beside. */
+function spriteMirror(fy){ if (MIRROR < 0){ ctx.translate(0, 2 * fy); ctx.scale(1, -1); } }
 
 let FOCUS = GW / 2;
 function project(wx, wy, wz){
@@ -11006,6 +11020,7 @@ function drawScene(t, dt){
   // (drawRiverFlow), exactly as it was before.
   drawWaterShade(t);              // what the town puts INTO the water, before what the water gives back
   drawWaterMirror(t);
+  drawBoatMirror(t);              // and what MOVES on it, which no offscreen can cache (#174)
 
   const items = [];
   crowns.length = 0;                    // refilled by the tree draws below, in paint order
@@ -12463,6 +12478,58 @@ function drawWaterMirror(t){
   ctx.globalAlpha = 1;
   ctx.restore();
 }
+/* ============ the boats in the water (#174) ============ *
+ * #145 put five STANDING things in the river and the boats were not among them; #163
+ * added the reed fringe and still left them. They are the only things on the water that
+ * MOVE, so a hull with no image is the one object the eye checks — and every one of them
+ * is a sprite, which is why spriteMirror had to exist before this pass could.
+ *
+ * It is LIVE, on ctx, and it is not the offscreen for the reason #163 paid to learn: an
+ * offscreen 2D context of this size is not the accelerated surface the real one is, and
+ * it earns its keep only for a draw that needs its two composites. This one needs
+ * neither, and what it gives up saying so is worth naming:
+ *   the CHOP — a hull's image is a punter, a pole, a cabin, a pair of hands: thin shapes,
+ *     not the big flat slab the bridge lays down, and they are MOVING, which is how the
+ *     reeds' images answer the wind too;
+ *   the depth RAMP, replaced by one alpha per hull. The deepest image here is the barge's
+ *     cabin at 1.02 world z, 1.17 cells below her waterline, against REFL_FADE's 3.6:
+ *     that is a gradient from 1.00 to 0.68 over a dozen screen pixels, and buying it
+ *     costs a clip, a gradient fill and a `destination-in` per hull. So each takes the
+ *     ramp's MEAN over its own depth instead, which is the same first-order fact — a tall
+ *     caster gives back less than a low one — for one multiply.
+ * The water path is the clip, exactly as the fringe's is, so an image cannot run up the
+ * bank. It goes down AFTER drawWaterMirror, so where a punt crosses the bridge's image
+ * the punt's lies on top, which is the order the two objects have out of the water. */
+function boatMirrors(){
+  const m = [];
+  for (const P of PUNTS){
+    m.push({x:P.x, y:P.y, z:0.55, f:drawPuntHull, it:{P}});          // the pole, the lantern, the coaming
+    if (P.leg === 2 || P.leg === 4 || P.seating)
+      m.push({x:P.x, y:P.y, z:1.55, f:drawPuntCrew, it:{P}});        // the punter standing, and their fare
+  }
+  // the rowboat wherever she is drawn this frame, the boatUnderDeck() case included
+  if (boat && (boatUnderDeck() || boat.y < 64.5 || boat.y > 79))
+    m.push({x:boat.x, y:boat.y, z:0.85, f:drawBoat});                // the rower's back and head, the oars
+  if (barge){
+    m.push({x:barge.x, y:barge.y, z:BARGE_Z + 0.72, f:drawBargeHull});
+    m.push({x:barge.x, y:barge.y, z:BARGE_Z + 1.55, f:drawBargeDeck});
+  }
+  return m;
+}
+function drawBoatMirror(t){
+  const ms = boatMirrors();
+  const fade = REFL_A * (1 - 0.5 * rainFall);
+  let drawn = 0;
+  for (const m of ms){
+    const [sx, sy] = project(m.x, m.y, 0);
+    // the projected box, with the image's own reach south of the foot as the margin
+    if (!inFrameBox(sx, sy, 4 * cellW, (m.z * LIFT + 3) * cellH)) continue;
+    if (!drawn++){ ctx.save(); riverWaterPath(ctx); ctx.clip(); setMirror(-1); }
+    ctx.globalAlpha = fade * (1 - 0.5 * m.z * LIFT / REFL_FADE);
+    m.f(m.it);
+  }
+  if (drawn){ setMirror(1); ctx.globalAlpha = 1; ctx.restore(); }
+}
 /* ============ the night on the water ============ *
  * The lamps threw pools on the stone and nothing on the river; the moon lit a sky the
  * water never answered. Each light by the water now has a broken reflection: a column
@@ -12640,9 +12707,11 @@ function drawBoat(it){
   const b = boat;
   const [x, y] = project(b.x, b.y, 0);
   const s = cellW / 13;
-  // wake
-  ctx.strokeStyle = 'rgba(220,235,238,.3)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.arc(x, y - 10 * s, 7 * s, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke();
+  ctx.save(); spriteMirror(y);        // #174: under MIRROR this whole sprite is its own image
+  if (MIRROR > 0){                   // wake — on the water, not in it
+    ctx.strokeStyle = 'rgba(220,235,238,.3)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(x, y - 10 * s, 7 * s, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke();
+  }
   // hull (heading downstream)
   ctx.fillStyle = '#6a4c34';
   ctx.beginPath(); ctx.ellipse(x, y, 6.5 * s, 12 * s, 0, 0, 7); ctx.fill();
@@ -12668,8 +12737,9 @@ function drawBoat(it){
     ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx, ly - 7 * s); ctx.stroke();
     ctx.fillStyle = 'rgba(255,214,140,' + (0.9 * lf).toFixed(3) + ')';
     ctx.beginPath(); ctx.arc(lx, ly - 7.5 * s, 1.6 * s, 0, 7); ctx.fill();
-    BOAT_LAMP = [lx, ly - 7.5 * s];
+    if (MIRROR > 0) BOAT_LAMP = [lx, ly - 7.5 * s];
   }
+  ctx.restore();
 }
 /* ============ the punt (#96) ============ *
  * The eyot has been the town's one unreachable place since it was built. The way on
@@ -13022,7 +13092,8 @@ function updateOnePunt(P, dt){
 function drawPuntHull(it){
   const P = it.P;
   const [x, y] = project(P.x, P.y, 0), s = cellW / 13;
-  if (P.leg === 2 || P.leg === 4){
+  ctx.save(); spriteMirror(y);        // #174: under MIRROR this whole sprite is its own image
+  if ((P.leg === 2 || P.leg === 4) && MIRROR > 0){   // the wake is ON the water, like the wheel's foam
     ctx.strokeStyle = 'rgba(220,235,238,.25)'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.arc(x, y + (P.leg === 2 ? -8 : 8) * s, 5.5 * s, P.leg === 2 ? Math.PI * 0.15 : Math.PI * 1.15, P.leg === 2 ? Math.PI * 0.85 : Math.PI * 1.85); ctx.stroke();
   }
@@ -13049,8 +13120,10 @@ function drawPuntHull(it){
     ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx, ly - 6 * s); ctx.stroke();
     ctx.fillStyle = 'rgba(255,214,140,' + (0.9 * lf).toFixed(3) + ')';
     ctx.beginPath(); ctx.arc(lx, ly - 6.5 * s, 1.5 * s, 0, 7); ctx.fill();
-    PUNT_LAMPS.push([[lx, ly - 6.5 * s], lf]);
+    // registered ONCE, by the real draw: a lamp's image is not a light source
+    if (MIRROR > 0) PUNT_LAMPS.push([[lx, ly - 6.5 * s], lf]);
   }
+  ctx.restore();
 }
 function drawPuntCrew(it){
   const P = it.P, a = P.rider; if (!a) return;
@@ -13065,11 +13138,14 @@ function drawPuntCrew(it){
   drawPerson({a:{x:a.x, y:a.y, state:'stand', phase:0, greet:0,
                  shirt:a.shirt, pants:a.pants, skin:a.skin, faceL:P.leg === 4}});
   const st = Math.sin(simT * 2.2) * 0.5 + 0.5;   // the stroke: hands walk up, the pole trails astern
+  // the pole's own foot, not the punter's: drawPerson has already flipped about theirs
+  ctx.save(); spriteMirror(py);
   ctx.strokeStyle = '#8a6a42'; ctx.lineWidth = 1.3;
   ctx.beginPath();
   ctx.moveTo(px + 2.5 * s, py - (13 + 3 * st) * s);
   ctx.lineTo(px + (4.5 + 2.5 * st) * s, py + (7 - (P.leg === 4 ? 14 : 0)) * s);
   ctx.stroke();
+  ctx.restore();
 }
 /* ============ the barge (#136) ============ *
  * The town has been saying 'A barge horn sounds somewhere far downstream' since the
@@ -13184,7 +13260,11 @@ function bargeOutline(b, z){
 }
 function drawBargeHull(){
   const b = barge, s = cellW / 13;
-  if (b.leg === 'in' || b.leg === 'out'){       // the wake, off whichever end is leading
+  /* she needs no spriteMirror: unlike the punt and the rowboat she is solved in WORLD
+   * space at real heights (BARGE_Z, the coaming, the cabin), so project() reflects her
+   * for the price of MIRROR's sign — and her two hands are drawPerson, which flips
+   * itself. The two things that stand down are the ones ON the water, not in it. */
+  if ((b.leg === 'in' || b.leg === 'out') && MIRROR > 0){   // the wake, off whichever end is leading
     const [wx, wy] = project(b.x, b.y + (b.leg === 'in' ? -BARGE_HH : BARGE_HH), 0);
     ctx.strokeStyle = 'rgba(220,235,238,.22)'; ctx.lineWidth = 1;
     ctx.beginPath();
@@ -13242,7 +13322,7 @@ function drawBargeHull(){
     ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx, ly - 5 * s); ctx.stroke();
     ctx.fillStyle = 'rgba(255,214,140,' + (0.9 * lf).toFixed(3) + ')';
     ctx.beginPath(); ctx.arc(lx, ly - 5.5 * s, 1.7 * s, 0, 7); ctx.fill();
-    BARGE_LAMP = [lx, ly - 5.5 * s];   // and again OVER applyLight, or it is slate by ten o'clock
+    if (MIRROR > 0) BARGE_LAMP = [lx, ly - 5.5 * s];   // and again OVER applyLight, or it is slate by ten o'clock
   }
 }
 function bargeLampF(){ return barge ? clamp((nightF - BOAT_LAMP_ON) / BOAT_LAMP_FADE, 0, 1) : 0; }
@@ -13289,10 +13369,17 @@ function drawBargeDeck(){
   drawPerson({a:{x:b.x + BARGE_HW * 0.55, y:b.y - BARGE_HH * 0.50, z:BARGE_Z, state:'stand',
                  phase:0, greet:0, shirt:'#3f4a63', pants:'#2f2b26', skin:'#c98f62', faceL:true}});
   const hx = BARGE_SHORE.x + 0.12 + u * (b.x - BARGE_HW * 0.30 - BARGE_SHORE.x - 0.12);
-  drawPerson({a:{x:hx, y:BARGE_HAND_Y, z:BARGE_Z * u, state:b.leg === 'work' ? 'walk' : 'stand',
+  /* her ROW tracks the hull once she is aboard (#174). BARGE_HAND_Y is the shuttle line
+   * at the berth and bargeHandU returns 1 off 'work', so on the way in and the way out
+   * her x followed the hull and her y did not: a figure stood out in the channel at row
+   * 25 for the whole 4.5 h approach with the barge fifteen cells north of her. Found by
+   * giving her a REFLECTION (probes/boat-mirror, 74 px at rows 25-27 with the hull at
+   * 9.4) — the image was right and the person was in the wrong place. */
+  const hy = b.leg === 'work' ? BARGE_HAND_Y : b.y + BARGE_HH * 0.28;
+  drawPerson({a:{x:hx, y:hy, z:BARGE_Z * u, state:b.leg === 'work' ? 'walk' : 'stand',
                  phase:b.t * 5.4, greet:0, shirt:'#7a4c3a', pants:'#3a3630', skin:'#e8c39a',
                  faceL:!carry && b.leg === 'work'}});
-  if (carry) bargeSack(hx, BARGE_HAND_Y - 0.10, BARGE_Z * u + 1.05, s);
+  if (carry) bargeSack(hx, hy - 0.10, BARGE_Z * u + 1.05, s);
 }
 /* the moorings. Quay fabric, not the barge's — a sorted item apiece rather than a line in
  * the ground cache, because a post stands UP and has to sort against the people beside it. */
@@ -13695,15 +13782,28 @@ function drawPerson(it, t){
   // they stand on the bandstand's platform, half a world-unit up
   const [x, y] = project(a.x, a.y, agentZ(a));
   if (nearHidden(a.y, y)) return;      // the sill covers them: drawBird's own test, on the same feet
+  /* An image is bounded by the water it can fall INTO, and the water path's clip cannot
+   * say so for a figure standing ON the edge of it: the barge's shore hand works from
+   * BARGE_HAND_Y on the quay, a pixel west of the wall at RIVER_X0, and her reflection
+   * was landing in the channel beside her (74 px, probes/boat-mirror). So the bound is
+   * the CELL under the feet, read off the grid with the same predicate the shade uses. */
+  if (MIRROR < 0){
+    const gx = a.x | 0, gy = a.y | 0;
+    if (gx < 0 || gx >= GW || gy < 0 || gy >= WH) return;
+    if (!onChannel(gx, gy, grid[gy * GW + gx])) return;
+  }
   const hgt = (a.state==='sit'? 8 : a.state==='kneel'? 7 : a.state==='lie'? 3 : 12) * scale * (cellH/8);
   /* A person's patch is thrown nowhere — it is the contact under the feet, which is
    * occlusion rather than sun, so it takes only part of the lid: fade it the whole
    * way and everybody floats on a grey day. It still spreads, like the rest. */
   const pHard = 1 - 0.45 * (1 - shadowF()), pSp = shSpread();
-  ctx.fillStyle = 'rgba(20,25,15,' + 0.28 * pHard + ')';
-  ctx.beginPath(); ctx.ellipse(x, y, (4.5*scale + (a.state==='lie'?4:0)) * pSp, 2*scale*pSp, 0, 0, 7); ctx.fill();
+  if (MIRROR > 0){                     // a contact patch is ON the surface: no image of it
+    ctx.fillStyle = 'rgba(20,25,15,' + 0.28 * pHard + ')';
+    ctx.beginPath(); ctx.ellipse(x, y, (4.5*scale + (a.state==='lie'?4:0)) * pSp, 2*scale*pSp, 0, 0, 7); ctx.fill();
+  }
   ctx.save();
-  ctx.translate(x, y - bob);
+  ctx.translate(x, y - bob * MIRROR);  // the bob is a HEIGHT, so the image bobs downward
+  spriteMirror(0);                     // ...about the foot, which the translate has made the origin
   if (a.state === 'lie'){ ctx.rotate(-1.35); ctx.translate(0, -3); }
   const bw = 4.6 * scale * (cellW/13);
   if (a.cycle){
