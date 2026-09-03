@@ -14,7 +14,7 @@
   "avoid": "Do not make it revert or block the commit - a memory-quota breach is a REPORT, not a revert, and a runner that reverts good work over a 260 B cue is worse than the drift. Do not re-open the quota's numbers; #149 set them and five open cues and seven inventory lines pre-date the cap, so grandfather what exists and bind only what an iteration ADDS. Keep it small: this is a 15-minute brief, not a harness rewrite.",
   "budgetMin": 15,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 153,
   "issued": "2026-09-03T03:02:44.000Z",
