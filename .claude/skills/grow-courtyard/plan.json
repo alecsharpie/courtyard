@@ -15,27 +15,6 @@
   "rationale": "I shot the town before planning it — seed 42 at four instants (day 7 dusk 19.09h, sunset 22.58h, night 02.51h, and mobile) — and the shots did two things. The first was to settle the frontier honestly: the town is dense and the night frame is the best-looking state it has ever had, lamps and lit windows and fireflies over the lawn, the tenant out on the leads taking the washing in before the light goes. The second was an accident. The 1600x950 dusk shot is clear; the 390x844 shot of THE SAME seed AT THE SAME INSTANT is raining. I re-ran it as a measurement rather than trusting a picture: seed 42, __reseed() then __warp in 5 s steps, three viewports. They are bit-identical through simT 120. At simT 125 people reads 49 at 1600x950 and 48 at 390x844. By simT 415 cloud is 0.166 / 0.781 / 0.471 and `raining` is false / true / false at 1600x950 / 390x844 / 1200x720. One extra R() draw somewhere in the sim forks the seeded world for good, and the fork is a function of the WINDOW. Two consequences, and the second is worse than the first. (1) `?seed=` does not name a world — the artifact's headline promise. (2) Every multi-framing gate this loop owns has been comparing two different towns for 175 iterations: shoot.config.json has six framings, the visual gate shoots four, and the census, motion and filmstrip baselines are all pinned at one size. That is why this batch is rung 3 rather than 2. The ladder's rung 3 is 'widen the menu', and the menu is data precisely so the manager can extend it: I have added a ninth KIND, `fidelity` — make the world keep a promise it already makes. In 175 iterations this loop has had cells for 'does it look right' and 'did the census move' and no cell at all for 'does the artifact keep its word', which is exactly the blind spot a menu-as-data exists to close. b176 is the bet and it goes first. The other four are the three longest-untouched domains plus one cue that has waited long enough, and every one of them carries the number it rests on and where the number came from. Two standing warnings apply to this queue and are repeated in the briefs: b176 may reshuffle the seeded world, so every brief after it must re-count its own premise on HEAD (which is the law anyway); and c262's numbers are marked STALE in state.json because #173 re-cut the plaza under them.",
   "queue": [
     {
-      "id": "b179",
-      "domain": "Courtyard & garden",
-      "kind": "Deepen",
-      "brief": "The lawn's way OUT is the one leg in the garden nobody priced, and it is on frame. #168 priced the lawn's STAY at the walk home and emptied the garden accordingly, but `exitLeg` still runs from x32.5 to `laneEdge` — up to 110 cells — so a sitter who leaves at dusk reads as 28.6 sim hours of walking home across a dark town, in the wide shot, long after the garden itself has gone quiet. Price the exit the way the stay was priced, so that the courtyard empties and STAYS empty rather than trailing walkers through the night. Why now: Courtyard & garden is 7 back; c256 was raised at #166 and this is the second manager pass it has survived.",
-      "seams": [
-        "exitLeg",
-        "laneEdge",
-        "lawnHome",
-        "lawnStay",
-        "lawnGone",
-        "goHome",
-        "spawnLawnAgent",
-        "LAWN_CAP",
-        "EVE_GONE"
-      ],
-      "successLooksLike": "Over several seeds x several days, the count of lawn people still walking after `EVE_GONE` falls to near zero, and lawn presence during the day is not reduced by more than a token amount — the fix is to the exit, not to the population. Quote both numbers before and after.",
-      "avoid": "PREMISE PARTLY UNVERIFIED — the 110 cells and 28.6 h come from c256, written at #166, and #168 has changed the garden since. Re-count on HEAD before building. LAWS: price the walk where it can be PAID — at the door when the place is near, at the STAY when the crossing costs a day's light — and a return leg charged at the DOOR fails as a POPULATION going to zero, never as a slower rate, so watch for that failure mode specifically.",
-      "budgetMin": 30,
-      "risk": "low"
-    },
-    {
       "id": "b180",
       "domain": "The sill & the observer",
       "kind": "Polish",
@@ -72,6 +51,10 @@
     {
       "id": "b178",
       "at": "2026-09-03T20:36:29.180Z"
+    },
+    {
+      "id": "b179",
+      "at": "2026-09-03T20:56:50.581Z"
     }
   ]
 }

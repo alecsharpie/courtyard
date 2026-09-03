@@ -1665,30 +1665,44 @@ const ENTR = [
   {name:'east',  out:[65.5, 32.5], door:[60.5, 32.5], k: 0},
 ];
 const GAP_ANGLES = [0.5, Math.PI + 1.1];
-function laneEdge(){ return R() < 0.5 ? -2.5 : GW + 2.5; }
-function entryLeg(e){          // waypoints from off-screen to the courtyard door
+/* which world edge the lane runs out to. A blind coin is right for a passer-by, whose
+ * whole errand IS the crossing — but the two edges are 35 and 108 cells from the
+ * courtyard's south arch, so a leaver who rolls the far one is still walking at two in
+ * the morning (#179). Given a point, the near edge. The draw is spent either way, so the
+ * seeded stream past here does not move. */
+function laneEdge(nearX){ const r = R(); return nearX === undefined ? (r < 0.5 ? -2.5 : GW + 2.5) : (nearX * 2 < GW ? -2.5 : GW + 2.5); }
+/* `near` is the LAWN's arrival, and it is not a preference — it is the leg LAWN_OFF
+ * already claims. LAWN_OFF.south is 40 cells and .east is 35: the WEST world edge and
+ * the cross street, exactly. The coin below hands the other half of the lane's arrivals
+ * 108 cells instead of 40, so lawnFits() prices a walk of 9.6 h and the walker takes
+ * 23.2 h over it, arriving after the garden has shut and crossing the town all night to
+ * do it (#179 measured 50 of 50 south arrivals overrunning). A solve must hand its
+ * consumer the value it TESTED, so the lawn takes the leg it was priced for; the ring's
+ * transit, whose whole errand IS the crossing, keeps the coin. */
+function entryLeg(e, near){    // waypoints from off-screen to the courtyard door
   if (e.name === 'south'){
-    const ex = laneEdge();
+    const ex = laneEdge(near ? 32.5 : undefined);
     return [[ex, LANE_N_Y], [32.5, LANE_N_Y], [32.5, 62.5], e.door.slice()];
   }
   if (e.name === 'east'){      // in via the cross street, through the east arch
-    const pts = R() < 0.5
-      ? [[XS_WALK_W, -2.5]]
-      : [[laneEdge(), LANE_N_Y], [XS_WALK_W, LANE_N_Y]];
+    const viaLane = R() >= 0.5, lx = viaLane ? laneEdge() : 0;   // the draw is spent where it always was, in both branches
+    const pts = viaLane && !near
+      ? [[lx, LANE_N_Y], [XS_WALK_W, LANE_N_Y]]
+      : [[XS_WALK_W, -2.5]];
     pts.push([XS_WALK_W, 32.5], [64.5, 32.5], e.door.slice());
     return pts;
   }
   return [e.out.slice(), e.door.slice()];
 }
-function exitLeg(e){           // waypoints from the courtyard door to off-screen
+function exitLeg(e, near){     // near: take the world edge the LANE LEG's own start is closest to, not the coin (#179)
   if (e.name === 'south'){
-    const ex = laneEdge();
+    const ex = laneEdge(near ? 32.5 : undefined);
     return [e.door.slice(), [32.5, 62.5], [32.5, LANE_N_Y], [ex, LANE_N_Y]];
   }
   if (e.name === 'east'){
     const pts = [e.door.slice(), [64.5, 32.5], [XS_WALK_W, 32.5]];
     if (R() < 0.5) pts.push([XS_WALK_W, -2.5]);
-    else pts.push([XS_WALK_W, LANE_N_Y], [laneEdge(), LANE_N_Y]);
+    else pts.push([XS_WALK_W, LANE_N_Y], [laneEdge(near ? XS_WALK_W : undefined), LANE_N_Y]);
     return pts;
   }
   return [e.door.slice(), e.out.slice()];
@@ -3607,11 +3621,27 @@ function lawnCount(){ return agents.filter(o => lawnHolds(o) && o.kind !== 'gard
 function lawnRelease(a){ a.lawnOut = true; for (const o of agents) if (o.with === a) o.lawnOut = true; }   // and the companion at their side goes with them
 /* the walk from off-frame through door `e` along `pts`, in hours */
 function lawnHours(e, pts, speed){ return (LAWN_OFF[e.name] / speed * HOURS_PER_S) + pathHours(e.door[0], e.door[1], pts, speed); }
-/* the walk HOME from a point, in hours: the chord to the nearest door, which is the way
- * lawnCut takes them (#95). To the DOOR and no further, deliberately — LAWN_OFF's leg is
- * 40 cells at the south arch, ~9 h at a walking speed, and charging it at BOTH ends would
- * shut that door (the one weighted double) for the whole year. */
-function lawnHome(px, py, sp){ return LAWN_WALK_MARGIN * pathHours(px, py, [nearDoor(px, py).door], sp); }
+/* The way OUT of the garden, which is not the way IN's question (#179). nearDoor()
+ * answers "which door is a clean chord to" and that is the right question for an arrival;
+ * a LEAVER given it walks out of the south arch six cells from the lane and then the
+ * lane's whole length to a world edge — LAWN_OFF 40 cells against the north arch's 5.
+ * So the door is chosen on the WHOLE way off the frame, over the same LAWN_OFF table the
+ * arrival is weighted by: one table, both ends. The south arch is not shut — it still
+ * wins for anyone standing within ~35 cells of it — but a sitter at the middle of the
+ * lawn no longer crosses the whole town in the dark to leave by it.
+ * The chord it names is still a chord between two points inside the wall, so it is as
+ * clean as nearDoor's; it is simply allowed to be a long one. */
+function lawnGate(px, py){
+  const cost = e => Math.hypot(e.door[0] - px, e.door[1] - py) + LAWN_OFF[e.name];
+  return ENTR.reduce((p, q) => cost(q) < cost(p) ? q : p);
+}
+/* the walk HOME from a point, in hours: the chord to the gate they will actually leave
+ * by, which is the way lawnCut takes them (#95). To the DOOR and no further,
+ * deliberately — LAWN_OFF's leg is 40 cells at the south arch, ~9 h at a walking speed,
+ * and charging it at BOTH ends would shut that door (the one weighted double) for the
+ * whole year (#168). What #179 changed is WHICH door: pricing the stay against one door
+ * and walking out of another is two definitions of the same leg. */
+function lawnHome(px, py, sp){ return LAWN_WALK_MARGIN * pathHours(px, py, [lawnGate(px, py).door], sp); }
 /* the two legs of a gardener's day, priced in HOURS off ONE definition: the way in along
  * `pts`, and the walk home from where it ends. The set-out test calls it, and so the bed
  * filter and the door bag call it too — the window cannot drift from the walk it is
@@ -3856,7 +3886,7 @@ function spawnLawnAgent(want){
       if (j >= 2 && h + lawnHome(run[j][0], run[j][1], wsp) > close){ run.length = j; break; }
     }
   }
-  const legs = entryLeg(e);
+  const legs = entryLeg(e, true);   // the leg LAWN_OFF priced (#179)
   a.x = legs[0][0]; a.y = legs[0][1]; a.exit = e;   // the way out is the way in — the near door
   a.wp = legs.concat(way(e));
   a.lawnCut = true;                           // leaves by the chord to the nearest door (routeToExit), via the gap if inside the beds
@@ -3864,7 +3894,7 @@ function spawnLawnAgent(want){
   if (kind === 'kid'){
     a.lawnEnd = a.wp.length;                  // the index the exit begins at: past it, the run is over and the place is free
     const last = run[run.length - 1];
-    a.wp.push(...exitLeg(nearDoor(last[0], last[1])));   // straight off the lawn to the nearest door
+    a.wp.push(...exitLeg(lawnGate(last[0], last[1]), true));   // straight off the lawn to the nearest way OUT
   }
   if (kind === 'gardener' && hour < sunUp) a.dawnWalk = true;   // out before the sun: see the lawnGone() licence in stepAgent
   if (kind === 'gardener') sayAt(a.x, a.y, pick(['A gardener arrives with a trowel and a tray of seedlings.',
@@ -3935,7 +3965,7 @@ function gardenerKneel(a){
     const d = Math.hypot(b.px - a.x, b.py - a.y);
     if (!(d > 1.2 && d < GARDEN_REACH)) continue;
     const room = (close - (done + d / a.speed * HOURS_PER_S
-                  + pathHours(b.px, b.py, [nearDoor(b.px, b.py).door], a.speed))) / HOURS_PER_S;
+                  + pathHours(b.px, b.py, [lawnGate(b.px, b.py).door], a.speed))) / HOURS_PER_S;
     if (room >= GARDEN_ROW_MIN) fit.push({ b, dur: Math.min(nd, room) });
   }
   if (!fit.length) return;
@@ -4021,11 +4051,16 @@ function skyLifts(a){
 }
 function routeToExit(a){
   const ex = a.exit;
+  /* a kid whose run is over is already ON the exit leg pushed at its spawn, sometimes a
+   * long way outside the wall — and rebuilding the route from `a.exit` sent them the
+   * whole way BACK to the courtyard door to leave by it, 150 cells at 19 h (#179). The
+   * index is a.lawnEnd's own positive test, the one lawnRelease already fires on. */
+  if (a.lawnEnd !== undefined && a.i >= a.lawnEnd){ if (a.lawn) lawnRelease(a); return; }
   if (a.lawn) lawnRelease(a);                 // the walk OUT begins here: the place goes back now, not at the door
   if (a.lawnCut){                             // a lawn visitor: the chord to the nearest door (via the gap if inside the beds)
     const th = Math.atan2(a.y - CY, a.x - CX), inside = Math.hypot(a.x - CX, a.y - CY) < bedOut(th) + 1.2;
     const from = inside && a.preExit ? a.preExit[a.preExit.length - 1] : [a.x, a.y];
-    a.wp = (inside && a.preExit ? a.preExit.map(p => p.slice()) : []).concat(exitLeg(nearDoor(from[0], from[1]))); a.i = 0; a.state = 'walk'; return;
+    a.wp = (inside && a.preExit ? a.preExit.map(p => p.slice()) : []).concat(exitLeg(lawnGate(from[0], from[1]), true)); a.i = 0; a.state = 'walk'; return;
   }
   const pts = (a.preExit || []).map(p => p.slice());
   const from = pts.length ? pts[pts.length-1] : [a.x, a.y];

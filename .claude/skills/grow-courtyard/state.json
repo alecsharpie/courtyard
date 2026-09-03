@@ -527,7 +527,8 @@
       "walled garden: EDGE_BEDS 204, four arches, BENCH_SPOTS, daisies, ivy, one linden, SUNDIAL/dialThrow, wear[]/trod[]/litter[], pre-dawn sweeper",
       "bed planting CA over SPECIES: bSp/bSt, growF/dieF/bloomCap",
       "the lawn's OWN source: spawnLawnAgent/LAWN_RATE/LAWN_CAP, sub-caps (benches, naps, blankets, runs); lawnStart/End/Holds/Gone/Fits/Home/Stay — the STAY priced at the walk home (#168)",
-      "the gardener on a SCHEDULE outside LAWN_CAP: gardenDue/GARD_K over growSeason(), gardenFits both ends (#157), gardWalk/gardWin/gardNearest/GARD_LAND, gardenerKneel/GARDEN_REACH"
+      "the gardener on a SCHEDULE outside LAWN_CAP: gardenDue/GARD_K over growSeason(), gardenFits both ends (#157), gardWalk/gardWin/gardNearest/GARD_LAND, gardenerKneel/GARDEN_REACH",
+      "the way OUT is its own question (#179): lawnGate() picks the door by the WHOLE leg off-frame (LAWN_OFF), not nearDoor's chord; laneEdge(nearX)/entryLeg/exitLeg take the NEAR world edge, lawn only"
     ],
     "lane": [
       "kiosk, pavement cafe, awnings, washing lines, planters, LANE_LAMPS, LANE_BENCHES; morning ROUND mround/updateRound",
@@ -636,6 +637,12 @@
     {
       "id": "c268",
       "note": "HEAD had 37 bonfires and the candidate 44 over identical hash-only calendars (#178): the fire COUNT rides on bonfireWeather() at TWO gates, the spawn hour and the match, and nobody has bounded that swing.",
+      "raisedBy": 177,
+      "seenBy": 0
+    },
+    {
+      "id": "c269",
+      "note": "lawnGate moved the dusk emptying INTO the garden: lawn people dark inside the wall 1.015 -> 1.284, all at hourEve 18-22 with the 1-3 am tail flat. A good trade at #179; watch it does not creep later.",
       "raisedBy": 177,
       "seenBy": 0
     }

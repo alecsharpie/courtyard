@@ -244,3 +244,14 @@ page still runs rAF, so entering without `?t=` starts ~2.2 s of un-reseeded worl
 the same clock hour. Two towns; `filmstrip.mjs`/`shoot.mjs` pin `?t=0`, so an unpinned probe
 measures a world they cannot show.
 **Law:** pin `?t=` on every probe page — the default entry is a DIFFERENT WORLD from `?t=0`.
+
+## Iteration 179 — the garden's walk is handed the leg it was priced for (2026-09-04) [Courtyard & garden × Deepen]
+
+**Brief:** b179 — c256: `exitLeg` runs to `laneEdge`: a dusk sitter walks the dark town all night.
+**CONFIRMED, then RE-AIMED** (`probes/lawn-exit.mjs`, new; 6 seeds x a year). The exit is real — longest **162.6 cells / 36.95 h** — but its 308 night-hours are of 813; the rest never reach `routeToExit`. `LAWN_OFF.south` is 40 cells — the WEST edge — and `entryLeg`'s coin hands half of them 108: **all 50 south arrivals overran, priced 9.63 h and walking 23.19.**
+**Did.** One law, both ends: hand the consumer the leg it TESTED. (1) `laneEdge(nearX)` takes the near world edge for a leaver; the coin stays for a passer-by whose errand IS the crossing. `entryLeg`/`exitLeg` carry it, lawn-only, draw COUNT held. (2) `lawnGate()`: the door minimising the WHOLE way off the frame over that same `LAWN_OFF`, replacing `nearDoor()` (a chord's question) in `routeToExit`, `lawnHome` and the gardener's beds. (3) a kid already on its exit leg is not rebuilt from `a.exit` and sent 150 cells BACK.
+**HEAD -> cand.** Out past EVE_GONE **0.874 -> 0.100**; longest exit **44.8 cells / 11.24 h**; dark lawn 2.714 -> 1.865. Presence: lawn 9.107 -> 8.908, **stopped on the grass 1.140 -> 1.144**, inside the wall 19.283 -> 19.242.
+**Gates:** census PASS (`worn +104`, the new chords' desire lines) · motion PASS · 6 shots · 0 POP
+**Verdict:** shipped
+**Surprise:** `hourEve() >= EVE_GONE` is 2.30 to 6 am, so the next morning's set-outs share it: 0.713 of HEAD's 1.587 walked IN, not home. Unsplit it reads 47% where the vector moved 89%.
+**Law:** a window past a day's LAST hour is also its NEXT morning's first — split a late population by DIRECTION before quoting it.
