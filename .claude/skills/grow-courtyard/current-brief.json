@@ -22,7 +22,7 @@
   "avoid": "Do not lower LAWN_CAP: a ceiling is not a kill term, the population is already capped at 8, and a system that ages out what sits at its ceiling is emptied by lowering it. Price the walk at the CHOICE (rate x visit), not by clipping people mid-walk. Two seeds is not a sample.",
   "budgetMin": 35,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 168,
   "issued": "2026-09-03T11:27:41.457Z",
