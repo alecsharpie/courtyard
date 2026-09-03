@@ -2,7 +2,7 @@
   "updated": "2026-09-03",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 159,
+  "lastIteration": 164,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -303,7 +303,8 @@
         103
       ],
       "scale": [
-        148
+        148,
+        160
       ]
     },
     "river": {
@@ -323,7 +324,8 @@
         46,
         54,
         96,
-        107
+        107,
+        163
       ],
       "deepen": [
         9,
@@ -398,7 +400,8 @@
         101,
         118,
         128,
-        152
+        152,
+        161
       ],
       "polish": [
         "pre9",
@@ -438,7 +441,8 @@
         57,
         115,
         149,
-        153
+        153,
+        164
       ],
       "polish": [
         68,
@@ -458,7 +462,8 @@
       "deepen": [
         83,
         106,
-        146
+        146,
+        162
       ],
       "polish": [
         91,
@@ -573,12 +578,6 @@
       "seenBy": 5
     },
     {
-      "id": "c232",
-      "note": "the near roof band under the lane is ~13% of a desktop frame and ~22% of a phone's, the closest surface to the eye, and reads as one ashlar texture. Measure it as its OWN luma class first - the WALL class (0.240) is the terraces' facades.",
-      "raisedBy": 144,
-      "seenBy": 3
-    },
-    {
       "id": "c233",
       "note": "the BOATS are the caster class #145 left out - punts, barge, rowboat, a standing punter are still not in the water; and the rows-3-12 bank-smear baked into the ground cache stops at row 12 for no recorded reason.",
       "raisedBy": 144,
@@ -587,12 +586,6 @@
     {
       "id": "c244",
       "note": "nothing re-asks bonfireWeather() once the heap is lit, so a fire started in a calm dawn burns on through an afternoon gale isWindy() would refuse; #156 re-keyed the bar but not the re-ask.",
-      "raisedBy": 154,
-      "seenBy": 1
-    },
-    {
-      "id": "c245",
-      "note": "lawnFits bounds the other four lawn kinds with LAWN_MIN_DWELL's blind 1.5 h and never prices the walk HOME: #157 gave the gardener gardWalk's out leg, sitter/napper/picnic/kid still leave the wall unpriced.",
       "raisedBy": 154,
       "seenBy": 1
     },
@@ -609,35 +602,23 @@
       "seenBy": 0
     },
     {
-      "id": "c249",
-      "note": "b161 refuted the empty-morning premise (28.3 people at sunUp+0.5). The real dawn gap is COMPOSITION: 11.6 errand kinds vs the evening's 14.2, led by family/lawn where the evening has dusk, tap, band, homers.",
-      "raisedBy": 159,
-      "seenBy": 0
-    },
-    {
-      "id": "c250",
-      "note": "backKey has no camera term: a quarter camera moves topPad/hz but the cached backdrop stays put, so the hills and the live gradient's horizon part company across the ease",
-      "raisedBy": 159,
-      "seenBy": 0
-    },
-    {
       "id": "c251",
       "note": "the water shade is correct and barely reads (6021 px of mass, 1-86 px of change): what makes a shadow read on water is cutting the SHEEN - drawRiverFlow's streaks and the glitter column - not a deeper multiply",
       "raisedBy": 159,
       "seenBy": 0
     },
     {
-      "id": "c252",
-      "note": "build-stats.mjs greps quota 0 times, so a breach is still invisible in stats.html, the manager's other input; and closedCues (227 notes, 79 KB of state.json) has no pruner — rotate-ledger caps LEDGER.md and LAWS.md only.",
-      "raisedBy": 159,
+      "id": "c253",
+      "note": "MANAGER-LOG.md is 79 KB over 34 passes and the manager reads it whole: \"one line a pass\" is now ~3.5 KB a line. With LEDGER-archive 668 KB, RUNLOG 186 KB, state.json 114 KB, the read rent has moved from the CAPPED worker to the uncapped manager.",
+      "raisedBy": 164,
       "seenBy": 0
     }
   ],
   "watch": [
-    "BOTH LAPSE HOURS ARE ONE TAP AWAY - the clock button alternates this evening (sunDown+1) and the morning (sunUp+0.5), ~2.4 s each. NEITHER IS EMPTY, and the 6-9 was wrong: #161 counted 125 mornings (5 seeds x a year, probes/lapse-pop.mjs) at mean 28.3 people / 11.6 errand kinds, min 6, against the evening's 41.1 / 14.2. The sweeper, the round and the cart are 2.4 of the 28.3. Supply for either hour is its own source, never a laneCap share.",
     "mapFlat ASKS THE WRONG QUESTION. The seven structural scalars measure the GRID, and the grid has been FULL since #100 (GW 138 x WH 88, wide frame edge to edge, growing WH moves every hard-coded row in 13,900 lines). Do NOT re-derive that argument. Two honest 4b moves: a new TILE or SPECIES constant, +9 each (GLASS #116, and b155), or DEPTH beyond the grid, which the census cannot see (#145 the mirror, #150 the far ranks). Re-pin with census.mjs --save-baseline and SAY SO; the gate reads collapse, not delta.",
-    "MEASURE A SURFACE BEFORE YOU CALL IT DRAWN, and a number is not a picture. Per-class luma at 1600x950, seed 42, day 3 10.4h (sd/mean, share of frame): ROAD 0.150 / 7.7% - GRASS 0.131 / 10.9% - PATH.court 0.143 / 9.3% - WATER 0.177 / 4.8% (#145) - SIDE.cross 0.121 / 4.1% - SIDE.quay 0.229 / 2.3% - WALL 0.240 / 12.3%. The two large classes never measured on their own are the near roof band (c232, ~13%/22%) and the BACKDROP above the roofline (~15%, one flat silhouette).",
-    "PRICE THE BRIEF'S PREMISE - and that is aimed at the manager. Three of the six briefs #144-#148 were mis-priced by the plan: #146's bar was unreachable, #147's bug did not exist, #148's crowding bar was the wrong instrument. The workers measured first and were right every time. Put the NUMBER a brief rests on INTO the brief and name where it came from; if there is no number, say so and make the measurement the deliverable."
+    "MEASURE A SURFACE BEFORE YOU CALL IT DRAWN, and a number is not a picture. Per-class luma sd/mean at 1600x950, seed 42: ROAD 0.150 - GRASS 0.131 - PATH.court 0.143 - WATER 0.177 - SIDE.cross 0.121 - SIDE.quay 0.229 - WALL 0.240 (day 3 10.4h), and the NEAR ROOF BAND 0.281 (day 8 15.2h, manager pass from #164) - the HIGHEST of them, which closed c232. Its darkness is drawNearRoof s stated intent, not a fault. The one large class still unmeasured on its own is the BACKDROP above the roofline (~15% of the frame), and #150/#162 gave it four ranks and three hill tiers since the note was written.",
+    "PRICE THE BRIEF'S PREMISE - and that is aimed at the manager. Three of the six briefs #144-#148 were mis-priced by the plan: #146's bar was unreachable, #147's bug did not exist, #148's crowding bar was the wrong instrument. The workers measured first and were right every time. Put the NUMBER a brief rests on INTO the brief and name where it came from; if there is no number, say so and make the measurement the deliverable.",
+    "A CAMERA THAT MOVES EVERY FRAME IS A DIFFERENT ANIMAL FROM whereGo s EASE. The ease survives only because it paints the padded WIDE ground cache once, scales the blit by k = viewS/gview.s, and repaints the destination ONCE on arrival; drawGround costs 25-27 ms (c214) and FACES/faceAt are registered in gview s frame. Anything that moves the frame continuously must hold that padded cache for the whole move and repaint once on release. backKey (#164 pass) has no camera term at all."
   ],
   "closedCues": [
     {
@@ -2313,6 +2294,46 @@
       "raisedBy": 154,
       "closedBy": 160,
       "why": "-> brief b160 (#160 batch): the bet. More places AND a second thing to do, off the south arc."
+    },
+    {
+      "id": "c232",
+      "note": "the near roof band under the lane is ~13% of a desktop frame and ~22% of a phone's, the closest surface to the eye, and reads as one ashlar texture. Measure it as its OWN luma class first - the WALL class (0.240) is the terraces' facades.",
+      "raisedBy": 144,
+      "seenBy": 3,
+      "closedBy": 164,
+      "reason": "Refuted twice. MEASURED as its own luma class, which is what the cue asked for: the tight near-roof band (d8-wide, seed 42, day 8 15.2h, x500-2300 y1370-1560 of a 3200x1900 shot) reads sd/mean 0.281 — ABOVE WALL 0.240, courtyard paving 0.212, WATER 0.177 and ROAD 0.150. It is one of the highest-variance large surfaces in the frame, not a flat ashlar texture. And drawNearRoof's own comment says the darkness is DELIBERATE: 'bright town, slate mid-tone, then a foreground that falls away into the sill instead of competing with the courtyard for the eye' (#105's wash, priced off sillTop in drawOurSide). The band also already carries slates on slateGrid, per-slate moss/soot/slipped, WELLS, DORM_Y, drawParapet + a lead gutter with hopper heads, OUR_AWNINGS, ROOF_FURN 24/bay, roof birds and the cat's ridge. Nothing to brief here."
+    },
+    {
+      "id": "c245",
+      "note": "lawnFits bounds the other four lawn kinds with LAWN_MIN_DWELL's blind 1.5 h and never prices the walk HOME: #157 gave the gardener gardWalk's out leg, sitter/napper/picnic/kid still leave the wall unpriced.",
+      "raisedBy": 154,
+      "seenBy": 1,
+      "closedBy": 164,
+      "reason": "promoted -> b168 (Courtyard & garden x Deepen, plan from #164)"
+    },
+    {
+      "id": "c249",
+      "note": "b161 refuted the empty-morning premise (28.3 people at sunUp+0.5). The real dawn gap is COMPOSITION: 11.6 errand kinds vs the evening's 14.2, led by family/lawn where the evening has dusk, tap, band, homers.",
+      "raisedBy": 159,
+      "seenBy": 0,
+      "closedBy": 164,
+      "reason": "promoted -> b169 (Lane & market x Deepen, plan from #164)"
+    },
+    {
+      "id": "c250",
+      "note": "backKey has no camera term: a quarter camera moves topPad/hz but the cached backdrop stays put, so the hills and the live gradient's horizon part company across the ease",
+      "raisedBy": 159,
+      "seenBy": 0,
+      "closedBy": 164,
+      "reason": "promoted -> b165 (Sky, light & weather x Connect, plan from #164)"
+    },
+    {
+      "id": "c252",
+      "note": "build-stats.mjs greps quota 0 times, so a breach is still invisible in stats.html, the manager's other input; and closedCues (227 notes, 79 KB of state.json) has no pruner — rotate-ledger caps LEDGER.md and LAWS.md only.",
+      "raisedBy": 159,
+      "seenBy": 0,
+      "closedBy": 164,
+      "reason": "promoted -> b167 (Harness, plan from #164)"
     }
   ]
 }

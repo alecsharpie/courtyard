@@ -1,42 +1,146 @@
 {
-  "generated": "2026-09-03T06:21:29.837Z",
-  "byIteration": 159,
-  "rung": 2,
+  "generated": "2026-09-03T08:47:41.294Z",
+  "byIteration": 164,
+  "rung": 5,
   "diagnosis": {
-    "health": "Healthy, and the money is still buying work. 19 of the last 20 shipped, 0 reverts, 0 no-ships; the one non-ship is #147 rejecting a brief I wrote, on a count, and it was right. Last 10: 26 min, $7.84/iter (down from $7.95 and $8.35 on the two passes before), src moved 9/10, attempts=1 on 9/10. Diffs +161/+36/+135/+0/+100/+204/+139/+53/+42/+164 — mean 103, up from 86 and from 49 at the #67 low, so the smallDiff shape that worried an earlier pass is gone. The one zero is #153, a Harness iteration that changed run-loop.sh and not courtyard.html. The old loop's death signature was cost RISING with output FLAT; here cost is falling and the diff mean is rising three passes in a row. Two things to keep an eye on. First, the last four iterations are all cheap and quick (17/17/21 min after a 30) and three of the four were measurements or single-seam edits — that is fine once, and it is how a run slides into comfort if it becomes the shape. This batch answers it with a bet at 90 minutes in the first slot. Second, state.json's coverage grid had never recorded #155-158: four iterations were invisible to the balance instrument I plan from. Fixed this pass; the inventory, which the WORKER writes, was current, so this was mine alone.",
+    "health": "Healthy, and I looked hard for the old loop's death signature before climbing. 18 of the last 20 shipped, 0 reverts, selfVerdict == verdict on 20/20; the two non-ships are #147 and #161, both workers REJECTING a brief a manager wrote, both on a count, both right. Last 10: 24 min, $8.02/iter, src moved 9/10. Diffs over #155-#164: 204/139/53/42/164/383/6/52/246/0 — mean 129, the third rise in a row (49 at the #67 low, 86, 103, 129), and the two zero-ish rows are #164, a Harness iteration that touches no pixel by design, and #161, the rejection. Cost is flat-to-up while output rises, which is the inverse of the shape that killed Solvista. What I am watching instead is the OTHER cost: the four files nothing caps have reached 1.05 MB and grow 86 KB per 20 iterations (LEDGER-archive 668 KB, RUNLOG 186 KB, state.json 114 KB of which 227 closed cues are 79, MANAGER-LOG 79 KB), and every one of them is read by ME. The worker's budget is capped, measured and clean at 45.0/46 KB. The read rent has not gone away; it has MOVED to the seat that has no cap. c253 raises it; b167 takes the first bite (the closedCues pruner and putting the quota on the dashboard).",
     "signals": [
-      "stall.mjs: no signals, hard or advisory",
-      "mapFlat CLEARED at #155 — tileKinds 144 -> 153, speciesKinds 108 -> 117 (REED + rushes), first movement in the structural census since #130",
-      "no smallDiff (mean 103 over the last 10), no rungHeld, no revert streak, selfVerdict == verdict on 20 of 20",
-      "rung history 6/4a/2/4b/4b — the last two passes were both 4b, so rung 2 is available and this is the FIRST of at most two consecutive passes at rung <= 2",
-      "openCues were 12 against a cap of 8 — over, and unreported. Six promoted into this batch, six kept and aged",
-      "LAWS.md was at 12.0/12.0 KB with five entries' laws unpromoted: a cap that is exactly full is a cap that is about to be ignored"
+      "~ quotaUnmeasured (advisory, binds this pass to rung 2+): 0 of 12 rows since #153 carry a quota reading. I diagnosed it rather than passing it on — the code is correct and works by hand (context-budget.mjs --additions --since HEAD~3 exits 0), but `ps` shows one bash process running run-loop.sh since Wed 02:00, started before #153 added step 4, and bash reads a script by byte offset. The runner is executing text that has no step 4 in it. Fixing it by restarting is the human's move; b167 makes the measurement independent of the shell so the loop cannot lose it that way again.",
+      "no hard signals: no revert streak, no srcFlat, no smallDiff (diff mean 129 over the last 10), no rungHeld, mapFlat cleared at #155",
+      "rung history 6 / 4a / 2 / 4b / 4b / 2 — the last pass was a 2 and said the pass after it should climb. This is that pass, and it climbs to 5 on an argument, not on a quota.",
+      "openCues stood at 11 against a cap of 8, and watch at 5 against 4 — both over, both unreported by any instrument. Now 7 and 4.",
+      "LAWS.md was 12,265 of 12,288 B with FIVE entries' laws unpromoted (#160-#164): a cap that is 23 bytes from full is a cap about to be ignored."
     ],
-    "balance": "Counting back from #159: Plaza & quay 11 (last #148), Roofs & skyline 8 (#151), People & animals 7 (#152), The sill & the observer 6 (#153), River & far bank 4 (#155), Sky 3, Courtyard 2, Lane 1, Cross street 0. This queue is exactly the five longest-untouched domains, in order of neglect, and it is the first pass in a while where balance and the frontier agree: the plaza is both the domain that has waited longest AND the one place in the wide shot that is measurably empty. By kind, Plaza has one Deepen-heavy history and no Interaction since #24; Sill still has zero new-element and zero new-ca, which is the cell to spend a rung-5 on when the next climb comes."
+    "balance": "Counting back from #164 and NOT counting Harness, which the menu says does not count toward a domain's balance (#153 and #164 are both Harness, both Sill): Sky & weather 8 back (#156), Courtyard & garden 7 (#157), Lane & market 6 (#158), Cross street 5 (#159), Plaza 4 (#160), People 3 (#161), Roofs 2 (#162), River 1 (#163). The sill's last iteration that a viewer could see is a long way back — its column is 21 entries of which 6 are Harness and 6 Interaction. This queue takes the three longest-untouched domains (Sky, Courtyard, Lane) plus a Harness brief that costs no balance, and spends the bet on the Sill. By KIND the grid is far more lopsided than by domain: Interaction is 12 entries in 164 iterations, half of them in the Sill, and Lane, Cross street, River and Sky have never had one at all. That is the cell the climb is spent in."
   },
-  "rationale": "The frontier is the plaza, and for once I do not have to guess: #158 measured it. Three callers — the lane's plaza band, the families and the east agents — share FIVE places, three FOUNT_STANDS and two PLAZA_BENCHES. Over a laneCap sweep of 10 to 20 the plaza's CHOICES go 28.7 -> 48.6 while its ADMISSIONS go 12.4 -> 17.3; the refused share climbs 56.7% -> 64.4% and every one of them leaves by the `else` onto the quay rail. That is why the plaza's presence is the one east number that will not move (+0.14, t 0.7) and why the town's civic centre holds one or two people while the lane streams past it. Two separate cues, c236 and c246, are the same room: c236 adds that all three stands sit on the roundel's SOUTH arc, every approach comes from the south, and the 90-degree stand at (105.5, 33.5) sits ON the lane corridor at ex2 104-106. So b160 is the bet, it goes first, and it gets 90 minutes: the plaza needs more places, spread off the south arc, and more than one thing to DO once you are there. A visitor sees that in the first ten seconds of the wide shot; a fourth bench does not.\n\nThe rung is 2 and I want to be plain about why that is legal rather than comfortable. No advisory signal is showing — mapFlat cleared at #155, the diff mean is 103 and rising, no rung has been held. The last two passes were both 4b, so this is the first of at most two consecutive passes at rung <= 2, and the pass after next must climb to 3 or higher whatever it finds. b160 is rung 2 done at full size — it compounds four systems that already exist (the places, the lane's roll, the families, the corridor) rather than adding a sixth — and rung 2 is the ladder's own stated highest-yield move when the basics are in place. I am not spending the climb on a season or a tile I do not need.\n\nThe other four are aimed at the four next-longest-untouched domains and at one recurring fault of mine. b161 is the morning: both lapse hours are ONE TAP from the wide shot, the source comment at courtyard.html:5679 says the morning lands at sunUp+0.5 with the sweeper, the cart and nobody else, and the night holds 6-9. b162 spends c238 and b163 spends c243 and c239 together, since both are things drawWaterMirror does not know about and one brief should own the seam. b164 is c241 and it is the manager's own instrument: stall.mjs does not read row.quota, so the memory gate #153 wired into the runner can fire on every single iteration and never raise a signal in the report I plan from — which is precisely the class of blindness this role exists to close.\n\nOn PRICE THE BRIEF'S PREMISE, the watch item aimed at me: b160's numbers are #158's own, from probes/plaza-door.mjs, and I have quoted them with their provenance. b161's and b162's premises I have NOT re-measured, and both briefs say so in their own text and make the measurement the deliverable if the premise does not reproduce. That is the honest version of putting a number in a brief.\n\nCuration: coverage entered for #155-158, which had never been recorded. Six cues promoted into briefs (c236+c246 -> b160, c238 -> b162, c239+c243 -> b163, c241 -> b164), taking openCues from 12 — over its cap of 8, and nothing had reported it — down to 6. Four laws promoted by MERGING rather than stacking: #158's fixed-number-of-places into the cap-and-share law, #156's magic-number-over-a-bimodal-input into the scalar-is-not-a-switch law, #157's lower-bound-on-arrival-with-no-bound-on-the-walk into the walk-pricing law, #155's coarse-gate-is-a-share-over-a-long-run-and-a-coin-over-a-short-one into the gathering law; #159's law was already in the file twice over (dead constant, two seeds is not a sample) and was folded into one clause rather than added. LAWS.md was exactly at its 12 KB cap, so all of that had to be paid for. The named cut is the accumulator-is-a-RATE sentence: every accumulator in the town (wear, trod, moss, paveWear, litter) is built and carries it, its only live consumer is cue c214, and the PROPORTIONAL-decay half of that law stays. Also cut: filmstrip.mjs's blind spot (a property of an instrument, not of the town), the zoom-cannot-reach-the-world's-edge sentence (settled, and WORLD_X0/X1 is inventory), the quads-filled-once drawing detail (built, sky[4]), and the cached-warm-pixel case, which restated the live case at length and is now one sentence. Budget 45.3 -> 43.7 KB, LAWS 12.0/12.0. One standing tension I am NOT fixing this pass and want on the record: rotate-ledger warns that 7 of the 12 laws are over its 900 B per-law advisory. The file is 12 fat compound laws rather than 60 thin ones. That is inside the binding cap and each one is a real cluster, but it is drifting toward the prose blob the previous loop died of, and a future pass should split before it appends.",
-  "queue": [],
-  "recommendStop": null,
-  "consumed": [
+  "rationale": "I shot the town before planning it — a clear late-summer afternoon (day 8, 15.2 h, 75 people), a rainy early-summer night, a spring afternoon, wide and phone — and the first thing to report is a brief I did NOT write. c232 has ridden three manager passes on the claim that the near roof band is 13% of a desktop frame and 22% of a phone's and reads as one flat ashlar texture. The cue itself said: measure it as its own luma class first. So I measured it: sd/mean 0.281 over the tight band (x 500-2300, y 1370-1560 of a 3200x1900 wide shot, seed 42, day 8 15.2 h), against WALL 0.240, courtyard paving 0.212, WATER 0.177 and ROAD 0.150. It is the HIGHEST-variance large surface on the record, not the flattest. And drawNearRoof's own comment says the darkness is the point — 'bright town, slate mid-tone, then a foreground that falls away into the sill instead of competing with the courtyard for the eye' — over a band that already carries slates on their own lattice, per-slate moss and soot and slipped tiles, wells, dormers, a parapet with a lead gutter and hopper heads, awnings, 24 pieces of furniture a bay, roof birds and the cat's ridge. Cue closed on evidence. That is 90 minutes of worker time that would have been spent proving a premise wrong, which is the fault the WATCH item aims at me, and I would rather spend the measurement here than there.\n\nThe rung is 5 and the argument is the coverage grid read by KIND rather than by domain. In 164 iterations the town has had twelve Interaction entries, six of them in the Sill, and four domains — Lane, Cross street, River, Sky — have never had one. Meanwhile the observer's relationship with the town is complete in every direction except one: you can NAME anything under the pointer (beds, plots, paving, trees, people, birds, faces, vanes, the field edge), you can go to five fixed quarters, you can skip to the evening or the morning, pause, and change speed. What you cannot do is FOLLOW. The town holds 75 people on a summer afternoon, every one on an errand that ends in a stop that performs something and usually says it at one of 37 sayAt sites, and the camera has never once been pointed at something that moves. b166 is the bet: click a person and the frame takes them. It is rung 5 by the ladder's own words — a new way to READ the town — it lands in the thinnest cell in the grid, and it compounds the four best-built systems the run has (the quarter camera and its ease, the pointer naming, the three-rank ticker, and the visit). 90 minutes, 150-300 lines stated as expected and welcome, and both failure modes priced into `avoid`: the ground cache (drawGround is 25-27 ms, c214, and a camera that moves every frame must hold the padded wide cache the way whereGo's ease already does rather than rebuild) and the world's edge clamps.\n\nb165 goes FIRST and it is deliberately the bet's runway. c250 said backKey has no camera term; I read it on HEAD and it is exactly so — courtyard.html:6513 keys the cached backdrop on `W + 'x' + H + ':' + lightBucket` while the line above it computes `hz = topPad - 3.4 * cellH` live, and stepView moves both topPad and s every frame of a 0.9 s ease and leaves them moved at a quarter, where s reaches 3.6. So the live gradient's horizon and the cached hills part company during every camera move the town already has, and b166 is about to put a camera in front of it that moves continuously. Fix the runway before you drive on it. The other two take the next two longest-untouched domains on cues that have aged enough to be briefs: b168 is c245, the four lawn kinds #157 left with an unpriced walk home, and b169 is c249 with the spent lapse-hours WATCH item folded into it — #161 disproved the empty-morning premise on 125 counted mornings, so the morning's fault is composition (11.6 errand kinds against the evening's 14.2), not headcount, and the brief carries that number and its probe by name.\n\nb167 is the firing signal and I have done the diagnosis rather than passing the symptom along. The quota gate #149 built and #153 wired has measured nothing on any of the twelve rows that carry the field. The code is right — running it by hand exits 0 with a full report. The runner is one bash process that has been alive since Wed 02:00, started before #153 landed, and bash reads a script by byte offset, so a live loop executes the text it was launched with. The signal's own advice, 'restart the runner', is correct and is a human's move; the loop's move is to stop depending on the shell for the reading, so b167 has runlog.mjs compute the quota itself when the runner did not hand it one. That is #164's own law applied to the thing that produced it: a field is not a reading. It carries c252 with it (build-stats.mjs greps quota zero times, so a breach is invisible in stats.html, my other input) and the closedCues pruner, which is 79 KB of the 114 KB state.json.\n\nCURATION. Coverage was five iterations stale — #160-#164 had never been recorded and lastIteration was stuck at 159, so the grid I rotate from could not see a fifth of the run since my predecessor's pass. LAWS.md: five claims promoted out of #160-#164 and every one MERGED into the law that owns the subject, never stacked — #161's dated-scarcity into locate-before-you-judge (which already carries 'count it on HEAD'), #160's instrument-the-PAYOFF into the rate-of-zero law, #162's a-cached-layer-drawn-over-a-live-one-SUBTRACTS into the legibility law, #163's offscreen-context-is-not-accelerated into the CACHE/COMPOSITE law, #164's a-field-is-not-a-reading into the probe law. The file was 23 bytes from its cap, so all five were paid for by CUTS, and these are the named ones: the small-n quantile clause in the seeded-world law (subsumed by the gathering law's SHARE-over-a-long-run / COIN-over-a-short-one, which is its general form); the open-it-a-trip-earlier and hour-the-last-person-is-GONE clauses (bound BOTH ends survives and carries them); the season-scaling explanation and the whole social-window-INTERSECT sentence in the sun's-hour law (#148 landed it and it is a special case of two rules already there); the why-the-sweep-reveals-it clause in the cap-versus-share law; the frame-cost.mjs/perf.mjs parenthetical (the probe law says it better and at length); the 5.4-cell-wall example in renderer trap (f); the where-inView-has-already-filtered clause in the FRAMING law; the census-churns-everywhere restatement; the drawn-live-or-painted-INTO-the-cache aside; and the frames-drawn-at-page-load explanation in the probe law. 12 laws, 12,276 / 12,288 B, five more claims than it started with. Cues 11 -> 7: four promoted into this queue (c245, c249, c250, c252), one CLOSED on measurement (c232, above), one raised (c253, the manager's own uncapped read surface). Watch 5 -> 4: the lapse-hours item is spent into b169 and its standing rule — supply for either hour is its own source, never a laneCap share — goes into the brief where it can bind; the measure-a-surface item now carries the near-roof number; and a new item warns the next pass that a camera which moves every frame is a different animal from whereGo's ease. Worker budget 45.3 -> 45.0 / 46 KB, every sub-cap met.\n\nOne thing I am NOT doing and want on the record, for the second pass running: seven of the twelve laws are over rotate-ledger's 900 B per-law advisory. The file is twelve fat compound laws rather than sixty thin ones. My predecessor said a future pass should SPLIT before it appends; I appended, because splitting saves no bytes against the binding cap and the compound laws' connective tissue is doing real work — 'a walk is priced at its CHOICE and spent on its way' only means anything with the four sentences after it. But that is now two passes of the same deferral, and a third would be the pattern this seat exists to catch.",
+  "queue": [
     {
-      "id": "b160",
-      "at": "2026-09-03T06:22:05.140Z"
+      "id": "b165",
+      "domain": "Sky, light & weather",
+      "kind": "Connect",
+      "brief": "The cached backdrop does not know the camera exists. courtyard.html:6513 keys it on `W + 'x' + H + ':' + lightBucket` — no camera term — while the line above computes `hz = topPad - 3.4 * cellH` LIVE and hands it to drawBackdrop, and stepView interpolates both topPad and s over every 0.9 s quarter ease and leaves them moved at the destination, where s reaches VIEW_SMAX 3.6. So the live sky gradient's horizon slides and the cached hills, ranks and skyline stay exactly where they were painted: they part company during every camera move the town already has, and at a quarter the backdrop is drawn at 1x behind a town at 2-3x. Make the far distance move with the frame. Why now: b166 is about to put a camera in front of it that moves every frame rather than twice.",
+      "seams": [
+        "backKey",
+        "drawSky",
+        "drawBackdrop",
+        "bcv",
+        "btx",
+        "topPad",
+        "cellH",
+        "gview",
+        "viewS",
+        "stepView",
+        "whereGo",
+        "FAR_BANDS"
+      ],
+      "successLooksLike": "Film the Wide -> Street ease at 1600x950: the horizon line, the hill tiers and the far ranks hold their relationship to the roofline in every frame, and each of the five quarters' destination frames shows the distance at the scale and height the town in front of it is drawn at.",
+      "avoid": "Do NOT simply add topPad/cellH to backKey — that repaints a full W x H canvas every frame of every ease and at every camera, and frame-cost.mjs (not perf.mjs) is what would show it. The answer is next door: drawGround paints ONE padded wide cache and the blit scales it by `k = viewS/gview.s` with an origin offset (courtyard.html:10137-10138). Wide (whereN 0) must come out bit-identical, or the census and the motion gate churn on kinds you never touched. No new R() draw.",
+      "budgetMin": 35,
+      "risk": "low"
     },
     {
-      "id": "b161",
-      "at": "2026-09-03T06:52:50.140Z"
+      "id": "b166",
+      "domain": "The sill & the observer",
+      "kind": "Interaction/UX",
+      "brief": "THE BET — take the swing; a 150-300 line diff is expected and welcome. The town holds 75 people on a summer afternoon, every one of them on an errand that ends in a stop that performs something and usually says it (sayAt, 37 sites). The observer can NAME any of them under the pointer and can go to five fixed quarters — and the camera has never once been pointed at something that moves. Click a person and the frame takes them: it eases onto them at a readable zoom, keeps them in the picture as they walk, tells you in the ticker who they are and what they are doing, and lets go — easing back where you came from — when their errand ends, when they leave the world, or when you click away. A visitor who clicks once learns in ten seconds that this is a town of individuals with somewhere to be, which no amount of staring at the wide shot will teach them. A quarter is DATA (QUARTERS is a list of boxes with air/keep/share that viewFor fits), so the cheapest honest shape for a follow is a box that MOVES with its subject and leaves viewFor, inView and the ease working unchanged.",
+      "seams": [
+        "QUARTERS",
+        "viewFor",
+        "whereGo",
+        "stepView",
+        "applyView",
+        "viewSnap",
+        "VIEW_SECS",
+        "VIEW_SMAX",
+        "inView",
+        "whereEl",
+        "lookAt",
+        "livingAt",
+        "faceAt",
+        "announce",
+        "background",
+        "agents",
+        "sillTop"
+      ],
+      "successLooksLike": "On a desktop at Wide, clicking a walker eases the frame onto them; they stay in the picture for the whole of their errand while the town carries on around them; the ticker names them and their stop as it happens; the follow releases cleanly on any of the three exits and eases back. frame-cost.mjs shows no new per-frame ground rebuild, and the ordinary Wide frame is unchanged when nothing is being followed.",
+      "avoid": "THE GROUND CACHE IS THE WHOLE RISK, and whereGo has already solved it once: an ease survives only because it paints the padded WIDE cache once (groundPad/gpadWant/gview), scales the blit by `k = viewS/gview.s`, and repaints the destination ONCE on arrival. drawGround costs 25-27 ms (c214), so a follow that sets groundDirty per frame drops every frame. Hold the padded wide cache for the whole follow and repaint once on release. FACES are registered in gview's frame and faceAt maps through the same k — keep that true. Do not exceed VIEW_SMAX or drop held()'s WORLD_X0/WORLD_X1 clamps, or the frame runs off the world into the cache's column repeat. Agents are transient: one whose route ends off the world must release the follow, never snap. Wide must stay exempt in inView and bit-identical while nothing is followed — the census and motion gates depend on it. No new R() draw: a click is not a seeded event. And do NOT fix the backdrop's stale horizon in here; that is b165's.",
+      "budgetMin": 90,
+      "risk": "high"
     },
     {
-      "id": "b162",
-      "at": "2026-09-03T07:05:58.654Z"
+      "id": "b167",
+      "domain": "The sill & the observer",
+      "kind": "Harness",
+      "brief": "The memory quota has measured nothing. stall.mjs reports 0 of 12 rows since #153 carrying a reading; every one is `quota: null`. The code is not the fault — `node context-budget.mjs --additions --since HEAD~3` exits 0 with a full report, run-loop.sh step 4 calls it and passes --quota-out/--quota-rc to runlog.mjs, and runlog.mjs parses it correctly. The fault is that `ps` shows ONE bash process running run-loop.sh since Wed 02:00, started before #153 added step 4, and bash reads a script by byte offset: a live loop executes the text it was launched with. Restarting is the human's move. The loop's move is to stop depending on the shell for the reading: when runlog.mjs is given no --quota-out, have it take the measurement ITSELF from the commit the iteration started from (it already records evidence.preFrom) and fill row.quota. Then carry c252 with it — build-stats.mjs greps `quota` zero times, so a breach is still invisible in stats.html, the manager's other input — and give closedCues a pruner: 227 closed notes are 79 KB of a 114 KB state.json, and rotate-ledger caps LEDGER.md and LAWS.md only. This is #164's own law turned on the thing that produced it: a field is not a reading.",
+      "seams": [
+        "runlog.mjs",
+        "context-budget.mjs --additions",
+        "run-loop.sh step 4",
+        "stall.mjs quotaUnmeasured",
+        "build-stats.mjs",
+        "rotate-ledger.mjs",
+        "state.json closedCues"
+      ],
+      "successLooksLike": "The next iteration's row carries a real quota object with no restart of run-loop.sh, and `node stall.mjs --report` says `memory quota: 1/1 rows measured`; stats.html shows the quota alongside the other per-iteration evidence; state.json is materially smaller with its closed cues pruned and nothing of the run's history lost that the archive does not hold.",
+      "avoid": "Do not change what --additions MEASURES or its caps: this is about the reading reaching the row, not about the bound. Do not make a breach fail, revert or count against MAX_FAILS — step 4 REPORTS, deliberately, and a runner that threw away gate-passed work over a 260 B cue would be worse than the drift. Do not double-measure when the runner did supply --quota-out. Backfilling the twelve null rows is not required and should not be faked. Changes no pixel: courtyard.html must not move.",
+      "budgetMin": 30,
+      "risk": "low"
     },
     {
-      "id": "b163",
-      "at": "2026-09-03T07:33:55.005Z"
+      "id": "b168",
+      "domain": "Courtyard & garden",
+      "kind": "Deepen",
+      "brief": "#157 priced the gardener's walk at BOTH ends — gardWalk's out leg and its way home — and left the lawn's other four kinds where they were. c245 says lawnFits still bounds sitter, napper, picnic and kid with LAWN_MIN_DWELL's blind 1.5 hours and never prices the walk HOME, so a picnic that sets out late is admitted on a stand it can afford and a walk it cannot, and the courtyard is still emptying long after the hour it is supposed to. CHECK THE PREMISE FIRST — I have not re-measured it, and the claim to test on HEAD is that lawnFits carries no return-leg term. Count the people still crossing the courtyard for home after the light has gone, over a year and several seeds, before and after. If lawnFits already prices the return, say so and make the measurement the deliverable.",
+      "seams": [
+        "lawnFits",
+        "LAWN_MIN_DWELL",
+        "LAWN_RATE",
+        "LAWN_CAP",
+        "spawnLawnAgent",
+        "lawnStart",
+        "lawnEnd",
+        "lawnGone",
+        "gardenFits",
+        "gardWalk",
+        "GARD_LAND",
+        "goHome",
+        "EVE_GONE"
+      ],
+      "successLooksLike": "The count of lawn agents still walking home after the light has gone falls to near zero, a late-setting-out picnic is either shortened or refused AT THE CHOICE, and the lawn empties by its own hour — with the before and after counts quoted from a probe over several seeds and a full year.",
+      "avoid": "Do not lower LAWN_CAP: a ceiling is not a kill term, the population is already capped at 8, and a system that ages out what sits at its ceiling is emptied by lowering it. Price the walk at the CHOICE (rate x visit), not by clipping people mid-walk. Two seeds is not a sample.",
+      "budgetMin": 35,
+      "risk": "medium"
     },
     {
-      "id": "b164",
-      "at": "2026-09-03T08:21:47.961Z"
+      "id": "b169",
+      "domain": "Lane & market",
+      "kind": "Deepen",
+      "brief": "The morning is not empty — #161 proved that and rejected the brief that said otherwise. probes/lapse-pop.mjs counted 125 mornings (5 seeds x a year) at mean 28.3 people, min 6, against the evening's 41.1. The gap is COMPOSITION: 11.6 errand KINDS at sunUp+0.5 against 14.2 at sunDown+1, and the evening's extra kinds are ones the morning has no analogue of — the dusk crowd, the tap, the band, the homers. The morning has the sweeper, the round and the cart, and those are 2.4 of its 28.3 people. Give the morning two kinds of its own and build them properly rather than four thinly: the town's own nouns suggest shutters and awnings going up on the kiosk and the cafe before the tables are set, a delivery at the tap's door (TAP_DOOR and callIn exist, and rutF's own comment records that the tap's drinkers never set foot on the road), the allotment gate being opened, the glasshouse being aired. Each on its OWN source and its own clock. Re-run the probe on HEAD first and quote it.",
+      "seams": [
+        "spawnLaneAgent",
+        "spawnTapAgent",
+        "TAP_DOOR",
+        "callIn",
+        "spawnCafeAgent",
+        "CAFE_TABLES",
+        "KIOSK",
+        "mround",
+        "updateRound",
+        "laneCap",
+        "laneCount",
+        "beginLapse",
+        "cartDue",
+        "CART_IN",
+        "sayAt",
+        "ambientHere"
+      ],
+      "successLooksLike": "Tap the clock button to the morning lapse and the town reads as a place OPENING rather than a place with fewer people in it; probes/lapse-pop.mjs over the same 125 mornings shows the errand-kind count rising from ~11.6 toward the evening's 14.2, with the new kinds present on most mornings rather than a handful.",
+      "avoid": "Supply for either lapse hour is its OWN source, never a share of laneCap — that is the standing rule, and #144's east share and #158's plaza door are both what happens when a rare thing is paid for out of a shared budget. Do not raise laneCap: #158 swept it 10 -> 20 and found the cap beneath it was the plaza's door, not the ceiling. Define the new population's membership POSITIVELY on the spawn literal, not as a residual of a filter. Keep each new draw on the half of [0,1) it owns, and read the census for collapse, not delta.",
+      "budgetMin": 45,
+      "risk": "medium"
     }
-  ]
+  ],
+  "recommendStop": null,
+  "consumed": []
 }

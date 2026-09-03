@@ -4696,3 +4696,55 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped
 **Surprise:** the terrace's own GAPS came free. Rows 73-78 fill to 85-92%, never 100: the missing ~60 sub-cells are exactly the river's 15-cell gap in the block, a slot of sunlight where the terrace isn't.
 
+## Iteration 152 — the kneel at an unripe plot now does something (2026-09-03) [People & animals × Deepen]
+
+**Brief:** b152 — one arrival performs nothing: a hand-sow kneel plants 0 cells. Re-count on HEAD first.
+**Re-counted** (`allot-kneel.mjs`, new: an instrumented COPY of the build). Year × 6 seeds: 110 allotment kneels — 73 harvest, 23 turn, **22 hand-sow planting 0**. Premise holds; the reason does not — the plots are not full, they are FALLOW (3.95 of 6 cells bare). It is `x >= N` in the sow loop: `N = 64` is the courtyard block, the allotments are x 80–93. **0 eligible cells at 22 of 22.** Deleted `plotCrop()`'s sentence saying otherwise.
+**Did.** `plotAct(a)`, five rungs PARTITIONING the plot's six cells — a cover, not a guess (sow/water/thin/tend/rake, in the inventory). A ticker line each; `a.act` names it under the pointer. Spends **exactly the one `R()` draw** the branch it replaces spent.
+**Gates:** census PASS but churning (an act moves caTick's draws) · filmstrip 0 POP · visual PASS · motion FAIL `dusk/cart 0→2`, **replayed on HEAD**: identical exit trot, HEAD's cart jumps at t=1083 — a phase shift.
+**HEAD → cand.** Kneels performing nothing **22/22 → 0/33**, all five rungs firing. `allot-act-rungs.mjs` forces every rung + the documented fall-through, 9/9. Same-code pixel control **0**, a sown drill 24 px. Monoculture intact; harvest +9%.
+**Verdict:** shipped
+**Surprise:** the bug was a world-width CONSTANT, not the CA. `N = 64` predates the allotments: a loop written for the courtyard, inherited by a block past its bound. Two passes explained the zero with the simulation, not the loop's first line.
+
+## Iteration 153 — the memory quota gets a caller (2026-09-03) [The sill & the observer × Harness]
+
+**Brief:** b153 — `--additions` existed from #149 and `run-loop.sh` never called it. Wire it; report, never revert.
+**Did.** A step 4 in the runner: `context-budget.mjs --additions --since "$PRE_SHA"`, its `✗` lines logged, then `runlog.mjs --quota-out/--quota-rc` folds them into the iteration's own row as `quota {rc, over[]}` and marks the console line. `verdictOf` does not read the field: a breach is priced by the manager, not by a runner throwing away gate-passed work over a 260 B cue.
+**The baseline is not `HEAD~1`.** That is the right ref only when an iteration made exactly ONE commit, and `runlog.mjs`'s preBlob fallback exists because they do not. The runner takes `PRE_SHA` beside `PRE_BLOB` at the pop, so the diff is against the commit the worker started from — and one who never committed is measured too.
+**Gates:** `courtyard.html` byte-identical — census PASS, six groups unchanged; shots clean. `--status` and `DRY_RUN=1` unchanged.
+**Proved** (`probes/quota-gate.sh`, new: it extracts step 4 from `run-loop.sh` VERBATIM, so deleting the block fails the probe). Clean tree **silent, exit 0**. Staged over-quota tree **exit 3, 6 named offenders across all three surfaces** — 2.50 KB entry, 2 entries, 302 B line, 2 lines, 291 B cue, 2 cues. Merge: the worker's own runlog call writes `quota: null`, the runner's fills it, the row keeps it.
+**Verdict:** shipped
+**Surprise:** the runner is LIVE while I edit it (pid 29205). Bash re-reads a script by byte offset, but the whole `while :; do … done` is ONE parsed compound command, so the running loop finishes on the OLD text — **this gate does not bind until `run-loop.sh` is restarted.**
+
+## Iteration 154 — the punt's wind is a share, not a bar; the swans give way to a track (2026-09-03) [River & far bank × Deepen]
+
+**Brief:** b154 — sweep `puntFits`' wind threshold; clear the whole track. Full entry in LEDGER-archive.md.
+**Priced first.** WIND is the top refusal (30.5% of 446 offers) and a dead constant: windF at an offer is **0 on 257 and exactly 1.0 on 134**, so any bar under 1.0 buys ≤15 crossings.
+**Did.** `PUNT_WIND_SLOW` 0.45 makes wind a COST: `puntSpeed()` is what `puntTripH` prices *and* `updateOnePunt` spends, so a windy evening trip is refused by its own clock. `PUNT_WIND_SHY` 0.65 makes it a SHARE, at a quantile of `puntNerve(a)` — one hash of `a.wary`, since wary itself is two populations. `puntGiveWay`/`segNear` clear the segment moor→land: #96's landing is one END of it. No new `R()`.
+**Gates:** census FAIL `people −10%` **dismissed on replay** (9 cells span 372..422 on identical code) · motion PASS · 0 POP day and night · `punt.mjs` 0, both `--strand` 1.
+**HEAD → cand.** `punt-track.mjs` (new): HEAD least **1.033**, 16 inside 1.2, exit 1; cand **1.200000**, 0, exit 0. Windy days, 20 seeds: take **24.7% → 32.1%**.
+**Verdict:** shipped — the per-DAY bar is missed, and that is the surprise.
+**Surprise:** the supply fell and the punt did not do it. Offers/day 1.65 → 1.35 in **both** seed sets, which read as causal until the control: `spawnEastAgent()` fires **1787 → 1784** and the east cap binds **0.0% on both**. Nobody is crowded out — the reshuffle lands the `wary < DECK_SHARE` coin differently. A per-day RATE cannot see this change; the take rate can.
+
+## Iteration 155 — the river gets an edge: a REED tile and a rush (2026-09-03) [River & far bank × Scale/World]
+
+**Brief:** b155 — one tile, one species, in the shallows, on the bed CA.
+**Did.** `REED` (tile 16) + `rushes` (SPECIES 13, `wild`: nobody sows it, offered 0/11). WHERE is read off the grid, never re-derived — `reedShallow()` is a river cell neighbouring the quay's SIDE, the towpath's SIDE or the eyot: 56 of 85. `reedKeepOut()` takes back everything the river WORKS with, each line naming what it protects; the punt's a SEGMENT (moor→land, both hulls), #154's track being a corridor. `drawReeds` is an ITEM: swans and punts sort against it.
+**Zero R().** Placement is `hash()`, stage is `reedStage()` off the year, so caTick's REED branch spends nothing — and **every other census number is byte-identical.**
+**Gates:** census PASS, the briefed arithmetic exactly — tileKinds 144→**153**, speciesKinds 108→**117**, REED +504 / WATER −504, planted +504, blooming +453. **`water` did not move and needed no re-pin:** a REED cell is shallow water, so `scalars.water` folds it in. motion PASS · 0 POP · both punt probes 0, at #154's identical 1.200000/0. River crop, same-code control **0 px**: summer **3.76%** Δ49, winter **1.74%** Δ25; wind 0→1, HEAD 691 px against **3424**.
+**Verdict:** shipped
+**Surprise:** the coarse run-gate that makes a long margin GATHER is a coin on a short one. Right on the 68-cell bank columns it was written for; on the eyot's 17-cell rim it kept **4**, in two lumps — the exact fault it exists to prevent. A ring round an island is already a place, so the rim takes the fine gate only: 16 of 17.
+**Law:** a hash gate tuned as a SHARE over a long run is one COIN over a short one — split the population by the scale the gathering happens on before sweeping the constant.
+
+## Iteration 156 — the wind gets a real strength (2026-09-03) [Sky, light & weather × Deepen]
+
+**Brief:** b156 — windF was a coin, 88% at the ends. Full entry in LEDGER-archive.md.
+**Did.** Two hash-only draws replace the coin's magnitude, no `R()`: `windDayF()` is HOW MUCH (`windyDay()` picks the distribution — 0.45..1 against 0.04..0.30), `windHourF()` is WHEN (a cosine on the sun's hour). `isWindy` 0.5 -> **0.40**, BETWEEN the ranges; `windSign`'s latch asked about the wind AT REST.
+**Consumers, at the call.** `bonfireWeather`, `EVE_WIND` and the washing's name each spelled `windF() < 0.5` by hand, which over a 0/1 input IS `isWindy()`; all routed back through it. `murmWx`'s 0.12-wide ramp was a step in ramp's clothes: widened to 0.30..0.70, and a partial wx takes BIRDS, not opacity.
+**Gates:** census PASS · shots clean · day and dusk **0 POP** · motion `day/cart` FAIL dismissed (HEAD hops too).
+**HEAD -> cand.** End bins **86.9% -> 41.0%**; the four intensity ramps **15.9% -> 90.6% partial**. At a pinned dusk HEAD paints all 130 birds at fading alpha, cand **98/77/56** at windF .45/.55/.65.
+**Verdict:** shipped
+**Surprise:** the four intensity ramps were **not** mis-tuned, though the brief said they would be. Their means moved under 0.003 while the share inside (0,1) went 15.9% -> 90.6%: always tuned right, never once asked a question with an answer in the middle. What drifted was the opposite: the bonfire's bar is read at a CALM hour, now passing on **58.4% of hours against 40.2%**.
+**Law:** a bar spelled with a MAGIC NUMBER over a bimodal input is a silent COPY of the predicate naming it; give the input a middle and each copy becomes a coin on its consumer's hour.
+**Cue:** nothing re-asks `bonfireWeather()` once the heap is lit: a fire started in a calm dawn burns on through an afternoon gale.
+
