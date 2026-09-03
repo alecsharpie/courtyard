@@ -161,3 +161,25 @@ alone, invisible to ledger, runlog, census. Diff the tree before calling a brief
 **Verdict:** shipped — but the success line wanted tend-rungs in double figures; they went **4.25 → 8.83**, because more supply buys more harvests too.
 **Surprise:** the morning round's skin was `hash(day, 811)` — `drayToday()`'s OWN key — so its index was PARTITIONED by whether a dray came: dray days {0,1,2}, dray-less {2,3,4}. Re-keyed to 619.
 **Law:** a fall-through ladder's lower rungs are bounded by its FIRST rung's hit rate, not by supply — doubling arrivals doubles both. Instrument the rung, not the population.
+
+## Iteration 173 — the plaza's doors become corridors, and the cap wakes (2026-09-04) [Plaza & quay × Deepen]
+
+**Brief:** b173 — re-price the `FAM_CAP` cue against #148's "DEAD past 4".
+**Re-measured** (`town-caps`, 6 seeds x 12 d, paired): the cue HOLDS — 4 binds **86.5%** of open
+daylight — and #148's reading is dead: #160's fourteen places woke a constant that had sat at a
+rate of zero, and it is live to 12. But it buys CROWDING (0.117 pairs per plaza person at 4,
+0.221 at 7), and `probes/plaza-crowd.mjs` (new) says what of: **93.6% of those pairs have a WALKER
+in them** and **74% sit in the two 30-degree bins either side of the ALLEY** — whose lead was one
+waypoint, duplicated in two branches, with four ring POINTS after it.
+**Did.** `plazaLane(a)`, a golden-ratio SEQUENCE, no `R()`, so the seeded world is untouched. Off it:
+`alleyRow/alleyGate/alleyLead`, the cut's 3.0 cells at BOTH ends, and
+`ringNode(i,lane)` for `RING_NODES`; `plazaWay`/`famWalk` take the lane, so the price is the walk. Then FAM_CAP 4 -> 5. Plaza presence **10.05 -> 12.18**, crowded pairs
+per person **0.117 -> 0.103**; the door still refuses 0.0%, quay flat.
+**Verdict:** shipped
+**Surprise:** motion failed `cart: jumps 0 -> 1` on a plaza-only change.
+`probes/cart-step.mjs` (new): HEAD's cart takes **186 steps over ABS_JUMP 2.5 in 600 s, max 3.9** —
+identical on both builds. CART_SPEED 6.5 x TROT 1.5 x a dusk 1.5 is 3.66 a step; the gate read 0
+only because its windows had missed a trot. `ABS_JUMP_KIND={cart:4.5}`; HEAD still PASSES against the pinned baseline.
+**Law:** many PLACES is not many WAYS IN — split crowded pairs WALKING vs STOPPED before widening.
+**Law:** a jump threshold under a kind's cruising speed is a speedometer: its zero is a fact about
+the sampling window, so the next reshuffle names the wrong change.

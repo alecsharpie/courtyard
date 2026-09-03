@@ -531,7 +531,8 @@
       "FAMILIES priced at the CHOICE (#148): spawnFamilyAgent, famWalk() the two legs, famWin() the hours the plaza HOLDS them cut to the sun; dwell clips to the room left. FAM_CAP 4",
       "the paving AGES in two regions (plaza PATH, quay SIDE): moss[]/mossOwn[], buildMossRegion/stepMossRegion; trodStone() in groundBase",
       "the quay is a WHARF: BARGE_BOLLARDS 5, BARGE_BERTH, structure.moorings; the BARGE on the punt shape - barge{leg}/updateBarge, own tick, BARGE_LAMP after applyLight",
-      "the DOOR is FOURTEEN places (#160): PLAZA_PLACES + a.pheld, ONE claim 3 callers — 6 FOUNT_STANDS on the WHOLE ring r 3.5 (none in the mouth), 6 benches (1/tree), 2 crumbs; plazaWay/plazaMouth the corridor; a.stop2 the 2nd act"
+      "the DOOR is FOURTEEN places (#160): PLAZA_PLACES + a.pheld, ONE claim 3 callers — 6 FOUNT_STANDS on the WHOLE ring r 3.5 (none in the mouth), 6 benches (1/tree), 2 crumbs; plazaWay/plazaMouth the corridor; a.stop2 the 2nd act",
+      "the two doors are CORRIDORS (#173): plazaLane(), a no-R() golden sequence per walker; alleyRow/alleyGate/alleyLead the cut's 3.0 cells at BOTH ends; ringNode(i,lane) for RING_NODES. FAM_CAP 5, binding 80% of open daylight"
     ],
     "river": [
       "river 13 cols (RIVER_X0 114..RIVER_X1 127), ONE rowboat, three-arch bridge, TOW_WALK/FAR_WALK, church + clock tower + rose window, bandstand, ORCHARD, JETTY, a swan PAIR",
@@ -614,6 +615,12 @@
     {
       "id": "c261",
       "note": "harvestPlot() lifts a whole plot on ONE ripe cell and takes 84% of all kneels, so plotAct's five tend rungs (#152) and #159's inter-cropping only ever see the leftovers; supply cannot move that ratio.",
+      "raisedBy": 171,
+      "seenBy": 0
+    },
+    {
+      "id": "c262",
+      "note": "plaza-visit reads 13 second acts ARMED and only 6 REACHED over 5 seeds x 14 days: the lane band is the sole caller that takes one and it is 0.29 people in the square, so half of the plaza's rarest act never happens",
       "raisedBy": 171,
       "seenBy": 0
     }

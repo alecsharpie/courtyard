@@ -68,7 +68,15 @@ const WORLD = { x: [-12, 152], y: [-12, 100] };
 /* A jump is a step that is both far in absolute terms AND far out of line with how
  * this entity normally moves. Either test alone produces noise: fast things trip
  * the absolute test, and near-stationary things trip the relative one. */
-const ABS_JUMP = 2.5;       // world units in 0.25 s — nothing in this town moves that fast
+const ABS_JUMP = 2.5;       // world units in 0.25 s — nothing WALKING in this town moves that fast
+/* ...but wheels do, and #173 caught this threshold sitting UNDER a legitimate speed. The
+ * cart cruises at CART_SPEED 6.5 cells/s, x CART_TROT 1.5 on the way home and x1.5 again
+ * if dusk caught it: 3.66 cells a step, measured max 3.9 (probes/cart-step.mjs, identical
+ * on HEAD and on the candidate — 186 steps over 2.5 in a 600 s run, on BOTH). The gate
+ * only ever read 0 because the 60 s day and dusk windows happened not to contain a trot,
+ * so any reshuffle of the world flipped it and named the wrong change. A threshold below
+ * a kind's cruising speed is not a jump test, it is a speedometer. */
+const ABS_JUMP_KIND = { cart: 4.5 };   // clears the dusk trot's 3.9; a real teleport is tens of cells
 const REL_JUMP = 8;         // ...and 8x its own median step
 /* Kinds whose x,y are canvas pixels rather than world cells. They are bounded by the
  * frame and their absolute jump threshold is in pixels, so both tests need telling. */
@@ -177,7 +185,7 @@ function analyse(frames, screen) {
     if (rec.d.length < 6) continue;
     const sorted = [...rec.d].sort((a, b) => a - b);
     const med = sorted[sorted.length >> 1] || 0.0001;
-    const abs = SCREEN.has(rec.kind) ? ABS_JUMP_PX : ABS_JUMP;
+    const abs = SCREEN.has(rec.kind) ? ABS_JUMP_PX : (ABS_JUMP_KIND[rec.kind] ?? ABS_JUMP);
     for (const d of rec.d) {
       if (d > abs && d > med * REL_JUMP) {
         (stats[rec.kind] ||= K()).jumps++;

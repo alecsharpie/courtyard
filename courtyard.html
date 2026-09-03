@@ -433,23 +433,67 @@ function plazaFree(){ return PLAZA_PLACES.filter(p => !plazaHeld(p)); }
  * fourteen arrivals no longer converge on one line: each comes up its own column of the
  * mouth (plazaMouth) and fans off round the roundel to its own side of the square. */
 const PLAZA_RING = 5.9, BASIN_KEEP = 2.6;   // the grid cuts the basin at 1.8 x / 1.5 y
-const RING_NODES = [0, 90, 180, 270].map(d => [FOUNTAIN.x + Math.cos(d * Math.PI / 180) * PLAZA_RING,
-                                               FOUNTAIN.y + Math.sin(d * Math.PI / 180) * PLAZA_RING]);
+/* ---- and the LANE each walker takes through all of it (#173) ----
+ * Every route into this square is shared by three callers, and #173 measured what that
+ * cost: 74% of the plaza's crowded pairs sat in the two 30-degree bins either side of the
+ * ALLEY, whose lead was one waypoint, and the four ring nodes below were four POINTS.
+ * The south mouth has been a corridor since #160 (plazaMouth) and its side of the square
+ * carries 1.1%. So: a walker gets a lane, once, and every shared point on its route is
+ * read off that lane — the alley row it comes in on, the angle it turns the roundel at,
+ * the radius it turns at. Both ends of the walk take the SAME lane, because the route is
+ * a there-and-back and an offset applied to one end only is a collision on the other.
+ * The lane is a low-discrepancy SEQUENCE and not a draw: it spends nothing of R(), so the
+ * seeded world is untouched and the geometry is the only thing that moved — and
+ * consecutive arrivals come out as far apart as the corridor allows, where a uniform
+ * draw would clump exactly as often as it spread. */
+let plazaSeq = 0;
+const PLAZA_LANE_A = 0.6180339887;
+function plazaLane(a){
+  if (a.plane === undefined) a.plane = (plazaSeq++ * PLAZA_LANE_A) % 1;
+  return a.plane;
+}
+/* the alley is the plaza's other door. Its SLOT is 3.8 cells (|y+.5-ALLEY_Y| < 1.9) and
+ * the lead sat in the middle of it; this is plazaMouth's solve on the other axis, leaning
+ * the way the place lies. The rows are clamped to the ones a straight run from
+ * EAST_GATE_A still keeps inside the cut — at x 99 the lean is 77% spent, so 32.4 is
+ * 1.67 from the slot's centre against its half-width of 1.9. */
+const ALLEY_ROW0 = 29.6, ALLEY_ROW1 = 32.6, ALLEY_LEAN = 0.10, ALLEY_FAN = 2.4;
+function alleyRow(p, lane){
+  return clamp(ALLEY_Y + 0.4 + (p.y - FOUNTAIN.y) * ALLEY_LEAN + (lane - 0.5) * ALLEY_FAN, ALLEY_ROW0, ALLEY_ROW1);
+}
+/* the GATE takes the row too, so the run through the cut is straight and the whole of it
+ * is the walker's own: a corridor offset at one end only is a collision at the other, and
+ * the cut's 3.8 cells are shared by both directions of both callers. The clamp is what
+ * keeps the straight run inside |y+.5-ALLEY_Y| < 1.9 for its whole length. */
+function alleyGate(p, lane){ return [EAST_GATE_A[0], alleyRow(p, lane)]; }
+function alleyLead(p, lane){ return [[99.8, alleyRow(p, lane)]]; }
+/* the roundel's four nodes, per lane. The fan keeps consecutive nodes 90 degrees apart,
+ * so the chord between two of them still passes 0.707r from the centre — 3.85 cells at
+ * the tightest lane, against BASIN_KEEP 2.6 — and the widest node lands at x 111.2 and
+ * 99.79, inside the paving's 99..112. */
+const RING_FAN = 26, RING_SPREAD = 0.9;     // degrees either side of the node, and cells either side of the ring
+function ringNode(i, lane){
+  const th = (i * 90 + (lane - 0.5) * 2 * RING_FAN) * Math.PI / 180, r = PLAZA_RING + (lane - 0.5) * RING_SPREAD;
+  return [FOUNTAIN.x + Math.cos(th) * r, FOUNTAIN.y + Math.sin(th) * r];
+}
 function basinBlocks(ax, ay, bx, by){
   const [nx, ny] = segNear(FOUNTAIN.x, FOUNTAIN.y, ax, ay, bx, by);
   return Math.hypot(nx - FOUNTAIN.x, ny - FOUNTAIN.y) < BASIN_KEEP;
 }
-function ringIx(x, y){
-  const th = Math.atan2(y - FOUNTAIN.y, x - FOUNTAIN.x) * 180 / Math.PI;
+function ringIx(x, y, lane){
+  const th = Math.atan2(y - FOUNTAIN.y, x - FOUNTAIN.x) * 180 / Math.PI - (lane - 0.5) * 2 * RING_FAN;
   return Math.round((((th % 360) + 360) % 360) / 90) % 4;
 }
-function plazaWay(fx, fy, p){
+/* the lane defaults to the corridor's CENTRE, which is where every one of these nodes
+ * stood before #173: a caller with no walker in hand (FAM_LEG's price of the extremes)
+ * gets HEAD's geometry, not a lane belonging to nobody. */
+function plazaWay(fx, fy, p, lane = 0.5){
   const w = [];
-  let cx = fx, cy = fy, at = ringIx(cx, cy);
-  const d = (ringIx(p.x, p.y) - at + 4) % 4;
+  let cx = fx, cy = fy, at = ringIx(cx, cy, lane);
+  const d = (ringIx(p.x, p.y, lane) - at + 4) % 4;
   const dir = d === 2 ? (p.x < FOUNTAIN.x ? 1 : -1) : d === 1 ? 1 : -1;
   for (let g = 0; g < 8 && basinBlocks(cx, cy, p.x, p.y); g++){
-    const n = RING_NODES[at];
+    const n = ringNode(at, lane);
     if (Math.hypot(n[0] - cx, n[1] - cy) > 0.4){ w.push([n[0], n[1]]); cx = n[0]; cy = n[1]; }
     else at = (at + dir + 4) % 4;
   }
@@ -478,6 +522,7 @@ function plazaStop(p, scale, u, a){
           say: (p.say && a.wary > 0.72) ? p.say() : null};
 }
 function plazaVisit(a, scale, fit, two){
+  plazaLane(a);                              // the walker's own way through the square (#173); no R(), so the six below are still the only draws
   const u = [R(), R(), R(), R(), R(), R()];
   let free = plazaFree();
   if (fit) free = free.filter(fit);
@@ -1051,7 +1096,7 @@ function makeR(seed){
  * number of animation frames run between page load and the first measurement, and
  * a draw pass may consume draws — rewinding makes the warped sim a pure function
  * of (seed, seconds) again. No-op on an unseeded (live) page. */
-window.__reseed = function(n){ if (SEED === null && n === undefined) return false; R = makeR(n === undefined ? SEED : n); return true; };
+window.__reseed = function(n){ if (SEED === null && n === undefined) return false; R = makeR(n === undefined ? SEED : n); plazaSeq = 0; return true; };
 function pick(a){ return a[(R() * a.length) | 0]; }
 function clamp(v, a, b){ return v < a ? a : v > b ? b : v; }
 function mod(v, m){ return ((v % m) + m) % m; }        // a wrap that survives a negative: windX runs backwards under an east wind
@@ -4913,10 +4958,10 @@ function spawnLaneAgent(room, cap){
       a.kind = 'plaza';
       const mx = plazaMouth(v.p);
       a.wp.push([mx, LANE_N_Y], [mx, 62.2]);
-      for (const w of plazaWay(mx, 62.2, v.p)) a.wp.push(w);
-      if (v.p2) for (const w of plazaWay(v.p.x, v.p.y, v.p2)) a.wp.push(w);
+      for (const w of plazaWay(mx, 62.2, v.p, a.plane)) a.wp.push(w);
+      if (v.p2) for (const w of plazaWay(v.p.x, v.p.y, v.p2, a.plane)) a.wp.push(w);
       const last = v.p2 || v.p;
-      for (const w of plazaWay(last.x, last.y, {x:mx, y:62.2})) a.wp.push(w);
+      for (const w of plazaWay(last.x, last.y, {x:mx, y:62.2}, a.plane)) a.wp.push(w);
       a.wp.push([mx, LANE_N_Y], [toX, LANE_N_Y]);
     } else {
       a.kind = 'quay';
@@ -5589,7 +5634,9 @@ function spawnEastAgent(nightRail, room){
     gate = EAST_GATE_A; lead = [[99.8, ALLEY_Y + 0.4]];
     const v = plazaVisit(a, 0.9, null, false);
     if (v){
-      const way = plazaWay(lead[0][0], lead[0][1], v.p);
+      gate = alleyGate(v.p, a.plane);
+      lead = alleyLead(v.p, a.plane);                  // its own row through the alley cut (#173), in and back out
+      const way = plazaWay(lead[0][0], lead[0][1], v.p, a.plane);
       lead = lead.concat(way.slice(0, -1));            // the stop itself is pushed by the builder
     } else {                                           // nothing free: the quay rail, the way the lane band falls back
       a.kind = 'quay';
@@ -5797,12 +5844,18 @@ function spawnFarAgent(room){
  * 0.193 -> 0.282 for +0.19 families). #144 made the stand a place — FOUNT_STANDS, three of
  * them, each held by one party — and re-swept: crowded pairs per person now hold at 0.145 to
  * 0.159 across 3, 4, 5 and 7, so the crowding that made the higher caps worthless is gone.
- * What the sweep also says is that the cap is no longer the bound. 5 and 7 return IDENTICAL
- * numbers and bind 0.0% of open daylight; 4 still binds 10.7%. So the knee is 4, and past it
- * the arrival rate and the window are what hold the plaza's families at ~1.9, exactly as the
- * paragraph above suspected — though re-measured on HEAD at #160 the cap binds 42.4% of its
- * open hours again, the town having grown around it since. Fourteen reserved places now,
- * four families allowed at once, and one that can get nothing does not set out.
+ * #148 then read the cap as DEAD past 4 — 5 and 7 identical, binding 0.0% of open daylight —
+ * and that reading expired the day #160 opened the door from five places to fourteen.
+ * RE-SWEPT at #173, 6 seeds x 12 days, paired: the cap binds 86.5% of open DAYLIGHT at 4 and
+ * is live all the way to 12 (plaza presence 10.05 / 14.78 / 18.51 at 4 / 7 / 12). A scarcity
+ * claim is dated the day it is made; the SUPPLY was the bound, and the supply moved.
+ * What the sweep bought instead was CROWDING — 0.117 pairs per person in the square at 4,
+ * 0.221 at 7 — and 93.6% of those pairs had a WALKER in them, 74% of them in the two
+ * 30-degree bins either side of the alley. The places were never the problem; the WAY IN
+ * was, and the lanes above are what let the cap move at all. At 5, on the corridor:
+ * presence 12.18 against HEAD's 10.05 and crowding 0.103 against 0.117 — more people in the
+ * square AND fewer of them drawn as one shape. 6 is the next rung and reads exactly HEAD's
+ * 0.118, so the crowding budget, not the cap, is what to spend next.
  * The quay's north end was tried as a second gate and is 40 cells from the roundel —
  * a 16 h walk that fits the window never and left a parent on the quay at 03:00 — so
  * families come and go by the alley alone. And a walk is priced at its CHOICE: nobody
@@ -5811,26 +5864,27 @@ function spawnFarAgent(room){
  * others', three benches emptying on one frame. The window governs SET-OUTS only: a family
  * that is there stays for its dwell (a 12:40 set-out sits until ~20:00), and the one
  * thing that ends a stop early is the sun (famSun(), the way eastOpen() ends the quay). */
-const FAM_CAP = 4, FAM_RATE = 0.75, FAM_H0 = 10, FAM_H1 = 21, FAM_SUN = 0.35, FAM_WALK_MARGIN = 1.15, FAM_DWELL_MIN = 4;
+const FAM_CAP = 5, FAM_RATE = 0.75, FAM_H0 = 10, FAM_H1 = 21, FAM_SUN = 0.35, FAM_WALK_MARGIN = 1.15, FAM_DWELL_MIN = 4;
 const FAM_SCALE = 1.35;           // a family stays half again as long as a passer-by: the caller's scale on the PLACE's own dwell (#160)
 const FAM_LEASH = 8,              // a child runs at a pigeon only this far from the parent
       FAM_ARC = 0.8,              // half-angle of the roundel arc a child loops, centred on the parent's side
       FAM_RUN_R0 = 4.7, FAM_RUN_R1 = 5.8,   // between the roundel's middle and outer rings
       FAM_REST0 = 0.8, FAM_REST1 = 1.6;     // seconds at the parent's side between runs (a run + the way back is ~4 s of an ~10 s dwell)
 const PLAZA_BIRDS = 3, PLAZA_BIRD_RATE = 0.5, PLAZA_BIRD_R0 = 4.2, PLAZA_BIRD_R1 = 6.0;
-const FAM_LEAD = [[99.8, ALLEY_Y + 0.4]];
 const FAM_SPD0 = 1.4, FAM_SPD1 = 2.0;         // the speed a family is drawn between, in the spawn literal
 /* the two legs of a family's day, priced in HOURS: one definition, called both by the
  * roll's bounds below and by the set-out test itself, so the window cannot drift from
  * the walk it is pricing. The margin is the same slop on both — a family dodges pigeons
  * on the way home too. */
-function famWalk(p, speed){
-  /* and it prices the walk that is WALKED (#160): the way in is FAM_LEAD and then
+function famWalk(p, speed, lane = 0.5){
+  /* and it prices the walk that is WALKED (#160): the way in is the alley lead and then
    * plazaWay()'s turn round the roundel, which for the far side of the square is two
-   * ring nodes further than the straight line this used to charge for. */
-  const L = FAM_LEAD[0];
-  return { in:  FAM_WALK_MARGIN * pathHours(EAST_GATE_A[0], EAST_GATE_A[1], FAM_LEAD.concat(plazaWay(L[0], L[1], p)), speed),
-           out: FAM_WALK_MARGIN * pathHours(p.x, p.y, plazaWay(p.x, p.y, {x:L[0], y:L[1]}).concat([EAST_GATE_A]), speed) };
+   * ring nodes further than the straight line this used to charge for. Since #173 both
+   * of those depend on the walker's LANE, so the lane comes in here too and the price is
+   * the walk this family will actually walk, not the corridor's centre. */
+  const L = alleyLead(p, lane)[0], G = alleyGate(p, lane);
+  return { in:  FAM_WALK_MARGIN * pathHours(G[0], G[1], [L].concat(plazaWay(L[0], L[1], p, lane)), speed),
+           out: FAM_WALK_MARGIN * pathHours(p.x, p.y, plazaWay(p.x, p.y, {x:L[0], y:L[1]}, lane).concat([G]), speed) };
 }
 /* FAM_H0 and FAM_H1 are the hours the plaza HOLDS families — the first has ARRIVED, the
  * last is GONE — not the hours anyone sets out. They are a SOCIAL window, and the day
@@ -5868,6 +5922,7 @@ function spawnFamilyAgent(){
     x:0, y:0, wp:[], i:0, speed:1.4 + R() * 0.6, state:'walk', timer:0,
     shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9, wary:R(),
   };
+  plazaLane(a);          // before the price below, not after it: the lane IS the walk being priced (#173)
   /* the plaza's places, ALL of them reserved and all of them the same door (#160): a
    * family that can get nothing does not set out — and neither does one that cannot
    * AFFORD the walk to what is left. Both ends are priced here, at the CHOICE, off this
@@ -5881,7 +5936,7 @@ function spawnFamilyAgent(){
    * sat down in one spot (kidBird, FAM_ARC), which a second act would halve. */
   const win = famWin();
   const fit = p => {
-    const w = famWalk(p, a.speed), arrive = hour + w.in;
+    const w = famWalk(p, a.speed, a.plane), arrive = hour + w.in;
     return arrive >= win.h0 && (win.h1 - arrive - w.out) / HOURS_PER_S >= FAM_DWELL_MIN;
   };
   const v = plazaVisit(a, FAM_SCALE, fit, false);
@@ -5891,10 +5946,11 @@ function spawnFamilyAgent(){
    * while instead of never coming, and only a sit under FAM_DWELL_MIN is not worth the
    * walk. This is what keeps the far bench reachable at all, and what leaves the plaza a
    * short winter afternoon. */
-  const fw = famWalk(v.p, a.speed);
+  const fw = famWalk(v.p, a.speed, a.plane);
   a.stop.dur = Math.min(a.stop.dur, (win.h1 - (hour + fw.in) - fw.out) / HOURS_PER_S);
 
-  const gate = EAST_GATE_A, lead = FAM_LEAD.concat(plazaWay(FAM_LEAD[0][0], FAM_LEAD[0][1], v.p).slice(0, -1));
+  const L = alleyLead(v.p, a.plane);
+  const gate = alleyGate(v.p, a.plane), lead = L.concat(plazaWay(L[0][0], L[0][1], v.p, a.plane).slice(0, -1));
   a.x = gate[0]; a.y = gate[1];
   for (const p of lead) a.wp.push(p.slice());
   a.wp.push([a.stop.x, a.stop.y]);
