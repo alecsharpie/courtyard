@@ -14,29 +14,7 @@
     "balance": "Courtyard 15 back and the longest untouched — it is also the town's namesake. Then Lane 10, Street 7, Plaza 6, Sky 4, Roofs 3, People 2, Sill 1, River 0. Kinds over the last 12: Deepen 5, Connect 2, Harness 2, Scale/World 2, Polish 0. This queue takes Scale/World twice, Deepen twice and Connect once, and lands on Courtyard, Sky, Lane, Street — the four longest untouched — plus one River, which is the cost of the rung."
   },
   "rationale": "mapFlat fires, so the rung is fixed at 4b before anything else is decided, and I am not allowed to re-derive the map-is-full argument a fourth time. The WATCH note left by an earlier pass names exactly two honest 4b moves: DEPTH beyond the grid, which #145 (the water mirror) and #150 (the far ranks) have both now spent, and a new TILE or SPECIES constant, +9 each in the census, with GLASS at #116 as the worked example. So the bet is the one that is left, and it goes where it will be seen: the river is the centre of every wide shot and its edge is a hard line — 13 columns of flat WATER meeting the quay at a pixel boundary with nothing growing in the shallows. b155 puts a REED tile and a rush species in the margins. It moves tileKinds AND speciesKinds, it changes the map in space and not in time, and it is the only brief here that a visitor would notice in the first ten seconds. It costs me domain balance — River was #154 — and I am taking that trade knowingly: the ladder binds first, and the other four briefs go to the four longest-untouched domains.\n\nThe rest of the queue is chosen against one theme: the town has several scalars that are secretly switches, and every one of them makes an existing system a ramp nobody stands in. b156 is the biggest of them — #154 histogrammed windF at the call and found 391 of 446 samples at exactly 0 or exactly 1.0, so sway, the mirror's chop, the streaks and #154's own PUNT_WIND_SLOW are all tuned against a coin. That is one change that reaches a dozen built systems, which is the definition of rung-2 interconnect done well and is why it sits second. b157 finally spends c221, raised at #136 and carried by five manager passes with 'FIRST BRIEF NEXT PASS' written on it by a previous me who then did not brief it — that is a small instance of the exact failure this role exists to catch, so it is in the queue this time. b158 spends c230 and the EAST'S BUDGET watch item together. b159 takes #147's own documented successor read: it wrote the invariant into plotCrop() along with the condition that would end it, and #152 then built the hand that could.\n\nCuration: coverage entered for #150-154; six cues closed (c221/c230/c242 promoted into b157/b156/b158; c200 shut after five passes as below the legibility floor; c237 shut as a non-fault replayed identical on HEAD twice; c240 shut into a law); c238-c242 re-attributed to the iterations that actually raised them. Inventory 52 lines back inside 6-per-domain and 200 B-per-line, which forced four merges — and one of them mattered: sky[1] still told every worker the backdrop had 'no depth, no season, no weather', which #150 ended 4 iterations ago. Four laws promoted by MERGING (#150's cached warm pixel into the cache law, #151's two-consumers-two-arrays into the one-definition law, #152's read-the-loop's-bounds into locate-before-you-judge, #154's bimodal-bar-is-a-coin into the two-seeds sentence) and paid for by CUTTING the ticker-slot arithmetic and the staleness/untruth pair from the framing and time laws (both are now inventory), the sillTop numbers, 'a place that RESERVES nothing is not a place' (now a built pattern), and two duplicated sentences. Budget 47.1 -> 43.5 KB.",
-  "queue": [
-    {
-      "id": "b159",
-      "domain": "Cross street & allotments",
-      "kind": "Deepen",
-      "brief": "#147 measured the allotments as monoculture BY CONSTRUCTION — species per plot 1.000 over 69,008 sown samples — and wrote the invariant into `plotCrop()` along with the successor read for the day it stops holding. #152 then built the hand that could stop it, but `plotAct()`'s sow rung still fills bare cells with `plotCrop()` itself, so the plot stays one crop (the comment at ~line 3996 says exactly that). Let a hand sow a DIFFERENT crop into a fallow cell — a holder inter-cropping, which is what the rung is for — and then make `plotCrop()` answer for the plot's MAJORITY, which is the read #147 left ready. One predicate, one definition: every downstream reader of plotCrop must be walked, not assumed.",
-      "seams": [
-        "plotAct",
-        "plotCrop",
-        "plotStands",
-        "plotClimbs",
-        "harvestPlot",
-        "caTick infill",
-        "speciesFor",
-        "SPECIES (veg/hardy/glass)",
-        "bSp/bSt"
-      ],
-      "successLooksLike": "Over a year x 3 seeds some plots hold two species (species/plot above 1.000 — say what it is), the beans still put their canes up on the plots that are actually beans, and the glasshouse crop still never appears outside the span.",
-      "avoid": "Do not break the winter invariant #147 measured: tender crops in the open must still reach stage 3 zero times in deep winter, against hardy 21,474 and glass 10,191. Do not make every plot mixed — a plot that stays one crop is still the common case; the finding is that it has stopped being universal. And if a downstream reader of plotCrop turns out to want the FIRST cell rather than the majority, say which and why rather than changing them all.",
-      "budgetMin": 40,
-      "risk": "medium"
-    }
-  ],
+  "queue": [],
   "recommendStop": null,
   "consumed": [
     {
@@ -54,6 +32,10 @@
     {
       "id": "b158",
       "at": "2026-09-03T05:34:11.920Z"
+    },
+    {
+      "id": "b159",
+      "at": "2026-09-03T05:51:02.727Z"
     }
   ]
 }

@@ -140,3 +140,14 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped — a measurement, a refutation
 **Surprise:** the first sweep ran four settings and printed four identical tables. In zsh an unquoted `$A` does **not** word-split, so `--cap-lane 13` arrived as ONE argv entry, matched nothing, and every run fell back to HEAD. Only the probe printing its own LABEL caught it.
 **Law:** A share widened at a destination with a FIXED number of PLACES becomes overflow into its NEIGHBOUR, not presence: measure it at the CHOICE and count ADMISSIONS apart — the refused fraction is the cap.
+
+## Iteration 159 — a plot can hold two crops, and plotCrop reads the majority (2026-09-03) [Cross street & allotments × Deepen]
+
+**Brief:** b159 — a hand inter-crops; `plotCrop()` becomes the MAJORITY read #147 left ready.
+**Did.** `plotCrop()` tallies the plot's six BED cells (ties to the lower species index: it feeds names and ceilings and must not flicker). `plotAct()`'s sow rung adds a second drill, capped so the first crop keeps a STRICT majority: `k = min(sow, ceil((held+sow)/2) - 1)`. No new `R()` — the species is a hash of the holder's seeded `wary`.
+**Consumers.** `bedCap` SPLIT — `cellStands()` asks the CELL, the ceiling still STEPS by plot: the winter invariant survives a tender drill in a cabbage plot. `plotClimbs` stays per-cell **deliberately**: 92 samples now put beans up canes on a plot mostly under something else. `harvestPlot` paid PER CELL. `plotName` names the second crop.
+**Gates:** census PASS (six blocks unchanged) · motion PASS · day 0 POP · `allot-act-rungs.mjs` **10/10** after re-writing its two SOW cases — my change moved that gate's subject.
+**HEAD -> cand** (`probes/allot-intercrop.mjs`, new; 6 seeds x a year). Mixed plot-samples **0 -> 264 (0.19%)**, species/plot **1.0000 -> 1.0019**, 7 episodes averaging 37.7 s. Invariants identical: tomato outside the span 0, tender at stage 3 in deep winter **30 on both**.
+**Verdict:** shipped
+**Surprise:** the invariant I was told not to break already read non-zero — 30 tender samples at stage 3 in deep winter, and HEAD does it too. The brief's 0 was three seeds; three more found it.
+**Law:** a share fitted on five samples is not a share. `INTER_SHARE` over the room bound, swept 0.40/0.70/1.00: 0.70 and 1.00 byte-identical. Deleted — the SUPPLY (11 sow-rung acts a year over six worlds) was always the cap.

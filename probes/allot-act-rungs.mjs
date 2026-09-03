@@ -29,11 +29,25 @@ const out = await p.evaluate(`(() => {
   warmth = 0.95; raining = false; wetness = 0.05;    // high summer, dry: canes up, cloches away
   const CANES = plotWith('canes'), BUTT = plotWith('butt'), PLAIN = plotWithout(['butt','canes']);
   R.picked = {CANES, BUTT, PLAIN};
-  // 1. SOW — every cell bare, the fallow clock run out
+  // 1. SOW — every cell bare, the fallow clock run out. Since #159 a hand with room takes
+  //    it: six bare cells is room for a minority drill, so this is the INTER-CROP path and
+  //    what it must guarantee is that the first crop keeps a strict majority.
   { const [ox,oy]=PLAIN, cs=cellsOf(ox,oy);
     for (const [i] of cs){ bSp[i]=0; bSt[i]=0; bAge[i]=0; turned[i]=0; }
-    const r = run(ox,oy); r.sown = cs.filter(([i])=>bSp[i]===1+SPECIES.findIndex(s=>s.veg&&s.hardy)).length;
-    r.stages = cs.map(([i])=>bSt[i]).join(''); R.sow = r; }
+    const r = run(ox,oy); const H = 1+SPECIES.findIndex(s=>s.veg&&s.hardy);
+    r.sown = cs.filter(([i])=>bSp[i]===H).length;
+    r.other = cs.filter(([i])=>bSp[i] && bSp[i]!==H).length;
+    r.kinds = new Set(cs.map(([i])=>bSp[i])).size;
+    r.majority = plotCrop(ox,oy) === H;                       // plotCrop's own read agrees with the arithmetic
+    r.stages = cs.map(([i])=>bSt[i]).join(''); r.name = plotName(ox, oy); R.sow = r; }
+  // 1b. SOW with NO ROOM — one cell under the crop, one bare, the other four resting. The
+  //     minority bound solves to 0 cells, so the plain drill is what goes in.
+  { const [ox,oy]=PLAIN, cs=cellsOf(ox,oy);
+    const H = 1+SPECIES.findIndex(s=>s.veg&&s.hardy);
+    cs.forEach(([i],k)=>{ turned[i]=0; if(k===0){ bSp[i]=H; bSt[i]=1; bAge[i]=0; }
+                          else if(k===1){ bSp[i]=0; bSt[i]=0; bAge[i]=0; }
+                          else { bSp[i]=0; bSt[i]=0; bAge[i]=10; } });
+    const r = run(ox,oy); r.kinds = new Set(cs.map(([i])=>bSp[i]).filter(Boolean)).size; R.sowPlain = r; }
   // 2. SOW over a TURNED row — the cover line, and turned[] cleared
   { const [ox,oy]=PLAIN, cs=cellsOf(ox,oy);
     for (const [i] of cs){ bSp[i]=0; bSt[i]=0; bAge[i]=0; turned[i]=1; }
@@ -112,8 +126,12 @@ await b.close();
 if (errs.length){ console.error('PAGE ERROR', errs[0]); process.exit(2); }
 const T = [];
 const chk = (label, ok, detail) => { T.push([ok, label, detail]); };
-chk('SOW names + sows all six', out.sow.act==='sowing a drill' && out.sow.n===6 && out.sow.sown===6 && out.sow.stages==='111111', JSON.stringify(out.sow));
-chk('SOW over turned: clears turned[], covers the row', out.dug.act==='sowing a drill' && out.dug.turnedLeft===0 && /cloche|heap|covered down|clods/.test(out.dug.line), JSON.stringify(out.dug));
+chk('SOW sows all six, two crops, the first a strict MAJORITY, and the pointer says so (#159)',
+    out.sow.act==='sowing a second crop in' && out.sow.n===6 && out.sow.stages==='111111' &&
+    out.sow.kinds===2 && out.sow.other>0 && out.sow.sown>out.sow.other && out.sow.sown+out.sow.other===6 && out.sow.majority && / with .* worked in among them,/.test(out.sow.name),
+    JSON.stringify(out.sow));
+chk('SOW with no room for a minority drill is the PLAIN drill', out.sowPlain.act==='sowing a drill' && out.sowPlain.n===1 && out.sowPlain.kinds===1, JSON.stringify(out.sowPlain));
+chk('SOW over turned: clears turned[], covers the row', /^sowing a (drill|second crop in)$/.test(out.dug.act) && out.dug.turnedLeft===0 && /cloche|heap|covered down|clods/.test(out.dug.line), JSON.stringify(out.dug));
 chk('WATER: a stage on, the fallow shortened', out.water.act==='watering the row' && out.water.up===3 && out.water.rest===3, JSON.stringify(out.water));
 chk('THIN: one cell out, the rest a stage on', out.thin.act==='thinning the row' && out.thin.pulled===1, JSON.stringify(out.thin));
 chk('TEND: the ageing row is freshened', out.tend.act==='weeding down the row' && out.tend.aged===0, JSON.stringify(out.tend));
@@ -121,9 +139,9 @@ chk('TEND names the CANES when beans are up them', out.canesOn && out.beans.act=
 chk('RAKE: the fallow clock moved, less than the can', out.rake.act==='raking the bed down' && out.rake.left.split(',').every(v=>+v===7.8), JSON.stringify(out.rake));
 chk('the documented fall-through, and ONLY it, returns 0', out.through.n===0 && out.through.act==='', JSON.stringify(out.through));
 chk('the act MARKS the plot, against a same-code control, and marks it as any other sowing would',
-    pix.control === 0 && pix.n === 6 && pix.sow > 0 && pix.sow === pix.st1 && pix.water > 0,
+    pix.control === 0 && pix.n === 6 && pix.st1 > 0 && pix.sow >= pix.st1 && pix.sow < pix.st2 && pix.water > 0,
     `[${pix.ox},${pix.oy}] box ${pix.box.join('x')} = ${pix.total} px · SAME-CODE CONTROL ${pix.control} px\n        ` +
-    `${pix.act}: ${pix.sow} px, exactly the ${pix.st1} px the same six cells make sown to stage 1 by any route (stage 2 ${pix.st2}, stage 3 ${pix.st3})\n        ` +
+    `${pix.act}: ${pix.sow} px, a STAGE-1 mark — at or above the ${pix.st1} px the same six cells make sown to stage 1 in one species, and below the ${pix.st2} px of stage 2 (stage 3 ${pix.st3})\n        ` +
     `${pix.wact} on a row at stage 2: ${pix.water} px, ${(100*pix.water/pix.st3).toFixed(0)}% of the plot's own full crop`);
 console.log(`[rungs] ${arg('--file','courtyard.html')}   plots: ${JSON.stringify(out.picked)}`);
 for (const [ok, label, d] of T) console.log(`  ${ok?'PASS':'FAIL'}  ${label}\n        ${d}`);

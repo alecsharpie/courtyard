@@ -2857,27 +2857,31 @@ function neighborsMature(x, y){
    harvest, fallow, sowing — is addressed by plot rather than by cell. A row that
    empties and refills one cell at a time is a speckle; a plot reads as a row. */
 function plotOrigin(x, y){ return [80 + Math.floor((x - 80) / 5) * 5, 8 + Math.floor((y - 8) / 7) * 7]; }
-/* Whatever this plot is already under, at any stage. Answering off the FIRST sown cell the
-   scan reaches is safe because the block is MONOCULTURE by construction — which is worth
-   writing down here, because it is not visible from this function. Three things hold it:
-   caTick's infill sows a bare allotment cell with plotCrop() itself, harvestPlot() lifts
-   the row whole, and plotAct() — the one path a HAND takes into these cells — sows the
-   plot's own crop, or a single species into a plot with none. #147 read the third of
-   those off the courtyard's hand-sowing loop and off the wrong reason: that loop is
-   bounded x < N and cannot reach an allotment cell at all, which is why it planted 0
-   (#152 re-counted 22 such kneels a year x 6 seeds, 0 eligible cells at every one of
-   them — the plots were not full, they were fallow). Measured over a year x 3 seeds: 0 of
-   69,008 sown plot-samples held two species, so the first cell IS the majority, and 0 held
-   a hardy cell under a tender majority — nothing has ever ridden a cabbage's ceiling. The
-   read goes wrong the day any of those three change; the successor is a tally over the
-   plot's own cells, which are [ox,ox+4) x [oy,oy+3) intersected with BED. */
+/* Whatever this plot is MOSTLY under, at any stage. #147 measured the block monoculture
+   BY CONSTRUCTION (0 of 69,008 sown plot-samples held two species) and wrote down the
+   successor read for the day one of the three things holding it changed. #159 changed
+   one: plotAct()'s sow rung can now put a SECOND crop into a plot's fallow cells, so the
+   first cell the scan reaches is no longer the plot's crop. This is that successor — a
+   tally over the plot's own six BED cells, exactly the set harvestPlot() lifts and
+   ripePlots() reads. The other two still hold and still matter: caTick's infill sows a
+   bare cell back under this answer, so a minority drill is not self-propagating and a
+   mixed plot walks back to one crop of its own accord; harvestPlot() still lifts the row
+   whole. Ties (a 3-3 plot, reachable by dieback) go to the lower species index, because
+   the answer has to be STABLE frame to frame — every consumer below is a name or a
+   ceiling, and neither may flicker. Hardiness is no longer read through here: see
+   cellStands(). */
+const plotTal = new Uint8Array(SPECIES.length + 1);
 function plotCrop(x, y){
   const [ox, oy] = plotOrigin(x, y);
+  plotTal.fill(0);
+  let best = 0;
   for (let yy = oy; yy < oy + 2; yy++) for (let xx = ox; xx < ox + 3; xx++){
     const i = yy * GW + xx;
-    if (i >= 0 && i < GW * WH && bSp[i]) return bSp[i];
+    if (i < 0 || i >= GW * WH || grid[i] !== BED || !bSp[i]) continue;
+    const sp = bSp[i], n = ++plotTal[sp];
+    if (n > plotTal[best] || (n === plotTal[best] && sp < best)) best = sp;
   }
-  return 0;
+  return best;
 }
 /* Does this plot stand the winter? bloomCap() is a CEILING, and the courtyard's answer
    to a low one is per-CELL hardiness (hash(x,y+41) holds a seventh of cells at the full
@@ -2891,6 +2895,20 @@ function plotCrop(x, y){
    itself — the winter block goes quieter as its standing crops are picked, instead of
    the same seventh being hardy every year forever. */
 function plotStands(x, y){ const sp = plotCrop(x, y); return !!(sp && SPECIES[sp - 1].hardy); }
+/* Does what is IN this cell stand the winter? The PLOT is still the grain the ceiling
+   steps at — capStep() below is addressed by plot origin, and that is #116's claim about
+   the span — but hardiness is a property of the CROP, and since #159 a plot can hold two
+   of them. So the ceiling asks the cell: a sown cell answers for its own species, a bare
+   one for the plot's majority, which is what caTick will sow it back under. This is the
+   one place the two grains had to be split, and it is why the winter invariant survives
+   inter-cropping: a tender drill worked in among cabbages does NOT inherit the cabbage's
+   ceiling. On a monoculture plot — every plot in the block the day this was written —
+   it returns exactly what plotStands() does. */
+function cellStands(x, y){
+  const i = (y | 0) * GW + (x | 0);
+  const sp = (i >= 0 && i < GW * WH && bSp[i]) || plotCrop(x, y);
+  return !!(sp && SPECIES[sp - 1].hardy);
+}
 /* The stage this particular cell is allowed to reach right now — bloomCap() for most of
    the town, the full 3 for whatever stands the cold, grain-matched to how the region is
    addressed (a courtyard CELL by hash, an allotment PLOT by its crop). Lifted out of
@@ -2903,7 +2921,7 @@ function bedCap(x, y){
   if (inAllotment(x, y)){
     // #116: a roof over a plot IS the full ceiling — that is the whole claim of the span,
     // and it is grain-matched the same way the rest of this function is (a PLOT, not a cell)
-    if (inGlass(x, y) || plotStands(x, y)) return 3;
+    if (inGlass(x, y) || cellStands(x, y)) return 3;
     const [ox, oy] = plotOrigin(x, y);      // a plot steps whole, but not with the next plot
     return capStep(cap, ox, oy + 53);
   }
@@ -2920,12 +2938,24 @@ let harvested = 0;     // cumulative cells picked: the one number that separates
    one), which is why dieback below now zeroes it. */
 function harvestPlot(a){
   const [ox, oy] = plotOrigin(a.plot[0], a.plot[1]);
-  let took = 0, sp = 0;
+  /* The basket is paid PER CELL, not per plot (#159). It used to be `produce[sp-1] +=
+     took` off whichever ripe cell the scan happened to end on, which was exact while a
+     plot was one crop and would have booked a whole mixed plot to one stall the moment
+     it stopped being. `sp` is now the majority of what is actually RIPE — the plot's
+     majority may be a drill that is not up yet — and `oth` the second crop, if the lift
+     took two. Ties to the lower species index, as in plotCrop(). */
+  let took = 0, sp = 0, oth = 0, bn = 0;
+  plotTal.fill(0);
   for (let y = oy; y < oy + 2; y++) for (let x = ox; x < ox + 3; x++){
     const i = y * GW + x;
-    if (grid[i] === BED && bSt[i] === 3){ sp = bSp[i]; took++; }
+    if (grid[i] === BED && bSt[i] === 3){
+      const c = bSp[i], n = ++plotTal[c];
+      if (n > bn || (n === bn && c < sp)){ bn = n; sp = c; }
+      took++;
+    }
   }
   if (!took) return 0;                        // nothing ripe here — they sow it instead
+  for (let c = 1; c <= SPECIES.length; c++) if (plotTal[c]){ produce[c - 1] += plotTal[c]; if (c !== sp) oth = c; }
   // the row is lifted whole, not cell by cell: the bed goes bare, and because it comes
   // back with no crop remembered it comes back under a different one. Picking only the
   // ripe cells leaves the plot's crop behind and the allotments settle onto two of four.
@@ -2935,10 +2965,14 @@ function harvestPlot(a){
     bSp[i] = 0; bSt[i] = 0; bAge[i] = FALLOW + R() * 8; turned[i] = 0;
   }
   // the basket now has somewhere to go: the store the lane's stalls are stocked from
-  a.crop = sp; harvested += took; produce[sp - 1] += took; groundDirty = true;
-  sayAt(a.x, a.y, pick(['A row of ' + SPECIES[sp-1].name + ' comes up; the basket fills.',
-    'The ' + SPECIES[sp-1].name + ' are ready — the plot is cleared in one go.',
-    'Someone straightens up out of the ' + SPECIES[sp-1].name + ' with an armful.']));
+  a.crop = sp; harvested += took; groundDirty = true;
+  sayAt(a.x, a.y, pick(oth
+    ? ['Two crops come off the one bed — ' + SPECIES[sp-1].name + ' and ' + SPECIES[oth-1].name + ' together.',
+       'The ' + SPECIES[sp-1].name + ' come up, and the ' + SPECIES[oth-1].name + ' worked in among them.',
+       'A mixed plot is cleared in one go; the basket goes out heavy.']
+    : ['A row of ' + SPECIES[sp-1].name + ' comes up; the basket fills.',
+       'The ' + SPECIES[sp-1].name + ' are ready — the plot is cleared in one go.',
+       'Someone straightens up out of the ' + SPECIES[sp-1].name + ' with an armful.']));
   return took;
 }
 function caTick(){
@@ -4003,12 +4037,12 @@ function clocheOut(f){ return warmth < plotTurn(f); }
 function canesUp(f){ return warmth >= plotTurn(f); }
 /* Beans are the one thing in SPECIES that climbs — h 1.1 against 0.4 for a carrot — so
  * the canes go up where the crop needs them and come down when the plot turns over to
- * something that does not. Asked of the whole PLOT, which is belt and braces and not a
- * fix: this comment used to claim reading plotCrop()'s first cell put the canes up on a
- * fifth of the plots that had beans in them, and #147 re-counted it at 0 — plotClimbs()
- * and plotCrop() === BEANS agree on 13,012 of 13,012 bean plot-samples over a year x 3
- * seeds, because the block is monoculture. See plotCrop() for why, and for what would
- * have to change before either read could disagree. */
+ * something that does not. Asked of the whole PLOT, and deliberately by ANY cell rather
+ * than through plotCrop(). That was belt and braces while the block was monoculture —
+ * #147 measured plotClimbs() and plotCrop() === BEANS agreeing on 13,012 of 13,012 bean
+ * plot-samples — and since #159 it is the difference: a plot MOSTLY under cabbages with a
+ * bean drill worked in among them has something to climb, and plotCrop() would say no.
+ * The canes answer to what is in the ground, not to what the plot is called. */
 const BEANS = SPECIES.findIndex(s => s.name === 'beans') + 1;
 function plotClimbs(ox, oy){
   for (let y = oy; y < oy + 2; y++) for (let x = ox; x < ox + 3; x++)
@@ -4139,6 +4173,28 @@ const WATER_DRY = 0.4;                       // a can is for dry ground; above t
 const WATER_REST = 0.62, RAKE_REST = 0.78;   // what a soaking / a raking leaves of a fallow clock
 const HARDY_VEG = SPECIES.findIndex(s => s.veg && s.hardy) + 1;   // what goes into an open plot with no crop of its own to read
 const GLASS_VEG = SPECIES.findIndex(s => s.glass) + 1;            // and what goes into one under the span
+/* INTER-CROPPING (#159). The sow rung above used to fill every bare cell with the plot's
+ * OWN crop, and that — with caTick's infill and a whole-row lift — is the third of the
+ * three things that made the block monoculture BY CONSTRUCTION. It is the one of the
+ * three that is a HAND, so it is the one that gets to break it: a holder who finds room
+ * puts a second drill in among the first, which is what a small plot is actually worked
+ * like. Three bounds keep it from becoming the rule rather than the exception:
+ *   SUPPLY  it can only happen at the SOW rung, and that is 11 of the 28 hand-acts a year
+ *           across SIX worlds (probes/allot-intercrop.mjs). This, not a constant, is what
+ *           makes a mixed plot an occasional thing; there was a share on top of it and the
+ *           sweep killed it (0.40 / 0.70 / 1.00: dead above 0.70, and a bar fitted to five
+ *           samples is not a share). So a holder who finds the room TAKES it.
+ *   ROOM    the second drill is capped so the FIRST crop keeps a strict majority, because
+ *           plotCrop() now answers with the majority and every reader below is priced off
+ *           that answer. Solve the room, then take min(drawn, room) — a plot with two
+ *           cells in it has no room and is sown plain.
+ *   DECAY   nothing sustains the minority: caTick infills a bare cell under plotCrop(),
+ *           so as the second drill is picked or dies back the plot walks home to one crop.
+ *           Measured, a mixed plot lives 38 sim s on average — most of a day, and gone.
+ * The species comes out of speciesFor() at the plot's centre, so the glasshouse crop still
+ * cannot be offered outside the span and `wild` still cannot be offered at all, and it is
+ * drawn with a hash of the holder's own seeded `wary`: no new R(), so the seeded stream is
+ * untouched, and WHICH second crop varies by world rather than being fixed to the plot. */
 /* Is this plot showing that piece right now? allotFurnOn() is the same test the paint
  * and the pointer use, so what a holder reaches for is what you can see standing there. */
 function plotFurn(ox, oy, kind){
@@ -4158,11 +4214,36 @@ function plotAct(a){
   }
   const sp = crop || (inGlass(ox + 1, oy + 1) ? GLASS_VEG : HARDY_VEG);   // a plot is wholly in the span or wholly out of it
   const name = SPECIES[sp - 1].name;
+  let oth = 0, othCells = null;
+  if (sow.length){
+    let held = 0;                             // cells already under what is going in as the majority
+    for (let y = oy; y < oy + 2; y++) for (let x = ox; x < ox + 3; x++){
+      const i = y * GW + x;
+      if (grid[i] === BED && bSp[i] === sp) held++;
+    }
+    const k = Math.min(sow.length, Math.ceil((held + sow.length) / 2) - 1);   // the room the minority has
+    if (k > 0){
+      const opts = speciesFor(ox + 1, oy + 1).filter(s => s !== SPECIES[sp - 1]);
+      if (opts.length){
+        const nerve = ((a.wary || 0) * 4096) | 0;
+        oth = SPECIES.indexOf(opts[(hash(ox * 91 + oy, nerve + 7) * opts.length) | 0]) + 1;
+        othCells = sow.slice(sow.length - k);   // the near end of the bed, contiguous: a drill, not a speckle
+      }
+    }
+  }
+  const oName = oth ? SPECIES[oth - 1].name : '';
   let n = 0, lines;
   if (sow.length){
     for (const i of sow){ bSp[i] = sp; bSt[i] = 1; bAge[i] = 0; turned[i] = 0; }
-    n = sow.length; a.act = 'sowing a drill';
-    lines = dug
+    if (oth) for (const i of othCells) bSp[i] = oth;
+    n = sow.length; a.act = oth ? 'sowing a second crop in' : 'sowing a drill';
+    lines = oth
+      ? (dug ? ['The clods are broken small over the dug row and it is sown two ways — ' + name + ', with ' + oName + ' between.',
+                'The turned bed is covered down and sown with ' + name + ' and a drill of ' + oName + '.']
+             : ['A second drill goes in beside the ' + name + ' — ' + oName + ', to come on after them.',
+                'The gaps in the ' + name + ' are sown with ' + oName + ', a row between the rows.',
+                'Someone works ' + oName + ' in among the ' + name + ' — two crops off the one bed.'])
+      : dug
       ? (plotFurn(ox, oy, 'cloche') ? ['A cloche goes down over the turned row and the ' + name + ' go in under it.',
                                        'Glass over the dug row, and a drill of ' + name + ' under the glass.']
        : plotFurn(ox, oy, 'bay')    ? ['Muck off the heap goes on to the turned row, and the ' + name + ' go in.',
@@ -4185,7 +4266,9 @@ function plotAct(a){
     /* No can, but a row coming on under its ceiling: it is thinned. The weakest drill
      * comes out — lowest stage, hash to break the tie, so it is not a new draw — and the
      * rest of the row takes the room and comes on a stage. What comes out goes back under
-     * plotCrop() like any other bare cell, so the plot is still one crop. */
+     * plotCrop() like any other bare cell, so a thinning never changes what the plot IS —
+     * and where #159 has put a second drill in, the youngest row is the weakest, so the
+     * thinning is one of the paths that walks a mixed plot back to one crop. */
     let weak = -1;
     for (const i of up) if (weak < 0 || bSt[i] < bSt[weak] || (bSt[i] === bSt[weak] && hash(i, 977) < hash(weak, 977))) weak = i;
     for (const i of up) if (i !== weak) bSt[i]++;
@@ -13147,19 +13230,24 @@ function bedName(x, y, j){
   if (!bSp[j]) return bAge[j] > 0 ? 'turned earth, resting' : turned[j] ? 'dug over for the winter, waiting for spring' : 'bare earth, nothing sown';
   return SPECIES[bSp[j] - 1].name + ', ' + stageOf(SPECIES[bSp[j] - 1], bSt[j], bedCap(x, y));
 }
-/* The allotments are addressed by PLOT and not by cell, so a plot is named as a plot:
- * its crop is whatever plotCrop finds in the row, and its stage is the row's best,
- * because a 3x2 bed is drilled together, lifted whole, and reads as one row. */
+/* The allotments are addressed by PLOT and not by cell, so a plot is named as a plot: its
+ * crop is what plotCrop() says the row is mostly under, and its stage is the best of THAT
+ * crop's own cells, because a 3x2 bed is drilled together, lifted whole, and reads as one
+ * row. Since #159 a plot can hold a second drill, and naming it by the majority alone
+ * would be a lie under the pointer — so the second crop is named too, and the stage stays
+ * the majority's rather than becoming the better of two unrelated rows. */
 function plotName(x, y){
   const sp = plotCrop(x, y);
   if (!sp) return 'a plot lately lifted, lying bare';
   const [ox, oy] = plotOrigin(x, y);
-  let st = 0;
+  let st = 0, oth = 0;
   for (let yy = oy; yy < oy + 2; yy++) for (let xx = ox; xx < ox + 3; xx++){
     const i = yy * GW + xx;
-    if (i >= 0 && i < GW * WH && bSp[i]) st = Math.max(st, bSt[i]);
+    if (i < 0 || i >= GW * WH || !bSp[i]) continue;
+    if (bSp[i] === sp) st = Math.max(st, bSt[i]); else oth = bSp[i];
   }
-  return (inGlass(x, y) ? 'a row of ' : 'a plot of ') + SPECIES[sp - 1].name + ', ' +
+  return (inGlass(x, y) ? 'a row of ' : 'a plot of ') + SPECIES[sp - 1].name +
+         (oth ? ' with ' + SPECIES[oth - 1].name + ' worked in among them' : '') + ', ' +
          stageOf(SPECIES[sp - 1], st, bedCap(x, y)) + (inGlass(x, y) ? ', under glass' : '');
 }
 function nameAt(x, y){
