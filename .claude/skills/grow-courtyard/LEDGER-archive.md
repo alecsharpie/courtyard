@@ -4536,6 +4536,17 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Note:** `context-budget.mjs` reads **OVER — 47.2 KB of 46 KB** after this entry, its laws and its two cues.
 
 
+## Iteration 147 — the allotments are monoculture, and the brief's bug does not exist (2026-09-03) [Cross street & allotments × Deepen]
+
+**Brief:** b147 — make `plotCrop()` answer for the PLOT, not its first sown cell, so one cabbage stops lifting a plot's tender cells to the winter ceiling.
+**Priced the premise first, and it is false.** A year x 3 seeds (`probes/allot-year.mjs`, 69,008 sown plot-samples): **0** held two species (species/plot **1.000**), so the first cell WAS the majority, and **0** had a hardy cell under a tender majority. In deep winter tender cells in the open reach stage 3 **0 times**, against hardy 21,474 and glass 10,191: `successLooksLike` already holds on HEAD, exactly. Monoculture because caTick's infill sows a bare cell with `plotCrop()` itself, `harvestPlot()` lifts the row whole, and the kneel plants nothing — none of it the read.
+**The premise's source:** `plotClimbs()`'s comment claimed the first-cell read missed "a fifth of the plots that actually had beans". Re-counted, they agree **13,012 of 13,012**.
+**Did.** Killed the false claim; wrote the measured invariant at `plotCrop()` — the three conditions holding it, and the successor read for the day one goes.
+**Gates:** census **byte-identical** · visual PASS · motion/perf skipped: no draw, no `R()`.
+**Verdict:** briefRejected — source corrected, feature not built.
+**Surprise:** the hand-sow branch is dead. 101 allot kneels a year = 71 harvests + 15 turns + 15 hand-sows, and the hand-sows plant **0 cells** — a kneel only reaches an UNRIPE plot, and by then the infill has filled it. A holder comes in through the gate, kneels, plants nothing, says nothing, walks out.
+**Law:** a stale source COMMENT is a brief generator — when you refute a premise, delete the sentence that produced it, or the loop pays for it again.
+
 ## Iteration 148 — the plaza's families are priced at both ends of a window the sun cuts (2026-09-03) [Plaza & quay × Scale/World]
 
 **Brief:** b148 — price presence as rate × visit BEFORE moving either, then sweep the rate and the window and keep the knee. Do not raise `FAM_CAP`.
@@ -4545,3 +4556,23 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **HEAD → shipped** (6 seeds × 14 days, fine summer 12–17): places **held 1.83 → 2.70 of 5**; bench0 51.2→54.3, **bench1 26.1→60.5**, stand0 52.3→53.7, stand1 30.8→45.7, **stand2 22.4→55.6**. Arrivals/day 2.46→4.05, families 2.38→2.57, `FAM_CAP` binds 11.3%→47.7%, plaza presence **5.88→8.59**.
 **Verdict:** shipped — but the crowding bar is MISSED and that is the finding.
 **Surprise:** the crowding did not come from the families. Plaza crowded pairs per person went 0.153→0.167 (0.141→0.184 on #144's own instrument), outside the brief's band — but per family they FELL, 0.204→0.192, and a control run with the family source off reads 0.114 on HEAD and 0.097 here. Classified by kind, the plaza's commonest crowded pair is **`parent+plaza` at 27%, on BOTH builds**: #144 put its three stands on the roundel's SOUTH arc, and everything approaches the plaza from the south. The 90° stand sits at (105.5, 33.5); the lane's plaza corridor is `ex2` 104–106 running due north through it, and a family's route to the far bench passes **0.4 cells** from it. Raising occupancy did not create the fault, it just made the town walk through it more often.
+## Iteration 141 — a second punt, in its own lane, and the lantern gets lit (2026-09-03) [River & far bank × Scale/World]
+
+**Brief:** b141 — answer the punt's SUPPLY; register `puntLampF()`'s lantern. Full entry in LEDGER-archive.md.
+**Did.** Measured first (`probes/punt-supply.mjs`: `puntFits` wrapped clause by clause in its own evaluation order). The hull is MOORED 84% of the day and 57% of every busy block is leg 3, the boat BEACHED while its party stands — which prices the brief's two options: a ferryman poling home empty wins back 3.7 h of beaching and spends 2.3 h on the empty legs it costs (22%), against +100% for a hull. So: a hull. `PUNTS`/`PUNT_BERTHS`, `punt` still a name for hull A. `puntFits` returns an OFFER `{P, night, stand}`; `puntTripH(P, a, stand)` is SOLVED from the berth, not tabulated (hull A's night walk comes back 2.66, the old constant). Stands are a POOL of four on the island's spine, nearest FREE one to the hull's shore, so hull A alone is unchanged. `PUNT_LAMPS` beside `BOAT_LAMP`/`BARGE_LAMP`.
+**Gates:** census PASS, tiles+structure unchanged · motion FAIL on `cart` alone, pre-existing (`probes/cart-jump.mjs`: the same 2.60-cell lane run 6× in every one of 8 seeds on HEAD *and* candidate, median 0) · filmstrip day+night 0 POP · `punt-force.mjs` PASS day and `--late`. **context-budget OVER, 48.3 of 46 KB: inventory 9.7/9.5.**
+**HEAD → cand** (10 seeds × 26 days, genuine offers): BUSY **13.9% → 1.9%**, no longer top · take **27.1% → 38.4%** · crossings/day **0.44 → 0.64** · 166 claims / 166 completed, 0 strandings, 162 stood. Lantern at 22h: HEAD rgb(43,40,43), R−B **0**; cand rgb(227,204,157), **R−B 70**; water control rgb(20,32,59) on both.
+**Verdict:** shipped
+**Surprise:** the premise was an artifact of the bug the second hull exposed. `puntFits` is asked wherever a stop is PERFORMED, and the rider's stand on the eyot is a stop — so every rider re-asked from the island. One hull was its own guard (leg 3 is not leg 0) and refused it silently: **115 of HEAD's 174 BUSY refusals are one per crossing, by someone already across**; genuine BUSY was 13.9% and never the top refusal. With two hulls the free boat re-claimed a passenger standing on an island: 51 of 178 claims stopped completing. Then the channel — col 126 is the ONLY water between eyot and towpath and a hull is 0.52 across, so a landing further down it ran every crossing through the other hull's berth (505 of 6139 co-present samples under 0.9, least 0.04). Offsetting B's landing west by the same 0.95 as its berth makes the lanes parallel: swept end to end, least separation 0.95, 0 violations.
+**Law:** a one-shot choice guarded only by the state it CONSUMES is re-entrant the moment that state is duplicated — end the membership positively at the claim, never by trusting the resource to refuse.
+**Law:** two movers on a track share a CORRIDOR, not a point: sweep their whole paths against each other, and offset BOTH ends equally so the lanes are parallel by construction.
+
+## Iteration 149 — two gates that lied, and one of them now binds the worker (2026-09-03) [The sill & the observer × Harness]
+
+**Brief:** b149 — bound what ONE iteration ADDS; fix or retire `probes/punt.mjs`.
+**Budget.** `--additions` diffs the tree against a ref (`--since`, default HEAD) over the three surfaces a worker writes and every open re-reads: entries, inventory lines, cues. Quota: 1 entry ≤ 1.8 KB, ≤ 1 inventory line, ≤ 1 cue, 250 B each; exit 3, **naming** the offender.
+**Punt (c227).** Both stranding tests had stopped being faults. `punt.leg === 0` assumed ONE hull; #141's second leaves A moored while B carries. `!eastOpen()` is the case #131 BUILT — `eastOpenFor()` covers a rider to `a.puntBack`. Replaced by two questions no punt predicate can satisfy: ORPHAN (`a.eyot`, no hull holds them) and OVERDUE (`a.eyot` at `EVE_GONE`). Exits 1 now; also wrapped a trip length that read negative past midnight.
+**Gates:** `courtyard.html` **byte-identical** — census unchanged in all six blocks, shots clean; no draw. `--additions` 0/exit 0 on HEAD; staged over-quota state + a 2.35 KB entry → 6 named failures/exit 3. `punt.mjs` HEAD 0/exit 0; `--strand` (hull freed at leg 3) 2475 ORPHAN/exit 1; `--strand-late` (held at leg 3) 14 OVERDUE at 02:54/exit 1.
+**Surprise:** `state.inventory` holds a `note` **string** beside its nine domain arrays — iterated as a list it yields one "line" per CHARACTER. Only the falsification found it; HEAD was a clean, plausible zero.
+**Law:** a gate is a claim about a BUILD. Both punt tests were RIGHT when written and were invalidated by a later feature that never re-ran them — so a change redefining a gate's subject must re-run every gate that READS it, not only the one briefed.
+**Note:** total OVER, 49.7/46 KB (+506 B of it mine, SKILL.md). The manager's.

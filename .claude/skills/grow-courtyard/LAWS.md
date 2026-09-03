@@ -9,16 +9,15 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
   on HEAD is not a gate; a control returning the candidate's numbers is none. When a brief says a
   thing has NEVER happened, COUNT it on HEAD; an inventory line written by the pass that wrote the
   brief is no witness. A control must test a build-INDEPENDENT fact, never a predicate the candidate
-  DEFINES, and must differ from the thing measured in exactly ONE way. And **a comment that
-  measures two terms disagreeing is a BUG REPORT, not a description** — when the source explains why
-  a constant is damped, check what it is damped *against*. (#6–#143)
+  DEFINES, and must differ from the thing measured in exactly ONE way. And **a source COMMENT is a brief
+  generator**: one that measures two terms disagreeing is a BUG REPORT — and one may simply be STALE,
+  so when you refute a premise DELETE the sentence that produced it. (#6–#147)
 - **One predicate, one definition — read a footprint back off the grid, never re-derive it.** Routes
   are WAYPOINTS and nobody reads the grid between them, so a non-walkable cell holds only where a
   route's ENDPOINTS are chosen: keep it out of every target set. A naming predicate is usually a
   FALL-THROUGH, so the box it answers with is not the surface: intersect the GRID before counting off
   it. A solve must hand its consumer **the value it TESTED**: a `-=` walk drifts below what the
-  predicate floors. A lookup answering for a REGION off its FIRST matching cell (`plotCrop`) answers
-  with whichever cell the loop reached first. (#24–#136)
+  predicate floors. (#24–#141)
 
 ## This town
 - **Every random draw goes through `R()`** (or `hash(x,y)` per cell); `Math.random()` is invisible to
@@ -28,11 +27,10 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
   seeded world**: the census churns everywhere and motion gates fire on kinds you never touched —
   read it for *collapse*, not delta, replay every stray gate on HEAD, and keep each branch on the
   half of [0,1) it owned. **Two seeds is not a sample**, and at small n a threshold is not a share:
-  when the COUNT is what you want, rank the members by their own hash and cut at the quantiles.
-  (#2–#138)
+  rank the members by their own hash and cut at the quantiles. (#2–#138)
 - **The renderer's six traps.** (a) `project()` pinches on *screen* depth and LIFTS z NORTHWARD: each
   cell of height on a near volume walks it ~1.15 rows UP the frame — price a foreground against what
-  is BEHIND it, and a NEGATIVE z is the mirror of a positive one. (b) Roofs are emergent from
+  is BEHIND it. (b) Roofs are emergent from
   `buildVolumes()`: change a footprint, never a roof, and two solid footprints that TOUCH are one
   roof. (c) Two figures nearer than ~0.9 cells render as one shape — move a scatter's centre, not its
   members, and let a displacement OWN the tick (`return` after the shove); two MOVERS on a track
@@ -44,26 +42,27 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
   VISIBILITY question before a geometry one: because (a) lifts a volume up the frame, a NORTHWARD
   throw must be vetoed per column or it paints the caster's own roof — and price its EXTENT off
   `-S/S[2]` first, since `sunVec()` is a stylised HIGH sun (65–76° at midday: a 5.4-cell wall reaches
-  two cells). Quads that must not double-darken are ONE path filled ONCE. (#4–#140)
+  two cells). `-S/S[2]` prices the RAY and not where it LANDS: a caster is bounded by the OPEN WORLD
+  downwind, not by its height, so price the reachable GROUND before raising one. The MIRROR is the same
+  solve with the eye for the sun — a NEGATIVE z, so a caster's own draw IS its image; every draw
+  landing ON the plane must read the sign. Shadow northward, image southward. Quads that must not double-darken are ONE path filled ONCE. (#4–#146)
 - **Time is compressed, and a walk is priced at its CHOICE and spent on its way.** A day is 55 s: a
   ~40 s trip is a resident. Caps set inflow, trip length sets population — floor the arrival *rate*,
   end a population by sending nobody new, and measure **presence**, not a per-instant crop. A
-  place-holder whose visit outlasts its window makes arrivals/day ≈ cap whatever the rate: price
-  presence as rate × visit BEFORE choosing the cap. Price ARRIVAL against the window's END, open it a
-  trip EARLIER than its hour, and bound BOTH ends — a window with only a LANDING bound is a
+  window is a SET-OUT bound or a PRESENCE bound and the two differ by a whole visit, so NAME which
+  yours is and price presence as rate × visit BEFORE choosing the cap. Price ARRIVAL against the
+  window's END, open it a trip EARLIER than its hour, and bound BOTH ends — a window with only a LANDING bound is a
   marathon-walker factory, and its END is the hour the last person is GONE, so the walk home is
   priced at the choice too. Walking is ~5.2 cells/h; price N places as N × (leg + stand). **A unit of work DRAWN before it
   is PRICED makes the price all-or-nothing** — solve the room the unit has and take `min(drawn,
   room)` against a floor. And **staleness and untruth are two clocks**: how long anyone will WAIT for
-  a line is not when it stops being TRUE. (#2–#142)
+  a line is not when it stops being TRUE. (#2–#148)
 - **A feature that exists may exist at a rate of zero — count before you build on it.** A spawn band
   is a *share of a budget*, not a rate, so a rare thing needs its OWN source; a linear cap with no
   knee buys only the branch nearest the source, so the SHARE, not the ceiling, is the cap beneath the
   cap. **A cap and a share are two bounds and only one can be swept**: re-weight the branch, then
   re-sweep, because the sweep is what reveals the ceiling has stopped binding at all — identical
-  numbers at two settings is a DEAD constant, not headroom. Re-weighting a cascade must name which
-  band PAYS — taken proportionally from a whole tail, a variety a picture would miss is spent
-  silently. Measure a share at the CHOICE, never by presence, which weights a branch by its dwell.
+  numbers at two settings is a DEAD constant, not headroom. Measure a share at the CHOICE, never by presence, which weights a branch by its dwell.
   Watch the CAP's membership the same way: a band capped on `things.filter(p).length` counts every
   later population that also satisfies `p` — **define membership POSITIVELY at the source (a flag on
   the spawn literal, inherited by every branch), never as a residual**, and end it positively at the
@@ -74,9 +73,7 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
 - **A ceiling is not a kill term, and a scalar is not a switch**: a system that ages out what sits at
   its ceiling is emptied by lowering it. Give a scalar that can reach zero per-cell variance
   (`hash(x,y+k) > c`) at the grain the region is ADDRESSED by; split the behaviour boolean from the
-  0..1 intensity draw sites multiply (`isWindy`/`windF`). A slow world scalar wants a rate cap and
-  `tgt > x` / `tgt < x`, never `else` — AT the target the else branch runs and it flickers ±r. An
-  accumulator-fed per-cell field needs **PROPORTIONAL** decay; flat subtraction quantises the map to
+  0..1 intensity draw sites multiply (`isWindy`/`windF`). An accumulator-fed per-cell field needs **PROPORTIONAL** decay; flat subtraction quantises the map to
   {0, cap}. **An accumulator is a RATE as well as a field**: a durable mark whose source recurs more
   slowly than the field decays never accrues, so the lasting part belongs in the FABRIC and only the
   recent part in the CA. (#3–#135)
@@ -88,8 +85,9 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
   hour OF THE SUN at the instant it applies, and fixing the MORNING half of such a term leaves the
   evening half wrong. Re-keying a term onto the sun moves its OFFSET, and its WIDTH must then stay
   FIXED — scaling both makes the value at sunset+k a function of the season again, which was the
-  fault; scale a width only when the thing is the night's clock (`dawnF`). And `day` rolls at hour 6,
-  so it holds TWO dawns. (#12–#143)
+  fault; scale a width only when the thing is the night's clock (`dawnF`). A social window a LIGHT term also cuts is two bounds and only
+  one moves with the season: solve the sun's hour and INTERSECT. And `day` rolls at hour 6, so it
+  holds TWO dawns. (#12–#148)
 - **The ground is a CACHE and the night is a COMPOSITE.** `drawBlocks`/`drawGround` rebuild at
   whatever cadence sets the dirty flag most often, so a per-frame truth on a facade or the ground is a
   live overlay: register at cache time, repaint live. What you lift out of a cache carries what was drawn ON TOP of it (`frame-cost.mjs`, not
@@ -119,8 +117,9 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
   (`toDataURL()`): a `?pause`d page still runs rAF. **A gate's PASS is only evidence about the fields it REPORTS** — read
   the reporter, not the producer: `perf.mjs` is vsync-locked over a whole sim day and blind to a pass
   expensive only in a rare weather, so time the FUNCTION, in its weather, at every camera. A ZERO is
-  evidence only if you show the test can be non-zero, a green anchor only if the predicate FIRED.
-  (#3–#139)
+  evidence only if you show the test can be non-zero, a green anchor only if the predicate FIRED. A
+  gate is a claim about a BUILD: a change redefining a gate's SUBJECT must re-run every gate that
+  READS it, not only the one briefed. (#3–#149)
 - **Judge a look from a DIFFERENCE IMAGE and a number, never two pictures in turn — and grade it at
   the SHIPPING size.** A diff answers "is it drawn", not "can it be seen": legibility is MASS and
   COHERENCE, not peak Δ. Absolute luma sd under a compositing
