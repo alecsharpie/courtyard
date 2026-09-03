@@ -20,7 +20,7 @@
   "avoid": "Do not widen INTER_SHARE or any other share — #159 swept it and 0.70 and 1.00 came back byte-identical. Do not add a plot or a species. Do not change the plot's footprint: a plot OWNS x [ox,ox+4) y [oy,oy+3) and never its WEST side, which is where sendToPlot lands.",
   "budgetMin": 60,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 172,
   "issued": "2026-09-03T15:20:40.323Z",
