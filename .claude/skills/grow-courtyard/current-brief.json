@@ -20,7 +20,7 @@
   "avoid": "ANYTHING THAT MOVES THE FRAME must hold the padded WIDE ground cache for the whole move and repaint ONCE on release — do not solve the crisp by repainting during the ease. LAWS: the ground is a CACHE, so a per-frame truth on it is a live overlay, and anything registered in SCREEN space at cache time (FACES) goes stale through the ease and must be mapped through k = viewS/gview.s. Do not touch what is DRAWN; this brief changes when and at what detail, not what.",
   "budgetMin": 35,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 180,
   "issued": "2026-09-03T21:20:51.647Z",
