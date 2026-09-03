@@ -542,7 +542,8 @@
       "cloudCover one slow rate-capped scalar; drawClouds 11 hashed banks, SKY STRIP ONLY. CLOUD SHADOW: drawCloudShade/cloudShadeF, ONE live multiply after the items, before applyLight",
       "the SUN: sunVec() the one vector every cast shadow reads - lx swings 0.8..-0.8, ly 0.58..0.32 and ALWAYS northward. shadowF/shSpread/shOffset the hardness trio; dialThrow(h)",
       "BUILDING SHADOW (#140): shTop/shOpen off buildVolumes, buildSunShade on a 1/64 sun, drawSunShade ONE path before applyLight",
-      "weather scalars: snowF/snowCover/snowAt, wetF, raining/rainFall/coverF, MIST_SRC[]/mistAt, chillF/hearthF, dawnF/dawnEdge (#143). WIND is a STRENGTH (#156): windF = windDayF x windHourF (windyDay picks WHICH); isWindy/WIND_BEHAVE 0.40 the day's KIND"
+      "weather scalars: snowF/snowCover/snowAt, wetF, raining/rainFall/coverF, MIST_SRC[]/mistAt, chillF/hearthF, dawnF/dawnEdge (#143). WIND is a STRENGTH (#156): windF = windDayF x windHourF (windyDay picks WHICH); isWindy/WIND_BEHAVE 0.40 the day's KIND",
+      "the backdrop cache FOLLOWS THE CAMERA (#165): drawBackdrop draws in WIDE screen space (xw0..xw1); bview/bpadWant put it in the live view at rest, the padded wide view through an ease, blit k=viewS/bview.s. Wide byte-identical (probes/wide-identity)"
     ],
     "life": [
       "ring transit via spawnAgent: walker, crosser, dogwalker. drawPerson 12 px with a contact patch. Wildlife: butterflies, fireflies, birds[], ducks, swans, catA, leaves. greetPass/chatty",
@@ -610,6 +611,12 @@
     {
       "id": "c253",
       "note": "MANAGER-LOG.md is 79 KB over 34 passes and the manager reads it whole: \"one line a pass\" is now ~3.5 KB a line. With LEDGER-archive 668 KB, RUNLOG 186 KB, state.json 114 KB, the read rent has moved from the CAPPED worker to the uncapped manager.",
+      "raisedBy": 164,
+      "seenBy": 0
+    },
+    {
+      "id": "c254",
+      "note": "the sharpening SNAP: an eased frame rides a wide-resolution cache and the destination repaint lands on the frame the motion stops, so the distance crisps at u=1 (worst 390x844 Far bank, s 3.04). The ground cache has done it since #86; nobody looked.",
       "raisedBy": 164,
       "seenBy": 0
     }

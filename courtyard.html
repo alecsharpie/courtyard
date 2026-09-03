@@ -841,7 +841,7 @@ function applyView(v){
   viewS = v.s; cellW = cellW0 * v.s; cellH = cellH0 * v.s; originX = v.ox; topPad = v.tp;
 }
 function viewEasing(){ return viewTo !== null; }
-function viewSnap(){ viewFrom = viewTo = null; applyView(viewFor(whereN)); }
+function viewSnap(){ viewFrom = viewTo = null; bpadWant = 0; applyView(viewFor(whereN)); }
 function viewEase(u){ return u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2; }
 function whereGo(n){
   whereN = ((n % QUARTERS.length) + QUARTERS.length) % QUARTERS.length; whereEver = true;
@@ -852,6 +852,19 @@ function whereGo(n){
   // quarters a phone's wide frame never shows are in it. Built once here, and the
   // destination is painted once on arrival — never per frame in between.
   viewFrom = { s: viewS, ox: originX, tp: topPad }; viewTo = to; viewAt = 0;
+  /* The backdrop cache rides the move the way the ground cache does: painted ONCE in the
+   * WIDE view here, scaled through the ease, repainted in the destination on arrival.
+   * Painting it in the DESTINATION instead — crisper, and one paint rather than two —
+   * cannot work, because the destination's own canvas does not hold what an intermediate
+   * frame reaches: it needs padding on BOTH axes (a quarter's tp is up to 566 px off
+   * wide's) and the worst move asks 9.27 Mpx against a 1.52 Mpx frame, where the wide
+   * cache asks for ZERO extra pad at every desktop framing and 0.76 Mpx at 390x844
+   * (probes/ease-pad.mjs). All the wide cache needs is what the eased frames reach PAST
+   * the wide frame sideways — the overflow groundPad() answers for the world, asked of
+   * the camera instead. A frame's reach is a ratio of two linear interpolations in u, so
+   * the ease's extremes are its endpoints: the two below ARE the worst case. */
+  const wpad = (v) => Math.max(v.ox / v.s - originX0, originX0 + (W - v.ox) / v.s - W);
+  bpadWant = Math.max(0, Math.min(W, Math.ceil(Math.max(wpad(viewFrom), wpad(to))) + 2));
   if (gview.s !== 1 || gview.pad < groundPad()){
     const cur = viewFrom; applyView(viewFor(0)); gpadWant = groundPad(); drawGround(); applyView(cur);
     groundDirty = false; wearDirty = false; wearAcc = 0;
@@ -862,7 +875,7 @@ function stepView(rdt){
   viewAt += rdt;
   const u = viewEase(Math.min(1, viewAt / VIEW_SECS)), a = viewFrom, b = viewTo;
   applyView({ s: a.s + (b.s - a.s) * u, ox: a.ox + (b.ox - a.ox) * u, tp: a.tp + (b.tp - a.tp) * u });
-  if (viewAt >= VIEW_SECS){ viewFrom = viewTo = null; gpadWant = 0; groundDirty = true; }
+  if (viewAt >= VIEW_SECS){ viewFrom = viewTo = null; gpadWant = 0; bpadWant = 0; groundDirty = true; }
 }
 /* The camera has been a pure SINK: whereN was read by the three lines that move the
  * frame and by nothing else, so the town would tell you about a dog in the courtyard
@@ -895,6 +908,17 @@ function groundPad(){
 }
 let gpadWant = 0;
 const gview = { s:1, ox:0, tp:0, pad:0 };        // the view the ground cache was painted in
+/* And the view the BACKDROP cache was painted in. The ground's content is world-derived,
+ * so a repaint in any view comes back the same town. The distance is built in SCREEN
+ * space — hashed house rhythms, ridge sines in px, a star field — so a repaint in a NEW
+ * view would be a NEW distance, not the same one re-rendered: every house would re-phase
+ * the moment the camera moved. Its paths are therefore generated in WIDE screen space
+ * whatever view the cache is painted in, and a scale+translate carries them into that
+ * view. That is what makes the image view-independent, and it is what lets this cache
+ * follow the ground's pattern (wide through the ease, the destination at rest) without
+ * the distance shuffling itself at either end. */
+const bview = { s:1, ox:0, tp:0, pad:0 };
+let bpadWant = 0;
 
 /* ============ noise & utils ============ */
 function hash(x, y){
@@ -6510,14 +6534,45 @@ function drawSky(g){
   gr.addColorStop(0, top); gr.addColorStop(1, low);
   g.fillStyle = gr; g.fillRect(0, 0, W, hz + 4 * cellH);
   drawSunMoon(g, hz, top);
-  const key = W + 'x' + H + ':' + lightBucket;
+  /* The distance, painted in ONE view and composited in the current one — the same
+   * scale+translate the ground cache rides (#86), and the reason `hz` above is computed
+   * LIVE while everything below it is not. HEAD keyed this on `W x H : lightBucket`, with
+   * no camera term at all: the live gradient's horizon walked up the frame through every
+   * ease while the cached hills, ranks and skyline stayed exactly where they were painted
+   * — a distance drawn at 1x behind a town drawn at 2.3x, and up to 62% of the sky band
+   * away from where a distance painted in the frame's own view sits (probes/ease-back.mjs).
+   *   AT REST the cache is the live view, unpadded: W x H, HEAD's canvas and HEAD's cost,
+   * and at Wide the same bytes HEAD painted. THROUGH A MOVE it is the wide view, padded
+   * (whereGo) — one paint at the start, one on arrival, never one per frame. Both views
+   * draw the same picture because drawBackdrop generates in WIDE screen space and this
+   * transform puts it into whichever view the cache is being painted in. */
+  const easing = viewEasing();
+  const bv = easing ? { s: 1, ox: originX0, tp: topPad0 } : { s: viewS, ox: originX, tp: topPad };
+  const bpad = easing ? bpadWant : 0;
+  const key = W + 'x' + H + ':' + lightBucket + ':' + bpad + ':' +
+              bv.s.toFixed(3) + ',' + bv.ox.toFixed(2) + ',' + bv.tp.toFixed(2);
   if (key !== backKey){
     backKey = key;
-    bcv.width = W * DPR; bcv.height = H * DPR;
-    btx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    drawBackdrop(btx, hz, low);
+    bcv.width = (W + 2 * bpad) * DPR; bcv.height = H * DPR;
+    btx.setTransform(DPR, 0, 0, DPR, bpad * DPR, 0);
+    btx.translate(bv.ox - bv.s * originX0, bv.tp - bv.s * topPad0);
+    btx.scale(bv.s, bv.s);
+    bview.s = bv.s; bview.ox = bv.ox; bview.tp = bv.tp; bview.pad = bpad;
+    // the span of wide screen space this canvas reaches, mapped back through that transform
+    const dxb = bv.ox - bv.s * originX0;
+    drawBackdrop(btx, topPad0 - 3.4 * cellH0, low,
+                 (-bpad - dxb) / bv.s, (W + bpad - dxb) / bv.s);
   }
-  g.drawImage(bcv, 0, 0, W, H);
+  /* The destination is the CSS rect the cache stands for, (W + 2 pad) x H, scaled by k —
+   * NOT the bitmap's own size back-divided by DPR. A canvas's width/height are integers,
+   * so `bcv.height / DPR` is H FLOORED: at 900x560 the frame is 484.625 CSS px tall and
+   * the bitmap 484, and blitting it at 484 instead of 484.625 shifted every ridge by a
+   * fifth of a pixel — 6202 px of the wide frame differing from HEAD at a size where H
+   * happens not to be a whole number, and none at the three where it is
+   * (probes/wide-identity.mjs, which exists to hold Wide byte-identical). */
+  { const k = viewS / bview.s;
+    g.drawImage(bcv, originX - k * (bview.ox + bview.pad), topPad - k * bview.tp,
+                (W + 2 * bview.pad) * k, H * k); }
   /* Weather goes on LAST, over the hills — it used to go under them ("over the sun,
    * under the hills"), which was invisible while the hills were a low bank at the
    * horizon and became the picture's biggest loss the moment a tier reached mid-sky:
@@ -6836,7 +6891,7 @@ function drawSunMoon(g, hz, top){
  * are new. Each band's base is the next-nearer band's HIGHEST roofline (its `t0`), so a
  * farther band can only ever appear ABOVE a nearer one's roofline: no floating feet, no
  * gap between bands, and nothing new drawn below the old band's foot.
- * Cache side (backKey = W x H : lightBucket): nothing here may ride the wind or the
+ * Cache side (backKey carries W x H, the light bucket and the CAMERA): nothing here may ride the wind or the
  * drift — that belongs with drawClouds. A band hazes toward `low` (skyCols()[1]) and NOT
  * toward HAZE, though HAZE is made of it: HAZE also carries mistF(), and mist is not in
  * backKey, so a band mixed toward it would be a cached band lying about the weather.
@@ -6874,46 +6929,58 @@ function farWindowLit(n, a, b){
   const off = hBed > 0.95 ? last : on + 1.2 + 6.8 * hBed * hBed;
   return n.t >= on && n.t < off;
 }
-function drawBackdrop(g, hz, low){
+/* `hz`, cellW0, cellH0 and everything derived from them here are the WIDE view's, never
+ * the live camera's: this function draws into a context that already carries the
+ * scale+translate from wide screen space into the cache's view (drawSky). xw0..xw1 is the
+ * span of that wide space the canvas reaches, and it is the ONLY thing a camera changes
+ * here. So nothing may be POSITIONED off the span: a star field spread across xw0..xw1
+ * would be a different sky at every camera. The field tiles on W instead, and both house
+ * walks below start at the x they have always started at. */
+function drawBackdrop(g, hz, low, xw0 = 0, xw1 = W){
   FAR_WIN.length = 0;
   const starF = nightF * (1 - cloudCover());         // cover puts the stars out
   if (starF > 0.1){
-    for (let k = 0; k < 120; k++){
-      const sx = hash(k, 3) * W, sy = hash(k, 11) * hz * 0.95;
-      g.fillStyle = 'rgba(234,240,255,' + (starF * (0.2 + 0.65 * hash(k, 19))) + ')';
-      g.fillRect(sx, sy, 1.3, 1.3);
-    }
+    for (let j = Math.floor(xw0 / W); j * W < xw1; j++)
+      for (let k = 0; k < 120; k++){
+        const sx = j * W + hash(k, 3) * W, sy = hash(k + j * 131, 11) * hz * 0.95;
+        g.fillStyle = 'rgba(234,240,255,' + (starF * (0.2 + 0.65 * hash(k, 19))) + ')';
+        g.fillRect(sx, sy, 1.3, 1.3);
+      }
   }
   /* Hills, hazed, in three tiers — and THE STRIP THEY STAND IN IS NOT A CONSTANT. topPad
-   * reserves 9.6 cellH and then swallows whatever SPARE the window leaves, so the band
-   * above hz is 12.3 cellH tall at 1200x700, 15.9 at 900x560, 26.2 at 1600x950 and 52.2
-   * at 390x844 — a factor of four (probes/far-depth.mjs). A skyline pinned in cellH
+   * reserves 9.6 cellH0 and then swallows whatever SPARE the window leaves, so the band
+   * above hz is 12.3 cellH0 tall at 1200x700, 15.9 at 900x560, 26.2 at 1600x950 and 52.2
+   * at 390x844 — a factor of four (probes/far-depth.mjs). A skyline pinned in cellH0
    * therefore fills exactly ONE framing: HEAD's two ridges topped out at a median 5.6
-   * cellH at every size, which is 45% of the short strip and 21% of the wide one, and
+   * cellH0 at every size, which is 45% of the short strip and 21% of the wide one, and
    * left 78% of the wide sky bare gradient. So each tier is placed on the strip's OWN
    * height (`ex`, the headroom past a 12.3 strip), and every tier is bounded by the room
    * ABOVE it so the canvas edge can never cut one flat. The short strip is not the small
-   * window: a big SQUARE one (1600x1200) is the shortest of all at 7.75 cellH, because
-   * cellH grows with the width while the spare headroom does not — HEAD's far ridge was
+   * window: a big SQUARE one (1600x1200) is the shortest of all at 7.75 cellH0, because
+   * cellH0 grows with the width while the spare headroom does not — HEAD's far ridge was
    * already clipped there. `sc` makes the tiers shallower rather than taller than the sky.
    *   Furthest FIRST — the range, the far ridge, then HEAD's near one over both. #150's
    * comment claimed its +3.4 was "clear of band 0's roofline"; it was not, and its own
-   * arithmetic said so — a minimum of 0.70 cellH is below band 0's LOWEST roof at 1.60,
+   * arithmetic said so — a minimum of 0.70 cellH0 is below band 0's LOWEST roof at 1.60,
    * and the furthest rank crossed the near ridge in 26% of its columns. The near ridge is
-   * lifted; the bound that actually matters is the FAR ridge's minimum (4.9 cellH), which
+   * lifted; the bound that actually matters is the FAR ridge's minimum (4.9 cellH0), which
    * clears every rank's ROOFLINE (3.40) at every framing, so no far roof stands against
    * open sky. What still does is a rank's SPIRE, which is the one thing that should. */
-  const strip = hz / cellH, ex = Math.max(0, strip - 12.3);
+  const strip = hz / cellH0, ex = Math.max(0, strip - 12.3);
   const sc = Math.min(1, (strip - 1.2) / 11.1);       // a SHORT strip gets shallower tiers, never clipped ones
   const ridge = (h, base, a0, k0, a1, k1, ph, a2, k2) => {
     g.fillStyle = mix(low, nightF > 0.5 ? '#151d33' : '#93a7b2', h);
-    g.beginPath(); g.moveTo(-10, hz + 4 * cellH);
-    for (let sx = -10; sx <= W + 30; sx += a2 ? 8 : 24)      // a peaked tier needs finer steps
+    const st = a2 ? 8 : 24;                                 // a peaked tier needs finer steps
+    // the tier runs out to whatever the canvas reaches, but its SAMPLE LATTICE stays
+    // anchored on -10: a ridge resampled on a shifted lattice is a different silhouette
+    const rx0 = -10 - Math.max(0, Math.ceil((-10 - xw0) / st)) * st, rx1 = Math.max(W + 30, xw1 + 10);
+    g.beginPath(); g.moveTo(rx0, hz + 4 * cellH0);
+    for (let sx = rx0; sx <= rx1; sx += st)
       // the third term is 1 - |sin|, not sin: a sum of sines can only make a rolling
       // downland, and its CUSPS are what makes a summit read as a summit
-      g.lineTo(sx, hz - cellH * (base + a0 * Math.sin(sx * k0 + ph) + a1 * Math.sin(sx * k1 + 1.7)
+      g.lineTo(sx, hz - cellH0 * (base + a0 * Math.sin(sx * k0 + ph) + a1 * Math.sin(sx * k1 + 1.7)
                                 + (a2 ? a2 * (1 - Math.abs(Math.sin(sx * k2 + 0.4))) : 0)));
-    g.lineTo(W + 30, hz + 4 * cellH); g.closePath(); g.fill();
+    g.lineTo(rx1, hz + 4 * cellH0); g.closePath(); g.fill();
   };
   // the range: the furthest thing in the world, the palest, and the only tier with a
   // third harmonic — distance flattens a hill's outline, but it also stacks peaks
@@ -6924,38 +6991,48 @@ function drawBackdrop(g, hz, low){
   // the rest of the town, further off than ours — furthest band first, nearest last
   const night = nightF > 0.5, roofs = [];
   for (let i = 0; i < FAR_BANDS.length; i++){
-    const b = FAR_BANDS[i], base = hz + b.base * cellH, houses = [];
+    const b = FAR_BANDS[i], base = hz + b.base * cellH0, houses = [];
     g.fillStyle = mix(low, night ? '#0d1424' : '#6f7c86', b.haze);
-    let sx2 = -18;
-    while (sx2 < W + 18){
+    /* The walk east from -18 is HEAD's, house for house — a chain ACCUMULATES its widths,
+     * so starting it further west to fill a padded canvas would re-phase every house in
+     * the frame. West of -18 is therefore its own chain, keyed +9973 and walked
+     * right-to-left from the same anchor: it can be extended as far as a camera asks
+     * without moving a single house of the other, and the two meet exactly at -18. */
+    const west = [];
+    for (let r = -18; r > xw0; ){
+      const w2 = cellW0 * (b.w0 + b.wv * hash(Math.round(r) + b.salt + 9973, 5));
+      west.push(r - w2, w2); r -= w2;
+    }
+    let wi = west.length - 2, sx2 = wi >= 0 ? west[wi] : -18;
+    while (sx2 < xw1 + 18){
       const key = Math.round(sx2) + b.salt;
-      const w2 = cellW * (b.w0 + b.wv * hash(key, 5));
-      const top = hz + cellH * lerp(b.t0, b.t1, hash(key, 9));
+      const w2 = wi >= 0 ? west[wi + 1] : cellW0 * (b.w0 + b.wv * hash(key, 5));
+      const top = hz + cellH0 * lerp(b.t0, b.t1, hash(key, 9));
       const tower = hash(key, 13) > b.spire;
       g.beginPath();
       if (tower){                                   // a distant spire
-        g.moveTo(sx2, base); g.lineTo(sx2, top - cellH * 2.4 * b.sc);
-        g.lineTo(sx2 + w2 * 0.5, top - cellH * 7.2 * b.sc);
-        g.lineTo(sx2 + w2, top - cellH * 2.4 * b.sc); g.lineTo(sx2 + w2, base);
+        g.moveTo(sx2, base); g.lineTo(sx2, top - cellH0 * 2.4 * b.sc);
+        g.lineTo(sx2 + w2 * 0.5, top - cellH0 * 7.2 * b.sc);
+        g.lineTo(sx2 + w2, top - cellH0 * 2.4 * b.sc); g.lineTo(sx2 + w2, base);
       } else {
         g.moveTo(sx2, base); g.lineTo(sx2, top);
-        g.lineTo(sx2 + w2 * 0.5, top - cellH * 0.9 * b.sc);
+        g.lineTo(sx2 + w2 * 0.5, top - cellH0 * 0.9 * b.sc);
         g.lineTo(sx2 + w2, top); g.lineTo(sx2 + w2, base);
         g.closePath();
         // chimneys: stubs off the roof slope, subpaths of the SAME path and the same
         // single fill, so a stack can never double-darken the roof it stands on
         const hc = hash(key, 17), nch = hc < b.chim * 0.4 ? 2 : hc < b.chim ? 1 : 0;
         for (let c = 0; c < nch; c++){
-          const f = 0.18 + 0.64 * hash(key, 41 + c), cw = Math.max(1, cellW * 0.16 * b.sc);
-          const ry = top - cellH * 0.9 * b.sc * (1 - Math.abs(2 * f - 1)) + cellH * 0.1;
-          const ch = cellH * (0.55 + 0.45 * hash(key, 47 + c)) * b.sc;
+          const f = 0.18 + 0.64 * hash(key, 41 + c), cw = Math.max(1, cellW0 * 0.16 * b.sc);
+          const ry = top - cellH0 * 0.9 * b.sc * (1 - Math.abs(2 * f - 1)) + cellH0 * 0.1;
+          const ch = cellH0 * (0.55 + 0.45 * hash(key, 47 + c)) * b.sc;
           g.moveTo(sx2 + w2 * f, ry); g.lineTo(sx2 + w2 * f, ry - ch);
           g.lineTo(sx2 + w2 * f + cw, ry - ch); g.lineTo(sx2 + w2 * f + cw, ry);
         }
       }
       g.closePath(); g.fill();
       if (b.lit > 0) houses.push(sx2, w2, top);
-      sx2 += w2;
+      sx2 += w2; wi -= 2;
     }
     roofs.push(houses);
   }
@@ -6967,19 +7044,19 @@ function drawBackdrop(g, hz, low){
     for (let i = 0; i < FAR_BANDS.length; i++){
       const b = FAR_BANDS[i];
       if (b.lit <= 0) continue;
-      const base = hz + b.base * cellH, hs = roofs[i];
-      const ww = Math.max(1, cellW * 0.13 * b.sc), wh = Math.max(1, cellH * 0.15 * b.sc);
+      const base = hz + b.base * cellH0, hs = roofs[i];
+      const ww = Math.max(1, cellW0 * 0.13 * b.sc), wh = Math.max(1, cellH0 * 0.15 * b.sc);
       const reg = { a: b.lit, r: [] };
       FAR_WIN.push(reg);
       g.fillStyle = 'rgba(255,205,130,' + (0.5 * nightF * b.lit) + ')';
       for (let k = 0; k < hs.length; k += 3){
         const sx2 = hs[k], w2 = hs[k + 1], top = hs[k + 2];
-        const nc = clamp(Math.floor(w2 / (cellW * 0.7)), 1, 6);
+        const nc = clamp(Math.floor(w2 / (cellW0 * 0.7)), 1, 6);
         for (let c = 0; c < nc; c++){
           const wx = sx2 + w2 * (c + 0.5) / nc - ww * 0.5;
           for (let r = 0; r < 4; r++){
-            const wy = top + cellH * (0.5 + r * 0.66) * b.sc;
-            if (wy + wh > base - cellH * 0.08) break;     // the facade ran out above the band's foot
+            const wy = top + cellH0 * (0.5 + r * 0.66) * b.sc;
+            if (wy + wh > base - cellH0 * 0.08) break;     // the facade ran out above the band's foot
             if (!farWindowLit(n, (i + 1) * 20011 + k * 5 + c, r)) continue;
             g.fillRect(wx, wy, ww, wh); reg.r.push(wx, wy, ww, wh);
           }
@@ -13065,10 +13142,15 @@ function applyLight(t){
     // the far town's glass, on the same footing and for the same reason as the near
     // town's below: registered in the backdrop cache, repainted here. Dimmer than ours
     // and dimmer band by band, so the distance stays distance.
+    // ...and mapped out of the WIDE screen space drawBackdrop registers them in. That is
+    // #86's rule for FACES: a screen-space register read through a camera is stale unless
+    // the camera's own scale+translate is put back on it.
+    const fwK = viewS, fwDx = originX - fwK * originX0, fwDy = topPad - fwK * topPad0;
     for (const fw of nightF > 0.3 ? FAR_WIN : []){    // the same edge drawBackdrop wrote them on
       if (!fw.r.length) continue;
       ctx.fillStyle = 'rgba(255,198,120,' + (0.55 * fw.a * nightF).toFixed(3) + ')';
-      for (let i = 0; i < fw.r.length; i += 4) ctx.fillRect(fw.r[i], fw.r[i+1], fw.r[i+2], fw.r[i+3]);
+      for (let i = 0; i < fw.r.length; i += 4)
+        ctx.fillRect(fwDx + fwK * fw.r[i], fwDy + fwK * fw.r[i+1], fwK * fw.r[i+2], fwK * fw.r[i+3]);
     }
     // the warmth back into the glass: the multiply above turned every lit pane the
     // same grey as the wall (R - B was -5 at midnight); a screen fill of the pane's own

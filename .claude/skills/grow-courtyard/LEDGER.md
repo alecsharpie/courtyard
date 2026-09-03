@@ -126,3 +126,13 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped
 **Surprise:** state.json is a fourth unbounded file the brief did not name — **closedCues is 79 KB of its 114**, 227 notes nothing prunes, in the file state.mjs rewrites whole each iteration.
 **Law:** a field is not a reading — a gate wired into a row can sit at `null` for ever, and to a consumer counting only failures that is the same zero as a pass. Separate NOT MEASURED from CLEAN.
+
+## Iteration 165 — the far distance moves with the frame (2026-09-03) [Sky, light & weather × Connect]
+
+**Brief:** b165 — `backKey` carried no camera term: the live horizon eased, the cached hills did not.
+**Did.** `drawBackdrop` generates in WIDE screen space; a scale+translate puts it into whichever view the cache is painted in. **At rest** that is the live view, unpadded — HEAD's canvas and cost. **Through a move** it is the wide view, padded by what the endpoint frames reach past it (`wpad`) and scaled by `k` like the ground: two paints a move, never one a frame. `FAR_WIN` mapped out of wide space in `applyLight`. The DESTINATION is crisper, and holds nothing an intermediate frame reaches past it — **9.27 Mpx of padding against a 1.52 Mpx frame**, where wide asks **zero** on a desktop (`probes/ease-pad.mjs`).
+**Proved** (`probes/ease-back.mjs`, new): a GROUND-TRUTH build repainting in the live view every frame; 5 moves x 8 points. Sky-band MAD **0.10 vs HEAD 7.55**, worst frame **0.67% vs 62.1%**, drift **0 px vs 171**; control **0.00**.
+**Gates:** census · motion · 0 POP day+night · `probes/wide-identity.mjs` (new): Wide byte-identical at 4 framings. +0.8 ms a repaint; eased frame 3.2 -> 3.5.
+**Verdict:** shipped
+**Surprise:** Wide came back 6202 px OFF at 900x560 and identical at the other three. `bcv.height/DPR` is not H — a canvas's height is an INTEGER, the frame there is 484.625 CSS px, and HEAD's `drawImage(bcv,0,0,W,H)` had been stretching the cache by 1.0013 to cover the remainder. Blitting the bitmap at its own size was the arithmetically honest thing and the wrong one.
+**Law:** a cache's bitmap size is not its DESTINATION rect — `canvas.width/height` FLOOR, so blitting one back through `cv.width/DPR` loses the frame's fractional remainder. Blit the CSS rect the cache stands for.
