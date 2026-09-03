@@ -11,13 +11,16 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
   brief is no witness. A control must test a build-INDEPENDENT fact, never a predicate the candidate
   DEFINES, and must differ from the thing measured in exactly ONE way. And **a source COMMENT is a brief
   generator**: one that measures two terms disagreeing is a BUG REPORT — and one may simply be STALE,
-  so when you refute a premise DELETE the sentence that produced it. (#6–#147)
+  so when you refute a premise DELETE the sentence that produced it. And **a count of exactly ZERO:
+  read the LOOP'S BOUNDS before explaining it with the world** — a shared branch carries the constant
+  of the region it was written for. (#6–#152)
 - **One predicate, one definition — read a footprint back off the grid, never re-derive it.** Routes
   are WAYPOINTS and nobody reads the grid between them, so a non-walkable cell holds only where a
   route's ENDPOINTS are chosen: keep it out of every target set. A naming predicate is usually a
   FALL-THROUGH, so the box it answers with is not the surface: intersect the GRID before counting off
   it. A solve must hand its consumer **the value it TESTED**: a `-=` walk drifts below what the
-  predicate floors. (#24–#141)
+  predicate floors. And a value stored for a DRAWING reason is read downstream as a fact about the
+  WORLD: two consumers, two arrays. (#24–#151)
 
 ## This town
 - **Every random draw goes through `R()`** (or `hash(x,y)` per cell); `Math.random()` is invisible to
@@ -27,7 +30,8 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
   seeded world**: the census churns everywhere and motion gates fire on kinds you never touched —
   read it for *collapse*, not delta, replay every stray gate on HEAD, and keep each branch on the
   half of [0,1) it owned. **Two seeds is not a sample**, and at small n a threshold is not a share:
-  rank the members by their own hash and cut at the quantiles. (#2–#138)
+  rank the members by their own hash and cut at the quantiles — and a bar on a BIMODAL scalar is a
+  coin, so histogram the value AT THE CALL before sweeping the constant. (#2–#154)
 - **The renderer's six traps.** (a) `project()` pinches on *screen* depth and LIFTS z NORTHWARD: each
   cell of height on a near volume walks it ~1.15 rows UP the frame — price a foreground against what
   is BEHIND it. (b) Roofs are emergent from
@@ -42,8 +46,8 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
   VISIBILITY question before a geometry one: because (a) lifts a volume up the frame, a NORTHWARD
   throw must be vetoed per column or it paints the caster's own roof — and price its EXTENT off
   `-S/S[2]` first, since `sunVec()` is a stylised HIGH sun (65–76° at midday: a 5.4-cell wall reaches
-  two cells). `-S/S[2]` prices the RAY and not where it LANDS: a caster is bounded by the OPEN WORLD
-  downwind, not by its height, so price the reachable GROUND before raising one. The MIRROR is the same
+  two cells). But that prices the RAY, not where it LANDS: a caster is bounded by the OPEN WORLD
+  downwind, so price the reachable GROUND before raising one. The MIRROR is the same
   solve with the eye for the sun — a NEGATIVE z, so a caster's own draw IS its image; every draw
   landing ON the plane must read the sign. Shadow northward, image southward. Quads that must not double-darken are ONE path filled ONCE. (#4–#146)
 - **Time is compressed, and a walk is priced at its CHOICE and spent on its way.** A day is 55 s: a
@@ -55,8 +59,7 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
   marathon-walker factory, and its END is the hour the last person is GONE, so the walk home is
   priced at the choice too. Walking is ~5.2 cells/h; price N places as N × (leg + stand). **A unit of work DRAWN before it
   is PRICED makes the price all-or-nothing** — solve the room the unit has and take `min(drawn,
-  room)` against a floor. And **staleness and untruth are two clocks**: how long anyone will WAIT for
-  a line is not when it stops being TRUE. (#2–#148)
+  room)` against a floor.  (#2–#148)
 - **A feature that exists may exist at a rate of zero — count before you build on it.** A spawn band
   is a *share of a budget*, not a rate, so a rare thing needs its OWN source; a linear cap with no
   knee buys only the branch nearest the source, so the SHARE, not the ceiling, is the cap beneath the
@@ -67,7 +70,7 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
   later population that also satisfies `p` — **define membership POSITIVELY at the source (a flag on
   the spawn literal, inherited by every branch), never as a residual**, and end it positively at the
   CLAIM: a one-shot choice guarded only by the state it CONSUMES is re-entrant the moment that state
-  is duplicated. A place that RESERVES nothing is not a place. Instrument a compound predicate CLAUSE
+  is duplicated.  Instrument a compound predicate CLAUSE
   BY CLAUSE in its own evaluation order: the loudest refusal is usually the cheap boolean in front of
   the arithmetic. (#7–#144)
 - **A ceiling is not a kill term, and a scalar is not a switch**: a system that ages out what sits at
@@ -81,9 +84,7 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
   season.** `nightF`'s edges sit `NIGHT_K*dayHours` (1.7 h winter, 2.5 h summer) outside sunrise and
   sunset, so anything happening *at first light* keys on `sunUp`, never on the night's span. `!daylight` / `nightF>0.3` is DAWN as well as
   dusk: any rule ending something because the light is low must be bounded on BOTH sides of noon. A
-  **hard-coded HOUR in a light or warmth term is a seasonal bug invisible to a screenshot**: solve an
-  hour OF THE SUN at the instant it applies, and fixing the MORNING half of such a term leaves the
-  evening half wrong. Re-keying a term onto the sun moves its OFFSET, and its WIDTH must then stay
+  **hard-coded HOUR in a light or warmth term is a seasonal bug invisible to a screenshot**: solve an hour OF THE SUN at the instant it applies. Re-keying a term onto the sun moves its OFFSET, and its WIDTH must then stay
   FIXED — scaling both makes the value at sunset+k a function of the season again, which was the
   fault; scale a width only when the thing is the night's clock (`dawnF`). A social window a LIGHT term also cuts is two bounds and only
   one moves with the season: solve the sun's hour and INTERSECT. And `day` rolls at hour 6, so it
@@ -95,17 +96,15 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
   camera ease — map it through `k = viewS/gview.s`. A night colour is set by the LAST composite that
   touches it: anything drawn live before `applyLight`'s multiply is slate by midnight, so it must
   REGISTER its point and be repainted in a `screen` pass after — "it is drawn" is not "it can be
-  seen". (#39–#136)
+  seen". A warm pixel painted INTO the cache is in exactly that trouble: register its points in the
+  SAME rebuild as the image, and repaint after. (#39–#150)
 - **The FRAMING decides what exists: bound the near world in DEPTH, and anchor it on the sill.**
-  `sillTop()` eats the bottom ~7% of every frame, and the world depth it lands at is a function of the
-  window, not a constant (~40 cells across the sizes we ship). No world-space ROW bound is safe at
-  every size: bound a near band in DEPTH (`y − z·LIFT`, world state) for the SHORTEST framing you
+  `sillTop()` eats the bottom ~7% of every frame and the depth it lands at is a function of the
+  window, not a constant. No world-space ROW bound is safe at every size: bound a near band in DEPTH (`y − z·LIFT`, world state) for the SHORTEST framing you
   support. A quarter cannot reach the world's edge by ZOOMING — move the extent, not
   the zoom. And the frame decides what COMPETES: **a contention price is only a price where there IS
   contention**, so a rule ranking callers on a shared surface binds at Wide and slides off at a
-  quarter, where `inView` has already filtered the others out. There the CADENCE against the
-  surface's CAPACITY is the whole answer — a 55 s day holds ~22 ticker lines at `TICK_DWELL`. Count
-  the slots before designing the queue. (#27–#142)
+  quarter, where `inView` has already filtered the others out.  (#27–#142)
 - **A probe's world is only as rewound as you make it — and suspect the INSTRUMENT first.**
   `__reseed()`/`__setTime()` rewind the PRNG and clock, not latches or spawned agents; frames drawn at
   page load move the PRNG, so without `__reseed()` even HEAD's own `windF` flips across runs. Reseed,

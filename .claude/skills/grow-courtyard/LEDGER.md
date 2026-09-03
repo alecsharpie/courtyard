@@ -77,7 +77,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Measured** (`probes/far-depth.mjs`). Rungs in the layer: HEAD **2** → **6** (L186 to L142, even steps), all six visible on screen. Strip mass against a **same-code control of 0.000%**: 7.11% desktop, 4.87% phone; below the foot **0 px differ**, 5 instants × 2 sizes. Night: rows hz−2/−1 go 0 → 31/74 warm px, the furthest rank dark, lit count 147→474→171.
 **Verdict:** shipped
 **Surprise:** HEAD's 80 "lit dots" were never lights. Painted into the cache, they meet the multiply last: 242 px in the layer, 61 in the frame, and the warm-pixel count above the roofline is **identical with them present and removed**. Dead since the layer was written.
-**Law:** a CACHED warm pixel is in exactly the trouble #136 named for a live one — the multiply is last either way. Register its points for a repaint after `applyLight`, in the same rebuild as the image, so a stale cache is stale in one piece.
 
 ## Iteration 151 — our own terrace throws a real shadow across the lane (2026-09-03) [Roofs & skyline × Connect]
 
@@ -88,7 +87,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **HEAD → cand** (`probes/lane-shade.mjs`, new): **shOpen byte-identical**, the mask north of the lane too, over 12 instants. Lane SIDE **0 → 952-1,482** sub-cells at every hour of the year; ROAD 0 → 472-982 at a low sun, **0 at a summer noon**, the edge sliding 77→74 with the season. `shade-diff.mjs` t=1068: **43,004 px** on a same-code floor of 507, and its `behindAVolume` 22 / `ROOF/WALL` 16 *are* the floor's, so nothing lands on a roof.
 **Verdict:** shipped
 **Surprise:** the terrace's own GAPS came free. Rows 73-78 fill to 85-92%, never 100: the missing ~60 sub-cells are exactly the river's 15-cell gap in the block, a slot of sunlight where the terrace isn't.
-**Law:** a height stored for a DRAWING reason is read downstream as a fact about the world. Two consumers, two arrays.
 
 ## Iteration 152 — the kneel at an unripe plot now does something (2026-09-03) [People & animals × Deepen]
 
@@ -99,7 +97,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **HEAD → cand.** Kneels performing nothing **22/22 → 0/33**, all five rungs firing. `allot-act-rungs.mjs` forces every rung + the documented fall-through, 9/9. Same-code pixel control **0**, a sown drill 24 px. Monoculture intact; harvest +9%.
 **Verdict:** shipped
 **Surprise:** the bug was a world-width CONSTANT, not the CA. `N = 64` predates the allotments: a loop written for the courtyard, inherited by a block past its bound. Two passes explained the zero with the simulation, not the loop's first line.
-**Law:** a count of exactly zero: read the loop's BOUNDS before explaining it with the world — a shared branch carries the constant of the region it was written for.
 
 ## Iteration 153 — the memory quota gets a caller (2026-09-03) [The sill & the observer × Harness]
 
@@ -120,4 +117,3 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **HEAD → cand.** `punt-track.mjs` (new): HEAD least **1.033**, 16 inside 1.2, exit 1; cand **1.200000**, 0, exit 0. Windy days, 20 seeds: take **24.7% → 32.1%**.
 **Verdict:** shipped — the per-DAY bar is missed, and that is the surprise.
 **Surprise:** the supply fell and the punt did not do it. Offers/day 1.65 → 1.35 in **both** seed sets, which read as causal until the control: `spawnEastAgent()` fires **1787 → 1784** and the east cap binds **0.0% on both**. Nobody is crowded out — the reshuffle lands the `wary < DECK_SHARE` coin differently. A per-day RATE cannot see this change; the take rate can.
-**Law:** a bar on a BIMODAL scalar is a coin — histogram the value AT THE CALL before sweeping the constant, and cut a per-person share on a coordinate its population is uniform in.
