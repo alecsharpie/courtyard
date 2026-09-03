@@ -21,7 +21,7 @@
   "avoid": "Do not touch anything below the horizon - the near town is settled, and the diff must be confined to the backdrop layer. Do not put the new depth into the cache KEY: backKey is WxH:lightBucket, so anything that must move with the season, the wind or the drift is not a cached band and belongs where drawClouds already is. Grade it on sd/mean against a SAME-CODE control, never on absolute luma under a compositing wash, and crop the filmstrip to the band - a whole-frame rate is blind under 2% of the canvas. A surface can be flat BY CONSTRUCTION: read what the existing silhouette's own hash is scaled by before you decide it needs a new system. Do NOT expect the structural census scalars to move - this is depth beyond the grid and the census cannot see it. Say so in the entry.",
   "budgetMin": 90,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 150,
   "issued": "2026-09-03T01:06:32.243Z",
