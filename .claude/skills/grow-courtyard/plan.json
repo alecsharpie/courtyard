@@ -17,29 +17,6 @@
   "rationale": "I SHOT THE TOWN FIRST - a day-3 mid-morning, a rainy midsummer dusk and a midwinter afternoon, wide, river, lane and mobile - and the picture answers the frontier question with two surfaces, both of them at the EDGES of the frame and both of them the only dead things in it. THE FIRST IS THE BAND ABOVE THE ROOFLINE. At the cross-street column the sky and its backdrop run rows 58-416 of a ~1660-row canvas: about a fifth of the wide frame, and the only part of the picture that is not a place. drawBackdrop() gives it one hazed hill silhouette and ONE band of flat blocks walked along a single base at hz+3.2*cellH in one colour, cached on backKey = WxH:lightBucket. The town does not recede; it stops, against a cut-out. That is b150, the bet, 90 minutes, 150-300 lines, first in the queue. THE SECOND IS THE LANE. #140 measured ROAD.lane at 0.0% - the busiest, nearest strip in the town takes no building shadow at any hour - and #146 found why: sunVec()'s ly is 0.58..0.32, northward at every hour of every season, and every tall caster stands at the world's north edge, so the throws leave the map. The one volume south of the lane is OUR OWN block, and eaveFor() returns 0 for y >= LN_WALK_S with a stated reason: project() lifts z northward, so our block at its true eave would be DRAWN in front of the lane. That is a DRAWING constraint - and shTop[] reads it as if it were a fact about the building. #146's towerShTop() is the exact precedent for a casting height that is not the drawn eave, and unlike the towers this caster has thirteen rows of open ground downwind of it. That is b151. THE RUNG, and I am going to be exact about what I am claiming. I am calling this batch 4b - a change to the world in SPACE - and I am claiming it on the picture, not on the census, because the census cannot reach it. My predecessor's blocker is correct and I re-checked it rather than taking it on trust: GW 138 x WH 88, every quarter allocated, the wide frame already edge to edge, no free row north of the terraces (the towers' rays leave the world at ~2 cells above the clock tower) and none south of our own block (rows 79-87 are its roof and row 88 is the sill), and growing WH would move every hard-coded row in 13,600 lines. So the grid cannot grow, and the seven structural scalars measure the grid. What CAN grow is depth beyond it - the field edge east of GW and #145's water mirror are both precedents already in the source - and that is what b150 does, and b151 changes the shape of light on the largest ground surface in the frame. mapFlat will therefore keep counting and will fire around #153; I have written into the watch that the next manager must NOT re-derive the map-is-full argument for a fourth time, and what the two remaining honest 4b moves actually are. THE REST OF THE QUEUE walks the staleness list and pays a debt. b152 takes People & animals, 12 back and the longest untouched, on #147's best finding: a holder walks into the allotments, kneels, plants nothing, says nothing and walks out - 15 of 101 kneels a year, the only visit in this town that performs nothing. b154 takes River on c225's two unpriced constants: WIND is the punt's top refusal at 32.9% of offers and a swan gets to 1.05 cells of a hull under way. b153 is the one I would rather not need. #149 BUILT the additions quota and run-loop.sh never calls it, so the loop has a gate that exists at a rate of zero - which is a law in this file, quoted at a harness. The read budget has been OVER on about thirty consecutive worker iterations and reset by six manager passes, three of them mine; the mop is not the fix and #149 wrote the fix, so this batch wires it. CURATION. Coverage #145-#149 entered. LAWS.md: five claims promoted out of #145-#149 and every one MERGED - #145's mirror sign and #146's open-world bound both into renderer trap (f), which is what b150 and b151 both need; #147's stale-comment rule into locate-before-you-judge; #148's set-out-versus-presence into the time law and its light-cut-window into the sun's-hour law; #149's gate-subject rule into the probe law. Paid for by cutting three claims outright: the plotCrop first-cell example (#147 measured it exact in this town, so the example was false where it was quoted), the re-weighting-names-which-band-PAYS line, and the slow-scalar tgt>x/tgt<x flicker rule - the weakest claim in the file, a one-off coding gotcha already fixed at its site. 12 laws, 11.9/12 KB, more claims than it started with. BUDGET 49.0 -> 44.7/46, and every part of the cut is a merge: inventory 11.3 -> 9.3 KB by cutting symbol tails a worker greps for anyway and folding #146's tower line into roofs and #145's mirror line into river (the 'the water reflects almost nothing' line was DELETED - #145 made it false); cues 4.2 -> 2.2 KB, 14 -> 8, four promoted into this queue (c221 held back as next pass's first brief, c224+c234 -> b151, c235 -> b152, c225 -> b154, c238 -> b153); ledger #147/#148/#149 archived verbatim then condensed, 6.3 -> 5.1 KB; watch rewritten to five notes, with the mapFlat finding and my own premise problem both written down for whoever plans next.",
   "queue": [
     {
-      "id": "b152",
-      "domain": "People & animals",
-      "kind": "Deepen",
-      "brief": "Every arrival in this town ends in a stop that performs something and usually says it - there are 37 sayAt sites. One does not. #147 counted 101 allotment kneels a year (3 seeds, probes/allot-year.mjs): 71 harvests, 15 turns and 15 hand-sows, and the hand-sows plant ZERO cells, because a kneel only ever reaches an UNRIPE plot and by then caTick's infill has already sown every cell of it. A holder comes in through the gate, kneels, plants nothing, says nothing, and walks out. Give that visit a real act at an unripe plot - watering from the butt, thinning, weeding, staking, propping a cloche - chosen from what the plot's own state and its ALLOT_FURN actually afford, with its own ticker line. Re-count the 15-of-101 on HEAD before you build: it is #147's number from three seeds and it is the whole premise.",
-      "seams": [
-        "spawnAllotAgent",
-        "gardenerKneel",
-        "plotTurn",
-        "plotCrop",
-        "ripePlots",
-        "fallowPlots",
-        "caTick",
-        "ALLOT_FURN",
-        "allotFurnAt",
-        "sayAt",
-        "probes/allot-year.mjs"
-      ],
-      "successLooksLike": "Over a year x 3 seeds, zero kneels perform nothing; the act is legible in an allotment crop at the plot's own scale; the ticker names it when you are looking at the allotments.",
-      "avoid": "Do not add a plot state or a species - the plots are monoculture BY CONSTRUCTION (#147, 0 of 69,008 sown plot-samples held two species) and this brief is about what the PERSON does, not what grows. Prefer hash(plot, k) to a new R() draw: any new draw reshuffles the whole seeded world and the census will churn everywhere. If the re-count on HEAD refutes the 15-of-101, say so and reject the brief - that is a good outcome, not a failure.",
-      "budgetMin": 30,
-      "risk": "low"
-    },
-    {
       "id": "b153",
       "domain": "The sill & the observer",
       "kind": "Harness",
@@ -89,6 +66,10 @@
     {
       "id": "b151",
       "at": "2026-09-03T02:18:37.486Z"
+    },
+    {
+      "id": "b152",
+      "at": "2026-09-03T02:36:00.609Z"
     }
   ]
 }

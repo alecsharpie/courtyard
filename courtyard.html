@@ -2712,10 +2712,12 @@ function plotOrigin(x, y){ return [80 + Math.floor((x - 80) / 5) * 5, 8 + Math.f
    scan reaches is safe because the block is MONOCULTURE by construction — which is worth
    writing down here, because it is not visible from this function. Three things hold it:
    caTick's infill sows a bare allotment cell with plotCrop() itself, harvestPlot() lifts
-   the row whole, and the gardener's hand-sowing branch — the one path that could carry a
-   second species across a plot edge — plants nothing, because by the time a kneel reaches
-   an unripe plot the infill has already filled every cell of it (#147 counted 15 hand-sow
-   kneels a year over 3 seeds, planting 0 cells). Measured over a year x 3 seeds: 0 of
+   the row whole, and plotAct() — the one path a HAND takes into these cells — sows the
+   plot's own crop, or a single species into a plot with none. #147 read the third of
+   those off the courtyard's hand-sowing loop and off the wrong reason: that loop is
+   bounded x < N and cannot reach an allotment cell at all, which is why it planted 0
+   (#152 re-counted 22 such kneels a year x 6 seeds, 0 eligible cells at every one of
+   them — the plots were not full, they were fallow). Measured over a year x 3 seeds: 0 of
    69,008 sown plot-samples held two species, so the first cell IS the majority, and 0 held
    a hardy cell under a tender majority — nothing has ever ridden a cabbage's ceiling. The
    read goes wrong the day any of those three change; the successor is a tally over the
@@ -3357,10 +3359,12 @@ function stepAgent(a, dt){
   if (a.state === 'sit' || a.state === 'kneel' || a.state === 'lie' || a.state === 'stand'){
     if (a.state === 'kneel' && !a.planted && a.timer < 4){
       a.planted = true;
-      // one kneel, both halves of the cycle: if the plot in front of them is ripe they
-      // take it and leave with it, and only an unripe plot gets sown by hand
+      // one kneel, and every fork of it does something: a ripe plot is taken and carried
+      // out, an unripe one gets the act its own state and furniture afford (#152), and
+      // the hand-sowing below is what is left — the COURTYARD's beds, which is all it
+      // could ever reach (it is bounded x < N)
       if (a.kind === 'allot' && a.dig){ turnPlot(a); }
-      else if (!(a.kind === 'allot' && a.plot && harvestPlot(a))){
+      else if (!(a.kind === 'allot' && a.plot && (harvestPlot(a) || plotAct(a)))){
         let planted = 0;
         const sp = SPECIES.indexOf(pick(speciesFor(a.x, a.y))) + 1;
         for (let dy=-3; dy<=3 && planted<4; dy++) for (let dx=-3; dx<=3 && planted<4; dx++){
@@ -3511,7 +3515,7 @@ function stepAgent(a, dt){
       }
       if (a.kind === 'allot' && a.tendPlot){
         a.tendPlot = false; a.state = 'kneel'; a.timer = 9 + R() * 5; a.resume = true;
-        a.planted = false; a.rows = (a.rows || 0) + 1;   // each kneel is its own row
+        a.planted = false; a.act = ''; a.rows = (a.rows || 0) + 1;   // each kneel is its own row, and its own act
         // they came a long way for one plot: most work a second or third before leaving
         if (a.rows < 3 && R() < 0.55){
           // a digger works the next fallow plot; when none is left they leave, not pick
@@ -3907,6 +3911,119 @@ function buildAllotFurn(){
   ALLOT_FURN.sort((p, q) => p.y - q.y);
 }
 buildAllotFurn();     // the grid is laid above, and nothing here is seeded
+/* ---- what a KNEEL actually DOES at an unripe plot (#152) --------------------------
+ * Every arrival in this town ends in a stop that performs something and usually says
+ * it. One did not. A holder walks in through the gate, kneels at a plot that is not
+ * ripe, and falls through to the COURTYARD's hand-sowing loop — which is bounded
+ * `x < N`, the left 64 columns, and so has never in its life been able to touch an
+ * allotment cell. Measured on HEAD (probes/allot-kneel.mjs, a year x 6 seeds): 22 of
+ * 110 allotment kneels reach that branch, all 22 plant 0 cells, and at every one of
+ * them the cells eligible under the loop's OWN predicate number 0. Not "rarely" — the
+ * bound makes it structural. They knelt, did nothing, said nothing, and walked out.
+ *
+ * So the plot gets its own act. WHICH act is read off the plot's own six cells and the
+ * pieces buildAllotFurn() put on it — no new state, no new species, no new draw. The
+ * five rungs PARTITION the cells by what can be done to one, so the ladder is a cover
+ * and not a guess:
+ *   SOW   a bare cell whose fallow clock has run out, under the plot's OWN crop — so
+ *         the block stays monoculture by construction (see plotCrop) — and under the
+ *         hardy one, or the glass one indoors, where the plot is too empty to have a
+ *         crop to read. Clears turned[], so a covered row is what ends the winter dig.
+ *   WATER a butt on this plot, showing, and dry ground: what stands under its ceiling
+ *         comes on a stage, and the fallow ground comes back sooner for the soaking.
+ *   THIN  the same row with no butt on the plot: the weakest drill comes out and the
+ *         rest take the room — one stage on, one cell back under plotCrop().
+ *   TEND  the row standing AT its ceiling and ageing toward dieback — weeded, tied in
+ *         to its canes, cleared onto the heap: bAge back to 0, so it stands instead.
+ *   RAKE  the fallow without the can: the same clock, moved less.
+ * A cell is bare or sown; bare is resting or not; sown is under its ceiling or at it,
+ * ageing or not. The five rungs take every one of those, so the ladder falls through
+ * only for a plot whose every cell is sown, AT its ceiling, with bAge exactly 0 — the
+ * single caTick between arriving at a ceiling and beginning to age. It costs exactly
+ * ONE R() draw, the one the hand-sowing branch it replaces was already spending on
+ * `pick(speciesFor())`, so the seeded stream is unmoved at the kneel itself and only
+ * the act's own mark on the beds carries forward. */
+const WATER_DRY = 0.4;                       // a can is for dry ground; above this the rain has done it
+const WATER_REST = 0.62, RAKE_REST = 0.78;   // what a soaking / a raking leaves of a fallow clock
+const HARDY_VEG = SPECIES.findIndex(s => s.veg && s.hardy) + 1;   // what goes into an open plot with no crop of its own to read
+const GLASS_VEG = SPECIES.findIndex(s => s.glass) + 1;            // and what goes into one under the span
+/* Is this plot showing that piece right now? allotFurnOn() is the same test the paint
+ * and the pointer use, so what a holder reaches for is what you can see standing there. */
+function plotFurn(ox, oy, kind){
+  for (const f of ALLOT_FURN) if (f.ox === ox && f.oy === oy && f.kind === kind && allotFurnOn(f)) return f;
+  return null;
+}
+function plotAct(a){
+  const [ox, oy] = plotOrigin(a.plot[0], a.plot[1]);
+  const crop = plotCrop(ox, oy), sow = [], up = [], age = [], rest = [];
+  let dug = 0;
+  for (let y = oy; y < oy + 2; y++) for (let x = ox; x < ox + 3; x++){
+    const i = y * GW + x;
+    if (grid[i] !== BED) continue;
+    if (bSp[i]){ if (bSt[i] < bedCap(x, y)) up.push(i); if (bAge[i] > 0) age.push(i); }
+    else if (bAge[i] > 0) rest.push(i);      // bAge on an EMPTY cell is the fallow clock
+    else { sow.push(i); if (turned[i]) dug++; }
+  }
+  const sp = crop || (inGlass(ox + 1, oy + 1) ? GLASS_VEG : HARDY_VEG);   // a plot is wholly in the span or wholly out of it
+  const name = SPECIES[sp - 1].name;
+  let n = 0, lines;
+  if (sow.length){
+    for (const i of sow){ bSp[i] = sp; bSt[i] = 1; bAge[i] = 0; turned[i] = 0; }
+    n = sow.length; a.act = 'sowing a drill';
+    lines = dug
+      ? (plotFurn(ox, oy, 'cloche') ? ['A cloche goes down over the turned row and the ' + name + ' go in under it.',
+                                       'Glass over the dug row, and a drill of ' + name + ' under the glass.']
+       : plotFurn(ox, oy, 'bay')    ? ['Muck off the heap goes on to the turned row, and the ' + name + ' go in.',
+                                       'The dug row is fed from the compost bay and sown with ' + name + '.']
+                                    : ['The turned row is covered down and sown with ' + name + '.',
+                                       'Someone breaks the clods small over the dug row and puts ' + name + ' in.'])
+      : ['A drill is drawn along the empty bed and the ' + name + ' go in.',
+         'Seed goes in down the open row — ' + name + ', by the handful.',
+         'The bare drills are sown with ' + name + ' and firmed down.'];
+  } else if (plotFurn(ox, oy, 'butt') && !raining && wetF() < WATER_DRY && (up.length || rest.length)){
+    for (const i of up) bSt[i]++;
+    for (const i of rest) bAge[i] *= WATER_REST;
+    n = up.length + rest.length; a.act = 'watering the row';
+    lines = crop
+      ? ['Two cans out of the butt go along the row; the ' + name + ' take it.',
+         'The butt gives up a canful and the ' + name + ' get a long drink.']
+      : ['The cleared bed is watered from the butt, dark where the can has been.',
+         'A canful out of the butt goes over the bare drills to settle them.'];
+  } else if (up.length){
+    /* No can, but a row coming on under its ceiling: it is thinned. The weakest drill
+     * comes out — lowest stage, hash to break the tie, so it is not a new draw — and the
+     * rest of the row takes the room and comes on a stage. What comes out goes back under
+     * plotCrop() like any other bare cell, so the plot is still one crop. */
+    let weak = -1;
+    for (const i of up) if (weak < 0 || bSt[i] < bSt[weak] || (bSt[i] === bSt[weak] && hash(i, 977) < hash(weak, 977))) weak = i;
+    for (const i of up) if (i !== weak) bSt[i]++;
+    bSp[weak] = 0; bSt[weak] = 0; bAge[weak] = 0; turned[weak] = 0;
+    n = up.length; a.act = 'thinning the row';
+    lines = ['The row is thinned — the weakest ' + name + ' come out and the rest get room.',
+             'Seedlings come out of the ' + name + ' by the handful, and the drill is left standing thin.'];
+  } else if (age.length){
+    for (const i of age) bAge[i] = 0;
+    n = age.length;
+    const canes = plotFurn(ox, oy, 'canes') && plotClimbs(ox, oy);
+    a.act = canes ? 'tying the beans in' : 'weeding down the row';
+    lines = canes
+      ? ['The beans are tied in to their canes, one leader at a time.',
+         'Someone works up the wigwam, winding the ' + name + ' back on to the hazel.']
+      : plotFurn(ox, oy, 'bay')
+      ? ['Weeds come out of the ' + name + ' by the handful and go on the heap.',
+         'The row is cleaned up and the weeds walked over to the compost bay.']
+      : ['Someone weeds down the ' + name + ', close in around the stems.',
+         'A hand goes along the ' + name + ', pulling what does not belong there.'];
+  } else if (rest.length){
+    for (const i of rest) bAge[i] *= RAKE_REST;
+    n = rest.length; a.act = 'raking the bed down';
+    lines = ['The cleared bed is raked down level, ready for the next sowing.',
+             'A rake goes over the bare drills and the earth comes up fine.'];
+  }
+  if (!n) return 0;                           // no draw spent: the branch below still has its own
+  sayAt(ox + 1, oy + 1, pick(lines));
+  return n;
+}
 function spawnAllotAgent(){
   const a = {
     kind:'allot', street:true, x:0, y:0,
@@ -12801,7 +12918,7 @@ function personName0(a){
   if (st === 'lie') return inLindenShade(a.x, a.y) ? 'someone lying in the shade of the linden'
                         : daylight > 0.05 && shadowF() > 0.5 ? 'someone lying out in the sun' : 'someone lying on the grass';
   if (a.tend && st === 'stand') return 'an allotment holder, feeding the bonfire';
-  if (st === 'kneel') return k === 'allot' ? (a.dig ? 'an allotment holder, turning a plot over' : 'an allotment holder, kneeling at the plot')
+  if (st === 'kneel') return k === 'allot' ? (a.dig ? 'an allotment holder, turning a plot over' : 'an allotment holder, ' + (a.act || 'kneeling at the plot'))
                                            : 'the gardener, kneeling at a bed';
   if (k === 'busker' && st === 'stand') return 'a busker, playing';
   if (k === 'tap' && st === 'stand') return a.cup ? 'someone at the door, cup in hand' : 'someone waiting at the door';

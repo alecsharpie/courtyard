@@ -138,3 +138,14 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped
 **Surprise:** the terrace's own GAPS came free. Rows 73-78 fill to 85-92%, never 100: the missing ~60 sub-cells are exactly the river's 15-cell gap in the block, a slot of sunlight where the terrace isn't.
 **Law:** a height stored for a DRAWING reason is read downstream as a fact about the world. Two consumers, two arrays.
+
+## Iteration 152 — the kneel at an unripe plot now does something (2026-09-03) [People & animals × Deepen]
+
+**Brief:** b152 — one arrival performs nothing: a hand-sow kneel plants 0 cells. Re-count on HEAD first.
+**Re-counted** (`allot-kneel.mjs`, new: an instrumented COPY of the build). Year × 6 seeds: 110 allotment kneels — 73 harvest, 23 turn, **22 hand-sow planting 0**. Premise holds; the reason does not — the plots are not full, they are FALLOW (3.95 of 6 cells bare). It is `x >= N` in the sow loop: `N = 64` is the courtyard block, the allotments are x 80–93. **0 eligible cells at 22 of 22.** Deleted `plotCrop()`'s sentence saying otherwise.
+**Did.** `plotAct(a)`, five rungs PARTITIONING the plot's six cells — a cover, not a guess (sow/water/thin/tend/rake, in the inventory). A ticker line each; `a.act` names it under the pointer. Spends **exactly the one `R()` draw** the branch it replaces spent.
+**Gates:** census PASS but churning (an act moves caTick's draws) · filmstrip 0 POP · visual PASS · motion FAIL `dusk/cart 0→2`, **replayed on HEAD**: identical exit trot, HEAD's cart jumps at t=1083 — a phase shift.
+**HEAD → cand.** Kneels performing nothing **22/22 → 0/33**, all five rungs firing. `allot-act-rungs.mjs` forces every rung + the documented fall-through, 9/9. Same-code pixel control **0**, a sown drill 24 px. Monoculture intact; harvest +9%.
+**Verdict:** shipped
+**Surprise:** the bug was a world-width CONSTANT, not the CA. `N = 64` predates the allotments: a loop written for the courtyard, inherited by a block past its bound. Two passes explained the zero with the simulation, not the loop's first line.
+**Law:** a count of exactly zero: read the loop's BOUNDS before explaining it with the world — a shared branch carries the constant of the region it was written for.
