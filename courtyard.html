@@ -4149,7 +4149,7 @@ function stepAgent(a, dt){
         a.tendPlot = false; a.state = 'kneel'; a.timer = 9 + R() * 5; a.resume = true;
         a.planted = false; a.act = ''; a.rows = (a.rows || 0) + 1;   // each kneel is its own row, and its own act
         // they came a long way for one plot: most work a second or third before leaving
-        if (a.rows < 3 && R() < 0.55){
+        if (a.rows < ALLOT_ROWS && R() < ALLOT_MORE){
           // a digger works the next fallow plot; when none is left they leave, not pick
           const more = a.dig ? fallowPlots() : null;
           if (!more || more.length){
@@ -4310,6 +4310,21 @@ function greetPass(){
 
 /* ============ lane agents ============ */
 function allotCount(){ return agents.filter(g => g.kind === 'allot' && !g.tend).length; }   // the bonfire's holder is not a picker (#93)
+/* The block's CREW (#172). Seventeen plots were one place with three slots, and the
+ * three were the binding bound: measured on HEAD over six seed-years, allotCount() was
+ * AT the cap on 46.3% of samples while the arrival roll sat at a mean 0.0987 a sim
+ * second — so the rate was never what held the block empty, the door was. `let`, not
+ * `const`, because probes/allot-supply.mjs sweeps all five. */
+let ALLOT_FLOOR = 0.01, ALLOT_RIPE = 0.16;    // the arrival rate: a floor, plus the crop calling its own picker
+let ALLOT_CAP = 5;                            // how many holders the block holds at once
+/* Plots per visit, and the odds of taking another. The walk in is priced at the STAY,
+ * not at the door: measured, a holder is resident in the block for ~2.1 sim DAYS a
+ * visit — most of it the crossing — so three plots was a day's light spent to kneel
+ * three times. Swept at 6 seeds x a seed-year: the pair below beats a bigger crew
+ * (cap 6 / 5 rows / 0.75) on the rung that matters, 80 tend-acts against 70, because
+ * a longer stay works the plot IN FRONT of the hand where a bigger crew mostly lifts
+ * more ripe rows. */
+let ALLOT_ROWS = 4, ALLOT_MORE = 0.70;
 function pickPlot(){
   const plots = [];
   for (let py = 8; py <= 56; py++) for (let px = 80; px <= 93; px++)
@@ -4885,7 +4900,7 @@ function spawnLaneAgent(room, cap){
     a.stop = {x:28.5, y:LANE_N_Y + 0.4, act:'stand', dur:18 + R() * 8,
       say:'A busker settles by the arch; a guitar case yawns open.'};
     a.wp.push([a.stop.x, a.stop.y], [toX, LANE_N_Y]);
-  } else if (sun && day >= 1 && roll < 0.42 && allotCount() < 3){
+  } else if (sun && day >= 1 && roll < 0.42 && allotCount() < ALLOT_CAP){
     sendToPlot(a);
   } else if (sun && roll < E_PLAZA){
     /* a wander into the plaza: the fourteen-place door (#160), and this is the band whose
@@ -5099,7 +5114,11 @@ const CART_SPEED = 6.5, CART_TROT = 1.5, CART_IN = 0.2, CART_LAST = 1.6;    // c
 const CART_BERTH = 1.7, CART_SHOVE = 3.6, CART_LEN = 2.9;                 // the axle-to-nose segment walkers keep off
 const CART_GATE_DUR = 3.0, CART_MK_DUR = 2.0, CART_LOAD_HOLD = 1.2;       // seconds; the gate also waits for the load
 let cart = null, cartDay = -1;
-function cartToday(){ return day >= 1 && hash(day, 733) < CART_P; }
+/* SALTED (#172, c257). Every one of these is a per-day hash, so the calendar was one
+ * calendar in every world: seed 7 and seed 900 sent the cart down the cross street on
+ * exactly the same days, and home by the same end. WIND_SALT exists for this. The three
+ * bases stay distinct under the same salt, so no seed makes two of them the same day. */
+function cartToday(){ return day >= 1 && hash(day, 733 + WIND_SALT) < CART_P; }
 /* the window sits AFTER the 06.00 day roll: a midsummer sunUp is 04.00, and a window
  * dragged across the roll would latch cartDay on the day that is ending and set out in
  * the dawn dark (the seam LAWS names) */
@@ -5118,7 +5137,7 @@ function spawnCart(){
  * used that end. A per-day hash, like cartToday(): no R() draw, so the seeded world is the
  * same on every day the cart goes west. Both ends are off the frame (the lane row is visible
  * to x 139.6; the cart's tail is at c.x − 0, its nose at + CART_LEN). */
-function cartHomeX(){ return hash(day, 763) < CART_EAST ? GW + 4 : -4; }
+function cartHomeX(){ return hash(day, 763 + WIND_SALT) < CART_EAST ? GW + 4 : -4; }
 function cartRouteOn(){          // decided as it pulls away from the gate, off the market as it IS then
   const c = cart;
   if (marketActive()) c.wp.push({x:CART_X, y:CART_LANE_Y}, {x:MARKET_STALLS[1].x, y:CART_LANE_Y, stop:'market'}, {x:cartHomeX(), y:CART_LANE_Y});
@@ -5454,7 +5473,7 @@ const CASKS = [{x:TAP_DOOR - 0.75, y:65.45}, {x:TAP_DOOR + 1.2, y:65.35}];
  * `typeof opener !== 'undefined'` guard in a probe passes on HEAD too and reads null as
  * "no shopkeeper today". Caught by probe-open.mjs on its first run. */
 let front = null, openerDay = -1, dray = null, drayDay = -1, caskDay = -1;
-function drayToday(){ return day >= 2 && hash(day, 811) < DRAY_P; }
+function drayToday(){ return day >= 2 && hash(day, 811 + WIND_SALT) < DRAY_P; }   // #172, c257: salted with cartToday(), and the two bases stay 78 apart
 function drayOut(){ return sunUp - 0.6; }
 /* on the EVENING's axis, not on `hour`: `hour` runs 6.00 -> 6.00, so a bare
  * `hour < tapUp()` is true again from midnight and stood the casks back on the footway
@@ -6281,7 +6300,7 @@ function updateRound(){
     mround = {
       kind:'round', round:true, street:true, homeAsked:true, x:x0, y:LANE_N_Y, wp, i:0,
       speed:ROUND_SPEED, state:'walk', timer:0, shirt:'#7a6a52', pants:'#3a3a44',
-      skin:SKIN[(hash(day, 811) * SKIN.length) | 0], phase:0, bag:true, umbrella:raining,
+      skin:SKIN[(hash(day, 619) * SKIN.length) | 0], phase:0, bag:true, umbrella:raining,   // #172: was 811, drayToday()'s own key — the round's face was gated by whether a dray came
       left:0, doors:doors.length, wary:0.2,
     };
     agents.push(mround);
@@ -15098,7 +15117,7 @@ function simStep(sdt, dt){
   // roll chain put one gardener in every 5-15 days against 17 plots, which is why
   // the block sat permanently full. Ripeness is the rate.
   // + the winter digging, 0 by construction outside digWeather() (which is dry, so the rain term is moot)
-  const allotRate = (0.01 + 0.16 * ripePlots() / 17 + (digWeather() && fallowPlots().length ? DIG_RATE : 0)) * (raining ? 0.2 : 1);
+  const allotRate = (ALLOT_FLOOR + ALLOT_RIPE * ripePlots() / 17 + (digWeather() && fallowPlots().length ? DIG_RATE : 0)) * (raining ? 0.2 : 1);
   spawnAcc += sdt;
   if (spawnAcc > 1){ spawnAcc = 0;
     if (courtyardCount < capacity && R() < rate) spawnAgent(courtyardCount + 1 < capacity);
@@ -15112,7 +15131,7 @@ function simStep(sdt, dt){
     if (eastOpen() && eastCount < eastCap && R() < eastRate) spawnEastAgent(false, eastCount + 1 < eastCap);
     // not under eastCap: after dark that is 1, and the people walking home hold it
     else if (!eastOpen() && tapOpen() && nightRailFree() && R() < NIGHT_RAIL_RATE) spawnEastAgent(true);
-    if (daylight > 0.3 && day >= 1 && allotCount() < 3 && R() < allotRate) spawnAllotAgent();
+    if (daylight > 0.3 && day >= 1 && allotCount() < ALLOT_CAP && R() < allotRate) spawnAllotAgent();
     // the bonfire's holder (#93): no roll — the day is a hash and the hour is a window, once
     if (day >= 1 && bonfireDue()) spawnBonfireHolder();
     // the garden's own morning (#129), the same shape and NOT under LAWN_CAP: the latch

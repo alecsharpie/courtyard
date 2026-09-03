@@ -149,3 +149,15 @@ for the light going. Sampling `raining` at the stand read 2 of 71 — wrong read
 the state that flipped the predicate has been superseded by a slower term.
 **Law:** A worker dying before it commits leaves its iteration in the WORKING TREE
 alone, invisible to ledger, runlog, census. Diff the tree before calling a brief unbuilt.
+
+## Iteration 172 — the allotments get a crew (2026-09-04) [Cross street & allotments × Scale/World]
+
+**Brief:** b172 — raise the allotments' SUPPLY, not the share; carry c257.
+**Re-counted first** (`probes/allot-supply.mjs`, new; acts counted at the CALL):#154's "28 a year in six worlds" HOLDS and is `plotAct` ONLY: the ladder runs 32.0 acts a seed-year, 84% `harvestPlot`.
+**The brief's named lever is the wrong one.** Swept at 6 seeds, the cap beat both the rate and the stay: tripling `allotRate` moved arrivals only 23.7 → 30.5 a year, because `allotCount() < 3` refused **49.6%** of samples at a presence of 2.20/3. 17 plots were one place with three slots.
+**Did.** Named the five constants (`ALLOT_FLOOR/RIPE/CAP/ROWS/MORE`, `let`, so the probe sweeps them); left the RATE at HEAD's. CAP 3→5; ROWS/MORE 3/0.55 → 4/0.70, because a holder is resident **~2.1 sim DAYS a visit**, mostly crossing — the walk is priced at the stay. c257: `cartToday`/`cartHomeX`/`drayToday` salted with `WIND_SALT` (`probes/cart-calendar.mjs`, new: 1 calendar in 4 worlds on HEAD, 4 on cand; unseeded untouched).
+**Gates:** census, motion (vs HEAD), filmstrip, visual, perf — all PASS.
+**Measured, 12 seeds x a year:** acts/yr **32.0 → 58.6**, per-plot median **1.75 → 3.75**, refusal 49.6% → 30.8%.
+**Verdict:** shipped — but the success line wanted tend-rungs in double figures; they went **4.25 → 8.83**, because more supply buys more harvests too.
+**Surprise:** the morning round's skin was `hash(day, 811)` — `drayToday()`'s OWN key — so its index was PARTITIONED by whether a dray came: dray days {0,1,2}, dray-less {2,3,4}. Re-keyed to 619.
+**Law:** a fall-through ladder's lower rungs are bounded by its FIRST rung's hit rate, not by supply — doubling arrivals doubles both. Instrument the rung, not the population.

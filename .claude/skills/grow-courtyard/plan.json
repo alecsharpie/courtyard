@@ -14,29 +14,6 @@
   "rationale": "mapFlat is showing at 15 iterations, so the rung is 4b by name and a season or an evening does not clear it. The watch already forbids re-deriving the map-is-full argument a fourth time and names the two honest moves that remain: a new TILE or SPECIES constant, or DEPTH beyond the grid. I SHOT THE TOWN BEFORE PLANNING IT (day 6 12.98h midsummer, day 9 19.09h late summer, wide + mobile + a crop of the near band) and the picture named the move without my having to choose it. The bottom ~15% of every wide frame is our own block, the nearest quarter, at the largest pixels in the picture — and it is 1095 cells of ONE tile, 45% of all the WALL in the town, broken only by the river slot and two light wells. Everything needed to make it a place was built years of iterations ago and never used by anything human: roofWalkZ reads the pitch bilinearly for a walker, nearScale ramps a figure to NEAR_SZ 1.95, ROOF_FURN stands 24 washing lines, tanks and lofts on rows 86-87 (the source's own note says row 87 is the one line dead level across the whole block), LOFTS are landing boards, wellNear keeps a line off a hole, and the cat already crosses it. Twenty-four objects a tenant would own, and in 169 iterations no tenant. That is a spatial 4b (a new tile, +9 in the summed census, GLASS #116 and REED #155 the precedents), it is the domain 7 back, and it is the one change that alters what a visitor sees in the first ten seconds — because it happens closer to them than anything else in the town. Every other brief in this queue carries the number it rests on and where the number came from, per the standing watch note aimed at this seat; two of them (b172, b173) carry premises I have NOT re-measured myself and say so, with the measurement named as the deliverable if they do not reproduce.",
   "queue": [
     {
-      "id": "b171",
-      "domain": "Cross street & allotments",
-      "kind": "Scale/World",
-      "brief": "The allotments have 17 plots, a lattice, a glasshouse, 38 pieces of furniture, a two-crop majority read (#159) and a harvest cycle — and almost nobody in them. #154 counted the WHOLE hand-act population at 28 acts a year across SIX worlds, 11 of them sow rungs: about five acts per seed-year, so anything a hand does to a plot is capped at five. #159 then built inter-cropping on top of that cap and its own probe measured the result at 264 samples in 139,000 (0.19%) — its Law says it outright: the SUPPLY was always the cap. RE-COUNT THE 28 ON HEAD FIRST; it is dated #154 and #159 has landed since. Then raise the SUPPLY — `allotRate` / `spawnAllotAgent`, the arrival rate and the window — never the share, and measure presence per PLOT rather than choices. Carry c257 with it, because it is the same domain and three lines: `cartToday()` and `drayToday()` are `hash(day,k)` UNSALTED, so the allotment cart's calendar is identical in every world; `WIND_SALT` exists for exactly this. Cross street x Scale/World is an EMPTY cell — 0 entries in 169 iterations.",
-      "seams": [
-        "allotRate",
-        "spawnAllotAgent",
-        "plotAct",
-        "harvestPlot",
-        "sendToPlot",
-        "ripePlots",
-        "cartToday",
-        "drayToday",
-        "WIND_SALT",
-        "probes/allot-act-rungs.mjs",
-        "probes/allot-year.mjs"
-      ],
-      "successLooksLike": "Over a growing season a plot is worked several times, not once: hand-acts per seed-year go from ~5 into double figures with the plot lattice and the crop invariants untouched (tomato outside the span 0; tender at stage 3 in deep winter at HEAD's 30), and the cart's days differ between two seeds where today they are identical.",
-      "avoid": "Do not widen INTER_SHARE or any other share — #159 swept it and 0.70 and 1.00 came back byte-identical. Do not add a plot or a species. Do not change the plot's footprint: a plot OWNS x [ox,ox+4) y [oy,oy+3) and never its WEST side, which is where sendToPlot lands.",
-      "budgetMin": 60,
-      "risk": "medium"
-    },
-    {
       "id": "b172",
       "domain": "Plaza & quay",
       "kind": "Deepen",
@@ -108,6 +85,10 @@
     {
       "id": "b170",
       "at": "2026-09-03T12:54:05.366Z"
+    },
+    {
+      "id": "b171",
+      "at": "2026-09-03T15:20:40.321Z"
     }
   ]
 }
