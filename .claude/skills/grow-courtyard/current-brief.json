@@ -20,7 +20,7 @@
   "avoid": "A threshold is not a share at small n: rank the days by their own hash and cut at the quantiles rather than tuning a constant against two seeds. Two movers on a track share a CORRIDOR, not a point - sweep whole paths, and if you offset, offset BOTH ends equally so the lanes stay parallel (this is exactly what #141 had to learn). #149 redefined punt.mjs's subject once already: if you change what a stranding IS, re-run every gate that reads it, not only the one you edited.",
   "budgetMin": 35,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 154,
   "issued": "2026-09-03T03:10:42.316Z",
