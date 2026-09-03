@@ -598,7 +598,8 @@
       "OUR OWN ROOF below the lane: rows 79..WH are WALL, NEAR_SPANS, NEAR_HOUSE 7/houseOf(x), NEAR_RIDGE; drawNearRoof CACHED — drawCrests, WELLS, DORM_Y, drawParapet, OUR_AWNINGS, LOFTS, roofWalkZ",
       "eaveFor() returns 0 for y >= LN_WALK_S deliberately: project() lifts z northward, so our block at its true eave would DRAW in front of the lane. A CASTING height is not that eave (#146, #151)",
       "the near block is SLATED: drawRoofRow forks at LN_WALK_S to drawSlateCell/slateRun on slateGrid(y); per-slate roofMossF()/sootAt()/slipped; roofBirdSpot; ROOF_FURN 24 per BAY",
-      "our block has a TOP (#171): LEADS tile 17, rows 86-87 of 6 bays off leadsHouse(), WALL to buildVolumes so no roof moved; drawLeadsCell/leadSheet, buildLeads->HATCHES/LEADS_BAYS; tenantErrands/TEN_CAP"
+      "our block has a TOP (#171): LEADS tile 17, rows 86-87 of 6 bays off leadsHouse(), WALL to buildVolumes so no roof moved; drawLeadsCell/leadSheet, buildLeads->HATCHES/LEADS_BAYS; tenantErrands/TEN_CAP",
+      "somebody AT a window (#182): paneFigure/drawPaneFigures off LIT_PANES {q,sa,sb,room}, hashed on nid, drawn last with the moths, clipped to its pane"
     ]
   },
   "openCues": [
@@ -653,6 +654,12 @@
     {
       "id": "c274",
       "note": "probes/ live in TWO tracked dirs: /probes (50 files) and .claude/skills/grow-courtyard/probes (264). SKILL.md names only the second, so a probe committed to the root one is invisible to the skill's own docs and to anyone reading the tree it prints.",
+      "raisedBy": 181,
+      "seenBy": 0
+    },
+    {
+      "id": "c275",
+      "note": "a pane's lamp can go out mid-crossing: windowLit owns bedtime, paneFigure owns the visit, neither asks the other",
       "raisedBy": 181,
       "seenBy": 0
     }

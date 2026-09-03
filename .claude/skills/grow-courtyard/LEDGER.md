@@ -231,3 +231,26 @@ census tileKinds must move" is unprovable there. Its one COLLAPSE (people −9.4
 mean people over a year, 3 seeds x 60, is **43.89 vs 43.91**.
 **Law:** a gate's ladder can be blind to a WHOLE AXIS on purpose — price a predicted field against it
 first; a seasonal system needs its own probe.
+
+## Iteration 182 — somebody is at the window (2026-09-04) [Roofs & skyline × Deepen]
+
+**Brief:** b182 — c267: ~20 panes light every night and nobody has ever been at one.
+**Which register.** `LIT_PANES`, not `LIT[]` (a centre point, for the halo) and not `FACES` (a
+CACHE-time register, stale through the camera ease, #86). It is the pane's own PER-FRAME screen
+QUAD, projected with the glass it belongs to, so a figure solved in its (u,v) has no anchor that
+can go stale and nothing to keep between frames. It carries `{q,sa,sb,room}` now: the ONE address
+`windowLit()` hashes, so lit and occupied cannot drift apart.
+**Did.** `paneFigure`: 2 slots a night, 0.32 taken, the accepted coin re-used as that slot's phase
+(uniform GIVEN acceptance — one hash, not two); on `nid`, never `R()`. `drawPaneFigures()` is LAST, source-over,
+with the moths and for their reason inverted: a moth CATCHES a light, a figure BLOCKS one.
+**Measured** (`probes/pane-figures.mjs`, new; a 104-day year): occupied at once mean **1.17** of
+13.05 lit, **52 / 18 / 12%** at 0 / 1 / 2, **0 empty nights, 0.00 by day**. Seeds 42 and 7 are
+bit-identical: `hash()` is unseeded, so two seeds are one sample.
+**Gates:** census unchanged in EVERY field (no `R()` draw) · motion · perf +0.0% · 0 POP.
+**Verdict:** shipped
+**Surprise:** the first build scaled the figure off the pane's HEIGHT and the pane just went dark.
+These panes are **5 x 11 css px**: shoulders at 0.72 of that height are 90% of the width, and the
+head came out an EGG, because `at(a,b)` scales `a` by the axis and `b` by the lateral. Bounding the
+lateral by the APERTURE and sweeping the head as a circle off that one scale is the whole
+difference between a person and a lamp going out.
+**Law:** a silhouette's scale is a fact about the APERTURE it is seen through, not the body.

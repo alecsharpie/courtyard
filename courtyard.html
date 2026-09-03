@@ -8646,13 +8646,13 @@ function pushFace(g, wx, wy, zTop, zBot, hw, sa, sb, door){
   const a = project(wx - hw, wy, zTop), c = project(wx + hw, wy, zBot);
   FACES.push({ x0: a[0], x1: c[0], y0: a[1], y1: c[1], sa, sb, door, live: g !== gtx });
 }
-function drawPane(g, wx, wy, zTop, hgt, lit){
+function drawPane(g, wx, wy, zTop, hgt, lit, sa, sb){
   const w = 0.32, p = 0.76;
   const iA = project(wx - w * p, wy, zTop - hgt * 0.11), iB = project(wx + w * p, wy, zTop - hgt * 0.11);
   const iC = project(wx + w * p, wy, zTop - hgt * 0.9), iD = project(wx - w * p, wy, zTop - hgt * 0.9);
   g.fillStyle = lit ? 'rgb(254,209,144)' : mix('#242a33', '#7d94a6', 0.18 + 0.5 * daylight);
   poly(g, [iA, iB, iC, iD]); g.fill();
-  if (lit){ LIT.push([(iA[0] + iC[0]) / 2, (iA[1] + iC[1]) / 2]); LIT_PANES.push([iA, iB, iC, iD]); }
+  if (lit){ LIT.push([(iA[0] + iC[0]) / 2, (iA[1] + iC[1]) / 2]); LIT_PANES.push({q: [iA, iB, iC, iD], sa, sb, room: 1}); }
   g.strokeStyle = 'rgba(244,238,224,.7)'; g.lineWidth = 1;
   const m1 = project(wx, wy, zTop - hgt * 0.11), m2 = project(wx, wy, zTop - hgt * 0.9);
   const h1 = project(wx - w * p, wy, zTop - hgt * 0.5), h2 = project(wx + w * p, wy, zTop - hgt * 0.5);
@@ -8661,7 +8661,113 @@ function drawPane(g, wx, wy, zTop, hgt, lit){
 }
 function drawLitPanes(){
   if (nightF <= 0.3) return;                     // daytime: nothing here, byte for byte
-  for (const [wx, wy, zTop, hgt, sa, sb] of WINDOWS) if (windowLit(sa, sb)) drawPane(ctx, wx, wy, zTop, hgt, true);
+  for (const [wx, wy, zTop, hgt, sa, sb] of WINDOWS) if (windowLit(sa, sb)) drawPane(ctx, wx, wy, zTop, hgt, true, sa, sb);
+}
+/* ============ somebody at the window ============ */
+/* Twenty-odd panes light up across the town every night, and until now every one of them
+ * was an empty room. This puts a figure behind a few of them: it appears, crosses the
+ * glass, and goes.
+ *
+ * WHICH REGISTER, and why. Not LIT[] (a centre point — that is the halo's list) and not
+ * FACES (registered at CACHE time, so it is stale through the camera ease, #86). LIT_PANES
+ * is the pane's own screen QUAD, pushed by the same project() calls that drew the glass,
+ * in the same frame, and cleared at the top of every frame. So a figure solved in that
+ * quad's own (u,v) is exactly as current as the pane: there is no anchor that can go
+ * stale and nothing to keep between frames. It carries (sa,sb) now — the ONE pane address
+ * windowLit() hashes — so a lit pane and an occupied pane cannot drift apart: a figure is
+ * only ever asked for about a quad already in the list, and a quad is only in the list
+ * because windowLit() put it there this frame.
+ *
+ * The hours are the pane's own, hashed on its night id (nid, not day: the day rolls at
+ * 06.00, mid-night) and never R() — this is the renderer, and a screen-space population
+ * may not reach the town's stream. Bounded per pane at FIG_SLOTS visits a night of which
+ * FIG_SHARE are taken, so one or two of the town's lit panes are occupied at any instant
+ * and the rest are empty rooms; twenty silhouettes would read as a stencil, not a town. */
+const FIG_SLOTS = 2;                    // at most this many visits to one pane in one night
+const FIG_SHARE = 0.32;                 // ...and this share of those slots is taken at all
+const FIG_T0 = 0.20, FIG_T1 = 7.6;      // the band of the night they fall in, night-hours
+const FIG_MIN = 0.75, FIG_SPAN = 0.95;  // and how long one lasts, night-hours (a night-hour
+                                        // is 2.3 s of wall clock: under one, a visit is a blink)
+function paneFigure(sa, sb){
+  const n = nightAt();
+  const t1 = Math.min(FIG_T1, n.span - 0.8);
+  if (t1 <= FIG_T0) return null;
+  for (let k = 0; k < FIG_SLOTS; k++){
+    const h0 = hash(sa * 19 + k * 3 + 5, sb * 23 + n.nid * 7 + k);
+    if (h0 >= FIG_SHARE) continue;
+    // the accepted coin is re-used as the slot's own phase: uniform on [0,1) GIVEN
+    // acceptance, so it is one hash where two would do the same work
+    const t0 = FIG_T0 + (t1 - FIG_T0) * (k + h0 / FIG_SHARE) / FIG_SLOTS;
+    const s = (n.t - t0) / (FIG_MIN + FIG_SPAN * hash(sa * 29 + k, sb * 31 + n.nid * 11 + 1));
+    if (s < 0 || s >= 1) continue;
+    const hs = hash(sa * 37 + k + 2, sb * 41 + n.nid * 13);
+    let u;
+    if (hs < 0.46) u = -0.44 + 1.88 * s;                  // straight across the room and out
+    else {                                                // or up to the glass, a while, on
+      const uS = 0.36 + 0.30 * (hs - 0.46) / 0.54, sm = x => x * x * (3 - 2 * x);
+      if (s < 0.26) u = -0.44 + (uS + 0.44) * sm(s / 0.26);
+      else if (s < 0.76) u = uS + 0.010 * Math.sin(28 * (s - 0.26) + sa);
+      else u = uS + (1.44 - uS) * sm((s - 0.76) / 0.24);
+    }
+    if (hash(sa * 43 + k, sb * 47 + n.nid * 3) < 0.5) u = 1 - u;     // and from the other side
+    return { u, sc: 0.86 + 0.26 * hash(sa * 53 + k, sb * 59 + n.nid) };
+  }
+  return null;
+}
+const FIG_BODY = [[-0.02, -0.40], [0.42, -0.35], [0.58, -0.24]];   // [along the axis, across]
+const FIG_HC = 0.83, FIG_HR = 0.20, FIG_NECK = 0.110;
+const FIG_TALL = 0.62;                  // the figure's height as a share of the pane's
+/* Drawn LAST, with the moths, in source-over, and for the moths' reason turned around: a
+ * moth is a scrap CATCHING a light, a figure is a body BLOCKING one. Anything warm drawn
+ * before applyLight's multiply is slate by midnight, and anything drawn before the halo
+ * pass is screened back over — a silhouette has to come out darker than the glow it stands
+ * in. Clipped to its own pane, so it arrives and leaves through the reveal, and a tall
+ * head is cut by the lintel the way a real one is. ONE closed outline, head included, so
+ * the alpha never doubles where a neck meets a jaw. */
+function drawPaneFigures(){
+  if (nightF <= 0.3) return;
+  for (const p of LIT_PANES){
+    if (!p.room) continue;
+    const f = paneFigure(p.sa, p.sb);
+    if (!f) continue;
+    const [A, B, C, D] = p.q;
+    // bilinear in the pane's own (u,v): A-B is the head of the glass, D-C the sill
+    const P = (u, v) => [(A[0] + (B[0] - A[0]) * u) * (1 - v) + (D[0] + (C[0] - D[0]) * u) * v,
+                         (A[1] + (B[1] - A[1]) * u) * (1 - v) + (D[1] + (C[1] - D[1]) * u) * v];
+    const foot = P(f.u, 1.04), top = P(f.u, 1.04 - FIG_TALL * f.sc);
+    const ax = top[0] - foot[0], ay = top[1] - foot[1], hp = Math.hypot(ax, ay);
+    if (hp < 3) continue;                              // any smaller and it is a smudge
+    const e0 = P(0, 1), e1 = P(1, 1);
+    let sx = e1[0] - e0[0], sy = e1[1] - e0[1];
+    const wp = Math.hypot(sx, sy) || 1;
+    sx /= wp; sy /= wp;
+    // The lateral scale is bounded by the APERTURE and not by the body: these panes are
+    // ~5 x 11 css px at Wide, and a figure scaled off the HEIGHT is 90% of the width — the
+    // pane just goes dark. Shoulders at 0.72 * lw leave lit glass down both reveals, which
+    // is what makes it read as somebody standing there rather than as a lamp going out.
+    const lw = Math.min(hp * 0.62, wp * 0.78);
+    const at = (a, b) => [foot[0] + ax * a + sx * b * lw, foot[1] + ay * a + sy * b * lw];
+    // ...and the head is a CIRCLE of that same lateral scale, not an ellipse of the pane's
+    // aspect: swept off the figure's own axis, so it stays a head on a tall narrow window
+    const ux = ax / hp, uy = ay / hp, hd = FIG_HR * lw;
+    const hx = foot[0] + ax * FIG_HC, hy = foot[1] + ay * FIG_HC;
+    ctx.save();
+    poly(ctx, p.q); ctx.clip();
+    ctx.fillStyle = 'rgba(52,30,17,.88)';
+    ctx.beginPath();
+    let first = true;
+    const go = (x, y) => { if (first){ ctx.moveTo(x, y); first = false; } else ctx.lineTo(x, y); };
+    const gb = (a, b) => { const q = at(a, b); go(q[0], q[1]); };
+    for (const [a, b] of FIG_BODY) gb(a, b);
+    const ph = Math.PI - Math.asin(FIG_NECK / FIG_HR);      // the head, neck to neck over the top
+    for (let j = 0; j <= 12; j++){
+      const th = -ph + 2 * ph * j / 12, ca = hd * Math.cos(th), cb = hd * Math.sin(th);
+      go(hx + ux * ca + sx * cb, hy + uy * ca + sy * cb);
+    }
+    for (let j = FIG_BODY.length - 1; j >= 0; j--) gb(FIG_BODY[j][0], -FIG_BODY[j][1]);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
 }
 function drawWindow(g, wx, wy, zTop, hgt, sa, sb){
   const w = 0.32;
@@ -8671,7 +8777,7 @@ function drawWindow(g, wx, wy, zTop, hgt, sa, sb){
   const cached = g === gtx;
   if (cached) WINDOWS.push([wx, wy, zTop, hgt, sa, sb]);
   pushFace(g, wx, wy, zTop, zTop - hgt, w, sa, sb, false);
-  drawPane(g, wx, wy, zTop, hgt, !cached && windowLit(sa, sb));
+  drawPane(g, wx, wy, zTop, hgt, !cached && windowLit(sa, sb), sa, sb);
   const s1 = project(wx - w * 1.2, wy, zTop - hgt), s2 = project(wx + w * 1.2, wy, zTop - hgt);
   const s3 = project(wx + w * 1.2, wy, zTop - hgt - 0.14), s4 = project(wx - w * 1.2, wy, zTop - hgt - 0.14);
   g.fillStyle = 'rgba(232,224,206,.9)'; poly(g, [s1, s2, s3, s4]); g.fill();
@@ -9909,7 +10015,7 @@ function drawGlassFront(){
                project(l1, GH_RIDGE_Y, GH_RIDGE), project(l0, GH_RIDGE_Y, GH_RIDGE)];
     g.fillStyle = 'rgba(254,209,144,' + (0.72 * nightF).toFixed(3) + ')';
     poly(g, q); g.fill();
-    LIT_PANES.push(q);
+    LIT_PANES.push({q, sa: GH_LAMP.sa, sb: GH_LAMP.sb, room: 0});   // a glazed gable, not a room
     LIT.push([(q[0][0] + q[2][0]) / 2, (q[0][1] + q[2][1]) / 2]);
   }
 }
@@ -11215,7 +11321,7 @@ function drawRoofLights(){
     if (!windowLit(sa, sb)) continue;
     ctx.fillStyle = 'rgb(254,209,144)'; poly(ctx, q); ctx.fill();
     LIT.push([(q[0][0] + q[2][0]) / 2, (q[0][1] + q[2][1]) / 2]);
-    LIT_PANES.push(q);
+    LIT_PANES.push({q, sa, sb, room: 1});
   }
 }
 /* The shopfronts under our roof are under our roof: from up here they are gone, and so
@@ -14674,7 +14780,7 @@ function applyLight(t){
       const al = (0.70 + 0.07 * chill) * nightF;
       ctx.fillStyle = 'rgba(255,' + (190 - 16 * chill).toFixed(1) + ',' + (90 - 30 * chill).toFixed(1) +
                       ',' + al.toFixed(3) + ')';
-      for (const q of LIT_PANES){ poly(ctx, q); ctx.fill(); }
+      for (const p of LIT_PANES){ poly(ctx, p.q); ctx.fill(); }
     }
     // the rose window, live: the lit glass over the cached unlit disc, the night multiply
     // put back on it (so at full night it is what the cached copy was), then the same
@@ -14779,6 +14885,7 @@ function applyLight(t){
      * clipOffSill save — a moth at a lane lamp is the town's, and the sill is in front of
      * the town — and after every glow, so nothing screens back over it. */
     ctx.globalCompositeOperation = 'source-over';
+    drawPaneFigures();
     drawMoths();
     ctx.restore();
     ctx.globalCompositeOperation = 'source-over';
