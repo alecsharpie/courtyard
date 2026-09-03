@@ -18,7 +18,7 @@
   "avoid": "The premise number — 16 of 186 growing visits — comes from cue c221, raised at #136, and has NEVER been re-measured. COUNT it on HEAD before you build on it; if it is wrong, say so and ship the measurement, as #147 did. Do not touch the pre-dawn branch, which #129 priced and which works. And do not widen GARD_K to compensate for visits the new bound refuses: the count falling is a legitimate outcome — report by how much.",
   "budgetMin": 30,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 157,
   "issued": "2026-09-03T05:17:23.611Z",
