@@ -18,7 +18,7 @@
   "avoid": "Do not add a second pane list — LIT[]/windowLit() is the one register, the way NIGHT_LAMPS became the one lamp list at #177, and a lit pane and an occupied pane must not be able to drift apart. Do not draw the figure into the ground or facade cache: it will arrive slate. Do not put a figure at every pane; a knot in one or two rooms reads, twenty identical silhouettes read as a pattern.",
   "budgetMin": 45,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 182,
   "issued": "2026-09-03T22:52:51.831Z",
