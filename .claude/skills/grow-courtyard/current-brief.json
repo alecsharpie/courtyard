@@ -22,7 +22,7 @@
   "avoid": "Do not spend the vector on a second firefly — a scatter over an area is what already exists. This one is bound to the LIGHTS. Do not take the spawn out of an existing budget: LAWS says a spawn band is a share of a budget, not a rate, so a rare thing needs its OWN source. Bound the population at BOTH ends (a window with only a landing bound is a marathon-walker factory), and key it on `sunUp`/`nightF` correctly — `!daylight` is dawn as well as dusk, and `day` rolls at hour 6 so it holds two dawns.",
   "budgetMin": 45,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 177,
   "issued": "2026-09-03T20:10:11.346Z",
