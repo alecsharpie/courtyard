@@ -22,7 +22,7 @@
   "avoid": "The occlusion walk and the casting height are TWO heights and conflating them is how this brief fails. buildShadowGrid's second loop uses cover = min(cover, y - shTop[i]*LIFT) to veto cells hidden BEHIND a volume on screen; if you feed that walk the new casting height it will clear shOpen off the near half of the lane and DELETE shade instead of adding it. Feed the occlusion walk our block's DRAWN height (eave 0, ridge 2.11) and the cast the new one. Do not invent a storey height: solve it from what drawNearRoof actually draws, or from eaveBand's own terrace value, and state in the entry which you used and why. Do not change the near roof's draw, its parapet or nearShadow(). A northward throw must still be vetoed per column or it paints the caster's own roof.",
   "budgetMin": 50,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 151,
   "issued": "2026-09-03T02:18:37.488Z",
