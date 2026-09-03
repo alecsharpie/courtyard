@@ -15,7 +15,7 @@
   "avoid": "Do not touch courtyard.html — this is a Harness brief and runlog flags a harness iteration that moves the source. Do not make a breach change a verdict: #153 decided deliberately that a 260 B cue is priced by the manager, not by a runner throwing away gate-passed work. A gate's PASS is only evidence about the fields it REPORTS, so show the new signal FIRING before you claim it works.",
   "budgetMin": 25,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 164,
   "issued": "2026-09-03T08:21:47.963Z",
