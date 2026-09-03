@@ -2,7 +2,7 @@
  "updated": "2026-09-03",
  "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
  "phase": "expanding",
- "lastIteration": 168,
+ "lastIteration": 169,
  "menu": {
   "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
   "domains": [
@@ -219,7 +219,8 @@
    "deepen": [
     "pre13",
     8,
-    74
+    74,
+    169
    ],
    "polish": [
     "pre17",
@@ -374,7 +375,8 @@
     102,
     124,
     133,
-    143
+    143,
+    165
    ],
    "scale": [
     12,
@@ -444,7 +446,8 @@
     115,
     149,
     153,
-    164
+    164,
+    167
    ],
    "polish": [
     68,
@@ -576,58 +579,10 @@
  },
  "openCues": [
   {
-   "id": "c214",
-   "note": "drawGround() times 25-27 ms and #135/#138 added ~2.5 more rebuilds a sim day, so every rebuild is a dropped frame; probes/ground-cost.mjs sees it, perf.mjs does not. The CART is not an agent and lays no paveWear[].",
-   "raisedBy": 134,
-   "seenBy": 5
-  },
-  {
-   "id": "c233",
-   "note": "the BOATS are the caster class #145 left out - punts, barge, rowboat, a standing punter are still not in the water; and the rows-3-12 bank-smear baked into the ground cache stops at row 12 for no recorded reason.",
-   "raisedBy": 144,
-   "seenBy": 3
-  },
-  {
    "id": "c244",
    "note": "nothing re-asks bonfireWeather() once the heap is lit, so a fire started in a calm dawn burns on through an afternoon gale isWindy() would refuse; #156 re-keyed the bar but not the re-ask.",
    "raisedBy": 154,
    "seenBy": 1
-  },
-  {
-   "id": "c247",
-   "note": "the whole HAND-act population in the allotments is 28 acts a year across SIX worlds (11 of them sow rungs), so anything a hand does to a plot is capped ~5/seed-year. The cap beneath plotAct is allotRate/spawnAllotAgent.",
-   "raisedBy": 154,
-   "seenBy": 1
-  },
-  {
-   "id": "c248",
-   "note": "FAM_CAP binds 85.9% of open daylight (54.2% at #158) and the plaza door now refuses 0.0%: the next bound is the family cap and the band's own arrival rate, not the places.",
-   "raisedBy": 159,
-   "seenBy": 0
-  },
-  {
-   "id": "c251",
-   "note": "the water shade is correct and barely reads (6021 px of mass, 1-86 px of change): what makes a shadow read on water is cutting the SHEEN - drawRiverFlow's streaks and the glitter column - not a deeper multiply",
-   "raisedBy": 159,
-   "seenBy": 0
-  },
-  {
-   "id": "c253",
-   "note": "the read rent has moved from the CAPPED worker to the uncapped MANAGER: #167 pruned state.json 120->42 KB, and nothing caps the other three — LEDGER-archive 676 KB (+2.32 KB/iter), RUNLOG 189 (+1.16), MANAGER-LOG 82 (+0.48), read whole every pass.",
-   "raisedBy": 164,
-   "seenBy": 0
-  },
-  {
-   "id": "c254",
-   "note": "the sharpening SNAP: an eased frame rides a wide-resolution cache and the destination repaint lands on the frame the motion stops, so the distance crisps at u=1 (worst 390x844 Far bank, s 3.04). The ground cache has done it since #86; nobody looked.",
-   "raisedBy": 164,
-   "seenBy": 0
-  },
-  {
-   "id": "c255",
-   "note": "a follow holds the WIDE ground cache for minutes where an ease pays 0.9 s: the frame carries 54.1% of the detail of one repainted in its own view (follow-cam #8) - c254's snap made continuous. A supersample is bounded by a phone's canvas budget.",
-   "raisedBy": 164,
-   "seenBy": 0
   },
   {
    "id": "c256",
@@ -636,90 +591,25 @@
    "seenBy": 0
   },
   {
-   "id": "c257",
-   "note": "drayToday() is hash(day,811) UNSALTED: the delivery's calendar is identical in every seed, like cartToday(); WIND_SALT exists for exactly this",
-   "raisedBy": 168,
+   "id": "c258",
+   "note": "the GROUND CACHE, c214+c254+c255 merged: drawGround costs 25-27 ms and rebuilds ~2.5 more a sim day since #138; an ease repaints the destination on the frame it STOPS, so distance crisps at u=1; a follow holds the wide cache at 54% detail.",
+   "raisedBy": 169,
+   "seenBy": 0
+  },
+  {
+   "id": "c259",
+   "note": "the SILL is the frame's foreground, the bottom ~7%, the same near-black bar at midday as at midnight (#169 shots). MEASURE its sd/mean as its own class against the near roof's 0.281 first: the black may be drawOurSide's intent, as drawNearRoof's was.",
+   "raisedBy": 169,
    "seenBy": 0
   }
  ],
  "watch": [
-  "mapFlat ASKS THE WRONG QUESTION. The seven structural scalars measure the GRID, and the grid has been FULL since #100 (GW 138 x WH 88, wide frame edge to edge, growing WH moves every hard-coded row in 13,900 lines). Do NOT re-derive that argument. Two honest 4b moves: a new TILE or SPECIES constant, +9 each (GLASS #116, and b155), or DEPTH beyond the grid, which the census cannot see (#145 the mirror, #150 the far ranks). Re-pin with census.mjs --save-baseline and SAY SO; the gate reads collapse, not delta.",
-  "MEASURE A SURFACE BEFORE YOU CALL IT DRAWN, and a number is not a picture. Per-class luma sd/mean at 1600x950, seed 42: ROAD 0.150 - GRASS 0.131 - PATH.court 0.143 - WATER 0.177 - SIDE.cross 0.121 - SIDE.quay 0.229 - WALL 0.240 (day 3 10.4h), and the NEAR ROOF BAND 0.281 (day 8 15.2h, manager pass from #164) - the HIGHEST of them, which closed c232. Its darkness is drawNearRoof s stated intent, not a fault. The one large class still unmeasured on its own is the BACKDROP above the roofline (~15% of the frame), and #150/#162 gave it four ranks and three hill tiers since the note was written.",
-  "PRICE THE BRIEF'S PREMISE - and that is aimed at the manager. Three of the six briefs #144-#148 were mis-priced by the plan: #146's bar was unreachable, #147's bug did not exist, #148's crowding bar was the wrong instrument. The workers measured first and were right every time. Put the NUMBER a brief rests on INTO the brief and name where it came from; if there is no number, say so and make the measurement the deliverable.",
-  "A CAMERA THAT MOVES EVERY FRAME IS A DIFFERENT ANIMAL FROM whereGo s EASE. The ease survives only because it paints the padded WIDE ground cache once, scales the blit by k = viewS/gview.s, and repaints the destination ONCE on arrival; drawGround costs 25-27 ms (c214) and FACES/faceAt are registered in gview s frame. Anything that moves the frame continuously must hold that padded cache for the whole move and repaint once on release. backKey (#164 pass) has no camera term at all."
+  "mapFlat ASKS THE WRONG QUESTION and three passes have now re-derived the answer. The seven structural scalars measure the GRID; the grid has been FULL since #100 (GW 138 x WH 88, every quarter allocated, growing WH moves every hard-coded row in 13,900 lines). Do NOT argue it a fourth time. The honest 4b moves are a new TILE or SPECIES constant (+9 in the summed census per kind: GLASS #116, REED #155, b170) or DEPTH beyond the grid, which the census cannot see (#145 the mirror, #150/#162 the far ranks). Re-pin with census.mjs --save-baseline and SAY SO; the gate reads collapse, not delta.",
+  "PRICE THE BRIEF'S PREMISE - aimed at the manager. Three of the six briefs #144-#148 were mis-priced by the plan and the workers measured first and were right every time. Put the NUMBER a brief rests on INTO the brief and name where it came from; where there is no number, say so and make the measurement the deliverable.",
+  "MEASURE A SURFACE BEFORE YOU CALL IT DRAWN, and a number is not a picture. Per-class luma sd/mean, 1600x950 seed 42: SIDE.cross 0.121 - GRASS 0.131 - PATH.court 0.143 - ROAD 0.150 - WATER 0.177 - SIDE.quay 0.229 - WALL 0.240 - NEAR ROOF 0.281, the highest, whose darkness is drawNearRoof's stated intent (that closed c232 and saved 90 minutes). The two large classes still unmeasured on their own are the SILL (c259) and the BACKDROP above the roofline.",
+  "ANYTHING THAT MOVES THE FRAME must hold the padded WIDE ground cache for the whole move and repaint ONCE on release: drawGround costs 25-27 ms and FACES/faceAt are registered in gview's frame. #165 (the backdrop) and #166 (the follow) both do. What it costs is c258."
  ],
  "closedCues": [
-  {
-   "id": "c204",
-   "note": "wallR()'s 27.5 square is the courtyard's standard ruler (#121, probes/lawn-day.mjs) but 13 of 204 EDGE_BEDS lie OUTSIDE it — the axis beds nearest the doors. Any courtyard metric built on that square under-counts work done at the bed ring's edge by ~18%.",
-   "raisedBy": 127,
-   "closed": 130,
-   "why": "promoted into the courtyard inventory (a fact about the town) and into LAWS via #129."
-  },
-  {
-   "id": "c202",
-   "note": "pairStands() still excludes EYOT from the ground it will place a companion on — a leftover from before the island was reachable. Measured latent, not live (companion on water 3.7% of the eyot stay on BOTH builds, 0.0% past 2 s), so I built the fix and REVERTED it. Clean it when something else touches pairTarget.",
-   "raisedBy": 127,
-   "seenBy": 1,
-   "closed": 135,
-   "reason": "closed #135: measured latent (companion on water 0.0% past 2 s on BOTH builds) and the fix was built and reverted at #127. It is a comment-level cleanup, not a brief — do it in passing if something else touches pairTarget."
-  },
-  {
-   "id": "c205",
-   "note": "GARDEN_ROWS is 5 and GARDEN_MORE 0.8, so a gardener should work ~3 rows; measured 1.53 after #129. gardenerKneel's light-fit charges two full rows plus the shuffle plus the walk to the door, so the second row is priced out most days.",
-   "raisedBy": 127,
-   "seenBy": 1,
-   "closed": 135,
-   "reason": "promoted #135 -> brief b139 (the gardener's second row)."
-  },
-  {
-   "id": "c207",
-   "note": "the clock tower's north-row neighbours (x 62-63, y<3) are excluded from the house grid so nothing drops out from under CT's base at z 5.4; a tower that read its own roof would not need the exclusion",
-   "raisedBy": 129,
-   "seenBy": 0,
-   "closed": 135,
-   "reason": "closed #135: two cells under the clock tower's base, excluded from the house grid so nothing drops out from under it. Nothing visible depends on them; c206 is the eave cue worth keeping."
-  },
-  {
-   "id": "c211",
-   "note": "a quarter's FRAME is far wider than its box at desktop sizes — Far bank at 1600x950 shows the allotments, Courtyard at 1280x700 shows the cross street — so inView() is generous by construction. A quarter that wants a tight voice needs a tighter frame, not a tighter predicate.",
-   "raisedBy": 131,
-   "seenBy": 0,
-   "closed": 135,
-   "reason": "closed #135: inView() is generous BY CONSTRUCTION and #132 measured the win anyway (off-frame subjects 40/78 -> 1/69 at Courtyard). A tighter voice needs a re-framed QUARTER, which is a camera brief, not a ticker one — reopen it if a quarter is ever re-framed."
-  },
-  {
-   "id": "c183",
-   "note": "the ground cache's east repeat is a BLOCK where column GW-1 is WALL (rows 0..2), so Far bank carries ~5 cells of smeared building in its top corner. Only fixable in drawBlocks, which moves the Wide control.",
-   "raisedBy": 119,
-   "seenBy": 3,
-   "closed": 135,
-   "reason": "closed #135 after three passes: ~5 cells of smeared building in ONE quarter's top corner, and the only fix is in drawBlocks, which moves the Wide ground control every visual gate depends on. Not worth that. Reopen only if drawBlocks is being touched anyway."
-  },
-  {
-   "id": "c209",
-   "note": "28 of 87 deck offers to the punt land at 22-01h and can never be served: the water alone is 2.32 h round trip and EVE_GONE is 26.5.",
-   "raisedBy": 129,
-   "seenBy": 1,
-   "closed": 135,
-   "reason": "closed #135 by merging into c208 — both are the same fact, that the punt's supply is bounded by one hull and by an arrival hour no round trip can return from."
-  },
-  {
-   "id": "c194",
-   "note": "3 of 24 ROOF_FURN pieces are off-canvas in x at every desktop framing and 11 of 24 on a phone (probes/furn-band.mjs) — the block runs off both edges.",
-   "raisedBy": 120,
-   "seenBy": 3,
-   "closedBy": 139,
-   "why": "not a fault. ROOF_FURN is placed per BAY across NEAR_SPANS, which run wider than any framing on purpose — XLO/XHI draw the town past the frame so it never ends in black, and a piece off the x edge at Wide is that same terrace continuing. Raised #120, declined by four passes."
-  },
-  {
-   "id": "c213",
-   "note": "inFrameBox exists and only drawPuddles/drawPuddleLights call it. The same win may sit in drawWetLights, the LAMPS.concat(LANE_LAMPS) halo loop, CHIMNEYS/drawSmoke, VANES. Measure first: at Wide a cull saves nothing and pays a test.",
-   "raisedBy": 132,
-   "seenBy": 1,
-   "closedBy": 139,
-   "why": "measured and declined. #134 timed the same family (drawWetLights, the LAMPS halo loop, CHIMNEYS/drawSmoke) and found 0.9 ms of uncullable work; at Wide a cull saves nothing and pays a test. inFrameBox stays a two-reader helper."
-  },
   {
    "id": "c206",
    "note": "the lift clamps at EAVE_LO 4.62 on the 5.1 courtyard walls, so several of their lowest houses land on exactly the same eave — a swing priced per BAND would spread them.",
@@ -906,7 +796,79 @@
    "seenBy": 0,
    "closedBy": 164,
    "reason": "promoted -> b167 (Harness, plan from #164)"
+  },
+  {
+   "id": "c233",
+   "note": "the BOATS are the caster class #145 left out - punts, barge, rowboat, a standing punter are still not in the water; and the rows-3-12 bank-smear baked into the ground cache stops at row 12 for no recorded reason.",
+   "raisedBy": 144,
+   "seenBy": 3,
+   "closedBy": 169,
+   "reason": "promoted to b173 — the boats and the sheen are one subject: the river's surface"
+  },
+  {
+   "id": "c247",
+   "note": "the whole HAND-act population in the allotments is 28 acts a year across SIX worlds (11 of them sow rungs), so anything a hand does to a plot is capped ~5/seed-year. The cap beneath plotAct is allotRate/spawnAllotAgent.",
+   "raisedBy": 154,
+   "seenBy": 1,
+   "closedBy": 169,
+   "reason": "promoted to b171"
+  },
+  {
+   "id": "c248",
+   "note": "FAM_CAP binds 85.9% of open daylight (54.2% at #158) and the plaza door now refuses 0.0%: the next bound is the family cap and the band's own arrival rate, not the places.",
+   "raisedBy": 159,
+   "seenBy": 0,
+   "closedBy": 169,
+   "reason": "promoted to b172"
+  },
+  {
+   "id": "c251",
+   "note": "the water shade is correct and barely reads (6021 px of mass, 1-86 px of change): what makes a shadow read on water is cutting the SHEEN - drawRiverFlow's streaks and the glitter column - not a deeper multiply",
+   "raisedBy": 159,
+   "seenBy": 0,
+   "closedBy": 169,
+   "reason": "promoted to b173 with c233"
+  },
+  {
+   "id": "c253",
+   "note": "the read rent has moved from the CAPPED worker to the uncapped MANAGER: #167 pruned state.json 120->42 KB, and nothing caps the other three — LEDGER-archive 676 KB (+2.32 KB/iter), RUNLOG 189 (+1.16), MANAGER-LOG 82 (+0.48), read whole every pass.",
+   "raisedBy": 164,
+   "seenBy": 0,
+   "closedBy": 169,
+   "reason": "promoted to b174"
+  },
+  {
+   "id": "c257",
+   "note": "drayToday() is hash(day,811) UNSALTED: the delivery's calendar is identical in every seed, like cartToday(); WIND_SALT exists for exactly this",
+   "raisedBy": 168,
+   "seenBy": 0,
+   "closedBy": 169,
+   "reason": "promoted into b171 — cartToday() is the allotments' own unsalted calendar"
+  },
+  {
+   "id": "c214",
+   "note": "drawGround() times 25-27 ms and #135/#138 added ~2.5 more rebuilds a sim day, so every rebuild is a dropped frame; probes/ground-cost.mjs sees it, perf.mjs does not. The CART is not an agent and lays no paveWear[].",
+   "raisedBy": 134,
+   "seenBy": 5,
+   "closedBy": 169,
+   "reason": "merged into c258 (the ground cache: cost, snap and detail are one subject)"
+  },
+  {
+   "id": "c254",
+   "note": "the sharpening SNAP: an eased frame rides a wide-resolution cache and the destination repaint lands on the frame the motion stops, so the distance crisps at u=1 (worst 390x844 Far bank, s 3.04). The ground cache has done it since #86; nobody looked.",
+   "raisedBy": 164,
+   "seenBy": 0,
+   "closedBy": 169,
+   "reason": "merged into c258"
+  },
+  {
+   "id": "c255",
+   "note": "a follow holds the WIDE ground cache for minutes where an ease pays 0.9 s: the frame carries 54.1% of the detail of one repainted in its own view (follow-cam #8) - c254's snap made continuous. A supersample is bounded by a phone's canvas budget.",
+   "raisedBy": 164,
+   "seenBy": 0,
+   "closedBy": 169,
+   "reason": "merged into c258"
   }
  ],
- "cueSeq": 255
+ "cueSeq": 259
 }
