@@ -18,7 +18,7 @@
   "avoid": "Do not break the winter invariant #147 measured: tender crops in the open must still reach stage 3 zero times in deep winter, against hardy 21,474 and glass 10,191. Do not make every plot mixed — a plot that stays one crop is still the common case; the finding is that it has stopped being universal. And if a downstream reader of plotCrop turns out to want the FIRST cell rather than the majority, say which and why rather than changing them all.",
   "budgetMin": 40,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 159,
   "issued": "2026-09-03T05:51:02.729Z",
