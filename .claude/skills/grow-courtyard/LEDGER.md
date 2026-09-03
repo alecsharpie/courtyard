@@ -205,3 +205,26 @@ whole approach and departure. 74 px of image, her hull fifteen cells north.
 **Law:** `project()` reflects only what is solved with a real z; a SPRITE — pixel offsets off a
 projected foot — is blind to the mirror's sign and flips about ITS OWN foot. A reflection is a POSITION
 test too: a stale anchor shows as ink in open water.
+
+## Iteration 175 — the manager's files get the worker's rotation (2026-09-04) [The sill & the observer × Harness]
+
+**Brief:** b174/#175 — bound the four files a manager opens, by rotation, never deletion.
+**Premise half refuted.** A manager opens none whole: its SKILL.md `tail -40`s the runlog, and that
+tail is FLAT — 36.4 KB at row 40, 38.5 at row 211, while the file went 191 → 204 KB. Its cost is no
+read either (uncached `in` 64–178 tokens a pass; last six level at $3.40–$8.66), so the table's
+"nothing caps these, and the manager reads all of them" is deleted.
+**Did.** `archives.mjs`, the one place knowing a rotated file has halves. `rotate-ledger.mjs`
+rolls LEDGER-archive.md past 60 entries → `LEDGER-deep.md`, RUNLOG.jsonl past 80 rows, MANAGER-LOG.md
+past 16 passes into archives beside them, and measures MANAGER-LOG's unenforced "one line" (15 of 16
+over 1.5 KB). `build-stats`/`stall` read both halves; `stall --report` prints **WORKER 46.3/46 KB
+beside MANAGER 80.6/96**, each rule quoted from its script.
+**Measured.** 993,951 B → 994,416: **+465 B, exactly the archive headers**. 211 rows / 257
+entries / 36 passes, 0 unparseable. Live 1010.8 → **300.4 KB**; **stats.html is byte-identical
+to HEAD** with 551 KB moved out from under it.
+**Gates:** census PASS, six groups unchanged · courtyard.html byte-identical · visual PASS.
+**Verdict:** shipped
+**Surprise:** the check passed **while a row was being destroyed**. `byLine` measured offsets in
+BYTES and gave them to `String.slice`; the cut fell inside an em-dash, split a row in two, every
+reader dropped both fragments — 211 runs → 210 — and the bytes still balanced exactly.
+**Law:** byte conservation is necessary, NOT sufficient — blind to a cut INSIDE a unit. Prove a
+rotation on its READERS' output against a pre-rotation control.

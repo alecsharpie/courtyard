@@ -55,7 +55,11 @@ tail -40 .claude/skills/grow-courtyard/RUNLOG.jsonl
 ```
 
 Then `LEDGER.md` in full, `LAWS.md` in full, and — **unlike the worker** —
-`LEDGER-archive.md` when you need history. You may open `stats.html`'s underlying
+`LEDGER-archive.md` when you need history (it keeps the last 60 entries; older ones
+are in `LEDGER-deep.md`, and `RUNLOG-archive.jsonl` / `MANAGER-LOG-archive.md` hold
+the same overflow for the other two. Grep them; never open one whole).
+`stall.mjs --report` now prices YOUR read beside the worker's — that MANAGER line is
+your budget, and every file in it is bounded by a rule the table states. You may open `stats.html`'s underlying
 numbers. Reading `courtyard.html` seams is fine and often necessary to write a
 brief that names real symbols.
 

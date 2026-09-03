@@ -20,6 +20,7 @@ import { readFileSync, existsSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { runlogRows, ARCHIVE_OF } from './archives.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const RUNLOG = join(HERE, 'RUNLOG.jsonl');
@@ -29,9 +30,12 @@ const argv = process.argv.slice(2);
 const report = argv.includes('--report');
 const asJson = argv.includes('--json');
 
-const all = existsSync(RUNLOG)
-  ? readFileSync(RUNLOG, 'utf8').trim().split('\n').filter(Boolean).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean)
-  : [];
+/* Both halves: RUNLOG.jsonl is a rotated TAIL and the rows before it are in
+ * RUNLOG-archive.jsonl. The signals below only ever look at the last 10-20 rows,
+ * but the counts in the header ("N worker iterations logged") are about the whole
+ * run, and a signal that silently re-based on a pruned file would be the exact
+ * failure this script exists to catch. */
+const all = runlogRows(HERE);
 
 /* EVERY SIGNAL BELOW IS ABOUT THE WORKER, so every signal below reads worker rows.
  * A manager pass writes a row too, and by construction it is verdict=no-ship with
@@ -192,23 +196,79 @@ if (plan && plan.byIteration != null && rows.length) {
   if (age >= 8) add('planStale', `the current plan was written ${age} iterations ago`, 2);
 }
 
+/* The rotation caps, quoted from the script that enforces them rather than restated
+ * here. A table naming a rule it does not share a definition with is a table that
+ * goes stale the first time the rule moves. */
+const A_KEEP = (() => {
+  const src = existsSync(join(HERE, 'rotate-ledger.mjs')) ? readFileSync(join(HERE, 'rotate-ledger.mjs'), 'utf8') : '';
+  const n = (k, d) => { const m = new RegExp(`--keep-${k}', '(\\d+)'`).exec(src); return m ? +m[1] : d; };
+  return { entries: n('archive', 60), rows: n('rows', 80), passes: n('passes', 16) };
+})();
+
 /* --- what the loop weighs on disk -----------------------------------------
  * context-budget.mjs bounds what a WORKER re-reads on every open, and #153 gave that
- * bound a caller. These four are the other half of the same problem: nothing caps
- * them, no worker reads them, and the MANAGER reads all four at every pass. They are
- * the loop's remaining unbounded growth, so the report carries the SLOPE — the point
- * of a line is to see it bend before it matters, and by the time the size is worth
- * noticing in a file listing the reading has already been paid for many times.
+ * bound a caller. These four are the other half of the same problem — but not, it
+ * turns out, the same shape, and the sentence that used to sit here ("nothing caps
+ * them … the MANAGER reads all four at every pass") was wrong on both halves.
+ *
+ * They are capped now: #175 gave each of the three that grow the rotation the ledger
+ * and the closed cues already had, and the RULE is printed beside the size below.
+ * And a manager does not read them whole. Its SKILL.md tells it to `tail -40` the
+ * runlog, and that tail is FLAT — 36.4 KB at row 40, 38.5 KB at row 211 — so what an
+ * unbounded RUNLOG.jsonl cost was never context. It cost a full parse by four tools
+ * on every iteration, and a haystack that only grew for a manager grepping the
+ * archive for history. Both are real; neither is what a size alone says.
+ *
+ * So the report now prints two things instead of one: what each half of the loop
+ * OPENS (the quota — a read, measured the way its own protocol says to take it) and
+ * what the loop WEIGHS (the sizes and the slope, which is how a cap is caught
+ * bending before anyone pays for it).
  *
  * state.json is the fourth because it belongs with them: the brief that asked for
- * this named the other three, and `closedCues` alone is most of this file — a list
- * that only ever grows, sitting in the file the manager opens first. */
+ * the first version of this named the other three, and `closedCues` alone was most
+ * of the file — a list that only ever grows, sitting in the file the manager opens
+ * first. It has been bounded since #167 and is the one line here already falling. */
 const GROW = [
-  ['LEDGER-archive.md', 'every entry rotated out of LEDGER.md'],
-  ['RUNLOG.jsonl', 'one row per iteration'],
-  ['state.json', 'the town’s state'],
-  ['MANAGER-LOG.md', 'one line per manager pass'],
+  ['LEDGER-archive.md', 'grepped for history, never opened whole', `${A_KEEP.entries} entries -> LEDGER-deep.md`],
+  ['RUNLOG.jsonl', 'the manager tails 40 rows; 4 tools parse it whole', `${A_KEEP.rows} rows -> RUNLOG-archive.jsonl`],
+  ['state.json', 'the town’s state — the only file BOTH halves read', '40 closed cues -> closed-cues-archive.jsonl'],
+  ['MANAGER-LOG.md', 'appended to; build-stats.mjs parses it', `${A_KEEP.passes} passes -> MANAGER-LOG-archive.md`],
 ];
+
+/* ---- the manager's quota --------------------------------------------------
+ * The worker's number comes from context-budget.mjs and the manager's comes from
+ * here, and both are READS: the bytes that land in a fresh context before any work
+ * can start. Taken the way each protocol actually says to take it — a tail is
+ * priced as a tail, a summary as its own stdout, a file read whole as the file —
+ * because a quota measured off the directory listing prices a 700 KB archive that
+ * nobody opens and misses that LAWS.md is at its cap.
+ *
+ * The cap is a CEILING set at what this measured when it went in (~82 KB of 96),
+ * not a trajectory. Every line in it is already bounded by a rule stated below; if
+ * this total climbs, one of those rules has been raised and that is the thing to
+ * look at, not this number. */
+const MGR_CAP = 96 * 1024;
+const stdoutOf = (script, ...a) => {
+  try { return Buffer.byteLength(execFileSync(process.execPath, [join(HERE, script), ...a], { cwd: HERE, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })); }
+  catch (e) { return e.stdout ? Buffer.byteLength(e.stdout) : 0; }   // context-budget exits 2 when the WORKER is over; its stdout is still the read
+};
+function managerRead() {
+  const bytes = f => (existsSync(join(HERE, f)) ? statSync(join(HERE, f)).size : 0);
+  /* The tail as the manager takes it — the last 40 rows of the LIVE file, which is
+   * exactly what rotation bounds and exactly what `tail -40` puts in its context. */
+  let tail40 = 0;
+  if (existsSync(RUNLOG)) {
+    const lines = readFileSync(RUNLOG, 'utf8').split('\n').filter(l => l.trim()).slice(-40);
+    tail40 = lines.reduce((a, l) => a + Buffer.byteLength(l) + 1, 0);
+  }
+  return [
+    ['RUNLOG.jsonl', 'tail -40 rows', tail40],
+    ['LEDGER.md', 'whole', bytes('LEDGER.md')],
+    ['LAWS.md', 'whole', bytes('LAWS.md')],
+    ['state.mjs --show', 'stdout', stdoutOf('state.mjs', '--show')],
+    ['context-budget.mjs', 'stdout', stdoutOf('context-budget.mjs')],
+  ];
+}
 
 const git = args => { try { return execFileSync('git', args, { cwd: HERE, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }); } catch { return null; } };
 
@@ -218,7 +278,8 @@ const git = args => { try { return execFileSync('git', args, { cwd: HERE, encodi
  * from a staged temp directory in its own probe, and a missing repo must degrade to
  * the sizes rather than take the report down with it. */
 function onDisk(span = 20) {
-  const out = GROW.map(([file, why]) => ({ file, why, bytes: existsSync(join(HERE, file)) ? statSync(join(HERE, file)).size : 0, perIter: null }));
+  const sz = f => (existsSync(join(HERE, f)) ? statSync(join(HERE, f)).size : 0);
+  const out = GROW.map(([file, why, rule]) => ({ file, why, rule, bytes: sz(file), archive: ARCHIVE_OF[file] ? sz(ARCHIVE_OF[file]) : 0, perIter: null }));
   const st = out.find(o => o.file === 'state.json');
   if (st && st.bytes) {
     try {
@@ -265,15 +326,35 @@ if (report) {
   }
   const qAll = rows.filter(r => 'quota' in r);
   const qOK = qAll.filter(measured);
-  console.log(`\n  memory quota: ${qOK.length}/${qAll.length} rows measured, ${qOK.filter(breach).length} over${qAll.length && !qOK.length ? '  — the field is on the row and nothing has ever filled it' : ''}`);
+
+  /* The two halves, side by side, in the same unit. The worker's number is quoted
+   * from context-budget.mjs rather than recomputed — that script IS the definition
+   * of a worker read, and a second implementation of it here would disagree with it
+   * within a pass or two and nobody would know which one was lying. */
+  const mr = managerRead();
+  const mrTotal = mr.reduce((a, x) => a + x[2], 0);
+  let wk = '';
+  try { wk = execFileSync(process.execPath, [join(HERE, 'context-budget.mjs'), '--terse'], { cwd: HERE, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); }
+  catch (e) { wk = (e.stdout || '').trim(); }
+  console.log('\n  memory quota — the bytes each half must READ before it can start work:');
+  console.log(`    WORKER   ${wk || 'context-budget.mjs did not answer'}   (context-budget.mjs)`);
+  console.log(`    MANAGER  ${(mrTotal / 1024).toFixed(1)}KB/${(MGR_CAP / 1024).toFixed(0)}KB ${mrTotal <= MGR_CAP ? 'OK' : 'OVER'}   read as courtyard-manager/SKILL.md says to read it:`);
+  for (const [f, how, b] of mr) console.log(`      ${f.padEnd(20)} ${how.padEnd(14)} ${(b / 1024).toFixed(1).padStart(6)} KB`);
+  console.log(`    the worker's per-iteration APPEND quota: ${qOK.length}/${qAll.length} rows measured, ${qOK.filter(breach).length} over${qAll.length && !qOK.length ? '  — the field is on the row and nothing has ever filled it' : ''}`);
+
   const disk = onDisk();
-  console.log(`  the loop on disk — nothing caps these, and the manager reads all of them${disk.iters ? `  (slope over #${disk.from} → #${disk.to})` : ''}:`);
+  console.log(`\n  the loop on disk — each bounded by ROTATION, nothing deleted${disk.iters ? `  (slope over #${disk.from} → #${disk.to})` : ''}:`);
   for (const d of disk.files) {
     const rate = d.perIter == null ? '—' : `${d.perIter >= 0 ? '+' : '-'}${(Math.abs(d.perIter) / 1024).toFixed(2)} KB/iter`;
-    console.log(`    ${d.file.padEnd(18)} ${(d.bytes / 1024).toFixed(1).padStart(7)} KB  ${rate.padStart(14)}   ${d.why}`);
+    console.log(`    ${d.file.padEnd(18)} ${(d.bytes / 1024).toFixed(1).padStart(7)} KB  ${rate.padStart(14)}   ${d.rule}`);
+    console.log(`    ${' '.repeat(18)} ${' '.repeat(7)}     ${' '.repeat(14)}   ${d.why}`);
   }
   const slope = disk.files.reduce((a, d) => a + (d.perIter || 0), 0);
-  if (slope) console.log(`    ${' '.repeat(18)} ${(disk.files.reduce((a, d) => a + d.bytes, 0) / 1024).toFixed(1).padStart(7)} KB  ${`+${(slope * 20 / 1024).toFixed(0)} KB/20 it`.padStart(14)}   at this rate`);
+  const archived = disk.files.reduce((a, d) => a + d.archive, 0);
+  if (slope) console.log(`    ${' '.repeat(18)} ${(disk.files.reduce((a, d) => a + d.bytes, 0) / 1024).toFixed(1).padStart(7)} KB  ${`${slope >= 0 ? '+' : '-'}${Math.abs(slope * 20 / 1024).toFixed(0)} KB/20 it`.padStart(14)}   at this rate`);
+  console.log(`    ${'+ archives'.padEnd(18)} ${(archived / 1024).toFixed(1).padStart(7)} KB  ${'—'.padStart(14)}   every rotated byte, still on disk and greppable`);
+  console.log('    A size here is not a read: the quota above is. What an unbounded file costs is');
+  console.log('    a whole-file parse by every tool each iteration, and a growing haystack to grep.');
   console.log(`\n  plan: ${plan ? `${(plan.queue || []).length} briefs queued, written at #${plan.byIteration} (rung ${plan.rung ?? '?'})` : 'none'}`);
   console.log(signals.length ? '\nSIGNALS FIRING' : '\nNo stall signals.');
   for (const s of signals) console.log(`  ${s.trigger ? '!' : '~'} ${s.id.padEnd(14)} ${s.detail}   → ${s.trigger ? 'consider' : 'REQUIRED:'} ladder rung ${s.suggestRung}+`);

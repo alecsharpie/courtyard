@@ -570,7 +570,7 @@
       "the PAINTED sill: drawSill inside drawOurSide, baked into the ground cache; sillTop() the ONE definition; sillBoxes/sillOver/clipOffSill; nearShadow(g) ramps the near roof down to it",
       "the ticker knows where you are LOOKING: inView(x,y) the ONE reader of whereN; sayAt at 37 sites; AMBIENT_PLACES/ambientHere; SOUNDS bypass inView",
       "the ticker THREE ranks (#142): background(rank,txt,then,until) beside announce(); CLOCK and MURMUR; until = when a line stops being TRUE. run-loop step 4 -> row.quota (#153)",
-      "the row's quota END TO END: runlog.mjs MEASURES it (--pre-sha or own preSha; source self|runner), stall.mjs reads it, stats.html shows it per row; rotate-ledger --prune-only archives closedCues past 40, cueSeq guards ids. #164/#167",
+      "the memory quota END TO END: runlog.mjs measures the worker's append, stall.mjs --report prices WORKER vs MANAGER reads; rotate-ledger rolls closedCues/40, LEDGER-archive/60, RUNLOG/80, MANAGER-LOG/16 into archives.mjs's halves. #164/#167/#175",
       "the camera FOLLOWS a person (#166): followQuarter, a quarter-shaped box on the feet (FOLLOW_S 2.6, ANCHOR 0.68); viewFor takes a box OR an index; viewEasing() true for its length so the wide cache is held (holdWideGround/followPad); inView reads it"
     ],
     "roofs": [
@@ -630,6 +630,12 @@
       "id": "c263",
       "note": "a low hull hides its own reflection: the barge's cabin image lands ~0.4 rows NORTH of her stern, so 5.6 cells of hull cover it (85 px vs the punt's 120). And the water shade's bound is AREA, not depth: a clear noon wets 7 sub-cells, h8.18 616.",
       "raisedBy": 171,
+      "seenBy": 0
+    },
+    {
+      "id": "c264",
+      "note": "stall.mjs's on-disk slope comes from git blobs at two Iter commits, and #175's rotation sits between them: for ~20 passes LEDGER-archive.md reads about -27 KB/iter and RUNLOG -6, a one-off cliff that will look like the caps working.",
+      "raisedBy": 174,
       "seenBy": 0
     }
   ],
@@ -900,5 +906,5 @@
       "reason": "merged into c258"
     }
   ],
-  "cueSeq": 259
+  "cueSeq": 263
 }

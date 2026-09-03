@@ -16,19 +16,22 @@
  * (never colour alone — every legend entry and table row is labelled); the growth
  * and context series are categorical slots 1-4 / 1-3, validated in both modes.
  */
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { runlogRows, wholeText } from './archives.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(HERE, '../../..');
 const OUT = join(REPO, 'stats.html');
 
-const readJsonl = f => (existsSync(f) ? readFileSync(f, 'utf8').trim().split('\n').filter(Boolean)
-  .map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean) : []);
-
-const all = readJsonl(join(HERE, 'RUNLOG.jsonl'));
+/* RUNLOG.jsonl is rotated past a cap (rotate-ledger.mjs), so the live file is a
+ * TAIL and the rows before it are in RUNLOG-archive.jsonl. This page charts every
+ * iteration there has ever been, so it reads both halves — via archives.mjs, which
+ * is the only thing that knows the split exists. Reading the live file alone would
+ * make the dashboard lose its own history on the first prune, silently. */
+const all = runlogRows(HERE);
 /* `launch-failed` rows are runs where the CLI itself died before a worker read
  * the brief (0 tokens, seconds long). They are not iterations of anything. */
 const rows = all.filter(r => r.kind !== 'manager' && r.kind !== 'launch-failed');
@@ -165,8 +168,10 @@ for (const r of rows) {
 
 /* ---- manager decisions ---------------------------------------------------- */
 const decisions = [];
-if (existsSync(join(HERE, 'MANAGER-LOG.md'))) {
-  for (const l of readFileSync(join(HERE, 'MANAGER-LOG.md'), 'utf8').split('\n')) {
+{
+  /* Same split: the older decisions live in MANAGER-LOG-archive.md. The decision
+   * list on this page is the loop's whole reasoning history and must not be a tail. */
+  for (const l of wholeText(HERE, 'MANAGER-LOG.md').split('\n')) {
     const m = l.match(/^-\s*(\d{4}-\d{2}-\d{2}).*?#(\d+).*?rung\s*(\d+)\s*[—–-]\s*(.*)$/i);
     if (m) decisions.push({ date: m[1], at: +m[2], rung: +m[3], why: m[4].trim() });
   }

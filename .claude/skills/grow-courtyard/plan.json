@@ -12,26 +12,7 @@
     "balance": "After #169 the staleness order is Cross street & allotments 10 back (#159), Plaza & quay 9 (#160), People & animals 8 (#161), Roofs & skyline 7 (#162), River & far bank 6 (#163). The coverage grid was three iterations stale when I opened it (#165, #167, #169 unrecorded) and is now right. This queue takes the bet to Roofs and the other three domain briefs to the three longest-untouched; People & animals is the one domain 8-back that I leave, and the bet puts the first people ever onto our own roof, which is where that domain's next entry would have gone anyway."
   },
   "rationale": "mapFlat is showing at 15 iterations, so the rung is 4b by name and a season or an evening does not clear it. The watch already forbids re-deriving the map-is-full argument a fourth time and names the two honest moves that remain: a new TILE or SPECIES constant, or DEPTH beyond the grid. I SHOT THE TOWN BEFORE PLANNING IT (day 6 12.98h midsummer, day 9 19.09h late summer, wide + mobile + a crop of the near band) and the picture named the move without my having to choose it. The bottom ~15% of every wide frame is our own block, the nearest quarter, at the largest pixels in the picture — and it is 1095 cells of ONE tile, 45% of all the WALL in the town, broken only by the river slot and two light wells. Everything needed to make it a place was built years of iterations ago and never used by anything human: roofWalkZ reads the pitch bilinearly for a walker, nearScale ramps a figure to NEAR_SZ 1.95, ROOF_FURN stands 24 washing lines, tanks and lofts on rows 86-87 (the source's own note says row 87 is the one line dead level across the whole block), LOFTS are landing boards, wellNear keeps a line off a hole, and the cat already crosses it. Twenty-four objects a tenant would own, and in 169 iterations no tenant. That is a spatial 4b (a new tile, +9 in the summed census, GLASS #116 and REED #155 the precedents), it is the domain 7 back, and it is the one change that alters what a visitor sees in the first ten seconds — because it happens closer to them than anything else in the town. Every other brief in this queue carries the number it rests on and where the number came from, per the standing watch note aimed at this seat; two of them (b172, b173) carry premises I have NOT re-measured myself and say so, with the measurement named as the deliverable if they do not reproduce.",
-  "queue": [
-    {
-      "id": "b174",
-      "domain": "The sill & the observer",
-      "kind": "Harness",
-      "brief": "The read rent has moved from the worker to the MANAGER, and the previous loop died of exactly this — $5.45 -> $13.72 an iteration with no gain in output, because every pass re-read a growing pile of its own memory. The worker's side is now bounded, measured and clean (45.1/46 KB at this pass; row.quota rc:0 on #167, #168 and #169). The manager's side is not bounded at all. stall.mjs's own table, slope over #149 -> #169: LEDGER-archive.md 676.4 KB +1.95 KB/iter, RUNLOG.jsonl 191.8 KB +1.13, MANAGER-LOG.md 81.6 KB +0.48, state.json 38.9 KB and falling since #167 pruned it — 988.8 KB, all four opened WHOLE on every manager pass. Bound the three that grow, by ROTATION and never by deletion: #167's `rotate-ledger.mjs --prune-only` already rolls closedCues past 40 into `closed-cues-archive.jsonl` by array position, so the shape exists — give LEDGER-archive.md, RUNLOG.jsonl and MANAGER-LOG.md the same treatment past a stated N, and make stall.mjs's memory quota read what a MANAGER opens beside what a worker does, so a breach on that side is a signal rather than a paragraph in a log nobody re-reads.",
-      "seams": [
-        "rotate-ledger.mjs",
-        "stall.mjs onDisk",
-        "runlog.mjs readQuota",
-        "build-stats.mjs",
-        "context-budget.mjs",
-        "closed-cues-archive.jsonl"
-      ],
-      "successLooksLike": "`stall.mjs --report` prints a manager-side quota next to the worker's, and the four files a manager opens are bounded by a rule the table states. Every archived byte is still on disk and findable — count them before and after and show the totals match.",
-      "avoid": "courtyard.html must come out byte-identical; census PASS all six groups. Do NOT change a cap while measuring against it — changing a cap mid-pass is how a loop stops noticing. Do not delete anything: rotation only. Pin any 'before' control to a REF, not to HEAD (#167's surprise).",
-      "budgetMin": 30,
-      "risk": "low"
-    }
-  ],
+  "queue": [],
   "recommendStop": null,
   "consumed": [
     {
@@ -49,6 +30,10 @@
     {
       "id": "b173",
       "at": "2026-09-03T16:04:30.795Z"
+    },
+    {
+      "id": "b174",
+      "at": "2026-09-03T16:36:23.968Z"
     }
   ]
 }

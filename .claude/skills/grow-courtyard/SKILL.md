@@ -249,7 +249,7 @@ honestly, claim nothing, and let the diff speak.
 .claude/skills/grow-courtyard/
   SKILL.md              this — the worker protocol
   LAWS.md               capped, curated by the manager; read every iteration
-  LEDGER.md             prose entries, last ~8; older → LEDGER-archive.md
+  LEDGER.md             prose entries, last ~8; older → LEDGER-archive.md → LEDGER-deep.md
   state.json            town state: coverage grid, inventory, open cues, menu
   plan.json             the manager's brief queue
   current-brief.json    the brief you are working on right now
@@ -263,7 +263,8 @@ honestly, claim nothing, and let the diff speak.
   stall.mjs             stall signals from RUNLOG.jsonl (the manager's trigger)
   runlog.mjs            evidence-derived verdict → RUNLOG.jsonl
   build-stats.mjs       RUNLOG.jsonl → stats.html
-  rotate-ledger.mjs     keeps LEDGER.md and LAWS.md inside budget
+  rotate-ledger.mjs     keeps LEDGER.md, LAWS.md and the manager's four inside budget
+  archives.mjs          the one place that knows a rotated file has two halves
   pop-brief.mjs         queue → current-brief.json (the runner calls this)
   run-loop.sh           the runner
   probes/               probes that earned their keep
