@@ -21,7 +21,7 @@
   "avoid": "Do NOT simply add topPad/cellH to backKey — that repaints a full W x H canvas every frame of every ease and at every camera, and frame-cost.mjs (not perf.mjs) is what would show it. The answer is next door: drawGround paints ONE padded wide cache and the blit scales it by `k = viewS/gview.s` with an origin offset (courtyard.html:10137-10138). Wide (whereN 0) must come out bit-identical, or the census and the motion gate churn on kinds you never touched. No new R() draw.",
   "budgetMin": 35,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 2,
   "nextIter": 165,
   "issued": "2026-09-03T08:48:32.413Z",
