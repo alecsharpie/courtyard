@@ -17,7 +17,7 @@
   "avoid": "Do not raise FAM_CAP - it is a proved dead constant and raising it is how this brief fails silently. Do not widen the window at the LANDING end only: bound both ends, and the END is the hour the last family is GONE, so the walk home is priced at the choice. A family that can get neither bench nor stand must still decline to set out.",
   "budgetMin": 35,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 2,
   "nextIter": 148,
   "issued": "2026-09-02T22:50:11.497Z",
