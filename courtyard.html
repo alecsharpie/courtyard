@@ -359,28 +359,141 @@ function inGlass(x, y){ const gx = x | 0, gy = y | 0; return gx >= GH.x0 && gx <
 const DIV_X0 = 96, PLAZA_X0 = 99, PLAZA_X1 = 112, QUAY_X0 = 112, RIVER_X0 = 114;
 const FOUNTAIN = {x:105.5, y:30};
 const PLAZA_PITS = [[100.5, 15], [108.5, 15], [100.5, 45], [108.5, 45]];
-const PLAZA_BENCHES = [{x:102, y:34.2}, {x:107.6, y:23.8}];
-/* the plaza's THIRD place, made real (#144). The basin's south side was a 1.6-cell strip
- * that anyone could stand anywhere in, so it reserved NOTHING: two parties drew it and
- * landed inside PAIR_MIN of each other, which is why FAM_CAP saturated at 3 — past that
- * the slack was not presence, it was two families rendering as one shape at the water.
- * A place that reserves nothing is not a place. So: three discrete stands on the
- * roundel's inner ring (r 3.6), on the arc that faces the viewer, held one party each by
- * `a.fstand` the way a.pbench holds a bench. The gap is not PAIR_MIN but PAIR_GAP +
- * PAIR_MIN — a party is a PARENT AND A CHILD, and the child rests at PAIR_GAP off the
- * parent, so clearance for a family is wider than clearance for a person. Swept in
- * probes/fount-stands.mjs: least separation 2.39, every stand on PATH and off the basin. */
-const FOUNT_STAND_R = 3.5, FOUNT_STAND_TH = [130, 90, 50];   // degrees, south arc; 40 deg apart is 2.39 cells at this radius
+/* ---- the plaza's DOOR (#160) ----
+ * #144 made the fountain's south side into three reserved STANDS and #148 gave the two
+ * benches one claim shared by every caller. #158 then measured what those five places
+ * actually do: over 7 seeds x 20 days the lane's plaza band CHOOSES the plaza 9.4 times
+ * and is ADMITTED 3.9 — 59% refused, every one of them re-routed onto the quay rail by
+ * the `else` below. Widening the east SHARE could not reach past that, because a share
+ * widened at a destination with a fixed number of places becomes overflow into its
+ * neighbour and not presence. The door is the bound, and a sweep of the ceiling above it
+ * cannot see it.
+ *
+ * So the door is opened, and opened in the three ways it was shut:
+ *
+ * PLACES. Fourteen, not five. Six stands on the fountain's ring instead of three on its
+ * south arc; a bench under each of the plaza's four trees beside the two by the roundel;
+ * and two crumb spots, which are a third thing to DO (see PLAZA_CRUMBS).
+ *
+ * SPREAD. #144's three stands sat on 130/90/50 degrees — the whole south arc, the side
+ * every approach already came from, with the 90-degree one at (105.5, 33.5) standing ON
+ * the corridor the lane's arrivals walk up. The ring is now the WHOLE ring at 60 degrees
+ * apart (3.50 cells of separation against #144's 2.39, and PAIR_GAP + PAIR_MIN is 2.0),
+ * offset so that NO stand falls in the mouth's columns at all. The four tree benches
+ * carry the plaza's places out to y 18 and y 48, which is what stops the square reading
+ * as a rank of people along one arc.
+ *
+ * ROUTE. And more arrivals only collide harder unless the approach becomes a corridor
+ * rather than a point, so plazaWay() below fans them round the roundel.
+ *
+ * The places are one TABLE with one claim (a.pheld) read by one predicate, because they
+ * are one door: the lane's plaza band, the east agents by the alley, and the families
+ * all draw from it. The east branch in particular reserved NOTHING before this — it sat
+ * on whichever bench it liked, claimed or not, and stood in the same 1.6-cell strip
+ * #144 had already ruled was not a place. */
+const PLAZA_BENCHES = [{x:102, y:34.2}, {x:107.6, y:23.8}]
+  .concat(PLAZA_PITS.map(([px, py]) => ({x:px - 0.75, y:py + 2.2})));   // one under each plaza tree, 2.8 cells clear of its trunk
+const FOUNT_STAND_R = 3.5, FOUNT_STAND_TH = [0, 60, 120, 180, 240, 300];   // the WHOLE ring; 60 deg apart is 3.50 cells at this radius
 const FOUNT_STANDS = FOUNT_STAND_TH.map(d => ({
   x: FOUNTAIN.x + Math.cos(d * Math.PI / 180) * FOUNT_STAND_R,
   y: FOUNTAIN.y + Math.sin(d * Math.PI / 180) * FOUNT_STAND_R }));
-function freeStand(){ const f = FOUNT_STANDS.filter(s => !agents.some(o => o.fstand === s)); return f.length ? pick(f) : null; }
-/* and the same for the two plaza benches (#148). #144 gave each stand one party via
- * a.fstand and left the bench claimed by a.famBench, which only families ever set — so
- * as the families' hold on the benches went from a quarter of the afternoon to three
- * fifths, the lane's plaza branch sat down on top of them and parent+plaza became the
- * plaza's commonest crowded pair. One claim, one name, both callers: a.pbench. */
-function freeBench(){ const f = PLAZA_BENCHES.filter(b => !agents.some(o => o.pbench === b)); return f.length ? pick(f) : null; }
+/* the third thing to do. Standing at the basin and sitting on a bench are two poses and
+ * the plaza had nothing else; scattering crumbs is an act with an ANSWER, because the
+ * pigeons already on the roundel come to whoever is doing it (plazaBirdSpot). On the
+ * roundel's middle ring, one north-west and one south-east, so the pair are diagonal
+ * across the square and 2.35 cells clear of the nearest stand. */
+const PLAZA_CRUMB_R = 4.6, PLAZA_CRUMB_TH = [210, 30];
+const PLAZA_CRUMBS = PLAZA_CRUMB_TH.map(d => ({
+  x: FOUNTAIN.x + Math.cos(d * Math.PI / 180) * PLAZA_CRUMB_R,
+  y: FOUNTAIN.y + Math.sin(d * Math.PI / 180) * PLAZA_CRUMB_R }));
+/* Every place in the plaza, in ONE table. The dwell lives HERE, on the place, because
+ * how long you stay is a property of what you came to do; what varies by caller is one
+ * SCALE (a family stays half again as long as a passer-by), not a table per caller. */
+const PLAZA_PLACES = FOUNT_STANDS.map(s => ({k:'stand', x:s.x, y:s.y, act:'stand', d0:6, d1:6, say:fountainLine}))
+  .concat(PLAZA_BENCHES.map(b => ({k:'bench', x:b.x + 0.5, y:b.y + 1.0, act:'sit', d0:11, d1:11, say:null})))
+  .concat(PLAZA_CRUMBS.map(c => ({k:'crumbs', x:c.x, y:c.y, act:'stand', d0:9, d1:7, crumbs:true,
+    say:() => pick(['Somebody scatters a handful of crumbs, and the roundel\'s pigeons close in at a waddle.',
+                    'A paper bag is shaken out over the paving; the pigeons arrive from three directions.'])})));
+function plazaHeld(p){ return agents.some(o => o.pheld && o.pheld.indexOf(p) >= 0); }
+function plazaFree(){ return PLAZA_PLACES.filter(p => !plazaHeld(p)); }
+/* ---- and the way in (#160) ----
+ * The basin is the one obstacle inside the square, and routes are WAYPOINTS: nobody
+ * reads the grid between two of them, so keeping a walker out of the water is this
+ * function's job and nothing else's. Four nodes on a walked ring outside the roundel;
+ * while the straight line from here to the place would cut the basin, turn at the node
+ * for the quadrant you are in and go round, the short way (on a tie, the side the place
+ * is on). The chords between two nodes 90 degrees apart pass 4.17 cells from the centre,
+ * so the ring itself is always clear. What this BUYS, beyond not paddling, is that
+ * fourteen arrivals no longer converge on one line: each comes up its own column of the
+ * mouth (plazaMouth) and fans off round the roundel to its own side of the square. */
+const PLAZA_RING = 5.9, BASIN_KEEP = 2.6;   // the grid cuts the basin at 1.8 x / 1.5 y
+const RING_NODES = [0, 90, 180, 270].map(d => [FOUNTAIN.x + Math.cos(d * Math.PI / 180) * PLAZA_RING,
+                                               FOUNTAIN.y + Math.sin(d * Math.PI / 180) * PLAZA_RING]);
+function basinBlocks(ax, ay, bx, by){
+  const [nx, ny] = segNear(FOUNTAIN.x, FOUNTAIN.y, ax, ay, bx, by);
+  return Math.hypot(nx - FOUNTAIN.x, ny - FOUNTAIN.y) < BASIN_KEEP;
+}
+function ringIx(x, y){
+  const th = Math.atan2(y - FOUNTAIN.y, x - FOUNTAIN.x) * 180 / Math.PI;
+  return Math.round((((th % 360) + 360) % 360) / 90) % 4;
+}
+function plazaWay(fx, fy, p){
+  const w = [];
+  let cx = fx, cy = fy, at = ringIx(cx, cy);
+  const d = (ringIx(p.x, p.y) - at + 4) % 4;
+  const dir = d === 2 ? (p.x < FOUNTAIN.x ? 1 : -1) : d === 1 ? 1 : -1;
+  for (let g = 0; g < 8 && basinBlocks(cx, cy, p.x, p.y); g++){
+    const n = RING_NODES[at];
+    if (Math.hypot(n[0] - cx, n[1] - cy) > 0.4){ w.push([n[0], n[1]]); cx = n[0]; cy = n[1]; }
+    else at = (at + dir + 4) % 4;
+  }
+  w.push([p.x, p.y]);
+  return w;
+}
+/* the column of the plaza's mouth (the SIDE cut at x 102..108 in the row below it) a
+ * place is reached by: the whole 4.8 cells of it, leaning the way the place lies,
+ * against the 2.0 that `104 + R() * 2` used for everybody. */
+const PLAZA_MOUTH0 = 102.6, PLAZA_MOUTH1 = 107.4;
+function plazaMouth(p){ return clamp(FOUNTAIN.x + (p.x - FOUNTAIN.x) * 0.42, PLAZA_MOUTH0, PLAZA_MOUTH1); }
+/* ---- and the visit itself ----
+ * ONE door, three callers. Draws exactly SIX R()s whatever it returns, so the seeded
+ * stream does not depend on how full the plaza happens to be — the fault #148 wrote its
+ * `fits` filter to avoid, kept here for the same reason.
+ *
+ * `fit` is the caller's own price on a place (the families price the walk at BOTH ends
+ * before they set out); `two` asks for a second act, which only the lane's band takes —
+ * its route is built by hand below, where a there-and-back is not what it walks, and
+ * the east branch and the families both go through the generic there-and-back builder.
+ * fountainStand() still decides the stand/bench split: on a frozen or a blowing day
+ * nobody chooses the water. */
+const PLAZA_TWO = 0.5;
+function plazaStop(p, scale, u, a){
+  return {x:p.x, y:p.y, act:p.act, dur:(p.d0 + u * p.d1) * scale, place:p,
+          say: (p.say && a.wary > 0.72) ? p.say() : null};
+}
+function plazaVisit(a, scale, fit, two){
+  const u = [R(), R(), R(), R(), R(), R()];
+  let free = plazaFree();
+  if (fit) free = free.filter(fit);
+  if (!free.length) return null;
+  const st = free.filter(p => p.k === 'stand'), other = free.filter(p => p.k !== 'stand');
+  const pool = u[0] < 0.5 * fountainStand() ? (st.length ? st : other) : (other.length ? other : st);
+  const p = pool[u[1] * pool.length | 0];
+  a.pheld = [p];
+  a.stop = plazaStop(p, scale, u[2], a);
+  let p2 = null;
+  if (two && u[3] < PLAZA_TWO){
+    // a second act, and never a second of the same kind: the point is to do another thing
+    let alt = plazaFree().filter(q => q !== p && q.k !== p.k);
+    if (fit) alt = alt.filter(fit);
+    if (alt.length){
+      p2 = alt[u[4] * alt.length | 0];
+      a.pheld.push(p2);
+      a.stop2 = plazaStop(p2, scale, u[5], a);
+    }
+  }
+  return {p, p2};
+}
 const QUAY_BENCHES = [{x:112.1, y:18}, {x:112.1, y:46}];
 /* the far bank across the river: towpath, church green, bandstand */
 const RIVER_X1 = 127, TOW_X0 = 127, FAR_X0 = 130, PARK_GATE = 134;
@@ -3652,6 +3765,21 @@ function stepAgent(a, dt){
       // FURTHER than the way they came (35 cells against 33), so an unbounded goHome()
       // made the late walk longer, not shorter
       if (a.dusk){ eveRelease(a); a.eveGoing = true; if (!a.with && goHome(a, (EVE_GONE - hourEve()) * EVE_HURRY)) return; }
+      /* a plaza visit can be two acts (#160). The second is armed only when the first
+       * has ended ON ITS OWN CLOCK — this block is entered by the rain, the failing
+       * light and the closing of every window too, and a visit ended by the sky does
+       * not get a second half. `stopped` goes back to false so the arrival test can
+       * fire again at the next place, which is also what keeps famCount() reading a
+       * party mid-visit as PRESENT rather than as one walking out. */
+      if (a.stop2 && a.timer <= 0 && a.i < a.wp.length){
+        const s2 = a.stop2; a.stop2 = null;
+        if (a.pairLead && s2.act === 'sit'){          // a bench is 1.5 cells and the companion takes the other half
+          const ox = s2.x; s2.x -= 0.5;
+          for (const q of a.wp) if (q[0] === ox && q[1] === s2.y) q[0] = s2.x;
+          a.pairSeat = 1.0;
+        } else if (a.pairLead) a.pairSeat = 0;
+        a.pheld = [s2.place]; a.stop = s2; a.stopped = false; a.cup = false;
+      } else if (a.pheld) a.pheld = null;             // the place goes back as they step off it, not when they leave the frame
       if (a.resume && a.i < a.wp.length){ a.state = 'walk'; a.resume = false; }
       else if (a.street){ a.state = 'walk'; }        // lane agents just continue their route
       else routeToExit(a);
@@ -3771,6 +3899,7 @@ function stepAgent(a, dt){
       // guarantees no one sits and stands right up. (ONE predicate — seatRefused().)
       if (a.stop.act === 'sit' && seatRefused(a)){
         if (a.table){ a.table.taken = 0; a.table = null; }
+        if (a.pheld){ a.pheld = null; a.stop2 = null; }   // and a plaza bench nobody sat on goes straight back to the door
         return;                                    // walk on past the empty chair
       }
       a.state = a.stop.act; a.timer = a.stop.dur; a.resume = true;
@@ -4477,28 +4606,25 @@ function spawnLaneAgent(room, cap){
   } else if (sun && day >= 1 && roll < 0.42 && allotCount() < 3){
     sendToPlot(a);
   } else if (sun && roll < E_PLAZA){
-    // a wander into the plaza: fountain gaze or a bench by the trees — BOTH of them now
-    // places that can be full, so a refused one falls back rather than crowding it, and
-    // somebody who can get neither goes on to the quay rail instead. The plaza band pays
-    // the quay band, and only on the afternoons the plaza is actually full.
-    const ex2 = 104 + R() * 2;
-    const st = R() < 1 - 0.5 * fountainStand() ? null : freeStand();
-    const bn = st ? null : freeBench();
-    if (st || bn){
+    /* a wander into the plaza: the fourteen-place door (#160), and this is the band whose
+     * surplus paid for the old five-place one. This is also the ONE caller that takes a
+     * second act — it walks in off the street with nowhere it has to be, so its visit is
+     * an act and then another one, and its route is a there-and-out, not a there-and-back.
+     * Somebody who can get nothing at all still goes on to the quay rail instead. */
+    const v = plazaVisit(a, 1.0, null, true);
+    if (v){
       a.kind = 'plaza';
-      a.wp.push([ex2, LANE_N_Y], [ex2, 62.2]);
-      if (st){
-        a.fstand = st;
-        a.stop = {x:st.x, y:st.y, act:'stand', dur:6 + R() * 6, say: R() < 0.3 ? fountainLine() : null};
-      } else {
-        a.pbench = bn;
-        a.stop = {x:bn.x + 0.5, y:bn.y + 1.0, act:'sit', dur:12 + R() * 12};
-      }
-      a.wp.push([a.stop.x, a.stop.y], [ex2, 62.2], [ex2, LANE_N_Y], [toX, LANE_N_Y]);
+      const mx = plazaMouth(v.p);
+      a.wp.push([mx, LANE_N_Y], [mx, 62.2]);
+      for (const w of plazaWay(mx, 62.2, v.p)) a.wp.push(w);
+      if (v.p2) for (const w of plazaWay(v.p.x, v.p.y, v.p2)) a.wp.push(w);
+      const last = v.p2 || v.p;
+      for (const w of plazaWay(last.x, last.y, {x:mx, y:62.2})) a.wp.push(w);
+      a.wp.push([mx, LANE_N_Y], [toX, LANE_N_Y]);
     } else {
       a.kind = 'quay';
       a.stop = {x:112.9, y:12 + R() * 40, act:'stand', dur:5 + R() * 6,
-        say: R() < 0.2 ? 'The plaza benches are all taken; someone goes on to the quay rail instead.' : null};
+        say: R() < 0.2 ? 'Every place in the plaza is taken; someone goes on to the quay rail instead.' : null};
       a.wp.push([112.9, LANE_N_Y], [112.9, a.stop.y], [a.stop.x, a.stop.y], [112.9, -2.5]);
     }
   } else if (sun && roll < E_QUAY){
@@ -5014,6 +5140,7 @@ const DECK_LEAD_A = [[99.8, ALLEY_Y + 0.4], [102.4, FOUNTAIN.y + 3.6], [108.6, F
 const DECK_LEAD_Q = [[112.9, 7], [112.9, DECK_WALK], [TOW_WALK, DECK_WALK]];
 function overDeck(a, lead0, gate){
   a.jetty = true;
+  a.pheld = null; a.stop2 = null;              // a plaza place claimed a line earlier is given up, not carried to the jetty
   a.stop = {x:JETTY.x - 1.3, y:JETTY.y, act:'stand', dur:a.stop.dur,
     say: a.wary < 0.03 ? 'Somebody has walked out to the end of the jetty and is looking down at the river.' : null};
   return a.lead = lead0.concat([[TOW_WALK, JETTY.y + 1.3]]);
@@ -5031,17 +5158,26 @@ function spawnEastAgent(nightRail, room){
     a.stop = {x:112.9, y:5 + R() * 6, act:'stand', dur:5 + R() * 4,
       say: R() < 0.2 ? 'Someone stands at the quay rail after dark, watching the lamps break up in the water.' : null};
     gate = EAST_GATE_Q; lead = [[112.9, 4]];
-  } else if (roll < 0.32){                   // into the plaza: a bench, or the fountain
+  } else if (roll < 0.32){                   // into the plaza: the same door as everybody else (#160)
+    /* this branch RESERVED NOTHING before #160. It sat on whichever bench it liked,
+     * claimed or not, and its fountain stand was the 1.6-cell strip #144 had already
+     * ruled was not a place — which is most of why the plaza was the town's most crowded
+     * room (1.52 pairs inside PAIR_MIN, against the lane's 0.77). One act only: the
+     * generic route below is a there-and-back through the alley, and that is what an
+     * east visitor walks. */
     a.kind = 'plaza';
-    if (R() < 1 - 0.5 * fountainStand()){
-      const b = pick(PLAZA_BENCHES);
-      a.stop = {x:b.x + 0.5, y:b.y + 1.0, act:'sit', dur:9 + R() * 9};
-    } else {
-      a.stop = {x:FOUNTAIN.x - 2.4 + R() * 1.6, y:FOUNTAIN.y + 3.1, act:'stand', dur:5 + R() * 5,
-        say: R() < 0.12 ? fountainLine() : null};
-    }
     gate = EAST_GATE_A; lead = [[99.8, ALLEY_Y + 0.4]];
-    if (a.wary < DECK_SHARE) overDeck(a, DECK_LEAD_A, gate);   // and one in five walks on, over the footbridge to the jetty
+    const v = plazaVisit(a, 0.9, null, false);
+    if (v){
+      const way = plazaWay(lead[0][0], lead[0][1], v.p);
+      lead = lead.concat(way.slice(0, -1));            // the stop itself is pushed by the builder
+    } else {                                           // nothing free: the quay rail, the way the lane band falls back
+      a.kind = 'quay';
+      a.stop = {x:112.9, y:10 + R() * 32, act:'stand', dur:5 + R() * 6,
+        say: a.wary > 0.88 ? 'Every place in the plaza is taken; someone goes on to the quay rail instead.' : null};
+      gate = EAST_GATE_Q; lead = [[112.9, 7]];
+    }
+    if (a.wary < DECK_SHARE) overDeck(a, v ? DECK_LEAD_A : DECK_LEAD_Q, gate);   // and one in five walks on, over the footbridge to the jetty
   } else if (roll < 0.62){                   // along the quay: a bench, or the rail
     a.kind = 'quay';
     if (R() < 0.5){ const b = pick(QUAY_BENCHES); a.stop = {x:b.x + 0.5, y:b.y + 1.0, act:'sit', dur:9 + R() * 9}; }
@@ -5231,9 +5367,9 @@ function spawnFarAgent(room){
  * 8–14 cells from the two benches — 1.3–2.6 h each way — and the dwell 3.5–6.5 h, so a
  * family holds its place under the cap for most of the window: families a day ≈ FAM_CAP,
  * however high the rate (2 gave 2, measured; 4 gave 4 and a crowd). The cap is the
- * plaza's three places — two benches and the fountain — released as a family starts
- * walking out (famCount), with a roll of 0.5/s so it fills by 10:30. A parent takes a
- * bench no other party holds (a.pbench), or the fountain: two on one seat draw as one.
+ * plaza's places — PLAZA_PLACES, fourteen of them since #160 — released as a family
+ * starts walking out (famCount), with a roll of 0.5/s so it fills by 10:30. A parent
+ * takes a place no other party holds (a.pheld): two on one seat draw as one.
  * #137 swept it to 4, 5 and 7 and kept 3, because it is a cap over PLACE-HOLDERS and only
  * TWO of its three places reserved anything: the bench claim locked a bench, the 1.6-cell fountain
  * strip locked nothing, so the slack past 3 was not presence but two families drawing as one
@@ -5244,8 +5380,9 @@ function spawnFarAgent(room){
  * What the sweep also says is that the cap is no longer the bound. 5 and 7 return IDENTICAL
  * numbers and bind 0.0% of open daylight; 4 still binds 10.7%. So the knee is 4, and past it
  * the arrival rate and the window are what hold the plaza's families at ~1.9, exactly as the
- * paragraph above suspected. Five reserved places, four allowed at once, and a family that
- * can get neither a bench nor a stand does not set out.
+ * paragraph above suspected — though re-measured on HEAD at #160 the cap binds 42.4% of its
+ * open hours again, the town having grown around it since. Fourteen reserved places now,
+ * four families allowed at once, and one that can get nothing does not set out.
  * The quay's north end was tried as a second gate and is 40 cells from the roundel —
  * a 16 h walk that fits the window never and left a parent on the quay at 03:00 — so
  * families come and go by the alley alone. And a walk is priced at its CHOICE: nobody
@@ -5255,6 +5392,7 @@ function spawnFarAgent(room){
  * that is there stays for its dwell (a 12:40 set-out sits until ~20:00), and the one
  * thing that ends a stop early is the sun (famSun(), the way eastOpen() ends the quay). */
 const FAM_CAP = 4, FAM_RATE = 0.75, FAM_H0 = 10, FAM_H1 = 21, FAM_SUN = 0.35, FAM_WALK_MARGIN = 1.15, FAM_DWELL_MIN = 4;
+const FAM_SCALE = 1.35;           // a family stays half again as long as a passer-by: the caller's scale on the PLACE's own dwell (#160)
 const FAM_LEASH = 8,              // a child runs at a pigeon only this far from the parent
       FAM_ARC = 0.8,              // half-angle of the roundel arc a child loops, centred on the parent's side
       FAM_RUN_R0 = 4.7, FAM_RUN_R1 = 5.8,   // between the roundel's middle and outer rings
@@ -5266,9 +5404,13 @@ const FAM_SPD0 = 1.4, FAM_SPD1 = 2.0;         // the speed a family is drawn bet
  * roll's bounds below and by the set-out test itself, so the window cannot drift from
  * the walk it is pricing. The margin is the same slop on both — a family dodges pigeons
  * on the way home too. */
-function famWalk(px, py, speed){
-  return { in:  FAM_WALK_MARGIN * pathHours(EAST_GATE_A[0], EAST_GATE_A[1], FAM_LEAD.concat([[px, py]]), speed),
-           out: FAM_WALK_MARGIN * pathHours(px, py, FAM_LEAD.slice().reverse().concat([EAST_GATE_A]), speed) };
+function famWalk(p, speed){
+  /* and it prices the walk that is WALKED (#160): the way in is FAM_LEAD and then
+   * plazaWay()'s turn round the roundel, which for the far side of the square is two
+   * ring nodes further than the straight line this used to charge for. */
+  const L = FAM_LEAD[0];
+  return { in:  FAM_WALK_MARGIN * pathHours(EAST_GATE_A[0], EAST_GATE_A[1], FAM_LEAD.concat(plazaWay(L[0], L[1], p)), speed),
+           out: FAM_WALK_MARGIN * pathHours(p.x, p.y, plazaWay(p.x, p.y, {x:L[0], y:L[1]}).concat([EAST_GATE_A]), speed) };
 }
 /* FAM_H0 and FAM_H1 are the hours the plaza HOLDS families — the first has ARRIVED, the
  * last is GONE — not the hours anyone sets out. They are a SOCIAL window, and the day
@@ -5289,13 +5431,11 @@ function famWin(){
  * could pass, so no draw is made — and a family may well set out before first light to
  * be at the fountain by ten, the way the punt and the far bank already do. */
 const FAM_LEG = (() => {
-  const places = PLAZA_BENCHES.map(b => ({ x:b.x + 0.5, y:b.y + 1.0, dwell:9 }))
-    .concat(FOUNT_STANDS.map(s => ({ x:s.x, y:s.y, dwell:7 })));
   let inMax = 0, visitMin = Infinity;
-  for (const p of places){
-    inMax = Math.max(inMax, famWalk(p.x, p.y, FAM_SPD0).in);
-    const w = famWalk(p.x, p.y, FAM_SPD1);
-    visitMin = Math.min(visitMin, w.in + p.dwell * HOURS_PER_S + w.out);
+  for (const p of PLAZA_PLACES){
+    inMax = Math.max(inMax, famWalk(p, FAM_SPD0).in);
+    const w = famWalk(p, FAM_SPD1);
+    visitMin = Math.min(visitMin, w.in + p.d0 * FAM_SCALE * HOURS_PER_S + w.out);
   }
   return { inMax, visitMin };
 })();
@@ -5308,45 +5448,33 @@ function spawnFamilyAgent(){
     x:0, y:0, wp:[], i:0, speed:1.4 + R() * 0.6, state:'walk', timer:0,
     shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9, wary:R(),
   };
-  /* the plaza's places, all THREE kinds of them reserved (#144). A bench is held by
-   * a.pbench, a stand by a.fstand — both shared with the lane's plaza branch (#148); a
-   * family that can get neither does not set out — and
-   * neither does one that cannot AFFORD the walk to what is left. Both ends are priced
-   * here, at the CHOICE, off this family's own place, speed and dwell: it must land no
-   * earlier than FAM_H0 and be GONE by FAM_H1, the walk home included.
-   * The fit is a FILTER on the candidates, not a veto after the draw. The five places
-   * are 7.7 to 12.6 hours apiece and the window is 9 — so drawing a place first and
-   * refusing it second spends the whole afternoon offering the far bench and turning it
-   * down, and the plaza's far corner is never held by anybody. Two dwells are drawn, one
-   * per kind, so the number of draws a call makes does not depend on how many places are
-   * free. */
-  const durB = 11 + R() * 5, durS = 8 + R() * 4;
-  const fits = [];
-  for (const b of PLAZA_BENCHES) if (!agents.some(o => o.pbench === b))
-    fits.push({ bench:b, x:b.x + 0.5, y:b.y + 1.0, act:'sit', dur:durB });
-  for (const t of FOUNT_STANDS) if (!agents.some(o => o.fstand === t))
-    fits.push({ stand:t, x:t.x, y:t.y, act:'stand', dur:durS });
+  /* the plaza's places, ALL of them reserved and all of them the same door (#160): a
+   * family that can get nothing does not set out — and neither does one that cannot
+   * AFFORD the walk to what is left. Both ends are priced here, at the CHOICE, off this
+   * family's own place, speed and dwell: it must land no earlier than FAM_H0 and be GONE
+   * by FAM_H1, the walk home included.
+   * The price is a FILTER on the candidates, not a veto after the draw. The places are
+   * 7.7 to 15 hours apiece and the window is 9 — so drawing a place first and refusing
+   * it second spends the whole afternoon offering the far bench and turning it down, and
+   * the plaza's far corner is never held by anybody. A family takes ONE act: its route
+   * is the there-and-back below and its child's whole day is keyed on the parent being
+   * sat down in one spot (kidBird, FAM_ARC), which a second act would halve. */
+  const win = famWin();
+  const fit = p => {
+    const w = famWalk(p, a.speed), arrive = hour + w.in;
+    return arrive >= win.h0 && (win.h1 - arrive - w.out) / HOURS_PER_S >= FAM_DWELL_MIN;
+  };
+  const v = plazaVisit(a, FAM_SCALE, fit, false);
+  if (!v) return;                                 // nothing free they can be home from in time
   /* the dwell is DRAWN before it is priced, so it is clipped to the room the day has
    * left rather than refused whole: a family that would be out after dark sits a shorter
    * while instead of never coming, and only a sit under FAM_DWELL_MIN is not worth the
-   * walk. This is what keeps the far bench — 12.6 h of visit against a 9 h midsummer
-   * window — reachable at all, and what leaves the plaza a short winter afternoon. */
-  const win = famWin(), afford = [];
-  for (const c of fits){
-    const w = famWalk(c.x, c.y, a.speed), arrive = hour + w.in;
-    if (arrive < win.h0) continue;
-    const room = (win.h1 - arrive - w.out) / HOURS_PER_S;      // seconds of sitting the day still has
-    if (room < FAM_DWELL_MIN) continue;
-    afford.push({ ...c, dur: Math.min(c.dur, room) });
-  }
-  if (!afford.length) return;                     // nothing free they can be home from in time
-  const wantsBench = R() < 1 - 0.5 * fountainStand();
-  const benches = afford.filter(c => c.bench), stands = afford.filter(c => c.stand);
-  const c = pick(wantsBench ? (benches.length ? benches : stands) : (stands.length ? stands : benches));
-  if (c.bench) a.pbench = c.bench; else a.fstand = c.stand;
-  a.stop = {x:c.x, y:c.y, act:c.act, dur:c.dur};
+   * walk. This is what keeps the far bench reachable at all, and what leaves the plaza a
+   * short winter afternoon. */
+  const fw = famWalk(v.p, a.speed);
+  a.stop.dur = Math.min(a.stop.dur, (win.h1 - (hour + fw.in) - fw.out) / HOURS_PER_S);
 
-  const gate = EAST_GATE_A, lead = FAM_LEAD;
+  const gate = EAST_GATE_A, lead = FAM_LEAD.concat(plazaWay(FAM_LEAD[0][0], FAM_LEAD[0][1], v.p).slice(0, -1));
   a.x = gate[0]; a.y = gate[1];
   for (const p of lead) a.wp.push(p.slice());
   a.wp.push([a.stop.x, a.stop.y]);
@@ -5401,14 +5529,52 @@ function kidSettle(k){ if (k.walkSpeed){ k.speed = k.walkSpeed; k.walkSpeed = 0;
  * of anyone already there, or it would be up again in the same frame. Returns null when
  * the spot is taken; the two draws are spent either way. */
 const PLAZA_BIRD_SIDE = 1.2;      // half-angle of the arc round a seated family
+/* ---- the crumbs, and the one exception to the scare radius (#160) ----
+ * A pigeon flies up whenever ANY agent comes within BIRD_SHY of it (updateWildlife), and
+ * that radius is why scattering crumbs did nothing when it was first built: measured over
+ * 4 seeds x 12 days, a plaza pigeon was down within 3 cells of a stopped person on 0.0000
+ * of samples — on HEAD as well, which is the control. A feeding it cannot be approached
+ * for is not an act. So a bird inside the crumbs' own reach is BOLD: it keeps CRUMB_SHY
+ * off everybody instead of BIRD_SHY, which is still wider than the 0.9 at which a bird and
+ * a person would draw as one shape. Step outside the reach and the ordinary radius is
+ * back — the exception belongs to the crumbs, not to the bird. The band also gets its own
+ * ceiling and its own rate while somebody is feeding: three pigeons that keep their
+ * distance are the roundel's furniture, seven that come to your feet are an event. */
+const CRUMB_R0 = 1.15, CRUMB_R1 = 2.6,      // the ring a pigeon comes down in, round the feeder
+      CRUMB_SHY = 1.0, BIRD_SHY = 4.5,      // and how close it will let anyone get, fed and unfed
+      CRUMB_BIRDS = 4, CRUMB_PULL = 3;      // extra pigeons, and the rate they come at, while the crumbs are down
+let _crumbT = -1, _crumbA = null;
+function crumbFeeder(){                     // ONE definition, read by the spot, the scare, the cap and the rate
+  if (_crumbT !== simT){
+    _crumbT = simT;
+    _crumbA = agents.find(a => a.stopped && a.state !== 'walk' && a.stop && a.stop.place && a.stop.place.crumbs) || null;
+  }
+  return _crumbA;
+}
+function birdShy(b){
+  const F = b.plaza ? crumbFeeder() : null;
+  return F && Math.hypot(F.x - b.x, F.y - b.y) < CRUMB_R1 + 0.5 ? CRUMB_SHY : BIRD_SHY;
+}
 function plazaBirdSpot(){
-  const P = agents.find(a => a.fam && !a.famKid && a.stopped && a.state !== 'walk');
-  const u = R(), th = P ? Math.atan2(P.y - FOUNTAIN.y, P.x - FOUNTAIN.x) + (u - 0.5) * 2 * PLAZA_BIRD_SIDE : u * Math.PI * 2;
-  const r = PLAZA_BIRD_R0 + R() * (PLAZA_BIRD_R1 - PLAZA_BIRD_R0);
-  const x = FOUNTAIN.x + Math.cos(th) * r, y = FOUNTAIN.y + Math.sin(th) * r;
+  /* whoever is scattering crumbs FIRST (#160) — a crumbs place is an act with an answer,
+   * and the answer is the birds coming to it; else the seated family, as before. */
+  const F = crumbFeeder();
+  const P = F || agents.find(a => a.fam && !a.famKid && a.stopped && a.state !== 'walk');
+  const u = R(), v = R();
+  /* the crumbs are the exception to the scare radius, and they have to be: a bird that
+   * keeps 4.6 cells off everybody can never come to the person feeding it. So a feeder
+   * gets a ring of their OWN, close, and everyone else's 4.6 still holds — the spot is
+   * still checked against the basin box and against the plaza's own paving, because a
+   * scatter round a feeder is no longer a ring the roundel guarantees is clear. */
+  const th = F ? u * Math.PI * 2
+           : P ? Math.atan2(P.y - FOUNTAIN.y, P.x - FOUNTAIN.x) + (u - 0.5) * 2 * PLAZA_BIRD_SIDE : u * Math.PI * 2;
+  const r = F ? CRUMB_R0 + v * (CRUMB_R1 - CRUMB_R0) : PLAZA_BIRD_R0 + v * (PLAZA_BIRD_R1 - PLAZA_BIRD_R0);
+  const cx = F ? F.x : FOUNTAIN.x, cy = F ? F.y : FOUNTAIN.y;
+  const x = cx + Math.cos(th) * r, y = cy + Math.sin(th) * r;
   const kp = PAVING.plaza.keep;
   if (kp && x > kp.x0 - 0.6 && x < kp.x1 + 0.6 && y > kp.y0 - 0.6 && y < kp.y1 + 0.6) return null;
-  if (agents.some(a => Math.hypot(a.x - x, a.y - y) < 4.6)) return null;
+  if (F && !inPlaza(clamp(x | 0, 0, GW - 1), clamp(y | 0, 0, WH - 1))) return null;
+  if (agents.some(a => Math.hypot(a.x - x, a.y - y) < (F ? CRUMB_SHY : 4.6))) return null;
   return [x, y];
 }
 /* ============ the evening's own arrivals (#79) ============ *
@@ -5600,10 +5766,10 @@ function makeCompanion(a){
   const b = Object.assign({}, a, {shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9,
     speed:a.speed * 1.12, with:a, side:R() < 0.5 ? 1 : -1, stop:null, table:null, dog:null, wp:[], i:0, hx:1, hy:0,
     /* a place is held by the party's LEAD, not by both of them (#148). Object.assign
-     * copied the claim onto the companion, so freeStand()/freeBench() counted a party of
-     * two as two holders — harmless while the pair always left together, and a lie the
-     * moment anything asks who holds what. The stop is nulled here for the same reason. */
-    fstand:null, pbench:null});
+     * copied the claim onto the companion, so the door counted a party of two as two
+     * holders — harmless while the pair always left together, and a lie the moment
+     * anything asks who holds what. The stop is nulled here for the same reason. */
+    pheld:null, stop2:null});
   a.pairLead = true;
   // a bench is 1.5 cells wide and its sitter takes the middle: shift the leader half a
   // cell left and seat the companion a cell to their right; at a cafe table the
@@ -5985,7 +6151,9 @@ function updateWildlife(dt){
   for (const f of fireflies){ f.ph += dt*(RM?0.8:1.6); f.x += Math.sin(f.ph*0.9)*dt*0.8; f.y += Math.cos(f.ph*0.7)*dt*0.6; }
   belfryRoost = Math.min(7, belfryRoost + dt*0.85);   // flushed pigeons drift back to the tower
   // #92: the plaza's own pigeons, on their own roll and cap, off the lawn's three
-  if (!raining && daylight > 0.3 && birds.filter(b => b.plaza).length < PLAZA_BIRDS && R() < dt * PLAZA_BIRD_RATE){
+  const fed = crumbFeeder() ? 1 : 0;         // the crumbs raise the roundel's own ceiling and its own rate, and only while they are down
+  if (!raining && daylight > 0.3 && birds.filter(b => b.plaza).length < PLAZA_BIRDS + fed * CRUMB_BIRDS
+      && R() < dt * PLAZA_BIRD_RATE * (fed ? CRUMB_PULL : 1)){
     const sp = plazaBirdSpot(), col = pick(['#7d8089','#6e6a60','#33302c','#5a4636']);
     if (sp) birds.push({x:sp[0], y:sp[1], z:8, state:'land', hop:0, t:0, plaza:true, col});
   }
@@ -6036,7 +6204,7 @@ function updateWildlife(dt){
                                        : onNearRoof(nx, ny)) { b.x = nx; b.y = ny; }
       }
       if (b.roof) b.z = b.zf = (b.perch === 'parapet' ? PARA_Z : b.perch === 'loft' ? b.bz : roofSurfZ(b.x, b.y));
-      const scare = agents.some(a => Math.hypot(a.x-b.x, a.y-b.y) < 4.5);
+      const scare = agents.some(a => Math.hypot(a.x-b.x, a.y-b.y) < birdShy(b));
       if (scare || b.t<=0 || raining) b.state='fly';
     } else if (b.state==='wheel'){    // put up off the belfry by the bell: one wide turn, then away
       b.t -= dt; b.ph += dt*b.sp*(RM?0.45:1); b.ph2 += dt*(RM?3:7);
@@ -13346,6 +13514,9 @@ function birdName(b){
 function personName(a){
   if (a.famKid) return a.run ? (a.chasing ? 'a child, chasing the pigeons' : 'a child, running about the roundel')
                              : a.state === 'walk' ? 'a child, at someone\'s side' : 'a child, back at someone\'s side';
+  if (a.stopped && a.state === 'stand' && a.stop && a.stop.place && a.stop.place.crumbs)
+    return a.fam ? 'someone putting crumbs down for the pigeons, watching a child'
+                 : 'someone putting crumbs down for the pigeons';
   if (a.fam) return a.state === 'sit' ? 'someone on a bench, watching a child'
                   : a.state === 'stand' ? 'someone at the fountain, watching a child' : 'someone, walking with a child';
   const n = personName0(a);
