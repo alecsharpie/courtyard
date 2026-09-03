@@ -197,3 +197,27 @@ shower arriving**: the census row carried `raining: true` at that very frame. Th
 on HEAD at *its own* shower end peaks at 18.1x median; both builds sit at 0.65 vs 0.71 dry.
 **Law:** a canvas-extent population must never draw from the world's PRNG, and no world event may
 wait on a screen-space one — the draws a frame spends are a fact about the WINDOW.
+
+## Iteration 177 — the lamps get moths at them (2026-09-04) [People & animals × New element]
+
+**Brief:** b177 — a nocturnal species, own source and cap, gathered AT the lights, not a second
+firefly. **Premise held:** no `moth`/`bat` in the source, nothing keyed on a lamp.
+**Did.** `moths[]`, `updateMoths/mothPos/mothRate`, `drawMoths`, `mothName`, `NIGHT_LAMPS` —
+ONE lamp list, which the halo pass now reads too, so a lit lamp and an occupied lamp cannot
+drift apart. A moth belongs to ONE lamp and orbits it on its own phases — no per-frame `R()`,
+and a `^6` term on the radius that closes it right onto the glass.
+**Gathered, not scattered.** `MOTH_JOIN` of arrivals join an occupied lamp, and both candidate
+lists are pre-filtered to lamps under `MOTH_PER_LAMP`, so a knot saturates and the overflow
+starts the next. 5 seeds x a year (`probes/moth-night.mjs`, new): **9.1 of 24 lamps occupied**,
+busiest 2.97 — one speck each at 24 is nothing at 3 px. Daylight **0.00**, deep night 23.8,
+**0 of 135 nights empty**.
+**Gates:** census PASS (`moths +93`, `creatures +88`) · motion PASS (moth 0/0/0/0) · perf +0%
+· filmstrip 0 POP · 6 framings incl. mobile · naming 31/32, same points, moths gone: 0.
+**Verdict:** shipped
+**Surprise:** the season was on the CEILING first, and the year came back **13.8 / 16.3 / 15.8
+/ 15.1** across its four quarters — dead. At 1.5 arrivals/s the SUPPLY was the bound in every
+season and the ceiling was decoration, which a sweep of the ceiling cannot see. Year and rain
+onto the INFLOW, `MOTH_CAP` left a pure ceiling: **20.2 / 27.0 / 29.2 / 18.6**, cap
+binding in midsummer, rate in winter and rain.
+**Law:** a cap and a rate are both alive only if they bind at DIFFERENT times — put the
+modulating scalar on whichever is SLACK, and prove it by sweeping the AXIS, not the constant.

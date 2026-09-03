@@ -6409,7 +6409,7 @@ function drawStepMarks(){                         // one small draw per delivere
 }
 
 /* ============ wildlife & weather ============ */
-const butterflies = [], fireflies = [], birds = [], leaves = [], raindrops = [];
+const butterflies = [], fireflies = [], birds = [], leaves = [], raindrops = [], moths = [];
 /* The lawn/lane band's OWN cap. It used to read `!b.plaza`, which was the whole truth
  * when this was the only band there was — but #92 added the plaza's pigeons and #106 the
  * near roof's three, and both of those count against a predicate that means "not a plaza
@@ -6625,6 +6625,115 @@ function drawDuck(it){
   ctx.fillRect(x + 3.4, y - 4.4 - bob, 1.6, 0.9);
 }
 const stats = { people:0, blooms:0 };
+/* ============ MOTHS: the night's own species, bound to the LIGHTS (#177) ============
+ * The night is the best-looking state this town has and it was the emptiest — twenty-four
+ * lamps and a wall of lit glass, and nothing alive in the air but the fireflies, which
+ * never leave the lawn. A moth is the opposite population by construction: not a scatter
+ * over an area but a GATHERING at a point source. That is the whole reason it reads from
+ * the wide shot, where a moth is three pixels — four specks orbiting one lamp is a shape,
+ * four specks spread over the lane is noise. The coarse gate that does the gathering is
+ * the lamp itself, and MOTH_JOIN is how hard it gathers.
+ *
+ * Its OWN source and its OWN cap. Not one term of it is a share of the wildlife budget:
+ * a spawn band is a share of a budget rather than a rate, so a rare thing taken out of an
+ * existing band arrives at whatever the common ones have left.
+ *
+ * BOUNDED AT BOTH ENDS, which is the whole of the arithmetic. The ceiling is mothWant() —
+ * the season and the weather, FLOORED, so the year thins the lamps without ever emptying
+ * a night. The floor is that every moth carries its own life and leaves of its own accord
+ * (up, out and faded, MOTH_GONE_Z), so a lamp turns over instead of accumulating the same
+ * fourteen insects from dusk to dawn. A window with only a landing bound is a
+ * marathon-walker factory, and a lamp with only a landing bound is the same machine.
+ *
+ * Keyed on nightF and NOTHING else. nightF is high through both shoulders, which for a
+ * moth is exactly right — it is at the glass at dusk and still there at four in the
+ * morning — so the "!daylight is dawn as well as dusk" trap has no purchase here. And
+ * there is no per-day roll: `day` rolls at hour 6 and therefore holds two dawns, so a
+ * hash(day, k) "moth weather" would change its mind in the middle of a night. The season
+ * enters as the continuous scalar it already is. */
+const MOTH_CAP = 30;             // the ceiling over the 24 lamps: ~21 present after turnover, so 8 or 9 lamps have a knot at them
+const MOTH_WARM = 0.42;          // midwinter's share of the INFLOW — the year thins them, it never empties a night
+const MOTH_RAIN = 0.28;          // and a wet night puts most of them up under the eaves
+const MOTH_ON = 0.42;            // the nightF drawLamp lights the head at, so they arrive WITH the light
+const MOTH_RATE = 3.2;           // arrivals/s at midsummer: x the mean life, 40, which is over the cap ON PURPOSE (see mothRate)
+const MOTH_LIFE = [7, 18];       // seconds at one lamp = 3.1..7.8 compressed hours, then it drifts off
+const MOTH_JOIN = 0.72;          // ...and this share of arrivals join a lamp that ALREADY has one: the gathering
+const MOTH_R = [1.2, 2.5];       // orbit radius, cells: out to about the halo's own 2.4, or they read as part of the lamp head
+const MOTH_PER_LAMP = 3;         // and no more than this at one lamp — gathered is not HEAPED (LAWS: under ~0.9 cells apart, two figures are one shape)
+const MOTH_LIFT = 1.05;          // ...and each has its OWN height in the column above the head, or three at one lamp draw as one shape
+const MOTH_Z = 2.6;              // the lamp head's own height (drawLamp)
+const MOTH_GONE_Z = 8;           // and how far up one goes before the dark has it
+/* THE YEAR AND THE WEATHER RIDE THE INFLOW, and MOTH_CAP is a pure ceiling. A cap and a
+ * rate are two bounds and only one of them can be swept at a time, so they are put where
+ * they bind at DIFFERENT times of year: midsummer's rate x the mean life is 40, over the
+ * cap, so the lamps fill up and the CAP is the bound; midwinter's is 17 and rain's is 11,
+ * so out of season the RATE is the bound and the cap is slack. Both are alive and both
+ * are sweepable.
+ *   This was the other way round first — the season scaled the CEILING — and the year came
+ * back 13.8 / 16.3 / 15.8 / 15.1 across its four quarters, because at 1.5 arrivals a
+ * second the supply was the bound in every season and the seasonal ceiling was decoration.
+ * That is exactly the dead constant a sweep of the ceiling alone cannot see. */
+function mothRate(){
+  return MOTH_RATE * (MOTH_WARM + (1 - MOTH_WARM) * warmth) * (raining ? MOTH_RAIN : 1);
+}
+function mothWant(){ return nightF > MOTH_ON ? MOTH_CAP : 0; }
+/* The flight, as a pure function of the moth's own phases — no R() per frame, so a moth
+ * flies the same flight in the same world. The orbit is not a circle: the radius breathes
+ * on rph, and the ^6 term every so often closes it right in on the glass, which is the
+ * one thing a moth does that nothing else in this town does. */
+function mothPos(m){
+  const L = NIGHT_LAMPS[m.li];
+  const rr = m.r * (0.78 + 0.22 * Math.sin(m.rph)) * (1 - 0.45 * Math.pow(Math.abs(Math.sin(m.rph * 0.37)), 6));
+  m.x = L[0] + Math.cos(m.ph) * rr;
+  m.y = L[1] + Math.sin(m.ph) * rr * 0.5;       // seen from here an orbit is an ellipse, like every ring in this town
+  m.z = MOTH_Z + m.zo + Math.sin(m.ph * 1.7 + m.rph) * 0.42;
+}
+function updateMoths(dt){
+  const want = mothWant();
+  let here = 0;
+  for (const m of moths) if (!m.out) here++;
+  if (here < want && R() < dt * mothRate()){
+    /* WHICH lamp: this is the gathering, and it is the only interesting line here. A
+     * share MOTH_JOIN of arrivals go to a lamp that already has one — rich gets richer,
+     * which is how four specks end up round one lamp instead of one speck round four —
+     * and the rest land anywhere. Both lists are pre-filtered to lamps with ROOM, so the
+     * gathering saturates instead of heaping: past MOTH_PER_LAMP a lamp stops being a
+     * candidate at all and the next arrival starts the next knot.
+     *   Two draws, ALWAYS, whichever branch is taken: the stream must not fork on the
+     * answer or the seeded world reshuffles the moment a lamp happens to be occupied. */
+    const per = new Array(NIGHT_LAMPS.length).fill(0);
+    for (const q of moths) if (!q.out) per[q.li]++;
+    const room = [], busy = [];
+    for (let k = 0; k < per.length; k++) if (per[k] < MOTH_PER_LAMP){ room.push(k); if (per[k]) busy.push(k); }
+    const j = R(), u = R();
+    const from = (j < MOTH_JOIN && busy.length) ? busy : room;
+    const li = from[(u * from.length) | 0];
+    const m = {li, ph: R() * 9, sp: 0.7 + R() * 0.9, dir: R() < 0.5 ? -1 : 1,
+               r: MOTH_R[0] + R() * (MOTH_R[1] - MOTH_R[0]), rph: R() * 9,
+               t: MOTH_LIFE[0] + R() * (MOTH_LIFE[1] - MOTH_LIFE[0]),
+               zo: R() * MOTH_LIFT, w: R() * 9, pale: R() < 0.45, a: 0, x: 0, y: 0, z: MOTH_Z};
+    mothPos(m);                 // placed on its orbit at birth: a spawn at (0,0) is a teleport to the motion gate
+    moths.push(m); here++;
+  }
+  let over = here - want;       // the night ending takes want to 0, so dawn empties the lamps by this one line
+  for (let i = moths.length - 1; i >= 0; i--){
+    const m = moths[i];
+    m.w += dt * (RM ? 4 : 15);
+    if (m.out){
+      // out of the lamplight and up: it fades on the way, so nothing pops out of existence
+      m.z += dt * 2.0; m.y -= dt * 0.85; m.x += dt * 0.55 * m.dir;
+      m.a = clamp((MOTH_GONE_Z - m.z) / 3.4, 0, 1);
+      if (m.z >= MOTH_GONE_Z) moths.splice(i, 1);
+      continue;
+    }
+    m.ph += dt * m.sp * m.dir * (RM ? 0.5 : 2.4);
+    m.rph += dt * (RM ? 0.4 : 1.3);
+    mothPos(m);
+    m.a = Math.min(1, m.a + dt * 2.2);         // and in out of the dark the same way
+    m.t -= dt;
+    if (m.t <= 0 || over > 0){ m.out = true; if (over > 0) over--; }
+  }
+}
 function updateWildlife(dt){
   const m = maturity(), rich = richness();
   const bloomsNow = stats.blooms;
@@ -10952,6 +11061,11 @@ const LANE_LAMPS = [[5, 65.6], [28, 65.6], [37, 65.6], [60, 65.6], [82, 65.6], [
                     [RIVER_X0 - 0.4, 65.4], [RIVER_X1 + 0.4, 65.4],         // bridge ends
                     [128.4, 65.6], [135, 65.6], [128.9, 20], [128.9, 46],   // far bank
                     [132.4, 36], [136.6, 45]];
+/* Every street light in the town, in ONE list. The halo pass and the moths must agree
+ * about what a lamp IS — a moth orbiting a lamp that is not drawn lit, or a lamp lit with
+ * nothing at it because the two lists drifted apart, is the failure a second derivation
+ * of the same set always eventually produces. */
+const NIGHT_LAMPS = LAMPS.concat(LANE_LAMPS);
 /* Where each of the thirteen crowns actually landed on screen this frame, written by
    drawTree/drawLaneTree and read only by the naming: a crown is drawn several cells
    NORTH of its own trunk, so a tree cannot be found by unprojecting the pointer, and a
@@ -13794,6 +13908,31 @@ function drawLamp(it){
   ctx.fillStyle = nightF > 0.4 ? '#ffd98a' : '#57524a';
   ctx.beginPath(); ctx.arc(tx2, ty2 - 3, 3, 0, 7); ctx.fill();
 }
+/* A moth, three pixels of it. Two wings and a body, and the wingbeat is a SHAPE — the
+ * wings shut about the body and open again — never an alpha. An alpha strobe on a sprite
+ * this size is the flicker the motion gate exists to catch, and at this scale a thing that
+ * dims reads as a thing that is going out, which is a firefly. A thing that narrows reads
+ * as a thing with wings.
+ *   Two colours, split at the spawn: half of them are the pale grey-cream that is nearly
+ * white against the amber, and half the dun brown that goes DARK across the core of a halo
+ * and pale against the sky outside it. One colour and the whole population disappears at
+ * whichever radius matched the light. */
+function drawMoths(){
+  for (const m of moths){
+    if (m.a <= 0.03) continue;
+    const [x, y] = project(m.x, m.y, m.z);
+    if (x < -24 || x > W + 24 || y < -24 || y > H + 24) continue;   // at a quarter most of the lamps are off-frame
+    const u = Math.max(2.5, cellW * 0.32), beat = 0.26 + 0.74 * Math.abs(Math.sin(m.w));
+    ctx.fillStyle = (m.pale ? 'rgba(236,228,203,' : 'rgba(176,146,104,') + (0.92 * m.a).toFixed(3) + ')';
+    ctx.beginPath();
+    ctx.moveTo(x, y - u * 0.46);
+    ctx.lineTo(x - u * beat, y - u * 0.10); ctx.lineTo(x - u * beat * 0.55, y + u * 0.42);
+    ctx.lineTo(x + u * beat * 0.55, y + u * 0.42); ctx.lineTo(x + u * beat, y - u * 0.10);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(48,38,28,' + (0.55 * m.a).toFixed(3) + ')';
+    ctx.fillRect(x - u * 0.11, y - u * 0.5, Math.max(1, u * 0.22), u * 0.95);
+  }
+}
 function drawPerson(it, t){
   const a = it.a;
   /* #170: on our own block a person is drawn to their OWN ROW, the factor the cat and
@@ -14041,7 +14180,7 @@ function applyLight(t){
     ctx.fillRect(0, 0, W, H);
     ctx.save(); clipOffSill(ctx);      // every glow below is the TOWN's light, and the sill is in front of the town
     ctx.globalCompositeOperation = 'screen';
-    for (const L of LAMPS.concat(LANE_LAMPS)){
+    for (const L of NIGHT_LAMPS){
       const [x, y] = project(L[0], L[1], 2.6);
       const hr = cellW * 2.4 * (1 + 0.7 * mistAt(L[0]));           // a halo widens in the mist (#88); exactly 2.4 out of it
       const g = ctx.createRadialGradient(x, y, 1, x, y, hr);
@@ -14192,6 +14331,14 @@ function applyLight(t){
       ctx.fillStyle = g;
       ctx.beginPath(); ctx.arc(x, y, 5, 0, 7); ctx.fill();
     }
+    /* LAST of everything, and in source-over rather than screen. A moth is the only thing
+     * in this pass that is not itself a light: it is a pale scrap CATCHING one, so it has
+     * to be able to come out DARKER than the halo it crosses as well as brighter, which is
+     * the whole of why it reads as an insect and not as a second firefly. Inside the same
+     * clipOffSill save — a moth at a lane lamp is the town's, and the sill is in front of
+     * the town — and after every glow, so nothing screens back over it. */
+    ctx.globalCompositeOperation = 'source-over';
+    drawMoths();
     ctx.restore();
     ctx.globalCompositeOperation = 'source-over';
   }
@@ -14698,6 +14845,17 @@ function birdName(b){
   if (!down) return what + (b.state === 'land' && where ? ', coming down onto ' + where : ', on the wing');
   return where ? what + ', down on ' + where : what + ', down on the ground';
 }
+/* A moth claims the LAMP's place, not its own: it is three world-units up in the air, and
+ * an airborne thing is over nowhere it is standing (birdPlace's rule). The lamp's foot is
+ * on a real cell, so the answer comes off the grid through birdPlace itself — one reader,
+ * so the moth and the paving under it can no more disagree than a bird and the grass can. */
+function mothName(m){
+  const L = NIGHT_LAMPS[m.li], where = birdPlace({x: L[0], y: L[1]});
+  if (m.out) return 'a moth, drifting off out of the lamplight';
+  // the radius it is at NOW, off its own position — m.r is only the ceiling of the breath
+  return (Math.hypot(m.x - L[0], (m.y - L[1]) * 2) < 0.8 ? 'a moth, batting at the lamp glass' : 'a moth, circling the lamp')
+       + (where ? ' over ' + where : '');
+}
 function personName(a){
   if (a.famKid) return a.run ? (a.chasing ? 'a child, chasing the pigeons' : 'a child, running about the roundel')
                              : a.state === 'walk' ? 'a child, at someone\'s side' : 'a child, back at someone\'s side';
@@ -14806,6 +14964,11 @@ function livingAt(p){
     const n = nearScale(b.y);
     hit(b.x, b.y, b.z, (birdDown(b) ? 0.5 : 0.4) * n, b.y + 0.4, birdName(b), 0.9 * n);
   }
+  /* #177: and the moths, LAST, because they are drawn last of everything — a sortY a
+   * clear cell ahead of a bird's on the same row, so the thing the pointer is over is the
+   * thing on top of the picture. The box is deliberately larger than the sprite: three
+   * pixels moving on an orbit is not a target anyone can hold a cursor still on. */
+  for (const m of moths) if (m.a > 0.2) hit(m.x, m.y, m.z, 0.8, m.y + 1.0, mothName(m), 1.0);
   return best;
 }
 /* The windows and front doors, hit-tested in SCREEN space against FACES[] — painter's
@@ -15370,6 +15533,7 @@ function simStep(sdt, dt){
   tapNews();
   tapCallers();
   updateWildlife(sdt);
+  updateMoths(sdt);
   updateDucks(sdt);
   updateSwans(sdt);
   updateBalloon(sdt);
@@ -15626,6 +15790,7 @@ window.__entities = function(){
        (o, a) => { o.act = a.state; if (a.tap){ o.tap = 1; if (a.caller) o.caller = 1; } });
   take(ducks, 'duck'); take(swans, 'swan', (o, s) => { o.act = s.state; });
   take(butterflies, 'butterfly'); take(fireflies, 'firefly');
+  take(moths, 'moth', (o, m) => { o.act = m.out ? 'off' : 'orbit'; o.lamp = m.li; });
   take(birds, 'bird', (o, b) => { o.act = b.state; if (b.plaza) o.plaza = 1; if (b.roof){ o.roof = 1; o.perch = b.perch; } }); take(leaves, 'leaf');
   if (catA) take([catA], 'cat', (o, c) => { o.act = c.leg; });
   if (balloon) take([balloon], 'balloon');
@@ -15671,7 +15836,7 @@ window.__census = function(){
     // to the half of the world that never had a counter.
     inEast: agents.filter(a => a.east || a.fam).length,   // #92: the plaza's families are east-quarter presence too
     ducks: ducks.length, swans: swans.length, birds: birds.length,
-    butterflies: butterflies.length, fireflies: fireflies.length,
+    butterflies: butterflies.length, fireflies: fireflies.length, moths: moths.length,
     leaves: leaves.length, raindrops: raindrops.length,
   };
   const structure = {
@@ -15717,7 +15882,7 @@ window.__census = function(){
       water: (tiles.WATER || 0) + (tiles.REED || 0),
       passages: (tiles.TUNNEL || 0) + (tiles.SLOT || 0),
       people: agents.length, planted, blooming,
-      creatures: life.ducks + life.swans + life.birds + life.butterflies + life.fireflies,
+      creatures: life.ducks + life.swans + life.birds + life.butterflies + life.fireflies + life.moths,
       structures: Object.values(structure).reduce((a, b) => a + b, 0),
       tileKinds: Object.keys(tiles).length,
       speciesKinds: SPECIES.length,

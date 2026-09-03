@@ -2,7 +2,7 @@
   "updated": "2026-09-03",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 176,
+  "lastIteration": 177,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -405,7 +405,8 @@
         "pre4",
         "pre8",
         70,
-        79
+        79,
+        177
       ],
       "deepen": [
         "pre13",
@@ -575,7 +576,8 @@
       "catA's second act lane->cross->climb->ridge on its own R() roll; the near cat crosses on catLine(x,ph) to CAT_SOUTH, pinned by wellNear(); nearScale(y)/NEAR_SZ 1.95",
       "crowds outside laneCount: concert, evening door, homers, cafe, evening posts; goHome after dusk; HOMES read by windowLit; eveOpen",
       "POPULATION caps swept by presence per PLACE (probes/town-caps.mjs): capacity 10, laneCap 10, eastCap min(9,*8), FAR_CAP 5, LAWN_CAP 8, FAM_CAP 5, EVE_CAP 6, ALLOT_CAP 5, TEN_CAP 2; laneCount POSITIVE",
-      "a VISIT is what a person IS here: every arrival ends in a stop that performs something and usually SAYS it (sayAt at 37 sites)"
+      "a VISIT is what a person IS here: every arrival ends in a stop that performs something and usually SAYS it (sayAt at 37 sites)",
+      "MOTHS at the LIGHTS (#177): own source+cap updateMoths/mothPos, NIGHT_LAMPS the ONE lamp list; mothRate() carries year+rain, MOTH_CAP the ceiling, MOTH_PER_LAMP 3 x MOTH_JOIN gathers; mothName, drawMoths LAST"
     ],
     "sill": [
       "#plate, #daytime, #season, #where, #ticker (TICK_DWELL/QMAX), #stats, #ctrl; hidden under 640px; two LAPSE buttons, one beginLapse",
@@ -623,6 +625,12 @@
       "id": "c266",
       "note": "seed-identity pins 5 instants at seed 42 and only 125/128 are wet — seed 42 gets ONE shower in 800 sim s. The gate prints WEAK if a re-pin drifts off it; a second seed chosen FOR its weather would harden it.",
       "raisedBy": 175,
+      "seenBy": 0
+    },
+    {
+      "id": "c267",
+      "note": "the LIT WINDOWS still have nothing at them - ~20 panes a night, and #177's moths bind to NIGHT_LAMPS only. A pane is a FACES SCREEN-space register, not a world point: a different solve.",
+      "raisedBy": 176,
       "seenBy": 0
     }
   ],
