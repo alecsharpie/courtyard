@@ -3181,19 +3181,56 @@ function lawnFits(e, pts, speed){
   const tA = simT + walk / 24 * DAY_LEN;   // the arrival instant (LAW: an hour of the sun is solved at arrival, not departure)
   return hour + walk >= lawnStart(tA) && hour + walk + LAWN_MIN_DWELL < lawnEnd(tA);
 }
-/* The gardener's fit, and the reason it is not lawnFits (#129). lawnFits bounds the
- * arrival from BELOW only — not before lawnStart() — which is all a visitor needs,
+/* the two legs of a gardener's day, priced in HOURS off ONE definition: the way in
+ * along `pts`, and the walk home to the nearest door, which is the way lawnCut takes
+ * them (#95). The set-out test calls it, and so the bed filter and the door bag call it
+ * too — the window cannot drift from the walk it is pricing. */
+function gardWalk(e, pts, sp){
+  const p = pts[pts.length - 1];
+  return { in: LAWN_WALK_MARGIN * lawnHours(e, pts, sp),
+           out: LAWN_WALK_MARGIN * pathHours(p[0], p[1], [nearDoor(p[0], p[1]).door], sp) };
+}
+/* the hours the BEDS hold a gardener: by the first the light has cleared LAWN_SUN along
+ * the border, and by the last the gardener is GONE, the walk home included. */
+function gardWin(t){ return { h0: lawnStart(t), h1: lawnEnd(t) }; }
+/* the cheapest walk to the border there is — the nearest bed from the nearest door, at
+ * unit speed, since every term of lawnHours is 1/speed and a walker's own is one divide.
+ * Solved ONCE on first use: the beds and the doors are fabric and never move. */
+let gardNear = 0;
+function gardNearest(){
+  if (!gardNear){ let m = Infinity;
+    for (const b of EDGE_BEDS) for (const e of ENTR) m = Math.min(m, lawnHours(e, lawnWay(e, b.px, b.py), 1));
+    gardNear = LAWN_WALK_MARGIN * m; }
+  return gardNear;
+}
+/* The gardener's fit, and the reason it is not lawnFits (#129, #157). lawnFits bounds
+ * the arrival from BELOW only — not before lawnStart() — which is all a visitor needs,
  * because nobody sets out before the lawn opens. The dawn window does, and with the
  * whole day ahead EVERY bed and every door passes that test: the draw went uniform over
  * all 204 beds and priced walks of 9.9 h, so the earlier start was spent entirely on
  * crossing the town. A window with only a landing bound is a marathon-walker factory.
- * So a walk begun before sunrise must also land WITHIN GARD_LAND of lawnStart(); after
- * sunrise this is lawnFits exactly, which is what the lottery's gardener still gets. */
+ * #129 bounded the landing for a walk begun before SUNRISE and let every other one
+ * through, on the grounds that after sunrise this is the lottery's gardener. It is not.
+ * Measured over a growing season (12 seeds x 13 days, probes/gard-ends.mjs) only 15 of
+ * 193 visits took the bounded branch, and 108 of the 123 SCHEDULED ones fell through an
+ * exemption written for the other 70 — because the lower bound refuses a near door at
+ * sunrise-minus-a-tick and the exemption admits that same walk a tick later. So the
+ * gardener bought the wait by WALKING it: the door bag keeps only the dear doors, 4.07 h
+ * at the median and 13.43 h at worst, landing 2.4 h after the border cleared and up to
+ * 11.8 h after.
+ * So the landing is bounded in BOTH branches, against ONE anchor — the soonest a
+ * gardener could be at a bed at all: gardNearest() at this walker's speed, or the
+ * border's own opening, whichever is later. GARD_LAND is all of the light a walk may
+ * spend beyond it. Before the light clears, that anchor IS lawnStart() and this is #129
+ * unchanged; after it, the same line is a bound on the WALK. And the close is priced at
+ * the choice too — a row's floor of work and the walk home must both fit inside the
+ * window, which LAWN_MIN_DWELL's blind 1.5 h never was. */
 function gardenFits(e, pts, sp){
-  if (!lawnFits(e, pts, sp)) return false;
-  if (hour > sunUp) return true;                                   // after sunrise this IS lawnFits — what the lottery's gardener still gets
-  const walk = LAWN_WALK_MARGIN * lawnHours(e, pts, sp);
-  return hour + walk <= lawnStart(simT + walk / 24 * DAY_LEN) + GARD_LAND;   // the sun read at the arrival instant, as lawnFits reads it
+  const w = gardWalk(e, pts, sp), tA = simT + w.in / 24 * DAY_LEN;   // the sun read at the arrival instant, as lawnFits reads it
+  const win = gardWin(tA), arr = hour + w.in;
+  if (arr < win.h0) return false;                                              // not before the light clears the border
+  if (arr + GARDEN_ROW_MIN * HOURS_PER_S + w.out > win.h1) return false;       // …and gone by the close, the walk home priced HERE
+  return arr <= Math.max(hour + gardNearest() / sp, win.h0) + GARD_LAND;       // and no walk that spends the morning crossing the town
 }
 function gapPoint(g){ return [CX + Math.cos(g) * (bedOut(g) + 0.8), CY + Math.sin(g) * (bedOut(g) + 0.8)]; }
 /* the way in from door `e` to a point on the lawn: a straight chord across the outer

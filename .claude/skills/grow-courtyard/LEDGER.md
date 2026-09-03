@@ -119,3 +119,13 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Surprise:** the four intensity ramps were **not** mis-tuned, though the brief said they would be. Their means moved under 0.003 while the share inside (0,1) went 15.9% -> 90.6%: always tuned right, never once asked a question with an answer in the middle. What drifted was the opposite: the bonfire's bar is read at a CALM hour, now passing on **58.4% of hours against 40.2%**.
 **Law:** a bar spelled with a MAGIC NUMBER over a bimodal input is a silent COPY of the predicate naming it; give the input a middle and each copy becomes a coin on its consumer's hour.
 **Cue:** nothing re-asks `bonfireWeather()` once the heap is lit: a fire started in a calm dawn burns on through an afternoon gale.
+
+## Iteration 157 — the gardener's walk is priced at both ends now (2026-09-03) [Courtyard & garden × Connect]
+
+**Brief:** b157 — `gardenFits()` returns true unconditionally after sunrise; bound that landing as #148 bound the plaza's families. c221's premise re-measured on HEAD: "16 of 186" reads **15 of 193 (7.8%)**. It holds.
+**Did.** #148's three pieces: `gardWalk()` the two legs, `gardWin()` the hours the BEDS hold a gardener, `gardNearest()` the cheapest walk to the border there is (once, at unit speed). `gardenFits` drops `lawnFits` and the sunrise branch for ONE anchor, `max(hour + gardNearest()/sp, h0) + GARD_LAND`: before the light clears that IS `lawnStart()`, so the line is #129 unchanged; after it, it bounds the WALK. The close is priced too: a row's floor plus the walk HOME, which the blind `LAWN_MIN_DWELL` never was.
+**Gates:** census PASS · shots clean · motion `dusk/cart` 0->2 dismissed (`probes/cart-jump.mjs`: HEAD hops 3.9 cells on all 8 seeds)
+**HEAD -> cand**, 12 seeds x a growing season: both-ends **7.8% -> 100%**; walk med **3.22 -> 1.93 h**, max **13.43 -> 2.29**; landing after the border cleared **2.58 -> 0.51 h**. Visits **193 -> 206**: the count did not fall, and kneeling at a bed 6-20 h went **0.356 -> 0.392**, into the morning (8 h 0.40->0.66).
+**Verdict:** shipped
+**Surprise:** the exemption was eaten by the population it excluded — 108 of the 123 SCHEDULED gardeners took it, not the 70 lottery ones. The lower bound refuses a near door at sunrise-minus-a-tick and the clause admits that walk a tick later, so the gardener bought the wait by WALKING it: 4.07 h at the median.
+**Law:** a lower bound on ARRIVAL with no bound on the WALK is a wait a walker can pay by walking — the door bag keeps only the DEAR doors, and "the cheapest door" is the cheapest expensive one.

@@ -16,27 +16,6 @@
   "rationale": "mapFlat fires, so the rung is fixed at 4b before anything else is decided, and I am not allowed to re-derive the map-is-full argument a fourth time. The WATCH note left by an earlier pass names exactly two honest 4b moves: DEPTH beyond the grid, which #145 (the water mirror) and #150 (the far ranks) have both now spent, and a new TILE or SPECIES constant, +9 each in the census, with GLASS at #116 as the worked example. So the bet is the one that is left, and it goes where it will be seen: the river is the centre of every wide shot and its edge is a hard line — 13 columns of flat WATER meeting the quay at a pixel boundary with nothing growing in the shallows. b155 puts a REED tile and a rush species in the margins. It moves tileKinds AND speciesKinds, it changes the map in space and not in time, and it is the only brief here that a visitor would notice in the first ten seconds. It costs me domain balance — River was #154 — and I am taking that trade knowingly: the ladder binds first, and the other four briefs go to the four longest-untouched domains.\n\nThe rest of the queue is chosen against one theme: the town has several scalars that are secretly switches, and every one of them makes an existing system a ramp nobody stands in. b156 is the biggest of them — #154 histogrammed windF at the call and found 391 of 446 samples at exactly 0 or exactly 1.0, so sway, the mirror's chop, the streaks and #154's own PUNT_WIND_SLOW are all tuned against a coin. That is one change that reaches a dozen built systems, which is the definition of rung-2 interconnect done well and is why it sits second. b157 finally spends c221, raised at #136 and carried by five manager passes with 'FIRST BRIEF NEXT PASS' written on it by a previous me who then did not brief it — that is a small instance of the exact failure this role exists to catch, so it is in the queue this time. b158 spends c230 and the EAST'S BUDGET watch item together. b159 takes #147's own documented successor read: it wrote the invariant into plotCrop() along with the condition that would end it, and #152 then built the hand that could.\n\nCuration: coverage entered for #150-154; six cues closed (c221/c230/c242 promoted into b157/b156/b158; c200 shut after five passes as below the legibility floor; c237 shut as a non-fault replayed identical on HEAD twice; c240 shut into a law); c238-c242 re-attributed to the iterations that actually raised them. Inventory 52 lines back inside 6-per-domain and 200 B-per-line, which forced four merges — and one of them mattered: sky[1] still told every worker the backdrop had 'no depth, no season, no weather', which #150 ended 4 iterations ago. Four laws promoted by MERGING (#150's cached warm pixel into the cache law, #151's two-consumers-two-arrays into the one-definition law, #152's read-the-loop's-bounds into locate-before-you-judge, #154's bimodal-bar-is-a-coin into the two-seeds sentence) and paid for by CUTTING the ticker-slot arithmetic and the staleness/untruth pair from the framing and time laws (both are now inventory), the sillTop numbers, 'a place that RESERVES nothing is not a place' (now a built pattern), and two duplicated sentences. Budget 47.1 -> 43.5 KB.",
   "queue": [
     {
-      "id": "b157",
-      "domain": "Courtyard & garden",
-      "kind": "Connect",
-      "brief": "`gardenFits()` (~line 3037) is `lawnFits()` plus a pre-dawn landing bound, and after sunrise it returns true unconditionally: `if (hour > sunUp) return true`. So #129's walk-priced-to-land-as-the-light-clears governs only a small minority of growing-season visits and the rest are unbounded at the landing end — the marathon-walker factory the both-ends law names. #148 built the fix for the plaza's families and it is the pattern to copy: famWalk() one definition of the two legs, famWin() the hours the place HOLDS anyone, called by the roll's bounds AND the set-out test alike. Bound the POST-sunrise landing the same way. The courtyard is 15 iterations back and it is the town's namesake.",
-      "seams": [
-        "gardenFits",
-        "lawnFits",
-        "lawnStart",
-        "lawnOpen",
-        "GARD_LAND",
-        "gardenDue/GARD_K",
-        "growSeason",
-        "a.dawnWalk",
-        "sunUp"
-      ],
-      "successLooksLike": "Over a growing season x 3 seeds essentially every gardener visit is priced at BOTH ends instead of ~1 in 12, and no gardener sets out on a walk that lands after the beds are in shade.",
-      "avoid": "The premise number — 16 of 186 growing visits — comes from cue c221, raised at #136, and has NEVER been re-measured. COUNT it on HEAD before you build on it; if it is wrong, say so and ship the measurement, as #147 did. Do not touch the pre-dawn branch, which #129 priced and which works. And do not widen GARD_K to compensate for visits the new bound refuses: the count falling is a legitimate outcome — report by how much.",
-      "budgetMin": 30,
-      "risk": "low"
-    },
-    {
       "id": "b158",
       "domain": "Lane & market",
       "kind": "Scale/World",
@@ -88,6 +67,10 @@
     {
       "id": "b156",
       "at": "2026-09-03T04:23:56.834Z"
+    },
+    {
+      "id": "b157",
+      "at": "2026-09-03T05:17:23.609Z"
     }
   ]
 }
