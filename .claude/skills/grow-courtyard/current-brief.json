@@ -16,7 +16,7 @@
   "avoid": "Do not change what --additions MEASURES or its caps: this is about the reading reaching the row, not about the bound. Do not make a breach fail, revert or count against MAX_FAILS — step 4 REPORTS, deliberately, and a runner that threw away gate-passed work over a 260 B cue would be worse than the drift. Do not double-measure when the runner did supply --quota-out. Backfilling the twelve null rows is not required and should not be faked. Changes no pixel: courtyard.html must not move.",
   "budgetMin": 30,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 167,
   "issued": "2026-09-03T11:11:10.799Z",
