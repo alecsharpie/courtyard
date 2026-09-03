@@ -124,3 +124,28 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped
 **Surprise:** the frontage cannot be a pure clock and `marketRaise()`'s shape hid it — a lane-band cup runs to 11 sim hours, so a clock folding the tables at dusk had **16% of all seated samples at a table it had already packed away**.
 **Law:** a raise whose FALL is bounded by an occupant is not a clock. `max(clock, taken)` over the DRAW holds it up under the guest and snaps it away as they leave; the occupancy belongs in the scalar's TARGET, which eases it back up (1223 → 0).
+
+## Iteration 171 — the near block gets a top, and a tenant (2026-09-04) [Roofs & skyline × New element]
+
+**Brief:** b170 — cut a flat-lead terrace into the near block's level rows; put somebody on it.
+**Found:** #170 built it and died before committing: 431 lines uncommitted, census obligation
+met, baselines still pinned at HEAD. I verified the tree, not rebuilt it; its `#170` tags
+are this entry.
+**Did:** `LEADS` (tile 17) on rows 86..87 of 6 bays, sited by `leadsHouse()` off
+`hash(house)`, clear of wells, river. `solidM` counts it WALL, so `buildVolumes()` never sees
+it: no roof vertex moved. `drawLeadsCell`/`leadSheet` lay it into the cache, the apron carries it
+off-frame. `buildLeads()` → 6 `HATCHES` + `LEADS_BAYS` + a cord each. The tenant has its OWN
+source and cap (`tenantErrands`, `TEN_CAP` 2) and four acts — peg/take off the `washOut()` EDGE,
+sun, lean; `drawHatch` is live, two states.
+**Gates:** census PASS, re-pinned (`tileKinds` 153→162, `developed` held) · visual PASS (4 framings,
+both lids) · motion PASS · probe `tenant-leads.mjs` counts the premise on HEAD:
+a person on the block in 0.00% of samples vs 17.4%, contained, drawn no shallower
+than 86.12 (`LN_WALK_S` 79).
+**Verdict:** shipped
+**Surprise:** rain is the MINORITY cause of the washing coming in — 9 errands of 58 against 49
+for the light going. Sampling `raining` at the stand read 2 of 71 — wrong reading:
+`washOut()` flips on `raining`, but `wetF() > 0.22` holds it false long after.
+**Law:** Attribute an edge-triggered event AT THE EDGE — by the time its consequence shows,
+the state that flipped the predicate has been superseded by a slower term.
+**Law:** A worker dying before it commits leaves its iteration in the WORKING TREE
+alone, invisible to ledger, runlog, census. Diff the tree before calling a brief unbuilt.

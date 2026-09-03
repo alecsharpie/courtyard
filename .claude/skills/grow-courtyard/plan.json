@@ -1,69 +1,113 @@
 {
- "generated": "2026-09-03T13:20:00.000Z",
- "byIteration": 169,
- "rung": "4b",
- "diagnosis": {
-  "health": "Healthy, and healthy in the shape that is the inverse of the last loop's death. 19 of the last 20 shipped, 0 reverts, selfVerdict == verdict on 20 of 20, src moved 8 of the last 10 (the two that did not are the two Harness rows, which change no pixel by design). Cost is 30 min / $9.78 an iteration against a ~$5.77 run median and above it for the ninth pass running, so I priced it against output for the fifth time rather than excusing it: diff mean is 129 and rising for the fourth pass (49 -> 86 -> 103 -> 129), and the dearest rows ARE the largest ones (#169 $15.53/200 lines, #166 $14.05/126, #163 $12.18/246). Rising cost with rising output is not the Solvista signature; rising cost with flat output is, and it is not what the rows say. The one thing I do not like is cacheRead: 19.7M on #169 against 3.7M on #164, which is the read rent, and b174 is aimed at it.",
-  "signals": ["mapFlat=15 (advisory)", "revertStreak=0", "quota measured and clean on #167/#168/#169"],
-  "balance": "After #169 the staleness order is Cross street & allotments 10 back (#159), Plaza & quay 9 (#160), People & animals 8 (#161), Roofs & skyline 7 (#162), River & far bank 6 (#163). The coverage grid was three iterations stale when I opened it (#165, #167, #169 unrecorded) and is now right. This queue takes the bet to Roofs and the other three domain briefs to the three longest-untouched; People & animals is the one domain 8-back that I leave, and the bet puts the first people ever onto our own roof, which is where that domain's next entry would have gone anyway."
- },
- "rationale": "mapFlat is showing at 15 iterations, so the rung is 4b by name and a season or an evening does not clear it. The watch already forbids re-deriving the map-is-full argument a fourth time and names the two honest moves that remain: a new TILE or SPECIES constant, or DEPTH beyond the grid. I SHOT THE TOWN BEFORE PLANNING IT (day 6 12.98h midsummer, day 9 19.09h late summer, wide + mobile + a crop of the near band) and the picture named the move without my having to choose it. The bottom ~15% of every wide frame is our own block, the nearest quarter, at the largest pixels in the picture — and it is 1095 cells of ONE tile, 45% of all the WALL in the town, broken only by the river slot and two light wells. Everything needed to make it a place was built years of iterations ago and never used by anything human: roofWalkZ reads the pitch bilinearly for a walker, nearScale ramps a figure to NEAR_SZ 1.95, ROOF_FURN stands 24 washing lines, tanks and lofts on rows 86-87 (the source's own note says row 87 is the one line dead level across the whole block), LOFTS are landing boards, wellNear keeps a line off a hole, and the cat already crosses it. Twenty-four objects a tenant would own, and in 169 iterations no tenant. That is a spatial 4b (a new tile, +9 in the summed census, GLASS #116 and REED #155 the precedents), it is the domain 7 back, and it is the one change that alters what a visitor sees in the first ten seconds — because it happens closer to them than anything else in the town. Every other brief in this queue carries the number it rests on and where the number came from, per the standing watch note aimed at this seat; two of them (b172, b173) carry premises I have NOT re-measured myself and say so, with the measurement named as the deliverable if they do not reproduce.",
- "queue": [
-  {
-   "id": "b170",
-   "domain": "Roofs & skyline",
-   "kind": "New element",
-   "brief": "Our own block — rows 79..87, the bottom ~15% of every wide shot, the nearest thing in the picture — is 1095 cells of one tile. buildGrid's last branch is `wellAt(x,y) ? VOID : WALL`, so the block is WALL end to end (2441 WALL cells in the whole town; ours is 45% of them) apart from the river slot and 12 VOID cells in two light wells. Everything a roof needs to be a PLACE is already built and nothing human uses it: `roofWalkZ()` reads the pitch bilinearly for a walker, `nearScale(y)` ramps a figure to NEAR_SZ 1.95 — nearly twice the size of anyone across the lane — `ROOF_FURN` stands 24 washing lines, water tanks and pigeon lofts on rows 86-87, `LOFTS` are landing boards, `wellNear(x)` keeps a line off a hole, and `catA` already crosses on `catLine`. Twenty-four things a tenant would own, and in 169 iterations no person has ever stood among them. GIVE THE BLOCK A TOP. Cut a new tile (call it LEADS) — flat lead roof-terrace — into rows 86..87 of some of the bays, sited where the pitch is ALREADY level so no volume changes: the source's own measurement is row 87 dead level across the whole block, row 86 level to within 0.31 of a cell, against z 1.98/1.55 out on the open pitch at rows 84/85. It is WALL to `buildVolumes()` and takes its own fill in the ground cache — GLASS (line ~283) is the exact precedent for a tile with its own volume rule — and it joins `developed` in `__census()` so nothing collapses. Then put a TENANT on it, with their own source and their own cap: up out of a loft hatch to hang the washing, out to take it in when `raining` or `isWindy()` says so, out to stand at the parapet in the evening. A 150-300 line diff is expected and welcome. This is the bet.",
-   "seams": ["buildGrid", "wellAt", "WELLS", "NEAR_SPANS", "NEAR_HOUSE", "drawNearRoof", "roofWalkZ", "nearScale", "NEAR_SZ", "ROOF_FURN", "LOFTS", "wellNear", "buildVolumes", "eaveFor", "shCast", "__census"],
-   "successLooksLike": "On a fine afternoon a figure stands on our own roof at the bottom of the wide shot, twice the size of anyone in the town, and when the rain comes on they come out and take the washing in. CENSUS OBLIGATION: `tileKinds` 153 -> 162 (a new kind is +9 in the summed 3x3 matrix) and `structures` up by the hatches; `developed` stays at 71730 because LEADS is built ground, and no other scalar collapses. Re-pin with `census.mjs --save-baseline` and SAY SO in the ledger.",
-   "avoid": "drawNearRoof is inside the GROUND CACHE: the leads belong in the cache, the tenant does NOT — register at cache time, repaint live. `eaveFor()` returns 0 for y >= LN_WALK_S for a DRAWING reason and `shCast[]` (#151) is the casting height beside it: change neither. A new walkable region south of the lane must not become an ordinary route target — give the tenant its own spawn and keep the cells out of every existing target set. Do not put terrace on rows 84/85 and do not cross a light well; `wellNear(x)` exists for exactly that. Do not add a third well.",
-   "budgetMin": 90,
-   "risk": "high"
+  "generated": "2026-09-03T13:20:00.000Z",
+  "byIteration": 169,
+  "rung": "4b",
+  "diagnosis": {
+    "health": "Healthy, and healthy in the shape that is the inverse of the last loop's death. 19 of the last 20 shipped, 0 reverts, selfVerdict == verdict on 20 of 20, src moved 8 of the last 10 (the two that did not are the two Harness rows, which change no pixel by design). Cost is 30 min / $9.78 an iteration against a ~$5.77 run median and above it for the ninth pass running, so I priced it against output for the fifth time rather than excusing it: diff mean is 129 and rising for the fourth pass (49 -> 86 -> 103 -> 129), and the dearest rows ARE the largest ones (#169 $15.53/200 lines, #166 $14.05/126, #163 $12.18/246). Rising cost with rising output is not the Solvista signature; rising cost with flat output is, and it is not what the rows say. The one thing I do not like is cacheRead: 19.7M on #169 against 3.7M on #164, which is the read rent, and b174 is aimed at it.",
+    "signals": [
+      "mapFlat=15 (advisory)",
+      "revertStreak=0",
+      "quota measured and clean on #167/#168/#169"
+    ],
+    "balance": "After #169 the staleness order is Cross street & allotments 10 back (#159), Plaza & quay 9 (#160), People & animals 8 (#161), Roofs & skyline 7 (#162), River & far bank 6 (#163). The coverage grid was three iterations stale when I opened it (#165, #167, #169 unrecorded) and is now right. This queue takes the bet to Roofs and the other three domain briefs to the three longest-untouched; People & animals is the one domain 8-back that I leave, and the bet puts the first people ever onto our own roof, which is where that domain's next entry would have gone anyway."
   },
-  {
-   "id": "b171",
-   "domain": "Cross street & allotments",
-   "kind": "Scale/World",
-   "brief": "The allotments have 17 plots, a lattice, a glasshouse, 38 pieces of furniture, a two-crop majority read (#159) and a harvest cycle — and almost nobody in them. #154 counted the WHOLE hand-act population at 28 acts a year across SIX worlds, 11 of them sow rungs: about five acts per seed-year, so anything a hand does to a plot is capped at five. #159 then built inter-cropping on top of that cap and its own probe measured the result at 264 samples in 139,000 (0.19%) — its Law says it outright: the SUPPLY was always the cap. RE-COUNT THE 28 ON HEAD FIRST; it is dated #154 and #159 has landed since. Then raise the SUPPLY — `allotRate` / `spawnAllotAgent`, the arrival rate and the window — never the share, and measure presence per PLOT rather than choices. Carry c257 with it, because it is the same domain and three lines: `cartToday()` and `drayToday()` are `hash(day,k)` UNSALTED, so the allotment cart's calendar is identical in every world; `WIND_SALT` exists for exactly this. Cross street x Scale/World is an EMPTY cell — 0 entries in 169 iterations.",
-   "seams": ["allotRate", "spawnAllotAgent", "plotAct", "harvestPlot", "sendToPlot", "ripePlots", "cartToday", "drayToday", "WIND_SALT", "probes/allot-act-rungs.mjs", "probes/allot-year.mjs"],
-   "successLooksLike": "Over a growing season a plot is worked several times, not once: hand-acts per seed-year go from ~5 into double figures with the plot lattice and the crop invariants untouched (tomato outside the span 0; tender at stage 3 in deep winter at HEAD's 30), and the cart's days differ between two seeds where today they are identical.",
-   "avoid": "Do not widen INTER_SHARE or any other share — #159 swept it and 0.70 and 1.00 came back byte-identical. Do not add a plot or a species. Do not change the plot's footprint: a plot OWNS x [ox,ox+4) y [oy,oy+3) and never its WEST side, which is where sendToPlot lands.",
-   "budgetMin": 60,
-   "risk": "medium"
-  },
-  {
-   "id": "b172",
-   "domain": "Plaza & quay",
-   "kind": "Deepen",
-   "brief": "PREMISE NOT RE-MEASURED BY ME — measure it first and make the measurement the deliverable if it does not hold. #160 opened the plaza's door from five places to fourteen and the refused fraction went 59.1% -> 0.0%; the cue raised at #159 says the next bound moved with it, `FAM_CAP` 4 now binding 85.9% of open daylight against 54.2% at #158. If that reproduces, the plaza's emptiness is no longer the places but the FAMILY CAP and the band's own arrival rate. But the law says a cap and a share are two bounds and only one can be swept, and #148 already found FAM_CAP a DEAD constant past 4 — so sweep it paired per seed (`probes/town-caps.mjs`) and measure the share at the CHOICE (`probes/plaza-door.mjs`) BEFORE touching either. If the cap is dead the seam is `FAM_RATE` and `famWin()`, not FAM_CAP. Fourteen places used by one population is a door that opens onto an empty room.",
-   "seams": ["FAM_CAP", "spawnFamilyAgent", "famWalk", "famWin", "PLAZA_PLACES", "a.pheld", "plazaWay", "plazaMouth", "probes/plaza-door.mjs", "probes/plaza-visit.mjs", "probes/town-caps.mjs"],
-   "successLooksLike": "The plaza at midday holds more than one family at once and its fourteen places are claimed by more than one population; plaza presence rises measurably above #160's 10.43 agent-h with crowded pairs per person staying at or under #160's 0.117.",
-   "avoid": "Do not add places — there are fourteen and #160 measured 14/14 in use. Do not widen the east branch's share; #158 measured the lane taking 69% of any widening and the plaza +0.14 at t 0.7, which is nothing. Count ADMISSIONS apart from choices.",
-   "budgetMin": 60,
-   "risk": "medium"
-  },
-  {
-   "id": "b173",
-   "domain": "River & far bank",
-   "kind": "Deepen",
-   "brief": "Two loose ends on one subject: the river's SURFACE. (a) #145 put the town in the water and five casters re-run their own draw — bridge, deck, mill wheel, jetty, willow — and #163 added 18 reed runs. The BOATS are the class it left out, and they are the only things on the water that MOVE: two punts, the barge, the rowboat, a standing punter. A hull with no image is the one object the eye checks. (b) PREMISE NOT RE-MEASURED BY ME: the cue raised at #159 says #163's water shade is correct and barely reads — 6021 px of mass but only 1-86 px of change — and that what makes a shadow read on water is cutting the SHEEN (`drawRiverFlow`'s streaks and the glitter column) rather than deepening the multiply. Verify that on HEAD with a SAME-CODE control before building on it. Quote every mass as a ratio to that control floor, never as an absolute.",
-   "seams": ["riverCasters", "drawWaterMirror", "MIRROR", "setMirror", "drawWaterShade", "chopBars", "onChannel", "drawRiverFlow", "PUNTS", "updateBoat", "barge", "probes/mirror-fringe.mjs", "probes/refl-cost.mjs"],
-   "successLooksLike": "A punt under way carries its own image and the image moves with it; the mirror's mass for the boats is a stated multiple of a same-code control's zero. On a bright afternoon the town's shade on the near river is legible in the wide shot, and the number that changed is the sheen's, not the multiply's.",
-   "avoid": "NOT through the offscreen: #163 measured 18 clipped runs at 1.6 ms a frame in `rcv` against 0.03 for the identical 56 clumps on the visible canvas. A clip plus an alpha is a `save()` on `ctx`. The boats move every frame, so this is a LIVE pass, never the ground cache. Do not deepen the multiply — the cue's whole point is that it is the thing that does not work. `onChannel` must keep the fountain and the pond on the land path.",
-   "budgetMin": 60,
-   "risk": "medium"
-  },
-  {
-   "id": "b174",
-   "domain": "The sill & the observer",
-   "kind": "Harness",
-   "brief": "The read rent has moved from the worker to the MANAGER, and the previous loop died of exactly this — $5.45 -> $13.72 an iteration with no gain in output, because every pass re-read a growing pile of its own memory. The worker's side is now bounded, measured and clean (45.1/46 KB at this pass; row.quota rc:0 on #167, #168 and #169). The manager's side is not bounded at all. stall.mjs's own table, slope over #149 -> #169: LEDGER-archive.md 676.4 KB +1.95 KB/iter, RUNLOG.jsonl 191.8 KB +1.13, MANAGER-LOG.md 81.6 KB +0.48, state.json 38.9 KB and falling since #167 pruned it — 988.8 KB, all four opened WHOLE on every manager pass. Bound the three that grow, by ROTATION and never by deletion: #167's `rotate-ledger.mjs --prune-only` already rolls closedCues past 40 into `closed-cues-archive.jsonl` by array position, so the shape exists — give LEDGER-archive.md, RUNLOG.jsonl and MANAGER-LOG.md the same treatment past a stated N, and make stall.mjs's memory quota read what a MANAGER opens beside what a worker does, so a breach on that side is a signal rather than a paragraph in a log nobody re-reads.",
-   "seams": ["rotate-ledger.mjs", "stall.mjs onDisk", "runlog.mjs readQuota", "build-stats.mjs", "context-budget.mjs", "closed-cues-archive.jsonl"],
-   "successLooksLike": "`stall.mjs --report` prints a manager-side quota next to the worker's, and the four files a manager opens are bounded by a rule the table states. Every archived byte is still on disk and findable — count them before and after and show the totals match.",
-   "avoid": "courtyard.html must come out byte-identical; census PASS all six groups. Do NOT change a cap while measuring against it — changing a cap mid-pass is how a loop stops noticing. Do not delete anything: rotation only. Pin any 'before' control to a REF, not to HEAD (#167's surprise).",
-   "budgetMin": 30,
-   "risk": "low"
-  }
- ],
- "recommendStop": null
+  "rationale": "mapFlat is showing at 15 iterations, so the rung is 4b by name and a season or an evening does not clear it. The watch already forbids re-deriving the map-is-full argument a fourth time and names the two honest moves that remain: a new TILE or SPECIES constant, or DEPTH beyond the grid. I SHOT THE TOWN BEFORE PLANNING IT (day 6 12.98h midsummer, day 9 19.09h late summer, wide + mobile + a crop of the near band) and the picture named the move without my having to choose it. The bottom ~15% of every wide frame is our own block, the nearest quarter, at the largest pixels in the picture — and it is 1095 cells of ONE tile, 45% of all the WALL in the town, broken only by the river slot and two light wells. Everything needed to make it a place was built years of iterations ago and never used by anything human: roofWalkZ reads the pitch bilinearly for a walker, nearScale ramps a figure to NEAR_SZ 1.95, ROOF_FURN stands 24 washing lines, tanks and lofts on rows 86-87 (the source's own note says row 87 is the one line dead level across the whole block), LOFTS are landing boards, wellNear keeps a line off a hole, and the cat already crosses it. Twenty-four objects a tenant would own, and in 169 iterations no tenant. That is a spatial 4b (a new tile, +9 in the summed census, GLASS #116 and REED #155 the precedents), it is the domain 7 back, and it is the one change that alters what a visitor sees in the first ten seconds — because it happens closer to them than anything else in the town. Every other brief in this queue carries the number it rests on and where the number came from, per the standing watch note aimed at this seat; two of them (b172, b173) carry premises I have NOT re-measured myself and say so, with the measurement named as the deliverable if they do not reproduce.",
+  "queue": [
+    {
+      "id": "b171",
+      "domain": "Cross street & allotments",
+      "kind": "Scale/World",
+      "brief": "The allotments have 17 plots, a lattice, a glasshouse, 38 pieces of furniture, a two-crop majority read (#159) and a harvest cycle — and almost nobody in them. #154 counted the WHOLE hand-act population at 28 acts a year across SIX worlds, 11 of them sow rungs: about five acts per seed-year, so anything a hand does to a plot is capped at five. #159 then built inter-cropping on top of that cap and its own probe measured the result at 264 samples in 139,000 (0.19%) — its Law says it outright: the SUPPLY was always the cap. RE-COUNT THE 28 ON HEAD FIRST; it is dated #154 and #159 has landed since. Then raise the SUPPLY — `allotRate` / `spawnAllotAgent`, the arrival rate and the window — never the share, and measure presence per PLOT rather than choices. Carry c257 with it, because it is the same domain and three lines: `cartToday()` and `drayToday()` are `hash(day,k)` UNSALTED, so the allotment cart's calendar is identical in every world; `WIND_SALT` exists for exactly this. Cross street x Scale/World is an EMPTY cell — 0 entries in 169 iterations.",
+      "seams": [
+        "allotRate",
+        "spawnAllotAgent",
+        "plotAct",
+        "harvestPlot",
+        "sendToPlot",
+        "ripePlots",
+        "cartToday",
+        "drayToday",
+        "WIND_SALT",
+        "probes/allot-act-rungs.mjs",
+        "probes/allot-year.mjs"
+      ],
+      "successLooksLike": "Over a growing season a plot is worked several times, not once: hand-acts per seed-year go from ~5 into double figures with the plot lattice and the crop invariants untouched (tomato outside the span 0; tender at stage 3 in deep winter at HEAD's 30), and the cart's days differ between two seeds where today they are identical.",
+      "avoid": "Do not widen INTER_SHARE or any other share — #159 swept it and 0.70 and 1.00 came back byte-identical. Do not add a plot or a species. Do not change the plot's footprint: a plot OWNS x [ox,ox+4) y [oy,oy+3) and never its WEST side, which is where sendToPlot lands.",
+      "budgetMin": 60,
+      "risk": "medium"
+    },
+    {
+      "id": "b172",
+      "domain": "Plaza & quay",
+      "kind": "Deepen",
+      "brief": "PREMISE NOT RE-MEASURED BY ME — measure it first and make the measurement the deliverable if it does not hold. #160 opened the plaza's door from five places to fourteen and the refused fraction went 59.1% -> 0.0%; the cue raised at #159 says the next bound moved with it, `FAM_CAP` 4 now binding 85.9% of open daylight against 54.2% at #158. If that reproduces, the plaza's emptiness is no longer the places but the FAMILY CAP and the band's own arrival rate. But the law says a cap and a share are two bounds and only one can be swept, and #148 already found FAM_CAP a DEAD constant past 4 — so sweep it paired per seed (`probes/town-caps.mjs`) and measure the share at the CHOICE (`probes/plaza-door.mjs`) BEFORE touching either. If the cap is dead the seam is `FAM_RATE` and `famWin()`, not FAM_CAP. Fourteen places used by one population is a door that opens onto an empty room.",
+      "seams": [
+        "FAM_CAP",
+        "spawnFamilyAgent",
+        "famWalk",
+        "famWin",
+        "PLAZA_PLACES",
+        "a.pheld",
+        "plazaWay",
+        "plazaMouth",
+        "probes/plaza-door.mjs",
+        "probes/plaza-visit.mjs",
+        "probes/town-caps.mjs"
+      ],
+      "successLooksLike": "The plaza at midday holds more than one family at once and its fourteen places are claimed by more than one population; plaza presence rises measurably above #160's 10.43 agent-h with crowded pairs per person staying at or under #160's 0.117.",
+      "avoid": "Do not add places — there are fourteen and #160 measured 14/14 in use. Do not widen the east branch's share; #158 measured the lane taking 69% of any widening and the plaza +0.14 at t 0.7, which is nothing. Count ADMISSIONS apart from choices.",
+      "budgetMin": 60,
+      "risk": "medium"
+    },
+    {
+      "id": "b173",
+      "domain": "River & far bank",
+      "kind": "Deepen",
+      "brief": "Two loose ends on one subject: the river's SURFACE. (a) #145 put the town in the water and five casters re-run their own draw — bridge, deck, mill wheel, jetty, willow — and #163 added 18 reed runs. The BOATS are the class it left out, and they are the only things on the water that MOVE: two punts, the barge, the rowboat, a standing punter. A hull with no image is the one object the eye checks. (b) PREMISE NOT RE-MEASURED BY ME: the cue raised at #159 says #163's water shade is correct and barely reads — 6021 px of mass but only 1-86 px of change — and that what makes a shadow read on water is cutting the SHEEN (`drawRiverFlow`'s streaks and the glitter column) rather than deepening the multiply. Verify that on HEAD with a SAME-CODE control before building on it. Quote every mass as a ratio to that control floor, never as an absolute.",
+      "seams": [
+        "riverCasters",
+        "drawWaterMirror",
+        "MIRROR",
+        "setMirror",
+        "drawWaterShade",
+        "chopBars",
+        "onChannel",
+        "drawRiverFlow",
+        "PUNTS",
+        "updateBoat",
+        "barge",
+        "probes/mirror-fringe.mjs",
+        "probes/refl-cost.mjs"
+      ],
+      "successLooksLike": "A punt under way carries its own image and the image moves with it; the mirror's mass for the boats is a stated multiple of a same-code control's zero. On a bright afternoon the town's shade on the near river is legible in the wide shot, and the number that changed is the sheen's, not the multiply's.",
+      "avoid": "NOT through the offscreen: #163 measured 18 clipped runs at 1.6 ms a frame in `rcv` against 0.03 for the identical 56 clumps on the visible canvas. A clip plus an alpha is a `save()` on `ctx`. The boats move every frame, so this is a LIVE pass, never the ground cache. Do not deepen the multiply — the cue's whole point is that it is the thing that does not work. `onChannel` must keep the fountain and the pond on the land path.",
+      "budgetMin": 60,
+      "risk": "medium"
+    },
+    {
+      "id": "b174",
+      "domain": "The sill & the observer",
+      "kind": "Harness",
+      "brief": "The read rent has moved from the worker to the MANAGER, and the previous loop died of exactly this — $5.45 -> $13.72 an iteration with no gain in output, because every pass re-read a growing pile of its own memory. The worker's side is now bounded, measured and clean (45.1/46 KB at this pass; row.quota rc:0 on #167, #168 and #169). The manager's side is not bounded at all. stall.mjs's own table, slope over #149 -> #169: LEDGER-archive.md 676.4 KB +1.95 KB/iter, RUNLOG.jsonl 191.8 KB +1.13, MANAGER-LOG.md 81.6 KB +0.48, state.json 38.9 KB and falling since #167 pruned it — 988.8 KB, all four opened WHOLE on every manager pass. Bound the three that grow, by ROTATION and never by deletion: #167's `rotate-ledger.mjs --prune-only` already rolls closedCues past 40 into `closed-cues-archive.jsonl` by array position, so the shape exists — give LEDGER-archive.md, RUNLOG.jsonl and MANAGER-LOG.md the same treatment past a stated N, and make stall.mjs's memory quota read what a MANAGER opens beside what a worker does, so a breach on that side is a signal rather than a paragraph in a log nobody re-reads.",
+      "seams": [
+        "rotate-ledger.mjs",
+        "stall.mjs onDisk",
+        "runlog.mjs readQuota",
+        "build-stats.mjs",
+        "context-budget.mjs",
+        "closed-cues-archive.jsonl"
+      ],
+      "successLooksLike": "`stall.mjs --report` prints a manager-side quota next to the worker's, and the four files a manager opens are bounded by a rule the table states. Every archived byte is still on disk and findable — count them before and after and show the totals match.",
+      "avoid": "courtyard.html must come out byte-identical; census PASS all six groups. Do NOT change a cap while measuring against it — changing a cap mid-pass is how a loop stops noticing. Do not delete anything: rotation only. Pin any 'before' control to a REF, not to HEAD (#167's surprise).",
+      "budgetMin": 30,
+      "risk": "low"
+    }
+  ],
+  "recommendStop": null,
+  "consumed": [
+    {
+      "id": "b170",
+      "at": "2026-09-03T12:54:05.366Z"
+    }
+  ]
 }

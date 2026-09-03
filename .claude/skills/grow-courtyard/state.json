@@ -2,7 +2,7 @@
  "updated": "2026-09-03",
  "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
  "phase": "expanding",
- "lastIteration": 169,
+ "lastIteration": 171,
  "menu": {
   "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
   "domains": [
@@ -475,7 +475,8 @@
     123
    ],
    "new-element": [
-    97
+    97,
+    171
    ],
    "scale": [
     100,
@@ -574,7 +575,8 @@
    "OUR OWN ROOF below the lane: rows 79..WH are WALL, NEAR_SPANS, NEAR_HOUSE 7/houseOf(x), NEAR_RIDGE. drawNearRoof CACHED: drawCrests, WELLS, DORM_Y, drawParapet, OUR_AWNINGS",
    "eaveFor() returns 0 for y >= LN_WALK_S deliberately: project() lifts z northward, so our block at its true eave would DRAW in front of the lane. A DRAWING constraint shTop reads",
    "the near block is SLATED: drawRoofRow forks at LN_WALK_S to drawSlateCell/slateRun on slateGrid(y). Per-slate roofMossF()/sootAt()/slipped. roofBirdSpot; ROOF_FURN 24 pieces per BAY",
-   "a CASTING height is not the DRAWN eave: SH_TOWERS/towerShTop() for the towers (#146); shCast[] beside shTop[] for our block (#151) - NEAR_EAVE 5.6 + emergent roof, march runs y < WH"
+   "a CASTING height is not the DRAWN eave: SH_TOWERS/towerShTop() for the towers (#146); shCast[] beside shTop[] for our block (#151) - NEAR_EAVE 5.6 + emergent roof, march runs y < WH",
+   "our block has a TOP (#171): LEADS tile 17, rows 86-87 of 6 bays off leadsHouse (hash; clear of wells/river), WALL to buildVolumes; drawLeadsCell/leadSheet+apron; buildLeads->HATCHES/LEADS_BAYS/cords; tenant's OWN src tenantErrands, TEN_CAP 2, 4 acts"
   ]
  },
  "openCues": [
@@ -600,6 +602,12 @@
    "id": "c259",
    "note": "the SILL is the frame's foreground, the bottom ~7%, the same near-black bar at midday as at midnight (#169 shots). MEASURE its sd/mean as its own class against the near roof's 0.281 first: the black may be drawOurSide's intent, as drawNearRoof's was.",
    "raisedBy": 169,
+   "seenBy": 0
+  },
+  {
+   "id": "c260",
+   "note": "__entities() reports a tenant as kind walker (role:'tenant'), so motion.mjs buries their continuity in 255 walker spawns - any future near-block mover is as invisible to the gate.",
+   "raisedBy": 171,
    "seenBy": 0
   }
  ],

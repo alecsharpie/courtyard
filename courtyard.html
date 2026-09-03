@@ -284,10 +284,16 @@ const WALL = 0, PATH = 1, GRASS = 2, BED = 3, CBED = 4, TRUNK = 5, SIDE = 6, ROA
                                // `continue`, so no snow, no litter and no moss ever reach it. Never a
                                // volume: buildVolumes() reads WALL/TUNNEL and must not roof this one,
                                // because the whole point of the tile is that you see through it
-      REED = 16;               // the river's shallow margin (#155): WATER with rushes standing in it.
+      REED = 16,               // the river's shallow margin (#155): WATER with rushes standing in it.
                                // Water to everything that reads the surface — the ground cache paints
                                // it as river, the census counts it under `water`, nobody stands in it —
                                // and a BED to the planting CA, which is what makes it seasonal
+      LEADS = 17;              // a lead flat on our own block (#170): the two level rows at the foot of
+                               // the near pitch, where a house has made a roof TERRACE of them. It takes
+                               // the shape GLASS has — WALL to buildVolumes(), which never sees it, so
+                               // not one roof vertex moves, and its own fill in the ground cache. Unlike
+                               // GLASS it is BUILT GROUND and it is stood on: `developed` counts it, and
+                               // it is the only cell south of the lane a person has ever been on
 /* the eyot: ONE ellipse, evaluated once in buildGrid() — everything else (the swans' third
  * bank, the ducks' nest, the streaks that part round it) reads the tile back off the grid.
  * Sited in the river's east half, clear of the boat's channel (x 116.5–121.5, hull ±0.5) by
@@ -1133,6 +1139,46 @@ function wellAt(x, y){
   for (const w of WELLS) if (x >= w.x0 && x < w.x1 && y >= w.y0 && y < w.y1) return true;
   return false;
 }
+const NEAR_HOUSE = 7;    // the near block's party-wall rhythm — houseOf() below reads it, and so does
+                         // everything in drawNearRoof's block. It is stated HERE because buildGrid needs
+                         // it: the lead flats are cut by the BAY, and a bay is a house.
+/* ============ the lead flats (#170) ============
+ * 1095 of the town's 2441 WALL cells are our own block, and until this iteration every
+ * one of them was the same tile: buildGrid's last branch said WALL unless it said VOID.
+ * So the nearest thing in the picture — the bottom sixth of every wide frame — had one
+ * surface, one name under the pointer, and in 169 iterations nobody had ever stood on it.
+ *
+ * A lead flat is what the foot of a terrace roof actually IS. The pitch falls 0.62 a row
+ * below the ridge, and probe-leads measured where it stops falling ACROSS the block: row
+ * 87 reads z 0.31 at x 0, 10, 20, 25, 40, 60, 80, 89, 100 and 105 alike — dead level,
+ * light wells included — and row 86 varies only 0.62..0.93. Those two rows are the only
+ * ones a flat can be laid on without a volume moving, so they are the ones it is laid on.
+ *
+ * Cut by the BAY and never by the cell, because a lead flat belongs to a HOUSE: the
+ * party-wall upstands drawPartyWalls already carries down over the roof and off the
+ * bottom of the picture are the terrace's own walls, so the footprint needs no edge of
+ * its own. A bay is refused anywhere near a light well — wellNear() is that test, and it
+ * is the one the cat's line already uses — and refused across the river, which runs
+ * between the block's two halves. Chosen off hash(house) and never off R(): the footprint
+ * is built once and never moves, and a draw here would reshuffle the seeded world (#96). */
+const LEADS_Y0 = 86;                     // the two level rows at the foot of the near pitch
+const LEADS_SHARE = 0.42;                // which bays have made a terrace of theirs
+const LEADS_OK = new Map();
+function leadsHouse(h){
+  let v = LEADS_OK.get(h);
+  if (v !== undefined) return v;
+  const x0 = h * NEAR_HOUSE - 1, x1 = x0 + NEAR_HOUSE;      // the bay, party wall to party wall
+  v = !(x1 > QUAY_X0 && x0 < RIVER_X1) && hash(h + 700, 907) < LEADS_SHARE;
+  for (let x = x0; v && x < x1; x++) if (wellNear(x) < 1) v = false;
+  LEADS_OK.set(h, v);
+  return v;
+}
+/* Asked on the UNCLAMPED x by the draw as well as by buildGrid. Past either margin the
+ * grid clamps to the edge column, but the roof does not — it repeats — so a footprint
+ * read off grid[gx] would have stopped the pattern dead at x 0 and put a lead field with
+ * no house under it down the whole west margin. The predicate is the definition; the
+ * grid is where it is written down for the twelve columns that have cells. */
+function leadsAt(x, y){ return y >= LEADS_Y0 && y < WH && leadsHouse(houseOf(x)); }
 function buildGrid(){
   for (let y = 0; y < WH; y++) for (let x = 0; x < GW; x++){
     const i = y * GW + x;
@@ -1226,8 +1272,10 @@ function buildGrid(){
       grid[i] = SIDE;
       if (y === 78 && ((x >= 8 && x <= 9) || (x >= 55 && x <= 56) || (x >= 88 && x <= 89))) grid[i] = BED;
     } else {
-      // below the lane: our own building, with the river slipping between its two halves
-      grid[i] = (x >= QUAY_X0 && x < RIVER_X1) ? WATER : wellAt(x, y) ? VOID : WALL;
+      // below the lane: our own building, with the river slipping between its two halves,
+      // and a lead flat on the bays that have made a terrace of their bottom two rows
+      grid[i] = (x >= QUAY_X0 && x < RIVER_X1) ? WATER : wellAt(x, y) ? VOID
+              : leadsAt(x, y) ? LEADS : WALL;
     }
   }
   for (const b of BENCH_SPOTS){
@@ -1346,7 +1394,9 @@ function solidC(x, y){                             // clamped: used when drawing
 function buildVolumes(){
   for (let y = 0; y < WH; y++) for (let x = 0; x < GW; x++){
     const i = y * GW + x, t = grid[i];
-    solidM[i] = (t === WALL || t === TUNNEL) ? 1 : 0;
+    // LEADS is WALL here and nowhere else (#170): the distance transform below never
+    // sees the tile, so a terrace cut into the near block moves not one roof vertex.
+    solidM[i] = (t === WALL || t === TUNNEL || t === LEADS) ? 1 : 0;
     eaveM[i] = solidM[i] ? eaveFor(x, y) : 0;
     houseM[i] = solidM[i] ? houseAt(x, y) : -1;
   }
@@ -3918,6 +3968,7 @@ function stepAgent(a, dt){
   // the quay bench runs it out the same as a walker on the bridge.
   if (a.watch > 0) a.watch -= dt;
   if (a.aboard || a.boarding) return;        // the punt owns the tick while they are aboard, and the passenger's from the moment the punter sits (#96, #128)
+  if (a.tenant){ stepTenant(a, dt); return; }   // the leads are their whole world: no route, no exit, no door (#170)
   // whoever is standing or talking in the road steps aside for the horse
   if (cart && !a.loader && (a.state === 'stand' || a.greet > 0) && cartShove(a, dt)) return;
   if (a.state === 'sit' || a.state === 'kneel' || a.state === 'lie' || a.state === 'stand'){
@@ -6159,7 +6210,9 @@ function pairStands(x, y){
   const gx = Math.round(x - .5), gy = Math.round(y - .5);
   if (gx < 0 || gy < 0 || gx >= GW || gy >= WH) return true;   // off the frame is where they came from
   const g = grid[gy * GW + gx];
-  return g !== WATER && g !== REED && g !== VOID && g !== WALL && g !== BED && g !== CBED && g !== TRUNK && g !== DIAL && g !== EYOT;
+  // LEADS is walkable ground and it is deliberately NOT here: the terrace is the
+  // tenant's own place and no route in the town may take a companion onto our roof (#170)
+  return g !== WATER && g !== REED && g !== VOID && g !== WALL && g !== LEADS && g !== BED && g !== CBED && g !== TRUNK && g !== DIAL && g !== EYOT;
 }
 /* the dawn sweeper */
 let sweeper = null;
@@ -7525,7 +7578,7 @@ function tileCol(lam, hv, amb, key){
 /* Our own houses are wider than the town's 3.5-cell terrace: at 3.5 the party walls come
  * every 31 px across a 1600 px frame and the roof reads as boarding rather than as a row
  * of houses. Seven cells is the same rhythm the eye reads on the far side, at our range. */
-const NEAR_HOUSE = 7;
+// NEAR_HOUSE is stated up with the grid — buildGrid reads it to cut the lead flats
 function houseOf(x){ return Math.floor((x + 1) / NEAR_HOUSE); }
 
 /* ============ the near block is SLATED, not tiled (#125) ============
@@ -7713,6 +7766,78 @@ function drawSlateCell(g, x, y, r, sy, dz, amb, key, gx, ns, nc, wPx, hPx){
     slateRun(g, sh, x, ns, y * 8 + j, j / nc, (j + 1) / nc - gS, gU,
              nc > 1 && j < nc - 1 ? 0.62 / nc : 0, pt);
 }
+/* One cell of the near block laid as LEAD (#170). The same bilinear surface
+ * drawSlateCell lays and the same shade off roofShade/roofKey — what changes is that
+ * lead comes in SHEETS and not in courses: the joints run DOWN the fall as wood-cored
+ * rolls at half a cell, with a drip welt across the head of each sheet where one laps
+ * over the next. It is duller and bluer than slate, it PONDS where slate sheds, and it
+ * takes a lying cover as one field rather than course by course. The lattice is global
+ * in x (cells are unit wide and LEAD_ROLL divides one exactly), so a roll runs unbroken
+ * from the head of the flat to the bottom of the picture. */
+const LEAD_ROLL = 1;      // one roll a cell: at half that the bond read as corrugation, not as lead
+function leadTone(lam, amb, key, gx, y){
+  const lit = clamp(amb + 0.8 * lam * key + hash(gx, y) * 0.05 - 0.02, 0, 1);
+  let col = mix(mix('#212528', '#767d82', lit), '#8496a2', 0.40 * wetF());
+  col = mix(col, '#6d7767', 0.26 * roofMossF() * hash(gx * 3, y * 7));   // it greens along the seams
+  return [snowCover > 0.02 ? mix(col, SNOW_COL, clamp(snowCover * 1.15, 0, 1)) : col, lit];
+}
+/* A sheet of lead, laid on whatever surface pt() describes — the roof's own bilinear
+ * cell or the apron's flare, which is the point of taking the surface as an argument.
+ *
+ * The FIRST draft got the material right and the PLANE wrong: rolls at half a cell,
+ * running unbroken from the head of the flat to the bottom of the picture, read as
+ * corrugated shutters standing UP rather than a flat lying DOWN. What was missing is the
+ * thing a lead flat is actually made of — sheets. A sheet is finite down the fall, and
+ * where one laps the next there is a DRIP: a shadow with the lap's lip catching the sky
+ * over it. Those horizontals are what put the surface on the ground, and there have to be
+ * more of them as the flare opens out, which is why `welts` is the caller's list and not
+ * a constant. Three passes, in the order the roof is built in: the sheets, then the
+ * drips, then the rolls, which stand proud of both and cross them. */
+function leadSheet(g, pt, lit, welts, gx, wide){
+  let k = 0;
+  for (let u = 0; u < 0.999; u += LEAD_ROLL, k++){
+    // no two sheets off the same pile catch the sky alike; both signs, so the band mean holds
+    const v = (hash(gx * 5 + k, 941) - 0.5) * 0.11;
+    if (Math.abs(v) < 0.014) continue;
+    g.fillStyle = v > 0 ? 'rgba(228,234,238,' + (v * 1.5).toFixed(3) + ')'
+                        : 'rgba(16,20,24,' + (-v * 1.5).toFixed(3) + ')';
+    poly(g, [pt(u, 0), pt(Math.min(u + LEAD_ROLL, 1), 0),
+             pt(Math.min(u + LEAD_ROLL, 1), 1), pt(u, 1)]); g.fill();
+  }
+  for (const [sv, w] of welts){
+    const a = pt(0, sv), b = pt(1, sv);
+    g.strokeStyle = 'rgba(19,22,25,.52)'; g.lineWidth = w;
+    g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke();
+    g.strokeStyle = mix('#3d4245', '#b7bec2', lit); g.lineWidth = Math.max(0.8, w * 0.45);
+    g.beginPath(); g.moveTo(a[0], a[1] - w * 0.6); g.lineTo(b[0], b[1] - w * 0.6); g.stroke();
+  }
+  const rw = Math.max(wide ? 1.2 : 0.9, cellW * (wide ? 0.075 : 0.055));
+  for (let u = 0; u < 0.999; u += LEAD_ROLL){
+    const a = pt(u, 0), b = pt(u, 1);
+    g.strokeStyle = 'rgba(19,22,25,.26)'; g.lineWidth = rw * 1.6;
+    g.beginPath(); g.moveTo(a[0] + rw * 0.7, a[1]); g.lineTo(b[0] + rw * 0.7, b[1]); g.stroke();
+    /* Kept close to the sheet's own tone on purpose. A roll is 5 mm of timber under a
+     * fold of lead, not a glazing bar: drawn at full contrast, one a cell over nine rows
+     * of pitch plus the apron, the bays read as barred WINDOWS and the flat stood UP. */
+    g.strokeStyle = mix('#383d41', '#7c8388', lit); g.lineWidth = rw;
+    g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke();
+  }
+}
+function drawLeadsCell(g, x, y, r, sy, dz, amb, key, gx){
+  const zA = r[1], zB = r[2], zC = r[3] - dz, zD = r[4] - dz, dy = sy - y;
+  const pt = (u, s) => project(x + u, y + s * dy,
+    (zA * (1 - u) + zB * u) * (1 - s) + (zD * (1 - u) + zC * u) * s);
+  const [col, lit] = leadTone(r[0], amb, key, gx, y);
+  g.fillStyle = col; poly(g, [pt(0, 0), pt(1, 0), pt(1, 1), pt(0, 1)]); g.fill();
+  if (snowCover > 0.55) return;                        // buried: the seams stop showing
+  // the head of the sheet, heaviest at LEADS_Y0 where the slate laps down onto the lead
+  leadSheet(g, pt, lit, [[0, Math.max(1, cellH * (y === LEADS_Y0 ? 0.22 : 0.11))]], gx, false);
+  const wet = wetF();
+  if (wet > 0.35 && snowCover < 0.2){                  // lead does not shed, it ponds
+    g.fillStyle = 'rgba(122,148,166,' + (0.10 + 0.20 * wet).toFixed(3) + ')';
+    poly(g, [pt(0.14, 0.52), pt(0.9, 0.60), pt(0.86, 0.97), pt(0.18, 0.92)]); g.fill();
+  }
+}
 function drawRoofRow(g, y){
   const [amb, key] = roofKey();
   const near = y >= LN_WALK_S;
@@ -7737,7 +7862,8 @@ function drawRoofRow(g, y){
       const eN = eaveM[(y - 1) * GW + gx];
       if (eN > e + 0.04) drawGable(g, x, y, e, eN, out);
     }
-    if (near) drawSlateCell(g, x, y, r, sy, dz, amb, key, gx, sg[0], sg[1], sg[2], sg[3]);
+    if (near && leadsAt(x, y)) drawLeadsCell(g, x, y, r, sy, dz, amb, key, gx);
+    else if (near) drawSlateCell(g, x, y, r, sy, dz, amb, key, gx, sg[0], sg[1], sg[2], sg[3]);
     else {
       const a = project(x, y, r[1]), b = project(x + 1, y, r[2]);
       let col = tileCol(lam, hv, amb, key);
@@ -9195,7 +9321,7 @@ function drawGround(){
   for (let y = 0; y < WH; y++) for (let x = XLO; x < XHI; x++){
     const gx = clamp(x, 0, GW - 1);
     const i = y * GW + gx, g0 = grid[i], t = g0 === DECK || g0 === EYOT || g0 === REED ? WATER : g0 === DIAL ? GRASS : g0, hv = hash(gx, y);   // the cache sees the water under the deck, under the eyot (painted whole below) and under the rushes, the lawn under the sundial
-    if (t === WALL || t === VOID) continue;
+    if (t === WALL || t === VOID || t === LEADS) continue;   // #170: the leads are ROOF, and drawRoofRow lays them
     if (t === TUNNEL){                                   // floor of a roofed passage
       gtx.fillStyle = '#241d16'; quad(gtx, x, y, 0.03); gtx.fill(); continue;
     }
@@ -9692,7 +9818,15 @@ function wellNear(x){
  * tank or a pigeon loft stands beside it. */
 const ROOF_FURN = [];            // {kind, x, x1, y, h, house} — town state, counted by the census
 const LOFTS = [];                // [x, y, boardW, z] — the landing boards, which are a PERCH
-const WASH_H = 1.75, WASH_SAG = 0.16;    // the line's height over the leads, and its sag
+const WASH_H = 1.75, WASH_SAG = 0.16;    // the line's height over the pitch, and its sag
+/* #170: a cord's height is a PROPERTY OF THE CORD now, because the terrace's is not the
+ * pitch's. LIFT carries a cell of height 1.15 rows north on screen, so WASH_H over a
+ * flat at row 87 hangs its washing 2.0 rows up the frame — on the SLATES above the
+ * terrace, which is where it read from. A lower cord (and a row further south) puts the
+ * garments back over the leads they belong to, and the drop still clears the flat:
+ * WASH_DROP + WASH_DROP_R is 1.53, so the longest sheet's hem sits 0.02 above it. */
+const WASH_H_LEADS = 1.55;
+function washH(f){ return f.leads ? WASH_H_LEADS : WASH_H; }
 const WASH_DROP = 0.58, WASH_DROP_R = 0.95;   // how far a garment hangs below the cord
 /* How big each piece IS, in one place. drawWaterTank and drawPigeonLoft read these and
  * so does roofFurnAt(), so the box under the pointer cannot drift from the box on the
@@ -9818,10 +9952,56 @@ function buildRoofFurn(){
       }
     }
   }
+  buildLeads();       // and the terraces, whose cords join the same list before it is sorted
   /* Painter's order, and it has to be stated now that two pieces in one bay no longer
    * land in the order they were pushed: larger y is NEARER, so the block is drawn from
    * the back forward and roofFurnAt — which walks it backward — asks from the front. */
   ROOF_FURN.sort((p, q) => p.y - q.y);
+}
+/* ============ what stands on a lead flat (#170) ============
+ * A bay of leads is a PLACE, so it gets what a place gets: a way in, something to do
+ * there, and somebody who does it.
+ *
+ * The HATCH is the way in — a boarded curb with a lead-covered lid over the stair from
+ * the top floor. It is drawn LIVE and not into the ground cache, because it has two
+ * states and the cache rebuilds on its own cadence and not on this one: the leads belong
+ * in the cache, the lid does not (the rule at drawGround, and #110's).
+ *
+ * The CORD is ROOF_FURN's, so the washing on it is washOut()'s and roofFurnAt names it
+ * with the same words every other line on this roof gets. Its row is STATED, not solved,
+ * and that is the one thing here worth reading twice. furnRow() bounds a piece at
+ * FURN_DMAX 81.70 — the SHORTEST framing's sill — and this cord is deliberately south of
+ * it, at depth 84.83, exactly as the loft's landing board is at 86.1: on a short 1200x720
+ * the sill covers the whole terrace, and it is drawn INTO the same cache pass drawSill
+ * paints over, with nearHidden() guarding the pointer. What still has to be bounded is
+ * the NORTH end, because LIFT carries height up the frame: the cord tops out at depth
+ * 85.61, seven rows clear of the lane's own walking line. */
+const HATCHES = [];              // {x, y, house, bay} — town state, counted by the census
+const LEADS_BAYS = [];           // the terraces, west to east: what a tenant comes out onto
+const HATCH_W = 0.52, HATCH_D = 0.30, HATCH_H = 0.34;
+/* Both are pushed to the SOUTH end of the two rows, and that is a drawing constraint
+ * and not a taste: LIFT carries a cell of height 1.15 rows north on screen, so anything
+ * standing on row 86 is DRAWN over the slates above the terrace. The hatch's lid at 86.9
+ * tops out at depth 85.74 and the cord at 87.75 at 85.61 — both inside the band the
+ * terrace's own two rows occupy, 84.93 to 86.64. */
+const LEADS_LINE_Y = 87.75, LEADS_HATCH_Y = 86.9;
+function buildLeads(){
+  HATCHES.length = 0; LEADS_BAYS.length = 0;
+  for (const [sx0, sx1] of NEAR_SPANS){
+    for (const bx of partyWalls(sx0, sx1)){
+      const h = houseOf(bx), x0 = bx, x1 = bx + NEAR_HOUSE;
+      // the bay has to be a whole one, and it has to be one we can SEE: off either margin
+      // the roof repeats but the grid does not, so a terrace out there would be furnished
+      // in a bay whose cells belong to the edge column
+      if (x1 > sx1 || x1 <= 0 || x0 >= GW || !leadsHouse(h)) continue;
+      const bay = {house:h, x0, x1, hx:x0 + 1.5 + hash(h, 911) * 0.9, hy:LEADS_HATCH_Y,
+                   wx0:x0 + 0.9, wx1:x1 - 0.9, wy:LEADS_LINE_Y, busy:0};
+      LEADS_BAYS.push(bay);
+      HATCHES.push({x:bay.hx, y:bay.hy, house:h, bay});
+      ROOF_FURN.push({kind:'line', x:bay.wx0, x1:bay.wx1, y:LEADS_LINE_Y,
+                      h:hash(h, 919), house:h, leads:true});
+    }
+  }
 }
 buildRoofFurn();      // the volumes are built above, and nothing here is seeded
 /* Washing goes out on a FINE day and is in before the light goes. Bounded on BOTH sides
@@ -9834,6 +10014,180 @@ function washOut(){
   return hour > sunUp + 1.3 && hour < sunDown - 1.1;
 }
 const WASH_COL = ['#d6cfbe', '#c6bda8', '#9fb0bd', '#b0725f', '#8b9a76', '#cbbb9a', '#e0dad0', '#7f8ba0'];
+/* ============ the tenant (#170) ============
+ * The block below our window has been the biggest built thing in the picture since #100
+ * and no person has ever been on it. #106 gave it birds and the cat; what it never got
+ * was somebody who LIVES there, and that iteration's own comment says why — every
+ * spawner in the town bounds its y at LN_WALK_S, so the whole band south of the lane was
+ * empty BY CONSTRUCTION. The leads are what a person can be on, so this is their source.
+ *
+ * OWN SOURCE AND OWN CAP, never a widened band of somebody else's (#92): a terrace holds
+ * one household and there are a handful of terraces, so a share of laneCap would have run
+ * this at a rate of zero. There is no roll at all — the errands are EVENTS. Two of them
+ * are the washing, read off the EDGE of washOut(), which is the very scalar the cached
+ * cord draws its garments from: when it rises somebody comes up to peg out, and when it
+ * falls — the light going, a shower, or the roof still wet from this morning's — somebody
+ * comes up to take in. Nothing new decides the weather; the person is the answer to a
+ * question the roof was already asking, which is why the two cannot drift apart.
+ *
+ * They never leave the leads, and the parapet is why they cannot. It stands at row 79.55
+ * and project() lifts z NORTHWARD, so a figure at the coping draws at depth 79.0 — in the
+ * lane's south footway, in front of the walkers a ground-cache roof cannot draw them
+ * behind. That is the same arithmetic eaveFor() states for the whole block. So the
+ * evening stand is at the terrace's OWN east end, against its own party wall, which is
+ * what you would lean on anyway. */
+const TEN_CAP = 2;                    // at most this many up on the leads at once
+const TEN_WALK_Y = 87.0;              // the line they work along, between the hatch and the cord
+/* Priced in HOURS and converted, never stated in seconds. A day is 55 s here, so a stop
+ * written as "7 + R()*6" is not seven seconds of standing about, it is FIVE SIM HOURS —
+ * the first draft leaned somebody on their own party wall from dusk until four in the
+ * morning. Pegging out a basket is an hour; taking it in off a shower is half of one. */
+const TEN_STAND = {peg:[0.8, 1.5], take:[0.35, 0.7], lean:[0.9, 1.7], sun:[1.8, 3.4]};
+let washWas = null, tenEveDay = -1, tenSunDay = -1;
+/* The afternoon. The washing is an ERRAND and both its ends are at the edges of the day,
+ * so a terrace whose only life was the washing would be empty through every hour anybody
+ * is actually looking at it. This is the other half of what a roof terrace IS: you go up
+ * because the sun is on it. Keyed on the sun's own hours and on shadowF(), which is the
+ * town's one reading of whether the sun is actually OUT — `daylight` alone is as true
+ * under a lid of cloud as it is at noon in June. */
+function tenSunFine(){
+  return !raining && wetF() < 0.3 && snowCover < 0.05 && shadowF() > 0.55
+      && hour > sunUp + 5 && hour < sunDown - 2.5 && warmth > 0.42;
+}
+function tenantCount(){ let n = 0; for (const a of agents) if (a.tenant) n++; return n; }
+/* Which household. A per-day hash and not R(): the same family hangs out the same
+ * terrace's washing all day, and the choice costs the seeded world nothing. */
+function freeBay(k){
+  const open = LEADS_BAYS.filter(b => !b.busy);
+  return open.length ? open[Math.min(open.length - 1, (hash(day, k) * open.length) | 0)] : null;
+}
+function tenStand(act){ const [lo, hi] = TEN_STAND[act]; return (lo + R() * (hi - lo)) / HOURS_PER_S; }
+function spawnTenant(bay, act){
+  bay.busy = 1;
+  const a = {
+    kind:'tenant', tenant:true, street:true, priced:true, bay, act:'',
+    x:bay.hx, y:bay.hy, z:roofWalkZ(bay.hx, bay.hy), wp:[], stops:[], i:0,
+    speed:1.5 + R() * 0.4, state:'walk', timer:0,
+    shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9, wary:R(),
+  };
+  const wx = (bay.wx0 + bay.wx1) / 2 + (R() - 0.5) * (bay.wx1 - bay.wx0) * 0.34;
+  if (act === 'sun'){
+    a.wp.push([bay.x0 + 3.4 + R() * 1.4, TEN_WALK_Y + 0.15], [bay.hx, bay.hy]);
+    a.stops.push({act:'sun', st:'sit', dur:tenStand('sun'), faceL:R() < 0.5}, null);
+  } else if (act === 'lean'){
+    a.wp.push([bay.x1 - 1.05, TEN_WALK_Y], [bay.hx, bay.hy]);
+    a.stops.push({act:'lean', dur:tenStand('lean'), faceL:false}, null);
+  } else {
+    // taking in is done at a trot and pegging out is not; a windy day is the best drying
+    // there is, so it is the one that holds them longest at the line
+    a.hurry = act === 'take';
+    a.wp.push([wx, bay.wy - 0.6], [bay.hx, bay.hy]);
+    a.stops.push({act, dur:tenStand(act) * (isWindy() ? 1.35 : 1), faceL:R() < 0.5}, null);
+  }
+  agents.push(a);
+  return a;
+}
+/* Their own tick, taken off stepAgent at the top: none of the town's routing applies up
+ * here — there is no exit to walk to, no door to be asked about and no companion. */
+function stepTenant(a, dt){
+  a.z = roofWalkZ(a.x, a.y);           // read off the place under the feet, EVERY frame (#106)
+  if (a.state !== 'walk'){
+    // the sky ends a stop up here as it ends one anywhere else: rain takes everybody in,
+    // and the afternoon on the leads is over when the light that bought it is
+    if (raining || (a.act === 'sun' && daylight < 0.4)) a.timer = 0;
+    if ((a.timer -= dt) > 0) return;
+    a.state = 'walk'; a.act = '';
+  }
+  const tgt = a.i < a.wp.length ? a.wp[a.i] : null;
+  if (!tgt){ a.done = true; return; }
+  const dx = tgt[0] - a.x, dy = tgt[1] - a.y, d = Math.hypot(dx, dy);
+  if (d < 0.12){
+    const st = a.stops[a.i++];
+    if (st){ a.state = st.st || 'stand'; a.timer = st.dur; a.act = st.act; a.faceL = st.faceL; }
+    return;
+  }
+  const sp = a.speed * (a.hurry || raining ? 1.5 : 1);
+  a.x += dx / d * sp * dt; a.y += dy / d * sp * dt;
+  a.phase += dt * 7;
+}
+/* washOut() is read ONCE here and the EDGE is the event. `washWas` starts null so the
+ * first read of a fresh page arms the edge instead of firing it — a page opened at noon
+ * would otherwise send somebody up in the frame the world is built in. */
+function tenantErrands(){
+  if (!LEADS_BAYS.length || day < 1) return;
+  const out = washOut();
+  if (washWas === null){ washWas = out; return; }
+  if (out !== washWas){
+    washWas = out;
+    const b = tenantCount() < TEN_CAP ? freeBay(829) : null;
+    if (b){
+      spawnTenant(b, out ? 'peg' : 'take');
+      sayAt(b.hx, b.hy, out ? 'A hatch goes back on the roof below the window and a basket of washing comes up.'
+            : raining ? 'The washing comes in off the leads in a hurry.'
+                      : 'Somebody is out on the leads, taking the washing in before the light goes.');
+    }
+  }
+  // the afternoon, once a day and on its own hash: a stay, not an errand
+  if (tenSunDay !== day && hash(day, 857) < 0.55 && tenSunFine() && tenantCount() < TEN_CAP){
+    const b = freeBay(859);
+    if (b){
+      tenSunDay = day; spawnTenant(b, 'sun');
+      if (R() < 0.45) sayAt(b.hx, b.hy, 'Somebody comes up onto the leads and sits down in the sun.');
+    }
+  }
+  /* The evening stand: once a day, on a hash of the day, in the hour the light goes.
+   * The latch is spent only if somebody actually came up, so a busy terrace does not
+   * cost the day its evening (#129's shape). */
+  if (tenEveDay !== day && hour > sunDown - 1.4 && hour < sunDown + 0.1
+      && !raining && wetF() < 0.4 && hash(day, 839) < 0.55 && tenantCount() < TEN_CAP){
+    const b = freeBay(841);
+    if (b){
+      tenEveDay = day; spawnTenant(b, 'lean');
+      if (R() < 0.5) sayAt(b.hx, b.hy, 'Someone comes up onto the leads for the last of the light.');
+    }
+  }
+}
+/* The hatch, drawn LIVE: it is the one piece of roof furniture with two states, and the
+ * ground cache rebuilds on a cadence that is not this one. Open, the lid stands back on
+ * its hinge and the stair head is a hole in the roof — and the lid leans NORTH, which
+ * LIFT carries 0.71 of a row up the frame from row 86.14, still four rows south of the
+ * lane. Everything here is drawn south-face-then-top, as the rest of the roof is: we are
+ * above this surface, so a box shows us the side turned toward the window, and the lid. */
+function drawHatch(it){
+  // the surface the TENANT'S feet read, not the per-cell one the boxed furniture reads:
+  // they stand on this thing, and a curb 0.3 of a cell above their soles reads as floating
+  const h = it.h, z = roofWalkZ(h.x, h.y);
+  const [, sy] = project(h.x, h.y + HATCH_D, z);
+  if (nearHidden(h.y, sy)) return;
+  const lit = 0.24 + 0.58 * daylight, y0 = h.y - HATCH_D, y1 = h.y + HATCH_D, zt = z + HATCH_H;
+  const face = [project(h.x - HATCH_W, y1, zt), project(h.x + HATCH_W, y1, zt),
+                project(h.x + HATCH_W, y1, z), project(h.x - HATCH_W, y1, z)];
+  ctx.fillStyle = mix('#231e19', '#6b5d49', lit); poly(ctx, face); ctx.fill();
+  const top = [project(h.x - HATCH_W, y0, zt), project(h.x + HATCH_W, y0, zt),
+               project(h.x + HATCH_W, y1, zt), project(h.x - HATCH_W, y1, zt)];
+  if (h.bay.busy){
+    ctx.fillStyle = 'rgba(13,12,11,.93)'; poly(ctx, top); ctx.fill();     // the stair head
+    const lid = [project(h.x - HATCH_W, y0, zt), project(h.x + HATCH_W, y0, zt),
+                 project(h.x + HATCH_W, y0 - 0.12, zt + 0.62), project(h.x - HATCH_W, y0 - 0.12, zt + 0.62)];
+    ctx.fillStyle = mix('#2b2f32', '#99a1a5', lit); poly(ctx, lid); ctx.fill();
+    ctx.strokeStyle = 'rgba(16,14,12,.6)'; ctx.lineWidth = 1; poly(ctx, lid); ctx.stroke();
+  } else {
+    ctx.fillStyle = mix(mix('#2b2f32', '#8e969a', lit), SNOW_COL, snowCover * 0.8);
+    poly(ctx, top); ctx.fill();
+    ctx.strokeStyle = 'rgba(16,14,12,.5)'; ctx.lineWidth = 1; poly(ctx, top); ctx.stroke();
+  }
+}
+/* What the leads say under the pointer, read off what they ARE doing — the same contract
+ * roofFurnName has with drawRoofFurn: wetF() ponds the fall in the picture and in the
+ * words, and the hatch's lid is named in whichever state drawHatch just drew it. */
+function leadsName(x, y){
+  for (const h of HATCHES)
+    if (Math.abs(x + 0.5 - h.x) < 0.75 && Math.abs(y + 0.5 - h.y) < 0.7)
+      return h.bay.busy ? 'the roof hatch, standing open' : 'the roof hatch, shut on its stair';   // #170
+  return snowCover > 0.10 ? 'the leads, under a lying cover'
+       : wetF() > 0.35 ? 'the leads, water standing in the fall'
+       : 'the leads — a roof terrace on our own block';
+}
 function onNearRoof(x, y){
   if (y < ROOF_N || y > ROOF_S) return false;
   if (nearDepth(x, y) > ROOF_DMAX) return false;
@@ -9933,6 +10287,24 @@ function drawNearRoof(g){
         const y0 = a[1], dy = H - a[1];
         // u east across the column, s the fraction of the way off the bottom of the world
         const pt = (u, s) => [lerp(lerp(aX, bX, u), lerp(aB, bB, u), s), y0 + dy * s];
+        /* #170: a bay with a lead flat carries it off the bottom of the picture too —
+         * the apron IS that same surface seen from closer, and it is 70 px of a 1600x950
+         * frame against the 21 the two roof rows are worth. The rolls open out with the
+         * flare because pt() is the caller's surface: both ends of every stroke are
+         * solved in world space and projected, never offset in pixels. */
+        if (leadsAt(x, WH - 1)){
+          const [lcol, llit] = leadTone(roofShade(x, WH - 1, eaveM[(WH - 1) * GW + gx])[0], amb, key, gx, WH);
+          g.fillStyle = lcol; poly(g, [pt(0, 0), pt(1, 0), pt(1, 1), pt(0, 1)]); g.fill();
+          if (snowCover > 0.55) continue;
+          // one drip every third course of the flare, weighted by the depth that course
+          // is actually drawn at — the same lattice the slate lays its courses on, so
+          // lead and slate recede down the apron at one rhythm
+          const welts = [];
+          for (let j = 2; j + 1 < fs.length; j += 2)
+            welts.push([fs[j], Math.max(1, Math.abs(pt(0, fs[j + 1])[1] - pt(0, fs[j])[1]) * 0.34)]);
+          leadSheet(g, pt, llit, welts, gx, true);
+          continue;
+        }
         const sh = slateShade(x, WH - 1, roofShade(x, WH - 1, eaveM[(WH - 1) * GW + gx])[0], amb, key, gx, false);
         g.fillStyle = rgbs(slateTone(sh.pal, sh.hg, sh.t0 * SLATE_JOINT_T - 0.05, snowCover * 0.5 * sh.sun));
         poly(g, [pt(0, 0), pt(1, 0), pt(1, 1), pt(0, 1)]); g.fill();
@@ -10077,7 +10449,7 @@ function drawRoofFurn(g){
  * enough that a quarter-hour rebuild moves it by a fraction of a pixel. */
 function drawWashLine(g, f, lit, out){
   const gx = clamp(Math.floor((f.x + f.x1) / 2), 0, GW - 1);
-  const zr = nearZ(Math.floor((f.x + f.x1) / 2), Math.floor(f.y)), zTop = zr + WASH_H;
+  const zr = nearZ(Math.floor((f.x + f.x1) / 2), Math.floor(f.y)), zTop = zr + washH(f);
   const pts = [];
   for (let k = 0; k <= 8; k++){
     const u = k / 8;
@@ -10611,6 +10983,7 @@ function drawScene(t, dt){
   for (const tb of CAFE_TABLES) if (tb.p > 0) items.push({y:tb.y + 0.45, f:drawCafeTable, tb, p:tb.p});
   if (casksOut()) items.push({y:CASKS[0].y + 0.35, f:drawCasks});
   if (kioskOpen()) items.push({y:KIOSK.y + 0.8, f:drawKiosk});
+  for (const h of HATCHES) items.push({y:h.y + HATCH_D, f:drawHatch, h});   // #170: live, because it opens
   for (let i = 0; i < MARKET_STALLS.length; i++){
     const p = marketRaise(i);                    // 0 well before opening and well after close
     if (p > 0) items.push({y:MARKET_STALLS[i].y + 0.8, f:drawMarketStall, s:MARKET_STALLS[i], p, sh:mkShelfFor(i)});
@@ -13231,13 +13604,22 @@ function drawLamp(it){
 }
 function drawPerson(it, t){
   const a = it.a;
-  const scale = a.small ? 0.72 : 1;
+  /* #170: on our own block a person is drawn to their OWN ROW, the factor the cat and
+   * the birds have had since #106 — at the leads that is NEAR_SZ, nearly twice the size
+   * of anyone across the lane, which is what the nearest thing in the picture should be.
+   * Guarded at LN_WALK_S and not at nearScale()'s own LANE_S_Y, because the lane's
+   * walking line is 77.3 and its walkers stray half a row south of it: read straight,
+   * the ramp would have put a silent 6% on every one of them. Nobody crosses the
+   * boundary — the tenant is spawned on the leads and never leaves them — so the step
+   * in the ramp at LN_WALK_S is never walked through. */
+  const scale = (a.small ? 0.72 : 1) * (a.y > LN_WALK_S ? nearScale(a.y) : 1);
   const chatting = a.greet > 0;
   const walking = a.state === 'walk' && !chatting;   // stood talking, not frozen mid-stride
   const bob = walking ? Math.abs(Math.sin(a.phase)) * 1.6 : 0;
   // z is 0 for everybody who walks on the ground, which is everybody except the band:
   // they stand on the bandstand's platform, half a world-unit up
   const [x, y] = project(a.x, a.y, agentZ(a));
+  if (nearHidden(a.y, y)) return;      // the sill covers them: drawBird's own test, on the same feet
   const hgt = (a.state==='sit'? 8 : a.state==='kneel'? 7 : a.state==='lie'? 3 : 12) * scale * (cellH/8);
   /* A person's patch is thrown nowhere — it is the contact under the feet, which is
    * occlusion rather than sun, so it takes only part of the lid: fade it the whole
@@ -14036,6 +14418,7 @@ function nameAt(x, y){
   if (g === DIAL) return sundialName();
   if (y === 65 && roundMarkAt(x)) return 'a bottle left on the step';
   if (y >= LN_WALK_S) return g === VOID ? 'a light well, down through our own roof'
+       : g === LEADS ? leadsName(x, y)
        : y < LN_WALK_S + 3 ? 'the parapet of our own roof'
        : 'our own roof, the slates below the window';
   if ((g === PATH || g === SIDE) && moss[y * GW + x] > 0.5)
@@ -14153,6 +14536,11 @@ function personName0(a){
        : a.farAt === 'jetty' ? 'someone out on the jetty, early'
        : 'someone on the towpath, early')
       : 'someone from the far side of the river' + (a.i >= a.wp.length - 2 ? ', going back' : ', out early');
+  if (a.tenant) return a.act === 'peg' ? 'someone up on the leads, pegging the washing out'
+                     : a.act === 'sun' ? 'someone sitting out on the leads, in the sun'
+                     : a.act === 'take' ? 'someone up on the leads, taking the washing in'
+                     : a.act === 'lean' ? 'someone up on the leads, out for the last of the light'
+                     : 'someone up on the leads, on the roof below the window';
   if (k === 'parapet' && st === 'stand') return 'someone leaning on the parapet';
   if (a.eveSpot && a.eveSpot.deck && st === 'stand') return a.fromBand ? 'someone from the concert, leaning on the footbridge rail' : a.stay ? 'someone who stayed on, leaning on the footbridge rail' : 'someone leaning on the footbridge rail';
   if (st === 'sit') return a.cup ? 'someone at a table, with a cup' : k === 'picnic' ? (inLindenShade(a.x, a.y) ? 'someone on a blanket, in the linden\'s shade' : 'someone on a blanket') : 'someone sitting';
@@ -14178,9 +14566,13 @@ function livingAt(p){
     if (sortY > bestY){ bestY = sortY; best = name; livingHit = who || null; }
   };
   for (const a of agents){
+    // the same nearScale() drawPerson draws them at, for the same reason the birds' box
+    // takes it (#113): on the leads a figure is up to 1.95x and a box that ignored it
+    // would miss half the sprite the pointer is over
+    const an = a.y > LN_WALK_S ? nearScale(a.y) : 1;
     if (cellAt(a.x, a.y) !== TUNNEL)
-      hit(a.x, a.y, agentZ(a), (a.state === 'sit' ? 1.0 : a.state === 'lie' ? 0.6 : 1.5) * (a.small ? 0.72 : 1), a.y + 0.5, personName(a),
-          a.state === 'lie' ? 1.9 : 1, a);   // a sleeper is drawn flat: wider than tall
+      hit(a.x, a.y, agentZ(a), (a.state === 'sit' ? 1.0 : a.state === 'lie' ? 0.6 : 1.5) * (a.small ? 0.72 : 1) * an, a.y + 0.5, personName(a),
+          (a.state === 'lie' ? 1.9 : 1) * an, a);   // a sleeper is drawn flat: wider than tall
     if (a.dog && cellAt(a.dog.x, a.dog.y) !== TUNNEL) hit(a.dog.x, a.dog.y, 0, 0.6, a.dog.y + 0.4, 'a dog, at heel');
   }
   for (const d of ducks) hit(d.x, d.y, 0, 0.6, d.y + 0.3, d.eyot ? (d.swimming ? 'a duck, off the eyot' : 'a duck, nesting on the eyot')
@@ -14307,7 +14699,7 @@ function roofFurnAt(p){
     const b = line ? null : FURN_BOX[f.kind];
     const x0 = line ? f.x : f.x - b.w, x1 = line ? f.x1 : f.x + b.w;
     const d = line ? 0.30 : b.d;
-    const zt = z + (line ? WASH_H : f.kind === 'tank' ? b.legh + b.hgt : b.base + b.hgt + b.rid);
+    const zt = z + (line ? washH(f) : f.kind === 'tank' ? b.legh + b.hgt : b.base + b.hgt + b.rid);
     const zb = line ? (washOut() ? zt - (WASH_DROP + WASH_DROP_R) : zt - 0.10) : z;
     const lo = project(x0, f.y + d, zb), hi = project(x1, f.y + d, zb), top = project(x0, f.y - d, zt);
     if (p[0] < lo[0] - FURN_PAD || p[0] > hi[0] + FURN_PAD) continue;
@@ -14758,6 +15150,7 @@ function simStep(sdt, dt){
       if (a.tableRef) a.tableRef.taken = 0;
       if (a.eveSpot && !a.with) a.eveSpot.taken = 0;   // an evening post held by someone rained off mid-walk
       if (a.slot) a.slot.taken = 0;              // the place on the green goes back
+      if (a.bay) a.bay.busy = 0;                 // the hatch shuts behind the tenant (#170)
       agents.splice(i, 1);
     }
   }
@@ -14766,6 +15159,7 @@ function simStep(sdt, dt){
   updateSweeper();
   updateRound();
   laneOpeners();
+  tenantErrands();
   stepCafeFront(sdt * HOURS_PER_S);
   bandNews();
   tapNews();
@@ -15044,7 +15438,7 @@ window.__entities = function(){
   return out;
 };
 window.__census = function(){
-  const tiles = {}, TN = ['WALL','PATH','GRASS','BED','CBED','TRUNK','SIDE','ROAD','VOID','WATER','TUNNEL','SLOT','DECK','DIAL','EYOT','GLASS','REED'];
+  const tiles = {}, TN = ['WALL','PATH','GRASS','BED','CBED','TRUNK','SIDE','ROAD','VOID','WATER','TUNNEL','SLOT','DECK','DIAL','EYOT','GLASS','REED','LEADS'];
   for (let i = 0; i < GW * WH; i++){ const n = TN[grid[i]] || ('T' + grid[i]); tiles[n] = (tiles[n] || 0) + 1; }
 
   /* planting CA: how much of the beds is actually growing, and how far along */
@@ -15080,7 +15474,7 @@ window.__census = function(){
      * of each scene), so its value depends on where in the draw pass you sample —
      * it made the census non-reproducible. Census fields must be town state, not
      * render state. */
-    chimneys: CHIMNEYS.length, roofFurniture: ROOF_FURN.length,
+    chimneys: CHIMNEYS.length, roofFurniture: ROOF_FURN.length, roofHatches: HATCHES.length,
     plotFurniture: ALLOT_FURN.length,
     ringNodes: RING.length, edgeBeds: EDGE_BEDS.length,
     benches: BENCH_SPOTS.length + LANE_BENCHES.length + QUAY_BENCHES.length + FAR_BENCHES.length,
@@ -15107,7 +15501,10 @@ window.__census = function(){
                 species: SPECIES.length, bySpecies },
     /* headline aggregates — what the census gate watches for collapse */
     scalars: {
-      developed: (tiles.WALL || 0) + (tiles.PATH || 0) + (tiles.ROAD || 0) + (tiles.SIDE || 0),
+      // #170: LEADS is cut OUT of WALL, so without it a terrace on the near block would
+      // read as the town losing built ground. It is built ground — it is the only ground
+      // south of the lane anyone stands on — so `developed` holds across the change.
+      developed: (tiles.WALL || 0) + (tiles.PATH || 0) + (tiles.ROAD || 0) + (tiles.SIDE || 0) + (tiles.LEADS || 0),
       green: (tiles.GRASS || 0) + (tiles.BED || 0) + (tiles.CBED || 0) + (tiles.TRUNK || 0),
       // #155: a REED cell is shallow water, not land — it is cut OUT of WATER, so
       // without this the whole reed bed would read as the river losing 400 cells.

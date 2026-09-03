@@ -93,3 +93,17 @@ Probes resolve the artifact as `../../../../courtyard.html`. (moved at #11)
   over-quota tree naming an offender on all three surfaces at exit 3. It fails if the block
   is deleted or renamed, which is the failure mode it exists for. Writes to `LEDGER.md` and
   `state.json` and restores them, so it refuses to start on a dirty one. (#153)
+
+- `tenant-leads.mjs` — the tenant on the leads (#170/#171). Counts PEOPLE south of the
+  lane against a HEAD control regenerated inside the probe, which is the exact witness for
+  the brief's premise ("nobody has ever stood on our own block"): HEAD reads 0.00%, the
+  candidate 17%. Also measures the three things a screenshot and the census both miss —
+  CONTAINMENT (off their bay, north of the leads, and the shallowest depth they are
+  DRAWN at, which must stay south of LN_WALK_S or a figure appears in the lane's footway),
+  per-step CONTINUITY (motion.mjs folds tenants into `walker`, so it is silent about them
+  rather than clean), and WHY the washing came in, read at the SPAWN — rain flips
+  `washOut()` directly but `wetF() > 0.22` holds it false long after, so the weather
+  during the walk is not the cause of the errand. Reusable by any near-block life vector.
+- `leads-shots.mjs <act> [seed]` / `hatch-states.mjs` — the pictures the ledger cites.
+  Both warp until the named act (or the open/shut lid) is actually happening, then pin the
+  instant and read the canvas in the SAME evaluate as the draw.
