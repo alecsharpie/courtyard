@@ -1120,8 +1120,8 @@ const BENCH_SPOTS = [
 ];
 const LANE_BENCHES = [ {x:12, y:65.6}, {x:52, y:65.6} ];
 /* café tables on the south footway, under the green awning */
-const CAFE_TABLES = [
-  {x:23.2, y:77.4, taken:0}, {x:26.4, y:76.9, taken:0}, {x:29.4, y:77.5, taken:0},
+const CAFE_TABLES = [                      // p: how far out on the pavement it is (#169)
+  {x:23.2, y:77.4, taken:0, p:0}, {x:26.4, y:76.9, taken:0, p:0}, {x:29.4, y:77.5, taken:0, p:0},
 ];
 const TREE_PITS = [8, 22, 48, 58];        // street trees along the north footway
 /* Two light wells punched through the near block's roof — the only VOID left in the
@@ -1841,8 +1841,10 @@ function seasonLabel(){ return SEASON_NAMES[Math.floor(seasonPhase * 8 + 0.5) % 
  * sunDown 20.00) it reduces EXACTLY to the constant it replaces. Day one is provably
  * the old table; anything a gate catches is about the new range, not new algebra. */
 function kioskOpen(){ return day >= 2 && hour >= sunUp + 2 && hour < sunDown - 1.5; }
-// the cafe's own hours: from first light, because the west edge is ~4 h from the tables
-function cafeOpen(){ return day >= 2 && hour >= sunUp - 0.5 && hour < sunDown - 7; }
+/* the cafe's own hours: from first light, because the west edge is ~4 h from the tables.
+ * The opening hour is cafeSetUp() (#169) — ONE definition, so the shop opens on the hour
+ * its chairs go out and no caller has to ask twice. Its value is sunUp - 0.5 unchanged. */
+function cafeOpen(){ return day >= 2 && hour >= cafeSetUp() && hour < sunDown - 7; }
 function isMarketDay(){ return day > 0 && day % 4 === 2; }
 /* The wind — the day's hash decides WHETHER (windyDay, the same 0.28 share it always
  * was), a rate-capped scalar decides HOW MUCH. It used to be the coin itself: windF()
@@ -4131,6 +4133,10 @@ function stepAgent(a, dt){
       // an hour on the post at least, then away in time to be off the frame by EVE_GONE (#101)
       if (a.dusk && a.eveOut !== undefined) a.eveLeave = Math.max(hourEve() + EVE_STAND, EVE_GONE - a.eveOut);
       if (a.stop.cup){ a.cup = true; a.tableRef = a.table; a.table = null; }
+      // what was carried here is put down here (#169): the chairs onto the pavement,
+      // the cask at the door — and the delivery's casks stand there until the tap opens
+      if (a.stop.setDown) a[a.stop.setDown] = false;
+      if (a.dray) caskDay = day;
       if (a.stop.say) sayAt(a.stop.x, a.stop.y, a.stop.say);
       return;
     }
@@ -4218,7 +4224,7 @@ const GREET_DT = 0.5, GREET_R = 1.6, GREET_MIN = 0.9, GREET_P = 0.17;
 let greetAcc = 0;
 function chatty(a){
   return a.state === 'walk' && !a.small && !(a.listen > 0) && !(a.greet > 0) && !(a.chatCool > 0)
-      && a.kind !== 'sweeper' && a.kind !== 'picnic' && !a.homer && !a.dusk && !a.with && !a.round;   // a companion is already with somebody   // the sweeper is working; picnic pairs arrive together; a homer is priced to a door (c90), and EVERY evening walk is priced — to a post before the light goes, and off the frame before EVE_GONE (#89, #101: a gate arrival stood talking for 2.79 h and lost its post)
+      && a.kind !== 'sweeper' && a.kind !== 'picnic' && !a.homer && !a.dusk && !a.with && !a.round && !a.priced;   // a companion is already with somebody   // the sweeper is working; picnic pairs arrive together; a homer is priced to a door (c90), and EVERY evening walk is priced — to a post before the light goes, and off the frame before EVE_GONE (#89, #101: a gate arrival stood talking for 2.79 h and lost its post). `priced` is that same exclusion as a FLAG on the spawn literal (#169): the shopkeeper's whole trip is solved backwards from cafeSetUp(), so a 2.79 h conversation on the way in makes the frontage late
 }
 function greetPass(){
   const free = [];
@@ -5319,6 +5325,125 @@ function tapCallers(){
     eveSweeper = a; agents.push(a);
   }
   if (eveSweeper && eveSweeper.done) eveSweeper = null;
+}
+
+/* ============ the morning opens (#169) ============ *
+ * #161 counted the two clock-button hours and refuted the premise that the morning is
+ * empty: 28.9 people on the frame against the evening's 39.6 (5 seeds x a year,
+ * probes/lapse-pop.mjs). What the morning is short of is ERRANDS — 12.0 kinds against
+ * 14.1 — and every one of the evening's extra kinds has a source of its own (the dusk
+ * crowd, the tap, the band, the homers), while the morning had the sweeper, the round
+ * and the cart: 2.4 of its 28.9 people between them. These are two more of its own.
+ *
+ * They are the two the town's own nouns asked for. The pavement cafe's tables have
+ * stood out on the footway at three in the morning since #74 and nobody ever put them
+ * there; and rutF's comment records that the tap's drinkers never set foot on the
+ * ROAD, which is exactly what a delivery does.
+ *
+ * Both are on their OWN clock and their OWN source, never a share of laneCap — #158
+ * swept that ceiling and found the bound beneath it was a door, not the number — and
+ * NEITHER DRAWS R(): fixed speeds, a per-day hash for the delivery's calendar and
+ * hash(day, k) for the colours, which is the cart's rule (#82). That is what lets the
+ * frontage be PRICED rather than coincided with: cafeSetUp() is the hour the chairs go
+ * out AND the hour the shopkeeper is solved backwards from, one definition read twice,
+ * so the furniture never depends on the figure being alive to put it out. It is also
+ * why both carry `priced` and are out of chatty(): a passing word costs up to 2.8 h and
+ * would land the shopkeeper at the tables after the shop had opened.
+ */
+const OPEN_DOOR = 22;                 // the HOME_DOOR over the shop: the nearest one to the tables
+const OPEN_SPEED = 2.35;              // FIXED, never drawn — openerOut() is priced off it
+const CAFE_UP = -0.5;                 // the hour the first chair goes out — and cafeOpen()'s
+const CAFE_SET = 0.55, CAFE_SET_GAP = 0.22;   // hours: one table out, and between tables
+function cafeSetUp(){ return sunUp + CAFE_UP; }
+/* The chairs come in at DUSK and not at the shop's own close (sunDown - 7), because a
+ * lane-band sitter's cup runs to 11 sim hours. That is not enough on its own: measured
+ * over 162 days, 16% of all seated samples were at a table a pure clock had already
+ * folded, so `taken` is in the TARGET and not a max() over the draw. A max() holds the
+ * table up under the guest and then SNAPS it away in the frame they leave; a target eases
+ * it back up instead. That is the one thing here that needs stored state, so it is a
+ * rate-capped scalar stepped in simStep (wind's and cloudCover's shape) rather than a
+ * pure clock — and CAFE_SET is its rate, so a lapse or a ?t= arrives to a set-out in
+ * progress rather than to a snap. Both edges sit inside one day-index: the raise at
+ * sunUp - 0.5 (3.5 midsummer, 6.5 midwinter), the last table away by sunDown + 2.4. */
+function cafeIn(){ return sunDown + 1.2; }
+function stepCafeFront(dh){
+  for (let i = 0; i < CAFE_TABLES.length; i++){
+    const tb = CAFE_TABLES[i];
+    const out = hour >= cafeSetUp() + CAFE_SET_GAP * i && hour < cafeIn() + CAFE_SET_GAP * i;
+    const want = day >= 2 && (out || tb.taken) ? 1 : 0;
+    tb.p = clamp(tb.p + (want ? dh : -dh) / CAFE_SET, 0, 1);
+  }
+}
+function openerWay(){ return [[OPEN_DOOR + 0.5, LANE_N_Y], [CAFE_TABLES[1].x - 0.6, LANE_S_Y],
+                              [CAFE_TABLES[1].x - 0.6, CAFE_TABLES[1].y + 0.4]]; }
+function openerOut(){ return cafeSetUp() - pathHours(OPEN_DOOR + 0.5, 65.35, openerWay(), OPEN_SPEED); }
+/* ---- the delivery ----
+ * On the setts, west end to the door and back, with a cask up on the shoulder. The
+ * walk is ~5 sim hours, the cafe's own measured distance, so it is ON the road across
+ * the whole of the dawn hour and at the door by mid-morning. What it leaves behind is
+ * the point: two casks stand on the footway from the delivery until tapUp(), which is
+ * the first thing in this town that ties the tap's morning to the tap's evening.
+ * drayOut() is deliberately NOT clamped past the 6.00 roll the way cartDue() is — the
+ * clamp would delete it from every summer morning, sunUp being 4.00 — so on the two or
+ * three days a year sunUp crosses 5.4 the window straddles the roll and the day's
+ * delivery may be skipped or doubled. The latch and !dray keep either harmless. */
+const DRAY_P = 0.7;                        // the share of mornings one comes up the lane
+const DRAY_SPEED = 2.8;                    // fixed, like the cart's: a man carrying a cask
+/* ON the setts, which is the whole of the idea — but 4.6 rows in, not the cart's own
+ * 2.2: the two share the lane's ROADWAY for 28 cells, and a corridor is what has to be
+ * swept, not a point (the cart's berth is 1.7, so this clears it by 0.7 and the cart
+ * passes him rather than shoving him the length of the lane). */
+const DRAY_ROAD = LN_ROAD0 + 4.6;
+/* FLANKING the door and tight to the facade, not out on the open footway: the lane's
+ * planters are barrels too and at Wide a cask standing among them reads as one more
+ * planter. Clear of the lamp at x = 28 and of the arch surround at 30.55. */
+const DRAY_STAND = [TAP_DOOR + 0.35, LN_WALK_N + 1.35];
+const CASKS = [{x:TAP_DOOR - 0.75, y:65.45}, {x:TAP_DOOR + 1.2, y:65.35}];
+/* NOT `opener`: that is a standard DOM global (window.opener), always defined, so a
+ * `typeof opener !== 'undefined'` guard in a probe passes on HEAD too and reads null as
+ * "no shopkeeper today". Caught by probe-open.mjs on its first run. */
+let front = null, openerDay = -1, dray = null, drayDay = -1, caskDay = -1;
+function drayToday(){ return day >= 2 && hash(day, 811) < DRAY_P; }
+function drayOut(){ return sunUp - 0.6; }
+/* on the EVENING's axis, not on `hour`: `hour` runs 6.00 -> 6.00, so a bare
+ * `hour < tapUp()` is true again from midnight and stood the casks back on the footway
+ * after the door had already taken them in (caught by probe-open-shots at 03.00). */
+function casksOut(){ return caskDay === day && hourEve() < tapUp(); }
+function drayWay(){ return [[DRAY_STAND[0], DRAY_ROAD], DRAY_STAND.slice()]; }
+function dayCol(arr, k){ return arr[(hash(day, k) * arr.length) | 0]; }   // no R(): the cart's rule
+/* Called every frame beside updateRound(), never on the spawn tick: both windows are
+ * latched once a day and that tick is 0.44 sim hours wide, which is wider than the
+ * margin openerOut() is priced to. */
+function laneOpeners(){
+  if (front && front.done) front = null;
+  if (dray && dray.done) dray = null;
+  if (!front && openerDay !== day && day >= 2 && hour >= openerOut() && hour < openerOut() + 0.5){
+    openerDay = day;
+    const w = openerWay(), t = w[w.length - 1];
+    const a = {
+      kind:'opener', street:true, opener:true, priced:true, chairs:true,
+      x:OPEN_DOOR + 0.5, y:65.35, wp:w.slice(), i:0, speed:OPEN_SPEED, state:'walk', timer:0,
+      phase:0, wary:0.5, shirt:dayCol(SHIRT, 941), pants:dayCol(PANTS, 947), skin:dayCol(SKIN, 953),
+    };
+    // the stand outlasts the set-out (3 x CAFE_SET_GAP + CAFE_SET = 0.99 h) on purpose
+    a.stop = {x:t[0], y:t[1], act:'stand', dur:3 * CAFE_SET / HOURS_PER_S, setDown:'chairs',
+      say:'The pavement tables go out under the green awning.'};
+    a.wp.push([CAFE_TABLES[1].x - 0.6, LANE_S_Y], [OPEN_DOOR + 0.5, LANE_N_Y], [OPEN_DOOR + 0.5, 65.35]);
+    front = a; agents.push(a);
+  }
+  if (!dray && drayDay !== day && drayToday() && hour >= drayOut() && hour < drayOut() + 0.8){
+    drayDay = day;
+    const w = drayWay(), t = w[w.length - 1];
+    const a = {
+      kind:'drayman', street:true, dray:true, priced:true, cask:true,
+      x:-2.5, y:DRAY_ROAD, wp:w.slice(), i:0, speed:DRAY_SPEED, state:'walk', timer:0,
+      phase:0, wary:0.5, shirt:dayCol(SHIRT, 967), pants:dayCol(PANTS, 971), skin:dayCol(SKIN, 977),
+    };
+    a.stop = {x:t[0], y:t[1], act:'stand', dur:5.5, setDown:'cask',
+      say:'Casks go down the cellar flap at the door on the lane.'};
+    a.wp.push([DRAY_STAND[0], DRAY_ROAD], [-2.5, DRAY_ROAD]);
+    dray = a; agents.push(a);
+  }
 }
 
 /* ============ the eastern quarter ============ *
@@ -10482,7 +10607,9 @@ function drawScene(t, dt){
               items.push({y:barge.y + 1.2, f:drawBargeDeck}); }
   for (const P of PUNTS)
     if (P.leg === 2 || P.leg === 4 || P.seating) items.push({y:P.y + 0.5, f:drawPuntCrew, P});
-  for (const tb of CAFE_TABLES) items.push({y:tb.y + 0.45, f:drawCafeTable, tb});
+  // the frontage is set out and taken in (#169); nothing on the pavement before it is
+  for (const tb of CAFE_TABLES) if (tb.p > 0) items.push({y:tb.y + 0.45, f:drawCafeTable, tb, p:tb.p});
+  if (casksOut()) items.push({y:CASKS[0].y + 0.35, f:drawCasks});
   if (kioskOpen()) items.push({y:KIOSK.y + 0.8, f:drawKiosk});
   for (let i = 0; i < MARKET_STALLS.length; i++){
     const p = marketRaise(i);                    // 0 well before opening and well after close
@@ -12916,20 +13043,46 @@ function drawMarketStall(it){
   ctx.restore();
 }
 function drawCafeTable(it){
-  const tb = it.tb;
+  /* it.p is the table's own 0..1 set-out (#169). Nothing arrives finished: the pedestal comes up
+   * first and the chair is unfolded onto the pavement after it, and running p backwards
+   * takes them in again in the reverse order. At p = 1 every number below is HEAD's. */
+  const tb = it.tb, p = it.p, top = clamp(p / 0.7, 0, 1), ch = clamp((p - 0.62) / 0.38, 0, 1);
   const [x, y] = project(tb.x, tb.y + 0.6, 0);
-  ctx.fillStyle = 'rgba(0,0,0,.2)';
-  ctx.beginPath(); ctx.ellipse(x, y + 1, cellW*0.7, 2.5, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = 'rgba(0,0,0,' + (0.2 * top).toFixed(3) + ')';
+  ctx.beginPath(); ctx.ellipse(x, y + 1, cellW*0.7*top, 2.5*top, 0, 0, 7); ctx.fill();
   ctx.strokeStyle = '#3f3a33'; ctx.lineWidth = 1.6;
-  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y - cellH*1.1); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y - cellH*1.1*top); ctx.stroke();
   ctx.fillStyle = '#8a8078';
-  ctx.beginPath(); ctx.ellipse(x, y - cellH*1.1, cellW*0.62, cellH*0.42, 0, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(x, y - cellH*1.1*top, cellW*0.62*top, cellH*0.42*top, 0, 0, 7); ctx.fill();
   ctx.strokeStyle = 'rgba(60,55,48,.8)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.ellipse(x, y - cellH*1.1, cellW*0.62, cellH*0.42, 0, 0, 7); ctx.stroke();
-  // a free chair on the far side
-  const [cx2, cy2] = project(tb.x - 0.8, tb.y + 0.4, 0);
-  ctx.fillStyle = '#6b5b4b';
-  ctx.fillRect(cx2 - 2.5, cy2 - 6, 5, 5);
+  ctx.beginPath(); ctx.ellipse(x, y - cellH*1.1*top, cellW*0.62*top, cellH*0.42*top, 0, 0, 7); ctx.stroke();
+  if (ch > 0){                                     // a free chair on the far side
+    const [cx2, cy2] = project(tb.x - 0.8, tb.y + 0.4, 0);
+    ctx.fillStyle = '#6b5b4b';
+    ctx.fillRect(cx2 - 2.5, cy2 - 6*ch, 5, 5*ch);
+  }
+}
+/* the two casks the delivery leaves standing on the footway, west of the door */
+function drawCasks(){
+  for (const c of CASKS){
+    const [x, y] = project(c.x, c.y, 0);
+    const w = cellW * 0.23, h = cellH * 1.32;   // upright and narrow: at cellW 13 a squatter one reads as a cushion
+    ctx.fillStyle = 'rgba(20,20,15,' + (0.1 + 0.16 * daylight).toFixed(3) + ')';
+    ctx.beginPath(); ctx.ellipse(x, y, w * 1.15, cellH * 0.17, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = mix('#4a3524', '#8a6134', 0.25 + 0.6 * daylight);
+    ctx.beginPath();
+    ctx.moveTo(x - w * 0.74, y);
+    ctx.quadraticCurveTo(x - w * 1.08, y - h/2, x - w * 0.74, y - h);
+    ctx.lineTo(x + w * 0.74, y - h);
+    ctx.quadraticCurveTo(x + w * 1.08, y - h/2, x + w * 0.74, y);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(38,30,20,.5)'; ctx.lineWidth = 1;
+    for (const f of [0.3, 0.72]){
+      ctx.beginPath(); ctx.moveTo(x - w * 1.02, y - h * f); ctx.lineTo(x + w * 1.02, y - h * f); ctx.stroke();
+    }
+    ctx.fillStyle = mix('#5b4430', '#a37b47', 0.25 + 0.6 * daylight);
+    ctx.beginPath(); ctx.ellipse(x, y - h, w * 0.74, cellH * 0.16, 0, 0, 7); ctx.fill();
+  }
 }
 function drawShed(){
   // a real little building: front wall, eaves, a pitched roof with two visible slopes
@@ -13141,6 +13294,19 @@ function drawPerson(it, t){
     ctx.beginPath(); ctx.moveTo(bw, -hgt*0.7); ctx.lineTo(bw + 7, 1); ctx.stroke();
     ctx.strokeStyle = '#b0a488'; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.moveTo(bw + 6, 0); ctx.lineTo(bw + 9, 3); ctx.stroke();
+  }
+  if (a.cask){                      // the delivery's cask (#169), up on the shoulder and gone at the door
+    ctx.fillStyle = '#6b4a2e';
+    ctx.fillRect(-bw * 1.75, -hgt * 1.20, bw * 1.6, hgt * 0.32);
+    ctx.strokeStyle = 'rgba(226,214,190,.4)'; ctx.lineWidth = 1;
+    for (const f of [1.14, 1.05]){ ctx.beginPath(); ctx.moveTo(-bw * 1.75, -hgt * f); ctx.lineTo(-bw * 0.15, -hgt * f); ctx.stroke(); }
+  }
+  if (a.chairs){                    // the frontage carried out (#169): two chairs stacked at the hip
+    ctx.fillStyle = '#6b5b4b';
+    ctx.fillRect(bw * 0.85, -hgt * 0.90, 4.2 * scale, 3.2 * scale);
+    ctx.fillRect(bw * 0.85, -hgt * 0.66, 4.2 * scale, 3.2 * scale);
+    ctx.strokeStyle = '#4a3f33'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(bw * 0.55, -hgt * 0.74); ctx.lineTo(bw * 0.95, -hgt * 0.74); ctx.stroke();
   }
   if (a.fork){                      // the bonfire's fork (#93): on the heap's side, pushed in on a slow beat while they tend it
     const fd = a.tend && a.state === 'stand' && !RM ? Math.max(0, Math.sin(t * 1.1 + a.phase)) : 0;
@@ -14599,6 +14765,8 @@ function simStep(sdt, dt){
   while (greetAcc > GREET_DT){ greetAcc -= GREET_DT; greetPass(); }
   updateSweeper();
   updateRound();
+  laneOpeners();
+  stepCafeFront(sdt * HOURS_PER_S);
   bandNews();
   tapNews();
   tapCallers();
