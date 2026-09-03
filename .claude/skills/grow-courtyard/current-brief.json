@@ -18,7 +18,7 @@
   "avoid": "`isWindy` (the behaviour boolean) and `windF` (the 0..1 intensity that draw sites multiply) are deliberately split — keep them split. This adds draws, so the seeded world reshuffles: read the census for COLLAPSE rather than delta, and replay every stray motion gate on HEAD before believing it.",
   "budgetMin": 45,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 2,
   "nextIter": 156,
   "issued": "2026-09-03T04:23:56.835Z",
