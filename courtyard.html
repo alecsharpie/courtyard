@@ -915,7 +915,7 @@ function viewEasing(){ return viewTo !== null || followOn; }   // a follow is a 
  * The caches are the old canvas's size, and drawScene will not rebuild the ground while
  * a follow holds viewEasing() true, so the wide paint is FORCED rather than asked for. */
 function viewSnap(){
-  viewFrom = viewTo = null; bpadWant = 0;
+  viewFrom = viewTo = null; bpadWant = 0; dropFade();     // the kept bitmaps are the OLD canvas's size
   if (followOn && followed){
     followAt = VIEW_SECS;                              // landed, not easing
     applyView(viewFor(followQuarter(followed)));
@@ -959,17 +959,21 @@ function whereGo(n){
  * frame — it holds this paint for its whole length and repaints the destination once,
  * where stepView lands. `cur` is the live view the caller is easing FROM. */
 function holdWideGround(cur, force){
+  dropFade();                                    // a move starting outranks the last one landing
   if (!force && gview.s === 1 && gview.pad >= groundPad()) return;
   applyView(viewFor(0)); gpadWant = groundPad(); drawGround(); applyView(cur);
   groundDirty = false; wearDirty = false; wearAcc = 0;
 }
 function stepView(rdt){
+  // the dissolve runs on the camera's own clock, the real one, like the ease it follows
+  if (viewFade > 0){ viewFade = Math.max(0, viewFade - rdt / VIEW_FADE); if (!viewFade) dropFade(); }
   if (followOn){ stepFollow(rdt); return; }
   if (!viewTo) return;
   viewAt += rdt;
   const u = viewEase(Math.min(1, viewAt / VIEW_SECS)), a = viewFrom, b = viewTo;
   applyView({ s: a.s + (b.s - a.s) * u, ox: a.ox + (b.ox - a.ox) * u, tp: a.tp + (b.tp - a.tp) * u });
-  if (viewAt >= VIEW_SECS){ viewFrom = viewTo = null; gpadWant = 0; bpadWant = 0; groundDirty = true; }
+  if (viewAt >= VIEW_SECS){ viewFrom = viewTo = null; gpadWant = 0; bpadWant = 0;
+    fadeCaches(); groundDirty = true; }        // keep the held pair, THEN ask for the destination
 }
 /* ============ the frame follows a person ============
  * The camera could go to five fixed quarters and had never once been pointed at
@@ -1087,6 +1091,54 @@ const gview = { s:1, ox:0, tp:0, pad:0 };        // the view the ground cache wa
  * the distance shuffling itself at either end. */
 const bview = { s:1, ox:0, tp:0, pad:0 };
 let bpadWant = 0;
+/* ---- and how a move LANDS (#180) -------------------------------------------------
+ * Both caches above hold ONE wide paint for the whole of a move and repaint in the
+ * destination on arrival, which is the only affordable shape: 28 ms a paint says a
+ * frame that moves may not rebuild. But arrival is then a step change in RESOLUTION —
+ * a follow reads the wide cache at FOLLOW_S, so for the length of somebody's errand
+ * the ground and the distance are a 2.6x magnification of themselves, and on the one
+ * frame the ease stops they snap to full detail. Nothing MOVES at that instant; the
+ * picture simply gets sharper, all at once, which is the camera announcing its own
+ * arrival — the most conspicuous thing in a move that is otherwise eased.
+ *   The fix is not to repaint sooner (there is nowhere to put a 28 ms paint inside a
+ * 0.9 s ease, and the whole hold exists to avoid exactly that). It is to keep the
+ * outgoing bitmap and DISSOLVE: the old cache is held under the new one, which comes up
+ * from nothing over VIEW_FADE, so the detail arrives across a dozen frames instead of
+ * between two. One extra full-frame blit per frame while it runs, and two bitmap copies
+ * per move — against a repaint, free.
+ *   At rest viewFade is 0 and both composites are the single drawImage they always
+ * were, argument for argument, so the frame is the same bytes (probes/wide-identity). */
+const VIEW_FADE = 0.30;                          // real seconds — a third of the ease it follows
+const fgcv = document.createElement('canvas'), fgtx = fgcv.getContext('2d');
+const fbcv = document.createElement('canvas'), fbtx = fbcv.getContext('2d');
+const fgview = { s:1, ox:0, tp:0, pad:0 }, fbview = { s:1, ox:0, tp:0, pad:0 };
+let viewFade = 0;
+/* Smoothstepped, and for the END of the dissolve rather than its start: a LINEAR ramp
+ * changes the picture by the same amount on its last frame as on its first, and the last
+ * frame is the one where the composite stops and the new cache stands alone — which is
+ * the same single-step arrival, one thirtieth the size. Both ends flat. */
+function fadeF(){ const f = viewFade; return f * f * (3 - 2 * f); }
+function keepCache(src, dst, dtx, from, into){
+  dst.width = src.width; dst.height = src.height;
+  dtx.setTransform(1, 0, 0, 1, 0, 0);
+  dtx.clearRect(0, 0, dst.width, dst.height);
+  dtx.drawImage(src, 0, 0);
+  into.s = from.s; into.ox = from.ox; into.tp = from.tp; into.pad = from.pad;
+}
+/* Called AT the landing, before either cache has been told the move is over: what is in
+ * them at that instant is the last frame of the ease, which is exactly what the new
+ * paint has to come up out of. Both, always — the distance is the half of the frame the
+ * crisp is most visible in, and two caches dissolving on two clocks is a worse artefact
+ * than the snap. */
+function fadeCaches(){
+  if (RM) return;                                // reduced motion: land, do not dissolve
+  keepCache(gcv, fgcv, fgtx, gview, fgview);
+  keepCache(bcv, fbcv, fbtx, bview, fbview);
+  viewFade = 1;
+}
+// …and given straight back: two full-frame bitmaps is 48 MB at a desktop framing, and a
+// move is over in a second. One allocation a move is cheaper than holding them for ever.
+function dropFade(){ viewFade = 0; fgcv.width = fbcv.width = 0; }
 
 /* ============ noise & utils ============ */
 function hash(x, y){
@@ -7056,7 +7108,7 @@ let groundDirty = true;
  * seconds have passed since the last one (any rebuild resets the clock). The wear itself
  * accrues exactly as before - only the moment the eye is shown it is deferred. */
 let wearDirty = false, wearAcc = 0;
-const WEAR_REPAINT = 1.0;
+let WEAR_REPAINT = 1.0;                          // `let`, so probes/ground-cost.mjs can sweep it
 function quad(g, x, y, pad, z){
   const p = pad||0, zz = z||0;
   const a = project(x-p, y-p, zz), b = project(x+1+p, y-p, zz), c = project(x+1+p, y+1+p, zz), d = project(x-p, y+1+p, zz);
@@ -7091,6 +7143,57 @@ function sunVec(){
         lz = (0.36 + 0.26 * warmth) + (0.34 + 0.30 * warmth) * Math.sin(Math.PI * sa);
   const n = Math.hypot(lx, ly, lz) || 1;
   return [lx / n, ly / n, lz / n];
+}
+/* ---- when the static layer is relit (#180) --------------------------------------
+ * The ground cache is the frame's biggest single cost — 25-27 ms against ~2 ms for the
+ * rest of the frame — so what a sim day costs is set by how OFTEN it is repainted, and
+ * 90% of every repaint the town made came from ONE term: `Math.floor(hour * 4)`, a flat
+ * ninety-six buckets a day whatever the sun was doing (probes/ground-rebuilds.mjs).
+ *   A clock is the wrong axis for it. The thing the cache actually bakes is the LIGHT,
+ * and the light does not move at a constant rate: it swings through a dawn and sits
+ * still across a midnight, and the day it is divided into is 8 hours long midwinter and
+ * 21 midsummer, so a quarter of an hour over-samples the still hours without being any
+ * finer than it has to be at the moving ones. So ask the light — the vector every cast
+ * shadow reads, the daylight the ground is painted at, the night's own clock, the lid
+ * over all three, and the haze — and a repaint lands where a change is.
+ *   Underneath it the cache also holds things that answer to no flag and no light at
+ * all: maturity(), richness(), the season's colours, a line of washing in a wind. Those
+ * drift with the CALENDAR, so they keep a floor — not the sun's quarter-hour, one step
+ * every LIGHT_SLOW seconds.
+ *   A DISTANCE, not a bucket. Six independent roundings fire six times where one change
+ * happened, and a first cut of this spelled as a key came out at 149 repaints a day —
+ * WORSE than the clock it replaced. What is wanted is one question, asked of what was
+ * last PAINTED exactly as snowPainted, wetPainted, washPainted and barrowPainted are:
+ * how far has the light moved since? LIGHT_MOVE is set at HEAD's own worst step, so the
+ * cache is never staler than the quarter-hour already left it (probes/ground-cost.mjs).
+ * `let`, so that probe can sweep them. */
+let LIGHT_MOVE = 0.12;                     // how far the light may move before a repaint
+let LIGHT_SLOW = 4.0;                      // and the floor under it, for what no light and no flag covers
+let lightPainted = null, slowPainted = -1e9;
+function lightNow(){
+  const s = sunVec();                       // sunArc is CLAMPED, so this is flat all night
+  return [daylight, nightF, s[0], s[2], cloudCover(), mistF()];
+}
+/* What the cache was painted AGAINST. Every gate that asks for a repaint compares the
+ * world to one of these marks, so the paint itself sets all of them, in one place —
+ * the marks are half of what a repaint IS, and an instrument that clears the flag
+ * without them reads a gate as true for ever (that is 868 washing repaints a day). */
+function markGroundPainted(){
+  snowPainted = snowCover; wetPainted = wetBucket(); washPainted = washOut(); barrowPainted = barrowKey();
+  lightPainted = lightNow(); slowPainted = simT;
+  lightBucket = lightPainted.map(v => v.toFixed(3)).join(',');   // what the BACKDROP cache rides
+}
+function lightMoved(){
+  if (!lightPainted || simT - slowPainted > LIGHT_SLOW) return true;
+  const a = lightNow(), b = lightPainted;
+  /* The first two are ONE quantity in two spellings — nightF's evening half is
+   * `daylight` put through a clamp — so they are counted ONCE, at whichever of them
+   * moved further. Summed, the dusk is charged 2.6 times over and repaints that much
+   * oftener for nothing; dropped, the last of the dusk is under-sampled, because past
+   * daylight 0.625 the clamp lets nightF move 1.6x faster than what it is made of. */
+  let d = Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
+  for (let i = 2; i < a.length; i++) d += Math.abs(a[i] - b[i]);
+  return d > LIGHT_MOVE;
 }
 /* ---- how hard the sun's edge is ------------------------------------------------
  * `cloudCover()` veiled the disc and muted the sky, and nothing on the ground was
@@ -7212,9 +7315,15 @@ function drawSky(g){
    * fifth of a pixel — 6202 px of the wide frame differing from HEAD at a size where H
    * happens not to be a whole number, and none at the three where it is
    * (probes/wide-identity.mjs, which exists to hold Wide byte-identical). */
-  { const k = viewS / bview.s;
+  { if (viewFade > 0){                          // the same dissolve, on the same clock (#180)
+      const kf = viewS / fbview.s;
+      g.drawImage(fbcv, originX - kf * (fbview.ox + fbview.pad), topPad - kf * fbview.tp,
+                  (W + 2 * fbview.pad) * kf, H * kf);
+      g.globalAlpha = 1 - fadeF(); }
+    const k = viewS / bview.s;
     g.drawImage(bcv, originX - k * (bview.ox + bview.pad), topPad - k * bview.tp,
-                (W + 2 * bview.pad) * k, H * k); }
+                (W + 2 * bview.pad) * k, H * k);
+    g.globalAlpha = 1; }
   /* Weather goes on LAST, over the hills — it used to go under them ("over the sun,
    * under the hills"), which was invisible while the hills were a low bank at the
    * horizon and became the picture's biggest loss the moment a tier reached mid-sky:
@@ -9606,7 +9715,7 @@ function drawGround(){
   if (mistF() > 0) HAZE = mix(HAZE, mistCol(), 0.4 * mistF());   // the town beyond the frame goes into the mist too
   FACES.length = 0;                                // the cached faces are re-registered below; the live ones every frame
   SETT_ROW.clear();                                // the sett lattice is solved off the CAMERA, so it is one rebuild's answer
-  snowPainted = snowCover; wetPainted = wetBucket(); washPainted = washOut(); barrowPainted = barrowKey();
+  markGroundPainted();
   const m = maturity();
   // the sky is *not* baked in here — it is painted fresh every frame underneath this
   // layer, so the sun crosses smoothly instead of hopping when the layer is rebuilt
@@ -11177,9 +11286,15 @@ function drawScene(t, dt){
   drawMurmuration(ctx);           // in the sky, so the cache puts every roofline in front of it
   // the cache is painted in ONE view and composited in the current one: an exact
   // scale+translate while the camera eases, the identity (0, 0, W, H) at rest
-  { const k = viewS / gview.s;
+  { if (viewFade > 0){                          // the outgoing paint, under the new one (#180)
+      const kf = viewS / fgview.s;
+      ctx.drawImage(fgcv, originX - kf * (fgview.ox + fgview.pad), topPad - kf * fgview.tp,
+                    fgcv.width / DPR * kf, fgcv.height / DPR * kf);
+      ctx.globalAlpha = 1 - fadeF(); }
+    const k = viewS / gview.s;
     ctx.drawImage(gcv, originX - k * (gview.ox + gview.pad), topPad - k * gview.tp,
-                  gcv.width / DPR * k, gcv.height / DPR * k); }
+                  gcv.width / DPR * k, gcv.height / DPR * k);
+    ctx.globalAlpha = 1; }
   // LIT is a per-FRAME accumulator. It used to be reset only on a ground rebuild, so
   // the south band's live windows stacked into it ~13 a frame for a quarter-hour and
   // the glow pass drew hundreds of halos on top of each other.
@@ -15345,7 +15460,7 @@ sowReeds();
 })();
 
 /* ============ main loop ============ */
-let last = 0, caAcc = 0, spawnAcc = 0, statAcc = 0, lightBucket = -1;
+let last = 0, caAcc = 0, spawnAcc = 0, statAcc = 0, lightBucket = '';
 let lastStruck = -1, marketAnnounced = -1, marketClosed = -1, windAnnounced = -1, bellUntil = -1, bellSeen = -1;
 const HOUR_WORDS = ['twelve','one','two','three','four','five','six','seven','eight','nine','ten','eleven'];
 const CLOCK_SAID = [0, 9, 12, 18];   // the day's two poles and the two the church answers
@@ -15440,10 +15555,10 @@ function simStep(sdt, dt){
   stepClouds(sdt);
   stepSnow(sdt);
   stepBonfire(sdt);
-  // sun moves, cover thickens: relight the static layer now and then. Cover rides
-  // the same bucket rather than its own, so it costs no extra rebuilds.
-  const lb = Math.floor(hour * 4) * 8 + Math.round(cloudCover() * 6);
-  if (lb !== lightBucket){ lightBucket = lb; groundDirty = true; }
+  // sun moves, cover thickens: relight the static layer when the LIGHT moves, not when
+  // the clock does (#180, above). Cover and haze ride the same key rather than their
+  // own, so they cost no extra rebuilds.
+  if (lightMoved()) groundDirty = true;
   if (Math.abs(snowCover - snowPainted) > SNOW_REPAINT) groundDirty = true;   // snow lies (or goes) in small steps
   if (wetBucket() !== wetPainted) groundDirty = true;                        // the paving soaks and dries in WET_STEPS steps
   if (washOut() !== washPainted) groundDirty = true;                         // #110: the washing goes out, and comes in
@@ -15812,7 +15927,7 @@ window.__follow = function(){
 window.__setTime = function(t){ simT = t; updateClock(); return { simT, day, hour }; };
 // the camera: go to quarter n (0 = wide), step the ease by real seconds, read it back
 window.__where = function(n, secs){ if (n !== undefined) whereGo(n); if (secs) stepView(secs);
-  return { n: whereN, s: viewS, cellW, originX, topPad, easing: viewEasing(), gview: { ...gview } }; };
+  return { n: whereN, s: viewS, cellW, originX, topPad, easing: viewEasing(), fade: viewFade, gview: { ...gview } }; };
 
 /* Every moving thing, with a stable identity — the seam the motion gate reads.
  * A screenshot cannot see a teleport, a pop-in or a thing that flickers between

@@ -13,31 +13,7 @@
     "balance": "After #175 the staleness order is People & animals 14 back (#161, and that one was a rejected brief, so its last SHIPPED entry is older still), Sky, light & weather 10 (#165), Courtyard & garden 7 (#168), Lane & market 6 (#169), Roofs & skyline 4 (#171). Coverage was five iterations stale when I opened it (#171-#175 unrecorded) and is now right. By KIND the grid is lopsided the other way: The sill & the observer x Harness now stands at 9 entries, twice any other cell, and I have marked it saturated — the loop's instruments have become the best-tooled thing it owns. This queue takes the three longest-untouched domains (life, sky, courtyard) and gives the bet to the observer, which is where the bug I found actually lives."
   },
   "rationale": "I shot the town before planning it — seed 42 at four instants (day 7 dusk 19.09h, sunset 22.58h, night 02.51h, and mobile) — and the shots did two things. The first was to settle the frontier honestly: the town is dense and the night frame is the best-looking state it has ever had, lamps and lit windows and fireflies over the lawn, the tenant out on the leads taking the washing in before the light goes. The second was an accident. The 1600x950 dusk shot is clear; the 390x844 shot of THE SAME seed AT THE SAME INSTANT is raining. I re-ran it as a measurement rather than trusting a picture: seed 42, __reseed() then __warp in 5 s steps, three viewports. They are bit-identical through simT 120. At simT 125 people reads 49 at 1600x950 and 48 at 390x844. By simT 415 cloud is 0.166 / 0.781 / 0.471 and `raining` is false / true / false at 1600x950 / 390x844 / 1200x720. One extra R() draw somewhere in the sim forks the seeded world for good, and the fork is a function of the WINDOW. Two consequences, and the second is worse than the first. (1) `?seed=` does not name a world — the artifact's headline promise. (2) Every multi-framing gate this loop owns has been comparing two different towns for 175 iterations: shoot.config.json has six framings, the visual gate shoots four, and the census, motion and filmstrip baselines are all pinned at one size. That is why this batch is rung 3 rather than 2. The ladder's rung 3 is 'widen the menu', and the menu is data precisely so the manager can extend it: I have added a ninth KIND, `fidelity` — make the world keep a promise it already makes. In 175 iterations this loop has had cells for 'does it look right' and 'did the census move' and no cell at all for 'does the artifact keep its word', which is exactly the blind spot a menu-as-data exists to close. b176 is the bet and it goes first. The other four are the three longest-untouched domains plus one cue that has waited long enough, and every one of them carries the number it rests on and where the number came from. Two standing warnings apply to this queue and are repeated in the briefs: b176 may reshuffle the seeded world, so every brief after it must re-count its own premise on HEAD (which is the law anyway); and c262's numbers are marked STALE in state.json because #173 re-cut the plaza under them.",
-  "queue": [
-    {
-      "id": "b180",
-      "domain": "The sill & the observer",
-      "kind": "Polish",
-      "brief": "The ground cache is the frame's biggest single cost and the camera makes it worse. c258 merges three cues: `drawGround` costs 25-27 ms; it rebuilds about 2.5 times more per sim day than it did at #138; an ease repaints the destination on the frame it STOPS, so the distance visibly crisps at u=1; and a follow holds the wide cache at 54% detail for the whole move. Cut the rebuild rate and make the ease land without the snap, so that moving the camera — the loop's newest and most-used interaction — costs less and does not announce its own arrival. Why now: three cues merged into one, and #166's follow made the cache the thing the observer touches most.",
-      "seams": [
-        "drawGround",
-        "drawBlocks",
-        "groundDirty",
-        "lightBucket",
-        "wetBucket",
-        "washPainted",
-        "barrowPainted",
-        "holdWideGround",
-        "followPad",
-        "viewEasing",
-        "gview"
-      ],
-      "successLooksLike": "`probes/ground-rebuilds.mjs` and `probes/ground-cost.mjs` quote rebuilds per sim day and ms per rebuild before and after, both improved; a filmstrip across an ease shows no single-frame crisp at the end of the move; the wide frame is byte-identical at rest.",
-      "avoid": "ANYTHING THAT MOVES THE FRAME must hold the padded WIDE ground cache for the whole move and repaint ONCE on release — do not solve the crisp by repainting during the ease. LAWS: the ground is a CACHE, so a per-frame truth on it is a live overlay, and anything registered in SCREEN space at cache time (FACES) goes stale through the ease and must be mapped through k = viewS/gview.s. Do not touch what is DRAWN; this brief changes when and at what detail, not what.",
-      "budgetMin": 35,
-      "risk": "medium"
-    }
-  ],
+  "queue": [],
   "recommendStop": null,
   "consumed": [
     {
@@ -55,6 +31,10 @@
     {
       "id": "b179",
       "at": "2026-09-03T20:56:50.581Z"
+    },
+    {
+      "id": "b180",
+      "at": "2026-09-03T21:20:51.645Z"
     }
   ]
 }

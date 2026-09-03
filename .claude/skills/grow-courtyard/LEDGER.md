@@ -255,3 +255,26 @@ measures a world they cannot show.
 **Verdict:** shipped
 **Surprise:** `hourEve() >= EVE_GONE` is 2.30 to 6 am, so the next morning's set-outs share it: 0.713 of HEAD's 1.587 walked IN, not home. Unsplit it reads 47% where the vector moved 89%.
 **Law:** a window past a day's LAST hour is also its NEXT morning's first — split a late population by DIRECTION before quoting it.
+
+## Iteration 180 — the ground is relit when the light moves, not when the clock does (2026-09-04) [Sill & observer × Polish]
+
+**Brief:** b180 — c258: cut the ground cache's rebuild rate; land the ease without the crisp.
+**Half the premise REFUTED** (`probes/ground-rebuilds.mjs`, new): the rate has NOT grown 2.5x since
+#138 — **107.50 at `Iter 138^` v 108.25 on HEAD**. What IS true: **90% was ONE term**,
+`Math.floor(hour * 4)`, untouched since the loop began.
+**Did.** (1) `lightNow`/`lightMoved`: an L1 DISTANCE from what was last PAINTED (daylight, nightF,
+SUN[0], SUN[2], cover, mist), `LIGHT_MOVE` 0.12, the first two counted once at whichever moved
+further, over a `LIGHT_SLOW` 4 s floor for the drift no light and no flag covers,
+`markGroundPainted()` setting every mark in one place. (2) A landing DISSOLVES, not snaps:
+`fadeCaches`/`fadeF`/`dropFade`, both caches, `VIEW_FADE` 0.30 s.
+**HEAD -> cand.** Repaints/day **110.78 -> 75.14** (6 d x 6 seeds), light 98.17 -> 35.94; ground paint
+2938 -> 2266 ms/sim day, ms per repaint FLAT. `ground-cost.mjs` (new)
+prices asking less often as STALENESS: Pareto, not a trade — **max 1.11 -> 0.96, 0% over HEAD's**. `ease-land.mjs` (new): the frame after a landing was **2.5-3.8x** the last eased frame,
+now **0.4-0.7x**, at four quarters.
+**Gates:** census · motion · wide-identity 4x4 · filmstrip 0 POP · perf +0% · 5 framings · a follow
+release, held at s=1 under 2.6x, dissolved on landing.
+**Verdict:** shipped
+**Surprise:** the first reading was **868 washing repaints a sim day** — the instrument cleared
+`groundDirty` without setting `washPainted`, so that gate stayed true for ever.
+**Law:** quantize the QUANTITY, never a clock standing for it — a clock spends a fixed budget on
+something changing at a varying rate, and N roundings fire N times for ONE change.

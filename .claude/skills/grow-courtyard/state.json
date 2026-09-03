@@ -586,7 +586,8 @@
       "quarter CAMERA: #where cycles Wide/Courtyard/Street/Plaza/Far bank; viewFor/whereGo/stepView, wide cache scaled through gview; knows a WORLD not the grid — WORLD_X0/X1, held(pp,v)",
       "the camera FOLLOWS a person (#166): followQuarter, a quarter-shaped box on the feet (FOLLOW_S 2.6, ANCHOR 0.68); viewFor takes a box OR an index; viewEasing() holds the wide cache for its length",
       "the PAINTED sill: drawSill inside drawOurSide, baked into the ground cache; sillTop() the ONE definition; sillBoxes/sillOver/clipOffSill; nearShadow(g) ramps the near roof down to it",
-      "the ticker knows where you are LOOKING: inView(x,y) the ONE reader of whereN, AMBIENT_PLACES/ambientHere, SOUNDS bypass it; THREE ranks — background(rank,txt,then,until), announce(), CLOCK, MURMUR"
+      "the ticker knows where you are LOOKING: inView(x,y) the ONE reader of whereN, AMBIENT_PLACES/ambientHere, SOUNDS bypass it; THREE ranks — background(rank,txt,then,until), announce(), CLOCK, MURMUR",
+      "the ground cache is relit when the LIGHT moves, not the clock (#180): lightNow/lightMoved an L1 distance from lightPainted, LIGHT_MOVE/LIGHT_SLOW, markGroundPainted the one mark-setter; a landing DISSOLVES both caches - fadeCaches/fadeF, VIEW_FADE"
     ],
     "roofs": [
       "the town is HOUSES not regions: buildVolumes() makes roofs EMERGENT — eaveFor(x,y), vZ four-corner average, vD a distance transform, SLOPE; houseAt/houseIx, EAVE_LO 4.62/EAVE_HI 7.15",
@@ -643,6 +644,12 @@
     {
       "id": "c269",
       "note": "lawnGate moved the dusk emptying INTO the garden: lawn people dark inside the wall 1.015 -> 1.284, all at hourEve 18-22 with the 1-3 am tail flat. A good trade at #179; watch it does not creep later.",
+      "raisedBy": 177,
+      "seenBy": 0
+    },
+    {
+      "id": "c270",
+      "note": "WEAR_REPAINT 1.0 never fired on HEAD - every light repaint reset wearAcc, so footfall rode the light's 0.57s cadence for free. #180 makes wear the 2nd cause at 26.9 repaints/day: an unpriced constant, now load-bearing.",
       "raisedBy": 177,
       "seenBy": 0
     }
