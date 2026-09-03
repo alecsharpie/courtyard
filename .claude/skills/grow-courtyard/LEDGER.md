@@ -209,3 +209,25 @@ release, held at s=1 under 2.6x, dissolved on landing.
 `groundDirty` without setting `washPainted`, so that gate stayed true for ever.
 **Law:** quantize the QUANTITY, never a clock standing for it — a clock spends a fixed budget on
 something changing at a varying rate, and N roundings fire N times for ONE change.
+
+## Iteration 181 — the river is given a winter it grows into (2026-09-04) [River & far bank × New CA]
+
+**Brief:** b181 — seasonal colour and speed, no seasonal STATE.
+**Did.** A skin CA over the margin, stepped in `caTick` beside the moss on its three terms. Shelter is an
+L1 **distance transform out from every cell the channel is NOT**, so the REED shallows, the quay, the
+eyot's laps and the footbridge's still water all fall out of it unnamed. `ICE_CURRENT` cuts the ceiling by
+`riverMid(x)`; that, not a bound, keeps midstream open. Growth reads FROZEN NEIGHBOURS 5:1 against
+nucleation, so it comes and goes as a FRONT. `iceSkinCol` is shared with the basin; zero R().
+**Measured** (`probes/river-ice.mjs`, `probes/ice-step.mjs`, new; 4 seeds x a year). Days 19-24 only:
+0 → 192/72/117 → 313 → 340 → **peak 341 of 680 margin cells** → 142 → 0 (976 water cells, not the brief's
+8,784 — that is a census AGGREGATE), and not a switch: **at most 13 cells cross a drawn bucket in one
+tick**, mean 2.5 over 559. Summer census identical to HEAD; 9 cells recoloured, all column 112.
+**Gates:** census · motion (night t 1230 is in the freeze) · 8 shots · 0 POP · perf +0.0% · ground
++0.8 ms at 333 frozen — all PASS. Baselines re-pinned: winter forks the seed.
+**Verdict:** shipped
+**Surprise:** **the census cannot see winter, by design.** Its three AGES all sit at warmth 0.6929 — a
+#14 fix, so the age axis measures age — so `tileKinds` 18→19 is invisible to it, and this brief's "the
+census tileKinds must move" is unprovable there. Its one COLLAPSE (people −9.4%) was a crop of that fork:
+mean people over a year, 3 seeds x 60, is **43.89 vs 43.91**.
+**Law:** a gate's ladder can be blind to a WHOLE AXIS on purpose — price a predicted field against it
+first; a seasonal system needs its own probe.

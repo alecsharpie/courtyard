@@ -16,46 +16,6 @@
   "rationale": "I shot the town before planning it (wide, seed 42, at t=175 early-summer morning, t=1210 late-winter night and t=1224 late-winter midday) and then measured the two things the picture made me want to brief, because the standing WATCH note says to. Both premises died. (1) The SILL, c259's 'same near-black bar at midday as at midnight': luma over the sill band at 1600x950 DPR 1 reads mean 13.98 sd 9.39 at midday with a range of 1.9-63.6, and sd/mean 0.671 — 2.4x the near roof's 0.281, the previous record. It is the most differentiated surface in the frame, and what the number exposes is the METRIC: sd/mean divides by a mean of 14. c259 closed, and the law that produced it corrected in LAWS.md. (2) The BACKDROP, the other class the note called unmeasured: sd/mean 0.150 / 0.160 over the frame's top 10% / 18% at midday, above GRASS and SIDE.cross. Also fine. That list is now empty; two briefs' worth of worker time saved, the same way #164's near-roof measurement saved 90 minutes.\n\nWhat the third shot found instead is the batch. In a late-winter midday frame — day 23, raining, every tree bare, thirty umbrellas up, the whole town gone grey-brown — the river is the most saturated, most summer-looking object in the picture. Priced on HEAD: riverCol() mixes toward RIVER_COLD by RIVER_TINT 0.30 and riverRun() runs 1.45x in January, so the channel has seasonal COLOUR and seasonal SPEED and no seasonal STATE. The fountain's basin, about thirty cells, skins over cell by cell in winter (FOUNT_ICE 0.7, fountainSkin(), ceiling 0.43 at midwinter). The 8784-cell channel does not. That is rung 4b by the census — ice is a new TILE kind and tileKinds moves — and it is the first new-ca in the River domain in 180 iterations, which is why I am taking 4b again rather than climbing past it: the RUNG repeats, the MOVE does not. mossCreep is the model and the brief says so; the town's best CA should not be reinvented next door.\n\nThe other four spend cues rather than inventing premises. b182 takes c267 (the lit panes have nobody at them), b183 takes c262 with its premise explicitly marked STALE and the re-measurement as the deliverable if it has died, b185 takes c268 against the source's OWN sentence — the second use of the `fidelity` kind the last pass added at rung 3, which is what tells us whether that menu widening was worth anything. b184 is the one I invented, and it is the weakest brief here: the town grows food and sells it and the food then evaporates, which I could see in the source but cannot see in a screenshot, so the brief makes the worker price it first and permits it to come back small.\n\nCuration. Coverage was three iterations stale (#178, #179, #180) so the balance grid I plan from was blind to them. LAWS.md was the real work: 38 laws at 12184 bytes against a 12288 cap, so every promotion had to be paid for. I merged all five of #176-#180's laws into laws they SUPERSEDE rather than stacking (the canvas-PRNG law into R(); cap-and-rate over cap-and-share; the two-dawns law absorbing the late-window split; the clock-vs-quantity law into the ground cache; ?t= into the probe-rewind law), corrected the sd/mean law with this pass's own measurement, folded the rate-of-zero law into cap-and-rate, and paid with three INSTRUMENT clauses — the rotation control, the dead-worker working tree, and #173's speedometer — on the ground that sill x harness is saturated at 9 entries, that motion.mjs now carries ABS_JUMP_KIND so the speedometer law is embodied in the tool, and that the loop's tooling is over-represented in the one file every worker reads whole. 36 laws, 12258 bytes, budget OK. Four cues closed, two raised, the stale VIEWPORT watch item rewritten as a standing rule now that #176 fixed it, and a new watch item aimed at this seat: read the KIND totals before the domain gaps.",
   "queue": [
     {
-      "id": "b181",
-      "domain": "River & far bank",
-      "kind": "New CA rule",
-      "brief": "The river never has a winter. Priced on HEAD this pass: riverCol() mixes toward RIVER_COLD by RIVER_TINT 0.30 and riverRun() = 1 + RIVER_SWING 0.45 * greyF(), so the channel has seasonal COLOUR and seasonal SPEED and no seasonal STATE. The fountain's basin — about thirty cells — skins over cell by cell all winter (FOUNT_ICE 0.7, fountainIce(), fountainSkin(), ceiling FOUNT_ICE_MAX 0.43 at midwinter); the channel's 8784 water cells never do. Shoot seed 42 at t=1224 (day 23, late-winter midday, raining, every tree bare) and you will see it: the river is the most saturated, most summer-looking object in a grey-brown frame. Give it a cellular winter — an ICE state that GROWS per cell from the margins (the REED shallows, the eyot's lee, under the DECK, the still water against the quay) inward over cold days and retreats on a thaw. It must be a real CA, not a hash: a cell's chance of taking reads its FROZEN NEIGHBOURS, so the skin advances as a FRONT. Read moss[] first (courtyard.html ~line 2653: creep / shelter / the year, stepped in caTick) — it is the best CA in the town and the model here; mossShelterAt() already counts a WATER neighbour, and mossNb() is the neighbour read. Ice is a new TILE kind, so the census tileKinds must move. Everything that reads the water reads the ice: the mirror, drawRiverFlow's streaks, drawWaterShade, the ducks, and the rowboat — which does not row through ice, but boatWatch() is the best behaviour this domain has and must not die with it (the floor exists for exactly this reason; see the RIVER_SWING comment). THIS IS THE BET: a 150-300 line diff is expected and welcome, and a small one is a failure to take the swing.",
-      "seams": [
-        "RIVER_X0",
-        "RIVER_X1",
-        "riverCol",
-        "riverRun",
-        "RIVER_SWING",
-        "RIVER_TINT",
-        "FOUNT_ICE",
-        "fountainIce",
-        "fountainSkin",
-        "moss",
-        "mossNb",
-        "mossShelterAt",
-        "mossGrowF",
-        "mossDieF",
-        "caTick",
-        "REED",
-        "EYOT",
-        "DECK",
-        "drawRiverFlow",
-        "drawWaterMirror",
-        "drawWaterShade",
-        "updateBoat",
-        "boatWatch",
-        "updateDucks",
-        "buildGrid",
-        "snowCover",
-        "warmth",
-        "greyF"
-      ],
-      "successLooksLike": "On a midwinter wide shot the channel is pale and skinned at its edges and open down the middle; the same river at t=175 (early summer) is unchanged to the pixel; and over a swept year the ice arrives and goes as a moving front, not as a switch — quote the frozen cell count per day across a year, at more than two seeds.",
-      "avoid": "Do not freeze the whole channel: a solid white band is a worse picture than a teal one, and RIVER_SWING already says winter water runs 1.45x FASTER, so the middle stays open — the shelter term is what keeps it open, exactly as mossShel[] keeps the middle of the plaza bare. Do not re-implement the fountain's ice beside this; read it, and share what can be shared. Do not touch RIVER_TINT, RIVER_COLD or RIVER_GREEN — the seasonal tint is not the thing that is missing.",
-      "budgetMin": 80,
-      "risk": "high"
-    },
-    {
       "id": "b182",
       "domain": "Roofs & skyline",
       "kind": "Deepen",
@@ -157,5 +117,11 @@
       "risk": "low"
     }
   ],
-  "recommendStop": null
+  "recommendStop": null,
+  "consumed": [
+    {
+      "id": "b181",
+      "at": "2026-09-03T22:17:05.795Z"
+    }
+  ]
 }

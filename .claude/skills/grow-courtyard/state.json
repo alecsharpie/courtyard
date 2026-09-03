@@ -1,8 +1,8 @@
 {
-  "updated": "2026-09-04",
+  "updated": "2026-09-03",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 180,
+  "lastIteration": 181,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -563,7 +563,7 @@
       "the far bank's day: spawnFarAgent/farOpen/FAR_CAP, FAR_GATE, a.jetty, overDeck's east door; concert bandF/isBandDay; FIELD EDGE east of GW painted in the cache",
       "the evening ends: EVE_GONE/EVE_HURRY/EVE_BELL, eveOutH -> a.eveOut, goHome(a,maxH). Night water: drawRiverLights, RIVER_LAMPS, a.nightRail, roseLit",
       "the PUNT a FLEET of two (#141): PUNTS/PUNT_BERTHS, hull B 0.95 west so tracks are PARALLEL, punt{leg 0..4}, puntFits -> OFFER; wind is a SHARE PUNT_WIND_SLOW/SHY (#154)",
-      "the town is IN the water: drawWaterMirror/MIRROR/setMirror, 5 casters re-run their own draw (#145); SHALLOWS a TILE, REED (#155); REED_CASTERS/reedInk, drawWaterShade (#163); drawBoatMirror (#174)"
+      "the SURFACE (#145,155,163,174): drawWaterMirror/setMirror, REED/reedInk, drawWaterShade, drawBoatMirror. WINTER (#181): ICE tile off rice[]/iceShel/iceTop, buildIce/stepIce/iceSkinCol/drawIce/iceRuns"
     ],
     "sky": [
       "day/night (55 s day), sun and moon arc, chimney smoke, a balloon; windowLit the ONE pane predicate + LIT[], relit AFTER applyLight; season() over SEASON_LEN 26 days, greyF the year",
@@ -648,6 +648,12 @@
       "id": "c273",
       "note": "rotate-ledger.mjs's WATCH_CAP reads w.note and state.json's watch is an array of STRINGS, so the 420 B per-item cap has never fired — three items are over it today. A gate that cannot fail. WATCH_MAX works, which is why it went unseen.",
       "raisedBy": 180,
+      "seenBy": 0
+    },
+    {
+      "id": "c274",
+      "note": "probes/ live in TWO tracked dirs: /probes (50 files) and .claude/skills/grow-courtyard/probes (264). SKILL.md names only the second, so a probe committed to the root one is invisible to the skill's own docs and to anyone reading the tree it prints.",
+      "raisedBy": 181,
       "seenBy": 0
     }
   ],
