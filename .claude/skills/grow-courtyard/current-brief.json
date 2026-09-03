@@ -18,7 +18,7 @@
   "avoid": "PREMISE PARTLY UNVERIFIED — the 110 cells and 28.6 h come from c256, written at #166, and #168 has changed the garden since. Re-count on HEAD before building. LAWS: price the walk where it can be PAID — at the door when the place is near, at the STAY when the crossing costs a day's light — and a return leg charged at the DOOR fails as a POPULATION going to zero, never as a slower rate, so watch for that failure mode specifically.",
   "budgetMin": 30,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 179,
   "issued": "2026-09-03T20:56:50.582Z",
