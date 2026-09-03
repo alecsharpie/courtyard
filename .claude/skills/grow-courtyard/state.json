@@ -551,7 +551,8 @@
       "OUR OWN ROOF below the lane: rows 79..WH are WALL, NEAR_SPANS, NEAR_HOUSE 7/houseOf(x), NEAR_RIDGE. drawNearRoof CACHED: drawCrests, WELLS, DORM_Y, drawPartyWalls, drawParapet, APRON, OUR_AWNINGS",
       "eaveFor() returns 0 for y >= LN_WALK_S, deliberately: project() lifts z northward, so our block at its true eave would be DRAWN in front of the lane. At eave 0 it stays inside its nine rows (2.11 at the ridge). A DRAWING constraint - and shTop reads it",
       "the near block is SLATED: drawRoofRow forks at LN_WALK_S to drawSlateCell/slateRun on slateGrid(y). Per-slate ageing roofMossF()/sootAt()/slipped. roofBirdSpot, FIVE perches. ROOF_FURN 24 pieces per BAY - wash line, water tank, pigeon loft",
-      "the two towers cast from their real height (#146): SH_TOWERS/towerShTop() into shTop[] beside roofTopAt, tapered from the axis. The PRECEDENT for a casting height that is not the drawn eave"
+      "the two towers cast from their real height (#146): SH_TOWERS/towerShTop() into shTop[] beside roofTopAt, tapered from the axis. The PRECEDENT for a casting height that is not the drawn eave",
+      "our own block CASTS from a real eave (#151): shCast[] beside shTop[] - the DRAWN height for the occlusion walk, NEAR_EAVE 5.6 + the emergent roof for the march, which now runs y < WH"
     ]
   },
   "openCues": [
@@ -606,6 +607,12 @@
     {
       "id": "c238",
       "note": "the far ranks use ~5 cellH just above hz while topPad gives 9.6, so over half the sky strip is still empty gradient; and they cross the near ridge at the right edge, where it dips to 0.70 cellH above hz.",
+      "raisedBy": 149,
+      "seenBy": 0
+    },
+    {
+      "id": "c239",
+      "note": "the block's shadow now falls on the near river (19->1 sub-cells, rows 79-87, water-only there) and #145's drawWaterMirror does not know about it.",
       "raisedBy": 149,
       "seenBy": 0
     }

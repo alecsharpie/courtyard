@@ -939,7 +939,8 @@ function eaveFor(x, y){
    * lifts z northward on SCREEN, so a near roof given its true eave would be drawn
    * standing in front of the lane — and the lane is what this picture is looking at.
    * At eave 0 the whole volume stays inside its own nine rows: 0 at the parapet, 2.11
-   * at the ridge, 0 again at the world's south edge. */
+   * at the ridge, 0 again at the world's south edge. It is a constraint on the DRAWING
+   * and not a claim about the building: what the block casts from is shCast (see there). */
   if (y >= LN_WALK_S) return 0;
   const id = houseAt(x, y);
   if (id < 0) return eaveBand(x, y);
@@ -1072,6 +1073,30 @@ const SH_TOWERS = [
    hx:(CHURCH.tx1 - CHURCH.tx0) / 2 - 0.4, hy:(CHURCH.ty1 - CHURCH.ty0) / 2 - 0.05,
    top:CHURCH.tTop, rise:CHURCH.tRise},
 ];
+/* ...and one exception more, and it is the volume we are standing IN. eaveFor() gives
+ * our own block a height of ZERO, and that is a DRAWING constraint (see there): at its
+ * true eave project() would walk it up the frame and stand it in front of the lane, which
+ * is what this picture is looking at. shTop read that fiction as though it were a fact
+ * about the building, so the busiest and nearest strip in the town took no building
+ * shadow at any hour — 0 shaded lane sub-cells, all 27 daylit hours of the year sampled.
+ *
+ * So the two heights are separated. shTop stays the DRAWN one, and the occlusion walk
+ * below keeps reading it: fed the true height that walk would decide the near half of
+ * the lane is hidden BEHIND our own roof and would veto the shade instead of casting it.
+ * shCast is what a cell THROWS from, and for our block it is the drawn roof surface
+ * lifted bodily onto a real eave — so the ridge, the hips and the valleys round the two
+ * light wells are still the distance transform's, they are simply no longer at ground
+ * level. The northward veto stays shOpen's, and it holds here for the reason it holds
+ * everywhere: the rows the throw crosses first are our own, and they are solid.
+ *
+ * The eave is not invented. eaveBand() is the QUARTER's height and our rows fall in its
+ * `y >= 61` band at 5.6 — the frontage of the gatehouse row, which is the other side of
+ * the SAME LANE. Read that facing row's built eaves back off eaveM and they mean 5.596
+ * over 416 cells: two independent reads of one street, agreeing to four thousandths. At
+ * x = 0 on purpose — the two x-bands eaveBand also carries (the tall terrace, the sliver
+ * the clock tower stands on) are statements about the NORTH side and do not cross a road. */
+const NEAR_EAVE = eaveBand(0, LN_WALK_S);
+const shCast = new Float32Array(GW * WH);
 function towerShTop(x, y){
   let h = 0;
   for (const t of SH_TOWERS){
@@ -1086,6 +1111,7 @@ function buildShadowGrid(){
   for (let y = 0; y < WH; y++) for (let x = 0; x < GW; x++){
     const i = y * GW + x;
     shTop[i] = solidM[i] ? Math.max(roofTopAt(x, y), towerShTop(x, y)) : 0;
+    shCast[i] = solidM[i] ? shTop[i] + (y >= LN_WALK_S ? NEAR_EAVE : 0) : 0;
   }
   for (let x = 0; x < GW; x++){
     let cover = 1e4;                                 // the highest screen row anything in front of us reaches
@@ -6057,11 +6083,11 @@ function buildSunShade(){
   shMaskKey = key;
   shMask.fill(0);
   const st = BSH_STEP / (Math.hypot(ux, uy) || 1e-3);
-  // our own block is the one volume with a FICTIONAL height — eaveFor() puts it at 0 so
-  // project() cannot walk it in front of the lane it is looking at — so it casts nothing
-  for (let y = 0; y < LN_WALK_S; y++) for (let x = 0; x < GW; x++){
+  // shCast, never shTop: our own block is DRAWN at a fictional eave of 0 and THROWS from
+  // its real one, and the whole town south of the lane is inside this loop because of it
+  for (let y = 0; y < WH; y++) for (let x = 0; x < GW; x++){
     const i = y * GW + x; if (!solidM[i]) continue;
-    const h = shTop[i], n = Math.ceil(h / st);
+    const h = shCast[i], n = Math.ceil(h / st);
     for (let s = 0; s < BSH_SUB; s++){
       const bx = x + (s + 0.5) / BSH_SUB, by = y + 0.5;
       for (let k = 1; k <= n; k++){

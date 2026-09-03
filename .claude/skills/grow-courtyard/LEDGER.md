@@ -127,3 +127,14 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped
 **Surprise:** HEAD's 80 "lit dots" were never lights. Painted into the cache, they meet the multiply last: 242 px in the layer, 61 in the frame, and the warm-pixel count above the roofline is **identical with them present and removed**. Dead since the layer was written.
 **Law:** a CACHED warm pixel is in exactly the trouble #136 named for a live one — the multiply is last either way. Register its points for a repaint after `applyLight`, in the same rebuild as the image, so a stale cache is stale in one piece.
+
+## Iteration 151 — our own terrace throws a real shadow across the lane (2026-09-03) [Roofs & skyline × Connect]
+
+**Brief:** b151 — the lane took 0.0% building shadow: `eaveFor()` zeroes our block for a DRAWING reason, and `shTop` believed it.
+**Priced.** 27 daylit hours, 4 seasons, HEAD's own march held out: **0 lane sub-cells at every one**. Unlike the towers there is somewhere for it to go: shOpen is open over the whole lane, 1,122 ROAD + 791 SIDE cells.
+**Did.** `shCast[]` beside `shTop[]`: the DRAWN height stays in the occlusion walk, the CAST one goes to the march, now `y < WH`. `NEAR_EAVE = eaveBand(0, LN_WALK_S)` = **5.6**, the gatehouse row's own band and so the far side of this same lane, its built `eaveM` mean **5.596**. Cast height is our emergent roof lifted bodily onto it, so ridge, hips and valleys stay the distance transform's.
+**Gates:** census PASS, six groups unchanged (no `R()`) · motion PASS, identical · filmstrip day 0 POP · `frame-cost.mjs` x3 interleaved: +0.03 summer, +0.06 winter ms.
+**HEAD → cand** (`probes/lane-shade.mjs`, new): **shOpen byte-identical**, the mask north of the lane too, over 12 instants. Lane SIDE **0 → 952-1,482** sub-cells at every hour of the year; ROAD 0 → 472-982 at a low sun, **0 at a summer noon**, the edge sliding 77→74 with the season. `shade-diff.mjs` t=1068: **43,004 px** on a same-code floor of 507, and its `behindAVolume` 22 / `ROOF/WALL` 16 *are* the floor's, so nothing lands on a roof.
+**Verdict:** shipped
+**Surprise:** the terrace's own GAPS came free. Rows 73-78 fill to 85-92%, never 100: the missing ~60 sub-cells are exactly the river's 15-cell gap in the block, a slot of sunlight where the terrace isn't.
+**Law:** a height stored for a DRAWING reason is read downstream as a fact about the world. Two consumers, two arrays.
