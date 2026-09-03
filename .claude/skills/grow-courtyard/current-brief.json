@@ -25,7 +25,7 @@
   "avoid": "drawNearRoof is inside the GROUND CACHE: the leads belong in the cache, the tenant does NOT — register at cache time, repaint live. `eaveFor()` returns 0 for y >= LN_WALK_S for a DRAWING reason and `shCast[]` (#151) is the casting height beside it: change neither. A new walkable region south of the lane must not become an ordinary route target — give the tenant its own spawn and keep the cells out of every existing target set. Do not put terrace on rows 84/85 and do not cross a light well; `wellNear(x)` exists for exactly that. Do not add a third well.",
   "budgetMin": 90,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 5,
   "nextIter": 171,
   "issued": "2026-09-03T12:54:05.368Z",
