@@ -6,69 +6,6 @@ a worker that opens it to "catch up" spends its whole context on history.
 ## Iteration 127 — the allotments get their own fog, and ghPane's dead term wakes up (2026-09-02) [Cross street & allotments × Connect]
 
 **Brief:** b127 — a SECOND mist source over the allotments so `ghPane`'s `mistAt()` term, 0 every day of every year, reads something. Full entry in LEDGER-archive.md.
-**Did.** Found b127 already built and uncommitted (attempt 2, no ledger entry): verified rather than rebuilt — "an uncommitted WIP is UNPROVEN". `hollowMist` is a second scalar in the `cloudCover()`/`wetF()` family, RADIATIVE where the river's is evaporative — stiller, clearer, cold-only, so a mild wet morning mists the river and not the beds. `MIST_SRC[]` makes a source a span+reach+weight, `mistAt` takes the strongest at that x, and the two never overlap; the announcement stays latched on the RIVER, so a hollow-only morning is one the ticker does not name.
-**Gates:** census PASS, six groups unchanged (no new `R()`) · motion PASS · visual PASS at 1600x950 and 390x844 · fogged frame +3.3%, unfogged byte-identical.
-**Measured** (`probes/hollow-year.mjs`, 3 seeds x a year): fogs **12.7%** of mornings, **0** of the 594 warm ones. `mistAt(88)` p50 **0.82** vs HEAD's dead **0**; pane dE p50 **10**. Change confined to the allotments, **exactly 0** west of them; a river-only morning is **identical to HEAD, 0 of 6,080,000 px**.
-**Verdict:** shipped
-**Surprise:** three of my four "failures" were my own instrument. A `day` index runs 06:00→06:00 and holds TWO dawns, so bucketing on it read the weather off one morning and the veil off the other, inventing a warm foggy day. And containment said 854/12060 diverged until HEAD-vs-HEAD gave **441**: no `__reseed()`, so page-load frames left each run on a different PRNG offset. With it, both went to **0**.
-**Law:** weather at a given `simT` is VIEWPORT-dependent — an instant found at 1280x700 does not reproduce at 1600x950.
-**Budget:** context-budget OVER at 46.5 KB (cap 46). I compressed my own inventory line and cues; the rest is structural — laws and the last 3 entries. Manager: distil.
-
-
-## Iteration 134 — the pools stop being drawn where nobody can see them (2026-09-02) [Lane & market × Harness]
-
-**Brief:** b134 — cull `drawPuddles` to the visible frame, byte-identical output. (The cited `probes/pool-cost.mjs` is at `.claude/skills/grow-courtyard/probes/`; its numbers held.)
-**Did.** `inFrameBox(sx, sy, rx, ry)` beside `project()` — ONE screen-space cull, on the CANVAS rect and deliberately *not* `sillTop()`: `drawPuddles` runs before the sill is composited and may legitimately paint under it, so the canvas is the only bound true of both callers, and culling on it is exact by construction. Both puddle passes call the same one, which they must — `drawPuddleLights` is the lamp on the pool the other pass drew, so a cull they disagreed about would light water that is not there. In each pass both ellipses sit inside (sx±rx, sy±ry): the rim sliver is offset 0.52·ry and 0.30·ry tall, the lamp cap is 0.9rx × 0.85ry, so that box is the true drawn extent.
-**Gates:** census unchanged in every field · motion PASS · filmstrip 0 POP · `perf.mjs` ±0.0% and **blind** — vsync-locked at 16.70 ms, over a sim day that is mostly dry.
-**Proof** (`probes/pool-cull-cost.mjs`, seed 7, wet 0.75, 400 frames × 3 reps, interleaved): drawPuddles ms Courtyard 0.276→0.078, Street 0.280→0.124, Plaza 0.291→0.102, Far bank 0.284→0.077 (−56% to −73%); the whole wet frame −8 to −12%. Wide ±2.5% both directions, so the cull's own tax is below the noise. Canvas hash **IDENTICAL at 28 of 28** comparisons (5 cameras × day/night; 3 viewports × 3 instants × 2 cameras), fingerprint NONE throughout.
-**Verdict:** shipped
-**Surprise:** the phone is the case that needed this most and the brief never named it. At 390×844 the **Wide** camera — the default, and effectively the only one a phone has, since `#where` is hidden under 640 px — already culls **61%** of the wet pools, and Far bank there culls **100%**. The margin is not theoretical either: at 1280×700 Courtyard, **17 pools are kept only because the cull uses rx/ry** rather than the centre, and a centre test would have popped all seventeen at the frame edge (`probes/pool-cull-exact.mjs`).
-**Law:** `perf.mjs` is vsync-locked at 16.70 ms and means a whole sim day — it cannot see a pass that is expensive only in a rare weather. Time the FUNCTION, in its own weather, at every camera, or you will read ±0.0% off a 70% saving.
-**Law:** a screen cull is exact against the CANVAS rect, never the picture above `sillTop()` — a pass drawing before the sill is composited may legitimately paint under it — and its margin must be the DRAWN extent, never the centre.
-**Budget:** context-budget OVER at 50.2 KB (cap 46). Structural — laws + the last 3 entries. Manager: distil.
-
-
-<!-- archived verbatim by manager pass #135 before condensing in LEDGER.md -->
-
-## Iteration 132 — the ticker learns where you are looking (2026-09-02) [The sill & the observer × Connect]
-
-**Brief:** b132 — prefer a subject inside the frame; do not take the surface with a line about somewhere you cannot see.
-**Did.** `inView(x,y)`, the only reader `whereN` has ever had: a cell projected through `viewFor(whereN)` against the frame and `sillTop()`. Not the quarter's BOX (the fit's input, and not one of them is what you see) and not `gview` (the ground CACHE's view). Intent beats the live camera: the ease is 0.9 s, a line lives 2.5–9. `sayAt(x,y,txt)` = announce with a SUBJECT, 33 sites. `AMBIENT_PLACES` 8 → 30 placed lines, `ambientHere()` preferring the in-frame ones and falling back to the WHOLE pool, never to silence.
-**Premise correction, and it was the iteration.** That fallback was DEAD CODE: the roll wanted `tickerTimer < -8`, seventeen seconds of dead surface, and the town speaks every three — **0 ambient lines in 8 sim days at three quarters, `tickerTimer` never once reaching 0**, so no threshold on it was reachable at all. Re-gated on `tickerFree()` (tested at the roll, so a blocked line is DROPPED not queued), restraint moved into the cadence, driven by `hash(ambIdx)` not `R()`.
-**Gates:** census unchanged in every field · motion PASS · filmstrip 0 POP · canvas **bit-identical to HEAD** at three pinned instants, fingerprint NONE. **context-budget OVER at 47.4 KB.**
-**HEAD → cand** (`probes/probe-sill-view.mjs`, 3 seeds × 5 days × 5 quarters, both builds, one oracle): off-frame subjects, fixed-place only — Courtyard **40/78 → 1/69**, Far bank **69/78 → 2/25**, Street and Plaza to 2 and 1. In-frame share 19→33, 27→34, 14→25, 4→11%; Wide unchanged. HEAD says the same top five lines at every quarter.
-**Verdict:** shipped
-**Surprise:** the roll self-balances unasked — ambient lines a day Wide 1.6, Courtyard 2.3, Far bank 3.4. The offer rate is flat and `tickerFree()` decides how many land, so the emptier suppression leaves a frame, the more the town murmurs about it.
-**Law:** when a USER input starts gating what the town says or draws, key its schedule to `hash()`, never `R()` — else where someone looks spends the seeded stream.
-**Law:** read the canvas in the SAME evaluate as the draw (`toDataURL()`, not a screenshot after it) — a synchronous `drawScene` still races rAF, and three instants read DIFFERS one way and IDENTICAL the other at a fingerprint of NONE.
-
-
-
-
-## Iteration 133 — the cold gets out of the chimney and into the rooms (2026-09-02) [Sky, light & weather × Connect]
-
-**Brief:** b133 — share `hearthF()`'s private `chill`, give it a reader indoors, fix the pop at the day roll.
-**Did.** `chillF()` lifted verbatim out of `hearthF()` (the fire is bit-identical) and left OVERDRIVEN past 1 — 1.10 January, 1.35 under snow — because that saturation IS #124's winter fire; readers clamp at their own draw site, as both of `drawSmoke`'s already did. Its reader is the light the rooms throw out: the `LIT_PANES` screen fill and the window halo, both in the pass AFTER `applyLight`'s multiply. The lamp goes redder, not brighter — R held at full, the G and B the screen puts back falling away with the cold. Then `hearthIdx()` on `gardenIdx()`'s model at the other end of the clock (`HEARTH_ROLL 14`, the lull between the two fires) and `HEARTH_FADE`, so a stack crosses its own threshold on a ramp. `DAY_ROLL` is now written once.
-**Gates:** census unchanged in every field · motion PASS · perf ±0.0% · filmstrip 0 POP · legible at 1600×950 and 390×844, winter dawn / winter night / summer night. **context-budget OVER at 50.4 KB.**
-**HEAD → cand** (`probes/chill.mjs`, seed 7): worst single step **31 of 51 stacks flipping at hour 6.00 → 4 at 5.40**, worst alpha step L1 **5.690 → 0.360**. The glass, matched pane by pane over 32 deep nights a season: winter−summer R−B **+2.74 → +18.45**, winter R +9.3 / B −9.4 against HEAD while summer moves under 2.
-**Verdict:** shipped
-**Surprise:** neither gate the brief named could see either thing. A mean over "whatever panes were lit" is mostly pane IDENTITY — the lit set is hashed per night, so HEAD reads winter *colder* than summer (44.1 vs 50.0 R−B) at one instant and *warmer* (52.8 vs 50.0) matched. The filmstrip is blind too: cropped to the roofline the roll frame reads Δ0.296 against a median of 0.296, under the dawn ramp. It shows only as a difference BETWEEN the two builds' strips — that frame falls 0.296 → 0.248 while all ten others move ≤0.013.
-**Law:** a mean over a set whose MEMBERSHIP is drawn per sample measures the membership, not the property — match the members across conditions first.
-
-## Iteration 134 — the pools stop being drawn where nobody can see them (2026-09-02) [Lane & market × Harness]
-
-**Brief:** b134 — cull `drawPuddles` to the visible frame, byte-identical output. Full entry in LEDGER-archive.md.
-**Did.** `inFrameBox(sx,sy,rx,ry)` beside `project()`: ONE screen cull, on the CANVAS rect and deliberately not `sillTop()` — `drawPuddles` draws before the sill is composited and may legitimately paint under it, so the canvas is the only bound true of both callers, and the cull is exact by construction. `drawPuddleLights` calls the same one, being the lamp on the pool the other drew. Both ellipses of each pass sit inside (sx±rx, sy±ry).
-**Gates:** census unchanged in every field · motion PASS · filmstrip 0 POP · `perf.mjs` ±0.0% and **blind** (vsync-locked at 16.70 ms over a mostly dry day).
-**Proof** (`probes/pool-cull-cost.mjs`, seed 7, wet 0.75, 400 frames × 3 reps, interleaved): drawPuddles **−56% to −73%** at the four quarters (0.28 → 0.08–0.12 ms), whole wet frame −8 to −12%; Wide ±2.5% both ways, so the cull's own tax is under the noise. Canvas hash **IDENTICAL 28 of 28** (5 cameras × day/night; 3 viewports × 3 instants × 2 cameras), fingerprint NONE.
-**Verdict:** shipped
-**Surprise:** the phone is the case that needed this most and the brief never named it. At 390×844 the **Wide** camera — the default, and effectively the only one a phone has, since `#where` is hidden under 640 px — already culls **61%** of the wet pools, and Far bank there culls **100%**. The margin is not theoretical either: at 1280×700 Courtyard **17 pools are kept only because the cull uses rx/ry** rather than the centre, and a centre test would have popped all seventeen at the frame edge (`probes/pool-cull-exact.mjs`).
-**Law:** `perf.mjs` is vsync-locked at 16.70 ms over a whole sim day — blind to a pass expensive only in a rare weather. Time the FUNCTION, in its weather, at every camera.
-**Law:** a screen cull is exact against the CANVAS rect, never the picture above `sillTop()`, and its margin is the DRAWN extent, never the centre.
-**Budget:** context-budget OVER, 50.2 KB (cap 46).
-## Iteration 127 — the allotments get their own fog, and ghPane's dead term wakes up (2026-09-02) [Cross street & allotments × Connect]
-
-**Brief:** b127 — a SECOND mist source over the allotments so `ghPane`'s `mistAt()` term, 0 every day of every year, reads something. Full entry in LEDGER-archive.md.
 **Did.** Found b127 already built and uncommitted (attempt 2, no ledger entry): verified rather than rebuilt — "an uncommitted WIP is UNPROVEN". `hollowMist` is a second scalar in the `cloudCover()`/`wetF()` family, RADIATIVE where the river's is evaporative — stiller, clearer, cold-only, so a mild wet morning mists the river and not the beds. `MIST_SRC[]` makes a source a span+reach+weight, `mistAt` takes the strongest at that x, and the two never overlap; the announcement stays latched on the RIVER.
 **Gates:** census PASS · motion PASS · visual PASS at 1600x950 and 390x844 · fogged frame +3.3%, unfogged byte-identical. Fogs 12.7% of mornings and 0 of 594 warm ones; `mistAt(88)` p50 0.82 vs HEAD's dead 0; exactly 0 change west of the allotments.
 **Verdict:** shipped
@@ -655,4 +592,73 @@ a worker that opens it to "catch up" spends its whole context on history.
 **Verdict:** shipped
 **Surprise:** `probes/follow.mjs` has been dead since #60 and its ten failures reproduce on HEAD. `evPx` maps x by `W/rect.width` and y by `H/rect.height`, and the rect is the CSS box PLUS the 10 px frame, so one k for both axes misses. Every assertion was reading a follow that never started, silently: a click on nobody is the RELEASE branch. It hid my own first bug: the follow line changes the sill's height, the frame's ResizeObserver fires `resize()`, and `viewSnap` dropped the follow in the frame it began.
 **Law:** a probe driving the page through a real EVENT must invert the page's own mapping term for term, and assert the event LANDED before asserting what it did: a synthetic miss does not fail, it takes the other branch.
+
+## Iteration 167 — the quota measures itself, and state.json loses 78 KB (2026-09-03) [The sill & the observer × Harness]
+
+**Brief:** b167 — 14 rows since #153 read `quota: null`; carry c252 with it.
+**Re-counted.** 14, not 12, every one `preFrom: "runner"` — the runner calls runlog.mjs; it cannot pass a flag its own text predates.
+**Did.** Three parts, one shape: a reading must not depend on its caller. (1) `runlog.mjs` measures it ITSELF given no `--quota-out` — the pre-blob fallback's commit scan is factored out as `preSha` and `--additions --since preSha` runs from here, its exit read off the throw. `readQuota()` returns **null** on "nothing to diff": no baseline measured nothing, so never a pass. `--pre-sha` added; run-loop.sh passes it and a handover still wins. (2) `build-stats.mjs`: three-valued `q` per row (`—`/ok/over), tile reads **measured-of-total**. (3) `rotate-ledger --prune-only`: `closedCues` past the last 40 to `closed-cues-archive.jsonl`, by ARRAY position — the order they were CLOSED. **state.json 120.0 -> 41.0 KB**; 232 = 192 + 40, item for item.
+**Gates:** `courtyard.html` byte-identical — census PASS, six groups unchanged; four shots clean; `runlog-merge` 28/28.
+**Proved** (`probes/quota-self.sh`, new): 9 assertions, staged repo. Clean -> `{rc:0,source:"self"}`; **HEAD's runlog.mjs on the same repo -> null**; three entries -> `{rc:3,over:1}` before and after commit; a handover wins with no second run; manager pass and unresolvable ref stay null.
+**Verdict:** shipped
+**Surprise:** `stall-quota.sh` failed 3 assertions on an untouched tree: its control is `git show HEAD:stall.mjs` and #164 LANDED, so HEAD is the candidate. Pinned to `Iter 164^`.
+**Law:** a probe's control fetched at HEAD expires the moment its own change commits — pin a "before" control to a REF.
+
+## Iteration 168 — the lawn's stay is priced at the walk home (2026-09-03) [Courtyard & garden × Deepen]
+
+**Brief:** b168 — `lawnFits` has no return-leg term; count who is still crossing the courtyard for home after dark.
+**Premise re-measured on HEAD** (`probes/lawn-dark.mjs`, new; 6 seeds x a year): holds, and bigger — **1.71 lawn people in the dark garden at any instant**, with a tail of 18.3 h that is a sitter crossing it at 4 am.
+**Did.** Charged the return at the STAY, not the door: `lawnHome()` the one definition, `lawnStay = max(MIN_DWELL, min(drawn, lawnEnd − hour − lawnHome))` at the napper's, picnic's and sitter's arrival, the draw unmoved. A kid's run has no timer, so its waypoint LIST is cut. `gardWalk` → `lawnWalk`.
+**HEAD → cand.** Dark inside the wall **1.71 → 0.97** (466 → 263 agent-h/seed-yr), per-late-visit med 3.38 → 2.18 h; furthest to go leaves first. Population flat. **The cost is stillness**: stopped on the grass 1.80 → 1.16, while lawn presence 9.00 → 8.89 and people inside the wall 19.03 → 19.20 hold. Inflow cannot buy it back (LAWN_RATE re-swept, at the constant).
+**Gates:** census · shots (day + a 22 h pair) · motion — all PASS
+**Verdict:** shipped
+**Surprise:** the DOOR cannot carry the return leg, and the courtyard's SIZE is why. #157's gardener line, `arr + MIN_DWELL + w.out < lawnEnd`, was built, measured and thrown away: ~29 cells from a door to the linden is 8.7 h compressed, so the deep lawn cannot be crossed twice in one day's light. It shuts the napper's door (offerable 10.0% → 0.0%) and the shaded picnic's (23.9% → 0.0%).
+**Law:** price a round trip where it can be PAID — at the door when the place is near, at the STAY when the crossing costs a day's light. At the door it fails as a POPULATION going to zero, never as a slower rate.
+
+## Iteration 169 — the morning gets two errands of its own (2026-09-03) [Lane & market × Deepen]
+
+**Brief:** b169 — the morning's shortfall is COMPOSITION; give it two kinds of its own. Counted on HEAD first (`lapse-pop.mjs`): **28.89 people, 12.02 kinds** v the evening's 39.63 / 14.09. It holds.
+**Did.** (1) The **shopkeeper**: out of HOME_DOOR 22, sets the pavement tables out, goes in. Solved BACKWARDS from `cafeSetUp()` at a FIXED speed (`openerOut() = cafeSetUp() - pathHours(...)`), so she lands on the hour to the frame (7.98 v 7.98). `cafeOpen()` reads `cafeSetUp()` too: the shop opens when its chairs do, ONE definition, `sunUp - 0.5` unchanged. (2) The **delivery**: `hash(day,811) < 0.7`, up the lane ON the setts with a cask, 4.6 rows in — the cart's line is 2.2 ± a 1.7 berth, and a corridor is swept, not a point Two casks flank `TAP_DOOR` till `tapUp()`. Both `priced:true` → out of `chatty()` (#101).
+**HEAD → cand.** Kinds **12.02 → 13.69**; the gap to the evening **2.07 → 0.64**; people → 30.28. Shopkeeper on **100%** of 162 days, delivery 81.5%. Cafe presence 33.92 → **34.03** agent-h/day: it cost the cafe nothing. Disable the two spawns: the census is byte-identical to HEAD.
+**Gates:** census · motion · perf +0.0% · 0 POP day+night · 4 framings · `probes/open-cost.mjs` new
+**Verdict:** shipped
+**Surprise:** the frontage cannot be a pure clock and `marketRaise()`'s shape hid it — a lane-band cup runs to 11 sim hours, so a clock folding the tables at dusk had **16% of all seated samples at a table it had already packed away**.
+**Law:** a raise whose FALL is bounded by an occupant is not a clock. `max(clock, taken)` over the DRAW holds it up under the guest and snaps it away as they leave; the occupancy belongs in the scalar's TARGET, which eases it back up (1223 → 0).
+
+## Iteration 171 — the near block gets a top, and a tenant (2026-09-04) [Roofs & skyline × New element]
+
+**Brief:** b170 — cut a flat-lead terrace into the near block's level rows; put somebody on it.
+**Found:** #170 built it and died before committing: 431 lines uncommitted, census obligation
+met, baselines still pinned at HEAD. I verified the tree, not rebuilt it; its `#170` tags
+are this entry.
+**Did:** `LEADS` (tile 17) on rows 86..87 of 6 bays, sited by `leadsHouse()` off
+`hash(house)`, clear of wells, river. `solidM` counts it WALL, so `buildVolumes()` never sees
+it: no roof vertex moved. `drawLeadsCell`/`leadSheet` lay it into the cache, the apron carries it
+off-frame. `buildLeads()` → 6 `HATCHES` + `LEADS_BAYS` + a cord each. The tenant has its OWN
+source and cap (`tenantErrands`, `TEN_CAP` 2) and four acts — peg/take off the `washOut()` EDGE,
+sun, lean; `drawHatch` is live, two states.
+**Gates:** census PASS, re-pinned (`tileKinds` 153→162, `developed` held) · visual PASS (4 framings,
+both lids) · motion PASS · probe `tenant-leads.mjs` counts the premise on HEAD:
+a person on the block in 0.00% of samples vs 17.4%, contained, drawn no shallower
+than 86.12 (`LN_WALK_S` 79).
+**Verdict:** shipped
+**Surprise:** rain is the MINORITY cause of the washing coming in — 9 errands of 58 against 49
+for the light going. Sampling `raining` at the stand read 2 of 71 — wrong reading:
+`washOut()` flips on `raining`, but `wetF() > 0.22` holds it false long after.
+**Law:** Attribute an edge-triggered event AT THE EDGE — by the time its consequence shows,
+the state that flipped the predicate has been superseded by a slower term.
+**Law:** A worker dying before it commits leaves its iteration in the WORKING TREE
+alone, invisible to ledger, runlog, census. Diff the tree before calling a brief unbuilt.
+
+## Iteration 172 — the allotments get a crew (2026-09-04) [Cross street & allotments × Scale/World]
+
+**Brief:** b172 — raise the allotments' SUPPLY, not the share; carry c257.
+**Re-counted first** (`probes/allot-supply.mjs`, new; acts counted at the CALL):#154's "28 a year in six worlds" HOLDS and is `plotAct` ONLY: the ladder runs 32.0 acts a seed-year, 84% `harvestPlot`.
+**The brief's named lever is the wrong one.** Swept at 6 seeds, the cap beat both the rate and the stay: tripling `allotRate` moved arrivals only 23.7 → 30.5 a year, because `allotCount() < 3` refused **49.6%** of samples at a presence of 2.20/3. 17 plots were one place with three slots.
+**Did.** Named the five constants (`ALLOT_FLOOR/RIPE/CAP/ROWS/MORE`, `let`, so the probe sweeps them); left the RATE at HEAD's. CAP 3→5; ROWS/MORE 3/0.55 → 4/0.70, because a holder is resident **~2.1 sim DAYS a visit**, mostly crossing — the walk is priced at the stay. c257: `cartToday`/`cartHomeX`/`drayToday` salted with `WIND_SALT` (`probes/cart-calendar.mjs`, new: 1 calendar in 4 worlds on HEAD, 4 on cand; unseeded untouched).
+**Gates:** census, motion (vs HEAD), filmstrip, visual, perf — all PASS.
+**Measured, 12 seeds x a year:** acts/yr **32.0 → 58.6**, per-plot median **1.75 → 3.75**, refusal 49.6% → 30.8%.
+**Verdict:** shipped — but the success line wanted tend-rungs in double figures; they went **4.25 → 8.83**, because more supply buys more harvests too.
+**Surprise:** the morning round's skin was `hash(day, 811)` — `drayToday()`'s OWN key — so its index was PARTITIONED by whether a dray came: dray days {0,1,2}, dray-less {2,3,4}. Re-keyed to 619.
+**Law:** a fall-through ladder's lower rungs are bounded by its FIRST rung's hit rate, not by supply — doubling arrivals doubles both. Instrument the rung, not the population.
 

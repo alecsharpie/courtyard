@@ -1,8 +1,8 @@
 {
-  "updated": "2026-09-03",
+  "updated": "2026-09-04",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 177,
+  "lastIteration": 180,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -189,7 +189,8 @@
         108,
         129,
         139,
-        168
+        168,
+        179
       ],
       "new-ca": [
         "pre",
@@ -377,7 +378,8 @@
         58,
         71,
         112,
-        156
+        156,
+        178
       ],
       "connect": [
         6,
@@ -466,7 +468,8 @@
         68,
         86,
         99,
-        105
+        105,
+        180
       ],
       "deepen": [
         111
@@ -600,20 +603,8 @@
   },
   "openCues": [
     {
-      "id": "c259",
-      "note": "the SILL is the frame's foreground, the bottom ~7%, the same near-black bar at midday as at midnight (#169 shots). MEASURE its sd/mean as its own class against the near roof's 0.281 first: the black may be drawOurSide's intent, as drawNearRoof's was.",
-      "raisedBy": 169,
-      "seenBy": 1
-    },
-    {
       "id": "c260",
       "note": "__entities() reports a tenant as kind walker (role:'tenant'), so motion.mjs buries their continuity in 255 walker spawns - any future near-block mover is as invisible to the gate.",
-      "raisedBy": 171,
-      "seenBy": 1
-    },
-    {
-      "id": "c262",
-      "note": "plaza-visit read 13 second acts ARMED and only 6 REACHED (5 seeds x 14 d), the lane band the sole caller at 0.29 people in the square. PREMISE NOW STALE — #173 re-cut this plaza; re-measure before building.",
       "raisedBy": 171,
       "seenBy": 1
     },
@@ -630,18 +621,6 @@
       "seenBy": 0
     },
     {
-      "id": "c267",
-      "note": "the LIT WINDOWS still have nothing at them - ~20 panes a night, and #177's moths bind to NIGHT_LAMPS only. A pane is a FACES SCREEN-space register, not a world point: a different solve.",
-      "raisedBy": 176,
-      "seenBy": 0
-    },
-    {
-      "id": "c268",
-      "note": "HEAD had 37 bonfires and the candidate 44 over identical hash-only calendars (#178): the fire COUNT rides on bonfireWeather() at TWO gates, the spawn hour and the match, and nobody has bounded that swing.",
-      "raisedBy": 177,
-      "seenBy": 0
-    },
-    {
       "id": "c269",
       "note": "lawnGate moved the dusk emptying INTO the garden: lawn people dark inside the wall 1.015 -> 1.284, all at hourEve 18-22 with the 1-3 am tail flat. A good trade at #179; watch it does not creep later.",
       "raisedBy": 177,
@@ -652,26 +631,33 @@
       "note": "WEAR_REPAINT 1.0 never fired on HEAD - every light repaint reset wearAcc, so footfall rode the light's 0.57s cadence for free. #180 makes wear the 2nd cause at 26.9 repaints/day: an unpriced constant, now load-bearing.",
       "raisedBy": 177,
       "seenBy": 0
+    },
+    {
+      "id": "c271",
+      "note": "the BACKDROP is measured (#180 mgr): sd/mean 0.150 / 0.160 over the frame's top 10% / 18% at midday, 0.226 / 0.253 at hour 8, above GRASS and SIDE.cross. Mid-contrast, not flat. Nobody may brief it as flat; see the WATCH table.",
+      "raisedBy": 180,
+      "seenBy": 0
+    },
+    {
+      "id": "c272",
+      "note": "NEW-CA is 7 of 180 iterations (pre, 7, 14, 66, 103, 125, 135) and the last was 45 back. River, Sky, People and the Sill have never had one, in a piece subtitled 'a cellular block'. b181 takes the river; three domains are still open.",
+      "raisedBy": 180,
+      "seenBy": 0
+    },
+    {
+      "id": "c273",
+      "note": "rotate-ledger.mjs's WATCH_CAP reads w.note and state.json's watch is an array of STRINGS, so the 420 B per-item cap has never fired — three items are over it today. A gate that cannot fail. WATCH_MAX works, which is why it went unseen.",
+      "raisedBy": 180,
+      "seenBy": 0
     }
   ],
   "watch": [
-    "THE VIEWPORT CHANGES THE WORLD, and every multi-framing gate this loop owns has been comparing two different towns. Measured on HEAD at #175: seed 42, __reseed() then __warp in 5 s steps — identical through simT 120, then people 49 (1600x950) vs 48 (390x844) at simT 125, and by simT 415 cloud is 0.166 / 0.781 / 0.471 and `raining` false / true / false at 1600x950 / 390x844 / 1200x720. One extra R() draw forks the seeded world for good. Until b176 lands, a screenshot at one framing is NOT evidence about another, and `?seed=` does not name a world.",
     "PRICE THE BRIEF'S PREMISE - aimed at the manager. Three of the six briefs #144-#148 were mis-priced by the plan and the workers measured first and were right every time. Put the NUMBER a brief rests on INTO the brief and name where it came from; where there is no number, say so and make the measurement the deliverable. The same applies to numbers this seat READS: stall.mjs's on-disk slope comes from git blobs at two Iter commits and #175's rotation sits between them, so for ~20 passes LEDGER-archive will read about -27 KB/iter — a one-off cliff, not the caps working.",
-    "MEASURE A SURFACE BEFORE YOU CALL IT DRAWN, and a number is not a picture. Per-class luma sd/mean, 1600x950 seed 42: SIDE.cross 0.121 - GRASS 0.131 - PATH.court 0.143 - ROAD 0.150 - WATER 0.177 - SIDE.quay 0.229 - WALL 0.240 - NEAR ROOF 0.281, the highest, whose darkness is drawNearRoof's stated intent (that closed c232 and saved 90 minutes). The two large classes still unmeasured on their own are the SILL (c259) and the BACKDROP above the roofline.",
-    "mapFlat ASKS THE WRONG QUESTION and three passes have re-derived the answer; do NOT argue it a fourth time. The grid has been FULL since #100 (GW 138 x WH 88). The honest 4b moves are a new TILE or SPECIES constant (+9 in the summed census: GLASS #116, REED #155, LEADS #171) or DEPTH beyond the grid, which the census cannot see (#145, #150/#162). Re-pin with census.mjs --save-baseline and SAY SO; the gate reads collapse, not delta."
+    "MEASURE A SURFACE BEFORE YOU CALL IT DRAWN - and sd/mean is the WRONG statistic in near-black. Midday sd/mean, 1600x950 seed 42: SIDE.cross 0.121 - GRASS 0.131 - PATH.court 0.143 - ROAD 0.150 - BACKDROP 0.150 - WATER 0.177 - SIDE.quay 0.229 - WALL 0.240 - NEAR ROOF 0.281 - SILL 0.671. The sill tops the table on sd 9.4 where the near roof scores 0.281 on sd 25: under mean ~40 luma quote sd and RANGE. Both classes this note once called unmeasured are measured and BOTH premises died (c232, c259, c271). The list is empty; a third 'that surface looks flat' arrives with numbers or not at all.",
+    "mapFlat ASKS THE WRONG QUESTION and three passes have re-derived the answer; do NOT argue it a fourth time. The grid has been FULL since #100 (GW 138 x WH 88). The honest 4b moves are a new TILE or SPECIES constant (+9 in the summed census: GLASS #116, REED #155, LEADS #171) or DEPTH beyond the grid, which the census cannot see (#145, #150/#162). Re-pin with census.mjs --save-baseline and SAY SO; the gate reads collapse, not delta.",
+    "THE THIN AXIS IS THE KIND, NOT THE DOMAIN - aimed at the manager. Across 180 iterations: deepen 49, connect 40, new-element 30, polish 28, scale 20, interaction 13, harness 12, NEW-CA 7, fidelity 1. Domain balance is well kept and the coverage grid makes it easy to keep; nobody has been reading the COLUMNS. #164 found its best move that way (interaction, 12 in 164) and so did this pass (new-ca, 7 in 180). Read the kind totals before the domain gaps."
   ],
   "closedCues": [
-    {
-      "id": "c219",
-      "note": "laneCap has NO knee up to 19 — it buys people linearly, but each of the plaza/quay/green/parapet destinations is 5-6% of ONE roll, so past 10 every marginal arrival is a lane walker. The BRANCH SHARE, not the ceiling, is what bounds the east half from the lane's source.",
-      "raisedBy": 136,
-      "seenBy": 0,
-      "closedBy": 139,
-      "why": "promoted into b144."
-    },
-    "c217 CLOSED at #144 by the manager: 390 px over GW 138 is 2.8 px a cell, so a phone's Wide CANNOT hold the river and no fit rule can make it - the quarter button is the answer and it is one tap. Wide on a phone is a portrait crop BY DESIGN. If it returns it returns as discoverability, not as framing.",
-    "c198 CLOSED at #144 by the manager: four passes without promotion. The near roof's lichen thinning in July is true and reads at one framing only; if it returns it returns as a measured surface claim under the sd/mean law, not as a season note.",
-    "c229 CLOSED at #144 by the manager: applyLight's dusk peak at sunDown-1.0 and skyCols' at sunDown-0.6 are 0.4 h apart at every season now, which is the anchor day's own gap and was never the bug. Whether ONE offset suits both is a taste question; if it returns it returns as a measured picture claim, not as a coincidence of constants. c226 folded into c225.",
     "c224 + c234 PROMOTED at #149 by the manager into b151: the lane takes no building shadow at any hour (#140: ROAD.lane 0.0%) because sunVec()'s ly is northward at every hour and every tall caster stands at the world's north edge. The one volume SOUTH of the lane is our own block, pinned at eaveFor 0 for a DRAWING reason, and #146's towerShTop is the precedent for a casting height that is not the drawn eave.",
     "c225 PROMOTED at #149 by the manager into b154: WIND is the punt's top refusal at 32.9% of offers, and a swan gets to 1.05 cells of a hull under way because the give-way rule only clears a LANDING.",
     "c235 PROMOTED at #149 by the manager into b152: 15 of 101 allot kneels a year plant 0 cells - a holder walks in, kneels, plants nothing, says nothing, walks out. Re-framed as People & animals, because the finding is about a VISIT that performs nothing, not about what grows.",
@@ -919,7 +905,39 @@
       "seenBy": 0,
       "closedBy": 175,
       "why": "not a cue, a reading note — moved to WATCH so it is read beside the report it qualifies."
+    },
+    {
+      "id": "c259",
+      "note": "the SILL is the frame's foreground, the bottom ~7%, the same near-black bar at midday as at midnight (#169 shots). MEASURE its sd/mean as its own class against the near roof's 0.281 first: the black may be drawOurSide's intent, as drawNearRoof's was.",
+      "raisedBy": 169,
+      "seenBy": 1,
+      "closed": 180,
+      "why": "REFUTED by measurement, this pass. Per-class luma over the sill band (H - max(26, H*0.075) .. H), 1600x950 seed 42, DPR 1, at three instants: t175 midday mean 13.98 sd 9.39 rel 0.671 range 1.9-63.6 | t995 hour 8.18 mean 12.46 sd 7.31 rel 0.587 | t1210 night mean 4.06 sd 2.18 rel 0.537. The sill is not a flat bar: it holds 62 luma units of range at midday and its sd/mean is 2.4x the near roof's 0.281 - which is the metric failing, not the surface, because sd/mean divides by a mean of 14. drawOurSide's own comment already records the fix (#136-era: it WAS min==max==mean==8.4 and now buys SEPARATION). Same shape as c232."
+    },
+    {
+      "id": "c262",
+      "note": "plaza-visit read 13 second acts ARMED and only 6 REACHED (5 seeds x 14 d), the lane band the sole caller at 0.29 people in the square. PREMISE NOW STALE — #173 re-cut this plaza; re-measure before building.",
+      "raisedBy": 171,
+      "seenBy": 1,
+      "closed": 180,
+      "why": "promoted to brief b183 (Plaza & quay x Deepen), with the re-measurement as the deliverable if the premise is dead."
+    },
+    {
+      "id": "c267",
+      "note": "the LIT WINDOWS still have nothing at them - ~20 panes a night, and #177's moths bind to NIGHT_LAMPS only. A pane is a FACES SCREEN-space register, not a world point: a different solve.",
+      "raisedBy": 176,
+      "seenBy": 0,
+      "closed": 180,
+      "why": "promoted to brief b182 (Roofs & skyline x Deepen)."
+    },
+    {
+      "id": "c268",
+      "note": "HEAD had 37 bonfires and the candidate 44 over identical hash-only calendars (#178): the fire COUNT rides on bonfireWeather() at TWO gates, the spawn hour and the match, and nobody has bounded that swing.",
+      "raisedBy": 177,
+      "seenBy": 0,
+      "closed": 180,
+      "why": "promoted to brief b185 (Cross street & allotments x Fidelity)."
     }
   ],
-  "cueSeq": 265
+  "cueSeq": 273
 }

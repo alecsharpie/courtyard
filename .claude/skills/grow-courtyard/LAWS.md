@@ -5,9 +5,8 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
 ## Judging a claim
 
 - **Price the brief's PREMISE on HEAD before you build on it.** Check the inventory *and* grep
-  the source — the town usually already has what a brief sees "no trace" of — and when a brief
-  says a thing NEVER happens, COUNT it; an inventory line written by the pass that wrote the
-  brief is no witness.
+  the source — the town usually already has what a brief sees "no trace" of — and COUNT every
+  "never"; an inventory line written by the pass that wrote the brief is no witness.
 - **Compare against a control you RAN.** A gate that fails on HEAD is not a gate; a control
   returning the candidate's numbers is none. A control tests a build-INDEPENDENT fact, never a
   predicate the candidate DEFINES, and differs from the thing measured in exactly ONE way.
@@ -31,7 +30,9 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
 - **Every random draw goes through `R()`** (or `hash(x,y)` per cell); `Math.random()` is
   invisible to `?seed=`. `hash()` is NOT seeded, so the built FABRIC is one town in every
   world and only its life varies; a per-day `hash(day,k)` is one sample of the calendar in
-  every seed — histogram the YEAR, and SALT it if the calendar should differ per world.
+  every seed — histogram the YEAR, and SALT it if the calendar should differ per world. A CANVAS-EXTENT
+  population must not draw from `R()`, and no world event may wait on a screen-space one: the
+  draws a frame spends are a fact about the WINDOW.
 - **Any new draw reshuffles the whole seeded world.** Read the census for *collapse*, not
   delta; replay every stray gate on HEAD; keep each branch on the half of [0,1) it owned.
 - **Two seeds is not a sample**; a bar on a BIMODAL scalar is a coin. Histogram the value AT
@@ -75,11 +76,12 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
 
 ## Rates, caps and shares
 
-- **A feature that exists may exist at a rate of zero — count before you build on it.** A
-  spawn band is a *share of a budget*, not a rate, so a rare thing needs its OWN source.
-- **A cap and a share are two bounds and only one can be swept.** Re-weight the branch,
-  then re-sweep — identical numbers at two settings is a DEAD constant and the SUPPLY was
-  always the cap.
+- **A cap and a rate are two bounds, only one can be swept, and both are alive only if they
+  bind at DIFFERENT times.** Re-weight the branch, then re-sweep: identical numbers at two
+  settings is a DEAD constant and the SUPPLY was always the cap. Hang a modulating scalar on
+  whichever bound is SLACK, and prove it by sweeping the AXIS — season, weather — not the
+  constant. A spawn BAND is a share of a budget, not a rate: a rare thing needs its OWN source,
+  and a feature that exists may exist at a rate of zero.
 - **Measure a share at the CHOICE, never by presence, which weights a branch by its
   dwell** — and count ADMISSIONS apart from choices: a share widened at a destination with a
   FIXED NUMBER OF PLACES becomes overflow into its NEIGHBOUR, not presence. The refused
@@ -112,7 +114,8 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
   anything happening *at first light* keys on `sunUp`, never on the night's span.
 - **`!daylight` / `nightF>0.3` is DAWN as well as dusk**: any rule ending something because
   the light is low must be bounded on BOTH sides of noon. And `day` rolls at hour 6, so it
-  holds TWO dawns.
+  holds TWO dawns: a window past a day's LAST hour is also its NEXT morning's first, so split a
+  late population by DIRECTION before quoting it.
 - **A hard-coded HOUR in a light or warmth term is a seasonal bug invisible to a
   screenshot** — solve an hour OF THE SUN at the instant it applies. Re-keying a term onto
   the sun moves its OFFSET, and its WIDTH must then stay FIXED; scale a width only for the
@@ -122,13 +125,13 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
 
 - **The ground is a CACHE.** `drawBlocks`/`drawGround` rebuild at whatever cadence sets the
   dirty flag most often, so a per-frame truth on a facade or the ground is a live overlay:
-  register at cache time, repaint live. What you lift out of a cache carries what was drawn
+  register at cache time, repaint live. Quantize the QUANTITY, never a clock standing in for it:
+  N roundings of a clock fire N times for ONE change in the thing it stands for. What you lift out of a cache carries what was drawn
   ON TOP of it; anything registered in SCREEN space at cache time (`FACES`) goes stale
   through the camera ease — map it through `k = viewS/gview.s`.
 - **The night is a COMPOSITE, set by the LAST thing that touches it.** Anything warm
   arriving before `applyLight`'s multiply is slate by midnight, so it must REGISTER in the
-  SAME rebuild as the image and be repainted in a `screen` pass after. "It is
-  drawn" is not "it can be seen".
+  SAME rebuild as the image and be repainted in a `screen` pass after.
 
 ## The frame
 
@@ -136,42 +139,37 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
   sill.** `sillTop()` eats the bottom ~7% of every frame. No world-space ROW bound is safe at every size:
   bound a near band in DEPTH (`y − z·LIFT`, world state) for the SHORTEST framing you
   support.
-- **A contention price is only a price where there IS contention**: a rule ranking callers
-  on a shared surface binds at Wide and slides off at a quarter.
 
 ## Instruments
 
 - **A probe's world is only as rewound as you make it.** `__reseed()`/`__setTime()` rewind the
-  PRNG and clock, not latches or spawned agents. Reseed, then step inside ONE `page.evaluate`,
-  fresh page per screenshot. **`__reseed()` REASSIGNS `R`** rather than rewinding it, so a
+  PRNG and clock, not latches or spawned agents. Reseed, then step inside ONE `page.evaluate`. **`__reseed()` REASSIGNS `R`** rather than rewinding it, so a
   monkeypatch installed before it is silently eaten: instrument AFTER the reseed and assert it
-  fired. PIN the instant (`drawScene(simT, 1/30)` inside the evaluate); `__warp(t)` advances
+  fired. PIN `?t=` — the default entry is a DIFFERENT world, ~2 s of un-reseeded sim in — and PIN the
+  instant (`drawScene(simT, 1/30)` inside the evaluate); `__warp(t)` advances
   whole fixed-dt steps, so a step count is not a clock. Read the canvas in the SAME evaluate as
   the draw: a `?pause`d page still runs rAF.
 - **Suspect the INSTRUMENT first, and a gate's PASS is only evidence about the fields it
   REPORTS.** Read the reporter, not the producer: `perf.mjs` is vsync-locked over a whole sim day and
   blind to a pass expensive only in a rare weather: time the FUNCTION, in its weather, at
   every camera. A probe driving a real EVENT must invert the page's own mapping term for term
-  and assert the event LANDED — a synthetic miss takes the other branch, it does not fail. A
-  jump threshold under a kind's CRUISING SPEED is a speedometer — its zero is a
-  fact about the sampling window, so the next reshuffle names the wrong change.
+  and assert the event LANDED — a synthetic miss takes the other branch, it does not fail.
 - **A ZERO is evidence only if you show the test can be non-zero**, a green anchor only if
   the predicate FIRED — and a FIELD is not a READING: a gate wired into a row can sit at
   `null` for ever, which to a consumer counting only failures is the same zero as a pass.
   Separate NOT MEASURED from CLEAN.
 - **A gate is a claim about a BUILD**: a change redefining a gate's SUBJECT must re-run
   every gate that READS it, not only the one briefed; a control fetched at HEAD expires the
-  moment the change commits, so pin a "before" to a REF. Prove a ROTATION on its READERS' output
-  against a pre-rotation control — byte conservation is necessary, NEVER sufficient, blind to a
-  cut INSIDE a unit. And a worker that dies before committing leaves its iteration in the WORKING
-  TREE alone, invisible to ledger, runlog and census: diff the tree before calling a brief unbuilt.
+  moment the change commits, so pin a "before" to a REF.
 
 ## Judging a look
 
 - **Judge a look from a DIFFERENCE IMAGE and a number, never two pictures in turn — and
   grade it at the SHIPPING size.** A diff answers "is it drawn", not "can it be seen":
   legibility is MASS and COHERENCE, not peak Δ. Absolute luma sd under a wash is not a
-  property of what you DREW: grade a foreground on **sd/mean**.
+  property of what you DREW: grade a MID-TONE on **sd/mean**, never a near-black one — it divides
+  by ~nothing, and the sill scores 0.671 on sd 9 where the near roof scores 0.281 on sd 25. Under
+  mean 40 luma, quote sd and RANGE.
 - **A diff needs a SAME-CODE control run**: quote the feature's mass as a ratio to that
   floor, never as an absolute. And a cached layer drawn OVER a live one SUBTRACTS from it:
   price the live layer's SURVIVING mass (`FULL` minus `FULL`-without-it), never the cache's

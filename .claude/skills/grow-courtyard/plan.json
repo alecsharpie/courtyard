@@ -1,40 +1,161 @@
 {
-  "generated": "2026-09-04T00:00:00.000Z",
-  "byIteration": 175,
-  "rung": 3,
+  "generated": "2026-09-03T22:13:39.594Z",
+  "byIteration": 180,
+  "rung": "4b",
   "diagnosis": {
-    "health": "Healthy on every number the runlog keeps, and I could not find the Solvista shape anywhere in it. 17 of the last 20 shipped, 0 reverts, selfVerdict == verdict on 19 of 20 (the exception is #171, where the worker before it died mid-build and the next one correctly downgraded its own shipped to no-ship), src moved 7 of the last 10. Cost is 28 min / $10.02 an iteration, the tenth pass running above the ~$5.77 run median, and for the sixth pass I priced it against output rather than excusing it: the last ten diffs mean 148 lines against 129, 103, 86 and 49 at the four passes before, so cost is rising SLOWER than output. The dearest rows are still the largest ones. What I do not like is unchanged from last pass — cacheRead is the read rent — and #175 has now bounded all four of the files that were growing unwatched. The single worst thing in this diagnosis is not in the runlog at all: I measured it myself (see rationale).",
+    "health": "Healthy, and cooling slightly rather than dying. 17 of the last 20 shipped, 0 reverts, selfVerdict == verdict on 19 of 20 (the exception is #171, correctly downgrading its own predecessor). src moved 8 of the last 10; the two that did not are Harness by design. Cost fell for the first time in five passes: 24 min / $8.20 against last pass's 28 min / $10.02, against a ~$5.77 run median. But OUTPUT fell with it — the last five diffs mean 100 lines (70/173/42/71/143) against 148 the pass before, which ends a four-pass rise of 49 -> 86 -> 103 -> 129 -> 148. Falling cost with falling output is not the Solvista shape (that was RISING cost with flat output) and it is one pass, not a trend; the honest reading is that #176-#180 were four medium jobs and one small one, and no bet among them was priced as a bet. That is my fault, not the workers'; b181 corrects it. stall.mjs shows no stall and no advisory signals: smallDiff, mapFlat and rungHeld are all clear, revertStreak=0, briefRejected 1 in 20.",
     "signals": [
-      "no stall signals, and no advisory signals — smallDiff/mapFlat/rungHeld all clear",
-      "revertStreak=0, briefRejected=1 in 20 (#161)",
-      "worker memory quota was OVER for the second consecutive open (46.7/46), now 44.0/46",
-      "MEASURED THIS PASS, not from the runlog: the viewport forks the seeded world"
+      "no stall signals; no advisory signals (smallDiff / mapFlat / rungHeld all clear)",
+      "revertStreak=0, shipped 17/20, selfVerdict == verdict 19/20",
+      "diff mean 148 -> 100: the first fall after four rises, with cost falling too",
+      "worker quota 45.4/46 KB at open, laws 38/60 but 12184/12288 BYTES — the byte cap was the binding one and I had to cut to add",
+      "MEASURED THIS PASS, not from the runlog: both surfaces the WATCH note called unmeasured are fine, and the river has no winter"
     ],
-    "balance": "After #175 the staleness order is People & animals 14 back (#161, and that one was a rejected brief, so its last SHIPPED entry is older still), Sky, light & weather 10 (#165), Courtyard & garden 7 (#168), Lane & market 6 (#169), Roofs & skyline 4 (#171). Coverage was five iterations stale when I opened it (#171-#175 unrecorded) and is now right. By KIND the grid is lopsided the other way: The sill & the observer x Harness now stands at 9 entries, twice any other cell, and I have marked it saturated — the loop's instruments have become the best-tooled thing it owns. This queue takes the three longest-untouched domains (life, sky, courtyard) and gives the bet to the observer, which is where the bug I found actually lives."
+    "balance": "The five domains in this queue are the five longest-untouched, in order of neglect: Lane & market 11 back (#169), Roofs & skyline 9 (#171), Cross street & allotments 8 (#172), Plaza & quay 7 (#173), River & far bank 6 (#174). Courtyard (#179), Sky (#178), People (#177) and the Sill (#180) all rest this batch. But the balance that actually chose the bet is a COLUMN, not a row: across 180 iterations the kinds run deepen 49, connect 40, new-element 30, polish 28, scale 20, interaction 13, harness 12, NEW-CA 7, fidelity 1. New CA rules are 7 in 180, the last at #135, and River, Sky, People and the Sill have never had one — in a piece whose own subtitle is 'a cellular block'."
   },
-  "rationale": "I shot the town before planning it — seed 42 at four instants (day 7 dusk 19.09h, sunset 22.58h, night 02.51h, and mobile) — and the shots did two things. The first was to settle the frontier honestly: the town is dense and the night frame is the best-looking state it has ever had, lamps and lit windows and fireflies over the lawn, the tenant out on the leads taking the washing in before the light goes. The second was an accident. The 1600x950 dusk shot is clear; the 390x844 shot of THE SAME seed AT THE SAME INSTANT is raining. I re-ran it as a measurement rather than trusting a picture: seed 42, __reseed() then __warp in 5 s steps, three viewports. They are bit-identical through simT 120. At simT 125 people reads 49 at 1600x950 and 48 at 390x844. By simT 415 cloud is 0.166 / 0.781 / 0.471 and `raining` is false / true / false at 1600x950 / 390x844 / 1200x720. One extra R() draw somewhere in the sim forks the seeded world for good, and the fork is a function of the WINDOW. Two consequences, and the second is worse than the first. (1) `?seed=` does not name a world — the artifact's headline promise. (2) Every multi-framing gate this loop owns has been comparing two different towns for 175 iterations: shoot.config.json has six framings, the visual gate shoots four, and the census, motion and filmstrip baselines are all pinned at one size. That is why this batch is rung 3 rather than 2. The ladder's rung 3 is 'widen the menu', and the menu is data precisely so the manager can extend it: I have added a ninth KIND, `fidelity` — make the world keep a promise it already makes. In 175 iterations this loop has had cells for 'does it look right' and 'did the census move' and no cell at all for 'does the artifact keep its word', which is exactly the blind spot a menu-as-data exists to close. b176 is the bet and it goes first. The other four are the three longest-untouched domains plus one cue that has waited long enough, and every one of them carries the number it rests on and where the number came from. Two standing warnings apply to this queue and are repeated in the briefs: b176 may reshuffle the seeded world, so every brief after it must re-count its own premise on HEAD (which is the law anyway); and c262's numbers are marked STALE in state.json because #173 re-cut the plaza under them.",
-  "queue": [],
-  "recommendStop": null,
-  "consumed": [
+  "rationale": "I shot the town before planning it (wide, seed 42, at t=175 early-summer morning, t=1210 late-winter night and t=1224 late-winter midday) and then measured the two things the picture made me want to brief, because the standing WATCH note says to. Both premises died. (1) The SILL, c259's 'same near-black bar at midday as at midnight': luma over the sill band at 1600x950 DPR 1 reads mean 13.98 sd 9.39 at midday with a range of 1.9-63.6, and sd/mean 0.671 — 2.4x the near roof's 0.281, the previous record. It is the most differentiated surface in the frame, and what the number exposes is the METRIC: sd/mean divides by a mean of 14. c259 closed, and the law that produced it corrected in LAWS.md. (2) The BACKDROP, the other class the note called unmeasured: sd/mean 0.150 / 0.160 over the frame's top 10% / 18% at midday, above GRASS and SIDE.cross. Also fine. That list is now empty; two briefs' worth of worker time saved, the same way #164's near-roof measurement saved 90 minutes.\n\nWhat the third shot found instead is the batch. In a late-winter midday frame — day 23, raining, every tree bare, thirty umbrellas up, the whole town gone grey-brown — the river is the most saturated, most summer-looking object in the picture. Priced on HEAD: riverCol() mixes toward RIVER_COLD by RIVER_TINT 0.30 and riverRun() runs 1.45x in January, so the channel has seasonal COLOUR and seasonal SPEED and no seasonal STATE. The fountain's basin, about thirty cells, skins over cell by cell in winter (FOUNT_ICE 0.7, fountainSkin(), ceiling 0.43 at midwinter). The 8784-cell channel does not. That is rung 4b by the census — ice is a new TILE kind and tileKinds moves — and it is the first new-ca in the River domain in 180 iterations, which is why I am taking 4b again rather than climbing past it: the RUNG repeats, the MOVE does not. mossCreep is the model and the brief says so; the town's best CA should not be reinvented next door.\n\nThe other four spend cues rather than inventing premises. b182 takes c267 (the lit panes have nobody at them), b183 takes c262 with its premise explicitly marked STALE and the re-measurement as the deliverable if it has died, b185 takes c268 against the source's OWN sentence — the second use of the `fidelity` kind the last pass added at rung 3, which is what tells us whether that menu widening was worth anything. b184 is the one I invented, and it is the weakest brief here: the town grows food and sells it and the food then evaporates, which I could see in the source but cannot see in a screenshot, so the brief makes the worker price it first and permits it to come back small.\n\nCuration. Coverage was three iterations stale (#178, #179, #180) so the balance grid I plan from was blind to them. LAWS.md was the real work: 38 laws at 12184 bytes against a 12288 cap, so every promotion had to be paid for. I merged all five of #176-#180's laws into laws they SUPERSEDE rather than stacking (the canvas-PRNG law into R(); cap-and-rate over cap-and-share; the two-dawns law absorbing the late-window split; the clock-vs-quantity law into the ground cache; ?t= into the probe-rewind law), corrected the sd/mean law with this pass's own measurement, folded the rate-of-zero law into cap-and-rate, and paid with three INSTRUMENT clauses — the rotation control, the dead-worker working tree, and #173's speedometer — on the ground that sill x harness is saturated at 9 entries, that motion.mjs now carries ABS_JUMP_KIND so the speedometer law is embodied in the tool, and that the loop's tooling is over-represented in the one file every worker reads whole. 36 laws, 12258 bytes, budget OK. Four cues closed, two raised, the stale VIEWPORT watch item rewritten as a standing rule now that #176 fixed it, and a new watch item aimed at this seat: read the KIND totals before the domain gaps.",
+  "queue": [
     {
-      "id": "b176",
-      "at": "2026-09-03T17:09:39.766Z"
+      "id": "b181",
+      "domain": "River & far bank",
+      "kind": "New CA rule",
+      "brief": "The river never has a winter. Priced on HEAD this pass: riverCol() mixes toward RIVER_COLD by RIVER_TINT 0.30 and riverRun() = 1 + RIVER_SWING 0.45 * greyF(), so the channel has seasonal COLOUR and seasonal SPEED and no seasonal STATE. The fountain's basin — about thirty cells — skins over cell by cell all winter (FOUNT_ICE 0.7, fountainIce(), fountainSkin(), ceiling FOUNT_ICE_MAX 0.43 at midwinter); the channel's 8784 water cells never do. Shoot seed 42 at t=1224 (day 23, late-winter midday, raining, every tree bare) and you will see it: the river is the most saturated, most summer-looking object in a grey-brown frame. Give it a cellular winter — an ICE state that GROWS per cell from the margins (the REED shallows, the eyot's lee, under the DECK, the still water against the quay) inward over cold days and retreats on a thaw. It must be a real CA, not a hash: a cell's chance of taking reads its FROZEN NEIGHBOURS, so the skin advances as a FRONT. Read moss[] first (courtyard.html ~line 2653: creep / shelter / the year, stepped in caTick) — it is the best CA in the town and the model here; mossShelterAt() already counts a WATER neighbour, and mossNb() is the neighbour read. Ice is a new TILE kind, so the census tileKinds must move. Everything that reads the water reads the ice: the mirror, drawRiverFlow's streaks, drawWaterShade, the ducks, and the rowboat — which does not row through ice, but boatWatch() is the best behaviour this domain has and must not die with it (the floor exists for exactly this reason; see the RIVER_SWING comment). THIS IS THE BET: a 150-300 line diff is expected and welcome, and a small one is a failure to take the swing.",
+      "seams": [
+        "RIVER_X0",
+        "RIVER_X1",
+        "riverCol",
+        "riverRun",
+        "RIVER_SWING",
+        "RIVER_TINT",
+        "FOUNT_ICE",
+        "fountainIce",
+        "fountainSkin",
+        "moss",
+        "mossNb",
+        "mossShelterAt",
+        "mossGrowF",
+        "mossDieF",
+        "caTick",
+        "REED",
+        "EYOT",
+        "DECK",
+        "drawRiverFlow",
+        "drawWaterMirror",
+        "drawWaterShade",
+        "updateBoat",
+        "boatWatch",
+        "updateDucks",
+        "buildGrid",
+        "snowCover",
+        "warmth",
+        "greyF"
+      ],
+      "successLooksLike": "On a midwinter wide shot the channel is pale and skinned at its edges and open down the middle; the same river at t=175 (early summer) is unchanged to the pixel; and over a swept year the ice arrives and goes as a moving front, not as a switch — quote the frozen cell count per day across a year, at more than two seeds.",
+      "avoid": "Do not freeze the whole channel: a solid white band is a worse picture than a teal one, and RIVER_SWING already says winter water runs 1.45x FASTER, so the middle stays open — the shelter term is what keeps it open, exactly as mossShel[] keeps the middle of the plaza bare. Do not re-implement the fountain's ice beside this; read it, and share what can be shared. Do not touch RIVER_TINT, RIVER_COLD or RIVER_GREEN — the seasonal tint is not the thing that is missing.",
+      "budgetMin": 80,
+      "risk": "high"
     },
     {
-      "id": "b177",
-      "at": "2026-09-03T20:10:11.345Z"
+      "id": "b182",
+      "domain": "Roofs & skyline",
+      "kind": "Deepen",
+      "brief": "c267: about twenty panes light up across the town every night and there has never been anybody at one. windowLit() is the ONE pane predicate and LIT[] the register, repainted after applyLight because a warm pixel drawn before the multiply is slate by midnight. Put somebody at a window: a silhouette that appears, crosses the pane and goes — bounded per pane, on the pane's own phases from hash() and never R(), the way #177 gave the lamps their moths. A pane is a screen-space register and not a world point, so this is a different solve from the moths and you should say in the ledger which register you drew into and why. The observable is a night wide shot in which the block opposite is inhabited rather than stencilled.",
+      "seams": [
+        "windowLit",
+        "LIT",
+        "applyLight",
+        "FACES",
+        "NIGHT_LAMPS",
+        "drawMoths",
+        "nightF",
+        "HOMES",
+        "hash"
+      ],
+      "successLooksLike": "Over an evening, one or two of the ~20 lit panes have a figure in them at any moment and the rest are empty rooms; a filmstrip shows figures arriving and leaving rather than a fixed stencil; the daylight count is 0.00 and no night in a swept year is empty.",
+      "avoid": "Do not add a second pane list — LIT[]/windowLit() is the one register, the way NIGHT_LAMPS became the one lamp list at #177, and a lit pane and an occupied pane must not be able to drift apart. Do not draw the figure into the ground or facade cache: it will arrive slate. Do not put a figure at every pane; a knot in one or two rooms reads, twenty identical silhouettes read as a pattern.",
+      "budgetMin": 45,
+      "risk": "medium"
     },
     {
-      "id": "b178",
-      "at": "2026-09-03T20:36:29.180Z"
+      "id": "b183",
+      "domain": "Plaza & quay",
+      "kind": "Deepen",
+      "brief": "c262, PREMISE MARKED STALE — re-measure before you build. The cue read 13 second acts ARMED and only 6 REACHED over 5 seeds x 14 days, with the lane band the sole caller and 0.29 people in the square. That was taken BEFORE #173, which cut plazaLane()/alleyGate()/alleyLead() as a real corridor, moved FAM_CAP 4 -> 5, and took plaza presence 10.05 -> 12.18 with crowded pairs per person 0.117 -> 0.103. Re-run the arm-vs-reach measurement on HEAD first. If the gap has closed, THE MEASUREMENT IS THE DELIVERABLE: write the numbers, close the cue, and pick the next thing the numbers show — do not manufacture a fix for a premise that has died. If the gap is still open, find where the second act dies (armed, walked, or refused at the door) and instrument the RUNG rather than the population.",
+      "seams": [
+        "PLAZA_X0",
+        "plazaLane",
+        "alleyGate",
+        "alleyLead",
+        "ringNode",
+        "RING_NODES",
+        "FAM_CAP",
+        "plazaWay",
+        "famWalk",
+        "PLAZA_PITS",
+        "QUAY_BENCHES",
+        "FOUNTAIN",
+        "spawnLaneAgent"
+      ],
+      "successLooksLike": "Either the arm->reach gap is gone and the ledger says so with the paired numbers against the pre-#173 reading, or a named clause in the second act is shown to refuse most of its callers and is fixed, with plaza presence and the crowded-pair rate both quoted before and after.",
+      "avoid": "Do not widen a cap before you have measured the share AT THE CHOICE — #173 already showed that widening this room buys crowding, and that many PLACES is not many WAYS IN. Do not add a new destination to the square.",
+      "budgetMin": 40,
+      "risk": "medium"
     },
     {
-      "id": "b179",
-      "at": "2026-09-03T20:56:50.581Z"
+      "id": "b184",
+      "domain": "Lane & market",
+      "kind": "Connect",
+      "brief": "The town grows food, sells it, and the food evaporates. produce[] fills from the plots per cell (plotTal, #159); stockMarket() turns the day's stock into mkShelf/mkBoards and computes `sold`; MK_KEEP 0.5 of the surplus stores to the next market and the remainder is simply dropped. Nothing downstream reads `sold`. Meanwhile CAFE_TABLES serves a cup and a saucer with no supply at all, and mkLine() is the only place the town ever says what it sold. PRICE THIS FIRST — grep `sold`, mkShelf, mkGoods(, produce[ and the cafe, because I read the source and not the running town, and there may be a consumer I missed; if there is, say so and re-aim at whatever the grep shows is genuinely unconnected. Otherwise: give the market's output a destination a viewer can SEE from the wide shot on a market afternoon, and one that is visibly absent on a bare February market when mkTotal is 0.",
+      "seams": [
+        "produce",
+        "plotTal",
+        "stockMarket",
+        "mkShelf",
+        "mkBoards",
+        "mkGoods",
+        "mkTrades",
+        "mkOpenCount",
+        "MK_KEEP",
+        "MK_NEED",
+        "MK_CAP",
+        "mkLine",
+        "CAFE_TABLES",
+        "cafeOpen",
+        "MARKET_STALLS",
+        "spawnLaneAgent",
+        "marketActive"
+      ],
+      "successLooksLike": "On a market afternoon something in the frame is legibly the market's doing and is not the stalls; on a February market with mkTotal 0 the same thing is absent. Quote the two states over a swept year, not one screenshot each.",
+      "avoid": "Do not add a fourth stall — MK_NEED is measured off 120 markets and says one stall on 24% of them already, so the pitches are under-used before you add one. Do not add a second text surface: the town has exactly ONE line of prose and it stays one line. If the honest answer after pricing is a 40-line change, ship 40 lines and say why.",
+      "budgetMin": 45,
+      "risk": "medium"
     },
     {
-      "id": "b180",
-      "at": "2026-09-03T21:20:51.645Z"
+      "id": "b185",
+      "domain": "Cross street & allotments",
+      "kind": "Fidelity",
+      "brief": "c268, and the source's own sentence is the claim under test. BON_K's comment states: 'hash share of shed days offered one — 5-6 of the 7 in every year of 12 (histogram); the weather then takes ~2/3'. #178 then measured HEAD at 37 bonfires and its candidate at 44 over IDENTICAL hash-only calendars, because the fire COUNT rides on bonfireWeather() at TWO gates — the spawn hour and the match — and nobody has bounded that swing. Re-run the histogram over at least 6 seeds x 4 years, check the comment's numbers against what HEAD actually does, bound the weather's swing at both gates, and make the sentence TRUE. Rewriting the sentence to what is true is an equally good outcome and is the point of the `fidelity` kind: the artifact keeping a promise it already makes in its own comments. probes/bonfire-year.mjs and probes/bonfire-wind.mjs already exist — read them before writing a third.",
+      "seams": [
+        "BONFIRE",
+        "BON_K",
+        "BON_SALT",
+        "bonfireWeather",
+        "stepBonfire",
+        "bon.spent",
+        "bon.blown",
+        "BON_WIND_HURRY",
+        "BON_BURN_H",
+        "isWindy",
+        "windF",
+        "snowCover",
+        "raining",
+        "bonfireName"
+      ],
+      "successLooksLike": "One number for offered shed days per year and one for fires actually lit, both with their spread across seeds, and the BON_K comment agreeing with them to the digit. The swing between two builds on identical calendars is bounded and stated.",
+      "avoid": "Do not add a new weather term — #178 already showed both faces of ONE scalar are enough, and this is a fidelity job, not a deepening. Do not touch the burn model (bon.spent as a fuel budget) unless the histogram says the burn is where the count moves.",
+      "budgetMin": 30,
+      "risk": "low"
     }
-  ]
+  ],
+  "recommendStop": null
 }
