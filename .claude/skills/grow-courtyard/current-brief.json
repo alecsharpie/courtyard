@@ -17,7 +17,7 @@
   "avoid": "The backdrop is ONE cached layer keyed on backKey — a per-frame truth on it is a live overlay, not a cache edit, and a warm pixel painted INTO the cache arrives slate after applyLight's multiply (that is exactly how #150 found HEAD's 80 'lit dots' were never lights). No new R(): this is the renderer, so hash() only. Sky x Polish is marked SATURATED since #32 — this is Deepen, and it must change what is THERE, not retint it.",
   "budgetMin": 45,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 162,
   "issued": "2026-09-03T07:05:58.656Z",
