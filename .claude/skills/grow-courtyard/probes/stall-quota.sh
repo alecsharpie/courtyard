@@ -10,8 +10,8 @@
 # and runs BOTH stall.mjs's over each: the working tree's, and HEAD's, which is the
 # control — a signal that HEAD also prints is not a signal this change added.
 #
-#   breached   -> quotaBreach fires, names the SURFACE, exit 2   (HEAD: silent)
-#   unmeasured -> quotaUnmeasured fires, advisory, exit 0        (HEAD: silent)
+#   breached   -> quotaBreach fires, names the SURFACE, exit 2   (pre-#164: silent)
+#   unmeasured -> quotaUnmeasured fires, advisory, exit 0        (pre-#164: silent)
 #   clean      -> NEITHER fires                 <- the zero that makes the two above
 #                                                  evidence rather than a stuck bit
 set -uo pipefail
@@ -21,7 +21,13 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
 cp "$HERE/stall.mjs" "$TMP/stall.mjs"
-git -C "$REPO" show "HEAD:.claude/skills/grow-courtyard/stall.mjs" > "$TMP/stall-head.mjs" || exit 1
+# The control is the stall.mjs from BEFORE #164 added these signals — pinned, not
+# HEAD. #164 landed, so HEAD now *is* the candidate and the control returned the
+# candidate's own numbers: three assertions here failed at #167 on a tree that had
+# not touched a line of them. A control must test a build-INDEPENDENT fact.
+BEFORE="$(git -C "$REPO" log --format='%H %s' -40 -- .claude/skills/grow-courtyard/stall.mjs | awk '/Iter 164:/{print $1"^"; exit}')"
+BEFORE="${BEFORE:-HEAD}"
+git -C "$REPO" show "$BEFORE:.claude/skills/grow-courtyard/stall.mjs" > "$TMP/stall-head.mjs" || exit 1
 
 # The rows are synthetic and DULL on purpose: shipped, source moved, 60-line diffs,
 # rotating domains, flat cost. Every other signal in the file is written to stay
@@ -68,14 +74,14 @@ check() { # check <label> <file> <want-exit> <grep-or-EMPTY> ...
 
 echo "=== 1. two iterations in a row over the quota ==="
 stage breach
-check "HEAD   " "$TMP/stall-head.mjs" 0 '!quota'
+check "before " "$TMP/stall-head.mjs" 0 '!quota'
 check "cand   " "$TMP/stall.mjs"      2 'quotaBreach' '2 iterations in a row appended over the memory quota' 'ledger x2' 'cue x2' '#163'
 grep -E 'memory quota|quotaBreach' <<<"$LAST_OUT" | sed 's/^/      /'
 
 echo
 echo "=== 2. the field present and never filled (what HEAD's own RUNLOG looks like) ==="
 stage unmeasured
-check "HEAD   " "$TMP/stall-head.mjs" 0 '!quota'
+check "before " "$TMP/stall-head.mjs" 0 '!quota'
 check "cand   " "$TMP/stall.mjs"      0 'quotaUnmeasured' 'measured nothing for 24 iterations' '!quotaBreach'
 grep -E 'memory quota|quotaUnmeasured' <<<"$LAST_OUT" | sed 's/^/      /'
 

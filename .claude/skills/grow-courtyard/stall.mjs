@@ -184,7 +184,7 @@ if (qStreak >= 2) {
  * parses the runner's whole `while` loop once, so a live runner keeps the OLD script
  * text until it is restarted. */
 const unmeasured = streak(r => 'quota' in r && r.quota == null);
-if (unmeasured >= 3) add('quotaUnmeasured', `the memory quota has measured nothing for ${unmeasured} iterations — run-loop.sh step 4 is not reaching the row, so a breach could not show here (restart the runner: a live loop keeps the old script text)`, 2, false);
+if (unmeasured >= 3) add('quotaUnmeasured', `the memory quota has measured nothing for ${unmeasured} iterations — run-loop.sh step 4 is not reaching the row, so a breach could not show here (#167 made runlog.mjs measure it ITSELF when the runner hands nothing over, so a null streak now means runlog is not reaching the row either — check quota.source)`, 2, false);
 
 /* A plan written long ago is planning for a town that no longer exists. */
 if (plan && plan.byIteration != null && rows.length) {

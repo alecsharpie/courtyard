@@ -2,7 +2,7 @@
 /* runlog.mjs — append ONE structured row per iteration to RUNLOG.jsonl.
  *
  *   node runlog.mjs --repo <path> --elapsed <s> --pre-blob <hash> [--raw <stream.jsonl>] [--rc <n>]
- *                   [--quota-out <context-budget --additions output>] [--quota-rc <n>]
+ *                   [--quota-out <context-budget --additions output>] [--quota-rc <n>] [--pre-sha <ref>]
  *
  * THE VERDICT IS DERIVED FROM EVIDENCE, NOT FROM THE WORKER'S SELF-REPORT.
  *
@@ -46,11 +46,22 @@ const PRE_BLOB = arg('--pre-blob', '');
 const RAW = arg('--raw', null);
 const RC = parseInt(arg('--rc', '0'), 10) || 0;
 const KIND_ARG = arg('--kind', 'worker');        // worker | manager
-/* context-budget.mjs --additions, already RUN by the runner against the commit the
- * iteration started from. Read, never re-run: the check needs a baseline ref only
- * the runner has, and this is called a second time by the worker itself. */
+/* context-budget.mjs --additions. The runner RUNS it (step 4) and hands the output
+ * over; when it does, it is read here and never re-run.
+ *
+ * But a handover through the shell is a dependency on the shell being CURRENT. #153
+ * added step 4 and every row since is `quota: null` — bash reads a script by byte
+ * offset, so the loop that has been live since before #153 still executes the text
+ * it was launched with, and no restart is the loop's to make. A gate that can only
+ * be measured by its caller is a gate its caller can silently stop measuring, which
+ * is #164's law (a field is not a reading) turned on the field #164 built.
+ *
+ * So with no --quota-out, this takes the measurement ITSELF, off the commit the
+ * iteration started from (`preSha`, the same one the pre-blob fallback recovers).
+ * Never both. */
 const QUOTA_OUT = arg('--quota-out', null);
 const QUOTA_RC = parseInt(arg('--quota-rc', '0'), 10) || 0;
+const PRE_SHA = arg('--pre-sha', '');
 
 /* --- cost, from the raw stream -------------------------------------------- */
 let costUsd = 0, turns = 0, tokens = null, model = null;
@@ -133,16 +144,30 @@ try { postBlob = execFileSync('git', ['-C', REPO, 'hash-object', 'courtyard.html
  * Worker only. A manager pass does not touch courtyard.html, so HEAD~1 for it is
  * the previous WORKER's commit — the fallback would credit the manager with the
  * worker's diff. No baseline is the honest answer there. */
-let preBlob = PRE_BLOB, preFrom = PRE_BLOB ? 'runner' : null;
-if (!preBlob && KIND === 'worker') {
+/* The COMMIT this iteration started from: the newest one that is not part of it.
+ * HEAD~1 in the single-commit case, and still right when a worker commits its
+ * source and its ledger row separately — and right BEFORE the commit too, where it
+ * is simply HEAD. Two consumers: the pre-blob fallback below, and the memory quota,
+ * whose --additions diffs the working tree against exactly this ref.
+ *
+ * Worker only, for the same reason the fallback is: a manager pass does not touch
+ * courtyard.html, so the newest non-`Iter N` commit is the previous WORKER's and
+ * the fallback would credit the manager with its diff. */
+let preSha = PRE_SHA;
+if (!preSha && KIND === 'worker') {
   const mine = new RegExp(`^Iter ${iter}\\b`);
   for (const line of git('log', '-20', '--format=%H\t%s').split('\n')) {
     const [h, ...s] = line.split('\t');
     if (!h || mine.test(s.join('\t'))) continue;
-    const b = git('rev-parse', `${h}:courtyard.html`);
-    if (b) { preBlob = b; preFrom = `fallback:${h.slice(0, 8)}`; }
+    preSha = h;
     break;
   }
+}
+
+let preBlob = PRE_BLOB, preFrom = PRE_BLOB ? 'runner' : null;
+if (!preBlob && KIND === 'worker' && preSha) {
+  const b = git('rev-parse', `${preSha}:courtyard.html`);
+  if (b) { preBlob = b; preFrom = `fallback:${preSha.slice(0, 8)}`; }
 }
 const srcChanged = !!(preBlob && postBlob && preBlob !== postBlob);
 
@@ -187,14 +212,37 @@ if (entryLine) {
  * gone. A breach is recorded, never graded: `verdict` does not read this field.
  * `over` is null when clean, so a row that never measured it and a row that passed
  * are distinguishable (`quota === null` vs `quota.rc === 0`). */
-let quota = null;
-if (QUOTA_OUT && existsSync(QUOTA_OUT)) {
-  const txt = readFileSync(QUOTA_OUT, 'utf8');
+/* Parse one --additions report. `over` is null when clean, so a row that never
+ * measured and a row that passed stay distinguishable (`quota === null` vs
+ * `quota.rc === 0`) — that distinction is the whole point and must survive both
+ * paths. A report with no baseline ref ("nothing to diff") measured NOTHING and
+ * must not be recorded as a clean pass. */
+function readQuota(txt, rc, source) {
+  if (txt == null || /nothing to diff/.test(txt)) return null;
   const at = txt.indexOf('\nOVER QUOTA:');
   const over = at === -1 ? [] : txt.slice(at).split('\n')
     .filter(l => l.trim().startsWith('\u2717'))
     .map(l => l.trim().replace(/^\u2717\s*/, ''));
-  quota = { rc: QUOTA_RC, over: over.length ? over : null };
+  return { rc, over: over.length ? over : null, source };
+}
+
+let quota = null;
+if (QUOTA_OUT && existsSync(QUOTA_OUT)) {
+  quota = readQuota(readFileSync(QUOTA_OUT, 'utf8'), QUOTA_RC, 'runner');
+} else if (KIND === 'worker' && preSha) {
+  /* No handover: measure it here rather than leave the field null for ever. Same
+   * script, same baseline the runner would have used. execFileSync THROWS on the
+   * non-zero exit that a breach reports, and the breach is exactly the reading
+   * worth having, so the output comes off the error too. */
+  let out = null, rc = 0;
+  try {
+    out = execFileSync(process.execPath, [join(HERE, 'context-budget.mjs'), '--additions', '--since', preSha],
+      { cwd: HERE, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  } catch (e) {
+    rc = typeof e.status === 'number' ? e.status : 1;
+    out = e.stdout == null ? null : String(e.stdout);
+  }
+  quota = readQuota(out, rc, 'self');
 }
 
 const now = new Date().toISOString();
@@ -269,7 +317,7 @@ let row = {
   verdict: null, selfVerdict,
   briefRejected: brief ? brief.briefRejected || null : null,
   secs: ELAPSED, costUsd: +costUsd.toFixed(4), turns, tokens, model,
-  evidence: { srcChanged, srcLines, committed, logged, reverted: revertMark, rc: RC, sha, subject: subject.slice(0, 120), preBlob: preBlob.slice(0, 12), preFrom, postBlob: postBlob.slice(0, 12) },
+  evidence: { srcChanged, srcLines, committed, logged, reverted: revertMark, rc: RC, sha, subject: subject.slice(0, 120), preBlob: preBlob.slice(0, 12), preFrom, preSha: preSha.slice(0, 12), postBlob: postBlob.slice(0, 12) },
   census: census ? { when: census.when, pageerrors: census.pageerrors, scalars: census.scalars } : null,
   censusDelta,
   quota,
@@ -321,6 +369,7 @@ if (prior) {
       srcLines: Math.max(pe.srcLines || 0, ne.srcLines || 0),
       preBlob: known(pe.preBlob, ne.preBlob),
       preFrom: known(pe.preFrom, ne.preFrom),
+      preSha: known(pe.preSha, ne.preSha),
     },
   };
 }
@@ -355,4 +404,4 @@ const verdict = row.verdict, self = row.selfVerdict, ev = row.evidence;
 const mm = String(Math.floor(row.secs / 60)), ss = String(row.secs % 60).padStart(2, '0');
 const mark = { shipped: '✔', reverted: '↩', 'no-ship': '○', failed: '✗', 'rejected-brief': '⊘', 'launch-failed': '⚡' }[verdict] || '?';
 const claim = self && self.replace(/[^a-z]/g, '') !== verdict.replace(/[^a-z]/g, '') ? `  (claimed: ${self})` : '';
-console.log(`${mark} Iter ${String(iter).padEnd(4)} ${String((row.domain || '—') + ' x ' + (row.changeKind || '—')).padEnd(34)} ${verdict.padEnd(15)} ${mm}m${ss}s  $${row.costUsd.toFixed(2)}  ${ev.srcLines ? `${ev.srcLines}L` : '0L'}  ${ev.sha}${prior ? `  [merged +${row.merges}]` : ''}${claim}${launchFailed ? `  (no worker started — brief ${brief ? brief.id : '?'} stays claimed)` : ''}${retryOnce ? `  (worker crashed — brief ${brief ? brief.id : '?'} re-issued once)` : ''}${row.harnessTouchedSrc ? '  ⚠ harness brief moved courtyard.html' : ''}${row.quota && row.quota.over ? `  ⚠ memory quota: ${row.quota.over.length} over — ${row.quota.over[0].slice(0, 72)}` : ''}`);
+console.log(`${mark} Iter ${String(iter).padEnd(4)} ${String((row.domain || '—') + ' x ' + (row.changeKind || '—')).padEnd(34)} ${verdict.padEnd(15)} ${mm}m${ss}s  $${row.costUsd.toFixed(2)}  ${ev.srcLines ? `${ev.srcLines}L` : '0L'}  ${ev.sha}${prior ? `  [merged +${row.merges}]` : ''}${claim}${launchFailed ? `  (no worker started — brief ${brief ? brief.id : '?'} stays claimed)` : ''}${retryOnce ? `  (worker crashed — brief ${brief ? brief.id : '?'} re-issued once)` : ''}${row.harnessTouchedSrc ? '  ⚠ harness brief moved courtyard.html' : ''}${row.quota ? (row.quota.over ? `  ⚠ memory quota: ${row.quota.over.length} over — ${row.quota.over[0].slice(0, 72)}` : `  quota ok (${row.quota.source || 'runner'})`) : '  quota NOT MEASURED'}`);

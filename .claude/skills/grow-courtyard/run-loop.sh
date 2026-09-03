@@ -355,6 +355,13 @@ while :; do
   # It REPORTS. It does not revert, does not fail the iteration and does not count
   # against MAX_FAILS: a runner that threw away gate-passed work over a 260 B cue
   # would be worse than the drift it is correcting. A clean iteration says nothing.
+  #
+  # And this step is now belt-and-braces rather than the only path. Bash reads a
+  # script by byte offset, so the loop that has been live since before #153 never
+  # executed these lines at all and every row since reads `quota: null`. #167 moved
+  # the measurement into runlog.mjs, which takes it itself when handed nothing —
+  # so this hands over the baseline explicitly (--pre-sha) and runlog uses THIS
+  # reading when it arrives, never both.
   QUOTA_OUT="$(mktemp)"
   node "$HERE/context-budget.mjs" --additions --since "$PRE_SHA" > "$QUOTA_OUT" 2>&1
   quota_rc=$?
@@ -365,7 +372,8 @@ while :; do
 
   # ---- 5. record what actually happened --------------------------------------
   node "$HERE/runlog.mjs" --repo "$REPO" --elapsed "$elapsed" --raw "$raw" \
-       --pre-blob "$PRE_BLOB" --rc "$rc" --quota-out "$QUOTA_OUT" --quota-rc "$quota_rc" 2>&1 | tee -a "$LOG" || true
+       --pre-blob "$PRE_BLOB" --pre-sha "$PRE_SHA" --rc "$rc" \
+       --quota-out "$QUOTA_OUT" --quota-rc "$quota_rc" 2>&1 | tee -a "$LOG" || true
   rm -f "$raw" "$QUOTA_OUT"
 
   if [ "$rc" -ne 0 ]; then

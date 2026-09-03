@@ -90,9 +90,12 @@ if (has('--cue')) {
   const note = (after('--cue', 99) || []).join(' ').trim();
   if (!note) { console.error('usage: --cue "…"'); process.exit(1); }
   /* Max existing id + 1, never a count: a count re-issues an id whenever a cue has
-   * been absorbed or renamed (c61 collided at pass #37, c64 at iter 38). */
+   * been absorbed or renamed (c61 collided at pass #37, c64 at iter 38). `cueSeq`
+   * is the high-water mark rotate-ledger.mjs writes back when it prunes closedCues
+   * into the archive — without it the prune could carry the maximum out of the file
+   * and the next cue would take a live id. */
   const used = [...s.openCues, ...(s.closedCues || [])].map(c => parseInt(String(c.id).slice(1), 10) || 0);
-  const id = 'c' + (Math.max(0, ...used) + 1);
+  const id = 'c' + (Math.max(0, s.cueSeq || 0, ...used) + 1);
   s.openCues.push({ id, note, raisedBy: s.lastIteration, seenBy: 0 });
   save(); console.log(`state: cue ${id} raised.`);
   process.exit(0);

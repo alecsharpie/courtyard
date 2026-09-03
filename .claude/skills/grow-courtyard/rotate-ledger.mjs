@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /* rotate-ledger.mjs — keep the loop's memory inside its budget.
  *
- *   node rotate-ledger.mjs            rotate LEDGER.md, warn on LAWS.md
+ *   node rotate-ledger.mjs            rotate LEDGER.md + state.json, warn on LAWS.md
  *   node rotate-ledger.mjs --keep 12
+ *   node rotate-ledger.mjs --prune-only      just state.json's closed cues
  *
  * Entries past the last N move to LEDGER-archive.md. Nothing is ever deleted —
  * the archive is the manager's history, and the only reason the worker's context
@@ -23,6 +24,8 @@ const LAWS = join(HERE, 'LAWS.md');
 
 const arg = (n, d) => { const i = process.argv.indexOf(n); return i !== -1 && process.argv[i + 1] ? process.argv[i + 1] : d; };
 const KEEP = +arg('--keep', '8');
+const KEEP_CLOSED = +arg('--keep-closed', '40');
+const PRUNE_ONLY = process.argv.includes('--prune-only');
 const LAWS_CAP = 12 * 1024, LAWS_MAX = 60;
 
 if (!existsSync(LEDGER)) { console.error('rotate: no LEDGER.md'); process.exit(1); }
@@ -31,7 +34,12 @@ const txt = readFileSync(LEDGER, 'utf8');
 /* Entries are `## Iteration N — …`. The header and template above the first one
  * are not entries and never rotate. */
 const marks = [...txt.matchAll(/^## Iteration \d+.*$/gm)];
-if (marks.length <= KEEP) {
+if (PRUNE_ONLY) {
+  /* --prune-only exists so a worker can take the state.json prune without also
+   * rotating the ledger. Which entries the worker still needs in front of it is
+   * the MANAGER's judgement, made with the archive open; a worker reaching for
+   * the pruner should not silently make it. */
+} else if (marks.length <= KEEP) {
   console.log(`rotate: ${marks.length} entries, keeping ${KEEP} — nothing to move.`);
 } else {
   const cutAt = marks[marks.length - KEEP].index;
@@ -54,7 +62,7 @@ if (marks.length <= KEEP) {
  * three more workers opened OVER budget. An advisory cap that nobody enforces is
  * a comment. So it is measured here, in the script the manager runs every pass,
  * and it names the entry — condensing it is the manager's job and nobody else's. */
-{
+if (!PRUNE_ONLY) {
   const cur = readFileSync(LEDGER, 'utf8');
   const m = [...cur.matchAll(/^## Iteration \d+.*$/gm)];
   const ENTRY_CAP = 1.8 * 1024;   // #120: was 2.5; three entries at 2.5 are 18% of the worker's whole read budget
@@ -126,7 +134,59 @@ if (marks.length <= KEEP) {
   }
 }
 
-if (existsSync(LAWS)) {
+/* ---- closed cues: the fourth unbounded file ---------------------------------
+ * The block above caps every dimension a WORKER reads. `closedCues` is none of
+ * them and had no cap at all: 232 notes, 85 KB of a 117 KB state.json, in the file
+ * the manager opens first and state.mjs rewrites whole on every `--cue` and every
+ * `--close-cue`. It grows by construction — a cue is closed and never removed —
+ * which is the same shape rotate() already answers for the ledger, so it gets the
+ * same answer rather than a new one: the tail stays, the rest moves to an
+ * append-only archive, nothing is deleted.
+ *
+ * The tail, by ARRAY POSITION, because `closedCues` is append-ordered by CLOSING
+ * and that is the order a manager reads it back in — not by id, which is the order
+ * they were RAISED in and would shuffle the recent decisions.
+ *
+ * `cueSeq` is the one thing a prune could genuinely lose. state.mjs allocates the
+ * next cue id as max-id-ever + 1, read off open + closed, and a cue raised early
+ * and closed late carries a low id in a late slot — so pruning by position CAN
+ * carry the maximum out of the file and re-issue a live id. The high-water mark is
+ * therefore written back into state.json as the prune happens, and state.mjs reads
+ * it alongside the two lists. */
+{
+  const f = join(HERE, 'state.json');
+  const CUE_ARCHIVE = join(HERE, 'closed-cues-archive.jsonl');
+  if (existsSync(f)) {
+    try {
+      const s = JSON.parse(readFileSync(f, 'utf8'));
+      const closed = Array.isArray(s.closedCues) ? s.closedCues : [];
+      const idOf = c => {
+        const m = /c(\d+)/.exec(typeof c === 'string' ? c : String((c && c.id) || ''));
+        return m ? +m[1] : 0;
+      };
+      const seq = Math.max(s.cueSeq || 0, ...closed.map(idOf), ...(s.openCues || []).map(idOf));
+      const was = Buffer.byteLength(JSON.stringify(closed));
+      if (closed.length > KEEP_CLOSED) {
+        const moving = closed.slice(0, closed.length - KEEP_CLOSED);
+        appendFileSync(CUE_ARCHIVE, moving.map(c => JSON.stringify(c)).join('\n') + '\n');
+        s.closedCues = closed.slice(closed.length - KEEP_CLOSED);
+        s.cueSeq = seq;
+        writeFileSync(f, JSON.stringify(s, null, 2) + '\n');
+        const now = Buffer.byteLength(JSON.stringify(s.closedCues));
+        console.log(`\nclosed cues: moved ${moving.length} to closed-cues-archive.jsonl, kept the last ${KEEP_CLOSED}`);
+        console.log(`  ${(was / 1024).toFixed(1)} KB -> ${(now / 1024).toFixed(1)} KB   (state.json now ${(statSync(f).size / 1024).toFixed(1)} KB, cueSeq ${seq})`);
+      } else if (s.cueSeq !== seq) {
+        s.cueSeq = seq;
+        writeFileSync(f, JSON.stringify(s, null, 2) + '\n');
+        console.log(`\nclosed cues: ${closed.length}/${KEEP_CLOSED} — nothing to move (cueSeq ${seq}).`);
+      } else {
+        console.log(`\nclosed cues: ${closed.length}/${KEEP_CLOSED} — nothing to move.`);
+      }
+    } catch (e) { console.log(`\nclosed cues: state.json unreadable — ${e.message}`); }
+  }
+}
+
+if (!PRUNE_ONLY && existsSync(LAWS)) {
   const laws = readFileSync(LAWS, 'utf8');
   const n = (laws.match(/^- \*\*/gm) || []).length;
   const bytes = statSync(LAWS).size;

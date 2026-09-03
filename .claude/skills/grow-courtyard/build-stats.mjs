@@ -106,6 +106,15 @@ const norm = s => String(s || '').toLowerCase().replace(/[^a-z]/g, '');
 const claimed = rows.filter(r => r.selfVerdict);
 const overclaimed = claimed.filter(r => norm(r.selfVerdict) !== norm(r.verdict));
 
+/* ---- the memory quota ------------------------------------------------------
+ * The other half of the same honesty: every iteration appends to the three files
+ * every future iteration re-reads, and --additions bounds that append. Counted
+ * here as measured-of-total and over-of-measured, never as over-of-total — a
+ * denominator that includes the unmeasured rows would report a gate that has
+ * stopped running as a gate that keeps passing. */
+const qMeasured = rows.filter(r => r.quota != null);
+const qOver = qMeasured.filter(r => r.quota.rc !== 0 || (r.quota.over && r.quota.over.length));
+
 /* ---- what it worked on ---------------------------------------------------- */
 const tally = key => {
   const m = {};
@@ -164,8 +173,14 @@ if (existsSync(join(HERE, 'MANAGER-LOG.md'))) {
 }
 
 const data = {
+  /* `q` is THREE-valued on purpose: null = the append quota was never measured on
+   * this row, 'ok' = measured and inside it, 'over' = measured and breached. #153
+   * wired the gate into the row and #164 found every reading since sitting at null
+   * — which to anything counting only breaches is the same silence as a pass. The
+   * table must not repeat that: not measured is not a tick. */
   rows: rows.map(r => ({ i: r.iter, v: chartVerdict(r.verdict), vRaw: r.verdict, self: r.selfVerdict || null,
-    s: r.secs, c: r.costUsd, d: r.domain, k: r.changeKind, L: (r.evidence || {}).srcLines || 0, b: r.brief })),
+    s: r.secs, c: r.costUsd, d: r.domain, k: r.changeKind, L: (r.evidence || {}).srcLines || 0, b: r.brief,
+    q: r.quota ? (r.quota.over ? 'over' : 'ok') : null, qo: (r.quota && r.quota.over) ? r.quota.over.join(' · ') : null })),
   managers: managers.map(r => ({ i: r.iter, s: r.secs, c: r.costUsd })),
   growth: growthSeries, growthKeys: GROWTH_LABELS,
   ctx, decisions, domains, kinds, maxIter,
@@ -346,6 +361,7 @@ footer a{color:var(--s1)}
     <div class="tile"><div class="tv">${claimed.length ? Math.round((overclaimed.length / claimed.length) * 100) : 0}<span class="tvu">%</span></div><div class="tl">Claim ≠ evidence</div><div class="td">across ${claimed.length} labelled runs</div></div>
     <div class="tile"><div class="tv">${rows.filter(r => r.verdict === 'rejected-brief').length}</div><div class="tl">Briefs already built</div><div class="td">worker checked before building</div></div>
     <div class="tile"><div class="tv">${rows.filter(r => (r.evidence || {}).srcChanged).length}</div><div class="tl">Iterations that moved the town</div><div class="td">of ${rows.length}</div></div>
+    <div class="tile"><div class="tv">${qMeasured.length}<span class="tvu">/${rows.length}</span></div><div class="tl">Memory quota measured</div><div class="td">${qOver.length} over the append cap</div></div>
   </div>
 </section>
 
@@ -402,9 +418,10 @@ footer a{color:var(--s1)}
 <section>
   <h2>The build log</h2>
   <p class="sub">Most recent first. Where and how it changed the town, what the diff proved, what the
-  worker claimed, its runtime and its would-be cost.</p>
+  worker claimed, whether its append stayed inside the memory quota, its runtime and its would-be cost.
+  A quota of &ldquo;&mdash;&rdquo; is <em>not measured</em>, which is not a pass.</p>
   <div class="tablewrap"><table id="ledger"><thead><tr><th class="num">#</th><th>Where</th><th>How</th>
-    <th>Outcome</th><th>Claimed</th><th class="num">Lines</th><th class="num">Time</th><th class="num">$</th></tr></thead><tbody></tbody></table></div>
+    <th>Outcome</th><th>Claimed</th><th class="num">Lines</th><th class="num">Quota</th><th class="num">Time</th><th class="num">$</th></tr></thead><tbody></tbody></table></div>
 </section>
 
 <footer>
@@ -621,7 +638,10 @@ function fillTables(){
     const cls={'shipped':'v-ship','reverted':'v-rev','no-ship':'v-none','failed':'v-fail'}[r.v];
     return '<tr><td class="num">'+r.i+'</td><td>'+(r.d||'—')+'</td><td>'+(r.k||'—')+'</td>'+
       '<td><span class="vb '+cls+'"></span>'+r.vRaw+'</td><td>'+(r.self||'—')+'</td>'+
-      '<td class="num">'+(r.L||'—')+'</td><td class="num">'+Math.round(r.s/60)+'m</td>'+
+      '<td class="num">'+(r.L||'—')+'</td>'+
+      '<td class="num"'+(r.qo?' title="'+r.qo.replace(/"/g,'&quot;')+'"':'')+'>'+
+        (r.q==='over'?'<span class="vb v-fail"></span>over':r.q==='ok'?'ok':'—')+'</td>'+
+      '<td class="num">'+Math.round(r.s/60)+'m</td>'+
       '<td class="num">$'+r.c.toFixed(2)+'</td></tr>';}).join('');
   const dt=document.querySelector('#decisions tbody');
   if(dt) dt.innerHTML=[...D.decisions].reverse().map(d=>
