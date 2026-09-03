@@ -40,34 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 149 — two gates that lied, and one of them now binds the worker (2026-09-03) [The sill & the observer × Harness]
-
-**Brief:** b149 — bound what ONE iteration ADDS; fix or retire `probes/punt.mjs`. Full entry in LEDGER-archive.md.
-**Budget.** `--additions` diffs the tree against a ref (`--since`, default HEAD) over the three surfaces a worker writes and every open re-reads: entries, inventory lines, cues. Quota: 1 entry ≤ 1.8 KB, ≤ 1 inventory line, ≤ 1 cue, 250 B each; exit 3, **naming** the offender.
-**Punt (c227).** Both stranding tests had stopped being faults. `punt.leg === 0` assumed ONE hull; #141's second leaves A moored while B carries. `!eastOpen()` is the case #131 BUILT. Replaced by two questions no punt predicate can satisfy: ORPHAN (`a.eyot`, no hull holds them) and OVERDUE (`a.eyot` at `EVE_GONE`). Exits 1 now; also wrapped a trip length that read negative past midnight.
-**Gates:** `courtyard.html` **byte-identical** — census unchanged in all six blocks, shots clean. `--additions` 0/exit 0 on HEAD; staged over-quota state + a 2.35 KB entry → 6 named failures/exit 3. `punt.mjs` HEAD 0/exit 0; `--strand` 2475 ORPHAN/exit 1; `--strand-late` 14 OVERDUE at 02:54/exit 1.
-**Surprise:** `state.inventory` holds a `note` **string** beside its nine domain arrays — iterated as a list it yields one "line" per CHARACTER. Only the falsification found it; HEAD was a clean, plausible zero.
-**Note:** `run-loop.sh` never calls `--additions`, so the quota binds only if the worker obeys SKILL.md (open cue).
-
-## Iteration 150 — the distance gets six rungs, and the far town lights (2026-09-03) [Sky, light & weather × Scale/World]
-
-**Brief:** b150 — the distance was ONE band, ONE base, ONE colour; give it depth.
-**Did.** `FAR_BANDS`: four ranks, each with its own roofline range, house rhythm, tower scale, chimney share and haze. **Each band's foot is the next-nearer band's HIGHEST roofline**, so a farther rank can only appear ABOVE a nearer one: no floating feet, no gap, nothing below the old base. Rank 3 IS HEAD's — base, rhythm, hash addresses — plus chimneys and glass. A palest second ridge behind the hills, HEAD's lifted clear of the ranks. `farWindowLit` is `windowLit`'s shape on `nightAt()`: no HOMES, no risers, one clock for both towns.
-**Gates:** census **unchanged, all six blocks** (no `R()`; it cannot see depth beyond the grid, as briefed) · motion PASS · filmstrip 0 POP day and night · perf +0%.
-**Measured** (`probes/far-depth.mjs`). Rungs in the layer: HEAD **2** → **6** (L186 to L142, even steps), all six visible on screen. Strip mass against a **same-code control of 0.000%**: 7.11% desktop, 4.87% phone; below the foot **0 px differ**, 5 instants × 2 sizes. Night: rows hz−2/−1 go 0 → 31/74 warm px, the furthest rank dark, lit count 147→474→171.
-**Verdict:** shipped
-**Surprise:** HEAD's 80 "lit dots" were never lights. Painted into the cache, they meet the multiply last: 242 px in the layer, 61 in the frame, and the warm-pixel count above the roofline is **identical with them present and removed**. Dead since the layer was written.
-
-## Iteration 151 — our own terrace throws a real shadow across the lane (2026-09-03) [Roofs & skyline × Connect]
-
-**Brief:** b151 — the lane took 0.0% building shadow: `eaveFor()` zeroes our block for a DRAWING reason, and `shTop` believed it.
-**Priced.** 27 daylit hours, 4 seasons, HEAD's own march held out: **0 lane sub-cells at every one**. Unlike the towers there is somewhere for it to go: shOpen is open over the whole lane, 1,122 ROAD + 791 SIDE cells.
-**Did.** `shCast[]` beside `shTop[]`: the DRAWN height stays in the occlusion walk, the CAST one goes to the march, now `y < WH`. `NEAR_EAVE = eaveBand(0, LN_WALK_S)` = **5.6**, the gatehouse row's own band and so the far side of this same lane, its built `eaveM` mean **5.596**. Cast height is our emergent roof lifted bodily onto it, so ridge, hips and valleys stay the distance transform's.
-**Gates:** census PASS, six groups unchanged (no `R()`) · motion PASS, identical · filmstrip day 0 POP · `frame-cost.mjs` x3 interleaved: +0.03 summer, +0.06 winter ms.
-**HEAD → cand** (`probes/lane-shade.mjs`, new): **shOpen byte-identical**, the mask north of the lane too, over 12 instants. Lane SIDE **0 → 952-1,482** sub-cells at every hour of the year; ROAD 0 → 472-982 at a low sun, **0 at a summer noon**, the edge sliding 77→74 with the season. `shade-diff.mjs` t=1068: **43,004 px** on a same-code floor of 507, and its `behindAVolume` 22 / `ROOF/WALL` 16 *are* the floor's, so nothing lands on a roof.
-**Verdict:** shipped
-**Surprise:** the terrace's own GAPS came free. Rows 73-78 fill to 85-92%, never 100: the missing ~60 sub-cells are exactly the river's 15-cell gap in the block, a slot of sunlight where the terrace isn't.
-
 ## Iteration 152 — the kneel at an unripe plot now does something (2026-09-03) [People & animals × Deepen]
 
 **Brief:** b152 — one arrival performs nothing: a hand-sow kneel plants 0 cells. Re-count on HEAD first.

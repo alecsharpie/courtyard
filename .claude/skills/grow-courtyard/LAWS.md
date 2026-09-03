@@ -32,11 +32,7 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
   half of [0,1) it owned. **Two seeds is not a sample**, and at small n a threshold is not a share:
   rank the members by their own hash and cut at the quantiles — and a bar on a BIMODAL scalar is a
   coin, so histogram the value AT THE CALL before sweeping the constant. (#2–#154)
-- **The renderer's six traps.** (a) `project()` pinches on *screen* depth and LIFTS z NORTHWARD: each
-  cell of height on a near volume walks it ~1.15 rows UP the frame — price a foreground against what
-  is BEHIND it. (b) Roofs are emergent from
-  `buildVolumes()`: change a footprint, never a roof, and two solid footprints that TOUCH are one
-  roof. (c) Two figures nearer than ~0.9 cells render as one shape — move a scatter's centre, not its
+- **The renderer's six traps.** (a) `project()` pinches on *screen* depth and LIFTS z NORTHWARD, so price a foreground against what is BEHIND it. (b) Roofs are EMERGENT from `buildVolumes()`: change a footprint, never a roof; two that TOUCH are one roof. (c) Two figures nearer than ~0.9 cells render as one shape — move a scatter's centre, not its
   members, and let a displacement OWN the tick (`return` after the shove); two MOVERS on a track
   share a CORRIDOR, not a point, so sweep their whole paths against each other and offset BOTH ends
   equally. (d) Height is read off the place under the feet (`agentZ`, `nearZ`) EVERY frame, never
@@ -44,70 +40,64 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
   offset added to a PROJECTED coordinate is a PIXEL and the projection is not linear in it — solve
   BOTH ends of a stroke in world space and project each. (f) A cast image's TARGET SET is a
   VISIBILITY question before a geometry one: because (a) lifts a volume up the frame, a NORTHWARD
-  throw must be vetoed per column or it paints the caster's own roof — and price its EXTENT off
-  `-S/S[2]` first, since `sunVec()` is a stylised HIGH sun (65–76° at midday: a 5.4-cell wall reaches
-  two cells). But that prices the RAY, not where it LANDS: a caster is bounded by the OPEN WORLD
-  downwind, so price the reachable GROUND before raising one. The MIRROR is the same
-  solve with the eye for the sun — a NEGATIVE z, so a caster's own draw IS its image; every draw
-  landing ON the plane must read the sign. Shadow northward, image southward. Quads that must not double-darken are ONE path filled ONCE. (#4–#146)
+  throw must be vetoed per column or it paints the caster's own roof. Price the RAY off `-S/S[2]`
+  (`sunVec()` is a stylised HIGH sun: a 5.4-cell wall reaches two cells), then price where it LANDS —
+  a caster is bounded by the OPEN WORLD downwind. The MIRROR is the same solve with the eye for the
+  sun: a NEGATIVE z, so a caster's own draw IS its image, and every draw landing ON the plane reads the sign. Shadow northward, image southward.  (#4–#146)
 - **Time is compressed, and a walk is priced at its CHOICE and spent on its way.** A day is 55 s: a
   ~40 s trip is a resident. Caps set inflow, trip length sets population — floor the arrival *rate*,
   end a population by sending nobody new, and measure **presence**, not a per-instant crop. A
   window is a SET-OUT bound or a PRESENCE bound and the two differ by a whole visit, so NAME which
   yours is and price presence as rate × visit BEFORE choosing the cap. Price ARRIVAL against the
   window's END, open it a trip EARLIER than its hour, and bound BOTH ends — a window with only a LANDING bound is a
-  marathon-walker factory, and its END is the hour the last person is GONE, so the walk home is
-  priced at the choice too. Walking is ~5.2 cells/h; price N places as N × (leg + stand). **A unit of work DRAWN before it
+  marathon-walker factory, and its END is the hour the last person is GONE. Walking is ~5.2 cells/h; price N places as N × (leg + stand). **A unit of work DRAWN before it
   is PRICED makes the price all-or-nothing** — solve the room the unit has and take `min(drawn,
-  room)` against a floor.  (#2–#148)
+  room)` against a floor. And **a lower bound on ARRIVAL with no bound on the WALK is a wait a walker
+  can pay by WALKING**: bag the affordable doors first, or the bag keeps only the DEAR ones and "the
+  cheapest door" is the cheapest expensive one. (#2–#157)
 - **A feature that exists may exist at a rate of zero — count before you build on it.** A spawn band
   is a *share of a budget*, not a rate, so a rare thing needs its OWN source; a linear cap with no
   knee buys only the branch nearest the source, so the SHARE, not the ceiling, is the cap beneath the
   cap. **A cap and a share are two bounds and only one can be swept**: re-weight the branch, then
   re-sweep, because the sweep is what reveals the ceiling has stopped binding at all — identical
-  numbers at two settings is a DEAD constant, not headroom. Measure a share at the CHOICE, never by presence, which weights a branch by its dwell.
+  numbers at two settings is a DEAD constant and the SUPPLY was always the cap. Measure a share at
+  the CHOICE, never by presence, which weights a branch by its dwell — and count ADMISSIONS apart from
+  choices, because **a share widened at a destination with a FIXED NUMBER OF PLACES becomes overflow
+  into its NEIGHBOUR, not presence**: the refused fraction is the door, and a door is the one bound a
+  sweep of the ceiling cannot see.
   Watch the CAP's membership the same way: a band capped on `things.filter(p).length` counts every
   later population that also satisfies `p` — **define membership POSITIVELY at the source (a flag on
   the spawn literal, inherited by every branch), never as a residual**, and end it positively at the
-  CLAIM: a one-shot choice guarded only by the state it CONSUMES is re-entrant the moment that state
-  is duplicated.  Instrument a compound predicate CLAUSE
+  CLAIM: a one-shot choice guarded only by the state it CONSUMES is re-entrant.  Instrument a compound predicate CLAUSE
   BY CLAUSE in its own evaluation order: the loudest refusal is usually the cheap boolean in front of
-  the arithmetic. (#7–#144)
+  the arithmetic. (#7–#159)
 - **A ceiling is not a kill term, and a scalar is not a switch**: a system that ages out what sits at
   its ceiling is emptied by lowering it. Give a scalar that can reach zero per-cell variance
   (`hash(x,y+k) > c`) at the grain the region is ADDRESSED by; split the behaviour boolean from the
-  0..1 intensity draw sites multiply (`isWindy`/`windF`). An accumulator-fed per-cell field needs **PROPORTIONAL** decay; flat subtraction quantises the map to
-  {0, cap}. **An accumulator is a RATE as well as a field**: a durable mark whose source recurs more
-  slowly than the field decays never accrues, so the lasting part belongs in the FABRIC and only the
-  recent part in the CA. (#3–#135)
+  0..1 intensity draw sites multiply (`isWindy`/`windF`) — and then grep for the copies, because **a
+  bar spelled as a MAGIC NUMBER over a bimodal input is a silent duplicate of the predicate that
+  names it**, which giving the input a middle turns into a coin on each consumer's own hour. An accumulator-fed per-cell field needs **PROPORTIONAL** decay; flat subtraction quantises the map to
+  {0, cap}. (#3–#156)
 - **The night's clock and the sun's hour are two axes, and the gap between them BREATHES with the
-  season.** `nightF`'s edges sit `NIGHT_K*dayHours` (1.7 h winter, 2.5 h summer) outside sunrise and
-  sunset, so anything happening *at first light* keys on `sunUp`, never on the night's span. `!daylight` / `nightF>0.3` is DAWN as well as
+  season.** `nightF`'s edges sit `NIGHT_K*dayHours` outside sunrise and sunset, so anything happening *at first light* keys on `sunUp`, never on the night's span. `!daylight` / `nightF>0.3` is DAWN as well as
   dusk: any rule ending something because the light is low must be bounded on BOTH sides of noon. A
   **hard-coded HOUR in a light or warmth term is a seasonal bug invisible to a screenshot**: solve an hour OF THE SUN at the instant it applies. Re-keying a term onto the sun moves its OFFSET, and its WIDTH must then stay
-  FIXED — scaling both makes the value at sunset+k a function of the season again, which was the
-  fault; scale a width only when the thing is the night's clock (`dawnF`). A social window a LIGHT term also cuts is two bounds and only
+  FIXED — scaling both makes the value at sunset+k a function of the season again; scale a width only when the thing is the night's clock (`dawnF`). A social window a LIGHT term also cuts is two bounds and only
   one moves with the season: solve the sun's hour and INTERSECT. And `day` rolls at hour 6, so it
   holds TWO dawns. (#12–#148)
 - **The ground is a CACHE and the night is a COMPOSITE.** `drawBlocks`/`drawGround` rebuild at
   whatever cadence sets the dirty flag most often, so a per-frame truth on a facade or the ground is a
   live overlay: register at cache time, repaint live. What you lift out of a cache carries what was drawn ON TOP of it (`frame-cost.mjs`, not
   `perf.mjs`); anything registered in SCREEN space at cache time (`FACES`) goes stale through the
-  camera ease — map it through `k = viewS/gview.s`. A night colour is set by the LAST composite that
-  touches it: anything drawn live before `applyLight`'s multiply is slate by midnight, so it must
-  REGISTER its point and be repainted in a `screen` pass after — "it is drawn" is not "it can be
-  seen". A warm pixel painted INTO the cache is in exactly that trouble: register its points in the
-  SAME rebuild as the image, and repaint after. (#39–#150)
+  camera ease — map it through `k = viewS/gview.s`. A night colour is set by the LAST composite that touches it: anything warm arriving before `applyLight`'s multiply — drawn live, or painted INTO the cache — is slate by midnight, so it must REGISTER its point in the SAME rebuild as the image and be repainted in a `screen` pass after. "It is drawn" is not "it can be seen". (#39–#150)
 - **The FRAMING decides what exists: bound the near world in DEPTH, and anchor it on the sill.**
   `sillTop()` eats the bottom ~7% of every frame and the depth it lands at is a function of the
   window, not a constant. No world-space ROW bound is safe at every size: bound a near band in DEPTH (`y − z·LIFT`, world state) for the SHORTEST framing you
-  support. A quarter cannot reach the world's edge by ZOOMING — move the extent, not
-  the zoom. And the frame decides what COMPETES: **a contention price is only a price where there IS
+  support. And the frame decides what COMPETES: **a contention price is only a price where there IS
   contention**, so a rule ranking callers on a shared surface binds at Wide and slides off at a
   quarter, where `inView` has already filtered the others out.  (#27–#142)
 - **A probe's world is only as rewound as you make it — and suspect the INSTRUMENT first.**
-  `__reseed()`/`__setTime()` rewind the PRNG and clock, not latches or spawned agents; frames drawn at
-  page load move the PRNG, so without `__reseed()` even HEAD's own `windF` flips across runs. Reseed,
+  `__reseed()`/`__setTime()` rewind the PRNG and clock, not latches or spawned agents; frames drawn at page load move the PRNG, so without `__reseed()` HEAD's own numbers flip across runs. Reseed,
   then step inside ONE `page.evaluate`, fresh page per screenshot. **`__reseed()` REASSIGNS `R`, it
   does not rewind it** — a monkeypatch installed before it is silently eaten and the probe reports a
   clean, plausible, wrong attribution: instrument AFTER the reseed and assert it fired. PIN the
@@ -124,8 +114,9 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
   COHERENCE, not peak Δ. Absolute luma sd under a compositing
   wash is not a property of what you DREW: grade a foreground on **sd/mean**. A diff needs a
   **SAME-CODE control run**: quote the feature's mass as a ratio to that floor, never as an absolute.
-  `filmstrip.mjs`'s Δ is a whole-frame RATE, blind under ~2% of the canvas and loud about anything
-  global — crop to your feature. **One uniform hash is a texture, never a PLACE**: to make scattered
-  things look gathered, gate a fine hash by a coarse one at the scale the gathering happens on. And a
+   **One uniform hash is a texture, never a PLACE**: to make scattered
+  things look gathered, gate a fine hash by a coarse one at the scale the gathering happens on — and that coarse gate is a
+  SHARE over a long run and one COIN over a short one, so split the population by that scale before
+  you sweep its constant. And a
   surface can be flat BY CONSTRUCTION rather than by accident — check whether its own hash term is
-  scaled down before you decide it needs a new system. (#8–#135)
+  scaled down before you decide it needs a new system. (#8–#155)

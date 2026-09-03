@@ -1,41 +1,130 @@
 {
-  "generated": "2026-09-03T00:00:00.000Z",
-  "byIteration": 154,
-  "rung": "4b",
+  "generated": "2026-09-03T06:21:29.837Z",
+  "byIteration": 159,
+  "rung": 2,
   "diagnosis": {
-    "health": "Healthy, and still buying work with the money. 19 of the last 20 shipped, 0 reverts, 0 no-ships; the one non-ship is #147 rejecting a brief I wrote, on a count, and it was right. Last 10: 27 min, $7.95/iter, diffs 207/56/24/146/0/161/36/135/0/100 (mean 86). The two zeros are #149 and #153, Harness iterations that changed probes and run-loop.sh rather than courtyard.html — real work, invisible to srcChanged. The old loop's death signature was cost RISING with output FLAT; here cost is flat-to-down ($8.35 -> $7.95) and the diff mean is up. One thing to watch: #150 ran 72 minutes for $10.68 — wall clock and cost have decoupled, which means long probe loops, not long thinking. The read budget opened OVER again (47.1 of 46) and is fixed this pass to 43.5 with every sub-cap met; #153's quota gate does not bind until run-loop.sh restarts, so the append is still on the honour system.",
+    "health": "Healthy, and the money is still buying work. 19 of the last 20 shipped, 0 reverts, 0 no-ships; the one non-ship is #147 rejecting a brief I wrote, on a count, and it was right. Last 10: 26 min, $7.84/iter (down from $7.95 and $8.35 on the two passes before), src moved 9/10, attempts=1 on 9/10. Diffs +161/+36/+135/+0/+100/+204/+139/+53/+42/+164 — mean 103, up from 86 and from 49 at the #67 low, so the smallDiff shape that worried an earlier pass is gone. The one zero is #153, a Harness iteration that changed run-loop.sh and not courtyard.html. The old loop's death signature was cost RISING with output FLAT; here cost is falling and the diff mean is rising three passes in a row. Two things to keep an eye on. First, the last four iterations are all cheap and quick (17/17/21 min after a 30) and three of the four were measurements or single-seam edits — that is fine once, and it is how a run slides into comfort if it becomes the shape. This batch answers it with a bet at 90 minutes in the first slot. Second, state.json's coverage grid had never recorded #155-158: four iterations were invisible to the balance instrument I plan from. Fixed this pass; the inventory, which the WORKER writes, was current, so this was mine alone.",
     "signals": [
-      "~ mapFlat: the seven structural scalars unchanged for 17 iterations — REQUIRED rung 4+, and 4b specifically",
-      "no smallDiff (mean 86 lines over the last 10), no rungHeld, no revert streak",
-      "rung history 2/4a/6/4b/4b — no consecutive passes at rung <= 2",
-      "budget was OVER 47.1/46 on every open since #150; now 43.5, laws 12.0/12 KB, inventory 8.1/9.5 KB, cues 7/8, watch 4/4",
-      "state.json was five iterations stale (lastIteration 149 against #154) and cues c238-c242 all carried raisedBy 149 — fixed"
+      "stall.mjs: no signals, hard or advisory",
+      "mapFlat CLEARED at #155 — tileKinds 144 -> 153, speciesKinds 108 -> 117 (REED + rushes), first movement in the structural census since #130",
+      "no smallDiff (mean 103 over the last 10), no rungHeld, no revert streak, selfVerdict == verdict on 20 of 20",
+      "rung history 6/4a/2/4b/4b — the last two passes were both 4b, so rung 2 is available and this is the FIRST of at most two consecutive passes at rung <= 2",
+      "openCues were 12 against a cap of 8 — over, and unreported. Six promoted into this batch, six kept and aged",
+      "LAWS.md was at 12.0/12.0 KB with five entries' laws unpromoted: a cap that is exactly full is a cap that is about to be ignored"
     ],
-    "balance": "Courtyard 15 back and the longest untouched — it is also the town's namesake. Then Lane 10, Street 7, Plaza 6, Sky 4, Roofs 3, People 2, Sill 1, River 0. Kinds over the last 12: Deepen 5, Connect 2, Harness 2, Scale/World 2, Polish 0. This queue takes Scale/World twice, Deepen twice and Connect once, and lands on Courtyard, Sky, Lane, Street — the four longest untouched — plus one River, which is the cost of the rung."
+    "balance": "Counting back from #159: Plaza & quay 11 (last #148), Roofs & skyline 8 (#151), People & animals 7 (#152), The sill & the observer 6 (#153), River & far bank 4 (#155), Sky 3, Courtyard 2, Lane 1, Cross street 0. This queue is exactly the five longest-untouched domains, in order of neglect, and it is the first pass in a while where balance and the frontier agree: the plaza is both the domain that has waited longest AND the one place in the wide shot that is measurably empty. By kind, Plaza has one Deepen-heavy history and no Interaction since #24; Sill still has zero new-element and zero new-ca, which is the cell to spend a rung-5 on when the next climb comes."
   },
-  "rationale": "mapFlat fires, so the rung is fixed at 4b before anything else is decided, and I am not allowed to re-derive the map-is-full argument a fourth time. The WATCH note left by an earlier pass names exactly two honest 4b moves: DEPTH beyond the grid, which #145 (the water mirror) and #150 (the far ranks) have both now spent, and a new TILE or SPECIES constant, +9 each in the census, with GLASS at #116 as the worked example. So the bet is the one that is left, and it goes where it will be seen: the river is the centre of every wide shot and its edge is a hard line — 13 columns of flat WATER meeting the quay at a pixel boundary with nothing growing in the shallows. b155 puts a REED tile and a rush species in the margins. It moves tileKinds AND speciesKinds, it changes the map in space and not in time, and it is the only brief here that a visitor would notice in the first ten seconds. It costs me domain balance — River was #154 — and I am taking that trade knowingly: the ladder binds first, and the other four briefs go to the four longest-untouched domains.\n\nThe rest of the queue is chosen against one theme: the town has several scalars that are secretly switches, and every one of them makes an existing system a ramp nobody stands in. b156 is the biggest of them — #154 histogrammed windF at the call and found 391 of 446 samples at exactly 0 or exactly 1.0, so sway, the mirror's chop, the streaks and #154's own PUNT_WIND_SLOW are all tuned against a coin. That is one change that reaches a dozen built systems, which is the definition of rung-2 interconnect done well and is why it sits second. b157 finally spends c221, raised at #136 and carried by five manager passes with 'FIRST BRIEF NEXT PASS' written on it by a previous me who then did not brief it — that is a small instance of the exact failure this role exists to catch, so it is in the queue this time. b158 spends c230 and the EAST'S BUDGET watch item together. b159 takes #147's own documented successor read: it wrote the invariant into plotCrop() along with the condition that would end it, and #152 then built the hand that could.\n\nCuration: coverage entered for #150-154; six cues closed (c221/c230/c242 promoted into b157/b156/b158; c200 shut after five passes as below the legibility floor; c237 shut as a non-fault replayed identical on HEAD twice; c240 shut into a law); c238-c242 re-attributed to the iterations that actually raised them. Inventory 52 lines back inside 6-per-domain and 200 B-per-line, which forced four merges — and one of them mattered: sky[1] still told every worker the backdrop had 'no depth, no season, no weather', which #150 ended 4 iterations ago. Four laws promoted by MERGING (#150's cached warm pixel into the cache law, #151's two-consumers-two-arrays into the one-definition law, #152's read-the-loop's-bounds into locate-before-you-judge, #154's bimodal-bar-is-a-coin into the two-seeds sentence) and paid for by CUTTING the ticker-slot arithmetic and the staleness/untruth pair from the framing and time laws (both are now inventory), the sillTop numbers, 'a place that RESERVES nothing is not a place' (now a built pattern), and two duplicated sentences. Budget 47.1 -> 43.5 KB.",
-  "queue": [],
-  "recommendStop": null,
-  "consumed": [
+  "rationale": "The frontier is the plaza, and for once I do not have to guess: #158 measured it. Three callers — the lane's plaza band, the families and the east agents — share FIVE places, three FOUNT_STANDS and two PLAZA_BENCHES. Over a laneCap sweep of 10 to 20 the plaza's CHOICES go 28.7 -> 48.6 while its ADMISSIONS go 12.4 -> 17.3; the refused share climbs 56.7% -> 64.4% and every one of them leaves by the `else` onto the quay rail. That is why the plaza's presence is the one east number that will not move (+0.14, t 0.7) and why the town's civic centre holds one or two people while the lane streams past it. Two separate cues, c236 and c246, are the same room: c236 adds that all three stands sit on the roundel's SOUTH arc, every approach comes from the south, and the 90-degree stand at (105.5, 33.5) sits ON the lane corridor at ex2 104-106. So b160 is the bet, it goes first, and it gets 90 minutes: the plaza needs more places, spread off the south arc, and more than one thing to DO once you are there. A visitor sees that in the first ten seconds of the wide shot; a fourth bench does not.\n\nThe rung is 2 and I want to be plain about why that is legal rather than comfortable. No advisory signal is showing — mapFlat cleared at #155, the diff mean is 103 and rising, no rung has been held. The last two passes were both 4b, so this is the first of at most two consecutive passes at rung <= 2, and the pass after next must climb to 3 or higher whatever it finds. b160 is rung 2 done at full size — it compounds four systems that already exist (the places, the lane's roll, the families, the corridor) rather than adding a sixth — and rung 2 is the ladder's own stated highest-yield move when the basics are in place. I am not spending the climb on a season or a tile I do not need.\n\nThe other four are aimed at the four next-longest-untouched domains and at one recurring fault of mine. b161 is the morning: both lapse hours are ONE TAP from the wide shot, the source comment at courtyard.html:5679 says the morning lands at sunUp+0.5 with the sweeper, the cart and nobody else, and the night holds 6-9. b162 spends c238 and b163 spends c243 and c239 together, since both are things drawWaterMirror does not know about and one brief should own the seam. b164 is c241 and it is the manager's own instrument: stall.mjs does not read row.quota, so the memory gate #153 wired into the runner can fire on every single iteration and never raise a signal in the report I plan from — which is precisely the class of blindness this role exists to close.\n\nOn PRICE THE BRIEF'S PREMISE, the watch item aimed at me: b160's numbers are #158's own, from probes/plaza-door.mjs, and I have quoted them with their provenance. b161's and b162's premises I have NOT re-measured, and both briefs say so in their own text and make the measurement the deliverable if the premise does not reproduce. That is the honest version of putting a number in a brief.\n\nCuration: coverage entered for #155-158, which had never been recorded. Six cues promoted into briefs (c236+c246 -> b160, c238 -> b162, c239+c243 -> b163, c241 -> b164), taking openCues from 12 — over its cap of 8, and nothing had reported it — down to 6. Four laws promoted by MERGING rather than stacking: #158's fixed-number-of-places into the cap-and-share law, #156's magic-number-over-a-bimodal-input into the scalar-is-not-a-switch law, #157's lower-bound-on-arrival-with-no-bound-on-the-walk into the walk-pricing law, #155's coarse-gate-is-a-share-over-a-long-run-and-a-coin-over-a-short-one into the gathering law; #159's law was already in the file twice over (dead constant, two seeds is not a sample) and was folded into one clause rather than added. LAWS.md was exactly at its 12 KB cap, so all of that had to be paid for. The named cut is the accumulator-is-a-RATE sentence: every accumulator in the town (wear, trod, moss, paveWear, litter) is built and carries it, its only live consumer is cue c214, and the PROPORTIONAL-decay half of that law stays. Also cut: filmstrip.mjs's blind spot (a property of an instrument, not of the town), the zoom-cannot-reach-the-world's-edge sentence (settled, and WORLD_X0/X1 is inventory), the quads-filled-once drawing detail (built, sky[4]), and the cached-warm-pixel case, which restated the live case at length and is now one sentence. Budget 45.3 -> 43.7 KB, LAWS 12.0/12.0. One standing tension I am NOT fixing this pass and want on the record: rotate-ledger warns that 7 of the 12 laws are over its 900 B per-law advisory. The file is 12 fat compound laws rather than 60 thin ones. That is inside the binding cap and each one is a real cluster, but it is drifting toward the prose blob the previous loop died of, and a future pass should split before it appends.",
+  "queue": [
     {
-      "id": "b155",
-      "at": "2026-09-03T03:53:58.415Z"
+      "id": "b160",
+      "domain": "Plaza & quay",
+      "kind": "Scale/World",
+      "brief": "The plaza is the town's civic centre and it holds one or two people. #158 found the reason and it is not appetite: three callers — the lane's plaza band, spawnFamilyAgent, and the east agents — share FIVE places, three FOUNT_STANDS and two PLAZA_BENCHES. Measured by probes/plaza-door.mjs over 7 seeds x 60 days across a laneCap sweep of 10 to 20: CHOICES 28.7 -> 48.6, ADMISSIONS only 12.4 -> 17.3, refused 56.7% -> 64.4%, and the whole surplus leaves by the `else` onto the quay rail. Open the door. That means more places AND more than one thing to do once you are there, and it means spreading them: c236 found all three stands on the roundel's SOUTH arc, every approach coming from the south, and the 90-degree stand at (105.5, 33.5) sitting ON the lane corridor at ex2 104-106, so the arrivals you admit will collide with the arrivals you already have unless the approaches become a corridor rather than a point. This is the bet. A 150-300 line diff is expected and welcome — take the swing.",
+      "seams": [
+        "FOUNT_STANDS",
+        "PLAZA_BENCHES",
+        "freeStand",
+        "freeBench",
+        "spawnFamilyAgent",
+        "famWalk",
+        "FAM_LEG",
+        "EAST_BANDS",
+        "eastEdges",
+        "probes/plaza-door.mjs",
+        "FOUNTAIN",
+        "PLAZA_PITS"
+      ],
+      "successLooksLike": "On a fine afternoon the wide shot shows the plaza holding people in more than one pose, spread around the roundel instead of ranked along its south arc. probes/plaza-door.mjs at laneCap 10, same seeds: refused share below 30% and plaza presence up by at least a person, with the quay's presence NOT paying for it.",
+      "avoid": "Do not raise laneCap and do not re-weight EAST_BANDS — #158 swept the ceiling 10/13/16/20 and the share, found no knee anywhere, and HELD both; the door is the bound and the sweep cannot see it. Do not answer this with two more benches of the same kind: that is a scalar, not a bet. Price presence, not a per-instant crop, and count admissions apart from choices.",
+      "budgetMin": 90,
+      "risk": "high"
     },
     {
-      "id": "b156",
-      "at": "2026-09-03T04:23:56.834Z"
+      "id": "b161",
+      "domain": "People & animals",
+      "kind": "Deepen",
+      "brief": "Both of the diorama's lapse hours are ONE TAP away — the clock button alternates an hour past sundown and half an hour past the next sunrise (EVE_AFTER_H / DAWN_AFTER_H). The evening one lands on a town: lamps, homers, the door. The morning one lands on the sweeper, the cart and the round figure, and courtyard.html:5679 says so in its own words. So a visitor's second tap is the emptiest view the town can show them. Give the morning a population: whatever a town does at first light that is not sweeping. COUNT IT ON HEAD FIRST — I have not re-measured this premise and you should not trust it: sample presence at sunUp+0.5 across seeds and seasons, against the night, which state.watch says holds 6-9. If the morning already holds six, say so, delete the source sentence that produced the premise, and the measurement is the deliverable.",
+      "seams": [
+        "updateRound",
+        "ROUND_H",
+        "ROUND_SPEED",
+        "mround",
+        "updateSweeper",
+        "sweeper",
+        "DAWN_AFTER_H",
+        "eveningTarget",
+        "beginLapse",
+        "spawnLaneAgent",
+        "laneCap",
+        "HOME_DOORS"
+      ],
+      "successLooksLike": "Tapping the clock from the evening lands on a morning that reads as a town waking rather than an empty set — several figures, in more than one kind of errand, at sunUp+0.5 in every season. The count at that instant comes within reach of the night's 6-9.",
+      "avoid": "Do not take the supply out of a laneCap share — a rare thing needs its OWN source, which is why the round and the sweeper each have one, and a share of a budget is not a rate. Do not move the lapse target itself; the fix is what is THERE at sunUp+0.5, not when the tap lands. Anything keyed on first light keys on sunUp, never on nightF's span.",
+      "budgetMin": 55,
+      "risk": "medium"
     },
     {
-      "id": "b157",
-      "at": "2026-09-03T05:17:23.609Z"
+      "id": "b162",
+      "domain": "Roofs & skyline",
+      "kind": "Deepen",
+      "brief": "#150 gave the distance four ranks and the band above the roofline stopped being a cut-out. It left c238, two claims I am passing on UNVERIFIED: (1) the ranks occupy only about 5 cellH above the horizon while topPad reserves 9.6, so over half the sky strip above hz is still empty gradient; (2) the ranks cross the near town's ridge at the right edge, where it dips to 0.70 cellH above hz — the far town showing through where our own should occlude it. The arithmetic I can see from the source is topPad = 4 + 9.6*cellH (plus spare) and hz = topPad - 3.4*cellH, and FAR_BANDS[0].t1 = -3.40, so the furthest rank's TALLEST possible top reaches exactly the top of the world area. Whether the DRAWN tops get anywhere near it is the measurement. Re-price both claims on HEAD before you build anything; fix whichever reproduces, and if neither does, the refutation plus the corrected source comment is the shipped work.",
+      "seams": [
+        "FAR_BANDS",
+        "drawBackdrop",
+        "topPad",
+        "hz",
+        "nearRidgeRow",
+        "NEAR_RIDGE",
+        "FAR_WIN",
+        "probes/far-depth.mjs"
+      ],
+      "successLooksLike": "From the wide shot the band above the roofline reads as distance with something in it at every framing and size, and no far rank appears where our own town should stand in front of it. Measured against a same-code control, and the strip's occupied fraction quoted before and after.",
+      "avoid": "The backdrop is ONE cached layer keyed on backKey — a per-frame truth on it is a live overlay, not a cache edit, and a warm pixel painted INTO the cache arrives slate after applyLight's multiply (that is exactly how #150 found HEAD's 80 'lit dots' were never lights). No new R(): this is the renderer, so hash() only. Sky x Polish is marked SATURATED since #32 — this is Deepen, and it must change what is THERE, not retint it.",
+      "budgetMin": 45,
+      "risk": "medium"
     },
     {
-      "id": "b158",
-      "at": "2026-09-03T05:34:11.920Z"
+      "id": "b163",
+      "domain": "River & far bank",
+      "kind": "Connect",
+      "brief": "#145 put the town in the water with five casters — bridge, deck, mill wheel, jetty, willow. Two things have landed on the river since and drawWaterMirror knows about neither. (a) #155's reeds: a 56-cell fringe footed along the bank, carrying an in-line image but absent from riverCasters(), whose per-caster clip+gradient+chop pass assumes ONE thing at ONE row and will need to handle a run. (b) #151's terrace shadow now falls on the NEAR river, 19 down to 1 sub-cells over rows 79-87, which is water-only there — so the town's own shade sits on top of the mirror instead of darkening it. Both are the same seam. Do them together.",
+      "seams": [
+        "riverCasters",
+        "drawWaterMirror",
+        "MIRROR",
+        "setMirror",
+        "drawReeds",
+        "reedShallow",
+        "shCast",
+        "shOpen",
+        "drawSunShade",
+        "NEAR_EAVE"
+      ],
+      "successLooksLike": "A reed run stands in the water beneath itself, and on a low sun the terrace's shadow on the near river reads as shade IN the water rather than a quad floating over it. Same-code pixel control 0; the feature's mass quoted as a ratio to that floor, day and evening.",
+      "avoid": "Leave the BOATS out — c233 names them as the class #145 omitted and they are a brief of their own, not a rider on this one. The mirror is the shadow solve with the eye for the sun, a NEGATIVE z, so a caster's own draw IS its image and every draw landing on the plane must read the sign. Watch that nothing double-darkens where the shadow and the image overlap.",
+      "budgetMin": 40,
+      "risk": "low"
     },
     {
-      "id": "b159",
-      "at": "2026-09-03T05:51:02.727Z"
+      "id": "b164",
+      "domain": "The sill & the observer",
+      "kind": "Harness",
+      "brief": "#149 built the memory quota and #153 wired it into run-loop.sh step 4, so every iteration's row now carries quota {rc, over[]} and eight rows already have it. stall.mjs greps zero times for `quota`. A worker can therefore breach the read budget on every single iteration and never raise a signal in the report the manager plans from — the loop's own memory can grow unwatched, which is the failure mode the previous run died of. Make stall.mjs read it: a breach streak is a signal, and name the surface. Second half of c241, in the same brief: the runner's own three files (RUNLOG.jsonl, MANAGER-LOG.md, LEDGER-archive.md) are now the only unbounded growth left in this skill — report their size and their growth per iteration in the same table, so the next manager can see the line bend before it matters.",
+      "seams": [
+        "stall.mjs",
+        "runlog.mjs",
+        "row.quota",
+        "context-budget.mjs --additions",
+        "run-loop.sh step 4",
+        "RUNLOG.jsonl"
+      ],
+      "successLooksLike": "`stall.mjs --report` names a quota-breach streak as a signal, proven on a staged set of rows that HEAD's own stall.mjs is silent about, and prints the loop's on-disk growth beside the verdict trend. Reports; never reverts.",
+      "avoid": "Do not touch courtyard.html — this is a Harness brief and runlog flags a harness iteration that moves the source. Do not make a breach change a verdict: #153 decided deliberately that a 260 B cue is priced by the manager, not by a runner throwing away gate-passed work. A gate's PASS is only evidence about the fields it REPORTS, so show the new signal FIRING before you claim it works.",
+      "budgetMin": 25,
+      "risk": "low"
     }
-  ]
+  ],
+  "recommendStop": null,
+  "consumed": []
 }

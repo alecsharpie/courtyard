@@ -196,7 +196,8 @@
       "connect": [
         49,
         75,
-        94
+        94,
+        157
       ],
       "new-element": [
         84
@@ -232,7 +233,8 @@
         144
       ],
       "scale": [
-        33
+        33,
+        158
       ],
       "harness": [
         134
@@ -334,7 +336,8 @@
       "scale": [
         73,
         87,
-        141
+        141,
+        155
       ]
     },
     "sky": {
@@ -358,7 +361,8 @@
         48,
         58,
         71,
-        112
+        112,
+        156
       ],
       "connect": [
         6,
@@ -566,73 +570,37 @@
       "id": "c214",
       "note": "drawGround() times 25-27 ms and #135/#138 added ~2.5 more rebuilds a sim day, so every rebuild is a dropped frame; probes/ground-cost.mjs sees it, perf.mjs does not. The CART is not an agent and lays no paveWear[].",
       "raisedBy": 134,
-      "seenBy": 4
+      "seenBy": 5
     },
     {
       "id": "c232",
       "note": "the near roof band under the lane is ~13% of a desktop frame and ~22% of a phone's, the closest surface to the eye, and reads as one ashlar texture. Measure it as its OWN luma class first - the WALL class (0.240) is the terraces' facades.",
       "raisedBy": 144,
-      "seenBy": 2
+      "seenBy": 3
     },
     {
       "id": "c233",
       "note": "the BOATS are the caster class #145 left out - punts, barge, rowboat, a standing punter are still not in the water; and the rows-3-12 bank-smear baked into the ground cache stops at row 12 for no recorded reason.",
       "raisedBy": 144,
-      "seenBy": 2
-    },
-    {
-      "id": "c236",
-      "note": "the plaza commonest crowded pair is parent+plaza at 27% on EVERY build: #144 three stands sit on the roundel SOUTH arc, every approach comes from the south, and the 90-degree stand (105.5,33.5) is ON the lane corridor ex2 104-106. Fix: a CORRIDOR.",
-      "raisedBy": 147,
-      "seenBy": 2
-    },
-    {
-      "id": "c238",
-      "note": "the far ranks use ~5 cellH just above hz while topPad gives 9.6, so over half the sky strip is still empty gradient; and they cross the near ridge at the right edge, where it dips to 0.70 cellH above hz.",
-      "raisedBy": 150,
-      "seenBy": 1
-    },
-    {
-      "id": "c239",
-      "note": "the block's shadow now falls on the near river (19->1 sub-cells, rows 79-87, water-only there) and #145's drawWaterMirror does not know about it.",
-      "raisedBy": 151,
-      "seenBy": 1
-    },
-    {
-      "id": "c241",
-      "note": "stall.mjs does not read row.quota, so a worker that breaches the memory quota every iteration still cannot fire a stall signal; and the RUNNER's own three files are now the only unbounded growth in the 46 KB total.",
-      "raisedBy": 153,
-      "seenBy": 1
-    },
-    {
-      "id": "c243",
-      "note": "the reeds are the sixth caster class #145 left out: they carry an in-line image but are not in riverCasters(), whose per-caster clip+gradient+chop pass assumes ONE thing at ONE row, not a 56-cell fringe footed at 56",
-      "raisedBy": 154,
-      "seenBy": 0
+      "seenBy": 3
     },
     {
       "id": "c244",
       "note": "nothing re-asks bonfireWeather() once the heap is lit, so a fire started in a calm dawn burns on through an afternoon gale isWindy() would refuse; #156 re-keyed the bar but not the re-ask.",
       "raisedBy": 154,
-      "seenBy": 0
+      "seenBy": 1
     },
     {
       "id": "c245",
       "note": "lawnFits bounds the other four lawn kinds with LAWN_MIN_DWELL's blind 1.5 h and never prices the walk HOME: #157 gave the gardener gardWalk's out leg, sitter/napper/picnic/kid still leave the wall unpriced.",
       "raisedBy": 154,
-      "seenBy": 0
-    },
-    {
-      "id": "c246",
-      "note": "the plaza's five places are shared by three callers (lane roll, families, east agents) and refuse 57-64% of the lane's plaza band; #158 measured the door, did not widen it. More places, or a second thing to DO there — c236 is the same room.",
-      "raisedBy": 154,
-      "seenBy": 0
+      "seenBy": 1
     },
     {
       "id": "c247",
       "note": "the whole HAND-act population in the allotments is 28 acts a year across SIX worlds (11 of them sow rungs), so anything a hand does to a plot is capped ~5/seed-year. The cap beneath plotAct is allotRate/spawnAllotAgent.",
       "raisedBy": 154,
-      "seenBy": 0
+      "seenBy": 1
     }
   ],
   "watch": [
@@ -2273,6 +2241,48 @@
       "raisedBy": 154,
       "closedBy": 154,
       "why": "-> brief b156 (#155 batch): give windF a real middle."
+    },
+    {
+      "id": "c236",
+      "note": "the plaza commonest crowded pair is parent+plaza at 27% on EVERY build: #144 three stands sit on the roundel SOUTH arc, every approach comes from the south, and the 90-degree stand (105.5,33.5) is ON the lane corridor ex2 104-106. Fix: a CORRIDOR.",
+      "raisedBy": 147,
+      "closedBy": 160,
+      "why": "-> brief b160 (#160 batch): the corridor and the five-place door are ONE room, and b160 owns both."
+    },
+    {
+      "id": "c238",
+      "note": "the far ranks use ~5 cellH just above hz while topPad gives 9.6, so over half the sky strip is still empty gradient; and they cross the near ridge at the right edge, where it dips to 0.70 cellH above hz.",
+      "raisedBy": 150,
+      "closedBy": 162,
+      "why": "-> brief b162 (#160 batch), with its numbers marked UNVERIFIED: re-measure on HEAD before building."
+    },
+    {
+      "id": "c239",
+      "note": "the block's shadow now falls on the near river (19->1 sub-cells, rows 79-87, water-only there) and #145's drawWaterMirror does not know about it.",
+      "raisedBy": 151,
+      "closedBy": 163,
+      "why": "-> brief b163 (#160 batch): one of the two things drawWaterMirror does not know about."
+    },
+    {
+      "id": "c241",
+      "note": "stall.mjs does not read row.quota, so a worker that breaches the memory quota every iteration still cannot fire a stall signal; and the RUNNER's own three files are now the only unbounded growth in the 46 KB total.",
+      "raisedBy": 153,
+      "closedBy": 164,
+      "why": "-> brief b164 (#160 batch): stall.mjs is MY instrument and it is blind to the quota row #153 writes."
+    },
+    {
+      "id": "c243",
+      "note": "the reeds are the sixth caster class #145 left out: they carry an in-line image but are not in riverCasters(), whose per-caster clip+gradient+chop pass assumes ONE thing at ONE row, not a 56-cell fringe footed at 56",
+      "raisedBy": 154,
+      "closedBy": 163,
+      "why": "-> brief b163 (#160 batch): the other one. Both are riverCasters() omissions, so one brief owns them."
+    },
+    {
+      "id": "c246",
+      "note": "the plaza's five places are shared by three callers (lane roll, families, east agents) and refuse 57-64% of the lane's plaza band; #158 measured the door, did not widen it. More places, or a second thing to DO there — c236 is the same room.",
+      "raisedBy": 154,
+      "closedBy": 160,
+      "why": "-> brief b160 (#160 batch): the bet. More places AND a second thing to do, off the south arc."
     }
   ]
 }
