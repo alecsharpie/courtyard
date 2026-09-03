@@ -16,7 +16,8 @@
  *             the town, found everything already existed, and exited
  *   throughout cost/iteration $5.45 -> $13.72 with no gain in output
  */
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, statSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -146,10 +147,102 @@ if (l6.length >= 4 && over.length >= 3) add('overclaim', `${over.length}/${l6.le
 const rejected = last(5).filter(r => r.briefRejected).length;
 if (rejected >= 2) add('briefRejected', `${rejected} of the last 5 briefs described something the town already had`, 3);
 
+/* --- the loop's own memory ------------------------------------------------
+ * #149 built the append quota, #153 gave it a caller, and the result now lands on
+ * the row as `quota {rc, over[]}`. Nothing READ it — so a worker could breach the
+ * read budget on every iteration and never appear in the report the manager plans
+ * from. That is not a loud failure; it is exactly the quiet one the previous loop
+ * died of, paying more rent on its own memory every open while output fell.
+ *
+ * Two absences, deliberately distinguishable (runlog.mjs): no `quota` key at all
+ * predates #153 and is skipped the way srcLines is, while `quota === null` is the
+ * field PRESENT and NOT MEASURED — which reads exactly like a clean row to anything
+ * that only counts breaches. Both are counted here, and only one of them is silence. */
+const measured = r => r.quota != null;
+const breach = r => measured(r) && (r.quota.rc !== 0 || (r.quota.over && r.quota.over.length > 0));
+
+/* Name the surface in context-budget.mjs's OWN words: `over[]` holds its `fails`
+ * strings verbatim, so this classifies what was recorded rather than re-deriving it. */
+const SURFACES = [[/ledger entr/i, 'ledger'], [/inventory line/i, 'inventory'], [/cue note|cues raised/i, 'cue']];
+const surfacesOf = r => [...new Set((((r.quota || {}).over) || []).map(t => (SURFACES.find(([re]) => re.test(t)) || [null, 'unnamed'])[1]))];
+
+const qStreak = streak(breach);
+if (qStreak >= 2) {
+  const hit = rows.slice(-qStreak);
+  const tally = {};
+  for (const r of hit) for (const s of surfacesOf(r)) tally[s] = (tally[s] || 0) + 1;
+  const worst = hit[hit.length - 1];
+  const named = Object.entries(tally).map(([k, v]) => `${k} x${v}`).join(', ') || 'surface unnamed';
+  add('quotaBreach', `${qStreak} iterations in a row appended over the memory quota (${named}) — #${worst.iter}: ${((worst.quota.over || [])[0] || 'no offender recorded').slice(0, 88)}`, 2);
+}
+
+/* And the gate at a rate of zero — the shape #149 found in the quota itself. A field
+ * that is never FILLED cannot be told from a clean one by anything counting breaches,
+ * so the silence above has to be EARNED: if the recent rows all say NOT MEASURED, step
+ * 4 of run-loop.sh is not reaching the row and a breach could not show here whatever
+ * the worker did. The likeliest cause is the one #153 logged against itself — bash
+ * parses the runner's whole `while` loop once, so a live runner keeps the OLD script
+ * text until it is restarted. */
+const unmeasured = streak(r => 'quota' in r && r.quota == null);
+if (unmeasured >= 3) add('quotaUnmeasured', `the memory quota has measured nothing for ${unmeasured} iterations — run-loop.sh step 4 is not reaching the row, so a breach could not show here (restart the runner: a live loop keeps the old script text)`, 2, false);
+
 /* A plan written long ago is planning for a town that no longer exists. */
 if (plan && plan.byIteration != null && rows.length) {
   const age = (rows[rows.length - 1].iter || 0) - plan.byIteration;
   if (age >= 8) add('planStale', `the current plan was written ${age} iterations ago`, 2);
+}
+
+/* --- what the loop weighs on disk -----------------------------------------
+ * context-budget.mjs bounds what a WORKER re-reads on every open, and #153 gave that
+ * bound a caller. These four are the other half of the same problem: nothing caps
+ * them, no worker reads them, and the MANAGER reads all four at every pass. They are
+ * the loop's remaining unbounded growth, so the report carries the SLOPE — the point
+ * of a line is to see it bend before it matters, and by the time the size is worth
+ * noticing in a file listing the reading has already been paid for many times.
+ *
+ * state.json is the fourth because it belongs with them: the brief that asked for
+ * this named the other three, and `closedCues` alone is most of this file — a list
+ * that only ever grows, sitting in the file the manager opens first. */
+const GROW = [
+  ['LEDGER-archive.md', 'every entry rotated out of LEDGER.md'],
+  ['RUNLOG.jsonl', 'one row per iteration'],
+  ['state.json', 'the town’s state'],
+  ['MANAGER-LOG.md', 'one line per manager pass'],
+];
+
+const git = args => { try { return execFileSync('git', args, { cwd: HERE, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }); } catch { return null; } };
+
+/* Sizes come off disk (that is what a read costs NOW); the slope comes from git,
+ * between two ITERATION commits, so it is per iteration and not per commit — the
+ * runner lands a stats refresh after every one of them. No git, no slope: this runs
+ * from a staged temp directory in its own probe, and a missing repo must degrade to
+ * the sizes rather than take the report down with it. */
+function onDisk(span = 20) {
+  const out = GROW.map(([file, why]) => ({ file, why, bytes: existsSync(join(HERE, file)) ? statSync(join(HERE, file)).size : 0, perIter: null }));
+  const st = out.find(o => o.file === 'state.json');
+  if (st && st.bytes) {
+    try {
+      const closed = JSON.parse(readFileSync(join(HERE, 'state.json'), 'utf8')).closedCues || [];
+      st.why = `${closed.length} closed cues, ${(Buffer.byteLength(JSON.stringify(closed)) / 1024).toFixed(0)} KB of it`;
+    } catch { /* leave the plain label */ }
+  }
+
+  const log = git(['log', '--format=%H%x09%s', '--', '.']);
+  const iters = [];
+  for (const line of (log || '').split('\n')) {
+    const tab = line.indexOf('\t');
+    const m = tab === -1 ? null : /^Iter (\d+):/.exec(line.slice(tab + 1));
+    if (m) iters.push({ sha: line.slice(0, tab), iter: +m[1] });
+  }
+  if (iters.length < 2) return { files: out, from: null, to: null, iters: 0 };
+  const to = iters[0], from = iters.find(i => i.iter <= to.iter - span) || iters[iters.length - 1];
+  const n = to.iter - from.iter;
+  if (n < 1) return { files: out, from: null, to: null, iters: 0 };
+  for (const o of out) {
+    const a = git(['cat-file', '-s', `${from.sha}:./${o.file}`]), b = git(['cat-file', '-s', `${to.sha}:./${o.file}`]);
+    if (a != null && b != null) o.perIter = (parseInt(b, 10) - parseInt(a, 10)) / n;
+  }
+  return { files: out, from: from.iter, to: to.iter, iters: n };
 }
 
 /* --- output --------------------------------------------------------------- */
@@ -170,6 +263,17 @@ if (report) {
     for (const r of last(12)) if (r.domain) touched[r.domain] = (touched[r.domain] || 0) + 1;
     console.log(`  last 12 by domain: ${Object.entries(touched).map(([k, v]) => `${k}=${v}`).join('  ') || '—'}`);
   }
+  const qAll = rows.filter(r => 'quota' in r);
+  const qOK = qAll.filter(measured);
+  console.log(`\n  memory quota: ${qOK.length}/${qAll.length} rows measured, ${qOK.filter(breach).length} over${qAll.length && !qOK.length ? '  — the field is on the row and nothing has ever filled it' : ''}`);
+  const disk = onDisk();
+  console.log(`  the loop on disk — nothing caps these, and the manager reads all of them${disk.iters ? `  (slope over #${disk.from} → #${disk.to})` : ''}:`);
+  for (const d of disk.files) {
+    const rate = d.perIter == null ? '—' : `${d.perIter >= 0 ? '+' : '-'}${(Math.abs(d.perIter) / 1024).toFixed(2)} KB/iter`;
+    console.log(`    ${d.file.padEnd(18)} ${(d.bytes / 1024).toFixed(1).padStart(7)} KB  ${rate.padStart(14)}   ${d.why}`);
+  }
+  const slope = disk.files.reduce((a, d) => a + (d.perIter || 0), 0);
+  if (slope) console.log(`    ${' '.repeat(18)} ${(disk.files.reduce((a, d) => a + d.bytes, 0) / 1024).toFixed(1).padStart(7)} KB  ${`+${(slope * 20 / 1024).toFixed(0)} KB/20 it`.padStart(14)}   at this rate`);
   console.log(`\n  plan: ${plan ? `${(plan.queue || []).length} briefs queued, written at #${plan.byIteration} (rung ${plan.rung ?? '?'})` : 'none'}`);
   console.log(signals.length ? '\nSIGNALS FIRING' : '\nNo stall signals.');
   for (const s of signals) console.log(`  ${s.trigger ? '!' : '~'} ${s.id.padEnd(14)} ${s.detail}   → ${s.trigger ? 'consider' : 'REQUIRED:'} ladder rung ${s.suggestRung}+`);
@@ -179,7 +283,9 @@ if (report) {
     if (signals.some(s => !s.trigger)) console.log('  (~ = advisory: did not wake the manager early, but binds THIS pass — see the ladder rules.)');
   }
 } else if (asJson) {
-  console.log(JSON.stringify({ iterations: rows.length, managerPasses: managers.length, launchFailures: launchFails.length, signals, verdictCounts }, null, 1));
+  const qAll = rows.filter(r => 'quota' in r), qOK = qAll.filter(measured);
+  const quota = { rows: qAll.length, measured: qOK.length, over: qOK.filter(breach).length, breachStreak: qStreak, unmeasuredStreak: unmeasured };
+  console.log(JSON.stringify({ iterations: rows.length, managerPasses: managers.length, launchFailures: launchFails.length, signals, verdictCounts, quota, disk: onDisk() }, null, 1));
 } else {
   const firing = signals.filter(s => s.trigger);
   console.log(firing.length ? firing.map(s => s.id).join(',') : 'ok');

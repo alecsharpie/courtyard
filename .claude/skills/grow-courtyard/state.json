@@ -553,7 +553,8 @@
       "quarter CAMERA: #where cycles Wide/Courtyard/Street/Plaza/Far bank; viewFor/whereGo/stepView, wide cache scaled through gview. Knows a WORLD not the grid: WORLD_X0/X1, held(pp,v)",
       "the PAINTED sill: drawSill inside drawOurSide, baked into the ground cache; sillTop() the ONE definition; sillBoxes/sillOver/clipOffSill; nearShadow(g) ramps the near roof down to it",
       "the ticker knows where you are LOOKING: inView(x,y) the ONE reader of whereN; sayAt at 37 sites; AMBIENT_PLACES/ambientHere; SOUNDS bypass inView",
-      "the ticker THREE ranks (#142): background(rank,txt,then,until) beside announce(); CLOCK and MURMUR; until = when a line stops being TRUE. run-loop step 4 -> row.quota (#153)"
+      "the ticker THREE ranks (#142): background(rank,txt,then,until) beside announce(); CLOCK and MURMUR; until = when a line stops being TRUE. run-loop step 4 -> row.quota (#153)",
+      "stall.mjs READS the row's quota — quotaBreach (trigger; names the surface off over[]) and quotaUnmeasured (advisory; the field present and never filled); --report also carries the four uncapped files' size and per-iteration slope (#164)"
     ],
     "roofs": [
       "the town is HOUSES not regions: buildVolumes() makes roofs EMERGENT - eaveFor(x,y), vZ four-corner average, vD a distance transform, SLOPE; houseAt/houseIx, EAVE_LO 4.62/EAVE_HI 7.15",
@@ -622,6 +623,12 @@
     {
       "id": "c251",
       "note": "the water shade is correct and barely reads (6021 px of mass, 1-86 px of change): what makes a shadow read on water is cutting the SHEEN - drawRiverFlow's streaks and the glitter column - not a deeper multiply",
+      "raisedBy": 159,
+      "seenBy": 0
+    },
+    {
+      "id": "c252",
+      "note": "build-stats.mjs greps quota 0 times, so a breach is still invisible in stats.html, the manager's other input; and closedCues (227 notes, 79 KB of state.json) has no pruner — rotate-ledger caps LEDGER.md and LAWS.md only.",
       "raisedBy": 159,
       "seenBy": 0
     }

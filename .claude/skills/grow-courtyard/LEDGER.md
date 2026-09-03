@@ -166,3 +166,15 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped
 **Surprise:** the fringe must NOT go through the offscreen. 18 runs each clipped and chopped in `rcv` cost **1.6 ms a frame at Plaza**; unclipped with one shared chop, 1.2; the identical 56 clumps on the VISIBLE canvas, **0.03** (probes/water-pass-cost).
 **Law:** an offscreen 2D context is not the accelerated surface the visible one is. Only a draw needing its COMPOSITES (clip plus `destination-in`/`out`) belongs there; one wanting a clip and an alpha is a `save()` on `ctx`, two orders cheaper.
+
+## Iteration 164 — stall.mjs reads the memory quota, and weighs the loop (2026-09-03) [The sill & the observer × Harness]
+
+**Brief:** b164 — stall.mjs greps `quota` zero times; make a breach a signal, add the growth.
+**Re-counted.** The brief says eight rows carry the quota. Eleven do — and **zero are MEASURED**, every one `quota: null`. #153's own surprise says why: bash parses the runner's `while` loop once, so the live runner still holds pre-#153 text. A breach streak alone would have been a signal that cannot fire, silent exactly as a clean run.
+**Did.** One reader per absence runlog.mjs distinguished. `quotaBreach` (trigger, rung 2): ≥2 consecutive MEASURED breaches, surface tallied off `over[]`'s strings. `quotaUnmeasured` (advisory): ≥3 rows present-and-null — the gate at a rate of zero.
+**The table.** `onDisk()`: sizes off disk, slope from git across 20 *Iter* commits. LEDGER-archive 667.9 KB **+2.65 KB/iter**, RUNLOG 185.2 +1.17, state.json 113.7 +0.21, MANAGER-LOG 79.3 +0.61 = **+93 KB/20 iterations**, none of it capped.
+**Gates:** courtyard.html byte-identical — census PASS all six groups; shots clean; terse still `ok`.
+**Proved** (`probes/stall-quota.sh`, new): three staged RUNLOGs, HEAD's stall.mjs as control. Breach → exit 2, `ledger x2, cue x2` at #163, HEAD prints **no line holding "quota"**; unmeasured → advisory, HEAD silent; measured-and-CLEAN → **neither fires**.
+**Verdict:** shipped
+**Surprise:** state.json is a fourth unbounded file the brief did not name — **closedCues is 79 KB of its 114**, 227 notes nothing prunes, in the file state.mjs rewrites whole each iteration.
+**Law:** a field is not a reading — a gate wired into a row can sit at `null` for ever, and to a consumer counting only failures that is the same zero as a pass. Separate NOT MEASURED from CLEAN.
