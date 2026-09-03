@@ -4399,7 +4399,9 @@ function stepAgent(a, dt){
           a.pairSeat = 1.0;
         } else if (a.pairLead) a.pairSeat = 0;
         a.pheld = [s2.place]; a.stop = s2; a.stopped = false; a.cup = false;
-      } else if (a.pheld) a.pheld = null;             // the place goes back as they step off it, not when they leave the frame
+      } else { if (a.pheld) a.pheld = null;           // the place goes back as they step off it, not when they leave the frame
+        a.stop2 = null; }                             // and the second act goes with it: reaching HERE is the end of the visit on
+      // every clause above, so a sky-ended one must not walk out still armed (#183: 7 of 24 did)
       if (a.resume && a.i < a.wp.length){ a.state = 'walk'; a.resume = false; }
       else if (a.street){ a.state = 'walk'; }        // lane agents just continue their route
       else routeToExit(a);

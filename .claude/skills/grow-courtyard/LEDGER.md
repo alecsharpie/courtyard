@@ -254,3 +254,26 @@ head came out an EGG, because `at(a,b)` scales `a` by the axis and `b` by the la
 lateral by the APERTURE and sweeping the head as a circle off that one scale is the whole
 difference between a person and a lamp going out.
 **Law:** a silhouette's scale is a fact about the APERTURE it is seen through, not the body.
+
+## Iteration 183 — the plaza's second act has no leak (2026-09-04) [Plaza & quay × Deepen]
+
+**Brief:** b183 — c262, marked STALE: re-measure arm-vs-reach first.
+**Instrument.** `probes/plaza-rung.mjs` (new): wraps `plazaVisit` AFTER `__reseed()` (asserts it
+fired) and reads the six `R()` it draws, so each clause of the choice is counted in its own order;
+deaths are taken AT THE EDGE, since `routeToExit()` rebuilds `wp` and a post-mortem reads
+`i:2 wp:2` for every corpse alike.
+**Measured**, one probe, 5 seeds x 14 d, three PINNED refs (#171 `94feea8^` / #172 `2099f26^` / HEAD):
+offers 35/20/37 · door shut **0.0/0.0/0.0%** · coin 45.7/65.0/32.4% · no alt kind 0/0/4% · ARMED
+19/7/24 · first stop made **100%** everywhere · REACHED-of-armed **63.2/57.1/58.3%**.
+**The premise is dead.** No gap: the conversion never moved, and c262's own 13/6 is not reproducible
+on the build it was taken from (19/12 there). VOLUME moved — #172's allotment rung sits above the
+plaza band in the same `roll` ladder and halved its offers 35 -> 20; #173 took them to 37. The coin
+is a fair 0.5 on n 20-37; the sky is **7 of 7** deaths (rain 4, `skyLifts` 3), each with route
+and clock still left.
+**Did.** One line: the end block's `else` nulls `a.stop2` with `a.pheld` — 7 of 24 armed walkers left
+the frame still armed, against the comment above it. Ladder bit-identical after; strandeds 7 -> 0.
+**Gates:** census unchanged in EVERY field (no new `R()`) · motion · 4 shots — PASS
+**Verdict:** shipped
+**Surprise:** #160's fourteen-place door has refused **0 of 92 offers, ever**.
+**Law:** a conversion is not a leak until the DELIBERATE refusals are subtracted — a fair coin and a
+weather guard were 100% of this one. Price the numerator's VOLUME, not the ratio.

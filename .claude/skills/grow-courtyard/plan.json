@@ -16,31 +16,6 @@
   "rationale": "I shot the town before planning it (wide, seed 42, at t=175 early-summer morning, t=1210 late-winter night and t=1224 late-winter midday) and then measured the two things the picture made me want to brief, because the standing WATCH note says to. Both premises died. (1) The SILL, c259's 'same near-black bar at midday as at midnight': luma over the sill band at 1600x950 DPR 1 reads mean 13.98 sd 9.39 at midday with a range of 1.9-63.6, and sd/mean 0.671 — 2.4x the near roof's 0.281, the previous record. It is the most differentiated surface in the frame, and what the number exposes is the METRIC: sd/mean divides by a mean of 14. c259 closed, and the law that produced it corrected in LAWS.md. (2) The BACKDROP, the other class the note called unmeasured: sd/mean 0.150 / 0.160 over the frame's top 10% / 18% at midday, above GRASS and SIDE.cross. Also fine. That list is now empty; two briefs' worth of worker time saved, the same way #164's near-roof measurement saved 90 minutes.\n\nWhat the third shot found instead is the batch. In a late-winter midday frame — day 23, raining, every tree bare, thirty umbrellas up, the whole town gone grey-brown — the river is the most saturated, most summer-looking object in the picture. Priced on HEAD: riverCol() mixes toward RIVER_COLD by RIVER_TINT 0.30 and riverRun() runs 1.45x in January, so the channel has seasonal COLOUR and seasonal SPEED and no seasonal STATE. The fountain's basin, about thirty cells, skins over cell by cell in winter (FOUNT_ICE 0.7, fountainSkin(), ceiling 0.43 at midwinter). The 8784-cell channel does not. That is rung 4b by the census — ice is a new TILE kind and tileKinds moves — and it is the first new-ca in the River domain in 180 iterations, which is why I am taking 4b again rather than climbing past it: the RUNG repeats, the MOVE does not. mossCreep is the model and the brief says so; the town's best CA should not be reinvented next door.\n\nThe other four spend cues rather than inventing premises. b182 takes c267 (the lit panes have nobody at them), b183 takes c262 with its premise explicitly marked STALE and the re-measurement as the deliverable if it has died, b185 takes c268 against the source's OWN sentence — the second use of the `fidelity` kind the last pass added at rung 3, which is what tells us whether that menu widening was worth anything. b184 is the one I invented, and it is the weakest brief here: the town grows food and sells it and the food then evaporates, which I could see in the source but cannot see in a screenshot, so the brief makes the worker price it first and permits it to come back small.\n\nCuration. Coverage was three iterations stale (#178, #179, #180) so the balance grid I plan from was blind to them. LAWS.md was the real work: 38 laws at 12184 bytes against a 12288 cap, so every promotion had to be paid for. I merged all five of #176-#180's laws into laws they SUPERSEDE rather than stacking (the canvas-PRNG law into R(); cap-and-rate over cap-and-share; the two-dawns law absorbing the late-window split; the clock-vs-quantity law into the ground cache; ?t= into the probe-rewind law), corrected the sd/mean law with this pass's own measurement, folded the rate-of-zero law into cap-and-rate, and paid with three INSTRUMENT clauses — the rotation control, the dead-worker working tree, and #173's speedometer — on the ground that sill x harness is saturated at 9 entries, that motion.mjs now carries ABS_JUMP_KIND so the speedometer law is embodied in the tool, and that the loop's tooling is over-represented in the one file every worker reads whole. 36 laws, 12258 bytes, budget OK. Four cues closed, two raised, the stale VIEWPORT watch item rewritten as a standing rule now that #176 fixed it, and a new watch item aimed at this seat: read the KIND totals before the domain gaps.",
   "queue": [
     {
-      "id": "b183",
-      "domain": "Plaza & quay",
-      "kind": "Deepen",
-      "brief": "c262, PREMISE MARKED STALE — re-measure before you build. The cue read 13 second acts ARMED and only 6 REACHED over 5 seeds x 14 days, with the lane band the sole caller and 0.29 people in the square. That was taken BEFORE #173, which cut plazaLane()/alleyGate()/alleyLead() as a real corridor, moved FAM_CAP 4 -> 5, and took plaza presence 10.05 -> 12.18 with crowded pairs per person 0.117 -> 0.103. Re-run the arm-vs-reach measurement on HEAD first. If the gap has closed, THE MEASUREMENT IS THE DELIVERABLE: write the numbers, close the cue, and pick the next thing the numbers show — do not manufacture a fix for a premise that has died. If the gap is still open, find where the second act dies (armed, walked, or refused at the door) and instrument the RUNG rather than the population.",
-      "seams": [
-        "PLAZA_X0",
-        "plazaLane",
-        "alleyGate",
-        "alleyLead",
-        "ringNode",
-        "RING_NODES",
-        "FAM_CAP",
-        "plazaWay",
-        "famWalk",
-        "PLAZA_PITS",
-        "QUAY_BENCHES",
-        "FOUNTAIN",
-        "spawnLaneAgent"
-      ],
-      "successLooksLike": "Either the arm->reach gap is gone and the ledger says so with the paired numbers against the pre-#173 reading, or a named clause in the second act is shown to refuse most of its callers and is fixed, with plaza presence and the crowded-pair rate both quoted before and after.",
-      "avoid": "Do not widen a cap before you have measured the share AT THE CHOICE — #173 already showed that widening this room buys crowding, and that many PLACES is not many WAYS IN. Do not add a new destination to the square.",
-      "budgetMin": 40,
-      "risk": "medium"
-    },
-    {
       "id": "b184",
       "domain": "Lane & market",
       "kind": "Connect",
@@ -105,6 +80,10 @@
     {
       "id": "b182",
       "at": "2026-09-03T22:52:51.830Z"
+    },
+    {
+      "id": "b183",
+      "at": "2026-09-03T23:27:12.202Z"
     }
   ]
 }
