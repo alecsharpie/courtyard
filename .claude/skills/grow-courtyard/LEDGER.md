@@ -133,3 +133,15 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Verdict:** shipped
 **Surprise:** the crumbs shipped DEAD and only the probe caught it. A pigeon flies up when any agent comes within 4.5 cells, so the one act whose point is a bird coming to you could never have one: 0.00 within 3 cells of a feeder — 0.0000 on HEAD too, the control that made it a fact. Excepting the crumbs from the scare took it to **0.95, against 0.01 elsewhere on the same build**.
 **Law:** an act whose payoff is another population's BEHAVIOUR is bounded by that population's avoidance rule, not by the act — instrument the payoff.
+
+## Iteration 161 — the morning lapse lands on a town, not on three figures (2026-09-03) [People & animals × Deepen]
+
+**Brief:** b161 — give the morning lapse a population; COUNT IT ON HEAD FIRST.
+**Counted** (`probes/lapse-pop.mjs`, new: presence at BOTH clock-button targets, 5 seeds x a year). sunUp+0.5 holds **mean 28.3 people, med 29, min 6, max 47** in **11.6 kinds of errand**, against the evening's 41.1 / 14.2; **125 of 125 mornings hold six or more**. The three the premise named are 2.4 of the 28.3 (sweeper 1.14, round 0.88, cart 0.40). Refuted; nothing built.
+**Deleted the sentence that made it** — `courtyard.html:5844`, "with the sweeper, the cart and nobody else" — and the same claim in `state.watch[0]`; both now carry the count and name the probe.
+**Suspected the instrument** (`probes/town-hourly.mjs`, new). Not a residue: median age at the sample is 15.7 sim h against a **26 h** world crossing (138 cells at ~5.2/h), and the 03.00 count saturates day over day instead of climbing. Control: an UNPAUSED, DRAWN 8x run reads 21-29 where the warped one reads 17-33.
+**Gates:** census PASS, six groups unchanged · visual PASS (`probes/lapse-shots.mjs`, new: both targets, 2 seeds, 2 seasons) · motion skipped, nothing that moves was touched.
+**Verdict:** no-ship (measurement)
+**Surprise:** the premise was true when written — #98 described the town of #98, and sixty iterations of population made it false without touching that code.
+**Law:** a claim of SCARCITY is dated the day it is made, priced against the town of its own iteration and rotting as the town grows, where a structural claim does not. Re-count every "nobody else", and treat `watch` as a brief generator with more force than a comment.
+**Cue:** the honest gap at dawn is composition, not count.

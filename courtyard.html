@@ -5842,7 +5842,11 @@ function updateSweeper(){
 }
 
 /* ---- the morning round (#98) ----
- * The morning lapse lands at sunUp + 0.5 with the sweeper, the cart and nobody else.
+ * The morning lapse lands at sunUp + 0.5 — the THINNER of the two clock-button hours,
+ * never an empty one. The sentence that stood here said it landed on "the sweeper, the
+ * cart and nobody else"; #161 counted 125 mornings (5 seeds x a year, probes/lapse-pop.mjs)
+ * and found mean 28.3 people, min 6, in 11.6 kinds of errand, against the evening's 41.1
+ * in 14.2. Those three are 2.4 of the 28.3. Do not price a morning feature off scarcity.
  * ONE figure with a bag comes in at the west end at sunUp - 0.3, works the west end's
  * HOME_DOORS in order — a short stand at each, a bottle left on the step, taken in by
  * mid-morning — and walks back out west. Priced on HEAD by tracing the sweeper: the
