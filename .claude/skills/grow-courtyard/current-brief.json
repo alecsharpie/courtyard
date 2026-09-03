@@ -18,7 +18,7 @@
   "avoid": "Re-measure the +1.02 on HEAD first — it is a number from a cue, not from a run you did. Do not give any east destination its own new source; that is a bigger move than this brief and it wants its own. If the sweep says the ceiling is now a DEAD constant (identical numbers at two settings), that is a real result: ship the measurement and the finding, not a number change for its own sake.",
   "budgetMin": 40,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 158,
   "issued": "2026-09-03T05:34:11.922Z",
