@@ -6156,7 +6156,55 @@ function drawSunMoon(g, hz, top){
     g.globalAlpha = 1;
   }
 }
+/* ===== the distance behind the town: four receding bands =====
+ * Until #150 the whole distance was ONE band of blocks walked along ONE base in ONE
+ * colour, so the town did not recede — it stopped against a cut-out. Four bands now,
+ * each with its own base, its own roofline range, its own house rhythm and its own mix
+ * toward the sky. The nearest (index 3) IS the old band: same base, same rhythm, same
+ * hash addresses — everything added is BEHIND it, and only its chimneys and its glass
+ * are new. Each band's base is the next-nearer band's HIGHEST roofline (its `t0`), so a
+ * farther band can only ever appear ABOVE a nearer one's roofline: no floating feet, no
+ * gap between bands, and nothing new drawn below the old band's foot.
+ * Cache side (backKey = W x H : lightBucket): nothing here may ride the wind or the
+ * drift — that belongs with drawClouds. A band hazes toward `low` (skyCols()[1]) and NOT
+ * toward HAZE, though HAZE is made of it: HAZE also carries mistF(), and mist is not in
+ * backKey, so a band mixed toward it would be a cached band lying about the weather.
+ *   t0/t1  roofline, in cellH about hz, at hash 0 and hash 1 (negative is above hz)
+ *   base   the band's foot, in cellH below hz   ·  w0/wv  its house rhythm, in cellW
+ *   haze   mix toward `low`: 0 is the sky itself, 0.70 the old band's grey
+ *   sc     roof pitch, tower and chimney scale  ·  spire  the tower threshold
+ *   chim   share of houses carrying a chimney   ·  lit  window brightness after dark
+ *   salt   the band's own address into hash(): 0 keeps the near band HEAD's exactly
+ */
+const FAR_BANDS = [
+  { t0:-1.60, t1:-3.40, base:-0.70, w0:0.95, wv:1.35, haze:0.36, sc:0.34, spire:0.975, chim:0.00, lit:0.00, salt:23629 },
+  { t0:-0.70, t1:-2.60, base: 0.30, w0:1.25, wv:1.80, haze:0.50, sc:0.44, spire:0.968, chim:0.25, lit:0.30, salt:15733 },
+  { t0: 0.30, t1:-1.90, base: 1.80, w0:1.60, wv:2.40, haze:0.60, sc:0.58, spire:0.955, chim:0.50, lit:0.65, salt: 7919 },
+  { t0: 1.80, t1:-1.20, base: 3.20, w0:2.00, wv:3.20, haze:0.70, sc:1.00, spire:0.900, chim:0.72, lit:1.00, salt:    0 },
+];
+/* The far town's lit glass, in SCREEN rects, one entry per lit band. Built at cache time
+ * in drawBackdrop and repainted by applyLight's screen pass, for the reason #136 wrote
+ * down: a warm pixel drawn before the night's multiply is slate whatever it was painted.
+ * HEAD's 80 hashed dots were painted in the cache and arrived slate: they put 242 px in
+ * the layer and 61 in the finished frame, and the town's warm-pixel count above the
+ * roofline is IDENTICAL with them present and removed (probes/far-depth.mjs). They were
+ * never lights. These rects are as fresh as the image they light — both are written in
+ * the same rebuild, so a stale cache is stale in one piece. */
+const FAR_WIN = [];
+/* One pane in the far town. windowLit()'s shape without its register: the far town has
+ * no doors, so no HOMES and no early risers — a lamp goes on as it darkens, out at its
+ * own bedtime, one in twenty burning through to the dawn edge. It reads nightAt(), the
+ * SAME clock the near town's glass reads, so both towns light and go dark on one edge
+ * and neither keys on an hour. hash(), never R(): this is the renderer. */
+function farWindowLit(n, a, b){
+  if (hash(a * 3, b * 7 + n.nid) <= 0.76) return false;      // most of the far town is dark
+  const hOn = hash(a * 5 + 1, b * 11 + n.nid), hBed = hash(a * 7 + 2, b * 13 + n.nid);
+  const on = 0.15 + 1.85 * hOn, last = n.span - 0.05 - 0.9 * hOn;
+  const off = hBed > 0.95 ? last : on + 1.2 + 6.8 * hBed * hBed;
+  return n.t >= on && n.t < off;
+}
 function drawBackdrop(g, hz, low){
+  FAR_WIN.length = 0;
   const starF = nightF * (1 - cloudCover());         // cover puts the stars out
   if (starF > 0.1){
     for (let k = 0; k < 120; k++){
@@ -6165,38 +6213,85 @@ function drawBackdrop(g, hz, low){
       g.fillRect(sx, sy, 1.3, 1.3);
     }
   }
-  // hills, hazed
-  g.fillStyle = mix(low, nightF > 0.5 ? '#151d33' : '#93a7b2', 0.5);
-  g.beginPath(); g.moveTo(-10, hz + 4 * cellH);
-  for (let sx = -10; sx <= W + 30; sx += 24)
-    g.lineTo(sx, hz - cellH * (0.6 + 2.0 * Math.sin(sx * 0.0031) + 1.0 * Math.sin(sx * 0.0093 + 1.7)));
-  g.lineTo(W + 30, hz + 4 * cellH); g.closePath(); g.fill();
-  // the rest of the town, further off than ours
-  g.fillStyle = mix(low, nightF > 0.5 ? '#0d1424' : '#6f7c86', 0.7);
-  const base = hz + 3.2 * cellH;
-  let sx2 = -18;
-  while (sx2 < W + 18){
-    const key = Math.round(sx2);
-    const w2 = cellW * (2.0 + hash(key, 5) * 3.2);
-    const hgt = cellH * (1.4 + hash(key, 9) * 3.0);
-    g.beginPath();
-    if (hash(key, 13) > 0.9){                       // a distant spire
-      g.moveTo(sx2, base); g.lineTo(sx2, base - hgt - cellH * 2.4);
-      g.lineTo(sx2 + w2 * 0.5, base - hgt - cellH * 7.2);
-      g.lineTo(sx2 + w2, base - hgt - cellH * 2.4); g.lineTo(sx2 + w2, base);
-    } else {
-      g.moveTo(sx2, base); g.lineTo(sx2, base - hgt);
-      g.lineTo(sx2 + w2 * 0.5, base - hgt - cellH * 0.9);
-      g.lineTo(sx2 + w2, base - hgt); g.lineTo(sx2 + w2, base);
+  // hills, hazed — two ridges now. The near one is HEAD's curve lifted by a constant:
+  // its old +0.6 held a mean ridge only 0.94 cellH above hz and fell 2.1 BELOW it at the
+  // right edge, which is inside the town's new ranks, so the far town would have stood on
+  // top of the hills. At +3.4 the mean is 3.74 and the minimum 0.70, clear of band 0's
+  // roofline. The far one is new and is the palest thing in the picture. Shape,
+  // amplitudes and phase are otherwise HEAD's exactly.
+  const ridge = (h, base, a0, k0, a1, k1, ph) => {
+    g.fillStyle = mix(low, nightF > 0.5 ? '#151d33' : '#93a7b2', h);
+    g.beginPath(); g.moveTo(-10, hz + 4 * cellH);
+    for (let sx = -10; sx <= W + 30; sx += 24)
+      g.lineTo(sx, hz - cellH * (base + a0 * Math.sin(sx * k0 + ph) + a1 * Math.sin(sx * k1 + 1.7)));
+    g.lineTo(W + 30, hz + 4 * cellH); g.closePath(); g.fill();
+  };
+  ridge(0.22, 6.2, 1.6, 0.0021, 0.9, 0.0072, 2.6);      // the far ridge
+  ridge(0.50, 3.4, 2.0, 0.0031, 1.0, 0.0093, 0);        // HEAD's, lifted
+  // the rest of the town, further off than ours — furthest band first, nearest last
+  const night = nightF > 0.5, roofs = [];
+  for (let i = 0; i < FAR_BANDS.length; i++){
+    const b = FAR_BANDS[i], base = hz + b.base * cellH, houses = [];
+    g.fillStyle = mix(low, night ? '#0d1424' : '#6f7c86', b.haze);
+    let sx2 = -18;
+    while (sx2 < W + 18){
+      const key = Math.round(sx2) + b.salt;
+      const w2 = cellW * (b.w0 + b.wv * hash(key, 5));
+      const top = hz + cellH * lerp(b.t0, b.t1, hash(key, 9));
+      const tower = hash(key, 13) > b.spire;
+      g.beginPath();
+      if (tower){                                   // a distant spire
+        g.moveTo(sx2, base); g.lineTo(sx2, top - cellH * 2.4 * b.sc);
+        g.lineTo(sx2 + w2 * 0.5, top - cellH * 7.2 * b.sc);
+        g.lineTo(sx2 + w2, top - cellH * 2.4 * b.sc); g.lineTo(sx2 + w2, base);
+      } else {
+        g.moveTo(sx2, base); g.lineTo(sx2, top);
+        g.lineTo(sx2 + w2 * 0.5, top - cellH * 0.9 * b.sc);
+        g.lineTo(sx2 + w2, top); g.lineTo(sx2 + w2, base);
+        g.closePath();
+        // chimneys: stubs off the roof slope, subpaths of the SAME path and the same
+        // single fill, so a stack can never double-darken the roof it stands on
+        const hc = hash(key, 17), nch = hc < b.chim * 0.4 ? 2 : hc < b.chim ? 1 : 0;
+        for (let c = 0; c < nch; c++){
+          const f = 0.18 + 0.64 * hash(key, 41 + c), cw = Math.max(1, cellW * 0.16 * b.sc);
+          const ry = top - cellH * 0.9 * b.sc * (1 - Math.abs(2 * f - 1)) + cellH * 0.1;
+          const ch = cellH * (0.55 + 0.45 * hash(key, 47 + c)) * b.sc;
+          g.moveTo(sx2 + w2 * f, ry); g.lineTo(sx2 + w2 * f, ry - ch);
+          g.lineTo(sx2 + w2 * f + cw, ry - ch); g.lineTo(sx2 + w2 * f + cw, ry);
+        }
+      }
+      g.closePath(); g.fill();
+      if (b.lit > 0) houses.push(sx2, w2, top);
+      sx2 += w2;
     }
-    g.closePath(); g.fill();
-    sx2 += w2;
+    roofs.push(houses);
   }
+  // and their windows, on the SAME clock as ours. The two nearest bands only: at the
+  // furthest band's scale a pane is a third of a pixel, and a town that lights all the
+  // way to the hills is a town with no distance in it.
   if (nightF > 0.3){
-    g.fillStyle = 'rgba(255,205,130,' + (0.45 * nightF) + ')';
-    for (let k = 0; k < 80; k++){
-      if (hash(k, 23) > 0.45) continue;
-      g.fillRect(hash(k, 29) * W, hz + cellH * (0.5 + hash(k, 31) * 2.2), 1.7, 1.7);
+    const n = nightAt();
+    for (let i = 0; i < FAR_BANDS.length; i++){
+      const b = FAR_BANDS[i];
+      if (b.lit <= 0) continue;
+      const base = hz + b.base * cellH, hs = roofs[i];
+      const ww = Math.max(1, cellW * 0.13 * b.sc), wh = Math.max(1, cellH * 0.15 * b.sc);
+      const reg = { a: b.lit, r: [] };
+      FAR_WIN.push(reg);
+      g.fillStyle = 'rgba(255,205,130,' + (0.5 * nightF * b.lit) + ')';
+      for (let k = 0; k < hs.length; k += 3){
+        const sx2 = hs[k], w2 = hs[k + 1], top = hs[k + 2];
+        const nc = clamp(Math.floor(w2 / (cellW * 0.7)), 1, 6);
+        for (let c = 0; c < nc; c++){
+          const wx = sx2 + w2 * (c + 0.5) / nc - ww * 0.5;
+          for (let r = 0; r < 4; r++){
+            const wy = top + cellH * (0.5 + r * 0.66) * b.sc;
+            if (wy + wh > base - cellH * 0.08) break;     // the facade ran out above the band's foot
+            if (!farWindowLit(n, (i + 1) * 20011 + k * 5 + c, r)) continue;
+            g.fillRect(wx, wy, ww, wh); reg.r.push(wx, wy, ww, wh);
+          }
+        }
+      }
     }
   }
 }
@@ -12031,6 +12126,14 @@ function applyLight(t){
     drawRiverLights(simT);
     drawWetLights();
     drawPuddleLights();       // the standing water gets the lamp the sheen only suggested
+    // the far town's glass, on the same footing and for the same reason as the near
+    // town's below: registered in the backdrop cache, repainted here. Dimmer than ours
+    // and dimmer band by band, so the distance stays distance.
+    for (const fw of nightF > 0.3 ? FAR_WIN : []){    // the same edge drawBackdrop wrote them on
+      if (!fw.r.length) continue;
+      ctx.fillStyle = 'rgba(255,198,120,' + (0.55 * fw.a * nightF).toFixed(3) + ')';
+      for (let i = 0; i < fw.r.length; i += 4) ctx.fillRect(fw.r[i], fw.r[i+1], fw.r[i+2], fw.r[i+3]);
+    }
     // the warmth back into the glass: the multiply above turned every lit pane the
     // same grey as the wall (R - B was -5 at midnight); a screen fill of the pane's own
     // quad restores it, and lights whoever stands in front of it, which is right.

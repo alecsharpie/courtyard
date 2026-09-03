@@ -117,3 +117,13 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Gates:** `courtyard.html` **byte-identical** — census unchanged in all six blocks, shots clean. `--additions` 0/exit 0 on HEAD; staged over-quota state + a 2.35 KB entry → 6 named failures/exit 3. `punt.mjs` HEAD 0/exit 0; `--strand` 2475 ORPHAN/exit 1; `--strand-late` 14 OVERDUE at 02:54/exit 1.
 **Surprise:** `state.inventory` holds a `note` **string** beside its nine domain arrays — iterated as a list it yields one "line" per CHARACTER. Only the falsification found it; HEAD was a clean, plausible zero.
 **Note:** `run-loop.sh` never calls `--additions`, so the quota binds only if the worker obeys SKILL.md (open cue).
+
+## Iteration 150 — the distance gets six rungs, and the far town lights (2026-09-03) [Sky, light & weather × Scale/World]
+
+**Brief:** b150 — the distance was ONE band, ONE base, ONE colour; give it depth.
+**Did.** `FAR_BANDS`: four ranks, each with its own roofline range, house rhythm, tower scale, chimney share and haze. **Each band's foot is the next-nearer band's HIGHEST roofline**, so a farther rank can only appear ABOVE a nearer one: no floating feet, no gap, nothing below the old base. Rank 3 IS HEAD's — base, rhythm, hash addresses — plus chimneys and glass. A palest second ridge behind the hills, HEAD's lifted clear of the ranks. `farWindowLit` is `windowLit`'s shape on `nightAt()`: no HOMES, no risers, one clock for both towns.
+**Gates:** census **unchanged, all six blocks** (no `R()`; it cannot see depth beyond the grid, as briefed) · motion PASS · filmstrip 0 POP day and night · perf +0%.
+**Measured** (`probes/far-depth.mjs`). Rungs in the layer: HEAD **2** → **6** (L186 to L142, even steps), all six visible on screen. Strip mass against a **same-code control of 0.000%**: 7.11% desktop, 4.87% phone; below the foot **0 px differ**, 5 instants × 2 sizes. Night: rows hz−2/−1 go 0 → 31/74 warm px, the furthest rank dark, lit count 147→474→171.
+**Verdict:** shipped
+**Surprise:** HEAD's 80 "lit dots" were never lights. Painted into the cache, they meet the multiply last: 242 px in the layer, 61 in the frame, and the warm-pixel count above the roofline is **identical with them present and removed**. Dead since the layer was written.
+**Law:** a CACHED warm pixel is in exactly the trouble #136 named for a live one — the multiply is last either way. Register its points for a repaint after `applyLight`, in the same rebuild as the image, so a stale cache is stale in one piece.

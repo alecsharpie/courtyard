@@ -526,7 +526,8 @@
       "cloudCover one slow rate-capped scalar; drawClouds 11 hashed banks, SKY STRIP ONLY. CLOUD SHADOW: drawCloudShade/cloudShadeF, ONE live multiply after the items, before applyLight; cloudDrift",
       "the SUN: sunVec() the one light vector every cast shadow reads - lx swings 0.8..-0.8 across the day, ly is 0.58..0.32 and ALWAYS northward. shadowF()/shSpread()/shOffset() the hardness trio (1 below SH_KNEE); dialThrow(h)",
       "BUILDING SHADOW (#140): shTop/shOpen off buildVolumes, buildSunShade on a 1/64 sun, drawSunShade ONE path before applyLight",
-      "weather scalars: snowF/snowCover/snowAt, wetF, raining/rainFall/coverF, windF/windyDay/windDir, MIST_SRC[]/mistAt. LIGHT IS ON THE SUN: dawnF()/dawnEdge(), applyLight's wash rides it at BOTH ends (#143), chillF()/hearthF"
+      "weather scalars: snowF/snowCover/snowAt, wetF, raining/rainFall/coverF, windF/windyDay/windDir, MIST_SRC[]/mistAt. LIGHT IS ON THE SUN: dawnF()/dawnEdge(), applyLight's wash rides it at BOTH ends (#143), chillF()/hearthF",
+      "the BACKDROP has DEPTH (#150): FAR_BANDS 4 ranks, each foot = the next-nearer band's t0; two hill ridges; FAR_WIN registered in the cache, repainted in applyLight's screen pass"
     ],
     "life": [
       "ring transit via spawnAgent: walker, crosser, dogwalker. drawPerson 12 px with a contact patch. Wildlife: butterflies, fireflies, birds[], ducks, swans, catA, leaves. greetPass/chatty",
@@ -601,6 +602,12 @@
       "note": "a cart teleports 2.60 cells in one step, once per run, at seed 7, on HEAD and on every candidate (motion.mjs names it cart85/cart181 depending on the reshuffle). Its median step is 0.000, so it is a parked cart being re-berthed. Pre-existing and never chased.",
       "raisedBy": 147,
       "seenBy": 1
+    },
+    {
+      "id": "c238",
+      "note": "the far ranks use ~5 cellH just above hz while topPad gives 9.6, so over half the sky strip is still empty gradient; and they cross the near ridge at the right edge, where it dips to 0.70 cellH above hz.",
+      "raisedBy": 149,
+      "seenBy": 0
     }
   ],
   "watch": [
