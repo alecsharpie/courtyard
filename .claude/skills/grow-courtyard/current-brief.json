@@ -21,7 +21,7 @@
   "avoid": "Do not raise laneCap and do not re-weight EAST_BANDS — #158 swept the ceiling 10/13/16/20 and the share, found no knee anywhere, and HELD both; the door is the bound and the sweep cannot see it. Do not answer this with two more benches of the same kind: that is a scalar, not a bet. Price presence, not a per-instant crop, and count admissions apart from choices.",
   "budgetMin": 90,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 160,
   "issued": "2026-09-03T06:22:05.142Z",
