@@ -532,7 +532,7 @@
     ],
     "sky": [
       "day/night (55 s day), sun and moon arc, chimney smoke, a balloon; windowLit the ONE pane predicate + LIT[], relit AFTER applyLight. season() over SEASON_LEN 26 days; greyF the year",
-      "the BACKDROP is ONE cached layer (bcv/btx, backKey) and has DEPTH (#150): FAR_BANDS 4 ranks, each footed on the next-nearer top, 2 ridges, 120 stars; FAR_WIN repainted after applyLight",
+      "the BACKDROP is ONE cached layer (bcv/btx, backKey) with DEPTH (#150,#162): FAR_BANDS 4 ranks + THREE hill tiers on strip=hz/cellH (7.75..52.2; ex/sc, room-bounded; the RANGE 1-|sin| cusps); FAR_WIN repainted after applyLight; clouds draw AFTER it",
       "cloudCover one slow rate-capped scalar; drawClouds 11 hashed banks, SKY STRIP ONLY. CLOUD SHADOW: drawCloudShade/cloudShadeF, ONE live multiply after the items, before applyLight",
       "the SUN: sunVec() the one vector every cast shadow reads - lx swings 0.8..-0.8, ly 0.58..0.32 and ALWAYS northward. shadowF/shSpread/shOffset the hardness trio; dialThrow(h)",
       "BUILDING SHADOW (#140): shTop/shOpen off buildVolumes, buildSunShade on a 1/64 sun, drawSunShade ONE path before applyLight",
@@ -609,6 +609,12 @@
     {
       "id": "c249",
       "note": "b161 refuted the empty-morning premise (28.3 people at sunUp+0.5). The real dawn gap is COMPOSITION: 11.6 errand kinds vs the evening's 14.2, led by family/lawn where the evening has dusk, tap, band, homers.",
+      "raisedBy": 159,
+      "seenBy": 0
+    },
+    {
+      "id": "c250",
+      "note": "backKey has no camera term: a quarter camera moves topPad/hz but the cached backdrop stays put, so the hills and the live gradient's horizon part company across the ease",
       "raisedBy": 159,
       "seenBy": 0
     }
