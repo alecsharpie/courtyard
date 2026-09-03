@@ -123,3 +123,13 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Law:** a window is a SET-OUT bound or a PRESENCE bound and the two differ by a whole visit — price the visit BEFORE naming the hours, and clip a drawn dwell to the room the day has left rather than refusing it whole.
 **Law:** a social window that a light term ALSO cuts is two bounds, and only one moves with the season — solve the sun's own hour and intersect, or the hard-coded end is dead in summer and a lie in winter.
 **Note:** `context-budget.mjs` reads **OVER — 48.0 KB of 46 KB**, and 2 of the last 3 entries are over the per-entry cap. Both are the manager's to distil.
+
+## Iteration 149 — two gates that lied, and one of them now binds the worker (2026-09-03) [The sill & the observer × Harness]
+
+**Brief:** b149 — bound what ONE iteration ADDS; fix or retire `probes/punt.mjs`.
+**Budget.** `--additions` diffs the tree against a ref (`--since`, default HEAD) over the three surfaces a worker writes and every open re-reads: entries, inventory lines, cues. Quota: 1 entry ≤ 1.8 KB, ≤ 1 inventory line, ≤ 1 cue, 250 B each; exit 3, **naming** the offender.
+**Punt (c227).** Both stranding tests had stopped being faults. `punt.leg === 0` assumed ONE hull; #141's second leaves A moored while B carries. `!eastOpen()` is the case #131 BUILT — `eastOpenFor()` covers a rider to `a.puntBack`. Replaced by two questions no punt predicate can satisfy: ORPHAN (`a.eyot`, no hull holds them) and OVERDUE (`a.eyot` at `EVE_GONE`). Exits 1 now; also wrapped a trip length that read negative past midnight.
+**Gates:** `courtyard.html` **byte-identical** — census unchanged in all six blocks, shots clean; no draw. `--additions` 0/exit 0 on HEAD; staged over-quota state + a 2.35 KB entry → 6 named failures/exit 3. `punt.mjs` HEAD 0/exit 0; `--strand` (hull freed at leg 3) 2475 ORPHAN/exit 1; `--strand-late` (held at leg 3) 14 OVERDUE at 02:54/exit 1.
+**Surprise:** `state.inventory` holds a `note` **string** beside its nine domain arrays — iterated as a list it yields one "line" per CHARACTER. Only the falsification found it; HEAD was a clean, plausible zero.
+**Law:** a gate is a claim about a BUILD. Both punt tests were RIGHT when written and were invalidated by a later feature that never re-ran them — so a change redefining a gate's subject must re-run every gate that READS it, not only the one briefed.
+**Note:** total OVER, 49.7/46 KB (+506 B of it mine, SKILL.md). The manager's.

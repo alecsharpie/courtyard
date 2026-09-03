@@ -2,14 +2,39 @@
 /* punt — b94 / #96: the punt from the jetty to the eyot.
  *
  *   node punt.mjs [file] [--seeds 10] [--days 3] [--day0 5]
+ *   node punt.mjs --strand            falsification: strand a rider, watch ORPHAN go red
+ *   node punt.mjs --strand-late       falsification: strand them LATE, for OVERDUE
  *
  * On HEAD (no punt in the source) this is the brief's one count: jetty stands/day
  * (overDeck's a.jetty performing their stand) and their dwell. On the candidate it
  * also measures: claims, aborts, push-offs (with the sky at the instant: raining,
- * windF, eastOpen), completed round trips, strandings (an a.eyot stander with the
- * punt at its mooring, or anybody a.eyot after eastOpen() closes), the punt's
+ * windF, eastOpen), completed round trips, strandings (defined below), the punt's
  * travelled y-range (never under DECK rows 30..32), its least distance to the
  * rowboat, and the swans' least distance to the landing while the punt lies there.
+ *
+ * THE STRANDING TEST, rewritten at #149 (c227). The original asked two questions and
+ * both of them stopped being faults under later work, so this gate reported 15
+ * strandings on a clean HEAD and had done since #141 — and a gate that fails on HEAD
+ * is not a gate:
+ *   - "a.eyot with the punt moored" assumed ONE hull. #141 added a second, so hull A
+ *     lies at leg 0 while hull B is out carrying somebody, every time.
+ *   - "a.eyot after eastOpen() closed" is the case #131 built ON PURPOSE: eastOpenFor()
+ *     covers a night rider until a.puntBack, and the retire rule then walks them down
+ *     to the landing. Being on the island in the dark is the FEATURE.
+ * What is left is the fault itself, in two build-INDEPENDENT questions — neither asks a
+ * predicate the punt defines, so neither can be satisfied by redefining the punt:
+ *   ORPHAN   somebody is on the eyot and NO hull holds them as rider or mate, so
+ *            nothing is coming for them. (puntFree() does not clear a.eyot, so a hull
+ *            released with its passenger ashore leaves this true for good.)
+ *   OVERDUE  somebody is still on the eyot at EVE_GONE — the hour the town calls the
+ *            last one gone, and the hour puntNightFits() prices every crossing to be
+ *            home BEFORE, with EVE_BELL in hand.
+ * Strandings now EXIT NON-ZERO, and the two zeroes are each shown to be capable of being
+ * non-zero, from OUTSIDE the source, each differing from HEAD in exactly one way:
+ *   --strand       frees a hull the moment it beaches with its rider ashore — a ferryman
+ *                  who poles home without his passenger. ORPHAN.
+ *   --strand-late  holds the hull at leg 3 instead, so the rider is still HELD (which is
+ *                  what masks ORPHAN) and simply never fetched. OVERDUE.
  */
 import { homedir } from 'node:os'; import { resolve, join, dirname } from 'node:path'; import { pathToFileURL, fileURLToPath } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -18,20 +43,32 @@ const { chromium } = (await import(pathToFileURL(PW).href)).default;
 const arg = (n, d) => { const i = process.argv.indexOf(n); return i !== -1 && process.argv[i + 1] ? process.argv[i + 1] : d; };
 const file = process.argv[2] && !process.argv[2].startsWith('--') ? resolve(process.argv[2]) : resolve(HERE, '../../../../courtyard.html');
 const NS = +arg('--seeds', 10), NDAYS = +arg('--days', 3), DAY0 = +arg('--day0', 5);
+const STRAND = process.argv.includes('--strand');        // ferryman abandons them  -> ORPHAN
+const LATE   = process.argv.includes('--strand-late');   // ferryman never returns   -> OVERDUE
 const SEEDS = [3, 7, 11, 19, 23, 29, 42, 51, 64, 77].slice(0, NS);
 const b = await chromium.launch();
 const stands = [], dwells = [], cross = [], perDay = {}, standPerDay = {};
-let aborts = 0, strand = [], swanMin = Infinity, swanNear = 0, puntY = [Infinity, -Infinity], boatMin = Infinity, hasPunt = false;
+let aborts = 0, strand = [], nStrand = 0, swanMin = Infinity, swanNear = 0, puntY = [Infinity, -Infinity], boatMin = Infinity, hasPunt = false;
 for (const seed of SEEDS){
   const p = await b.newPage({ viewport:{width:1600, height:950} });
   p.on('pageerror', e => console.log('PAGE ERROR', e.message));
   await p.goto(pathToFileURL(file).href + `?pause&seed=${seed}`);
   await p.waitForFunction(() => window.__warp);
-  const out = await p.evaluate(new Function('A', 'const {DAY0, NDAYS} = A;' + `
+  const out = await p.evaluate(new Function('A', 'const {DAY0, NDAYS, STRAND, LATE} = A;' + `
     const HAS = typeof updatePunt === 'function';
     window.__reseed(); window.__warp(DAY0 * 55 - simT);
+    /* --strand: the ferryman poles home without his passenger. A REAL stranding, made
+     * from outside the source, so the gate is shown red on a build that differs from
+     * HEAD in exactly one way. Installed AFTER __reseed(), which reassigns globals. */
+    if ((STRAND || LATE) && HAS) window.updatePunt = function(dt){
+      for (const P of PUNTS){
+        if (LATE && P.leg === 3) continue;          // beached, and nobody is coming back for them
+        updateOnePunt(P, dt);
+        if (STRAND && P.leg === 3 && P.rider && P.rider.eyot) puntFree(P);
+      }
+    };
     const stands = [], dwells = [], cross = [], strand = [];
-    let aborts = 0, swanMin = Infinity, swanNear = 0, y0 = Infinity, y1 = -Infinity, boatMin = Infinity;
+    let aborts = 0, swanMin = Infinity, swanNear = 0, y0 = Infinity, y1 = -Infinity, boatMin = Infinity, nStrand = 0;
     const stood = new WeakSet(); let lastLeg = 0, cur = null;
     for (let i = 0; day < DAY0 + NDAYS; i++){
       window.__warp(0.05);
@@ -58,19 +95,20 @@ for (const seed of SEEDS){
         swanMin = Math.min(swanMin, d); if (d < 0.9) swanNear++;
       }
       if (i % 5) continue;
-      const onIsle = agents.filter(a => a.eyot);
-      if (onIsle.length && punt.leg === 0 && strand.length < 5)
-        strand.push({day, hour:+hour.toFixed(2), why:'a.eyot with the punt moored'});
-      if (onIsle.length && !eastOpen() && strand.length < 5)
-        strand.push({day, hour:+hour.toFixed(2), why:'a.eyot after eastOpen() closed'});
+      for (const a of agents){
+        if (!a.eyot) continue;
+        const held = PUNTS.some(P => P.leg > 0 && (P.rider === a || P.mate === a));
+        const why = !held ? 'a.eyot and no hull holds them' : hourEve() >= EVE_GONE ? 'a.eyot at EVE_GONE' : null;
+        if (why){ nStrand++; if (strand.length < 5) strand.push({day, hour:+hour.toFixed(2), why}); }
+      }
     }
-    return {HAS, stands, dwells, cross, aborts, strand, swanMin:+swanMin.toFixed(2), swanNear, y0:+y0.toFixed(1), y1:+y1.toFixed(1), boatMin:+boatMin.toFixed(1)};`), {DAY0, NDAYS});
+    return {HAS, stands, dwells, cross, aborts, strand, nStrand, swanMin:+swanMin.toFixed(2), swanNear, y0:+y0.toFixed(1), y1:+y1.toFixed(1), boatMin:+boatMin.toFixed(1)};`), {DAY0, NDAYS, STRAND, LATE});
   hasPunt = out.HAS;
   for (const s of out.stands){ const k = seed + ':' + s.day; standPerDay[k] = (standPerDay[k] || 0) + 1; }
   for (const c of out.cross){ const k = seed + ':' + c.day; perDay[k] = (perDay[k] || 0) + 1; }
   stands.push(...out.stands.map(s => ({seed, ...s}))); dwells.push(...out.dwells);
   cross.push(...out.cross.map(c => ({seed, ...c})));
-  aborts += out.aborts; strand.push(...out.strand.map(s => ({seed, ...s})));
+  aborts += out.aborts; strand.push(...out.strand.map(s => ({seed, ...s}))); nStrand += out.nStrand || 0;
   swanMin = Math.min(swanMin, out.swanMin); swanNear += out.swanNear;
   puntY = [Math.min(puntY[0], out.y0), Math.max(puntY[1], out.y1)]; boatMin = Math.min(boatMin, out.boatMin);
   await p.close();
@@ -90,12 +128,21 @@ console.log(`crossings/day median ${med(crossCounts)} (total ${cross.length} ove
 const bad = cross.filter(c => c.rain || c.wind >= 0.5 || c.dark);
 console.log(`push-offs in rain / wind>=0.5 / dark: ${bad.length}${bad.length ? ' ' + JSON.stringify(bad.slice(0, 3)) : ''}`);
 const unreturned = cross.filter(c => c.homeH === undefined);
-console.log(`round trips completed: ${cross.length - unreturned.length}/${cross.length}; strandings: ${strand.length}${strand.length ? ' ' + JSON.stringify(strand.slice(0, 3)) : ''}`);
+console.log(`round trips completed: ${cross.length - unreturned.length}/${cross.length}; strandings: ${nStrand} samples${nStrand ? ', e.g. ' + JSON.stringify(strand.slice(0, 3)) : ''}`);
 if (cross.length){
   const c0 = cross[0];
   console.log(`sample trip: claim ${c0.claimH} off ${c0.offH} land ${c0.landH} back ${c0.backH} home ${c0.homeH} (seed ${c0.seed} day ${c0.day})`);
-  const tripH = cross.filter(c => c.homeH).map(c => +(c.homeH - c.offH).toFixed(2));
+  // a trip that lands after midnight has homeH < offH on the 0..24 clock: wrap it, or
+  // the gate prints a NEGATIVE trip length and is read as noise.
+  const tripH = cross.filter(c => c.homeH).map(c => +((c.homeH - c.offH + 24) % 24).toFixed(2));
   console.log(`trip length h: median ${med(tripH)} range ${Math.min(...tripH)}..${Math.max(...tripH)}`);
 }
 console.log(`\npunt y while out: ${puntY[0]}..${puntY[1]} (DECK rows 30..32 — must start > 33); least distance to rowboat ${boatMin === Infinity ? 'n/a (never co-present)' : boatMin}`);
 console.log(`swans while punt at shore: least distance to landing ${swanMin === Infinity ? 'n/a' : swanMin}, samples < 0.9: ${swanNear}`);
+if (nStrand){
+  console.log(`\nFAIL: ${nStrand} stranded samples. ORPHAN = on the eyot with no hull holding them;`);
+  console.log('OVERDUE = still there at EVE_GONE. Neither is legal on any build.');
+  process.exit(1);
+}
+console.log(STRAND || LATE ? '\nNOTE: a --strand mode was set and NOTHING was stranded — the gate is not reading.' : '\nOK — nobody stranded.');
+if (STRAND || LATE) process.exit(1);

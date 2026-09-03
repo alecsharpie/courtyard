@@ -39,8 +39,11 @@ budget below is load-bearing.**
 | `stats.html` / `RUNLOG.jsonl` | ❌ never | the manager's inputs, not yours |
 
 `node .claude/skills/grow-courtyard/context-budget.mjs` prints what you're about to
-read. If it says **OVER**, note it in your ledger entry — that's a signal for the
-manager, and fixing it is a legitimate iteration.
+read. The TOTAL is the **manager's** number: if it says OVER, note it and move on — you
+cannot fix it inside your own iteration. What is yours is `--additions`, run at step 5:
+**one** ledger entry ≤ 1.8 KB, **at most one** inventory line and **one** cue, ≤ 250 B
+each. Over that is not "trim it", it is **merge** — into the entry, line or cue already
+there. That append is what the total is made of.
 
 ---
 
@@ -176,7 +179,10 @@ Whatever happened, record it. In order:
 2. **State** — `node .claude/skills/grow-courtyard/state.mjs --add-inventory "…"`
    for anything the town now contains that a future brief could duplicate. Add
    `--cue "…"` for a loose end you noticed but did not chase.
-3. **Commit** — subject line exactly:
+3. **Quota** — `node .claude/skills/grow-courtyard/context-budget.mjs --additions`.
+   It diffs the working tree against HEAD, so run it **before** you commit. Non-zero
+   names the line that broke the quota: merge it and re-run.
+4. **Commit** — subject line exactly:
    ```
    Iter <N>: <what changed> (<Domain> × <Kind>)
    ```

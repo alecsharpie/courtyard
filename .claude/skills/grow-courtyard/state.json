@@ -2,7 +2,7 @@
   "updated": "2026-09-03",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 148,
+  "lastIteration": 149,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -427,7 +427,8 @@
         38,
         43,
         57,
-        115
+        115,
+        149
       ],
       "polish": [
         68,
@@ -630,6 +631,12 @@
       "id": "c237",
       "note": "a cart teleports 2.60 cells in one step, once per run, at seed 7, on HEAD and on every candidate (motion.mjs names it cart85/cart181 depending on the reshuffle). Its median step is 0.000, so it is a parked cart being re-berthed. Pre-existing and never chased.",
       "raisedBy": 147,
+      "seenBy": 0
+    },
+    {
+      "id": "c238",
+      "note": "run-loop.sh never runs --additions (only --terse, pre-iteration), so the quota binds only if the worker obeys SKILL.md; --since HEAD~1 lets the runner check it post-commit. 5 open cues and 7 inventory lines predate the 250 B cap.",
+      "raisedBy": 148,
       "seenBy": 0
     }
   ],
