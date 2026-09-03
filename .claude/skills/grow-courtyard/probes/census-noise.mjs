@@ -16,7 +16,10 @@ const ART = fileURLToPath(new URL('../../../../courtyard.html', import.meta.url)
 const FILES = { HEAD: process.argv[2] || '/tmp/courtyard-head.html', HERE: process.argv[3] || ART };
 const CENSUS_SEEDS = [7, 42, 1234];
 const WIDE_SEEDS = [7, 42, 1234, 3, 11, 19, 77, 101];
-const AGES = [90, 330, 900];
+/* the ladder travels with the census: it moved to 90/625/1520 at #14 so all three
+ * cells sit at one season. --ages lets a later gate point this at its own cells. */
+const agesArg = process.argv.find(a => a.startsWith('--ages='));
+const AGES = agesArg ? agesArg.slice(7).split(',').map(Number) : [90, 625, 1520];
 
 const browser = await chromium.launch();
 const got = {};

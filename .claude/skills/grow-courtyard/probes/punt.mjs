@@ -125,8 +125,16 @@ console.log(`dwell median ${med(dwells)} s real = ${(med(dwells) * 24 / 55).toFi
 if (!hasPunt){ console.log('\n(no punt in this build — HEAD count only)'); process.exit(0); }
 console.log(`\n=== crossings ===`);
 console.log(`crossings/day median ${med(crossCounts)} (total ${cross.length} over ${seedDays} seed-days, range ${Math.min(...crossCounts)}..${Math.max(...crossCounts)}), aborts ${aborts}`);
-const bad = cross.filter(c => c.rain || c.wind >= 0.5 || c.dark);
-console.log(`push-offs in rain / wind>=0.5 / dark: ${bad.length}${bad.length ? ' ' + JSON.stringify(bad.slice(0, 3)) : ''}`);
+/* This line used to call three weathers a fault and by #154 two of them were the
+ * FEATURE: `dark` is #131's last punt and windF>=0.5 is #154's share of the bold. A
+ * gate that reports what a build was built to do teaches its reader to skip it. RAIN
+ * is the one the punt still refuses outright, so rain is what is named; the other two
+ * are printed as counts, because their SHAPE is worth seeing and their presence is not
+ * a fault. (LAW #149: a change to what a gate's subject IS must re-run the gate.) */
+const wet = cross.filter(c => c.rain);
+console.log(`push-offs in RAIN (still refused outright): ${wet.length}${wet.length ? ' ' + JSON.stringify(wet.slice(0, 3)) : ''}`);
+const blow = cross.filter(c => c.wind >= 0.5), dark = cross.filter(c => c.dark);
+console.log(`  legal, and counted for shape: ${dark.length} pushed off in the dark (#131), ${blow.length} at windF>=0.5 (#154)`);
 const unreturned = cross.filter(c => c.homeH === undefined);
 console.log(`round trips completed: ${cross.length - unreturned.length}/${cross.length}; strandings: ${nStrand} samples${nStrand ? ', e.g. ' + JSON.stringify(strand.slice(0, 3)) : ''}`);
 if (cross.length){

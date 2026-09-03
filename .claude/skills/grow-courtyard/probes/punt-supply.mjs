@@ -45,7 +45,7 @@ for (const seed of SEEDS){
     else if (a.with) k = 'COMPANION';
     else if (a.small) k = 'SMALL';
     else if (raining) k = 'RAIN';
-    else if (windF() >= 0.5) k = 'WIND';
+    else if (typeof puntWindOK === 'function' ? !puntWindOK(a) : windF() >= 0.5) k = 'WIND';   // #154: a SHARE, not a bar
     else if (a.pairLead && (() => { const m = puntMate(a); return !m || m.small || Math.hypot(m.x - a.x, m.y - a.y) > 3; })()) k = 'MATE';
     else if (!HULLS.some(P => { if (P.leg !== 0) return false;
       const two = typeof puntStandFor === 'function';

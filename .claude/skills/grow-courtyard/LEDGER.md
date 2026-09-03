@@ -40,55 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 142 — the clock stops being the loudest voice in the room (2026-09-03) [The sill & the observer × Connect]
-
-**Brief:** b142 — price the strike against everything else in the queue. Full entry in LEDGER-archive.md.
-**Did.** `background(rank, txt, then, until)` names the third rank the ticker always had. A MURMUR may never take a surface anyone holds *or is waiting for*; the CLOCK may also wait for a busy one, but only into an EMPTY queue, so "the clock never displaces the town's own news" is true by construction. `announce()` gained `until`: when a line stops being TRUE, as against `TICK_STALE`, how long anyone will WAIT for it. `CLOCK_SAID = [0, 9, 12, 18]` is the remark's cadence.
-**Gates:** census unchanged, all six groups (no `R()` spent) · motion PASS · visual PASS · perf skipped.
-**HEAD → cand** (`probes/ticker-price.mjs`, 6 days × 3 seeds, classed where each line is BORN). Courtyard: strike **46% → 20%**, the town's own places **118 → 164 lines (+39%)**. Wide: strike 30% → 8%, placed 53% → **71%**, all four remarked hours sound. Lateness ≥1 h: **23% → 0%**.
-**Verdict:** shipped
-**Surprise:** the queue price alone cannot reach this. At a quarter **there is nothing in the queue to price against** — `inView` withheld the competition; and pure drop-if-busy made the clock a function of how busy the *day* was (0 of 18 seed-days at six, nine, three and six again). A 55 s day holds ~22 lines: eight strikes was a third of everything the town can say.
-
-## Iteration 143 — the evening's warm wash rides the sun, as the morning already did (2026-09-03) [Sky, light & weather × Connect]
-
-**Brief:** b143 — `applyLight`'s dusk was `clamp(1 - |hour - 19|/1.8)`, a hard-coded hour in a light; #112 fixed the morning onto `sunUp` and left the evening. Full entry in LEDGER-archive.md.
-**Did.** One line: `DUSK_OFF = -1.0`, peak at `sunDown + DUSK_OFF`, which at SEASON_START is **19.00 exactly**, so the anchor day is provably the old evening. Half-width unchanged at 1.8 and deliberately unscaled. **No hard-coded hour is left in any light term.**
-**Gates:** census PASS, six groups unchanged (no `R()` spent) · motion PASS · visual PASS · filmstrip **0 POP** at a midwinter evening (t=1069) and a midsummer one (t=360) · perf skipped.
-**HEAD → cand.** `probes/dusk-year.mjs`, eight offsets from sunset over the year: HEAD's spread **0.72–1.00 at every k**, candidate's **0.000 at all eight**. `probes/dusk-frame.mjs`, R−B above `sillTop()`: midsummer sunset−1 **−0.47 → +19.39**, midwinter's peak holding at +27.07 — the peak is the *same*, it now happens on every evening instead of one.
-**Verdict:** shipped
-**Surprise:** the town's other dusk already knew. `skyCols` has ridden `sunDown - 0.6` since #11, so `applyLight`'s note reading "at dusk this wash and the sky's own peak nearly two hours apart" was never a taste observation — it was **this bug, measured and written down and left**. #112 read that sentence, used it to justify damping the morning to 0.55, and did not notice it was a symptom of the half it was leaving alone.
-
-## Iteration 144 — the east gets a share of the lane's roll, and the plaza gets a third place (2026-09-03) [Lane & market × Connect]
-
-**Brief:** b144 — re-weight the lane roll so raising `laneCap` REACHES the east; reserve the fountain stand and re-sweep `FAM_CAP`. Full entry in LEDGER-archive.md.
-**Did.** Re-measured the premise on HEAD first (6 seeds × 14 days): cap 10 → 16 buys the lane +3.05 and the east +0.17 plaza, **−0.28 quay, −0.12 far bank**. So `eastEdges(cap)`: the four east bands scale by `eastPull(cap)`, 1.0 below `EAST_CAP0` 6 and 2.0 at `EAST_CAP1` 14, the width from the PLAIN passer-by alone — keyed on the CAP, not on fill, since an east trip holds its `lane` slot for its whole ~40 s. `FOUNT_STANDS`: three stands on the roundel's inner ring, one party each (`a.fstand`).
-**Gates:** census PASS, structure unchanged, baseline **re-pinned** · motion PASS · visual PASS · filmstrip 1 POP at seed 42 = **rain onset**, uniform across a block map and HEAD rains through it · `probes/fount-stands.mjs` 10/10.
-**HEAD → shipped**, laneCap 10 → 16: plaza **+0.17 → +1.02**, quay −0.28 → +0.08, far bank −0.12 → +0.11; east half **9.73 → 10.96**, the lane holding. Plaza crowded pairs PER PERSON **0.237 → 0.153**.
-**Verdict:** shipped
-**Surprise:** the family half was right about the crowding and wrong about the cap. Reserving the stand does what the brief predicted (0.145–0.159 crowded pairs per person across `FAM_CAP` 3, 4, 5 and 7, against HEAD's 0.282 at 5). But the higher cap buys nobody: **5 and 7 return byte-identical numbers and bind 0.0%**. Past 4 the bound was never the places — it is `FAM_RATE` and the 9.5–17 window, which the source comment had guessed and nobody had tested. Kept the knee, `FAM_CAP` 3 → 4.
-
-## Iteration 145 — the town gets into its river (2026-09-03) [River & far bank × Deepen]
-
-**Brief:** b145 — the water held the moon and one baked bank-smear; put the standing things IN it. Full entry in LEDGER-archive.md.
-**Did.** One SIGN in `project()` — `MIRROR`, folded into `LIFTM = LIFT * MIRROR`. A negative z is the mirror, so **each caster's reflection is the caster's own draw** and nothing can drift out of register. `drawWaterMirror` runs five casters (bridge, footbridge, wheel, jetty, willow) into an offscreen at `setMirror(-1)`, fades each from its own waterline, chops the rest into bars on `FLOW_SPEED`/`windT`, punches the eyot, composites once under a water clip. Six `MIRROR > 0` guards stand down what is drawn ON the water: four shadows, the foam, the boat under the deck, the willow's `crowns` push.
-**Premise half-wrong:** the clock tower is at **x 63.8-66.2**, the church at **x 131-136**; an image runs *southward* out of its caster's feet, so both fall on dry land.
-**Gates:** census PASS, motion PASS, 0 POP day and night; `frame-diff.mjs` 0.362% moved, all the river column, courtyard/lane/mobile **byte-identical**; worst cost **+0.57 ms** (Plaza, windy).
-**HEAD -> cand.** `road-surface.mjs`: FRAME **WATER sd/mean 0.1737 -> 0.1772**, every other class 0.0%, **CACHE unchanged**. `refl-band.py`: hf/mean 0.065 calm -> 0.218 windy; the bridge's band moves **0.000 a frame calm, 1.4-2.0 windy**.
-**Verdict:** shipped
-**Surprise:** the pass is not its draws - they total **0.118 ms**, the other 0.41 is compositing, and both obvious savings made it worse (offscreen water clip 0.689, full-canvas `destination-in` **1.48**).
-**Law:** a cast image's TARGET SET is southward at this camera, and a caster's own draw is its image - put the sign in `project()`, and make every draw landing ON the plane read it.
-
-## Iteration 146 — the two towers cast from their own height (2026-09-03) [Roofs & skyline × Deepen]
-
-**Brief:** b146 — `shTop[]` is filled from the eave, and the tallest drawn things in town are not eaves. Give each tower its real height.
-**Priced first, as asked, and the price is the finding.** `-S/S[2]` says a throw is long at a low sun; it does not say there is anywhere for it to GO. `sunVec()`'s `S[1]` is 0.32..0.58 at every hour of every season, so the throw is **always northward** — and both towers stand at the world's north edge (clock rows 1–2, church rows 4–7). A ray leaves the world at ~2 cells of height above the clock tower and ~5–22 above the church. Height past that is thrown into nothing.
-**Did.** `CT` hoisted beside `CHURCH` (it was declared 5,600 lines below the grid that now needs it) and `CHURCH` given `tBase/tTop/tRise`, so `drawChurchTower`/`drawClockTower`/`VANES` read one definition instead of four literals. `SH_TOWERS` + `towerShTop()` beside `buildShadowGrid`: `shTop[i] = max(roofTopAt, towerShTop)`. Not an `eaveBand` branch — a tower is a thing standing ON a block, not the block's height. A spire is a CONE, so the height a cell casts from tapers on `1 − max(dx/hx, dy/hy)` from the cell's NEAREST point to the axis: only the axis column reaches 23.1, its flanks 18.7.
-**Gates:** census PASS, unchanged · motion PASS · filmstrip day 0 POP · `frame-cost.mjs` summer 4.96→4.96 ms, winter 5.11→5.14, interleaved · wide/courtyard/east/lane clean · `shOpen[]` provably unmoved (rows north of both towers were already vetoed at the old height, so the northward veto could not regress).
-**HEAD → cand** (`probes/tower-reach.mjs`, the tower's OWN mask contribution, held out against a mask built without its cells): midsummer 7 h reach **7.35 → 13.85 cells**, 36 → 100 sub-cells; equinox 7 h 10.85 → 14.6, 15 → 30; midwinter **0 → 0**. `shade-diff.mjs` t=387.3: **1,328 px** changed against a same-code control of **462** (2.9×), 96.6% open ground, p0.1 luma 33→33.
-**Verdict:** shipped — but the brief's bar is unreachable and that is the finding.
-**Surprise:** the clock tower gains **nothing, at any hour, in any season** — 0 novel sub-cells at both equinoxes and midwinter, ≤14 at midsummer. Its old 7.2 already saturated the two rows of world in front of it. And the church's win is not "across the far bank's green" but out onto the WATER: the spire's tip crosses the towpath at x 127 and lies on the river, and only in the warm half's morning — at midwinter the sun is steep enough (`uy` −1.27) that the whole throw is off the north edge by 5 cells of height.
-**Law:** a caster's value is bounded by the OPEN WORLD downwind of it, not by its height — price the reachable GROUND before raising a caster, because `-S/S[2]` prices the ray and says nothing about where it lands.
-
 ## Iteration 147 — the allotments are monoculture, and the brief's bug does not exist (2026-09-03) [Cross street & allotments × Deepen]
 
 **Brief:** b147 — make `plotCrop()` answer for the PLOT, not its first sown cell. Full entry in LEDGER-archive.md.
@@ -159,3 +110,14 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 **Proved** (`probes/quota-gate.sh`, new: it extracts step 4 from `run-loop.sh` VERBATIM, so deleting the block fails the probe). Clean tree **silent, exit 0**. Staged over-quota tree **exit 3, 6 named offenders across all three surfaces** — 2.50 KB entry, 2 entries, 302 B line, 2 lines, 291 B cue, 2 cues. Merge: the worker's own runlog call writes `quota: null`, the runner's fills it, the row keeps it.
 **Verdict:** shipped
 **Surprise:** the runner is LIVE while I edit it (pid 29205). Bash re-reads a script by byte offset, but the whole `while :; do … done` is ONE parsed compound command, so the running loop finishes on the OLD text — **this gate does not bind until `run-loop.sh` is restarted.**
+
+## Iteration 154 — the punt's wind is a share, not a bar; the swans give way to a track (2026-09-03) [River & far bank × Deepen]
+
+**Brief:** b154 — sweep `puntFits`' wind threshold; clear the whole track. Full entry in LEDGER-archive.md.
+**Priced first.** WIND is the top refusal (30.5% of 446 offers) and a dead constant: windF at an offer is **0 on 257 and exactly 1.0 on 134**, so any bar under 1.0 buys ≤15 crossings.
+**Did.** `PUNT_WIND_SLOW` 0.45 makes wind a COST: `puntSpeed()` is what `puntTripH` prices *and* `updateOnePunt` spends, so a windy evening trip is refused by its own clock. `PUNT_WIND_SHY` 0.65 makes it a SHARE, at a quantile of `puntNerve(a)` — one hash of `a.wary`, since wary itself is two populations. `puntGiveWay`/`segNear` clear the segment moor→land: #96's landing is one END of it. No new `R()`.
+**Gates:** census FAIL `people −10%` **dismissed on replay** (9 cells span 372..422 on identical code) · motion PASS · 0 POP day and night · `punt.mjs` 0, both `--strand` 1.
+**HEAD → cand.** `punt-track.mjs` (new): HEAD least **1.033**, 16 inside 1.2, exit 1; cand **1.200000**, 0, exit 0. Windy days, 20 seeds: take **24.7% → 32.1%**.
+**Verdict:** shipped — the per-DAY bar is missed, and that is the surprise.
+**Surprise:** the supply fell and the punt did not do it. Offers/day 1.65 → 1.35 in **both** seed sets, which read as causal until the control: `spawnEastAgent()` fires **1787 → 1784** and the east cap binds **0.0% on both**. Nobody is crowded out — the reshuffle lands the `wary < DECK_SHARE` coin differently. A per-day RATE cannot see this change; the take rate can.
+**Law:** a bar on a BIMODAL scalar is a coin — histogram the value AT THE CALL before sweeping the constant, and cut a per-person share on a coordinate its population is uniform in.
