@@ -26,7 +26,7 @@
   "avoid": "THE GROUND CACHE IS THE WHOLE RISK, and whereGo has already solved it once: an ease survives only because it paints the padded WIDE cache once (groundPad/gpadWant/gview), scales the blit by `k = viewS/gview.s`, and repaints the destination ONCE on arrival. drawGround costs 25-27 ms (c214), so a follow that sets groundDirty per frame drops every frame. Hold the padded wide cache for the whole follow and repaint once on release. FACES are registered in gview's frame and faceAt maps through the same k — keep that true. Do not exceed VIEW_SMAX or drop held()'s WORLD_X0/WORLD_X1 clamps, or the frame runs off the world into the cache's column repeat. Agents are transient: one whose route ends off the world must release the follow, never snap. Wide must stay exempt in inView and bit-identical while nothing is followed — the census and motion gates depend on it. No new R() draw: a click is not a seeded event. And do NOT fix the backdrop's stale horizon in here; that is b165's.",
   "budgetMin": 90,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 166,
   "issued": "2026-09-03T10:18:53.858Z",
