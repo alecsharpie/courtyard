@@ -175,3 +175,25 @@ BYTES and gave them to `String.slice`; the cut fell inside an em-dash, split a r
 reader dropped both fragments — 211 runs → 210 — and the bytes still balanced exactly.
 **Law:** byte conservation is necessary, NOT sufficient — blind to a cut INSIDE a unit. Prove a
 rotation on its READERS' output against a pre-rotation control.
+
+## Iteration 176 — the rain forked the seeded world (2026-09-04) [The sill & the observer × Fidelity]
+
+**Brief:** b176 — `?seed=` does not name a world. Find the fork, name it, gate it.
+**Premise CONFIRMED to the digit** (49 vs 48 people at simT 125; two skies by 700).
+**It was the RAIN, and only the rain.** Mapping every `R()` to its enclosing function: the renderer
+is already clean — all 24 draw-site hits are comments *saying* "no R()". Two forks, one block.
+(1) The drop field is CANVAS space — spawned across W, recycled at `r.y > H`, culled by the frame
+— and drew from the town's PRNG, so *the draws the sky spent* were a fact about the window.
+(2) The shower's END was `rainLeft <= 0 && !raindrops.length`: a WORLD event waiting on a screen.
+**Did** (50 lines): `RS` beside `R`; the field out of `if (raining)` into `stepDrops(dt)`, `RS`
+only; the shower ends on `rainLeft <= 0` alone; `drawRain` gates on `raindrops.length`, so the tail
+outlives the flag. Tail probe, H 950 vs 560: HEAD's `raining` ends LATER at a taller window; cand
+ends at **132 at both**, its tail honestly H-shaped (3 drops vs 1).
+**Gates:** `probes/seed-identity.mjs` (new) **FAILS on HEAD 12/12, PASSES on cand 15/15** · census
+PASS (reshuffle, not collapse: 449→441) · shots · motion · perf +0.0% · baselines re-pinned.
+**Verdict:** shipped
+**Surprise:** the filmstrip's one POP at the shower's end — Δ7.35, 4.4x median — was **the next
+shower arriving**: the census row carried `raining: true` at that very frame. The same measurement
+on HEAD at *its own* shower end peaks at 18.1x median; both builds sit at 0.65 vs 0.71 dry.
+**Law:** a canvas-extent population must never draw from the world's PRNG, and no world event may
+wait on a screen-space one — the draws a frame spends are a fact about the WINDOW.

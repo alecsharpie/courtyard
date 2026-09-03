@@ -1100,17 +1100,30 @@ function hash(x, y){
  * random draw MUST go through R() (or hash(x,y) for per-cell decisions) — a bare
  * Math.random() is invisible to the seed and makes the census lie. */
 let R = Math.random, SEED = null;
+/* The TOWN's stream and the PICTURE's stream are two streams, and the reason is the
+ * whole of `?seed=`. A population whose extent is the CANVAS — the rain's drops are the
+ * only one in this file — is spawned across W, recycled at H and culled by the frame,
+ * so how many draws it takes is a fact about the WINDOW and not about the town. While
+ * it shared R() a 390x844 phone and a 1600x950 desktop walked the seeded sequence at
+ * different speeds and forked into two different towns out of one seed: at seed 42 they
+ * ran bit-identical to simT 121, split on a DUCK, and by simT 415 one was raining and
+ * the other was not (#176). So screen-space draws take RS. It is seeded off SEED as
+ * well, so a pinned viewport is still reproducible frame for frame — it simply cannot
+ * reach the town. `probes/seed-identity.mjs` is the gate that holds this. */
+let RS = Math.random;
+const RS_SALT = 0x5eed17;
 function makeR(seed){
   let s = ((seed | 0) >>> 0) || 1;
   return function(){ s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
 }
 { const q = new URLSearchParams(location.search);
-  if (q.has('seed')){ SEED = +q.get('seed') | 0; R = makeR(SEED); } }
+  if (q.has('seed')){ SEED = +q.get('seed') | 0; R = makeR(SEED); RS = makeR(SEED ^ RS_SALT); } }
 /* Rewind the PRNG to its starting state. The census needs this because an unknown
  * number of animation frames run between page load and the first measurement, and
  * a draw pass may consume draws — rewinding makes the warped sim a pure function
  * of (seed, seconds) again. No-op on an unseeded (live) page. */
-window.__reseed = function(n){ if (SEED === null && n === undefined) return false; R = makeR(n === undefined ? SEED : n); plazaSeq = 0; return true; };
+window.__reseed = function(n){ if (SEED === null && n === undefined) return false; const s = n === undefined ? SEED : n;
+  R = makeR(s); RS = makeR(s ^ RS_SALT); plazaSeq = 0; return true; };
 function pick(a){ return a[(R() * a.length) | 0]; }
 function clamp(v, a, b){ return v < a ? a : v > b ? b : v; }
 function mod(v, m){ return ((v % m) + m) % m; }        // a wrap that survives a negative: windX runs backwards under an east wind
@@ -6796,27 +6809,24 @@ function updateWildlife(dt){
       else if (a.state === 'walk' && cm > 0.62 + (a.wary ?? 0.5) * 0.55) a.umbrella = true;
     }
   }
+  /* THE SHOWER IS THE TOWN'S, THE DROPS ARE THE FRAME'S (#176). Everything below this
+   * comment is world state on the world's clock: it starts, it runs down RAIN_TAIL, it
+   * ends, and not one term of it can be reached from the size of the window. The drop
+   * field is a PICTURE of it and lives in stepDrops(), which is called unconditionally
+   * just after — a shower ends on its own clock and the last drops go on falling out of
+   * the bottom of the frame afterwards, which is what the tail was always for.
+   *   They used to be one block, and it forked the seeded world twice over: the end
+   * condition was `!raindrops.length`, so a WORLD event waited on a screen H pixels
+   * tall, and every spawn and recycle spent an R() whose COUNT was a function of the
+   * viewport. See the note on RS. */
   if (raining){
     rainLeft -= dt;
     /* A shower ends by running out of drops, not by being switched off. Over the last
-     * RAIN_TAIL seconds the number of drops the sky *wants* falls to zero, and a drop
-     * that reaches the bottom is simply not sent round again — so the last few are
-     * still falling while the sheen comes up and the grey lifts off the frame. */
+     * RAIN_TAIL seconds the number of drops the sky *wants* falls to zero, so by the
+     * time the clock runs out the field is already empty or nearly so, and the few that
+     * are left are simply never sent round again. */
     rainFall = clamp(rainLeft / RAIN_TAIL, 0, 1);
-    const want = Math.round((RM ? 40 : 110) * rainFall * showerHard());
-    // f is the drop's slot, hashed once — a drop is a flake while f < snowF()
-    while (raindrops.length < want) raindrops.push({x:R()*W, y:R()*H, v:520+R()*260, f:hash(raindrops.length, 97)});
-    let k = 0;
-    const sf = snowF();
-    for (const r of raindrops){
-      if (r.f < sf){ r.y += r.v*dt*0.11; r.x += Math.sin(simT*1.6 + r.v)*14*dt; }   // a flake drifts
-      else { r.y += r.v*dt; r.x -= r.v*dt*0.12*windDir(); }   // #76 (c108): the slant carries the wind's sign
-      // recycled across the windward edge: [0, 1.15W] under a west wind, [-0.15W, W] under an east one (exact at windDir 1, no new draw)
-      if (r.y>H){ if (k >= want) continue; r.y=-12; r.x=R()*(W*1.15) + (windDir()-1)*0.075*W; }
-      raindrops[k++] = r;
-    }
-    raindrops.length = k;
-    if (rainLeft <= 0 && !raindrops.length){ raining=false; rainFall=0;
+    if (rainLeft <= 0){ raining=false; rainFall=0;
       // and the cover breaks up behind it — for a July afternoon, not for long in January
       cloudTgt = 0.1 + R() * 0.28; frontLeft = spellLen(false, 26 + R() * 26);
       for (const a of agents) a.umbrella = false;               // down they come, all at once
@@ -6829,6 +6839,26 @@ function updateWildlife(dt){
     announce(snowF() > 0.5 ? 'Snow drifts in over the rooftops, fat and slow.' : 'Rain drifts in across the rooftops.');
     // no sweep here any more: whoever was going to put one up already has, on the way in
   }
+  stepDrops(dt);
+}
+/* The rain's picture: canvas pixels, RS only, and it steps whether or not it is raining
+ * — `want` is 0 the moment the shower's clock does, and the stragglers fall out of the
+ * bottom on their own. Nothing here is town state and nothing here may take an R().
+ * A drop's slot `f` is hash()ed once at birth, so a flake is a flake in every world. */
+function stepDrops(dt){
+  const want = raining ? Math.round((RM ? 40 : 110) * rainFall * showerHard()) : 0;
+  if (!want && !raindrops.length) return;      // the dry town, which is most of the year
+  while (raindrops.length < want) raindrops.push({x:RS()*W, y:RS()*H, v:520+RS()*260, f:hash(raindrops.length, 97)});
+  let k = 0;
+  const sf = snowF();
+  for (const r of raindrops){
+    if (r.f < sf){ r.y += r.v*dt*0.11; r.x += Math.sin(simT*1.6 + r.v)*14*dt; }   // a flake drifts
+    else { r.y += r.v*dt; r.x -= r.v*dt*0.12*windDir(); }   // #76 (c108): the slant carries the wind's sign
+    // recycled across the windward edge: [0, 1.15W] under a west wind, [-0.15W, W] under an east one (exact at windDir 1, no new draw)
+    if (r.y>H){ if (k >= want) continue; r.y=-12; r.x=RS()*(W*1.15) + (windDir()-1)*0.075*W; }
+    raindrops[k++] = r;
+  }
+  raindrops.length = k;
 }
 
 /* ============ stats ============ */
@@ -11227,7 +11257,7 @@ function drawScene(t, dt){
   drawBalloon(t);                 // the balloon rides above every ground light
   drawFollowMark(t);
 
-  if (raining){
+  if (raindrops.length){        // #176: the tail outlives `raining`, so the gate is the field
     const sf = snowF();
     ctx.strokeStyle='rgba(200,215,235,.45)'; ctx.lineWidth=1;
     ctx.beginPath();
