@@ -3,63 +3,6 @@
 Entries rotated out of `LEDGER.md`. Append-only. **Only the manager reads this** —
 a worker that opens it to "catch up" spends its whole context on history.
 
-## Iteration 124 — the morning fire stops burning on midwinter's clock all year (2026-09-02) [Sky, light & weather × Connect]
-
-**Brief:** b124 — `drawSmoke`'s hearth term is `clamp(1 - |hour - 7|/3.5)`; key it on the sun and scale it with the cold.
-**Premise held, and the hard-coded hour is worse than "a bit off".** 7.00 is *exactly* midwinter's sunrise here (`SOLAR_NOON` 12.75, `WINTER_HOURS` 11.5) — so HEAD was right in January by coincidence and three hours late in July, when the sun is up at 4.00. Sunrise runs **4.00 to 7.00**.
-**Did.** `hearthF()` — one named definition, two consumers (the share of `CHIMNEYS` lit, each column's alpha). Morning term re-centred on `dawnEdge()`, solved at the instant it applies; half-width unchanged at `HEARTH_RUN` 3.5, so only the CENTRE moved. Height is the cold: `HEARTH_MIN` + `HEARTH_SWING`·(1−warmth) + `HEARTH_SNOW`·snowCover. Rain and the evening term copied through untouched.
-**Gates:** all PASS, all six census groups unchanged (no new `R()`). Mean |peak − first light| across the year **1.26 h → 0.12 h**; at each build's own peak midsummer lights 24/27 stacks (07:00) → **5/27 (04:24)**.
-**Verdict:** shipped
-**Surprise:** the brief asked me to scale the fire by warmth *and* `greyF()`, and they are one axis — `greyF()` **is** `1 - 2*warmth`, so doing both would have squared the year rather than reading it twice. The season enters once; the honest second axis was the weather of the *day*, and `snowCover` is the one that says "cold house" when the calendar does not.
-
-
-<!-- full text of #131, condensed in LEDGER.md the same pass -->
-
-## Iteration 131 — the last punt: the crossing runs on after the east half has closed (2026-09-02) [River & far bank × Deepen]
-
-**Brief:** b131 — open the evening crossing; pick which end gives, price it, say which.
-**The premise was wrong in its detail, and that decided the answer.** Instrumented `puntFits` clause by clause in its own evaluation order (`probes/punt-evening.mjs`, 10 seeds × 14 days): of 181 refusals on HEAD, **8** die on the TIME term. The deck supply dies on a BOOLEAN — 39 on `!eastOpen()`, because its median arrival at the planks is **20.47** and eastOpen closes at **20.17**. No shortening of a stay reaches past a hard gate, so the end that gives is the jetty's.
-**Did.** `puntDayFits` / `puntNightFits` as two predicates over the same state, so `puntClaim` asks again in the same frame which trip it is. The evening trip lands and stands on the eyot's north lawn instead of walking down to the willow (2.66 cells of land against 4.54; out 2.99 h → 2.37 h) with `PUNT_NIGHT_STAY` 0.55. That is what lets the whole round trip be priced ONCE at the choice against `EVE_GONE` with `EVE_BELL` in hand. `eastOpenFor` covers a rider until `a.puntBack` — the hour they were priced to be off the island — and the cover EXPIRES there, so the ordinary retire rule is still what brings them home. `eastOpen()` itself is untouched. A lantern on the punt on `boatLampF`'s own fade, and its column in `drawRiverLights`.
-**Gates:** census PASS (stream reshuffle from held agents; structure/tiles unchanged) · visual PASS at six framings · filmstrip night 0 POP · motion FAIL on two rows, both replayed as HEAD phenomena: `cart` 2.60 at a median step of 0.000 (the vacuous-jump law; the same 2.60 sits in the baseline's day scene) and a rain shower landing inside the dusk sample (HEAD's own replay reports a +122 raindrop step).
-**Numbers, HEAD → candidate:** crossings 46 → **66** (0.33 → 0.47/day); **people carried 65 → 92** (0.46 → 0.66/day); crossings boarded after eastOpen's close **0 → 18**, carrying 25, **18/18 with the river lamps lit**; 66/66 came home; 0 samples with anyone on the eyot at the bell (latest 25.35 of 26.5), worst return to the mooring 25.46 against the 26.15 the fit promised. Deck offers accepted 2 → 21; TIME refusals 8 → 0.
-**Verdict:** shipped
-**Surprise:** the first build forked on `!eastOpen()` and so refused an 18:30 stander while taking a 20:30 one — a step in the middle of the evening with nothing under it. Making the handover continuous (the short trip the moment the long one stops fitting, ~16.4) is where most of the gain came from: 52 crossings → 66.
-**Law:** instrument a compound predicate CLAUSE BY CLAUSE in its own evaluation order — a refusal total says nothing about which clause to loosen, and the loudest is usually the cheap boolean sitting in front of the arithmetic.
-**Law:** a stop needs PAIR_GAP of margin all round, not just legal ground under itself: the shore stand was on turf and put its COMPANION in the river on 9.9% of the samples it stood for.
-**Cue:** the punt's biggest refusal is now `busy` (63 → 85 of a larger total): one boat, 5–7 h a trip. The next lever on crossings is a second hull or a faster turnaround, not the clock.
-**Cue:** 28 of 87 deck offers land at 22–01h and can never be served — the water alone is 2.32 h round trip and EVE_GONE is 26.5, so the last boarding that can come home is ~23.5 even with a zero stay.
-## Iteration 125 — the biggest thing in the picture stops being one flat quad a cell: the near block is slated (2026-09-02) [Roofs & skyline × New CA]
-
-**Brief:** b125 — retire the near roof's flat fill; slate courses, staggered laps, per-slate variance, and let the surface AGE. Full entry in LEDGER-archive.md.
-**Did.** `drawRoofRow` forks at `LN_WALK_S`. `slateRun` walks a lattice GLOBAL along the row, so a slate straddling a cell edge is two halves of one tone — subdividing per cell only rebuilds the boarding at finer pitch. Courses lap DOWNSLOPE (north on 79-83, south on 84-87), gapped at the tail only; that gap is the lap shadow. Ageing is per SLATE: lichen (fine hash gated by a coarse batch over a `damp` map), soot under the stacks on a per-stack prevailing lean, a slate replaced or slipped, snow lodging course by course.
-**Gates:** census PASS, six groups unchanged (no new `R()`) · motion PASS · visual PASS at four framings and 390x844 · frame-cost 3.11→3.40 ms summer, 3.01→3.58 winter, rebuilds identical. `probes/near-roof-texture.mjs`: band sd 11.3→**20.3** at 1600x950, 9.0→**19.5** at 390x844; changed share **74/81%** on a same-code floor of **0.0%**; band mean luma **fell** 98.4→93.1, 89.6→81.5.
-**Verdict:** shipped
-**Surprise:** the APRON — the pitch running under us off row WH — is **62 px of a 119 px band**, more than the nine rows of roof above it. The first build slated the roof, measured +0 below f=0.52, and had only moved the boarding down.
-**Law:** absolute luma sd under a compositing wash is not a property of what you drew. `nearShadow` reaches ~0.6 alpha by the sill and scales contrast with luma, so sd MUST fall toward the viewer whatever the surface is; grade a foreground on **sd/mean** — flat at 0.18-0.23 here against HEAD's collapse from 0.24 to 0.06.
-
-
-## Iteration 132 — the ticker learns where you are looking (2026-09-02) [The sill & the observer × Connect]
-
-**Brief:** b132 — prefer a subject inside the frame; do not take the surface with a line about somewhere you cannot see.
-**Did.** `inView(x,y)`, the one reader `whereN` has ever had: a world cell projected through `viewFor(whereN)` and tested against the frame and `sillTop()`. Not the quarter's BOX — every box is over- or under-shown, the bandstand being outside both Far bank's (y1 33) and the Plaza's (x1 128) and plainly in both frames — and not `gview`, which is the ground CACHE's view and mid-ease is deliberately the wide one. The intent wins over the live camera because the ease is 0.9 s and a line lives 2.5–9. `sayAt(x,y,txt)` is announce-with-a-subject, at 31 sites. `AMBIENT_PLACES` went 8 lines → 30, each with its cell; `ambientHere()` prefers the in-frame ones and falls back to the WHOLE pool, never to silence.
-**Premise correction, and it was the iteration.** That fallback was dead code. The ambient roll's gate asked for `tickerTimer < -8` — seventeen seconds of dead surface — and the town speaks every three or four: **0 ambient lines in 8 sim days at three quarters, and `tickerTimer` never once reaches 0**, so no threshold on it was reachable at all. Re-gated on `tickerFree()` (the town's one definition, tested here so a blocked line is dropped rather than queued), restraint moved into the cadence, and driven by `hash(ambIdx)` rather than `R()`.
-**Gates:** census unchanged in every field · motion PASS · filmstrip 0 POP · canvas **bit-identical to HEAD** at three pinned instants, sim fingerprint NONE.
-**HEAD → candidate** (`probes/probe-sill-view.mjs`, 3 seeds × 5 days × 5 quarters × both builds, one visibility oracle for both): lines whose subject stands off frame, fixed-place subjects only — Courtyard **40/78 → 1/69**, Street 28/78 → 2/76, Plaza 55/78 → 1/47, Far bank **69/78 → 2/25**. In-frame share 19→33%, 27→34%, 14→25%, 4→11%. Wide unchanged at 53/0/47. HEAD says the same top five lines at all five quarters; the candidate's Far bank is the mill wheel, the rose window, the church clock and the quay.
-**Verdict:** shipped
-**Surprise:** the roll self-balances without being told to. Ambient lines a day: Wide 1.6, Courtyard 2.3, Plaza 2.5, Far bank 3.4. The offer rate is flat and `tickerFree()` decides how many land, so the emptier suppression leaves a frame, the more the town murmurs about what is in it.
-**Law:** when a USER input starts gating something the town says or draws, key that thing's schedule to `hash()`, never `R()` — otherwise where someone is looking spends the seeded stream and the world stops being a function of its seed.
-**Law:** read the canvas in the SAME evaluate as the draw (`toDataURL()`, not a screenshot after it). A synchronous `drawScene` still races rAF: three instants reported DIFFERS by screenshot and IDENTICAL when read in-evaluate, at a sim fingerprint of NONE both times.
-**Cue:** the clock strikes are the ticker's loudest voice, 4 a day, and are deliberately left unplaced as sounds — so at a quarter they are now most of the surface (Far bank 88% no-place). Pricing the strike is the next lever on a local-sounding ticker.
-## Iteration 126 — the plaza and the quay start remembering: a dry desire line, and stone that holds water (2026-09-02) [Plaza & quay × Connect]
-
-**Brief:** b126 — `paveWear[]` is read only by `drawPuddles`, and `pavedAt()` never reaches the roundel or the quay. Premise held: feet cross 130/730 roundel and 91/130 quay cells in 6 days (`probes/pave-wear.mjs`), all of it unrecorded.
-**Did.** (a) `pavedAt` widens onto `inPlaza`/`inQuay`, the **moss regions' own predicates**, so the stone that holds water is exactly the 860 cells `mossOwn[]` carries. (b) `trodStone()` in `groundBase`: `wear[]`'s idiom on the other surface, in the ground CACHE, exact at 0; `PW_FULL 0.45` is the measured p99. (c) the decay test is the WEAR, not the tile, plus a 6-cell sweep for quay rows 0–2. (d) `pudHollow[]` enters `mossTop` at `MOSS_POOL 0.45`.
-**Gates:** census PASS, only `mossy 2298 → 2646` · motion PASS · filmstrip 0 POP · shots clean · perf +0.0% (vsync-capped, blind).
-**Measured** vs HEAD-vs-HEAD controls: quay **51.4%** of its pixels changed dry (control 0%), plaza 6.7% (0.22%) dry, 16.4% wet; pools 560 → 792; over a year the pooling joints were LESS mossy than open stone on HEAD and are more so now — a sign flip — while cells that never pool moved +0.3%. Wet frame +5.5%.
-**Verdict:** shipped
-**Surprise:** the two halves were one line. Widening `pavedAt` bought the desire line *and* the water in one edit — what was missing was never the reader; `paveWear` had no way to accrue on a `PATH` cell at all. Only the DECAY needed saying twice: gated on the tile it would have pinned the lines forever.
-**Law:** a `?pause`d page still runs rAF, so a canvas read is unpinned even after a synchronous draw — one run of the diff gate reported 18.7% of "elsewhere" changed where three repeats since read 0.84%. Carry a SIM FINGERPRINT (clock, wind, cloud, agent positions) through any before/after frame comparison and refuse it unless it says NONE.
-
 ## Iteration 127 — the allotments get their own fog, and ghPane's dead term wakes up (2026-09-02) [Cross street & allotments × Connect]
 
 **Brief:** b127 — a SECOND mist source over the allotments so `ghPane`'s `mistAt()` term, 0 every day of every year, reads something. Full entry in LEDGER-archive.md.
@@ -659,4 +602,57 @@ a worker that opens it to "catch up" spends its whole context on history.
 **Surprise:** the premise was true when written — #98 described the town of #98, and sixty iterations of population made it false without touching that code.
 **Law:** a claim of SCARCITY is dated the day it is made, priced against the town of its own iteration and rotting as the town grows, where a structural claim does not. Re-count every "nobody else", and treat `watch` as a brief generator with more force than a comment.
 **Cue:** the honest gap at dawn is composition, not count.
+
+## Iteration 162 — a third skyline tier, placed on the strip's own height (2026-09-03) [Roofs & skyline × Deepen]
+
+**Brief:** b162 — re-price #150's two UNVERIFIED claims about the band above the roofline.
+**Re-priced** (`probes/far-depth.mjs`, new: same-build renders with tiers/ranks/clouds switched off in turn). Claim 1 HOLDS and understates itself — the silhouette is a median 5.6 cellH at EVERY size, and the strip is not 9.6 cellH: `topPad` swallows the window's SPARE, so it runs 12.3 cellH at 1200x700 to 52.2 at 390x844; the shortest of all is a big SQUARE window, 7.75. Wide: **78.5% bare gradient**. Claim 2's arithmetic holds (0.70 is under band 0's lowest roof, 1.60; rank 0 crossed in 26.2% of its columns) — its CONSEQUENCE does not: the ranks draw OVER the hills, so the only defect is a roof against open SKY, 3.1%.
+**Did.** Three tiers on `strip = hz/cellH`, `ex`/`sc` shallowing a short strip, not clipping it. The range is furthest and palest, the only tier with a `1 - |sin|` term: cusps make a summit read. The far ridge's min, 4.9 cellH, now clears every rank's ROOFLINE at every framing. Clouds moved to draw AFTER the backdrop.
+**Gates:** census · motion · 0 POP PASS · frame-diff confined to y 54..148 · perf skipped (cached).
+**HEAD → cand** (seed 7): occupancy **12.9 → 45.7%** wide, 10.6 → 42.3% mobile; a rank-0 roof against open sky **3.1 → 0.0%**.
+**Verdict:** shipped
+**Surprise:** the first range ATE the sky. The backdrop is composited OVER the live cloud layer, so a tier reaching mid-sky covered two thirds of the weather — 15.7% of the strip down to 5.4% — and the reorder recovered a loss HEAD already had.
+**Law:** a cached layer drawn OVER a live one SUBTRACTS from it — price the live layer's SURVIVING mass (`FULL` minus `FULL`-without-it), not the cache's own gain.
+
+## Iteration 163 — the reed fringe stands in the river, and the shade goes into it (2026-09-03) [River & far bank × Connect]
+
+**Brief:** b163 — two things landed on the water since #145; `drawWaterMirror` knew neither.
+**Did.** (a) 56 reed cells cut into 18 RUNS (`buildReedRuns`/`REED_CASTERS`) joining `riverCasters()` with `run:true` and `yS`. A run has a waterline per ROW, so #145's one-gradient-per-box fade cannot serve it: `reedInk()` puts the ramp in the STROKE, from the cell's own waterline to `REFL_FADE` beyond. #155's hand-drawn stub is gone — under MIRROR the clump's own path IS its image. (b) `onChannel()` + `sunShadeRuns(g, wet, bb)` PARTITION the one mask; the wet half is `drawWaterShade()`, drawn BEFORE the mirror and broken by `chopBars()`, so the image lies on the shade, not the reverse.
+**Gates:** census PASS, six groups unchanged (no `R()`) · motion PASS · filmstrip 0 POP day and night · visual PASS at six framings incl. 390x844 · +7.7% Wide (probes/refl-cost).
+**Measured** (probes/mirror-fringe, canvas-delta): same-code control **0** everywhere; reed images 869–963 px at mean d 7.6; near river 33–139 shaded sub-cells, rows 79–87. The fountain and the pond are WATER too — `onChannel` holds them on the land path, 0 px from HEAD where lifting it moves 282.
+**Verdict:** shipped
+**Surprise:** the fringe must NOT go through the offscreen. 18 runs each clipped and chopped in `rcv` cost **1.6 ms a frame at Plaza**; unclipped with one shared chop, 1.2; the identical 56 clumps on the VISIBLE canvas, **0.03** (probes/water-pass-cost).
+**Law:** an offscreen 2D context is not the accelerated surface the visible one is. Only a draw needing its COMPOSITES (clip plus `destination-in`/`out`) belongs there; one wanting a clip and an alpha is a `save()` on `ctx`, two orders cheaper.
+
+## Iteration 164 — stall.mjs reads the memory quota, and weighs the loop (2026-09-03) [The sill & the observer × Harness]
+
+**Brief:** b164 — stall.mjs greps `quota` zero times; make a breach a signal, add the growth.
+**Re-counted.** The brief says eight rows carry the quota. Eleven do — and **zero are MEASURED**, every one `quota: null`. #153's own surprise says why: bash parses the runner's `while` loop once, so the live runner still holds pre-#153 text. A breach streak alone would have been a signal that cannot fire, silent exactly as a clean run.
+**Did.** One reader per absence runlog.mjs distinguished. `quotaBreach` (trigger, rung 2): ≥2 consecutive MEASURED breaches, surface tallied off `over[]`'s strings. `quotaUnmeasured` (advisory): ≥3 rows present-and-null — the gate at a rate of zero.
+**The table.** `onDisk()`: sizes off disk, slope from git across 20 *Iter* commits. LEDGER-archive 667.9 KB **+2.65 KB/iter**, RUNLOG 185.2 +1.17, state.json 113.7 +0.21, MANAGER-LOG 79.3 +0.61 = **+93 KB/20 iterations**, none of it capped.
+**Gates:** courtyard.html byte-identical — census PASS all six groups; shots clean; terse still `ok`.
+**Proved** (`probes/stall-quota.sh`, new): three staged RUNLOGs, HEAD's stall.mjs as control. Breach → exit 2, `ledger x2, cue x2` at #163, HEAD prints **no line holding "quota"**; unmeasured → advisory, HEAD silent; measured-and-CLEAN → **neither fires**.
+**Verdict:** shipped
+**Surprise:** state.json is a fourth unbounded file the brief did not name — **closedCues is 79 KB of its 114**, 227 notes nothing prunes, in the file state.mjs rewrites whole each iteration.
+**Law:** a field is not a reading — a gate wired into a row can sit at `null` for ever, and to a consumer counting only failures that is the same zero as a pass. Separate NOT MEASURED from CLEAN.
+
+## Iteration 165 — the far distance moves with the frame (2026-09-03) [Sky, light & weather × Connect]
+
+**Brief:** b165 — `backKey` carried no camera term: the live horizon eased, the cached hills did not.
+**Did.** `drawBackdrop` generates in WIDE screen space; a scale+translate puts it into whichever view the cache is painted in. **At rest** that is the live view, unpadded — HEAD's canvas and cost. **Through a move** it is the wide view, padded by what the endpoint frames reach past it (`wpad`) and scaled by `k` like the ground: two paints a move, never one a frame. `FAR_WIN` mapped out of wide space in `applyLight`. The DESTINATION is crisper, and holds nothing an intermediate frame reaches past it — **9.27 Mpx of padding against a 1.52 Mpx frame**, where wide asks **zero** on a desktop (`probes/ease-pad.mjs`).
+**Proved** (`probes/ease-back.mjs`, new): a GROUND-TRUTH build repainting in the live view every frame; 5 moves x 8 points. Sky-band MAD **0.10 vs HEAD 7.55**, worst frame **0.67% vs 62.1%**, drift **0 px vs 171**; control **0.00**.
+**Gates:** census · motion · 0 POP day+night · `probes/wide-identity.mjs` (new): Wide byte-identical at 4 framings. +0.8 ms a repaint; eased frame 3.2 -> 3.5.
+**Verdict:** shipped
+**Surprise:** Wide came back 6202 px OFF at 900x560 and identical at the other three. `bcv.height/DPR` is not H — a canvas's height is an INTEGER, the frame there is 484.625 CSS px, and HEAD's `drawImage(bcv,0,0,W,H)` had been stretching the cache by 1.0013 to cover the remainder. Blitting the bitmap at its own size was the arithmetically honest thing and the wrong one.
+**Law:** a cache's bitmap size is not its DESTINATION rect — `canvas.width/height` FLOOR, so blitting one back through `cv.width/DPR` loses the frame's fractional remainder. Blit the CSS rect the cache stands for.
+
+## Iteration 166 — the camera comes off its quarters onto a person (2026-09-03) [The sill & the observer × Interaction/UX]
+
+**Brief:** b166 — click a walker; the frame takes them and lets go on three exits.
+**Did.** A quarter is DATA, so a follow is a quarter that MOVES: `followQuarter(a)`, a box on the feet sized so `viewFor`'s own width and height fits BOTH return `FOLLOW_S` 2.6. `viewFor` takes a box or an index, untouched otherwise; `inView` reads it, so the ticker carries THEIR errand. The cache was the risk, and a follow is an ease that never ARRIVES: `viewEasing()` holds for its length so the ground is never rebuilt, `holdWideGround` paints the padded wide cache once, `followPad()` prices the backdrop off the WORLD.
+**Gates:** census · motion · 0 POP · perf +0.0% · `where-identity` IDENTICAL · `frame-cost` 108/108
+**Proved** (`probes/follow-cam.mjs`, new): **0** ground rebuilds over 40 follow frames against **11** in a same-code 6 s control; 0 pops; 1 repaint on release. Price: **54.1%** of a frame repainted in its own view (control 1.0000).
+**Verdict:** shipped
+**Surprise:** `probes/follow.mjs` has been dead since #60 and its ten failures reproduce on HEAD. `evPx` maps x by `W/rect.width` and y by `H/rect.height`, and the rect is the CSS box PLUS the 10 px frame, so one k for both axes misses. Every assertion was reading a follow that never started, silently: a click on nobody is the RELEASE branch. It hid my own first bug: the follow line changes the sill's height, the frame's ResizeObserver fires `resize()`, and `viewSnap` dropped the follow in the frame it began.
+**Law:** a probe driving the page through a real EVENT must invert the page's own mapping term for term, and assert the event LANDED before asserting what it did: a synthetic miss does not fail, it takes the other branch.
 

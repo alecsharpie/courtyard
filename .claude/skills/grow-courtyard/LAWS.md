@@ -4,19 +4,16 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
 
 ## Judging a claim
 
-- **Locate before you judge, and compare against a control you RAN.** Check the inventory
-  *and* grep the source: the town usually already has what a brief sees "no trace" of. A
-  gate that fails on HEAD is not a gate; a control returning the candidate's numbers is
-  none. A control tests a build-INDEPENDENT fact, never a predicate the candidate DEFINES,
-  and differs from the thing measured in exactly ONE way.
-- **Price the brief's PREMISE before you build on it.** When a brief says a thing has NEVER
-  happened, COUNT it on HEAD; an inventory line written by the pass that wrote the brief is
-  no witness.
-- **A claim of SCARCITY is dated the day it is made.** It rots as the town grows where a
-  structural claim does not, so re-count every "nobody else" — and when you refute a
-  premise, DELETE the sentence that produced it.
-- **A source COMMENT is a brief generator.** One that measures two terms disagreeing is a
-  BUG REPORT; one may simply be STALE. A read means what the record IS, not what its name says.
+- **Price the brief's PREMISE on HEAD before you build on it.** Check the inventory *and* grep
+  the source — the town usually already has what a brief sees "no trace" of — and when a brief
+  says a thing NEVER happens, COUNT it; an inventory line written by the pass that wrote the
+  brief is no witness.
+- **Compare against a control you RAN.** A gate that fails on HEAD is not a gate; a control
+  returning the candidate's numbers is none. A control tests a build-INDEPENDENT fact, never a
+  predicate the candidate DEFINES, and differs from the thing measured in exactly ONE way.
+- **A claim of SCARCITY is dated the day it is made** and rots as the town grows, where a
+  structural claim does not: re-count every "nobody else", and when you refute a premise,
+  DELETE the sentence that produced it.
 
 ## Definitions and the grid
 
@@ -37,8 +34,8 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
   every seed — histogram the YEAR, and SALT it if the calendar should differ per world.
 - **Any new draw reshuffles the whole seeded world.** Read the census for *collapse*, not
   delta; replay every stray gate on HEAD; keep each branch on the half of [0,1) it owned.
-- **Two seeds is not a sample**, and a bar on a BIMODAL scalar is a coin: histogram the
-  value AT THE CALL before sweeping the constant.
+- **Two seeds is not a sample**; a bar on a BIMODAL scalar is a coin. Histogram the value AT
+  THE CALL before sweeping the constant.
 
 ## The renderer's six traps
 
@@ -57,7 +54,10 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
   (a) lifts a volume up the frame, a NORTHWARD throw must be vetoed per column or it paints the
   caster's own roof. Price the RAY off `-S/S[2]`, then price where it LANDS — a caster
   is bounded by the OPEN WORLD downwind. The MIRROR is the same solve with the eye for the
-  sun: a NEGATIVE z, so a caster's own draw IS its image. Shadow northward, image southward.
+  sun: a NEGATIVE z, so a caster's own draw IS its image — and it reflects only what is solved
+  with a REAL z. A SPRITE, pixel offsets off a projected foot, is blind to the sign and flips
+  about its OWN foot; and an image is a POSITION test, since a stale anchor shows as ink in open
+  water. Shadow northward, image southward.
 
 ## Time, walks and populations
 
@@ -70,11 +70,8 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
   BOTH ends: a window with only a LANDING bound is a marathon-walker factory.
 - **Price the WALK where it can be PAID — at the door when the place is near, at the STAY
   when the crossing costs a day's light.** A lower bound on ARRIVAL with no bound on the
-  WALK is a wait a walker can pay by WALKING, so the door bag keeps only the DEAR doors;
-  and a return leg charged at the DOOR
-  fails as a POPULATION going to zero, never as a slower rate.
-- **A unit of work DRAWN before it is PRICED makes the price all-or-nothing** — solve the
-  room the unit has and take `min(drawn, room)` against a floor.
+  WALK is a wait a walker can pay by WALKING, so the door bag keeps only the DEAR doors; and a
+  return leg charged at the DOOR fails as a POPULATION going to zero, never as a slower rate.
 
 ## Rates, caps and shares
 
@@ -86,15 +83,19 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
 - **Measure a share at the CHOICE, never by presence, which weights a branch by its
   dwell** — and count ADMISSIONS apart from choices: a share widened at a destination with a
   FIXED NUMBER OF PLACES becomes overflow into its NEIGHBOUR, not presence. The refused
-  fraction is the door — the one bound a sweep of the ceiling cannot see.
-- **Define membership POSITIVELY at the source** — a flag on the spawn literal, inherited
-  by every branch — never as a residual, which
-  counts every later population that also satisfies it. End it positively at the CLAIM: a
-  one-shot choice guarded only by the state it CONSUMES is re-entrant.
+  fraction is the door — the one bound a sweep of the ceiling cannot see. And many PLACES is
+  not many WAYS IN: split crowded pairs WALKING vs STOPPED before widening a cap.
+- **Define membership POSITIVELY at the source** — a flag on the spawn literal, inherited by
+  every branch — never as a residual, which counts every later population that also satisfies
+  it. End it positively at the CLAIM: a one-shot choice guarded only by the state it CONSUMES
+  is re-entrant.
 - **An act whose payoff is another population's BEHAVIOUR is bounded by that population's
   avoidance rule, not by the act: instrument the PAYOFF.** And instrument a compound
-  predicate CLAUSE BY CLAUSE in its own evaluation order — the loudest refusal is usually
-  the cheap boolean in front of the arithmetic.
+  predicate CLAUSE BY CLAUSE in its own evaluation order — the loudest refusal is usually the
+  cheap boolean in front of the arithmetic. A fall-through ladder's lower rungs are bounded by
+  its FIRST rung's HIT RATE, not by supply — more arrivals buy more of the first rung too — so
+  instrument the RUNG, never the population. And attribute an EDGE-TRIGGERED event AT THE EDGE:
+  by the time its consequence shows, a slower term has superseded the state that flipped it.
 
 ## Scalars
 
@@ -103,11 +104,6 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
   variance (`hash(x,y+k) > c`) at the grain the region is ADDRESSED by, and then grep for
   the copies: a bar spelled as a MAGIC NUMBER over a bimodal input is a silent duplicate of
   the predicate that names it.
-- **A raise whose FALL is bounded by an occupant is not a clock.** `max(clock, taken)` over
-  the DRAW holds it up under the guest and snaps it away as they leave; the occupancy
-  belongs in the scalar's TARGET, which eases it back.
-- **An accumulator-fed per-cell field needs PROPORTIONAL decay**; flat subtraction
-  quantises the map to {0, cap}.
 
 ## The sun and the night
 
@@ -129,16 +125,10 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
   register at cache time, repaint live. What you lift out of a cache carries what was drawn
   ON TOP of it; anything registered in SCREEN space at cache time (`FACES`) goes stale
   through the camera ease — map it through `k = viewS/gview.s`.
-- **A cache's bitmap size is not its DESTINATION rect.** `canvas.width/height` FLOOR, so
-  blitting one back through `cv.width/DPR` loses the frame's fractional remainder: blit the
-  CSS rect the cache stands for.
 - **The night is a COMPOSITE, set by the LAST thing that touches it.** Anything warm
   arriving before `applyLight`'s multiply is slate by midnight, so it must REGISTER in the
   SAME rebuild as the image and be repainted in a `screen` pass after. "It is
   drawn" is not "it can be seen".
-- **An OFFSCREEN 2D context is not the accelerated surface the visible one is.** Only a
-  draw needing its COMPOSITES (clip plus `destination-in`/`out`) belongs there; one wanting
-  a clip and an alpha is a `save()` on `ctx`, two orders cheaper.
 
 ## The frame
 
@@ -151,29 +141,30 @@ Cap 60 laws / 12 KB — the binding one is BYTES. Claims here; examples in the s
 
 ## Instruments
 
-- **A probe's world is only as rewound as you make it.** `__reseed()`/`__setTime()` rewind
-  the PRNG and clock, not latches or spawned agents. Reseed, then step inside ONE
-  `page.evaluate`, fresh page per screenshot. **`__reseed()` REASSIGNS `R`, it does not
-  rewind it** — a monkeypatch installed
-  before it is silently eaten: instrument AFTER the reseed and assert it fired. PIN
-  the instant (`drawScene(simT, 1/30)` inside the evaluate); `__warp(t)` advances whole
-  fixed-dt steps, so a step count is not a clock. Read the canvas in the SAME evaluate as
+- **A probe's world is only as rewound as you make it.** `__reseed()`/`__setTime()` rewind the
+  PRNG and clock, not latches or spawned agents. Reseed, then step inside ONE `page.evaluate`,
+  fresh page per screenshot. **`__reseed()` REASSIGNS `R`** rather than rewinding it, so a
+  monkeypatch installed before it is silently eaten: instrument AFTER the reseed and assert it
+  fired. PIN the instant (`drawScene(simT, 1/30)` inside the evaluate); `__warp(t)` advances
+  whole fixed-dt steps, so a step count is not a clock. Read the canvas in the SAME evaluate as
   the draw: a `?pause`d page still runs rAF.
-- **A probe driving the page through a real EVENT must invert the page's own mapping term
-  for term, and assert the event LANDED** before asserting what it did: a synthetic miss
-  does not fail, it takes the other branch.
-- **A probe's control fetched at HEAD expires the moment its own change commits** — pin a
-  "before" control to a REF.
 - **Suspect the INSTRUMENT first, and a gate's PASS is only evidence about the fields it
   REPORTS.** Read the reporter, not the producer: `perf.mjs` is vsync-locked over a whole sim day and
   blind to a pass expensive only in a rare weather: time the FUNCTION, in its weather, at
-  every camera.
+  every camera. A probe driving a real EVENT must invert the page's own mapping term for term
+  and assert the event LANDED — a synthetic miss takes the other branch, it does not fail. A
+  jump threshold under a kind's CRUISING SPEED is a speedometer — its zero is a
+  fact about the sampling window, so the next reshuffle names the wrong change.
 - **A ZERO is evidence only if you show the test can be non-zero**, a green anchor only if
   the predicate FIRED — and a FIELD is not a READING: a gate wired into a row can sit at
   `null` for ever, which to a consumer counting only failures is the same zero as a pass.
   Separate NOT MEASURED from CLEAN.
 - **A gate is a claim about a BUILD**: a change redefining a gate's SUBJECT must re-run
-  every gate that READS it, not only the one briefed.
+  every gate that READS it, not only the one briefed; a control fetched at HEAD expires the
+  moment the change commits, so pin a "before" to a REF. Prove a ROTATION on its READERS' output
+  against a pre-rotation control — byte conservation is necessary, NEVER sufficient, blind to a
+  cut INSIDE a unit. And a worker that dies before committing leaves its iteration in the WORKING
+  TREE alone, invisible to ledger, runlog and census: diff the tree before calling a brief unbuilt.
 
 ## Judging a look
 

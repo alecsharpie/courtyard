@@ -1,39 +1,75 @@
 {
-  "generated": "2026-09-03T13:20:00.000Z",
-  "byIteration": 169,
-  "rung": "4b",
+  "generated": "2026-09-04T00:00:00.000Z",
+  "byIteration": 175,
+  "rung": 3,
   "diagnosis": {
-    "health": "Healthy, and healthy in the shape that is the inverse of the last loop's death. 19 of the last 20 shipped, 0 reverts, selfVerdict == verdict on 20 of 20, src moved 8 of the last 10 (the two that did not are the two Harness rows, which change no pixel by design). Cost is 30 min / $9.78 an iteration against a ~$5.77 run median and above it for the ninth pass running, so I priced it against output for the fifth time rather than excusing it: diff mean is 129 and rising for the fourth pass (49 -> 86 -> 103 -> 129), and the dearest rows ARE the largest ones (#169 $15.53/200 lines, #166 $14.05/126, #163 $12.18/246). Rising cost with rising output is not the Solvista signature; rising cost with flat output is, and it is not what the rows say. The one thing I do not like is cacheRead: 19.7M on #169 against 3.7M on #164, which is the read rent, and b174 is aimed at it.",
+    "health": "Healthy on every number the runlog keeps, and I could not find the Solvista shape anywhere in it. 17 of the last 20 shipped, 0 reverts, selfVerdict == verdict on 19 of 20 (the exception is #171, where the worker before it died mid-build and the next one correctly downgraded its own shipped to no-ship), src moved 7 of the last 10. Cost is 28 min / $10.02 an iteration, the tenth pass running above the ~$5.77 run median, and for the sixth pass I priced it against output rather than excusing it: the last ten diffs mean 148 lines against 129, 103, 86 and 49 at the four passes before, so cost is rising SLOWER than output. The dearest rows are still the largest ones. What I do not like is unchanged from last pass — cacheRead is the read rent — and #175 has now bounded all four of the files that were growing unwatched. The single worst thing in this diagnosis is not in the runlog at all: I measured it myself (see rationale).",
     "signals": [
-      "mapFlat=15 (advisory)",
-      "revertStreak=0",
-      "quota measured and clean on #167/#168/#169"
+      "no stall signals, and no advisory signals — smallDiff/mapFlat/rungHeld all clear",
+      "revertStreak=0, briefRejected=1 in 20 (#161)",
+      "worker memory quota was OVER for the second consecutive open (46.7/46), now 44.0/46",
+      "MEASURED THIS PASS, not from the runlog: the viewport forks the seeded world"
     ],
-    "balance": "After #169 the staleness order is Cross street & allotments 10 back (#159), Plaza & quay 9 (#160), People & animals 8 (#161), Roofs & skyline 7 (#162), River & far bank 6 (#163). The coverage grid was three iterations stale when I opened it (#165, #167, #169 unrecorded) and is now right. This queue takes the bet to Roofs and the other three domain briefs to the three longest-untouched; People & animals is the one domain 8-back that I leave, and the bet puts the first people ever onto our own roof, which is where that domain's next entry would have gone anyway."
+    "balance": "After #175 the staleness order is People & animals 14 back (#161, and that one was a rejected brief, so its last SHIPPED entry is older still), Sky, light & weather 10 (#165), Courtyard & garden 7 (#168), Lane & market 6 (#169), Roofs & skyline 4 (#171). Coverage was five iterations stale when I opened it (#171-#175 unrecorded) and is now right. By KIND the grid is lopsided the other way: The sill & the observer x Harness now stands at 9 entries, twice any other cell, and I have marked it saturated — the loop's instruments have become the best-tooled thing it owns. This queue takes the three longest-untouched domains (life, sky, courtyard) and gives the bet to the observer, which is where the bug I found actually lives."
   },
-  "rationale": "mapFlat is showing at 15 iterations, so the rung is 4b by name and a season or an evening does not clear it. The watch already forbids re-deriving the map-is-full argument a fourth time and names the two honest moves that remain: a new TILE or SPECIES constant, or DEPTH beyond the grid. I SHOT THE TOWN BEFORE PLANNING IT (day 6 12.98h midsummer, day 9 19.09h late summer, wide + mobile + a crop of the near band) and the picture named the move without my having to choose it. The bottom ~15% of every wide frame is our own block, the nearest quarter, at the largest pixels in the picture — and it is 1095 cells of ONE tile, 45% of all the WALL in the town, broken only by the river slot and two light wells. Everything needed to make it a place was built years of iterations ago and never used by anything human: roofWalkZ reads the pitch bilinearly for a walker, nearScale ramps a figure to NEAR_SZ 1.95, ROOF_FURN stands 24 washing lines, tanks and lofts on rows 86-87 (the source's own note says row 87 is the one line dead level across the whole block), LOFTS are landing boards, wellNear keeps a line off a hole, and the cat already crosses it. Twenty-four objects a tenant would own, and in 169 iterations no tenant. That is a spatial 4b (a new tile, +9 in the summed census, GLASS #116 and REED #155 the precedents), it is the domain 7 back, and it is the one change that alters what a visitor sees in the first ten seconds — because it happens closer to them than anything else in the town. Every other brief in this queue carries the number it rests on and where the number came from, per the standing watch note aimed at this seat; two of them (b172, b173) carry premises I have NOT re-measured myself and say so, with the measurement named as the deliverable if they do not reproduce.",
-  "queue": [],
-  "recommendStop": null,
-  "consumed": [
+  "rationale": "I shot the town before planning it — seed 42 at four instants (day 7 dusk 19.09h, sunset 22.58h, night 02.51h, and mobile) — and the shots did two things. The first was to settle the frontier honestly: the town is dense and the night frame is the best-looking state it has ever had, lamps and lit windows and fireflies over the lawn, the tenant out on the leads taking the washing in before the light goes. The second was an accident. The 1600x950 dusk shot is clear; the 390x844 shot of THE SAME seed AT THE SAME INSTANT is raining. I re-ran it as a measurement rather than trusting a picture: seed 42, __reseed() then __warp in 5 s steps, three viewports. They are bit-identical through simT 120. At simT 125 people reads 49 at 1600x950 and 48 at 390x844. By simT 415 cloud is 0.166 / 0.781 / 0.471 and `raining` is false / true / false at 1600x950 / 390x844 / 1200x720. One extra R() draw somewhere in the sim forks the seeded world for good, and the fork is a function of the WINDOW. Two consequences, and the second is worse than the first. (1) `?seed=` does not name a world — the artifact's headline promise. (2) Every multi-framing gate this loop owns has been comparing two different towns for 175 iterations: shoot.config.json has six framings, the visual gate shoots four, and the census, motion and filmstrip baselines are all pinned at one size. That is why this batch is rung 3 rather than 2. The ladder's rung 3 is 'widen the menu', and the menu is data precisely so the manager can extend it: I have added a ninth KIND, `fidelity` — make the world keep a promise it already makes. In 175 iterations this loop has had cells for 'does it look right' and 'did the census move' and no cell at all for 'does the artifact keep its word', which is exactly the blind spot a menu-as-data exists to close. b176 is the bet and it goes first. The other four are the three longest-untouched domains plus one cue that has waited long enough, and every one of them carries the number it rests on and where the number came from. Two standing warnings apply to this queue and are repeated in the briefs: b176 may reshuffle the seeded world, so every brief after it must re-count its own premise on HEAD (which is the law anyway); and c262's numbers are marked STALE in state.json because #173 re-cut the plaza under them.",
+  "queue": [
     {
-      "id": "b170",
-      "at": "2026-09-03T12:54:05.366Z"
+      "id": "b176",
+      "domain": "The sill & the observer",
+      "kind": "Fidelity",
+      "brief": "The viewport forks the seeded world, and `?seed=` therefore does not name a world. Measured on HEAD, seed 42, `__reseed()` then `__warp` in 5 s steps: bit-identical through simT 120, then `people` reads 49 at 1600x950 against 48 at 390x844 at simT 125, and by simT 415 `cloud` is 0.166 / 0.781 / 0.471 and `raining` false / true / false at 1600x950 / 390x844 / 1200x720. The first divergence is a POPULATION count, so something inside simStep draws an extra `R()` on a branch that reads a screen metric — the window, `cellW`/`cellH`, `gview`, a pad, an `inView`, a world-edge test in screen space. Find it, name it, and make the simulation pure of the observer: the frame is a WINDOW on the town, never a fork of it. Then leave a gate behind that would have caught this on day one. Why now: this is the artifact's headline promise, and it also means every multi-framing gate the loop owns has spent 175 iterations comparing two different towns — the visual gate shoots four framings and the census, motion and filmstrip baselines are pinned at one size, so a 'visual PASS at 4 framings' has never been the evidence it reads as. Expect a large diff and take the swing: 150-300 lines is welcome, and re-pinning every baseline is part of the job, not a failure of it.",
+      "seams": ["simStep", "__warp", "__reseed", "spawnAgent", "inView", "gview", "viewFor", "cellW", "cellH", "held", "WORLD_X0", "stepClouds", "laneCount"],
+      "successLooksLike": "A new permanent gate — `probes/seed-identity.mjs` — loads the page at every framing in shoot.config.json plus two arbitrary viewports, `__reseed()`s, warps to at least three pinned instants, and asserts the full census scalar set is IDENTICAL across all of them. It FAILS on HEAD (quote the failing numbers) and PASSES on the candidate. The three-viewport reading above collapses to one world. Every other baseline is re-pinned and the re-pin is stated.",
+      "avoid": "Do not close this by making the census report only viewport-independent fields, or by pinning the gate at one framing — the bug is the FORK, not the report. Do not fix it by seeding per-viewport. If the divergence turns out to be legitimate (a spawn that genuinely should depend on visible area), that is a finding, not a pass: say so, and make the gate assert the invariant that IS true. LAWS: any new draw reshuffles the whole seeded world, so read the census for collapse rather than delta, and keep each branch on the half of [0,1) it owned.",
+      "budgetMin": 75,
+      "risk": "high"
     },
     {
-      "id": "b171",
-      "at": "2026-09-03T15:20:40.321Z"
+      "id": "b177",
+      "domain": "People & animals",
+      "kind": "New element",
+      "brief": "Nothing is alive in the air at night except the fireflies, and they never leave the lawn. Counted off the wide night frame (seed 42, t 432, hour 02.5): roughly forty lamps and lit windows across the picture — LANE_LAMPS, RIVER_LAMPS, the plaza and cross-street lamps, BARGE_LAMP, the rose window — and not one of them has anything at it. Give the town a nocturnal species with its OWN source and its own cap, gathered AT the light rather than scattered over the frame, so that the night reads as inhabited from the wide shot and not merely lit. It must answer the pointer the way every bird already does. Why now: People & animals is 14 iterations back, the longest neglect in the run, and its last entry (#161) was a rejected brief; the night is simultaneously the town's best-looking state and its emptiest.",
+      "seams": ["updateWildlife", "birds", "birdName", "birdPlace", "birdDown", "LANE_LAMPS", "RIVER_LAMPS", "windowLit", "LIT", "nightF", "sunUp", "SPECIES", "speciesFor"],
+      "successLooksLike": "On a night frame at 1600x950 the lamps have life at them and it is legible without zooming; the pointer names it; the population is zero in full daylight and non-zero on every night sampled across a seeded year; `speciesKinds` moves in the census and the baseline is re-pinned.",
+      "avoid": "Do not spend the vector on a second firefly — a scatter over an area is what already exists. This one is bound to the LIGHTS. Do not take the spawn out of an existing budget: LAWS says a spawn band is a share of a budget, not a rate, so a rare thing needs its OWN source. Bound the population at BOTH ends (a window with only a landing bound is a marathon-walker factory), and key it on `sunUp`/`nightF` correctly — `!daylight` is dawn as well as dusk, and `day` rolls at hour 6 so it holds two dawns.",
+      "budgetMin": 45,
+      "risk": "medium"
     },
     {
-      "id": "b172",
-      "at": "2026-09-03T15:41:23.449Z"
+      "id": "b178",
+      "domain": "Sky, light & weather",
+      "kind": "Deepen",
+      "brief": "The bonfire never re-asks its weather. `bonfireWeather()` is consulted when the heap is lit and nothing consults it again, so a fire started in a calm dawn burns on through an afternoon gale that `isWindy()` would have refused outright; #156 re-keyed the bar onto the graded `windF` but did not add the re-ask. Make the fire a thing the weather can end — or hold, or hurry — after it is lit, so that a gale arriving over a lit bonfire is legible in the frame rather than ignored by it. Why now: Sky, light & weather is 10 iterations back, this cue (c244) has survived two manager passes, and #171's law came out of exactly this shape of bug.",
+      "seams": ["stepBonfire", "bonfireWeather", "isWindy", "windF", "WIND_BEHAVE", "raining", "wetF", "hearthF"],
+      "successLooksLike": "Over a seeded year, count fires that begin in weather `bonfireWeather()` accepts and are still burning in weather it would refuse: non-zero on HEAD (quote it), zero or bounded on the candidate. The change is visible at least once in a filmstrip of the day it fires.",
+      "avoid": "PREMISE UNVERIFIED BY THIS PASS — I read it out of c244 and did not re-count it. Count it on HEAD first, and if a fire never in fact outlives its weather, say so, DELETE the cue's sentence, and let the measurement be the deliverable. Watch the edge: LAWS says attribute an edge-triggered event AT THE EDGE, because `washOut()` flips on `raining` while `wetF() > 0.22` holds it false long afterwards, and the bonfire's terms have the same shape. Do not turn this into a new weather scalar; it is a re-ask of one that exists.",
+      "budgetMin": 30,
+      "risk": "low"
     },
     {
-      "id": "b173",
-      "at": "2026-09-03T16:04:30.795Z"
+      "id": "b179",
+      "domain": "Courtyard & garden",
+      "kind": "Deepen",
+      "brief": "The lawn's way OUT is the one leg in the garden nobody priced, and it is on frame. #168 priced the lawn's STAY at the walk home and emptied the garden accordingly, but `exitLeg` still runs from x32.5 to `laneEdge` — up to 110 cells — so a sitter who leaves at dusk reads as 28.6 sim hours of walking home across a dark town, in the wide shot, long after the garden itself has gone quiet. Price the exit the way the stay was priced, so that the courtyard empties and STAYS empty rather than trailing walkers through the night. Why now: Courtyard & garden is 7 back; c256 was raised at #166 and this is the second manager pass it has survived.",
+      "seams": ["exitLeg", "laneEdge", "lawnHome", "lawnStay", "lawnGone", "goHome", "spawnLawnAgent", "LAWN_CAP", "EVE_GONE"],
+      "successLooksLike": "Over several seeds x several days, the count of lawn people still walking after `EVE_GONE` falls to near zero, and lawn presence during the day is not reduced by more than a token amount — the fix is to the exit, not to the population. Quote both numbers before and after.",
+      "avoid": "PREMISE PARTLY UNVERIFIED — the 110 cells and 28.6 h come from c256, written at #166, and #168 has changed the garden since. Re-count on HEAD before building. LAWS: price the walk where it can be PAID — at the door when the place is near, at the STAY when the crossing costs a day's light — and a return leg charged at the DOOR fails as a POPULATION going to zero, never as a slower rate, so watch for that failure mode specifically.",
+      "budgetMin": 30,
+      "risk": "low"
     },
     {
-      "id": "b174",
-      "at": "2026-09-03T16:36:23.968Z"
+      "id": "b180",
+      "domain": "The sill & the observer",
+      "kind": "Polish",
+      "brief": "The ground cache is the frame's biggest single cost and the camera makes it worse. c258 merges three cues: `drawGround` costs 25-27 ms; it rebuilds about 2.5 times more per sim day than it did at #138; an ease repaints the destination on the frame it STOPS, so the distance visibly crisps at u=1; and a follow holds the wide cache at 54% detail for the whole move. Cut the rebuild rate and make the ease land without the snap, so that moving the camera — the loop's newest and most-used interaction — costs less and does not announce its own arrival. Why now: three cues merged into one, and #166's follow made the cache the thing the observer touches most.",
+      "seams": ["drawGround", "drawBlocks", "groundDirty", "lightBucket", "wetBucket", "washPainted", "barrowPainted", "holdWideGround", "followPad", "viewEasing", "gview"],
+      "successLooksLike": "`probes/ground-rebuilds.mjs` and `probes/ground-cost.mjs` quote rebuilds per sim day and ms per rebuild before and after, both improved; a filmstrip across an ease shows no single-frame crisp at the end of the move; the wide frame is byte-identical at rest.",
+      "avoid": "ANYTHING THAT MOVES THE FRAME must hold the padded WIDE ground cache for the whole move and repaint ONCE on release — do not solve the crisp by repainting during the ease. LAWS: the ground is a CACHE, so a per-frame truth on it is a live overlay, and anything registered in SCREEN space at cache time (FACES) goes stale through the ease and must be mapped through k = viewS/gview.s. Do not touch what is DRAWN; this brief changes when and at what detail, not what.",
+      "budgetMin": 35,
+      "risk": "medium"
     }
-  ]
+  ],
+  "recommendStop": null,
+  "consumed": []
 }
