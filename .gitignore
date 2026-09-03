@@ -29,3 +29,4 @@ shots/
 # The HEAD fixture probes regenerate from `git show` on every run.
 .probe-head.html
 probe-glass.mjs
+/probe-*.json

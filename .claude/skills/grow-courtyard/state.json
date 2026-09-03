@@ -2,7 +2,7 @@
   "updated": "2026-09-03",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 166,
+  "lastIteration": 168,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -182,7 +182,8 @@
         95,
         108,
         129,
-        139
+        139,
+        168
       ],
       "new-ca": [
         "pre",
@@ -501,7 +502,7 @@
     "courtyard": [
       "walled garden: EDGE_BEDS 204, four arches, BENCH_SPOTS, daisies, ivy, one linden, pre-dawn sweeper, SUNDIAL/dialThrow, wear[]/trod[]/litter[]",
       "bed planting CA over SPECIES: bSp/bSt, growF/dieF/bloomCap",
-      "the lawn's OWN source: spawnLawnAgent/LAWN_RATE/LAWN_CAP, sub-caps bind (benches, naps, blankets, runs); lawnStart/End/Holds/Gone/Fits",
+      "the lawn's OWN source: spawnLawnAgent/LAWN_RATE/LAWN_CAP, sub-caps bind (benches, naps, blankets, runs); lawnStart/End/Holds/Gone/Fits/Home/Stay - the STAY priced at the walk home (#168), kid run cut",
       "the gardener on a SCHEDULE outside LAWN_CAP: gardenDue/GARD_K over growSeason(); gardenFits priced at BOTH ends (#157) - gardWalk in+out, gardWin, gardNearest+GARD_LAND; gardenerKneel/GARDEN_REACH"
     ],
     "lane": [
@@ -626,6 +627,12 @@
       "id": "c255",
       "note": "a follow holds the WIDE ground cache for minutes where an ease pays 0.9 s: the frame carries 54.1% of the detail of one repainted in its own view (follow-cam #8) - c254's snap made continuous. A supersample is bounded by a phone's canvas budget.",
       "raisedBy": 164,
+      "seenBy": 0
+    },
+    {
+      "id": "c256",
+      "note": "exitLeg is the lawn's unpriced leg and it is ON FRAME: the south arch's way out runs x32.5 to laneEdge, up to 110 cells, so a sitter still reads 28.6 h of dark walking home across the town after #168 emptied the garden itself.",
+      "raisedBy": 166,
       "seenBy": 0
     }
   ],

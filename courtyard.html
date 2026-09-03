@@ -3467,6 +3467,11 @@ function lawnGone(){ return !lawnSun() && !(hour > sunUp && hour < lawnStart());
 function lawnEnd(t){ const s = sunAt(t === undefined ? simT : t); return s.down - (s.down - s.up) * Math.asin(LAWN_SUN) / Math.PI; }   // the hour daylight drops under LAWN_SUN
 function lawnStart(t){ const s = sunAt(t === undefined ? simT : t); return s.up + (s.down - s.up) * Math.asin(LAWN_SUN) / Math.PI; }   // …and the hour it first clears it
 function lawnRate(){ return LAWN_RATE * (0.45 + 0.55 * clamp((warmth - 0.2) / 0.5, 0, 1)); }   // a winter noon keeps a child and a sitter (HEAD ± 1)
+/* …and it is still not the lever, re-swept at #168 in the SHORT-STAY regime lawnStay()
+ * created, where the cap should have stopped binding: 0.9 / 1.4 / 2.0 over 6 seeds x a
+ * year buys set-outs 1580 -> 1771 -> 1829 and people STOPPED on the grass 1.164 ->
+ * 1.243 -> 1.276. A 2.2x rate for +9.6% of stillness — LAWN_CAP absorbs it exactly as
+ * #121 found, so the presence a shorter stay costs cannot be bought back with inflow. */
 function lawnOpen(){ return day >= 1 && !raining && hour > sunUp && hour < sunDown; }   // set-outs need dry weather and the sun UP; the arrival's daylight is priced in lawnFits (open a trip earlier than its hour) — without the sunrise gate every midnight roll picks the one door whose walk is long enough to land in the window, and the east arch feeds the lawn marathon walkers
 function lawnHolds(o){ return o.lawn && o.lawnLead && !o.with && !o.lawnOut; }   // on the way in or at the place; a holder walking out has given it up
 /* the cap counts the lawn's VISITORS. The gardener is not one: they come to WORK, on
@@ -3476,23 +3481,69 @@ function lawnHolds(o){ return o.lawn && o.lawnLead && !o.with && !o.lawnOut; }  
  * lawnHolds, so `held` below still sees them and the sub-cap of one still binds. */
 function lawnCount(){ return agents.filter(o => lawnHolds(o) && o.kind !== 'gardener').length; }
 function lawnRelease(a){ a.lawnOut = true; for (const o of agents) if (o.with === a) o.lawnOut = true; }   // and the companion at their side goes with them
-/* the walk from off-frame through door `e` along `pts`, in hours; and whether it fits the
- * window — arrival with LAWN_MIN_DWELL to spare before the sun ends it, the sun read at
- * the arrival instant (0.36 h/day of swing) */
+/* the walk from off-frame through door `e` along `pts`, in hours */
 function lawnHours(e, pts, speed){ return (LAWN_OFF[e.name] / speed * HOURS_PER_S) + pathHours(e.door[0], e.door[1], pts, speed); }
+/* the walk HOME from a point, in hours: the chord to the nearest door, which is the way
+ * lawnCut takes them (#95). To the DOOR and no further, deliberately — LAWN_OFF's leg is
+ * 40 cells at the south arch, ~9 h at a walking speed, and charging it at BOTH ends would
+ * shut that door (the one weighted double) for the whole year. */
+function lawnHome(px, py, sp){ return LAWN_WALK_MARGIN * pathHours(px, py, [nearDoor(px, py).door], sp); }
+/* the two legs of a gardener's day, priced in HOURS off ONE definition: the way in along
+ * `pts`, and the walk home from where it ends. The set-out test calls it, and so the bed
+ * filter and the door bag call it too — the window cannot drift from the walk it is
+ * pricing. Was gardWalk() until #168; the walk home came out of it as lawnHome(), which
+ * the whole lawn now shares, and this is the gardener's half of the pair. */
+function lawnWalk(e, pts, sp){
+  const p = pts[pts.length - 1];
+  return { in: LAWN_WALK_MARGIN * lawnHours(e, pts, sp), out: lawnHome(p[0], p[1], sp) };
+}
+/* Does this walk fit the day? Arrival with LAWN_MIN_DWELL to spare before the sun ends
+ * it, the sun read at the arrival instant (0.36 h/day of swing).
+ * The DOOR is deliberately not where the return leg is priced, and #168 measured why.
+ * The obvious move — the gardener's, `arr + LAWN_MIN_DWELL + w.out < lawnEnd(tA)` (#157) —
+ * was built and thrown away. The courtyard's SIZE refuses it: it is ~29 cells from any
+ * door to the linden, 8.7 h of compressed time at a walking 1.5-2.2 cells/s, so the deep
+ * lawn cannot be crossed TWICE inside one day's LAWN_SUN light and never could. That bound
+ * closes the napper's door outright (offerable in 10.0% of open samples -> 0.0%) and the
+ * shaded picnic's (23.9% -> 0.0%), taking lawn presence 9.00 -> 6.26 and the blanket
+ * population 346 -> 44 over 6 seeds x a year — it empties the middle of the lawn to stop
+ * people walking off it. Re-bounding the walk home on sunDown instead of lawnEnd buys
+ * back only the 1-2 h the dusk is wide: napper still 0.0%, picnic-in-shade 1.0%.
+ * (probes/lawn-offer.mjs measures the door each kind is offered, at a canonical speed,
+ * with no lottery and no cap in the way.)
+ * So the return leg is charged where it can be paid — at the STAY (lawnStay), which is a
+ * choice made at the arrival instant and shortens rather than refuses. */
 function lawnFits(e, pts, speed){
   const walk = LAWN_WALK_MARGIN * lawnHours(e, pts, speed);
   const tA = simT + walk / 24 * DAY_LEN;   // the arrival instant (LAW: an hour of the sun is solved at arrival, not departure)
   return hour + walk >= lawnStart(tA) && hour + walk + LAWN_MIN_DWELL < lawnEnd(tA);
 }
-/* the two legs of a gardener's day, priced in HOURS off ONE definition: the way in
- * along `pts`, and the walk home to the nearest door, which is the way lawnCut takes
- * them (#95). The set-out test calls it, and so the bed filter and the door bag call it
- * too — the window cannot drift from the walk it is pricing. */
-function gardWalk(e, pts, sp){
-  const p = pts[pts.length - 1];
-  return { in: LAWN_WALK_MARGIN * lawnHours(e, pts, sp),
-           out: LAWN_WALK_MARGIN * pathHours(p[0], p[1], [nearDoor(p[0], p[1]).door], sp) };
+/* The other end of the visit, and where #168 put the walk home. A duration DRAWN before it
+ * is PRICED makes the price all-or-nothing: a sitter who drew 28 s at noon sat on until
+ * lawnGone() turned them out AT lawnEnd, and only then set off for three hours of dark.
+ * Nothing in the lawn's model had ever mentioned the way home — over 6 seeds x a year the
+ * town spent 942 agent-hours walking off the lawn after the light had gone, 466 of them
+ * still INSIDE THE WALL (1.71 people in the garden at any dark instant), with a tail of
+ * 18.3 h that is a sitter crossing the courtyard at 4 am.
+ * So take min(drawn, room), the room being the light left once the walk home from THIS
+ * spot is paid for. The bound is lawnEnd — the lawn's own hour, the same one lawnGone()
+ * closes the place at — so a stay now ends where the walk home ENDS there instead of
+ * where it begins, and whoever has the longest way home leaves first. Bounding it on
+ * sunDown instead, to spend the dusk walking, reads pleasantly and does not work: the
+ * dusk is 1-2 h wide and every visit then overruns by exactly that, 1.71 -> 1.36 people
+ * in the dark garden against 1.71 -> 0.97 here.
+ * The floor is LAWN_MIN_DWELL, the stand the door already promised, so a walk that cannot
+ * be paid for shortens a visit and never cancels it: the napper's round trip to the linden
+ * is ~19 h of a 13.5 h day and no bound at the DOOR can admit them at all (see lawnFits).
+ * The draw happens either way — a clipped stay must not add or drop an R() call.
+ * The straight line to nearDoor() is deliberately not refined into the dogleg routeToExit()
+ * actually builds through a.preExit: that is the truer number, it differs on 21 of 69 stays
+ * by up to 2.9 h — and it changes NOTHING, because the people it differs for (the napper,
+ * the picnic under the linden) are exactly the ones whose room is already negative and
+ * floored. Byte-identical over 6 seeds x a year. */
+function lawnStay(a, drawn){
+  return Math.max(LAWN_MIN_DWELL / HOURS_PER_S,
+                  Math.min(drawn, (lawnEnd() - hour - lawnHome(a.x, a.y, a.speed)) / HOURS_PER_S));
 }
 /* the hours the BEDS hold a gardener: by the first the light has cleared LAWN_SUN along
  * the border, and by the last the gardener is GONE, the walk home included. */
@@ -3507,10 +3558,11 @@ function gardNearest(){
     gardNear = LAWN_WALK_MARGIN * m; }
   return gardNear;
 }
-/* The gardener's fit, and the reason it is not lawnFits (#129, #157). lawnFits bounds
- * the arrival from BELOW only — not before lawnStart() — which is all a visitor needs,
- * because nobody sets out before the lawn opens. The dawn window does, and with the
- * whole day ahead EVERY bed and every door passes that test: the draw went uniform over
+/* The gardener's fit, and the reason it is not lawnFits (#129, #157). Both price the walk
+ * home now (#168), but a gardener's upper bound is the WORK and pays it at the DOOR, where
+ * a visitor's is the LIGHT and pays it at the STAY — and a gardener also sets out before
+ * the lawn opens, in the dawn window, where with the whole day ahead EVERY bed and every
+ * door passes lawnFits: the draw went uniform over
  * all 204 beds and priced walks of 9.9 h, so the earlier start was spent entirely on
  * crossing the town. A window with only a landing bound is a marathon-walker factory.
  * #129 bounded the landing for a walk begun before SUNRISE and let every other one
@@ -3530,7 +3582,7 @@ function gardNearest(){
  * the choice too — a row's floor of work and the walk home must both fit inside the
  * window, which LAWN_MIN_DWELL's blind 1.5 h never was. */
 function gardenFits(e, pts, sp){
-  const w = gardWalk(e, pts, sp), tA = simT + w.in / 24 * DAY_LEN;   // the sun read at the arrival instant, as lawnFits reads it
+  const w = lawnWalk(e, pts, sp), tA = simT + w.in / 24 * DAY_LEN;   // the sun read at the arrival instant, as lawnFits reads it
   const win = gardWin(tA), arr = hour + w.in;
   if (arr < win.h0) return false;                                              // not before the light clears the border
   if (arr + GARDEN_ROW_MIN * HOURS_PER_S + w.out > win.h1) return false;       // …and gone by the close, the walk home priced HERE
@@ -3666,6 +3718,20 @@ function spawnLawnAgent(want){
   const e = kind === 'gardener'
     ? bag.reduce((p, q) => lawnHours(q, way(q), wsp) < lawnHours(p, way(p), wsp) ? q : p)
     : pick(bag);
+  /* the kid's run IS the stay — priced only as far as run[0] (a.arrive), and a waypoint
+   * list has no timer for lawnStay() to clip. So clip the LIST, on the same rule: keep the
+   * longest prefix that still leaves the light to walk home from where it ends, and never
+   * fewer than two points, because a run is always a run. Before this the kids were the
+   * lawn's worst offender — 96.3% of them still on the frame after the light had gone,
+   * a median 3.9 h of it, tearing round a dark garden (#168). */
+  if (kind === 'kid'){
+    let h = hour + LAWN_WALK_MARGIN * lawnHours(e, [RING[e.k], run[0]], wsp);
+    const close = lawnEnd(simT + (h - hour) / 24 * DAY_LEN);
+    for (let j = 1; j < run.length; j++){
+      h += Math.hypot(run[j][0] - run[j-1][0], run[j][1] - run[j-1][1]) / wsp * HOURS_PER_S;
+      if (j >= 2 && h + lawnHome(run[j][0], run[j][1], wsp) > close){ run.length = j; break; }
+    }
+  }
   const legs = entryLeg(e);
   a.x = legs[0][0]; a.y = legs[0][1]; a.exit = e;   // the way out is the way in — the near door
   a.wp = legs.concat(way(e));
@@ -3987,7 +4053,7 @@ function stepAgent(a, dt){
         if (a.with.state !== 'walk'){ kidSettle(a); a.state = a.with.state; a.cup = !!a.with.cup; a.resume = true; } return; }
       if (a.home){ arriveHome(a); a.done = true; return; }   // at the door: in they go
       if (a.kind === 'gardener' && a.tendBed){ gardenerKneel(a); return; }
-      if (a.kind === 'napper' && a.napAt){ a.state='lie'; a.timer=16+R()*14; a.napAt=null;
+      if (a.kind === 'napper' && a.napAt){ a.state='lie'; a.timer=lawnStay(a, 16+R()*14); a.napAt=null;
         if (R()<0.6) sayAt(a.x, a.y, inLindenShade(a.x, a.y) ? 'Asleep in the shade of the linden within minutes.'
                               : shadowF() > 0.5 ? 'Asleep out in the sun within minutes.' : 'Asleep under the tree within minutes.'); return; }
       /* A courtyard seat can be refused now, which is why c11 stayed open for 24
@@ -3995,7 +4061,9 @@ function stepAgent(a, dt){
        * waypoint list and refusing used to mean `a.done` where they stood. routeToExit()
        * gives them the walk back out that a street agent always had.
        * The duration is drawn either way — a refusal must not add or drop an R() call,
-       * or a dry census cell would churn for a wet-weather feature it never sees. */
+       * or a dry census cell would churn for a wet-weather feature it never sees. And it
+       * is drawn before it is PRICED, so lawnStay() clips it to the light left after the
+       * walk home (#168): what the sky refuses is a seat, what the hour refuses is time. */
       if (a.kind === 'picnic' && a.picnicAt){
         const dur = 20 + R() * 14;
         a.picnicAt = null;
@@ -4004,7 +4072,7 @@ function stepAgent(a, dt){
         // down you join them whatever the cloud is doing. (They share `a.wary` too — the
         // partner is a copy — so the release lifts them in the same frame.)
         if (seatRefused(a) && !(a.mate && a.mate.state === 'sit')){ routeToExit(a); return; }
-        a.state='sit'; a.timer=dur; a.blanket=a.lead;
+        a.state='sit'; a.timer=lawnStay(a, dur); a.blanket=a.lead;
         if (a.lead) sayAt(a.x, a.y, a.shaded ? 'A blanket unfurls in the shade of the linden — picnic hour.' : 'A blanket unfurls on the grass — picnic hour.');
         return;
       }
@@ -4012,7 +4080,7 @@ function stepAgent(a, dt){
         const dur = 12 + R() * 16;
         a.benchAt = null;
         if (seatRefused(a)){ routeToExit(a); return; }
-        a.state='sit'; a.timer=dur; a.onBench=true; return;
+        a.state='sit'; a.timer=lawnStay(a, dur); a.onBench=true; return;
       }
       if (a.tend && !a.lit){                       // at the heap (#93): light it, or find the weather turned and go home again
         a.lit = true;
