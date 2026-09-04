@@ -24,7 +24,7 @@
   "avoid": "water counts ICE, so this redefines a gate's subject: LAWS says re-run every gate that READS it, not only the one briefed — the winter ladder AND the summer nine, on a ref, not on HEAD. Do not rebuild ICE_CELLS every tick if a cheaper answer exists; #191 measured the ground cache at 76.03 repaints/day and c285 says nobody is watching that bar between briefs. Quote it.",
   "budgetMin": 40,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 200,
   "issued": "2026-09-04T10:35:12.564Z",
