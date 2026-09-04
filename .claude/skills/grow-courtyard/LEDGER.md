@@ -232,3 +232,26 @@ and `summarize()` folded it NOWHERE, so a winter ladder alone would have reporte
 count. Suspect the reporter before the sample.
 **Law:** extend a gate by ADDING a row under its own ladder string, never re-cutting the one the
 baseline travels with.
+
+## Iteration 188 — the sky is given something to say, and the balloon a day (2026-09-04) [Sky, light & weather × Interaction]
+
+**Brief:** b188 — make the sky answer the pointer; land c265's balloon.
+**Did.** (1) `skyAt(p)`, asked **LAST** because the sun and moon are drawn **FIRST**; `balloonAt`
+asked first, being drawn after every ground light. `skyHz()` is now ONE horizon for draw and hit
+test. (2) The moon has a month, on the CALENDAR, so it is one moon in every seed. Its bite is no
+longer OVERLAID — the disc is clipped and filled even-odd MINUS the shadow, so the unlit limb is
+never painted and the halo behind survives. (3) `balloonDown()` fires BAL_FALL's own width **in arc**
+early, so the descent FINISHES at the arc where the light falls back through the light
+`balloonOut()` set out in. Drift 0.9 -> 3.4 cells/s + wind.
+**HEAD -> cand, 6 seeds x a year** (probes/balloon-day.mjs, run on both): aloft **3.11 -> 0.35 days**
+(max 3.12 -> 0.54); night samples carrying one **28.1% -> 0.00%**; flights meeting any dark
+**61 of 61 -> 0 of 138**; ended by coming DOWN 0/61 -> 138/138; one every 10.2 -> 4.5 days.
+Coverage (probes/sky-name.mjs, 648 px above the horizon x 4 hours): **1/648 -> 648/648**.
+**Gates:** census PASS (reshuffle, no collapse) · motion PASS, and it now SEES the balloon, 0 jumps ·
+filmstrip day+night 0 POP · 8 framings, a flight, a month of moons.
+**Verdict:** shipped
+**Surprise:** the band above the horizon is not sky. project() lifts z northward, so the spire stands
+**19 cellH above hz** and the clock tower's cap 14: a fall-through with no exception would have
+called the two tallest drawn things in the town "the sky".
+**Law:** a fall-through answering for a screen REGION is bounded by what rises THROUGH it: ask the
+solids first, off geometry that already describes them.

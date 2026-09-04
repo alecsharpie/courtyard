@@ -1673,11 +1673,11 @@ const SH_TOWERS = [
   {x0:64,  x1:66,  y0:1, y1:3,                                   // the clock tower's cap
    ax:(CT.x0 + CT.x1) / 2,          ay:(CT.yF + CT.yB) / 2,
    hx:(CT.x1 - CT.x0) / 2 + 0.2,    hy:(CT.yF - CT.yB) / 2 + 0.2,
-   top:CT.top, rise:CT.rise},
+   top:CT.top, rise:CT.rise, what:'the clock tower, over the far end of the cross street'},
   {x0:CHURCH.tx0, x1:CHURCH.tx1, y0:CHURCH.ty0, y1:CHURCH.ty1,   // the church's spire
    ax:(CHURCH.tx0 + CHURCH.tx1) / 2, ay:(CHURCH.ty1 + CHURCH.ty0 + 0.2) / 2,
    hx:(CHURCH.tx1 - CHURCH.tx0) / 2 - 0.4, hy:(CHURCH.ty1 - CHURCH.ty0) / 2 - 0.05,
-   top:CHURCH.tTop, rise:CHURCH.tRise},
+   top:CHURCH.tTop, rise:CHURCH.tRise, what:'the church tower, its spire over the far bank'},
 ];
 /* ...and one exception more, and it is the volume we are standing IN. eaveFor() gives
  * our own block a height of ZERO, and that is a DRAWING constraint (see there): at its
@@ -2654,6 +2654,11 @@ const SNOW_REPAINT = 0.03, SNOW_SETTLE = 0.15;
 const SNOW_COL = '#e2e8f2';                   // #61: colder — HEAD's #e6eaee read green over a lawn
 let snowCover = 0, snowPainted = 0, snowAnnounced = false;
 function snowF(){ return clamp((greyF() - SNOW_G0) / SNOW_G1, 0, 1); }
+/* snowF() is a SHARE — stepDrops makes a drop a flake on `r.f < snowF()` — so there is no
+ * boolean for "it is snowing", only a sky that is mostly flakes. That bar was written out
+ * where the shower is announced and nowhere else; the sill has to say the same word about
+ * the same sky, so it is one predicate (#188). */
+function snowing(){ return raining && snowF() > 0.5; }
 /* how much of the cover a cell of this kind takes — the trodden kinds take less, so the
  * paths and the road read dark through the white without touching the wear map */
 function snowTake(t){ return t === GRASS || t === BED || t === CBED || t === EYOT ? 1 : t === SIDE ? 0.7 : t === ICE ? 0.45 : t === GLASS ? 0.55 : t === PATH || t === SLOT ? 0.5 : t === ROAD ? 0.4 : 0; }   // ARCADE is roofed, so it takes nothing — the tile falls through to 0 with WALL
@@ -6960,20 +6965,70 @@ const LEAF_EDGE_W = -3, LEAF_EDGE_E = GW + 3;   // #76: a leaf past these is off
 let belfryRoost = 7;                 // pigeons currently sat on the church tower
 const ducks = [], swans = [];
 let catA = null, balloon = null;
+/* ---- the balloon has a day, and it ends (#188, c265) ------------------------------
+ * HEAD's balloon set out at x -8 on any hour with daylight over 0.4, crossed at 0.9
+ * cells/s — SLOWER than every person in the town, who walk at 1.5-2.9 — and was deleted
+ * only at x > GW + 8. That is 154 cells at 0.9: 171 sim seconds against a 55 s day, so
+ * one balloon was aloft for THREE DAYS and across three nights, and for half of all sim
+ * time there was one in the sky. It was the night frame's one moving object and nothing
+ * in the town could say what it was doing there.
+ *   A balloon flies a FLIGHT, not a transit. So this is bounded at both ends, and both
+ * bounds are the sun's own hour rather than a clock's:
+ *   SET OUT  only in the sun's first half (sunArc < BAL_SET), with the light already up
+ *            — a window with a landing bound and no set-out bound is what made the
+ *            three-day crossing possible in the first place.
+ *   COME DOWN so as to be on the ground by the hour the light falls back THROUGH the
+ *            light it needed to set out in (balloonDown()), wherever it has got to.
+ * It cannot cross the world in the time that leaves it, and it is not meant to: the
+ * drift is a balloon's — half again a walking pace, and the WIND sets how much more —
+ * and the ending is the descent, with the east edge kept only as the old cull. */
+const BAL_RATE  = 0.030;   // per sim second inside the set-out window
+const BAL_LIGHT = 0.4;     // the light it flies in — the SAME light at both ends
+const BAL_SET   = 0.45;    // it sets out only this far into the sun's arc
+const BAL_DRIFT = 3.4;     // cells/s on a still day...
+const BAL_WIND  = 0.6;     // ...and the share of that the wind adds or takes away
+const BAL_Z = 34, BAL_SINK = 12;   // its cruising height, and how far the descent takes it
+const BAL_FALL = 4.0;      // sim seconds from the top of the descent to gone
+// where on the sun's arc the light falls back THROUGH the light it set out in
+const BAL_ARC = 1 - Math.asin(BAL_LIGHT) / Math.PI;
+function balloonOut(){ return daylight > BAL_LIGHT && sunArc < BAL_SET && !raining; }
+/* It has to be DOWN by BAL_ARC, not starting down at it — a descent begun at the hour it
+ * is aimed at finishes after it, and in a 26 s winter day BAL_FALL is a fifth of the
+ * whole arc, so that overshoot is a nightfall. So the trigger is BAL_FALL's own width in
+ * arc, subtracted: the WIDTH is held fixed in sim seconds and the OFFSET moves with the
+ * season, which is four hours between midwinter and midsummer and not an hour written
+ * down anywhere. sunArc is clamped and monotone, so this is 0 before dawn (never fires)
+ * and 1 all night, which makes it its own safety net. */
+function balloonDown(){ return sunArc >= BAL_ARC - BAL_FALL * HOURS_PER_S / dayHours; }
+function balloonSpeed(){ return BAL_DRIFT * (1 - BAL_WIND * 0.5 + BAL_WIND * windF()); }
+// how high it is, and how much of it is left to see: ONE definition, read by the draw
+// and by the pointer, so a balloon you can point at is the balloon you can see
+function balloonAir(){
+  const e = balloon.fall * balloon.fall * (3 - 2 * balloon.fall);
+  return [BAL_Z + Math.sin(balloon.ph) * 1.4 - BAL_SINK * e, 1 - e * e];
+}
 function updateBalloon(dt){
-  if (!balloon && day >= 4 && daylight > 0.4 && !raining && R() < dt * 0.007){
-    balloon = {x:-8, y:14 + R() * 26, ph:R() * 9,
+  if (!balloon && day >= 4 && balloonOut() && R() < dt * BAL_RATE){
+    balloon = {x:-8, y:14 + R() * 26, ph:R() * 9, fall:0,
       c1:pick(['#b04a3c', '#3d5a80', '#b08030']), c2:'#e8dfc8'};
     announce('A hot-air balloon drifts over the rooftops; the lane looks up as one.');
   }
   if (balloon){
-    balloon.x += dt * 0.9; balloon.ph += dt * 0.4;
-    if (balloon.x > GW + 8) balloon = null;
+    balloon.x += dt * balloonSpeed(); balloon.ph += dt * 0.4;
+    if (balloon.x > GW + 8){ balloon = null; return; }      // gone east over the far bank
+    if (balloonDown() || balloon.fall){
+      if (!balloon.fall) announce('The balloon puts its nose down with the light, and sinks away behind the rooftops.');
+      balloon.fall = Math.min(1, balloon.fall + dt / BAL_FALL);
+      if (balloon.fall >= 1) balloon = null;
+    }
   }
 }
 function drawBalloon(t){
   if (!balloon) return;
-  const bz = 34 + Math.sin(balloon.ph) * 1.4;
+  const [bz, air] = balloonAir();
+  if (air <= 0.01) return;
+  ctx.save();
+  ctx.globalAlpha = air;
   // travelling shadow — the first thing a lid takes, being thrown the furthest
   if (daylight > 0.1){
     const off = shOffset(), sp = shSpread();
@@ -7000,6 +7055,7 @@ function drawBalloon(t){
   ctx.stroke();
   ctx.fillStyle = '#7a5b3c';
   ctx.fillRect(bx - 5, bskY + 8, 10, 7);
+  ctx.restore();
 }
 /* the eyot's nesting pair (#87): two ducks whose home is the island, not the pond, for the
  * nesting window of the year — in on the spring flush, gone by early summer; 1 at the
@@ -7481,7 +7537,7 @@ function updateWildlife(dt){
     raining = true; rainLeft = (10 + R() * 9) * showerLen();
     frontSpent = true;                          // the front has broken: its wind drops (stepWind)
     cloudTgt = 0.92; frontLeft = Math.max(frontLeft, 24);
-    announce(snowF() > 0.5 ? 'Snow drifts in over the rooftops, fat and slow.' : 'Rain drifts in across the rooftops.');
+    announce(snowing() ? 'Snow drifts in over the rooftops, fat and slow.' : 'Rain drifts in across the rooftops.');
     // no sweep here any more: whoever was going to put one up already has, on the way in
   }
   stepDrops(dt);
@@ -7691,13 +7747,19 @@ function skyCols(){
 // stars, hills and the far-off skyline change slowly, so they live in their own layer
 const bcv = document.createElement('canvas'), btx = bcv.getContext('2d');
 let backKey = '';
+/* Where the far horizon sits in the LIVE view — the line the distance stands on, the sun
+ * and the moon ride, and (since #188) the pointer asks the sky above. It was spelled out
+ * three times; a hit test that answers for the sky has to agree with the draw that put it
+ * there, so it is one function. topPad and cellH are the CAMERA's, so this moves with it;
+ * the backdrop cache's own horizon is the WIDE one and is passed in, never this. */
+function skyHz(){ return topPad - 3.4 * cellH; }
 function drawSky(g){
   const [top, low] = skyCols();
-  const hz = topPad - 3.4 * cellH;                  // where the far horizon sits
+  const hz = skyHz();
   const gr = g.createLinearGradient(0, 0, 0, hz + 2 * cellH);
   gr.addColorStop(0, top); gr.addColorStop(1, low);
   g.fillStyle = gr; g.fillRect(0, 0, W, hz + 4 * cellH);
-  drawSunMoon(g, hz, top);
+  drawSunMoon(g, hz);
   /* The distance, painted in ONE view and composited in the current one — the same
    * scale+translate the ground cache rides (#86), and the reason `hz` above is computed
    * LIVE while everything below it is not. HEAD keyed this on `W x H : lightBucket`, with
@@ -7835,7 +7897,7 @@ function drawCloudShade(){
   // south; at a high summer noon it pulls in under the bank.
   const thX = -S[0] / sz * CSH_LIFT, thY = -S[1] / sz * CSH_LIFT;
   const c = cloudCover(), drift = cloudDrift(), span = GW + 120;
-  const hz = topPad - 3.4 * cellH;
+  const hz = skyHz();
   ctx.save();
   ctx.beginPath(); ctx.rect(0, hz, W, H - hz); ctx.clip();
   ctx.globalCompositeOperation = 'multiply';
@@ -8014,7 +8076,41 @@ function moonArc(){
   const mUp = sunDown - 1.4, mSpan = 24 - dayHours + 2.8;
   return clamp(((hour - mUp + 24) % 24) / mSpan, 0, 1);
 }
-function drawSunMoon(g, hz, top){
+/* ---- the moon has a month (#188) ------------------------------------------------
+ * The town has a day, a year and a weather, and the one body in the frame with a
+ * calendar of its own never used it: HEAD cut the same bite out of the same disc at a
+ * fixed (-0.55, -0.3) x cellW on every night there has ever been. So the moon waxes and
+ * wanes now, on a real synodic month against the town's own DAY_LEN, and BOTH readers
+ * take it from here — the disc and the glitter column on the river, which is the reason
+ * moonArc() is one function and this is another beside it.
+ *   The calendar, not the world: this is a function of simT alone, so it is the same
+ * month in every seed, exactly as the season is. `?seed=` changes the town's life, never
+ * its sky. MOON_START is an offset, not a draw — nothing here spends R(). */
+const MOON_DAYS = 29.53, MOON_START = 0.62;
+function moonPhase(){ return ((simT / DAY_LEN) / MOON_DAYS + MOON_START) % 1; }  // 0 new, 0.5 full
+function moonLit(){ return 0.5 - 0.5 * Math.cos(2 * Math.PI * moonPhase()); }    // the lit share of the disc
+/* Eighths, centred on the four principal phases, so each name holds ~3.7 days and 'full'
+ * means the nights either side of full rather than one instant nobody is watching. */
+const MOON_SAID = ['new tonight', 'a waxing crescent', 'at the first quarter', 'a waxing gibbous',
+                   'full tonight', 'a waning gibbous', 'at the last quarter', 'a waning crescent'];
+function moonPhaseName(){ return MOON_SAID[Math.floor(((moonPhase() + 0.0625) % 1) * 8) % 8]; }
+/* Where the two bodies are DRAWN, in live screen space: [x, y, r], or null when the sky
+ * is not showing that one. Extracted so the pointer asks the same arithmetic the draw
+ * used — a sun hit-tested off its own copy of the arc is two definitions of where the
+ * sun is, which is the fault #-clock fixed for sunArc itself. */
+function sunDisc(){
+  if (daylight <= 0.02) return null;
+  // the DISC rides the seasonal elevation: pale and low in winter, deep gold and high
+  // in midsummer, and every pair below averages to the constant it replaced
+  const sa = sunArc, hz = skyHz(), arch = 0.74 * (0.70 + 0.60 * warmth);
+  return [W * (0.9 - 0.8 * sa), hz - Math.sin(Math.PI * sa) * hz * arch, cellW * 1.4];
+}
+function moonDisc(){
+  if (daylight > 0.02 || nightF <= 0.25) return null;
+  const ma = moonArc(), hz = skyHz();
+  return [W * (0.86 - 0.72 * ma), hz - Math.sin(Math.PI * ma) * hz * 0.66, cellW * 1.2];
+}
+function drawSunMoon(g, hz){
   const sa = sunArc;                                 // the same arc the shading reads
   const veil = 1 - 0.82 * cloudCover();              // cover swallows the disc
   if (daylight > 0.02){                              // the sun, rising in the east (to the right)
@@ -8023,8 +8119,7 @@ function drawSunMoon(g, hz, top){
     // lengths dissenting — the one thing in frame a viewer looks straight at was the
     // one thing that did not know what month it was. Pale and low in winter, deep
     // gold and high in midsummer; every pair below averages to the old constant.
-    const arch = 0.74 * (0.70 + 0.60 * warmth);
-    const sx = W * (0.9 - 0.8 * sa), sy = hz - Math.sin(Math.PI * sa) * hz * arch;
+    const [sx, sy, sr] = sunDisc();
     const gl = g.createRadialGradient(sx, sy, 0, sx, sy, cellW * 10);
     gl.addColorStop(0, 'rgba(255,' + lerp(246, 230, warmth).toFixed(0) + ',' + lerp(214, 166, warmth).toFixed(0)
                     + ',' + ((0.45 * daylight + 0.2) * veil) + ')');
@@ -8032,24 +8127,33 @@ function drawSunMoon(g, hz, top){
     g.fillStyle = gl; g.beginPath(); g.arc(sx, sy, cellW * 10, 0, 7); g.fill();
     g.fillStyle = 'rgba(255,' + lerp(252, 248, warmth).toFixed(0) + ',' + lerp(242, 218, warmth).toFixed(0)
                 + ',' + ((0.55 + 0.45 * daylight) * veil) + ')';
-    g.beginPath(); g.arc(sx, sy, cellW * 1.4, 0, 7); g.fill();
+    g.beginPath(); g.arc(sx, sy, sr, 0, 7); g.fill();
   } else if (nightF > 0.25){                         // and the moon on the same arc
     // the night is what is left of the day, so the moon's arc widens as the sun's
     // narrows. It opens 1.4 h before sunset and closes 1.4 h after sunrise so it is
     // already climbing by the time daylight drops under 0.02 and the disc appears —
     // start it exactly at sunset and the moon teleports on its first drawn frame.
-    const ma = moonArc();
-    const mx = W * (0.86 - 0.72 * ma), my = hz - Math.sin(Math.PI * ma) * hz * 0.66;
+    const [mx, my, mr] = moonDisc(), k = moonLit();
     const gl = g.createRadialGradient(mx, my, 0, mx, my, cellW * 7);
-    gl.addColorStop(0, 'rgba(210,225,255,' + (0.28 * nightF * veil) + ')');
+    gl.addColorStop(0, 'rgba(210,225,255,' + (0.28 * nightF * veil * (0.14 + 0.86 * k)) + ')');
     gl.addColorStop(1, 'rgba(200,220,255,0)');
     g.fillStyle = gl; g.beginPath(); g.arc(mx, my, cellW * 7, 0, 7); g.fill();
+    /* THE PHASE IS DRAWN, not overlaid. HEAD painted the whole disc and then a bite of
+     * sky-colour over it, which is a shape that has to be given the veil by hand and
+     * still leaves a ghost under thick cover. What is wanted is the LIT part only: clip
+     * to the moon, and fill the square minus the shadow disc even-odd, so the unlit limb
+     * is never painted at all and the halo behind it survives. Offset is the lit share,
+     * so a new moon is covered and a full one is clear of it; the SIDE is the sun's — a
+     * waxing moon follows the sun down into the west, so its lit limb faces west (left)
+     * and the dark limb is east, and a waning one is the other way about. */
+    const rs = mr * 1.06, side = moonPhase() < 0.5 ? 1 : -1;
+    g.save();
+    g.beginPath(); g.arc(mx, my, mr, 0, 7); g.clip();
+    g.beginPath(); g.rect(mx - mr, my - mr, 2 * mr, 2 * mr);
+    g.arc(mx + side * k * (mr + rs), my, rs, 0, 7);
     g.fillStyle = 'rgba(240,244,255,' + (0.85 * nightF * veil) + ')';
-    g.beginPath(); g.arc(mx, my, cellW * 1.2, 0, 7); g.fill();
-    g.globalAlpha = veil;                            // else the crescent's bite outlives the moon
-    g.fillStyle = mix(top, '#0b1226', 0.4);
-    g.beginPath(); g.arc(mx - cellW * 0.55, my - cellW * 0.3, cellW * 1.1, 0, 7); g.fill();
-    g.globalAlpha = 1;
+    g.fill('evenodd');
+    g.restore();
   }
 }
 /* ===== the distance behind the town: four receding bands =====
@@ -13685,11 +13789,12 @@ function drawRiverLights(t){
     const plf = puntLampF(P);
     if (plf > 0) column(P.x - 0.2, P.y + 0.8, 3, 'rgb(255,204,130)', 0.6 * plf * veil, 0.7, 7);
   }
-  const ma = moonArc(), mh = Math.sin(Math.PI * ma);
-  if (nightF > 0.25 && ma > 0 && ma < 1 && mh > 0.02){
-    // the moon crosses the sky east to west; its light crosses the river the same way
+  const ma = moonArc(), mh = Math.sin(Math.PI * ma), ml = moonLit();
+  if (nightF > 0.25 && ma > 0 && ma < 1 && mh > 0.02 && ml > 0.04){
+    // the moon crosses the sky east to west; its light crosses the river the same way,
+    // and a crescent lays down less of it than a full moon does (#188)
     const mx = RIVER_X1 - 1.2 - (RIVER_X1 - RIVER_X0 - 2.4) * ma;
-    column(mx, 2, 44, 'rgb(220,232,255)', 0.55 * nightF * veil * mh, 2.6, 40);
+    column(mx, 2, 44, 'rgb(220,232,255)', 0.55 * nightF * veil * mh * (0.12 + 0.88 * ml), 2.6, 40);
   }
   ctx.globalAlpha = 1;
 }
@@ -16109,6 +16214,105 @@ function allotFurnAt(p){
   }
   return null;
 }
+/* ============ the sky answers (#188) ============
+ * The pointer named beds, plots, paving, trees, tenants, faces, roof furniture, vanes,
+ * the mill wheel, the field edge, every bird and every moth — and above the horizon it
+ * named NOTHING but the roosting flock's box. Half the frame, and the half that carries
+ * the hour, the season and the weather, was the one part of the picture that would not
+ * say what it was.
+ *   It is a FALL-THROUGH, and so it is asked LAST: the sun and the moon are the first
+ * things drawn in the frame, so everything painted over them — a crown, a walker, a
+ * roosting flock — outranks them, which is exactly painter's order. The balloon is the
+ * other way about, drawn after every ground light, so it is asked FIRST.
+ *   The band it answers for is skyHz()'s, the same line the distance stands on, and the
+ * two towers that rise THROUGH it get their own names rather than being called sky: the
+ * spire reaches 19 cellH above that line and the clock tower's cap 14, so a fall-through
+ * with no exception for them would have called the tallest drawn thing in the town a
+ * cloud. Their geometry is SH_TOWERS', not a second copy of it. */
+const SKY_GRAB = 2.6;        // how much wider than its own disc a body may be pointed at
+function towerAt(p){
+  for (const t of SH_TOWERS){
+    const [, ay] = project(t.ax, t.ay, 0);                  // its foot, on the axis
+    const [, ty] = project(t.ax, t.ay, t.top + t.rise);     // the apex
+    const [, cy] = project(t.ax, t.ay, t.top);              // the cornice, where the cap starts
+    if (p[1] > ay || p[1] < ty) continue;
+    // above the cornice the cap is a pyramid and the spire a cone, so the silhouette
+    // narrows to the tip: the same taper towerShTop() casts from
+    const [lx] = project(t.x0, t.ay, t.top), [rx] = project(t.x1, t.ay, t.top);
+    const k = p[1] > cy ? 1 : clamp((p[1] - ty) / (cy - ty || 1), 0, 1);
+    if (Math.abs(p[0] - (lx + rx) / 2) <= (rx - lx) / 2 * k + 2) return t;
+  }
+  return null;
+}
+const HOURS_SAID = ['no time', 'an hour', 'two hours', 'three hours', 'four hours', 'five hours',
+                    'six hours', 'seven hours', 'eight hours', 'nine hours', 'ten hours'];
+function saidHours(h){ const n = Math.round(h); return h < 0.5 ? 'minutes' : (HOURS_SAID[n] || n + ' hours'); }
+/* The sun says the HOUR — where it is on its own arc, and how much of it is left. Not a
+ * clock hour: sunArc and sunDown are the sun's, so the same words come out four hours
+ * apart in July and in January without a number being written down anywhere. */
+function sunName(){
+  const c = cloudCover();
+  const where = sunArc < 0.12 ? 'just up over the far bank'
+              : sunArc > 0.88 ? 'low, going down behind the town'
+              : sunArc > 0.62 ? 'well over into the afternoon'
+              : sunArc > 0.38 ? 'high over the town'
+              : 'still climbing the morning';
+  return 'the sun, ' + where + (c > 0.72 ? ', a pale coin behind the lid'
+                              : c > 0.42 ? ', in and out of the cloud' : '')
+       + ', ' + saidHours(sunDown - hour) + ' off setting';
+}
+function moonName(){
+  const c = cloudCover();
+  return 'the moon, ' + moonPhaseName() + (c > 0.6 ? ', swimming behind the cloud'
+                                         : c > 0.3 ? ', in and out of the cloud' : '');
+}
+/* ...and the sky itself says the WEATHER the bank is carrying. weatherComing() is the
+ * town's own predicate for a front that means it — the washing comes in on it — so the
+ * sill says the same thing the lane is already doing about it, rather than a second bar
+ * cut over cloudCover() by hand. */
+function skyName(){
+  if (raining) return snowing() ? 'the sky, letting the snow down over the whole block'
+                                : 'the sky, raining itself out over the rooftops';
+  if (mistF() > 0.3) return 'the sky, gone soft behind the mist off the river';
+  const c = cloudCover(), night = nightF > 0.3;
+  const bank = c > 0.72 ? 'one low grey lid, right across'
+             : c > 0.46 ? (weatherComing() > 0.5 ? 'cloud thickening in from the west, carrying rain'
+                                                 : 'cloud coming over from the west')
+             : c > 0.18 ? (night ? 'broken cloud, the stars going in and out'
+                                 : 'broken cloud, the sun going in and out')
+             : night ? 'clear, the stars right down to the rooftops'
+                     : 'clear, nothing in it at all';
+  return (night ? 'the night sky, ' : 'the sky, ') + bank + (isWindy() ? ', the banks going over fast' : '');
+}
+function skyAt(p){
+  const t = towerAt(p);
+  if (t) return t.what;
+  const s = sunDisc();
+  if (s && Math.hypot(p[0] - s[0], p[1] - s[1]) <= s[2] * SKY_GRAB) return sunName();
+  const m = moonDisc();
+  if (m && moonLit() > 0.04 && Math.hypot(p[0] - m[0], p[1] - m[1]) <= m[2] * SKY_GRAB) return moonName();
+  if (p[1] <= skyHz()) return skyName();
+  // between the horizon and the world's first row stands the distance: four receding
+  // bands of a town this one cannot walk to, and it had no name either
+  if (p[1] <= topPad) return nightF > 0.3 ? 'the town in the distance, a few windows still lit'
+                                          : 'the town in the distance, roofs and a spire in the haze';
+  return '';
+}
+/* The balloon is drawn after every ground light, so it is asked before everything. Its
+ * box is the envelope's, taken from balloonAir() — the same height the draw used — and
+ * it stops answering exactly when the descent has faded it out. */
+function balloonAt(p){
+  if (!balloon) return false;
+  const [bz, air] = balloonAir();
+  if (air <= 0.05) return false;
+  const [bx, by] = project(balloon.x, balloon.y, bz), rr = cellW * 2.1;
+  return Math.abs(p[0] - bx) <= rr * 1.05 && p[1] >= by - rr * 1.05 && p[1] <= by + rr * 1.7;
+}
+function balloonName(){
+  if (balloon.fall) return 'a hot-air balloon, coming down with the light';
+  return 'a hot-air balloon, drifting east over the rooftops'
+       + (isWindy() ? ', going along smartly on the wind' : ', barely moving in the calm');
+}
 function lookAt(p){
   /* Behind the sill nothing on the near block is DRAWN — nearHidden() is the renderer's
    * own rule and it guarded drawBird and drawCat alone, so a bird the sill covers was
@@ -16119,6 +16323,7 @@ function lookAt(p){
    * drawBird passes. */
   const [cx, cy] = cellOf(p);
   if (nearHidden(cy, p[1])) return '';
+  if (balloonAt(p)) return balloonName();    // drawn over every ground light, so asked first
   const l = livingAt(p);
   if (l) return l;
   if (millWheelAt(p)) return millWheelName();
@@ -16134,7 +16339,8 @@ function lookAt(p){
     const dx = (p[0] - murBox.x) / murBox.rx, dy = (p[1] - murBox.y) / murBox.ry;
     if (dx * dx + dy * dy <= 1) return 'starlings coming in to roost';
   }
-  return nameAt(cx, cy);
+  // the sky is the last thing asked because it is the first thing drawn (see skyAt)
+  return nameAt(cx, cy) || skyAt(p);
 }
 /* ============ the following ============
  * A name says what somebody is doing at the instant of the tap; two seconds later

@@ -16,29 +16,6 @@
   "rationale": "mapFlat is showing at 16, so the rung is 4+ and the signal names 4b. The standing watch note forbids re-deriving the map-is-full argument, and this pass found the reason it keeps firing anyway, which is worth more than the brief it produced: #181 added ICE, the 19th tile kind, and the census reported UNCHANGED IN EVERY FIELD. All three census ages sit at warmth 0.6929 on purpose (the #14 fix, so that the age axis measures age), so a winter-only kind is structurally invisible to the gate that mapFlat reads. The signal has been telling the truth about a blind instrument. So this batch does both halves: b186 makes a spatial change the census CAN see, and b187 makes the instrument able to see the one it could not.\n\nI shot and MEASURED the town before planning it, as the watch note demands, and the bet is a number rather than an impression. The courtyard — the piece's namesake, the left half of every wide frame — has 1,896 PATH cells in the annulus between the ring bed and the edge beds (seed 42, warp 625; r 13.8 to 37.8 off the linden). That is 15.6% of the world's 12,144 cells, the largest single-tile ground surface in the town, 2.6x the plaza's 730 PATH and larger than the river's 920 WATER. Standing on it: four BENCH_SPOTS. The plaza, a third the size, carries a fountain, a roundel, PLAZA_PITS, six benches, six FOUNT_STANDS, two crumb spots, a rail, five bollards and a fourteen-place door. This is NOT the 'that surface looks flat' brief the watch note kills on sight — PATH.court measures sd/mean 0.143, mid-table, and the texture is fine. The claim is OCCUPANCY, and it is counted.\n\nb186 puts a covered walk on that ring: rung 4b by the census (a new tile kind, and unlike ICE one that exists in July), a new-element in the domain that has had exactly one in 185 iterations, and the biggest change available to a visitor's first ten seconds. The other four spend the thin kinds and the long-untouched domains, each carrying the number it rests on. Curation: coverage four stale; six cues closed (two spent by #183/#182, one duplicated by the watch table, two promoted to b188/b190, one folded into b187); inventory merged 58 -> 55 entries and 9.6 -> 9.4 KB with the note's stale caps corrected to the ones rotate-ledger actually enforces; and LAWS took #181-#185's five laws by MERGING into the bullets they sharpen, paid for with eight named cuts. Quota back to 45.4/46 and laws to 11.9/12.",
   "queue": [
     {
-      "id": "b188",
-      "domain": "Sky, light & weather",
-      "kind": "interaction",
-      "brief": "The first interaction the sky has ever had in 185 iterations (the column is empty for sky, lane, street and river; interaction is 13 entries in the whole run). The pointer names beds, plots, paving, trees, tenants, faces, roof furniture, allotment furniture, vanes, the mill wheel, the field edge, every bird, every moth and the starlings coming in to roost — and above the horizon it names NOTHING but the murmuration box. Make the sky answer: the moon and its phase, the sun and its hour, the weather the cloud bank is carrying, and the balloon. And the balloon needs the second half of c265 before it can be named honestly. Priced on HEAD: it spawns at x -8 on `day >= 4 && daylight > 0.4 && !raining` at `R() < dt*0.007`, moves at 0.9 cells/s and is deleted only at `x > GW + 8` — 154 cells at 0.9 = 171 sim seconds against a 55 s day, so it is aloft for 3.1 DAYS, across three nights, and it is the night frame's one moving object. Either it comes down or it is explained; a thing you can point at and name is a thing whose day the viewer will notice.",
-      "seams": [
-        "lookAt",
-        "nameAt",
-        "murBox",
-        "balloon",
-        "drawBalloon",
-        "moonPhase",
-        "sunVec",
-        "cloudCover",
-        "drawClouds",
-        "hz",
-        "announce"
-      ],
-      "successLooksLike": "Pointing anywhere above the horizon returns a name that changes with the hour and the weather, and pointing at the balloon names it. The balloon's time aloft, measured over a seeded year, is a fraction of a day rather than 3.1 days, and a night frame no longer has one unexplained moving object.",
-      "avoid": "Do not add a second balloon or a fleet; the rarity is the point. Do not hard-code an hour for the descent — a hard-coded HOUR in a light or warmth term is a seasonal bug invisible to a screenshot; solve an hour OF THE SUN. Do not make the naming a tooltip with its own UI: it goes through the one cursor naming path.",
-      "budgetMin": 45,
-      "risk": "medium"
-    },
-    {
       "id": "b189",
       "domain": "People & animals",
       "kind": "new-ca",
@@ -95,6 +72,10 @@
     {
       "id": "b187",
       "at": "2026-09-04T01:56:34.938Z"
+    },
+    {
+      "id": "b188",
+      "at": "2026-09-04T02:18:02.830Z"
     }
   ]
 }

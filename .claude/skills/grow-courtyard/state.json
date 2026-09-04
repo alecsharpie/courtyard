@@ -582,7 +582,8 @@
       "cloudCover one slow rate-capped scalar, drawClouds 11 hashed banks SKY STRIP ONLY; drawCloudShade/cloudShadeF ONE live multiply after the items, before applyLight",
       "the SUN: sunVec() the one vector every cast shadow reads (lx 0.8..-0.8, ly 0.58..0.32, ALWAYS northward), shadowF/shSpread/shOffset, dialThrow(h); BUILDING SHADOW shTop/shOpen, buildSunShade (#140)",
       "weather: snowF/Cover/At, wetF, raining/rainFall/coverF, mistAt, chillF/hearthF, dawnF; windF=windDayF x windHourF, isWindy (#156); bonfireWeather re-asked lit (#178), BOTH gates measured (#185)",
-      "the world's PRNG and the picture's are two streams (#176): R() for the town, RS (SEED^RS_SALT, rewound by __reseed) for canvas-space draws \u2014 the rain only: stepDrops() outside the raining branch"
+      "the world's PRNG and the picture's are two streams (#176): R() for the town, RS (SEED^RS_SALT, rewound by __reseed) for canvas-space draws \u2014 the rain only: stepDrops() outside the raining branch",
+      "the SKY ANSWERS (#188): skyAt() asked LAST (sun/moon first), balloonAt first; skyHz() one horizon; sunName/moonName/skyName/towerAt off SH_TOWERS; moonPhase/moonLit a 29.53 d month drawn even-odd; balloonOut/Down key it to the sun"
     ],
     "life": [
       "ring transit via spawnAgent: walker, crosser, dogwalker; drawPerson 12 px with a contact patch; greetPass/chatty; arrivals come in TWOS, withCompanion(a,room) under the SAME cap",
@@ -664,6 +665,12 @@
       "id": "c280",
       "note": "census.mjs's CORE collapse check reads only the SUMMER scalars, so the winter block has no collapse guard: a build that broke the town only in February diffs loudly and exits 0. CORE cannot be reused as-is \u2014 winter planted is 788 v summer 6583.",
       "raisedBy": 187,
+      "seenBy": 0
+    },
+    {
+      "id": "c281",
+      "note": "moonLit() has one consumer besides the disc (the river's glitter). applyLight's night is the same darkness at a new moon and a full one, and windowLit/fireflies/moths key on nightF alone: the town has a moon it cannot see by.",
+      "raisedBy": 188,
       "seenBy": 0
     }
   ],
