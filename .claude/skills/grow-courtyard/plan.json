@@ -1,42 +1,135 @@
 {
-  "generated": "2026-09-04T18:40:00.000Z",
-  "byIteration": 195,
-  "rung": "4a",
+  "generated": "2026-09-04T11:10:39.719Z",
+  "byIteration": 200,
+  "rung": 3,
   "diagnosis": {
-    "health": "Healthy, and still nothing like the Solvista shape. #191-#195: 4 of 5 shipped, 0 reverts, briefRejected 0, attempts=1 on 4 of 5. Cost FELL this batch, $10.30 -> $8.46/iter, and diff mean fell with it, 168 -> 139, so $/line held flat at 0.061 — the batch neither gained nor lost efficiency, it just ran smaller. Two numbers do want naming. (1) Minutes rose 29 -> 38 while cost fell, which is the opposite of the danger signature: #195 alone was 53.5 minutes for $4.70 because probe-smoke.mjs spends 75 s x 361 probes of WALL time, not model time. That is a cheap iteration that looks slow, and I do not want a future pass reading it as a stall. (2) The one no-ship, #195, is the #187 artifact again — real work (a new instrument, and the finding that 35 probes throw and 96 time out) logged no-ship because HARNESS never touches courtyard.html. Both no-ships in the last 20 are that same labelling artifact and neither is a failure.",
+    "health": "Healthy, and cheaper than it was. Last 20: 18 shipped, 0 reverts, 0 rejected briefs, and BOTH no-ships are the harness-labelling artifact (#187, #195 changed no line of courtyard.html by design). Last 10 average 32 min and $8.10 an iteration against $10.30 at #190 and $8.46 at #195 — the cost curve has turned down while the diffs stayed real (#196 moonLight + drawMoonSheen, #197 the rank[] CA, #199 lampBurn's second burn, #200 buildIceLap). src moved 9 of 10. selfVerdict == verdict on every row. No stall signals, hard or advisory. The one instrument fault this pass found is mine, not the workers': coverage had never recorded #197, #198 or #199, so the grid I plan off was three iterations stale and three cells carried a duplicate.",
     "signals": [
-      "stall.mjs: NO signals, hard or advisory. mapFlat clear (#192 took tileKinds 174 and water 8784 -> 8712), smallDiff clear (217/204/96/176 lines), rungHeld clear — the last four passes were 3, 4b, 4b, 5",
-      "revertStreak=0, shipped 18/20, src moved 8/10, selfVerdict == verdict on 8 of 10 (both exceptions are HARNESS iterations, not failures)",
-      "cost $10.30 -> $8.46/iter, diff mean 168 -> 139, $/line 0.061 -> 0.061; minutes 29 -> 38, ALL of it #195's wall-clock probe sweep",
-      "worker quota opened OVER at 48.3/46 KB with LAWS 11.9/12 and 29 laws. Closed at 45.0/46 and LAWS 12.0/12 — the cuts are named in the rationale, and 815 B of it came off a budget it never belonged on",
-      "MEASURED THIS PASS at the source, not read from a ledger: applyLight()'s entire night is ONE multiply, rgba(44-16n, 56-12n, 112, 0.8*nightF), keyed on nightF and nothing else. moonLit() has three consumers in 17,889 lines — the disc it draws, the river's glitter, and moonName. Zero light terms",
-      "MEASURED THIS PASS from the census history (191 worker rows): developed has moved TWICE and not since #100, green not since #116, passages NEVER — and none of that is a signal, because those three are conservation aggregates by construction. Written into managerWatch so the next pass does not mistake it for a frozen map, as I nearly did"
+      "none — stall.mjs reports no hard or advisory signal",
+      "workerBudget=OVER 46.9/46KB (fixed this pass: 45.9KB)",
+      "coverage stale by 3 iterations (fixed)",
+      "lastTwoRungs=5,4a — the >=2-consecutive-low rule does not bind"
     ],
-    "balance": "By DOMAIN the queue takes the four longest-neglected in order — Cross street 10 back (#185, and last pass recorded it as this pass's first claim), Courtyard 9 (#186), Sky 7 (#188), Roofs 5 (#190) — plus River (3 back) for a bug that only shows at midwinter. Nothing goes to the sill, which has had 3 of the last 12. By KIND, which the watch note says to read first: through #195 deepen 54, connect 42, new-element 33, polish 29, scale 20, interaction 14, harness 13, new-ca 10, fidelity 3. This queue is connect x2, new-ca, deepen, fidelity — b200 is the 4th fidelity ever and b197 the 11th new-ca, the two thinnest columns in the grid. I did NOT force a label to balance the count: the watch note says label a brief by the file it changes, and a kind chosen to flatter a histogram is a lie in the coverage grid."
+    "balance": "By DOMAIN, after recording #197-#199: People & animals is 11 back and longest untouched; lane 7, plaza 6, sill 5, sky 4, street 3, courtyard 2, roofs 1, river 0. By KIND — which is the axis this seat's own watch says to read first — fidelity 4, new-ca 11, harness 13, interaction 14 (7 of the 14 are the sill's own chrome). sky x new-ca and lane/street/river x interaction are still 0 of 200."
   },
-  "rationale": "No stall signal, so nothing forced the rung; I picked it from what the picture is missing, and then went and shot the picture. Two wide frames at seed 42, hour 23.00 in both, moonLit 0.999 and 0.003 (shots/mgrfull-wide.png, shots/mgrnew-wide.png). A full moon and a new moon are the SAME NIGHT. The only difference in 3200x1900 px is the ~20 px disc itself. The source says why in one line: applyLight()'s night is a single multiply keyed on nightF, and in 17,889 lines moonLit() is read by exactly three things — the disc, the river's glitter, and the label under the pointer. #188 gave this town a real 29.53-day month on the CALENDAR, one moon in every seed, and then nothing was allowed to see by it.\n\nThat is b196 and it is rung 4a, which wants defending because it is the rung this run uses least — once in sixteen passes (#139) against five 4bs. The ladder's 4a is 'a season, a longer cycle, weather, an hour nobody has seen', and the lunar month is the only cycle in the piece that does not divide into anything else: the day is 55 s, the year is 26 days, the moon is 29.53 — it beats against the year instead of nesting inside it, so no two nights of a season are alike. And a moonlit night is, flatly, an hour nobody has seen in 195 iterations. The brief has an explicit 150-300 line licence, 80 minutes, and is first in the queue.\n\nEvery other brief carries the number it rests on. b197 is the cross street's turn (10 back) and the grid's second-thinnest kind: bAge[] is ALREADY the fallow clock on an empty bed and plotAct already has five rungs, so the state a neglect-CA needs exists and nothing reads it — but the risk here is legibility, not mechanism, so the brief orders the measurement FIRST and says which fallback to take if a weed cannot be told from a crop at wide. b198 is c279 with #186's own numbers in it. b199 is c283, and it is #190's other half: lampBurn() solved the EVENING and the sunrise-keyed branch was never offered a figure at all. b200 is c286, fidelity, the thinnest column in the grid — ICE_CELLS was frozen at build time before #192 widened the channel, so at midwinter the margin is iced and the flood lying over the towpath beside it is open water.\n\nCURATION, and it opened OVER at 48.3/46 KB. Three moves, in order of how much I trust them.\n\n(1) The honest one. Two of the four WATCH notes open with the words 'for the manager' and were being charged to the worker's read budget — 815 B an iteration of text about coverage grids and runlog labelling that no worker can act on. They are now `managerWatch`, printed by state.mjs --show, capped at the same 420 B in rotate-ledger.mjs, and outside context-budget.mjs's count. Moving bytes off a budget is only honest if the reader they were moved off never needed them; that is the case here and rotate-ledger.mjs now says so in a comment, because this is exactly the manoeuvre that would let a future pass cheat.\n\n(2) INV_CAP goes back to 10.0 KB, undoing most of the 9.5 -> 10.75 raise I made five passes ago. That raise bought room the inventory then filled — it opened this pass at 10.7 KB with two domains over the entry count — so it bought nothing but a later reckoning. The inventory is 57 entries / 9.99 KB after two merges (the market's calendar and its size are ONE market; the census's winter row and probe-smoke are ONE instrument shelf) and a trim of the reasoning tails off twenty lines. The eaveFor() gotcha left the inventory entirely: it was a law sitting in a symbol index, and it is now inside trap (b).\n\n(3) LAWS.md took five new claims from #191-#195 and came out at 12,282 of 12,288 bytes with 27 laws, down from 29 — which means real cuts, and here they are. MERGED: #192's lagged-ladder finding into #189's three-ages law, which it corrects rather than repeats (a lagged term IS seen by a symmetric ladder, because the lag breaks the symmetry); #193's dead-constant law into the cap-and-rate law that already owned half of it; #194's ramp law into 'two seeds is not a sample', same subject; #191's picture-inputs law into the ground-cache law; the whole 'price the WALK where it can be PAID' bullet into the window/population bullet above it, which was already saying bound both ends; and the routes/waypoints law into the one-predicate-one-definition law, since it is that claim applied to target sets. ADDED WHOLE: #195's, that an instrument is a build artifact too and the cause is usually the artifact crossing a limit it never named. DELETED: 'a FIELD is not a READING — a gate wired into a row can sit at null for ever', because its subject moved (stall.mjs and probe-smoke.mjs now report an unread gate as a number, so it is enforced rather than remembered); the two-dawns corollary of the DAWN law, a quoting gotcha that fired once; and trap (c)'s 'height is read off the place under the feet, never written at spawn', because the source makes it unwriteable — an agent has no z field to set. The rest is compression, and compression is now nearly exhausted: this file is dense enough that the next law in costs a law out, and a future pass should expect to delete rather than tighten.\n\nSeven cues closed (five promoted to briefs, c260 deferred with a re-raise condition, c270 folded into c285, c272 rewritten into a managerWatch note), six left open, coverage recorded for #191-#195. One new managerWatch note: A CONSERVATION SCALAR IS NOT A FROZEN MAP. I spent a good part of this pass building a thesis on developed/green/passages having been flat for 95, 79 and 193 iterations, and the census's own comments killed it — those three are deliberately conserving, LEADS and ARCADE and REED each cut OUT of the tile they replace so the total holds, and #119 declined to move passages on purpose. It is a good premise-shaped trap and the next manager should not have to fall into it too.",
-  "queue": [],
-  "recommendStop": null,
-  "consumed": [
+  "rationale": "I SHOT THE TOWN BEFORE PLANNING IT — seed 42, day 3 at 10:22 and day 22 at 03:49, wide plus the near band plus the phone — and the pictures say one thing loudly. The block below our window is 23% of the wide frame and about 40% of the phone's, and by day it is the dullest large surface in the picture: slate, party walls, washing, chimney pots, and nothing that moves. That is not because it is empty. #170 gave it LEADS terraces and a hatch and #171 gave it tenants, and the inventory line saying so is why the bet I first drafted (\"put people on the near roof\") died before it was written — the law works. What the shots actually show is subtler and better: the terrace's whole life is EVENTS. tenantErrands fires on washOut()'s EDGE, at most twice a day, plus one sun stay behind tenSunFine()'s five clauses and one evening lean, all under TEN_CAP 2. An event is seen by whoever is watching that second; FABRIC is in every frame. So b201 asks for the number nobody has (tenant presence per daylight sample over 6 seeds x a year) and then for the thing that survives the empty frames.\n\nTHE RUNG IS A 3 AND THE CLIMB IS THE POINT. This is the move the previous loop could not make: the foreground quarter of every frame has no domain. Its material has been filed under Roofs & skyline — whose seam list is buildVolumes, CHIMNEYS, drawClockTower, all FAR roof — or under The sill & the observer, which is chrome plus a saturated harness cell. Six iterations built the near block (#100 #106 #110 #123 #170 #171) and not one of them could be briefed AT it, because there was nowhere on the menu to write it down. `nearblock` — Our block & the leads — is now a domain, and b201 founds it.\n\nWHY NOT 4b: unchanged and I re-checked it. GW is 138, every quarter is allocated, the wide frame is edge to edge, and #144 priced the phone at 2.8 px a cell. A spatial climb still needs the FRAME to move first, and that is c296, not a brief I can hand a worker tonight. WHY NOT 5: I looked, and the observer changes actually available are chrome-shaped — 7 of the 14 interactions this run has ever built are already the sill's own furniture, and an eighth is not the frontier. The two observer findings the shots did produce are written down as cues (c295 the ticker clipped mid-word at 1600x950; c296 the phone opening on Wide with half the town off-frame) and one of them will be a rung-5 brief once it is priced.\n\nThe rest of the queue rotates and pays debts: b202 takes People & animals, 11 back and the longest untouched, at #189's own unfixed surprise — a third of worlds never get a martin colony because rain is the only mud there is. b203 is a FIDELITY brief, the thinnest kind at 4 of 200, on a promise the sky already makes and breaks. b204 takes the plaza's fair, which loses a whole day to a shower at the raise. b205 is HARNESS, which costs a domain nothing and closes three instrument cues at once, including a collapse guard that cannot see winter — the one that would have caught a #200-shaped bug.\n\nMEMORY, this pass: the worker read was OVER at 46.9/46 KB and is 45.9 now. I cut TWO laws rather than deferring — \"An instrument is a build artifact too\" (its general half is the control law's, its specific half a dated fact about one shelf; the surviving clause is folded into \"Compare against a control you RAN, and SMOKE it first\") and the `!daylight`/dawn corollary (folded back into the sun-and-night law it is a corollary of). I also cut the hash-gating recipe out of \"A scalar is not a switch\": four real CAs (#181 #189 #192 #197) now cluster with neighbourhood rules and nothing has reached for a coarse-gate since #156, so it is superseded, not merely unused. LAWS is 27 laws / 11.9 KB. Seven cues promoted into this batch, two closed on their evidence (c292, c293), two raised.",
+  "queue": [
     {
-      "id": "b196",
-      "at": "2026-09-04T08:40:49.418Z"
+      "id": "b201",
+      "domain": "Our block & the leads",
+      "kind": "Deepen",
+      "brief": "THE BET, and the brief that founds a new domain — take the swing; a 150-300 line diff is expected and welcome. The block below our window is the foreground quarter of every frame (23% of the wide shot, ~40% of the phone) and by day it is the dullest large surface in the picture. It is NOT empty: #170 gave it LEADS terraces on rows 86-87 (LEADS_SHARE 0.42 of the bays, chosen off hash(house)), a hatch that opens, a cord and washing; #171 gave it tenants. Its whole life is EVENTS — tenantErrands fires on washOut()'s EDGE (two a day at most), plus one sun stay a day behind tenSunFine()'s five clauses and one evening lean, all under TEN_CAP 2. I shot HEAD at seed 42, day 3, 10:22 and there was nobody up there. PRICE THAT FIRST: a new probe over 6 seeds x a year reporting, per daylight sample, how many tenants are visible and on which bay — the number nobody has, and the premise this brief rests on. THEN make the terrace read as somebody's place in the frames where it is empty, by giving it FABRIC rather than another thing that happens on it: pots, a chair left out, a crate, a mat, a swept flat and an unswept one, a bay that keeps its line full all week and one that never hangs any. Carried on the BAY, differing bay to bay off hash(house) exactly as LEADS_SHARE already does, and reading the year and the weather the way #191 gave the sill six seasonal readers. Presence may rise as well — that is welcome — but the deliverable is a near roof that reads as inhabited in a STILL.",
+      "seams": [
+        "LEADS_BAYS",
+        "HATCHES",
+        "leadsAt",
+        "leadsHouse",
+        "LEADS_SHARE",
+        "drawLeadsCell",
+        "ROOF_FURN",
+        "FURN_BOX",
+        "furnRow",
+        "furnDmax",
+        "drawRoofFurn",
+        "roofFurnAt",
+        "roofFurnName",
+        "tenantErrands",
+        "spawnTenant",
+        "tenSunFine",
+        "TEN_CAP",
+        "washOut",
+        "WASH_H_LEADS",
+        "roofWalkZ",
+        "nearHidden",
+        "nearScale"
+      ],
+      "successLooksLike": "A stranger's first ten seconds on the wide shot find the near roof worth looking at. At any hour of any season at least two terraces carry something that says a household uses them, no two alike, and what they carry differs between February and July and between a dry week and a wet one. The probe prints tenant presence per daylight sample before and after; the new fabric's mass is FULL minus FULL-with-it-zeroed at 1600x950 AND at 390x844, quoted against a same-code floor of 0 px.",
+      "avoid": "Do NOT answer this by raising TEN_CAP — a cap you RAISE is how the last loop died, and the supply here is LEADS_BAYS, not the cap. Do not add a fourth ROOF_FURN kind out on the slate pitch; the terrace is the subject. Every new piece must clear the sill at the SHORTEST framing you support: #123 measured that at 1280x700 and 1200x720 the sill covered all 21 existing pieces, and the bound is on the piece's DEEPEST DRAWN POINT, not its anchor. Zero R() in anything built once — the bays are hash(house) and a draw here reshuffles the seeded world. The leads live in the ground cache: register at cache time and repaint live only what must be live, as drawHatch already does.",
+      "budgetMin": 90,
+      "risk": "high"
     },
     {
-      "id": "b197",
-      "at": "2026-09-04T09:14:58.736Z"
+      "id": "b202",
+      "domain": "People & animals",
+      "kind": "Deepen",
+      "brief": "#189's own surprise is an unfixed bug, and this domain is 11 iterations back — the longest untouched. Two seeds of six saw 0 wet ticks of 1685 between the martins arriving and leaving (no rain at all in that season) and those eaves stayed bare for the town's whole first year. The colony is the newest life system in the town and in a third of worlds it never happens at all. wetF() gates the mud that builds a nest and rain is the ONLY source of mud in the model. Price it first over 6 seeds x 2 years (probes/mart-mud.mjs exists): what fraction of worlds reach the plateau, and what the wet integral is in each. Then give the birds a second source that is not a coin the weather flips — water the birds can reach is wet whatever the sky is doing (the margin, SHOAL, the lap, the pond, the fountain), or mud lives on the ground and DRIES rather than existing only while it is raining.",
+      "seams": [
+        "MART_CELLS",
+        "martHere",
+        "martNb",
+        "martSeed",
+        "martTop",
+        "caTick",
+        "wetF",
+        "drawNest",
+        "MART_BIRDS",
+        "birds"
+      ],
+      "successLooksLike": "6 of 6 seeds reach a colony in year one. The curve keeps its 0 -> plateau -> 0 shape and its empty autumn and late winter, the clustered mean run stays in 9.7..16.3 against a uniform control's 1.26..1.78, and 0 of the clinging birds are off a nest.",
+      "avoid": "Do not widen the season, and do not simply lower the mud threshold — that makes the WET years denser as well as saving the dry ones, and #189 tuned the plateau against the eave line's 217 cells. The fix is a SOURCE, not a constant. Keep the CA's shape: zero R(), founder x creep x ceiling.",
+      "budgetMin": 45,
+      "risk": "medium"
     },
     {
-      "id": "b198",
-      "at": "2026-09-04T09:46:05.855Z"
+      "id": "b203",
+      "domain": "Sky, light & weather",
+      "kind": "Fidelity",
+      "brief": "c290, and FIDELITY is the thinnest kind on the grid at 4 of 200. `daylight` and `nightF` OVERLAP: at midsummer nightF reaches 0.90 while daylight is still 0.062, so for roughly an hour the sky is night-dark and the moon disc — gated on daylight > 0.02 — is not drawn at all. #188 put a real 29.53-day month in the sky and #196 gave the town a light to see it by; the disc itself goes missing in the hour a viewer is most likely to look up. The world promises a moon in its night and does not keep it at every season. Measure the hole first (a probe over a year: per hour sample, nightF, daylight, moon altitude, and whether the disc drew), then close it on the moon's own terms — whether the disc shows is a fact about the SKY's darkness, not about the sun's remaining light.",
+      "seams": [
+        "nightF",
+        "daylight",
+        "moonPhase",
+        "moonLit",
+        "moonLight",
+        "drawMoonSheen",
+        "skyHz",
+        "moonName",
+        "applyLight"
+      ],
+      "successLooksLike": "Over a year at 6 seeds there is no hour with nightF > 0.5, the moon above the horizon, and no disc drawn. The DAY frame is 0 of 778,752 px off HEAD. A midsummer 21:30 wide shot has the disc in it where HEAD's does not.",
+      "avoid": "Do not move nightF's edges — they are the night's clock and half the town keys on them. Change what the DISC is gated on, and then re-run every gate that reads that subject: moonLight() and drawMoonSheen must agree with the disc afterwards, or the town gets sheen from a moon it does not draw.",
+      "budgetMin": 30,
+      "risk": "low"
     },
     {
-      "id": "b199",
-      "at": "2026-09-04T10:11:52.644Z"
+      "id": "b204",
+      "domain": "Plaza & quay",
+      "kind": "Deepen",
+      "brief": "c288: 4 of 34 fair days filled 0 slots. fairGathering() refuses on `raining` and the gathering is the only window the fair has, so a shower at the raise costs the whole day even when it clears by noon. #194 built the fair as a shape on the sun (fairF: up 1.6 h, hold, down 1.5 h) with one crowd window; #198 found the same shape in the garden — a weather gate carried from a time when nothing had a roof. Measure first over 6 seeds x a year: of the fair days that fill 0 slots, how many were raining at the raise and dry for the rest of the window. Then make the fair survive a shower — the concert's shape can be re-offered when the sky clears, or admission can be asked at the CHOICE per arrival instead of once at the raise.",
+      "seams": [
+        "isFairDay",
+        "fairF",
+        "fairGathering",
+        "fairDress",
+        "spawnFairAgent",
+        "FAIR_SLOTS",
+        "raining",
+        "wetF",
+        "PLAZA_PLACES"
+      ],
+      "successLooksLike": "Fair days filling 0 slots fall to the days that are actually wet across the whole window. A dry afternoon after a wet morning fills the ellipse. The fair-day presence ratios #194 measured (plaza presence 15.51 v 9.81, standers 3.00 v 1.35, pinned ref 8682828) do not fall on the days that already worked.",
+      "avoid": "Do not raise FAIR_SLOTS or the share — the supply is 10 claimed slots and #194 measured them under-used. And do not make the fair rain-proof: a crowd standing in the rain is a worse picture than a fair that waits. END a one-shot choice AT THE CLAIM — a re-offer guarded only by the state it consumes is re-entrant.",
+      "budgetMin": 40,
+      "risk": "medium"
     },
     {
-      "id": "b200",
-      "at": "2026-09-04T10:35:12.563Z"
+      "id": "b205",
+      "domain": "The sill & the observer",
+      "kind": "Harness",
+      "brief": "Three instrument cues in one brief. HARNESS is the kind, so courtyard.html is byte-identical to HEAD and `srcChanged:false` is EXPECTED — that is not a no-ship. (1) c280: census.mjs's CORE collapse check reads only the SUMMER scalars, so the winter block has no collapse guard and a build that breaks the town only in February diffs loudly and exits 0. CORE cannot be reused as-is (winter planted is 788 against summer's 6583); give the winter row its own floor, cut from its own baseline. (2) c284: scalars.structures SUMS heterogeneous registers, so a build-time CONSTANT dilutes the guard — #189's eaveLine (217 a sample) took it 4059 -> 6314 and 31% of it can now never move. Report the registers apart, or exclude the constant ones, and write in census.mjs's own comments which is which. (3) c289: 9 probes still throw `spawnSync git ENOBUFS` across 11 sites — courtyard.html passed Node's 1 MiB default maxBuffer at #181, so every `git show HEAD:courtyard.html` control without it has been dead since. #195 fixed 2. Fix the rest.",
+      "seams": [
+        "census.mjs CORE",
+        "census.mjs winterLadder",
+        "census-baseline.json",
+        "scalars.structures",
+        "probe-smoke.mjs",
+        "probes/*.mjs execSync/spawnSync maxBuffer"
+      ],
+      "successLooksLike": "probe-smoke.mjs's THROW count falls by the 9 ENOBUFS probes and the new number is quoted against #195's 361 instruments / 230 pass / 35 throw / 96 timeout. A deliberately winter-only breakage (revert #200's buildIceLap in a scratch tree) makes census.mjs exit non-zero where HEAD's census exits 0 on the same tree. census.mjs prints the constant share of `structures` beside the total.",
+      "avoid": "Do not touch courtyard.html. Do not re-cut CORE's existing ladder string — EXTEND it by ADDING a row under it, or every stored baseline stops comparing. The 96 probe TIMEOUTS are explicitly out of scope; they need a budget this brief does not have, and half-diagnosing them is worse than leaving them named.",
+      "budgetMin": 45,
+      "risk": "low"
     }
-  ]
+  ],
+  "recommendStop": null
 }

@@ -123,6 +123,28 @@
           "LIT"
         ],
         "added": "manager pass from #81 (rung 3): the roofline is the top third of every wide shot and nothing on it has ever been the SUBJECT of a brief — roofs are emergent, chimneys smoke, one static vane, a cat that never climbs."
+      },
+      {
+        "id": "nearblock",
+        "name": "Our block & the leads",
+        "seams": [
+          "NEAR_HOUSE",
+          "houseOf",
+          "NEAR_SPANS",
+          "drawNearRoof",
+          "LEADS_BAYS",
+          "HATCHES",
+          "tenantErrands",
+          "TEN_CAP",
+          "tenSunFine",
+          "ROOF_FURN",
+          "LOFTS",
+          "washOut",
+          "roofWalkZ",
+          "nearHidden",
+          "nearScale"
+        ],
+        "added": "manager pass from #200 (rung 3): the block below our window is the foreground QUARTER of every frame — 23% of the wide shot, ~40% of the phone — and in 200 iterations it has never had a domain. Its material was filed under Roofs & skyline, whose seam list is all FAR roof (buildVolumes, CHIMNEYS, drawClockTower), or under the sill, which is chrome plus a saturated harness cell. Six iterations built it (#100 #106 #110 #123 #170 #171) and not one of them could be briefed AT it."
       }
     ],
     "kinds": [
@@ -205,7 +227,8 @@
         49,
         75,
         94,
-        157
+        157,
+        198
       ],
       "new-element": [
         84,
@@ -277,7 +300,8 @@
         127
       ],
       "new-ca": [
-        7
+        7,
+        197
       ],
       "deepen": [
         17,
@@ -297,7 +321,6 @@
       "new-element": [
         "pre22",
         136,
-        194,
         194
       ],
       "deepen": [
@@ -366,7 +389,6 @@
       ],
       "new-ca": [
         181,
-        192,
         192
       ],
       "fidelity": [
@@ -508,7 +530,6 @@
         187
       ],
       "new-element": [
-        191,
         191
       ]
     },
@@ -518,7 +539,8 @@
         106,
         146,
         162,
-        182
+        182,
+        199
       ],
       "polish": [
         91,
@@ -544,7 +566,8 @@
         151,
         190
       ]
-    }
+    },
+    "nearblock": {}
   },
   "saturation": {
     "skyxpolish": {
@@ -561,7 +584,7 @@
     "courtyard": [
       "walled garden: EDGE_BEDS 204, four arches, BENCH_SPOTS, daisies, ivy, one linden, SUNDIAL/dialThrow, wear[]/trod[]/litter[], pre-dawn sweeper",
       "bed planting CA over SPECIES (13 kinds, flat since #155): bSp/bSt, growF/dieF/bloomCap",
-      "the lawn has its OWN source: spawnLawnAgent/LAWN_RATE/LAWN_CAP, sub-caps (benches, naps, blankets, runs); lawnStart/End/Holds/Gone/Fits/Home/Stay, the STAY priced at the walk home (#168); the way OUT is its own question (#179) — lawnGate()/LAWN_OFF, laneEdge/entryLeg/exitLeg",
+      "the lawn has its OWN source: spawnLawnAgent/LAWN_RATE/LAWN_CAP, sub-caps (benches, naps, blankets, runs); lawnStart/End/Holds/Gone/Fits/Home/Stay, the STAY priced at the walk home (#168); the way OUT is its own question (#179) — lawnGate/LAWN_OFF, laneEdge/entryLeg/exitLeg",
       "the gardener on a SCHEDULE outside LAWN_CAP: gardenDue/GARD_K over growSeason(), gardenFits both ends (#157), gardWalk/gardWin/gardNearest/GARD_LAND, gardenerKneel/GARDEN_REACH",
       "the COVERED WALK (#186): ARCADE tile, the north range’s inner rows, 96 cells / 16 ARCADE_BAYS; WALL to buildVolumes, own cache fill, drawArcadeRun live over the cached facade; stroll + arcShelter, arcWay",
       "the covered walk is the garden's WET branch (#198): lawnAdmits/lawnRoofed at the choice, lawnOpen is the sun only, LAWN_WET 0.35 on lawnRate — the town's highest rain factor"
@@ -603,7 +626,7 @@
       "the ice takes the LAP too (#200): iceLap[]/buildIceLap off BANK_CELLS after buildBank, iceHere() the live test, iceMargin() the census's margin; stepBank's ICE guard is the STRAND's only — the level owns a lap cell, skin and all"
     ],
     "sky": [
-      "day/night (55 s day), sun and moon arc, chimney smoke, a balloon; windowLit the ONE pane predicate + LIT[], relit AFTER applyLight; season() over SEASON_LEN 26 days, greyF the year",
+      "day/night (55 s day), sun and moon arc, chimney smoke; windowLit the ONE pane predicate + LIT[], relit AFTER applyLight; season() over SEASON_LEN 26 days, greyF the year",
       "the BACKDROP is ONE cached layer (bcv/btx, backKey) with DEPTH: FAR_BANDS 4 + three hill tiers on strip=hz/cellH (#150,#162), FAR_WIN repainted after applyLight; blitted k=viewS/bview.s, so it FOLLOWS THE CAMERA (#165)",
       "cloudCover one slow rate-capped scalar, drawClouds 11 hashed banks SKY STRIP ONLY; drawCloudShade/cloudShadeF ONE live multiply after the items, before applyLight",
       "the SUN: sunVec() the one vector every cast shadow reads (lx 0.8..-0.8, ly 0.58..0.32, ALWAYS northward), shadowF/shSpread/shOffset, dialThrow(h); BUILDING SHADOW shTop/shOpen/buildSunShade (#140)",
@@ -628,57 +651,25 @@
       "the PAINTED sill: drawSill in drawOurSide, in the ground cache; sillTop() the ONE definition, sillU/sillBoxes/sillOver/clipOffSill, nearShadow; reads the YEAR (#191) — gerLeaf/Bloom/Drop, sillFrost/Wet/Snow, sillCup, named by sillAt",
       "the ticker knows where you are LOOKING: inView(x,y) the ONE reader of whereN, AMBIENT_PLACES/ambientHere, SOUNDS bypass it; THREE ranks — background(rank,txt,then,until), announce(), CLOCK, MURMUR",
       "the ground cache is relit when the LIGHT moves, not the clock (#180): lightNow/lightMoved an L1 distance from lightPainted, LIGHT_MOVE/LIGHT_SLOW, markGroundPainted; a landing DISSOLVES both — fadeCaches/fadeF",
-      "HARNESS (not town nouns): census WINTER row (#187) — warp 1220 + winterLadder off groups(), ice+snowCover in both, --ref; probe-smoke.mjs (#195) runs all THREE probe trees (skill 283, root 56, scratch 23) on a timeout"
+      "HARNESS (not town nouns): census WINTER row (#187) — warp 1220, winterLadder, --ref; probe-smoke.mjs (#195) runs all THREE probe trees on a timeout"
     ],
     "roofs": [
       "the town is HOUSES not regions: buildVolumes() makes roofs EMERGENT — eaveFor(x,y), vZ four-corner average, vD a distance transform, SLOPE; houseAt/houseIx, EAVE_LO 4.62/EAVE_HI 7.15",
       "the STEP that makes a terrace: roofZE(vx,vy,e) read from INSIDE its own house; drawGable, party-wall line in drawRoofRow, buildStacks/STACK_ROWS -> CHIMNEYS; WEATHERVANES, MURMURATION",
-      "OUR OWN ROOF below the lane: rows 79..WH WALL, NEAR_SPANS, NEAR_HOUSE 7/houseOf, NEAR_RIDGE; drawNearRoof CACHED — drawCrests, WELLS, DORM_Y, drawParapet, OUR_AWNINGS, LOFTS, roofWalkZ; TOP (#171) LEADS 86-87, HATCHES/LEADS_BAYS, tenantErrands",
-      "the near block is SLATED: drawRoofRow forks at LN_WALK_S to drawSlateCell/slateRun on slateGrid(y); per-slate roofMossF()/sootAt()/slipped; roofBirdSpot; ROOF_FURN 24 per BAY",
-      "somebody AT a window (#182/#190/#199): paneFigure/paneWalk/drawPaneFigures off LIT_PANES, hashed on nid; lampBurn() is BOTH burns — evening [on,off) and the sunUp-keyed riser [rOn,rOff) — windowLit reads it; FIG_SHARE .16 x2, FIG_M_SHARE .45 x1"
+      "somebody AT a window (#182/#190/#199): paneFigure/paneWalk/drawPaneFigures off LIT_PANES, hashed on nid; lampBurn() is BOTH burns — the evening [on,off) and the sunUp-keyed riser [rOn,rOff); FIG_SHARE .16 x2, FIG_M_SHARE .45 x1"
+    ],
+    "nearblock": [
+      "OUR OWN ROOF below the lane: rows 79..WH WALL, NEAR_SPANS, NEAR_HOUSE 7/houseOf, NEAR_RIDGE; drawNearRoof CACHED — drawCrests, WELLS, DORM_Y, drawParapet, OUR_AWNINGS, roofWalkZ; nearHidden(y,sy) and nearScale (NEAR_SZ 1.95) are the band’s two bounds",
+      "SLATED (#110/#123): drawRoofRow forks at LN_WALK_S to drawSlateCell/slateRun; per-slate roofMossF/sootAt/slipped; roofBirdSpot; ROOF_FURN 24 a BAY — line/tank/loft ONLY, placed by furnRow/furnDmax off the DEEPEST DRAWN POINT so the shortest framing still shows it",
+      "the LEADS are a terrace (#170): tile 17, rows 86-87, LEADS_SHARE 0.42 on hash(house), refused across the river; LEADS_BAYS/HATCHES, drawHatch LIVE in two states, leadsName; WASH_H_LEADS 1.55 its own cord, washOut() the town’s one drying test",
+      "and INHABITED (#171): spawnTenant/stepTenant, outside the town’s routing — no exit, no door, no companion (pairStands REFUSES leads). TEN_CAP 2, TEN_STAND in HOURS; THREE triggers — washOut()’s EDGE (peg/take), one sun stay a day behind tenSunFine()’s five clauses, one evening lean"
     ]
   },
   "openCues": [
     {
-      "id": "c280",
-      "note": "census.mjs's CORE collapse check reads only the SUMMER scalars, so the winter block has no collapse guard: a build that broke the town only in February diffs loudly and exits 0. CORE cannot be reused as-is — winter planted is 788 v summer 6583.",
-      "raisedBy": 187,
-      "seenBy": 0
-    },
-    {
-      "id": "c284",
-      "note": "census scalars.structures SUMS heterogeneous registers, so a build-time CONSTANT dilutes the collapse guard: #189's eaveLine (217/sample) took it 4059 -> 6314 and 31% of it can now never move.",
-      "raisedBy": 190,
-      "seenBy": 0
-    },
-    {
-      "id": "c285",
-      "note": "drawSill 0.72 -> 1.67 ms in snow+rain (#191, interleaved control), on a 25-27 ms cache repaint at 76.03/day - and that bar itself drifted 75.14 -> 76.03 between #180 and #191 with no iteration naming it. Nobody watches it between briefs.",
-      "raisedBy": 190,
-      "seenBy": 0
-    },
-    {
       "id": "c287",
       "note": "shelved is capped at exactly the open boards' capacity now, so a board is full or the day is bare — a half-stocked pitch is unreachable (#193)",
       "raisedBy": 192,
-      "seenBy": 0
-    },
-    {
-      "id": "c288",
-      "note": "4 of 34 fair days filled 0 slots: fairGathering() refuses on raining and the gathering is the only window there is, so a shower at the raise costs the whole fair even when it clears by noon.",
-      "raisedBy": 192,
-      "seenBy": 0
-    },
-    {
-      "id": "c289",
-      "note": "9 probes still throw spawnSync git ENOBUFS: courtyard.html passed Node's 1 MiB default maxBuffer at #181, so every 'git show HEAD' control without maxBuffer is dead. 11 sites. And 96 probes time out at 75 s - unresolved.",
-      "raisedBy": 194,
-      "seenBy": 0
-    },
-    {
-      "id": "c290",
-      "note": "daylight and nightF OVERLAP: at midsummer nightF reaches 0.90 while daylight is still 0.062, so the sky is night-dark for ~an hour in which the moon disc, gated on daylight > 0.02, is not drawn at all (#196)",
-      "raisedBy": 195,
       "seenBy": 0
     },
     {
@@ -688,93 +679,29 @@
       "seenBy": 0
     },
     {
-      "id": "c292",
-      "note": "c280 (#198): 2 tick-people of 9,372 small-hours ticks stand under the arcade past 22 h, both already lawnOut; 0 on HEAD. One tick of lag in the a.arc release, or a real hole.",
-      "raisedBy": 196,
-      "seenBy": 0
-    },
-    {
-      "id": "c293",
-      "note": "paneFigure's two EVENING slots are not constructed disjoint the way #199's morning is (mLo = max(rOn,hi)): slot 1 can be offered while slot 0 runs, masked till it ends. pane-figure-continuity.mjs measures 0 swaps/yr — measured, not constructed.",
-      "raisedBy": 196,
-      "seenBy": 0
-    },
-    {
       "id": "c294",
       "note": "stepIce sets no groundDirty, and there is no iceBucket() among the seven dirty triggers (light, snow, wet, wash, barrow, weed, wear): the skin's five drawn levels repaint only when something ELSE happens to dirty the cache (#200)",
       "raisedBy": 196,
       "seenBy": 0
+    },
+    {
+      "id": "c295",
+      "note": "the ticker's sentence is CLIPPED mid-word in the footer at 1600x950 — “Bunting is going up between the plaza trees, and the fountain is being …” — because the slot is a fixed width and the 37 sayAt sentences are not. The town's one channel for saying what it is doing loses the end of what it says.",
+      "raisedBy": 200,
+      "seenBy": 0
+    },
+    {
+      "id": "c296",
+      "note": "at 390x844 the page opens on WIDE, so a phone visitor gets the courtyard and the cross street, no plaza/river/far bank, and ~40% of the frame is near roof + sill. #144 closed c217 with “the quarter button is the answer, one tap” — but nothing makes that visitor press it, and the default framing is what the first ten seconds are spent in.",
+      "raisedBy": 200,
+      "seenBy": 0
     }
   ],
   "watch": [
-    "PRICE THE PREMISE BEFORE YOU BUILD ON IT. The brief names the number it rests on and where it came from; if it names none, say so and make the measurement the deliverable. Every worker who measured first was right — #144-#148, #183, #185, #190, #193 — and several of them killed the brief’s own premise, which is a SHIPPED iteration, not a failed one.",
-    "MEASURE A SURFACE BEFORE YOU CALL IT DRAWN — and sd/mean is wrong in near-black. Midday sd/mean, seed 42: SIDE.cross .121 · GRASS .131 · PATH.court .143 · WATER .177 · WALL .240 · NEAR ROOF .281 · SILL .671 — the sill tops it on sd 9.4 where the near roof scores .281 on sd 25. Under mean ~40 luma quote sd and RANGE. Three such premises have died (c232/c259/c271). OCCUPANCY is a different claim (#186)."
+    "PRICE THE PREMISE BEFORE YOU BUILD ON IT (LAWS: judging a claim). If the brief names no number, say so and make the measurement the deliverable. Every worker who measured first was right — #144-#148, #183, #185, #190, #193, #197, #198 — and several killed the brief’s own premise, which is a SHIPPED iteration, not a failed one.",
+    "THE SURFACE TABLE the sd/mean law is priced off. Midday sd/mean, seed 42: SIDE.cross .121 · GRASS .131 · PATH.court .143 · WATER .177 · WALL .240 · NEAR ROOF .281 · SILL .671 — the sill tops it on sd 9.4 where the near roof scores .281 on sd 25. Three premises have died on this (c232/c259/c271); OCCUPANCY is a different claim (#186)."
   ],
   "closedCues": [
-    {
-      "id": "c249",
-      "note": "b161 refuted the empty-morning premise (28.3 people at sunUp+0.5). The real dawn gap is COMPOSITION: 11.6 errand kinds vs the evening's 14.2, led by family/lawn where the evening has dusk, tap, band, homers.",
-      "raisedBy": 159,
-      "seenBy": 0,
-      "closedBy": 164,
-      "reason": "promoted -> b169 (Lane & market x Deepen, plan from #164)"
-    },
-    {
-      "id": "c250",
-      "note": "backKey has no camera term: a quarter camera moves topPad/hz but the cached backdrop stays put, so the hills and the live gradient's horizon part company across the ease",
-      "raisedBy": 159,
-      "seenBy": 0,
-      "closedBy": 164,
-      "reason": "promoted -> b165 (Sky, light & weather x Connect, plan from #164)"
-    },
-    {
-      "id": "c252",
-      "note": "build-stats.mjs greps quota 0 times, so a breach is still invisible in stats.html, the manager's other input; and closedCues (227 notes, 79 KB of state.json) has no pruner — rotate-ledger caps LEDGER.md and LAWS.md only.",
-      "raisedBy": 159,
-      "seenBy": 0,
-      "closedBy": 164,
-      "reason": "promoted -> b167 (Harness, plan from #164)"
-    },
-    {
-      "id": "c233",
-      "note": "the BOATS are the caster class #145 left out - punts, barge, rowboat, a standing punter are still not in the water; and the rows-3-12 bank-smear baked into the ground cache stops at row 12 for no recorded reason.",
-      "raisedBy": 144,
-      "seenBy": 3,
-      "closedBy": 169,
-      "reason": "promoted to b173 — the boats and the sheen are one subject: the river's surface"
-    },
-    {
-      "id": "c247",
-      "note": "the whole HAND-act population in the allotments is 28 acts a year across SIX worlds (11 of them sow rungs), so anything a hand does to a plot is capped ~5/seed-year. The cap beneath plotAct is allotRate/spawnAllotAgent.",
-      "raisedBy": 154,
-      "seenBy": 1,
-      "closedBy": 169,
-      "reason": "promoted to b171"
-    },
-    {
-      "id": "c248",
-      "note": "FAM_CAP binds 85.9% of open daylight (54.2% at #158) and the plaza door now refuses 0.0%: the next bound is the family cap and the band's own arrival rate, not the places.",
-      "raisedBy": 159,
-      "seenBy": 0,
-      "closedBy": 169,
-      "reason": "promoted to b172"
-    },
-    {
-      "id": "c251",
-      "note": "the water shade is correct and barely reads (6021 px of mass, 1-86 px of change): what makes a shadow read on water is cutting the SHEEN - drawRiverFlow's streaks and the glitter column - not a deeper multiply",
-      "raisedBy": 159,
-      "seenBy": 0,
-      "closedBy": 169,
-      "reason": "promoted to b173 with c233"
-    },
-    {
-      "id": "c253",
-      "note": "the read rent has moved from the CAPPED worker to the uncapped MANAGER: #167 pruned state.json 120->42 KB, and nothing caps the other three — LEDGER-archive 676 KB (+2.32 KB/iter), RUNLOG 189 (+1.16), MANAGER-LOG 82 (+0.48), read whole every pass.",
-      "raisedBy": 164,
-      "seenBy": 0,
-      "closedBy": 169,
-      "reason": "promoted to b174"
-    },
     {
       "id": "c257",
       "note": "drayToday() is hash(day,811) UNSALTED: the delivery's calendar is identical in every seed, like cartToday(); WIND_SALT exists for exactly this",
@@ -1030,13 +957,78 @@
       "seenBy": 0,
       "closedBy": 195,
       "reason": "promoted to b200."
+    },
+    {
+      "id": "c280",
+      "note": "census.mjs's CORE collapse check reads only the SUMMER scalars, so the winter block has no collapse guard: a build that broke the town only in February diffs loudly and exits 0. CORE cannot be reused as-is — winter planted is 788 v summer 6583.",
+      "raisedBy": 187,
+      "seenBy": 0,
+      "closedBy": 200,
+      "why": "promoted -> b205 (the winter block has no collapse guard)"
+    },
+    {
+      "id": "c284",
+      "note": "census scalars.structures SUMS heterogeneous registers, so a build-time CONSTANT dilutes the collapse guard: #189's eaveLine (217/sample) took it 4059 -> 6314 and 31% of it can now never move.",
+      "raisedBy": 190,
+      "seenBy": 0,
+      "closedBy": 200,
+      "why": "promoted -> b205 (structures sums heterogeneous registers, 31% constant)"
+    },
+    {
+      "id": "c285",
+      "note": "drawSill 0.72 -> 1.67 ms in snow+rain (#191, interleaved control), on a 25-27 ms cache repaint at 76.03/day - and that bar itself drifted 75.14 -> 76.03 between #180 and #191 with no iteration naming it. Nobody watches it between briefs.",
+      "raisedBy": 190,
+      "seenBy": 0,
+      "closedBy": 200,
+      "why": "promoted -> b205 (nobody watches the ground-rebuild bar between briefs)"
+    },
+    {
+      "id": "c288",
+      "note": "4 of 34 fair days filled 0 slots: fairGathering() refuses on raining and the gathering is the only window there is, so a shower at the raise costs the whole fair even when it clears by noon.",
+      "raisedBy": 192,
+      "seenBy": 0,
+      "closedBy": 200,
+      "why": "promoted -> b204 (a shower at the raise costs the whole fair)"
+    },
+    {
+      "id": "c289",
+      "note": "9 probes still throw spawnSync git ENOBUFS: courtyard.html passed Node's 1 MiB default maxBuffer at #181, so every 'git show HEAD' control without maxBuffer is dead. 11 sites. And 96 probes time out at 75 s - unresolved.",
+      "raisedBy": 194,
+      "seenBy": 0,
+      "closedBy": 200,
+      "why": "promoted -> b205 (9 probes still throw ENOBUFS; 11 sites)"
+    },
+    {
+      "id": "c290",
+      "note": "daylight and nightF OVERLAP: at midsummer nightF reaches 0.90 while daylight is still 0.062, so the sky is night-dark for ~an hour in which the moon disc, gated on daylight > 0.02, is not drawn at all (#196)",
+      "raisedBy": 195,
+      "seenBy": 0,
+      "closedBy": 200,
+      "why": "promoted -> b203 (the hour of night with no moon in it)"
+    },
+    {
+      "id": "c292",
+      "note": "c280 (#198): 2 tick-people of 9,372 small-hours ticks stand under the arcade past 22 h, both already lawnOut; 0 on HEAD. One tick of lag in the a.arc release, or a real hole.",
+      "raisedBy": 196,
+      "seenBy": 0,
+      "closedBy": 200,
+      "why": "closed at #200: 2 tick-people of 9,372 small-hours samples, both already lawnOut, 0 on HEAD. #198 established that an arcade stay is released by the WEATHER and not a timer, so one tick of lag in the a.arc release is the shape of that release, not a hole. Re-raise it only if the count moves."
+    },
+    {
+      "id": "c293",
+      "note": "paneFigure's two EVENING slots are not constructed disjoint the way #199's morning is (mLo = max(rOn,hi)): slot 1 can be offered while slot 0 runs, masked till it ends. pane-figure-continuity.mjs measures 0 swaps/yr — measured, not constructed.",
+      "raisedBy": 196,
+      "seenBy": 0,
+      "closedBy": 200,
+      "why": "closed at #200: #199 re-priced pane-figure-continuity.mjs’s threshold off the walk’s FASTEST phase and it reads 0 swaps/yr on BOTH sides. The claim was never that a swap happens, only that the evening pair is disjoint by measurement rather than by construction — and the measurement is now a standing gate. Re-raise it the day that gate reports a swap; the fix is one max() mirroring #199’s mLo."
     }
   ],
-  "cueSeq": 289,
+  "cueSeq": 296,
   "managerWatch": [
-    "THE THIN AXIS IS THE KIND, NOT THE DOMAIN. Through #195: deepen 54, connect 42, new-element 33, polish 29, scale 20, interaction 14, harness 13, new-ca 10, fidelity 3. Nobody reads the COLUMNS; #164/#180/#186 each found their best move there. Read kinds first, then EMPTY cells — sky x new-ca is 0 of 195 (was c272), lane/street/river x interaction are 0, and 7 of the 14 interactions ever are the sill’s own chrome.",
+    "THE THIN AXIS IS THE KIND, NOT THE DOMAIN. Through #200: deepen 55, connect 44, new-element 33, polish 29, scale 20, interaction 14, harness 13, new-ca 11, fidelity 4. Nobody reads the COLUMNS; #164/#180/#186 each found their best move there. Read kinds first, then EMPTY cells — sky x new-ca is 0 of 200, lane/street/river x interaction are 0, and 7 of the 14 interactions ever are the sill’s own chrome.",
     "LABEL THE KIND BY THE FILE IT CHANGES. runlog.mjs takes the verdict from courtyard.html’s diff, so a brief touching only census.mjs or a probe logs srcChanged:false and lands as no-ship however well it went — #187 and #195, both of the no-ships in the last 20. HARNESS is the kind for instrument-only work and costs a domain nothing; FIDELITY promises a change in the page and must make one.",
     "A CONSERVATION SCALAR IS NOT A FROZEN MAP. developed last moved at #100, green at #116, passages NEVER in 193 — none of it a signal: developed/green deliberately CONSERVE (LEADS #170, ARCADE #186, REED #155 are cut OUT of the tile they replace so the total holds) and #119 declined to move passages on purpose. Read census.mjs’s comments before its flatness. mapFlat is tileKinds/structures, 31% constant (c284).",
-    "NUMBERS THIS SEAT READS. stall.mjs’s disk slope diffs blobs at two Iter commits, so a rotation between them reads as a trend for ~20 passes. And a cap you RAISE is how the last loop died — INV_CAP went 9.5 -> 10.75 at #190 and back to 10.0 at #195; say which way and why, every time."
+    "NUMBERS THIS SEAT READS. stall.mjs’s disk slope diffs blobs at two Iter commits, so a rotation between them reads as a trend for ~20 passes. And a cap you RAISE is how the last loop died — INV_CAP went 9.5 -> 10.75 at #190 and back to 10.0 at #195; say which way and why, every time.",
+    "FABRIC BEATS EVENTS FOR A THIRTY-SECOND VISITOR, and the near band is the proof. #170/#171 gave the leads a real population and I shot the town at 10:22 and saw nobody: TEN_CAP is 2, the errands are EDGE events and the sun stay is one a day behind five gates, so the biggest built thing in the picture is fabric-only most of the time you look. An EVENT is seen by whoever is watching that second; FABRIC is in every frame. When a region reads dead, ask what it CARRIES before you add another thing that happens on it."
   ]
 }
