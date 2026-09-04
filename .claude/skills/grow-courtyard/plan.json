@@ -15,30 +15,7 @@
     "balance": "By DOMAIN, after recording #203-#205: lane 12 back and longest by the raw number; then street 8, courtyard 7, roofs 6, river 5, sky 2, plaza 1, life 3, nearblock 4. But HARNESS costs a domain nothing, and by the measure that counts — last NON-harness touch — the sill is 14 back (#191), longer than the lane, because #195 and #205 were both instrument work. By KIND through #205: deepen 58, connect 44, new-element 33, polish 29, scale 20, interaction 14, harness 15, new-ca 12, fidelity 6. Fidelity and interaction are still the thin columns; lane/street/river x interaction remain 0 of 205, and 7 of the 14 interactions ever are the sill's own chrome."
   },
   "rationale": "I SHOT THE TOWN BEFORE PLANNING IT — seed 42, t=224, day 5 at 07:45, wide + the lane band + the phone — and one picture decides this batch. At 390x844 roughly 27% of the frame is empty sky and another ~29% is near slate and the black sill: the TOWN gets under half the phone's frame, and what it gets is the courtyard and a sliver of allotments. The plaza, the river and the far bank are not in the picture at all. Then I greped rather than trusted, and the cause is not the phone. QUARTERS[0] — Wide, the framing every visitor lands on and the one 100% of first frames use — has no y1, so viewFor() short-circuits at line 883 to {s:1, ox:originX0, tp:topPad0} and hands the whole job to resize(), which budgets topPad = 4 + 9.6*cellH of sky at every size and then pushes 82% of any spare down as well, and never reads sillTop(). Every OTHER quarter has had a fitted vertical intent since #120 — air, keep, share, all priced on sillTop(). The default framing is the one framing in the town that was never fitted. That is rung 5 by name: not a new thing in the world, a change to how the world is READ, and it is worth more to a thirty-second visitor than anything on the map.\n\nRUNG 5 AND NOT 4b, DELIBERATELY. mapFlat is not showing and structures has moved on four of the last six iterations, so the census is not asking for a spatial change; and the phone shot says the constraint is not that the town is too small but that the window on it is badly spent. Extending the map would put MORE town outside a frame that already cannot hold what exists.\n\nTHE OTHER FOUR ARE THE CUE BACKLOG, PAID DOWN. Ten cues were open and seven had been seen by zero manager passes — the loop was raising questions faster than this seat was answering them, which is precisely the run-up to the last loop's nine-iteration death spiral. Four are promoted into briefs here (c287 -> b207, c295 -> b208, c291 -> b209, c294 -> b210), two are closed as answered by the work that followed them (c300 by #203's moonShows(), c302 by #205's own measurement), and three stay open. b207 also serves the balance: the lane is 12 iterations back, longest by the raw count.\n\nWHAT I CUT, AND WHY. The worker read 48.2 KB against a 46 KB cap. LAWS.md was at its 12 KB cap, so adding #201's, #202's and #204's laws meant cutting, and I cut two whole laws rather than shaving prose (shaving 8 bullets bought 133 bytes; deleting bought 400). DELETED: (1) the APERTURE law — its subject is paneFigure/drawPaneFigures, built at #182 and tuned at #190 and #199, and 'bound the lateral by the aperture' now lives inside that function; by this file's own header it had become an example, and examples belong in the source. (2) the NAMING FALL-THROUGH law — skyAt() has been the last-asked answer since #188 with no work since, and its general half already sits two bullets above it under 'one predicate, one definition'; its one uncovered clause survives there. MERGED: trap (c), the cast image's target set, into trap (a) it was derived from. The inventory was rewritten from 58 narrated lines to 59 lines of nouns, and its own note was quoting caps rotate-ledger.mjs no longer uses (8 lines / 300 B / 9.5 KB against its real 7 / 250 / 10.0) — a wrong instruction the worker read every iteration. I did NOT raise a cap to clear a breach: the inventory sits 0.3 KB over its 10 KB sub-cap and I am recording that rather than moving the line, because a cap raised to fit is how the last loop died. The number that binds — the worker's total read — is 44.2/46 with 1.8 KB of slack, and it falls to ~43.4 the moment pop-brief.mjs replaces #205's 2.2 KB brief with these.",
-  "queue": [
-    {
-      "id": "b210",
-      "domain": "River & far bank",
-      "kind": "Fidelity",
-      "brief": "`stepIce` sets no `groundDirty`, and there is no ice trigger among the seven that dirty the ground cache (light, snow, wet, wash, barrow, weed, wear), so the ice skin's five drawn levels repaint only when something ELSE happens to dirty it (c294). The river promises a freeze that arrives and a thaw that goes; what it delivers is a skin that updates when the snow or the light next moves. Price the lag first — sim-hours between a level change in the state and the repaint that shows it, across a freeze and a thaw — then give the ice its own quantized trigger alongside the other seven.",
-      "seams": [
-        "stepIce",
-        "iceSkinCol",
-        "drawIce",
-        "groundDirty",
-        "snowPainted",
-        "wetPainted",
-        "barrowPainted",
-        "markGroundPainted",
-        "iceHere",
-        "buildIceLap"
-      ],
-      "successLooksLike": "A winter dawn's freeze and the thaw that follows both appear on the river within the same quantized step the other seven triggers get, shown as sim-hours of lag before and after.",
-      "avoid": "Do not dirty the cache per frame — LAWS: the ground is a CACHE; quantize the QUANTITY the way `snowCover` and `wetBucket()` do, and price the rebuild cost against `probes/ground-rebuilds.mjs` before and after.",
-      "budgetMin": 30,
-      "risk": "low"
-    }
-  ],
+  "queue": [],
   "recommendStop": null,
   "consumed": [
     {
@@ -56,6 +33,10 @@
     {
       "id": "b209",
       "at": "2026-09-04T16:46:04.869Z"
+    },
+    {
+      "id": "b210",
+      "at": "2026-09-04T17:25:29.418Z"
     }
   ]
 }

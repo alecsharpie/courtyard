@@ -259,3 +259,25 @@ source I had added as a MAX, was moving the world's weather for nothing, and the
 10.7 clearings and 197 cells a year at 0.16, the same at 0 — the beds go over in the warm half the
 crop ripens in, so `ALLOT_RIPE` is always above it. Cut.
 **Law:** a second source taken as a MAX is dead unless its tail falls in a season the first is out of.
+
+## Iteration 210 — the ice dirties its own ground (2026-09-05) [River & far bank × Fidelity]
+
+**Brief:** b210 — c294: `stepIce` sets no `groundDirty`. Price the lag, then give the ice a trigger.
+**Premise, HEAD** (`probes/ice-lag.mjs`, new; 3 seeds × a freeze and a thaw): it holds, and it is
+SMALL — lag mean **0.184 / 0.202 sim-hours**, max 0.44, the picture disagreeing with the state
+**43–58%** of the span. The channel was riding the LIGHT: ~90 ground repaints a day already.
+**Did.** (1) `iceLevel(v)`, the ONE definition of the drawn bucket — `drawIce()` paints it and
+`stepIce()` sums it, so the trigger counts the PICTURE, not the depth. (2) `iceLv` summed in the
+step's own loop, `icePainted` in `markGroundPainted()`, and an eighth trigger,
+`|iceLv − icePainted| >= ICE_REPAINT` — 8 of the 2860 levels the margin can hold.
+**Gates:** census **byte-identical to HEAD** (a cadence change moves no town state) · motion PASS ·
+0 POP at the freeze (1085) and the thaw (1292) · `ground-rebuilds` **134/127 a day, unchanged** ·
+lag **0.184→0.172 / 0.202→0.148 h**, drift max **17→14 / 28→17**.
+**Verdict:** shipped
+**Surprise:** the lag was never the light's absence but its ABUNDANCE. At ~90 repaints a day the
+mean cannot move much; what the trigger buys is the TAIL — HEAD's only floor is `LIGHT_SLOW`'s 4 s,
+**1.75 sim-hours**, on a still snowless winter night, and the deadband replaces it with one
+`caTick`. In pixels (`probes/ice-look.mjs`) the residual is 56–133 px of 1.5 M at Δ3 luma over a
+**0 px** same-code control: drawn, not seen.
+**Law:** before adding a trigger to a cache, price what ALREADY dirties it — the incumbent's rate
+caps the new one's mean win, so buy the WORST CASE and set the deadband where the picture stops.

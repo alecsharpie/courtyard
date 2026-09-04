@@ -3038,9 +3038,28 @@ const ICE_REACH = 4.0,             // cells from a shore over which shelter fall
       ICE_CREEP = 1.50,            // ...against what a full ring of frozen neighbours is worth
       ICE_SET = 0.28,              // at or above this the surface is SOLID: the tile flips, and every
                                    // reader of the water (the boat, the ducks, the streaks) reads it
-      ICE_BUCKET = 5;              // drawn levels, for the same reason the moss and the litter have them
+      ICE_BUCKET = 5,              // drawn levels, for the same reason the moss and the litter have them
+      /* #210: how far the SKIN may drift from what the ground cache last painted before the
+       * cache is asked to repaint. `stepIce` set no flag and there was no ice among the seven
+       * triggers, so the channel's freeze and thaw were shown when the LIGHT or the feet next
+       * happened to dirty the ground — measured on HEAD over the freeze and the thaw
+       * (probes/ice-lag.mjs, 3 seeds): mean 0.18 / 0.20 sim-hours behind, max 0.44, and the
+       * picture disagreed with the state for 43-58% of the span. Small, and a LOAN: half
+       * those repaints are the light's and most of the rest the trodden paths', so a still,
+       * empty, snowless winter night has nothing under it but LIGHT_SLOW's 4 s floor.
+       *   The unit is the drawn level, summed over the margin — 8 of the 2860 the skin can
+       * hold (0.28%, where the snow's own tolerance is 3% of its cover). Priced on PIXELS,
+       * not on taste (probes/ice-look.mjs): a drift of that size is 56-133 px of the 1600x950
+       * frame at a mean 3.1 luma. The same-code control is 0 px, so it IS drawn — but it is a
+       * ten-thousandth of the frame at a 1% step, scattered over 715 cells: drawn, not seen.
+       * A deadband of 2 would hold the lag near zero and cost +47/+73 repaints a day to do it. */
+      ICE_REPAINT = 8;
 let iceOn = 0,                     // cells currently at or over ICE_SET — the census's `frozen`
-    iceAny = 0;                    // cells carrying ANY skin: what says the step has nothing to do
+    iceAny = 0,                    // cells carrying ANY skin: what says the step has nothing to do
+    iceLv = 0;                     // ...and the drawn levels summed: the ground cache's own reading
+/* the ONE definition of what a skin of depth v is DRAWN as — drawIce() paints this bucket
+ * and stepIce() sums it, so the trigger counts the picture and not the quantity behind it. */
+function iceLevel(v){ return v > 0 ? Math.min(ICE_BUCKET - 1, (v / ICE_CAP) * ICE_BUCKET | 0) : 0; }
 /* the ONE reading of the surface, in world coordinates, for everything that floats on it
  * or is drawn over it. Off-grid is open water: a streak that has left the world has not
  * hit ice. */
@@ -3118,8 +3137,8 @@ function iceHere(i){ return !iceLap[i] || grid[i] !== SIDE; }
 function iceMargin(){ let n = 0; for (let k = 0; k < ICE_CELLS.length; k++) if (iceHere(ICE_CELLS[k])) n++; return n; }
 function stepIce(){
   const gf = iceGrowF(), tf = iceThawF();
-  if (gf <= 0 && !iceAny) return;      // high summer: nothing to grow and nothing left to take
-  let on = 0, any = 0, flip = 0;
+  if (gf <= 0 && !iceAny){ iceLv = 0; return; }   // high summer: no skin anywhere, so no levels either
+  let on = 0, any = 0, flip = 0, lv = 0;
   for (let k = 0; k < ICE_CELLS.length; k++){
     const i = ICE_CELLS[k];
     if (!iceHere(i)) continue;                                 // #200: the towpath, on a day the water is not on it
@@ -3133,11 +3152,11 @@ function stepIce(){
     /* the tile is the SURFACE, not the depth: one threshold, flipped here and nowhere else,
      * and only over cells buildGrid laid as WATER — a REED cell keeps its own kind and takes
      * its ice from rice[] like everything else, so the rushes still step and still stand. */
-    if (w > 0) any++;
+    if (w > 0){ any++; lv += iceLevel(w); }
     if (w >= ICE_SET){ on++; if (grid[i] === WATER){ grid[i] = ICE; flip++; } }
     else if (grid[i] === ICE){ grid[i] = WATER; flip++; }
   }
-  iceOn = on; iceAny = any;
+  iceOn = on; iceAny = any; iceLv = lv;
   if (flip) moonCellsStale();          // the skin took cells out of the water, or gave them back
 }
 /* How far into its own winter the channel is, 0..1 — the town-wide reading, for anything
@@ -8660,6 +8679,7 @@ const gcv = document.createElement('canvas');
 const gtx = gcv.getContext('2d');
 let groundDirty = true;
 let weedPainted = -1;
+let icePainted = 0;                // #210: the drawn ice levels the ground cache was last painted at
 /* Feet darken wear[]/trod[] every step, but the layer is 9 ms to repaint against ~2 ms
  * for the rest of the frame, and left to the walkers it rebuilt ~650x a day (#48). So a
  * step only raises wearDirty; the tick promotes it to a rebuild once WEAR_REPAINT sim
@@ -8738,7 +8758,7 @@ function lightNow(){
  * without them reads a gate as true for ever (that is 868 washing repaints a day). */
 function markGroundPainted(){
   snowPainted = snowCover; wetPainted = wetBucket(); washPainted = washOut(); barrowPainted = barrowKey();
-  weedPainted = weedBucket();
+  weedPainted = weedBucket(); icePainted = iceLv;
   lightPainted = lightNow(); slowPainted = simT;
   lightBucket = lightPainted.map(v => v.toFixed(3)).join(',');   // what the BACKDROP cache rides
 }
@@ -11065,7 +11085,7 @@ function drawMoss(g, x, y, mv){
  * the reason the moss and the litter are: the ground is a CACHE, and a continuous value
  * would ask it to repaint for a change nobody can see. hash-placed, no R(). */
 function drawIce(g, x, y, v){
-  const b = Math.min(ICE_BUCKET - 1, (v / ICE_CAP) * ICE_BUCKET | 0);
+  const b = iceLevel(v);
   if (b < 1) return;                                        // a trace of skin draws nothing
   const lv = b / (ICE_BUCKET - 1);
   g.strokeStyle = 'rgba(226,238,242,' + (0.10 + 0.30 * lv).toFixed(3) + ')';
@@ -18601,6 +18621,7 @@ function simStep(sdt, dt){
   if (washOut() !== washPainted) groundDirty = true;                         // #110: the washing goes out, and comes in
   if (barrowKey() !== barrowPainted) groundDirty = true;                     // #138: a barrow appears at a plot somebody kneels at, and goes when they do
   if (weedBucket() !== weedPainted) groundDirty = true;                      // #197: the beds go over, and are hoed, in WEED_STEPS steps
+  if (Math.abs(iceLv - icePainted) >= ICE_REPAINT) groundDirty = true;       // #210: the channel takes its skin, and gives it back
   wearAcc += sdt;
   if (wearDirty && wearAcc >= WEAR_REPAINT) groundDirty = true;               // the trodden paths, throttled
 
