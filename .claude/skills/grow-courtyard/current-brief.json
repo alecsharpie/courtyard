@@ -18,7 +18,7 @@
   "avoid": "Do not move nightF's edges — they are the night's clock and half the town keys on them. Change what the DISC is gated on, and then re-run every gate that reads that subject: moonLight() and drawMoonSheen must agree with the disc afterwards, or the town gets sheen from a moon it does not draw.",
   "budgetMin": 30,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 203,
   "issued": "2026-09-04T11:56:58.335Z",
