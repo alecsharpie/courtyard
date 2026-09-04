@@ -15,27 +15,6 @@
   "rationale": "I SHOT THE TOWN BEFORE PLANNING IT — seed 42, day 3 at 10:22 and day 22 at 03:49, wide plus the near band plus the phone — and the pictures say one thing loudly. The block below our window is 23% of the wide frame and about 40% of the phone's, and by day it is the dullest large surface in the picture: slate, party walls, washing, chimney pots, and nothing that moves. That is not because it is empty. #170 gave it LEADS terraces and a hatch and #171 gave it tenants, and the inventory line saying so is why the bet I first drafted (\"put people on the near roof\") died before it was written — the law works. What the shots actually show is subtler and better: the terrace's whole life is EVENTS. tenantErrands fires on washOut()'s EDGE, at most twice a day, plus one sun stay behind tenSunFine()'s five clauses and one evening lean, all under TEN_CAP 2. An event is seen by whoever is watching that second; FABRIC is in every frame. So b201 asks for the number nobody has (tenant presence per daylight sample over 6 seeds x a year) and then for the thing that survives the empty frames.\n\nTHE RUNG IS A 3 AND THE CLIMB IS THE POINT. This is the move the previous loop could not make: the foreground quarter of every frame has no domain. Its material has been filed under Roofs & skyline — whose seam list is buildVolumes, CHIMNEYS, drawClockTower, all FAR roof — or under The sill & the observer, which is chrome plus a saturated harness cell. Six iterations built the near block (#100 #106 #110 #123 #170 #171) and not one of them could be briefed AT it, because there was nowhere on the menu to write it down. `nearblock` — Our block & the leads — is now a domain, and b201 founds it.\n\nWHY NOT 4b: unchanged and I re-checked it. GW is 138, every quarter is allocated, the wide frame is edge to edge, and #144 priced the phone at 2.8 px a cell. A spatial climb still needs the FRAME to move first, and that is c296, not a brief I can hand a worker tonight. WHY NOT 5: I looked, and the observer changes actually available are chrome-shaped — 7 of the 14 interactions this run has ever built are already the sill's own furniture, and an eighth is not the frontier. The two observer findings the shots did produce are written down as cues (c295 the ticker clipped mid-word at 1600x950; c296 the phone opening on Wide with half the town off-frame) and one of them will be a rung-5 brief once it is priced.\n\nThe rest of the queue rotates and pays debts: b202 takes People & animals, 11 back and the longest untouched, at #189's own unfixed surprise — a third of worlds never get a martin colony because rain is the only mud there is. b203 is a FIDELITY brief, the thinnest kind at 4 of 200, on a promise the sky already makes and breaks. b204 takes the plaza's fair, which loses a whole day to a shower at the raise. b205 is HARNESS, which costs a domain nothing and closes three instrument cues at once, including a collapse guard that cannot see winter — the one that would have caught a #200-shaped bug.\n\nMEMORY, this pass: the worker read was OVER at 46.9/46 KB and is 45.9 now. I cut TWO laws rather than deferring — \"An instrument is a build artifact too\" (its general half is the control law's, its specific half a dated fact about one shelf; the surviving clause is folded into \"Compare against a control you RAN, and SMOKE it first\") and the `!daylight`/dawn corollary (folded back into the sun-and-night law it is a corollary of). I also cut the hash-gating recipe out of \"A scalar is not a switch\": four real CAs (#181 #189 #192 #197) now cluster with neighbourhood rules and nothing has reached for a coarse-gate since #156, so it is superseded, not merely unused. LAWS is 27 laws / 11.9 KB. Seven cues promoted into this batch, two closed on their evidence (c292, c293), two raised.",
   "queue": [
     {
-      "id": "b203",
-      "domain": "Sky, light & weather",
-      "kind": "Fidelity",
-      "brief": "c290, and FIDELITY is the thinnest kind on the grid at 4 of 200. `daylight` and `nightF` OVERLAP: at midsummer nightF reaches 0.90 while daylight is still 0.062, so for roughly an hour the sky is night-dark and the moon disc — gated on daylight > 0.02 — is not drawn at all. #188 put a real 29.53-day month in the sky and #196 gave the town a light to see it by; the disc itself goes missing in the hour a viewer is most likely to look up. The world promises a moon in its night and does not keep it at every season. Measure the hole first (a probe over a year: per hour sample, nightF, daylight, moon altitude, and whether the disc drew), then close it on the moon's own terms — whether the disc shows is a fact about the SKY's darkness, not about the sun's remaining light.",
-      "seams": [
-        "nightF",
-        "daylight",
-        "moonPhase",
-        "moonLit",
-        "moonLight",
-        "drawMoonSheen",
-        "skyHz",
-        "moonName",
-        "applyLight"
-      ],
-      "successLooksLike": "Over a year at 6 seeds there is no hour with nightF > 0.5, the moon above the horizon, and no disc drawn. The DAY frame is 0 of 778,752 px off HEAD. A midsummer 21:30 wide shot has the disc in it where HEAD's does not.",
-      "avoid": "Do not move nightF's edges — they are the night's clock and half the town keys on them. Change what the DISC is gated on, and then re-run every gate that reads that subject: moonLight() and drawMoonSheen must agree with the disc afterwards, or the town gets sheen from a moon it does not draw.",
-      "budgetMin": 30,
-      "risk": "low"
-    },
-    {
       "id": "b204",
       "domain": "Plaza & quay",
       "kind": "Deepen",
@@ -84,6 +63,10 @@
     {
       "id": "b202",
       "at": "2026-09-04T11:42:34.715Z"
+    },
+    {
+      "id": "b203",
+      "at": "2026-09-04T11:56:58.333Z"
     }
   ]
 }

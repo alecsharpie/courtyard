@@ -270,3 +270,25 @@ converged UP (42: 39 -> 76, 271: 59 -> 85).
 **Law:** where one quantity has two sources take the MAX, not the sum: it lifts the starved tail
 without moving the head, which a threshold cannot do. Size the second off the TAIL's own missing
 integral, never the mean. A SEASONAL driver is the same in every world — that is what makes it an antidote to a weather coin.
+
+## Iteration 203 — the moon shows on the sky's terms, not the sun's (2026-09-04) [Sky, light & weather × Fidelity]
+
+**Brief:** b203 — the disc is gated on `daylight`, which OVERLAPS nightF. Measure the hole, close it.
+**Measured first** (probes/moon-hole.mjs, new, HEAD, 6 seeds x a year): **792 of 6,690** samples with
+nightF > 0.5 and the moon up drew NO disc — 11.8%, ~27 h a year, all at DUSK in moonArc's 1.4 h lead on
+sunset; and the river carried the glitter column in **810** of them with no moon in the sky.
+**Did.** `moonShows() = nightF > MOON_ON && moonAlt() > 0` — ONE predicate for the disc, moonLight(), the
+sheen and the river's column; sun and moon stop being exclusive. The fault it turned up: moonCells() cuts
+water/wet/snow off a `grid` that MOVES all year — 89 px between bakes, and a bake under ice loses the river
+for good; stepBank/stepIce un-bake it now.
+**Gates:** census IDENTICAL · motion · perf +0.0% · probes/moon-frames.mjs (new) **DAY 0 px off HEAD**,
+NIGHT/LATE 0, hole 792 -> **0**, glitter -> **0** · filmstrip at the crossing: HEAD steps **2.392** on its
+0.824 median, the build **0.429**.
+**Verdict:** shipped
+**Surprise:** the disc is drawn and cannot be SEEN — drawSunMoon paints BEFORE the backdrop blit, so all
+through the hole it is behind the distance: its own 377 px move <=4.5 luma, and a full moon forced onto the
+instant moves them 4.7. What the hour gains is the LIGHT, 216,782 px over 4 luma at 21:09, because
+moonLight() returning 0 was never "no moon" — it was mk = -MOON_REF, the darkest there is, on every dusk.
+**Law:** a gate opened on a DRAWN thing is not a thing SEEN — price it on the subject's own pixels at its
+strongest phase, or occlusion reads as faintness. A term signed about a measured pivot has no "off": a 0
+into it is a claim, and the extreme one.

@@ -3046,7 +3046,7 @@ function iceMargin(){ let n = 0; for (let k = 0; k < ICE_CELLS.length; k++) if (
 function stepIce(){
   const gf = iceGrowF(), tf = iceThawF();
   if (gf <= 0 && !iceAny) return;      // high summer: nothing to grow and nothing left to take
-  let on = 0, any = 0;
+  let on = 0, any = 0, flip = 0;
   for (let k = 0; k < ICE_CELLS.length; k++){
     const i = ICE_CELLS[k];
     if (!iceHere(i)) continue;                                 // #200: the towpath, on a day the water is not on it
@@ -3061,10 +3061,11 @@ function stepIce(){
      * and only over cells buildGrid laid as WATER — a REED cell keeps its own kind and takes
      * its ice from rice[] like everything else, so the rushes still step and still stand. */
     if (w > 0) any++;
-    if (w >= ICE_SET){ on++; if (grid[i] === WATER) grid[i] = ICE; }
-    else if (grid[i] === ICE) grid[i] = WATER;
+    if (w >= ICE_SET){ on++; if (grid[i] === WATER){ grid[i] = ICE; flip++; } }
+    else if (grid[i] === ICE){ grid[i] = WATER; flip++; }
   }
   iceOn = on; iceAny = any;
+  if (flip) moonCellsStale();          // the skin took cells out of the water, or gave them back
 }
 /* How far into its own winter the channel is, 0..1 — the town-wide reading, for anything
  * that needs the RIVER rather than a cell of it. Eased the way fountainSkin() is, so it
@@ -3225,7 +3226,7 @@ function stepBank(){
   bankDry = dry; bankLap = lap;
   // a flip is a change to the CACHED layer, and it is quantized by BEING a flip: the
   // whole margin turns over perhaps ninety times a year, not once per rounding of a clock
-  if (n) groundDirty = true;
+  if (n){ groundDirty = true; moonCellsStale(); }   // the moon's water and wet stone are cut off this grid too
 }
 
 /* ============ the martins under the eaves (#189) ============
@@ -8809,10 +8810,28 @@ let MOON_REF = 0.162;                  // the measured mean — the frame is HEA
 const MOON_MUL = 0.12,                 // how little of the multiply a full clear moon takes off
       MOON_CR = 36, MOON_CG = 92, MOON_CB = 126;  // ...and how far it carries the colour toward silver
 function moonAlt(){ const ma = moonArc(); return (ma > 0 && ma < 1) ? Math.sin(Math.PI * ma) : 0; }
+/* ---- whether the moon shows is a fact about the SKY (#203) -----------------------
+ * The disc used to be gated on `daylight <= 0.02 && nightF > 0.25`, which is two clocks
+ * asking one question, and they do not agree: nightF's evening half is 1 - 1.6*daylight,
+ * so the sky is night-dark while the sun still has a scrap of light left. Measured over a
+ * year at 6 seeds (probe-moon-hole.mjs), 792 of 6690 samples with nightF > 0.5 and the
+ * moon ABOVE THE HORIZON drew no disc at all — 11.8%, ~27 h of sim a year, every one of
+ * them at dusk, in moonArc()'s own 1.4 h lead on sunset, and the sun disc drawn in all
+ * 792. The town half-believed in it anyway: drawRiverLights laid the moon's glitter column
+ * on the water in 810 samples where no moon was in the sky to cast it.
+ *   So the sun's remaining light is not the subject. `moonShows()` is the ONE predicate —
+ * the sky is dark enough (nightF past MOON_ON) and the moon is up (moonAlt above the
+ * horizon) — and the disc, the light, the sheen through it and the river's column all read
+ * it, so nothing in the town can show a moon another part of it denies. The sun and the
+ * moon are no longer exclusive: for that hour before sunset both are in the frame, which
+ * is what a moon rising before the sun is down looks like.
+ *   MOON_ON was two loose 0.25s (the disc's gate and moonLight's ramp foot); it is one
+ * constant now, so the light cannot start before the disc it comes from. */
+const MOON_ON = 0.25;
+function moonShows(){ return nightF > MOON_ON && moonAlt() > 0; }
 function moonLight(){
-  if (daylight > 0.02) return 0;
-  const k = clamp((nightF - 0.25) / 0.22, 0, 1);
-  return k <= 0 ? 0 : moonLit() * moonAlt() * (1 - cloudCover()) * k;
+  const k = clamp((nightF - MOON_ON) / 0.22, 0, 1);
+  return moonShows() ? moonLit() * moonAlt() * (1 - cloudCover()) * k : 0;
 }
 /* Where the two bodies are DRAWN, in live screen space: [x, y, r], or null when the sky
  * is not showing that one. Extracted so the pointer asks the same arithmetic the draw
@@ -8826,7 +8845,7 @@ function sunDisc(){
   return [W * (0.9 - 0.8 * sa), hz - Math.sin(Math.PI * sa) * hz * arch, cellW * 1.4];
 }
 function moonDisc(){
-  if (daylight > 0.02 || nightF <= 0.25) return null;
+  if (!moonShows()) return null;
   const ma = moonArc(), hz = skyHz();
   return [W * (0.86 - 0.72 * ma), hz - Math.sin(Math.PI * ma) * hz * 0.66, cellW * 1.2];
 }
@@ -8848,11 +8867,13 @@ function drawSunMoon(g, hz){
     g.fillStyle = 'rgba(255,' + lerp(252, 248, warmth).toFixed(0) + ',' + lerp(242, 218, warmth).toFixed(0)
                 + ',' + ((0.55 + 0.45 * daylight) * veil) + ')';
     g.beginPath(); g.arc(sx, sy, sr, 0, 7); g.fill();
-  } else if (nightF > 0.25){                         // and the moon on the same arc
+  }
+  if (moonShows()){                                  // and the moon on the same arc, in the same frame
     // the night is what is left of the day, so the moon's arc widens as the sun's
-    // narrows. It opens 1.4 h before sunset and closes 1.4 h after sunrise so it is
-    // already climbing by the time daylight drops under 0.02 and the disc appears —
-    // start it exactly at sunset and the moon teleports on its first drawn frame.
+    // narrows. It opens 1.4 h before sunset and closes 1.4 h after sunrise, and since
+    // #203 that whole lead is DRAWN: the disc rises out of the horizon (ma = 0 puts it
+    // exactly on hz) into a sky the sun has not left yet, instead of appearing already
+    // climbing the moment daylight fell under 0.02.
     const [mx, my, mr] = moonDisc(), k = moonLit();
     const gl = g.createRadialGradient(mx, my, 0, mx, my, cellW * 7);
     gl.addColorStop(0, 'rgba(210,225,255,' + (0.28 * nightF * veil * (0.14 + 0.86 * k)) + ')');
@@ -15154,6 +15175,17 @@ function drawPuddleLights(){
  * boolean and a dry night costs the wet paving nothing. */
 const MOON_SHEEN = 'rgba(176,200,246,';
 let MOON_CELLS = null;
+/* THE GRID MOVES UNDER THIS (#203). Three of the four lists below are cut off `grid` by
+ * tile, and two systems flip tiles for the life of the town: stepBank walks the margin
+ * between SIDE, WATER and SHOAL as riverLev() rises and falls (#192, #200), and stepIce
+ * flips WATER to ICE and back. Baked once at the first sheen, the water and the wet stone
+ * are a snapshot of one river level and one winter — measured, a bake taken at dusk and
+ * the same night re-taken differ by 89 px, and a bake taken under a skin loses the river
+ * its sheen for good, since a cell that was ICE at bake time is in no list to come back
+ * to. So the two CA steps un-bake it when they flip anything, and the next sheen cuts the
+ * lists again. Only the lists: MOON_ROOF is the near block's slates, which is build state,
+ * and it survives — the bake this exists to protect costs 2.5 ms and is not re-run. */
+function moonCellsStale(){ MOON_CELLS = null; }
 function moonCells(){
   if (MOON_CELLS) return MOON_CELLS;
   const water = [], snow = [], wet = [], roof = [];
@@ -15295,7 +15327,7 @@ function drawRiverLights(t){
     if (plf > 0) column(P.x - 0.2, P.y + 0.8, 3, 'rgb(255,204,130)', 0.6 * plf * veil, 0.7, 7);
   }
   const ma = moonArc(), mh = Math.sin(Math.PI * ma), ml = moonLit();
-  if (nightF > 0.25 && ma > 0 && ma < 1 && mh > 0.02 && ml > 0.04){
+  if (moonShows() && mh > 0.02 && ml > 0.04){        // never a column from a moon the sky is not showing (#203)
     // the moon crosses the sky east to west; its light crosses the river the same way,
     // and a crescent lays down less of it than a full moon does (#188)
     const mx = RIVER_X1 - 1.2 - (RIVER_X1 - RIVER_X0 - 2.4) * ma;

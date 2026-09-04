@@ -638,7 +638,7 @@
       "weather: snowF/Cover/At, wetF, raining/rainFall/coverF, mistAt, chillF/hearthF, dawnF; windF=windDayF x windHourF, isWindy (#156); bonfireWeather re-asked lit (#178), BOTH gates measured (#185)",
       "two PRNG streams (#176): R() for the town, RS (SEED^RS_SALT, rewound by __reseed) for canvas-space draws — stepDrops() only, outside the raining branch",
       "the SKY ANSWERS (#188): skyAt() asked LAST (sun/moon first), balloonAt first; skyHz() one horizon; sunName/moonName/skyName/towerAt off SH_TOWERS; moonPhase/moonLit a 29.53 d month; balloonOut/Down off the sun",
-      "MOONLIGHT (#196): moonLight() = moonLit x altitude x (1-cloudCover), ramped off nightF; INSIDE applyLight's multiply, signed about measured MOON_REF 0.162; drawMoonSheen live over water/ice/snow/wet paving/near slates, MOON_ROOF a camera-keyed Path2D"
+      "MOONLIGHT (#196,#203): moonShows() = nightF>MOON_ON x moonAlt is the ONE gate — disc, moonLight(), sheen, river column, sun+moon at dusk; signed about MOON_REF .162 in applyLight's multiply; drawMoonSheen/MOON_ROOF, lists re-cut where tiles flip"
     ],
     "life": [
       "ring transit via spawnAgent: walker, crosser, dogwalker; drawPerson 12 px with a contact patch; greetPass/chatty; arrivals come in TWOS, withCompanion(a,room) under the SAME cap",
@@ -712,6 +712,12 @@
       "id": "c299",
       "note": "the strand is the same in every world, so a rainless colony now founds on the SAME days in all of them — the seeds differ only in their founders; a per-world salt on the level's lag would put the mud year back on a per-town clock",
       "raisedBy": 201,
+      "seenBy": 0
+    },
+    {
+      "id": "c300",
+      "note": "the town has a moonrise it never shows: drawSunMoon paints BEFORE the backdrop blit, so through the whole 1.4 h between moonrise and sunset the disc's own 377 px move <=4.5 luma even at a forced full moon — it is behind the distance (#203)",
+      "raisedBy": 202,
       "seenBy": 0
     }
   ],
