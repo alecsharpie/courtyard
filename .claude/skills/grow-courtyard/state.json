@@ -2,7 +2,7 @@
   "updated": "2026-09-04",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 196,
+  "lastIteration": 200,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -368,6 +368,9 @@
         181,
         192,
         192
+      ],
+      "fidelity": [
+        200
       ]
     },
     "sky": {
@@ -596,7 +599,8 @@
       "the far bank's day: spawnFarAgent/farOpen/FAR_CAP, FAR_GATE, a.jetty, overDeck's east door; concert bandF/isBandDay; FIELD EDGE east of GW painted in the cache",
       "the evening ends: EVE_GONE/EVE_HURRY/EVE_BELL, eveOutH -> a.eveOut, goHome(a,maxH). Night water: drawRiverLights, RIVER_LAMPS, a.nightRail, roseLit",
       "the PUNT a FLEET of two (#141): PUNTS/PUNT_BERTHS, hull B 0.95 west so tracks are PARALLEL, punt{leg 0..4}, puntFits -> OFFER; wind is a SHARE PUNT_WIND_SLOW/SHY (#154)",
-      "the SURFACE (#145,155,163,174): drawWaterMirror/setMirror, REED/reedInk, drawWaterShade, drawBoatMirror. WINTER (#181): ICE off rice[]/iceShel/iceTop, buildIce/stepIce/iceSkinCol/drawIce/iceRuns"
+      "the SURFACE (#145,155,163,174): drawWaterMirror/setMirror, REED/reedInk, drawWaterShade, drawBoatMirror. WINTER (#181): ICE off rice[]/iceShel/iceTop, buildIce/stepIce/iceSkinCol/drawIce/iceRuns",
+      "the ice takes the LAP too (#200): iceLap[]/buildIceLap off BANK_CELLS after buildBank, iceHere() the live test, iceMargin() the census's margin; stepBank's ICE guard is the STRAND's only — the level owns a lap cell, skin and all"
     ],
     "sky": [
       "day/night (55 s day), sun and moon arc, chimney smoke, a balloon; windowLit the ONE pane predicate + LIT[], relit AFTER applyLight; season() over SEASON_LEN 26 days, greyF the year",
@@ -692,6 +696,12 @@
     {
       "id": "c293",
       "note": "paneFigure's two EVENING slots are not constructed disjoint the way #199's morning is (mLo = max(rOn,hi)): slot 1 can be offered while slot 0 runs, masked till it ends. pane-figure-continuity.mjs measures 0 swaps/yr — measured, not constructed.",
+      "raisedBy": 196,
+      "seenBy": 0
+    },
+    {
+      "id": "c294",
+      "note": "stepIce sets no groundDirty, and there is no iceBucket() among the seven dirty triggers (light, snow, wet, wash, barrow, weed, wear): the skin's five drawn levels repaint only when something ELSE happens to dirty the cache (#200)",
       "raisedBy": 196,
       "seenBy": 0
     }

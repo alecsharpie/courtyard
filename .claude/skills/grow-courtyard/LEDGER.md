@@ -321,3 +321,26 @@ threshold. u moves 1.08 in 0.24*dur on the exit leg — 7.5 u/h — so 0.4 per 0
 walk's own fastest phase. The instrument, not the build.
 **Law:** a jump threshold is priced off the subject's FASTEST phase, not its mean; a swap only
 SHOWS if both ends are inside the aperture.
+
+## Iteration 200 — the lap freezes with its channel (2026-09-04) [River & far bank × Fidelity]
+
+**Brief:** b200 — c286: `ICE_CELLS` is built from `onChannel()` at BUILD time, when the towpath's
+first column was still SIDE. #192 widened `onChannel` so a winter lap is river; the list was frozen
+already, so the water the flood lies over could never take ice.
+**Premise, HEAD** (`probes/lap-ice.mjs`, 3 seeds x 3 warps): **26 lapped cells, 26 of them against
+ice over ICE_SET, 0 in ICE_CELLS, 0 carrying any skin.**
+**Did.** (1) `buildIceLap()`, once, after `buildBank()`: 35 cells read off BANK_CELLS
+(`bankWas === SIDE`), never re-derived. Shelter 1.0, distance transform untouched, so every existing
+`iceShel`/`iceTop` is byte-identical: it ADDS cells, it does not re-cut them. (2)
+`iceHere(i)`, the one live test — step, `riverSkin()` and census all ask it, so `margin` is what was
+walked. (3) `stepBank`'s `if (t === ICE) continue` was the coupling, now the STRAND's guard only: the
+level owns a lap cell, skin and all, and water off the path clears `rice[i]` in the same tick.
+**Gates:** census PASS, pre-edit baseline — **summer nine byte-identical**; winter ICE +57/WATER
+-57, margin +78 · motion PASS incl. `night` (warp 1230), HEAD-pinned · 0 POP · look
+**1324-1343 of 1805 lap px on a same-code floor of 0-24** · `lap-year.mjs` **0 violations**, 137/858.
+**Verdict:** shipped
+**Surprise:** frozen +19/+17/+21 is exactly the lapped cells iced. I expected the new neighbours to
+feed `iceNb` and push the old margin's front in; not one channel cell crossed ICE_SET that had not
+already. The front was at its ceiling.
+**Law:** a build-time list derived from a predicate is a HOSTAGE to it — #192's widened `onChannel`
+silently un-completed a set frozen at #181. Grep a widened predicate's READERS, not its callers.

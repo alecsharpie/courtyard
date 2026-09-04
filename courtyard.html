@@ -2951,6 +2951,7 @@ buildMoss();      // grid is built above; the consts this reads are declared abo
 const rice = new Float32Array(GW * WH),      // this cell's skin, 0..1
       iceShel = new Float32Array(GW * WH),   // how sheltered it is: geometry, fixed at build
       iceTop = new Float32Array(GW * WH);    // its ceiling: shelter x current x its own hash
+const iceLap = new Uint8Array(GW * WH);      // #200: this cell is TOWPATH the high water lies on
 const ICE_CELLS = [];              // the freezable margin, as flat indices — the step's whole world
 const ICE_REACH = 4.0,             // cells from a shore over which shelter falls to nothing
       ICE_CURRENT = 0.85,          // how much of the ceiling the midstream current takes away
@@ -3035,12 +3036,21 @@ function iceThawF(){
 /* a neighbour outside the freezable margin contributes 0 — which is what it IS: open water
  * gives the front nothing to advance from. Bounds itself, since the channel touches row 0. */
 function iceNb(i){ return rice[i] || 0; }
+/* #200: is this cell of the list water TODAY? Every cell of the margin proper always is —
+ * a strand that dries is stepBank's SHOAL and still the channel's bed. A LAP cell is water
+ * only while the level is on it, and stepBank() is the one that says so. This is the ONE
+ * reading of that: the step walks it, riverSkin() averages over it and the census reports
+ * it, so `margin` is the margin that was actually stepped and not a build-time constant. */
+function iceHere(i){ return !iceLap[i] || grid[i] !== SIDE; }
+function iceMargin(){ let n = 0; for (let k = 0; k < ICE_CELLS.length; k++) if (iceHere(ICE_CELLS[k])) n++; return n; }
 function stepIce(){
   const gf = iceGrowF(), tf = iceThawF();
   if (gf <= 0 && !iceAny) return;      // high summer: nothing to grow and nothing left to take
   let on = 0, any = 0;
   for (let k = 0; k < ICE_CELLS.length; k++){
-    const i = ICE_CELLS[k], x = i % GW, y = (i / GW) | 0, v = rice[i];
+    const i = ICE_CELLS[k];
+    if (!iceHere(i)) continue;                                 // #200: the towpath, on a day the water is not on it
+    const x = i % GW, y = (i / GW) | 0, v = rice[i];
     const nb = (iceNb(i - 1) + iceNb(i + 1) + iceNb(i - GW) + iceNb(i + GW)) * 0.25;
     const rate = 0.45 + 0.55 * hash(x, y + 403);               // this cell's own speed, forever
     const nv = v + ICE_GROW * gf * rate * (ICE_SEED * iceShel[i] + ICE_CREEP * nb)
@@ -3062,11 +3072,46 @@ function stepIce(){
 function riverSkin(){
   if (!ICE_CELLS.length) return 0;
   let s = 0, t = 0;
-  for (let k = 0; k < ICE_CELLS.length; k++){ const i = ICE_CELLS[k]; s += rice[i]; t += iceTop[i]; }
+  for (let k = 0; k < ICE_CELLS.length; k++){ const i = ICE_CELLS[k]; if (!iceHere(i)) continue; s += rice[i]; t += iceTop[i]; }
   const kf = clamp(s / t, 0, 1);
   return kf * (2 - kf);
 }
 buildIce();       // after buildMoss: mossShelterAt() counts the WATER neighbours the grid was BUILT with
+
+/* ============ the lap freezes with the channel it is part of (#200) ============
+ * ICE_CELLS is fixed at BUILD time, and at build the towpath's first column is SIDE — so
+ * onChannel() answers "not channel", the transform above makes it a SHORE at distance 0
+ * and the `d[i] <= 0` cull drops it. Then #192 widened onChannel to `<= RIVER_X1`, because
+ * a lap of the high water IS the river — to the shadow mask, to the cache's colour and to
+ * the naming. The list had already been frozen, so the one water in the town the ice could
+ * not reach was the stillest and shallowest there is. Measured on HEAD at warp 1220, three
+ * seeds (probes/lap-ice.mjs): 26 lapped cells, 26 of them lying directly against a cell
+ * whose skin is over ICE_SET, 0 in ICE_CELLS, 0 carrying any skin at all.
+ *
+ * The set is stepBank's own, read back off BANK_CELLS rather than re-derived (#151), so the
+ * ice takes exactly the cells the level puts water on and no others — the reedKeepOut
+ * berths, the fairway and the barge's lane are all already out of it. It is not rebuilt per
+ * tick: the ground cache repaints 76.03 times a day (#191) and nobody is watching that bar
+ * between briefs (c285), so the answer is a build-time ADDITION plus a per-cell live test,
+ * not a rebuilt list.
+ *
+ * SHELTER 1.0, and the transform above is left untouched. A lap cell is water lying on a
+ * PATH, the stillest surface in the reach, so it takes the ceiling a cell at distance 1
+ * does; and the towpath is still what shelters the channel beside it whether or not an inch
+ * of water is over it, so d[], iceShel[] and iceTop[] on every cell that was already in the
+ * list are byte-identical to HEAD. This ADDS cells, it does not re-cut the ones there. */
+function buildIceLap(){
+  for (let k = 0; k < BANK_CELLS.length; k++){
+    const i = BANK_CELLS[k];
+    if (bankWas[i] !== SIDE) continue;                         // the channel-side strand is in the list already
+    const x = i % GW, y = (i / GW) | 0;
+    const top = ICE_CAP * (1 - ICE_CURRENT * clamp(riverMid(x), 0, 1)) * (0.45 + 0.55 * hash(x, y + 401));
+    if (top < 0.02) continue;
+    iceShel[i] = 1; iceTop[i] = top; iceLap[i] = 1;
+    ICE_CELLS.push(i);
+  }
+  ICE_CELLS.sort((a, b) => a - b);   // row-major again: cellRuns() merges a run only in index order
+}
 
 /* ============ the waterline, at the margin (#192) ============
  * riverLev() says how full the channel is; this is where that number is CASHED, and it
@@ -3159,12 +3204,23 @@ function stepBank(){
   let dry = 0, lap = 0, n = 0;
   for (let k = 0; k < BANK_CELLS.length; k++){
     const i = BANK_CELLS[k], was = bankWas[i], t = grid[i];
-    if (t === ICE) continue;
     const wet = lev > bankBed[i];
-    const want = was === SIDE ? (wet ? WATER : SIDE) : (wet ? was : SHOAL);
+    /* #200: the LAP is freezable now, so the ICE guard below cannot hold over it — the
+     * LEVEL owns this cell, skin or no skin, or a February slab stands on the towpath
+     * until the spring. The water going off the path takes its skin with it in the same
+     * tick, so nothing is ever drawn frozen over dry paving. The guard stays exactly where
+     * it was written, over the STRAND: a skinned WATER cell is stepIce's, and is not mud. */
+    if (was === SIDE){
+      if (!wet && rice[i]) rice[i] = 0;
+      const want = wet ? (t === ICE ? ICE : WATER) : SIDE;
+      if (t !== want){ grid[i] = want; n++; }
+      if (wet) lap++;
+      continue;
+    }
+    if (t === ICE) continue;
+    const want = wet ? was : SHOAL;
     if (t !== want){ grid[i] = want; n++; }
     if (want === SHOAL) dry++;
-    else if (was === SIDE && wet) lap++;
   }
   bankDry = dry; bankLap = lap;
   // a flip is a change to the CACHED layer, and it is quantized by BEING a flip: the
@@ -17647,6 +17703,7 @@ whereEl.addEventListener('click', () => whereGo(whereN + 1));
  * be explained. It spends no R(), so the eight opening beds are the eight they were. */
 sowReeds();
 buildBank();      // the margin is read off the grid the reeds are already in
+buildIceLap();    // ...and the ice's list is extended off THAT margin, never re-derived (#200)
 (function seed(){
   let planted = 0, guard = 0;
   while (planted < 8 && guard++ < 4000){
@@ -18282,7 +18339,11 @@ window.__census = function(){
        is SOLID (the tile flips on the same threshold) and how far into its own winter the
        reach is. Town state: a pure function of the calendar and the weather that has run,
        and the only field in the census whose tile count moves with the season. */
-    ice: { frozen: iceOn, skin: +riverSkin().toFixed(4), margin: ICE_CELLS.length },
+    /* #200: `margin` is iceMargin(), not ICE_CELLS.length — the lap joined the list, and a
+       lap cell is only freezable on the days the level is on it. So the field stays the
+       count of what the step actually walked: identical to HEAD in every season the water
+       is off the towpath, wider in the weeks it is on it. Still town state. */
+    ice: { frozen: iceOn, skin: +riverSkin().toFixed(4), margin: iceMargin() },
     /* #192: the WATERLINE, the same two numbers again — cells of channel the falling
        level has uncovered (`shoal`) and cells of bank the rising one is over (`lap`),
        with the level itself. Town state: a pure function of the calendar, like the ice's,

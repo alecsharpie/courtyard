@@ -15,35 +15,7 @@
     "balance": "By DOMAIN the queue takes the four longest-neglected in order — Cross street 10 back (#185, and last pass recorded it as this pass's first claim), Courtyard 9 (#186), Sky 7 (#188), Roofs 5 (#190) — plus River (3 back) for a bug that only shows at midwinter. Nothing goes to the sill, which has had 3 of the last 12. By KIND, which the watch note says to read first: through #195 deepen 54, connect 42, new-element 33, polish 29, scale 20, interaction 14, harness 13, new-ca 10, fidelity 3. This queue is connect x2, new-ca, deepen, fidelity — b200 is the 4th fidelity ever and b197 the 11th new-ca, the two thinnest columns in the grid. I did NOT force a label to balance the count: the watch note says label a brief by the file it changes, and a kind chosen to flatter a histogram is a lie in the coverage grid."
   },
   "rationale": "No stall signal, so nothing forced the rung; I picked it from what the picture is missing, and then went and shot the picture. Two wide frames at seed 42, hour 23.00 in both, moonLit 0.999 and 0.003 (shots/mgrfull-wide.png, shots/mgrnew-wide.png). A full moon and a new moon are the SAME NIGHT. The only difference in 3200x1900 px is the ~20 px disc itself. The source says why in one line: applyLight()'s night is a single multiply keyed on nightF, and in 17,889 lines moonLit() is read by exactly three things — the disc, the river's glitter, and the label under the pointer. #188 gave this town a real 29.53-day month on the CALENDAR, one moon in every seed, and then nothing was allowed to see by it.\n\nThat is b196 and it is rung 4a, which wants defending because it is the rung this run uses least — once in sixteen passes (#139) against five 4bs. The ladder's 4a is 'a season, a longer cycle, weather, an hour nobody has seen', and the lunar month is the only cycle in the piece that does not divide into anything else: the day is 55 s, the year is 26 days, the moon is 29.53 — it beats against the year instead of nesting inside it, so no two nights of a season are alike. And a moonlit night is, flatly, an hour nobody has seen in 195 iterations. The brief has an explicit 150-300 line licence, 80 minutes, and is first in the queue.\n\nEvery other brief carries the number it rests on. b197 is the cross street's turn (10 back) and the grid's second-thinnest kind: bAge[] is ALREADY the fallow clock on an empty bed and plotAct already has five rungs, so the state a neglect-CA needs exists and nothing reads it — but the risk here is legibility, not mechanism, so the brief orders the measurement FIRST and says which fallback to take if a weed cannot be told from a crop at wide. b198 is c279 with #186's own numbers in it. b199 is c283, and it is #190's other half: lampBurn() solved the EVENING and the sunrise-keyed branch was never offered a figure at all. b200 is c286, fidelity, the thinnest column in the grid — ICE_CELLS was frozen at build time before #192 widened the channel, so at midwinter the margin is iced and the flood lying over the towpath beside it is open water.\n\nCURATION, and it opened OVER at 48.3/46 KB. Three moves, in order of how much I trust them.\n\n(1) The honest one. Two of the four WATCH notes open with the words 'for the manager' and were being charged to the worker's read budget — 815 B an iteration of text about coverage grids and runlog labelling that no worker can act on. They are now `managerWatch`, printed by state.mjs --show, capped at the same 420 B in rotate-ledger.mjs, and outside context-budget.mjs's count. Moving bytes off a budget is only honest if the reader they were moved off never needed them; that is the case here and rotate-ledger.mjs now says so in a comment, because this is exactly the manoeuvre that would let a future pass cheat.\n\n(2) INV_CAP goes back to 10.0 KB, undoing most of the 9.5 -> 10.75 raise I made five passes ago. That raise bought room the inventory then filled — it opened this pass at 10.7 KB with two domains over the entry count — so it bought nothing but a later reckoning. The inventory is 57 entries / 9.99 KB after two merges (the market's calendar and its size are ONE market; the census's winter row and probe-smoke are ONE instrument shelf) and a trim of the reasoning tails off twenty lines. The eaveFor() gotcha left the inventory entirely: it was a law sitting in a symbol index, and it is now inside trap (b).\n\n(3) LAWS.md took five new claims from #191-#195 and came out at 12,282 of 12,288 bytes with 27 laws, down from 29 — which means real cuts, and here they are. MERGED: #192's lagged-ladder finding into #189's three-ages law, which it corrects rather than repeats (a lagged term IS seen by a symmetric ladder, because the lag breaks the symmetry); #193's dead-constant law into the cap-and-rate law that already owned half of it; #194's ramp law into 'two seeds is not a sample', same subject; #191's picture-inputs law into the ground-cache law; the whole 'price the WALK where it can be PAID' bullet into the window/population bullet above it, which was already saying bound both ends; and the routes/waypoints law into the one-predicate-one-definition law, since it is that claim applied to target sets. ADDED WHOLE: #195's, that an instrument is a build artifact too and the cause is usually the artifact crossing a limit it never named. DELETED: 'a FIELD is not a READING — a gate wired into a row can sit at null for ever', because its subject moved (stall.mjs and probe-smoke.mjs now report an unread gate as a number, so it is enforced rather than remembered); the two-dawns corollary of the DAWN law, a quoting gotcha that fired once; and trap (c)'s 'height is read off the place under the feet, never written at spawn', because the source makes it unwriteable — an agent has no z field to set. The rest is compression, and compression is now nearly exhausted: this file is dense enough that the next law in costs a law out, and a future pass should expect to delete rather than tighten.\n\nSeven cues closed (five promoted to briefs, c260 deferred with a re-raise condition, c270 folded into c285, c272 rewritten into a managerWatch note), six left open, coverage recorded for #191-#195. One new managerWatch note: A CONSERVATION SCALAR IS NOT A FROZEN MAP. I spent a good part of this pass building a thesis on developed/green/passages having been flat for 95, 79 and 193 iterations, and the census's own comments killed it — those three are deliberately conserving, LEADS and ARCADE and REED each cut OUT of the tile they replace so the total holds, and #119 declined to move passages on purpose. It is a good premise-shaped trap and the next manager should not have to fall into it too.",
-  "queue": [
-    {
-      "id": "b200",
-      "domain": "River & far bank",
-      "kind": "Fidelity",
-      "brief": "c286: the river cannot freeze what its own flood covers. ICE_CELLS is built from onChannel at BUILD time, when column 127 was still SIDE — and #192 then widened onChannel so a winter lap is river to the cache. The list was already frozen, so a towpath cell the high water lies over can never take ice. At midwinter the margin is iced and the open water lying on the towpath beside it is not: shots/ice-east.png. Make the ice read the channel the world actually has in winter, not the one it had at build. Fidelity is 3 of 195 iterations, the thinnest column in the grid, and this is exactly what the kind means — the world keeping a promise it already makes.",
-      "seams": [
-        "ICE_CELLS",
-        "buildIce",
-        "stepIce",
-        "onChannel",
-        "rice",
-        "iceShel",
-        "iceTop",
-        "iceSkinCol",
-        "drawIce",
-        "iceRuns",
-        "riverLev",
-        "stepBank",
-        "bankBed",
-        "BANK_CELLS",
-        "SHOAL"
-      ],
-      "successLooksLike": "At midwinter there is no open water lying on an iced margin: the lap freezes with the channel it belongs to. The census's WINTER block moves frozen/margin and the SUMMER nine are byte-identical — both on a pinned ref, per #187's --ref.",
-      "avoid": "water counts ICE, so this redefines a gate's subject: LAWS says re-run every gate that READS it, not only the one briefed — the winter ladder AND the summer nine, on a ref, not on HEAD. Do not rebuild ICE_CELLS every tick if a cheaper answer exists; #191 measured the ground cache at 76.03 repaints/day and c285 says nobody is watching that bar between briefs. Quote it.",
-      "budgetMin": 40,
-      "risk": "medium"
-    }
-  ],
+  "queue": [],
   "recommendStop": null,
   "consumed": [
     {
@@ -61,6 +33,10 @@
     {
       "id": "b199",
       "at": "2026-09-04T10:11:52.644Z"
+    },
+    {
+      "id": "b200",
+      "at": "2026-09-04T10:35:12.563Z"
     }
   ]
 }
