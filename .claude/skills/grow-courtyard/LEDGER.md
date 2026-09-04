@@ -227,3 +227,26 @@ feed `iceNb` and push the old margin's front in; not one channel cell crossed IC
 already. The front was at its ceiling.
 **Law:** a build-time list derived from a predicate is a HOSTAGE to it — #192's widened `onChannel`
 silently un-completed a set frozen at #181. Grep a widened predicate's READERS, not its callers.
+
+## Iteration 201 — a terrace that is somebody's with nobody on it (2026-09-04) [Our block & the leads × Deepen]
+
+**Brief:** b201 — price how often a tenant is up on the leads, then give the terrace FABRIC.
+**Premise** (`probes/terrace-presence.mjs`, new, HEAD, 6 seeds × a year, 10,362 daylight samples):
+**0.2102 tenants a sample, 18.57% with anybody up** — four daylight moments in five the frame's
+foreground quarter is bare, and the supply is six bays, not the cap.
+**Did.** `leadsKit(bay)`, every branch hash(house): pots, a crate stack, a chair, a mat, `tidy`,
+`wash`. No two of six alike; 23 pieces. `drawLeadsFabric()` is in the GROUND CACHE before
+drawRoofFurn so the cords hang over it, and reads only what that cache already repaints for:
+`potLeaf`/`potBloom` closed both sides of seasonPhase, `chairTip()` a SCALAR folding the chair onto
+its own seat as the wet and cold come in, litter that GATHERS into a corner. `freeBay(k, want)` pegs
+only where a line hangs; a sun stay takes the chair.
+**Gates:** census/motion PASS · 0 POP · drawGround **+0.20 ms on 27.1**, no new dirty reason ·
+`probes/terrace-mass.mjs` **424/483/343 px at 1600x950, 104/131/77 at 390x844** on a same-code floor
+of **0 px every row** · northmost drawn point **85.14** on the 84.93 bound · presence 0.2029 / 18.26%.
+**Verdict:** shipped
+**Surprise:** the fabric is FREE to the seeded world and it was PROVABLE. `probes/terrace-identity.mjs`
+censuses the build with its one behaviour change backed out against HEAD: **6 field diffs over 3 seeds
+× 300 s, all the new field and its subtotal.** Every other number in the histogram is
+`freeBay`'s filter, one refused spawn.
+**Law:** a cached draw is free to the seeded world, so a build with its one BEHAVIOUR change backed
+out must census IDENTICALLY to HEAD but for its new fields.

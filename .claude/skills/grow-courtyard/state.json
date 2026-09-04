@@ -2,7 +2,7 @@
   "updated": "2026-09-04",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 200,
+  "lastIteration": 201,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -567,7 +567,11 @@
         190
       ]
     },
-    "nearblock": {}
+    "nearblock": {
+      "deepen": [
+        201
+      ]
+    }
   },
   "saturation": {
     "skyxpolish": {
@@ -662,7 +666,8 @@
       "OUR OWN ROOF below the lane: rows 79..WH WALL, NEAR_SPANS, NEAR_HOUSE 7/houseOf, NEAR_RIDGE; drawNearRoof CACHED — drawCrests, WELLS, DORM_Y, drawParapet, OUR_AWNINGS, roofWalkZ; nearHidden(y,sy) and nearScale (NEAR_SZ 1.95) are the band’s two bounds",
       "SLATED (#110/#123): drawRoofRow forks at LN_WALK_S to drawSlateCell/slateRun; per-slate roofMossF/sootAt/slipped; roofBirdSpot; ROOF_FURN 24 a BAY — line/tank/loft ONLY, placed by furnRow/furnDmax off the DEEPEST DRAWN POINT so the shortest framing still shows it",
       "the LEADS are a terrace (#170): tile 17, rows 86-87, LEADS_SHARE 0.42 on hash(house), refused across the river; LEADS_BAYS/HATCHES, drawHatch LIVE in two states, leadsName; WASH_H_LEADS 1.55 its own cord, washOut() the town’s one drying test",
-      "and INHABITED (#171): spawnTenant/stepTenant, outside the town’s routing — no exit, no door, no companion (pairStands REFUSES leads). TEN_CAP 2, TEN_STAND in HOURS; THREE triggers — washOut()’s EDGE (peg/take), one sun stay a day behind tenSunFine()’s five clauses, one evening lean"
+      "and INHABITED (#171): spawnTenant/stepTenant, outside the town’s routing — no exit, no door, no companion (pairStands REFUSES leads). TEN_CAP 2, TEN_STAND in HOURS; THREE triggers — washOut()’s EDGE (peg/take), one sun stay a day behind tenSunFine()’s five clauses, one evening lean",
+      "and FURNISHED (#201): leadsKit(bay) off hash(house) — pots/crate/chair/mat, tidy and wash; drawLeadsFabric() in the ground cache before the cords; potLeaf/potBloom/chairTip/litter read the year; freeBay(k, want) pegs only where a line hangs"
     ]
   },
   "openCues": [
@@ -693,6 +698,12 @@
     {
       "id": "c296",
       "note": "at 390x844 the page opens on WIDE, so a phone visitor gets the courtyard and the cross street, no plaza/river/far bank, and ~40% of the frame is near roof + sill. #144 closed c217 with “the quarter button is the answer, one tap” — but nothing makes that visitor press it, and the default framing is what the first ten seconds are spent in.",
+      "raisedBy": 200,
+      "seenBy": 0
+    },
+    {
+      "id": "c298",
+      "note": "freeBay starves its index-0 bay: on HEAD house 1 took 0.35-0.75% of daylight samples to house 7's 4.9%, a 7x gap over 6 seeds x a year (probes/terrace-presence.mjs). #201's filter evened it by accident; the branch is unexamined.",
       "raisedBy": 200,
       "seenBy": 0
     }
@@ -1021,6 +1032,14 @@
       "seenBy": 0,
       "closedBy": 200,
       "why": "closed at #200: #199 re-priced pane-figure-continuity.mjs’s threshold off the walk’s FASTEST phase and it reads 0 swaps/yr on BOTH sides. The claim was never that a swap happens, only that the evening pair is disjoint by measurement rather than by construction — and the measurement is now a standing gate. Re-raise it the day that gate reports a swap; the fix is one max() mirroring #199’s mLo."
+    },
+    {
+      "id": "c297",
+      "note": "freeBay starves its index-0 bay: on HEAD house 1 took 0.35-0.75% of daylight samples against house 7's 4.9%, a 7x gap over 6 seeds x a year (probes/terrace-presence.mjs). #201's wash filter evened it to 3.1% by accident; the branch itself is unexamined.",
+      "raisedBy": 200,
+      "seenBy": 0,
+      "closedBy": 200,
+      "reason": "re-raising shorter"
     }
   ],
   "cueSeq": 296,

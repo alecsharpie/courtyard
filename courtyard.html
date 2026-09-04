@@ -12040,11 +12040,278 @@ function buildLeads(){
       if (x1 > sx1 || x1 <= 0 || x0 >= GW || !leadsHouse(h)) continue;
       const bay = {house:h, x0, x1, hx:x0 + 1.5 + hash(h, 911) * 0.9, hy:LEADS_HATCH_Y,
                    wx0:x0 + 0.9, wx1:x1 - 0.9, wy:LEADS_LINE_Y, busy:0};
+      bay.kit = leadsKit(bay);          // #201: what this household leaves out on theirs
       LEADS_BAYS.push(bay);
       HATCHES.push({x:bay.hx, y:bay.hy, house:h, bay});
       ROOF_FURN.push({kind:'line', x:bay.wx0, x1:bay.wx1, y:LEADS_LINE_Y,
-                      h:hash(h, 919), house:h, leads:true});
+                      h:hash(h, 919), house:h, leads:true, bay});
     }
+  }
+}
+/* ============ the terrace's fabric (#201) ============
+ * Priced first (probes/terrace-presence.mjs, 6 seeds x a year, 10,362 daylight samples
+ * at 1600x950): somebody is up on the leads in 18.57% of them — 0.2102 of a tenant a
+ * sample, every one of them visible. Four daylight moments in five, every terrace in the
+ * foreground quarter of the frame is bare. The answer to that is NOT more people: the
+ * supply is six bays, and #170's own comment says why the cap is where it is. What says a
+ * household uses a roof is what they LEAVE on it.
+ *
+ * Carried on the BAY and cut off hash(house), exactly as LEADS_SHARE cuts the terraces
+ * themselves: it is built once, it never moves, and a draw here would reshuffle the whole
+ * seeded world (#96). It is baked into the GROUND CACHE with the leads it stands on, so
+ * like the ledge's own year (#191) it may only read what the cache ALREADY repaints for —
+ * the light, snowCover, wetBucket() rather than the live wetness, and `day`, which turns
+ * once. No new dirty reason is added.
+ *
+ * And the year reads on it, because a roof is where a household keeps the year: the tubs
+ * break, flower and are cut hard back, the chair goes over onto its own seat as the
+ * weather comes in, and what silts into the corner of a flat nobody sweeps is leaves in
+ * October and grit the rest of the time. */
+const LEADS_BACK_Y = 87.06, LEADS_FRONT_Y = 87.44;   // the two lines a terrace's things stand on
+/* Everything here is SHORT, and the bound is the one #123 states for the pitch: LIFT
+ * carries a cell of height 1.15 rows NORTH, so a piece standing on the flat draws its top
+ * that far up the frame and past depth 84.93 it is on the SLATES ABOVE the terrace
+ * instead of on it. The tallest piece — a tub with its plant over it, 0.92 of a cell —
+ * tops out at 85.12 from the back line, and probes/terrace-presence.mjs prints the
+ * northmost drawn point of every piece in every bay rather than trusting this sentence.
+ * The other end needs no bound: measured, the sill covers the WHOLE terrace at 1280x700
+ * and at 1200x720 and reaches NONE of it at 1600x950 or at 390x844, which is the bargain
+ * #170 already struck for the hatch and the cord — a bound at FURN_DMAX would delete the
+ * terrace, not save it, so what guards this band is nearHidden() on the pointer. */
+const LEADS_DN = 84.93;
+const LEADS_POT = {r:0.30, h:0.42, lf:0.50};      // tub radius, its body, and the plant over it
+const LEADS_CRATE = {w:0.42, d:0.24, h:0.30};
+const LEADS_CHAIR = {w:0.26, d:0.19, seat:0.36, back:0.54};
+const LEADS_MAT = {w:0.26, d:0.15};
+const LEADS_PAINT = ['#5c6b63', '#7a5c46', '#4e5666', '#7d7048'];   // what the chair got painted
+/* Two things go in a tub carried up a stair, and they are the two the ledge already grows
+ * two floors below (#191) — it is the same household. Written off seasonPhase and never
+ * off warmth alone, which happens twice a year, and closed on both sides: phase 0 is
+ * midwinter, 0.25 spring, 0.5 midsummer. The evergreen never leaves and only thickens and
+ * thins; the other is cut hard back as it goes over and breaks again in late winter. */
+function potLeaf(sp){ const p = seasonPhase;
+  return sp ? clamp(0.66 + 0.34 * Math.cos((p - 0.5) * 6.2832), 0.55, 1)
+            : clamp(Math.min((p - 0.11) / 0.15, (0.88 - p) / 0.09), 0.07, 1); }
+function potBloom(sp){ const p = seasonPhase;     // and only one of them flowers
+  return sp ? 0 : clamp((p - 0.30) / 0.11, 0, 1) * clamp((0.79 - p) / 0.10, 0, 1); }
+/* The chair. Nobody carries a kitchen chair back down a stair every time it looks like
+ * rain; they tip it forward onto its seat so the wet runs off, which is what this is. A
+ * SCALAR and not a switch (#96's rule, and the ledge's): it folds through the middle
+ * instead of popping between two chairs, and all three terms are cache-cheap — the wet is
+ * read at the bucket the ground itself is painted at, never at the live value. */
+function chairTip(){
+  return clamp(Math.max(wetBucket() * 2.4, (chillF() - 0.58) / 0.26, snowCover * 5), 0, 1);
+}
+/* WHOSE line it is. A quarter of the terraces never hang anything — that cord has been
+ * bare since it was strung — two fifths hang whatever the day is like, and the rest hang
+ * on the days they have a wash to do. hash(day), never R(): a whole day at a time, so
+ * nothing appears on a line mid-afternoon, and SALTED, so the same household does not
+ * keep the same washday in every world. This is the one piece of fabric that already had
+ * a draw site — the cord is ROOF_FURN's — and all this does is ask whose it is before
+ * pegging anything to it. */
+function bayWash(bay){
+  const k = bay.kit;
+  return !!k && (k.wash === 1 || (k.wash === 2 && hash(day + bay.house * 37, 953 + WIND_SALT) < 0.62));
+}
+// the one test the draw, the words and the hit box all ask, so they cannot disagree (#170)
+function lineWash(f){ return washOut() && (!f.leads || bayWash(f.bay)); }
+/* What a bay has. Every branch is hash(house) — the fabric is one town in every world,
+ * which is what the terraces, the party walls and the hatches already are. The run it is
+ * laid along is EAST of the hatch, because the stair comes up at the west end of every
+ * bay and nobody stacks a crate in front of their own way in; the cursor walks east and a
+ * piece that does not fit simply is not there, which is most of why no two bays match. */
+function leadsKit(bay){
+  const h = bay.house, k = {};
+  const w = hash(h + 700, 941);
+  k.wash = w < 0.26 ? 0 : w < 0.58 ? 2 : 1;
+  k.tidy = hash(h + 700, 947);                    // 1 = swept this morning, 0 = not since spring
+  const e0 = bay.hx + 0.95, e1 = bay.x1 - 0.35;
+  k.pots = [];
+  let cur = e0 + 0.10 + hash(h + 700, 959) * 0.42;
+  const np = (hash(h + 700, 961) * 3.6) | 0;      // none, one, two or three
+  for (let i = 0; i < np; i++){
+    const r = LEADS_POT.r * (0.76 + hash(h * 5 + i, 967) * 0.52);
+    if (cur + r * 2 > e1) break;
+    k.pots.push({x:cur + r, y:LEADS_BACK_Y + (hash(h * 5 + i, 971) - 0.5) * 0.10, r, key:h * 5 + i,
+                 sp:hash(h * 5 + i, 977) < 0.34 ? 1 : 0, f:0.72 + hash(h * 5 + i, 983) * 0.56,
+                 warm:hash(h * 5 + i, 1031) < 0.66});
+    cur += r * 2 + 0.20 + hash(h * 5 + i, 989) * 0.22;
+  }
+  k.crate = hash(h + 700, 991) < 0.55 && cur + LEADS_CRATE.w < e1
+    ? {x:cur + LEADS_CRATE.w * 0.6, y:LEADS_BACK_Y - 0.05, key:h * 5 + 4,
+       n:hash(h + 700, 997) < 0.42 ? 2 : 1} : null;
+  const cx0 = bay.hx + 1.15, cx1 = bay.x1 - 0.55;
+  k.chair = hash(h + 700, 1009) < 0.62 && cx1 > cx0
+    ? {x:cx0 + hash(h + 700, 1013) * (cx1 - cx0), y:LEADS_FRONT_Y,
+       col:LEADS_PAINT[(hash(h + 700, 1019) * LEADS_PAINT.length) | 0]} : null;
+  k.mat = hash(h + 700, 1021) < 0.62 ? {x:bay.hx, y:LEADS_HATCH_Y + 0.42} : null;
+  // and a terrace that drew nothing at all is still somebody's: it gets the two things
+  // that need no room on the run, so the "at least two bays carry something" this vector
+  // exists for is true BY CONSTRUCTION and not by the luck of six hashes
+  if (!k.pots.length && !k.crate && !k.chair){
+    k.mat = {x:bay.hx, y:LEADS_HATCH_Y + 0.42};
+    k.crate = {x:e0 + 0.5, y:LEADS_BACK_Y - 0.05, key:h * 5 + 4, n:1};
+  }
+  return k;
+}
+function leadsKitN(){
+  let n = 0;
+  for (const b of LEADS_BAYS)
+    n += b.kit.pots.length + (b.kit.crate ? 1 : 0) + (b.kit.chair ? 1 : 0) + (b.kit.mat ? 1 : 0);
+  return n;
+}
+/* ---- and how it is drawn ----------------------------------------------------------
+ * Painter's order across the WHOLE block and not per bay: larger y is nearer, so the
+ * pieces are pooled, sorted once and drawn back to front, which is the rule ROOF_FURN's
+ * own sort states. The litter goes down first everywhere — it is flat on the lead and
+ * everything standing on the flat stands ON it. */
+function drawLeadsFabric(g){
+  if (!LEADS_BAYS.length || !LEADS_BAYS[0].kit) return;
+  const lit = 0.24 + 0.58 * daylight, items = [];
+  for (const bay of LEADS_BAYS){
+    drawLeadLitter(g, bay);
+    const k = bay.kit;
+    for (const p of k.pots) items.push([p.y, drawLeadPot, p]);
+    if (k.crate) items.push([k.crate.y, drawLeadCrate, k.crate]);
+    if (k.mat) items.push([k.mat.y, drawLeadMat, k.mat]);
+    if (k.chair) items.push([k.chair.y, drawLeadChair, k.chair]);
+  }
+  items.sort((a, b) => a[0] - b[0]);
+  for (const [, f, a] of items) f(g, a, lit);
+}
+/* A box on the leads, south face then top — the same order drawHatch uses, and for the
+ * same reason: we are above this surface, so what shows is the side turned to the window
+ * and the lid. z is read with roofWalkZ and not nearZ, because the tenant's feet read
+ * this surface too and a crate half a cell above their soles reads as floating. */
+function leadBox(g, x, y, w, d, z, h, sideCol, topCol, snowK){
+  const y0 = y - d, y1 = y + d, zt = z + h, w2 = w * 0.5;
+  g.fillStyle = sideCol;
+  poly(g, [project(x - w2, y1, zt), project(x + w2, y1, zt),
+           project(x + w2, y1, z), project(x - w2, y1, z)]); g.fill();
+  const top = [project(x - w2, y0, zt), project(x + w2, y0, zt),
+               project(x + w2, y1, zt), project(x - w2, y1, zt)];
+  g.fillStyle = snowK ? mix(topCol, SNOW_COL, clamp(snowCover * snowK, 0, 0.92)) : topCol;
+  poly(g, top); g.fill();
+  g.strokeStyle = 'rgba(18,15,12,.42)'; g.lineWidth = 0.8;
+  poly(g, top); g.stroke();
+}
+function drawLeadPot(g, p, lit){
+  const z = roofWalkZ(p.x, p.y), r = p.r, hgt = LEADS_POT.h * (r / LEADS_POT.r), zr = z + hgt;
+  const d = r * 0.70, foot = r * 0.64;
+  const c = project(p.x, p.y, zr);
+  const rx = Math.abs(project(p.x + r, p.y, zr)[0] - c[0]), ry = rx * 0.70;
+  // the tub, tapering to its foot, then the rim seen from above and the earth inside it
+  g.fillStyle = mix('#31201a', p.warm ? '#a2604a' : '#8b7a68', lit);
+  poly(g, [project(p.x - r, p.y + d, zr), project(p.x + r, p.y + d, zr),
+           project(p.x + foot, p.y + d, z), project(p.x - foot, p.y + d, z)]); g.fill();
+  g.fillStyle = mix('#3d2820', p.warm ? '#b87257' : '#9c8b78', lit);
+  g.beginPath(); g.ellipse(c[0], c[1], rx, ry, 0, 0, 7); g.fill();
+  g.fillStyle = mix('#191512', '#4a3a2a', lit);
+  g.beginPath(); g.ellipse(c[0], c[1], rx * 0.74, ry * 0.74, 0, 0, 7); g.fill();
+  if (snowCover > 0.06){
+    g.fillStyle = mix('#4a3a2a', SNOW_COL, clamp(snowCover * 1.5, 0, 0.9));
+    g.beginPath(); g.ellipse(c[0], c[1] - ry * 0.18, rx * 0.80, ry * 0.72, 0, 0, 7); g.fill();
+  }
+  const lf = potLeaf(p.sp) * p.f, bl = potBloom(p.sp);
+  // the stems stay whatever the year does — that is what a plant cut back IS
+  g.strokeStyle = mix('#221a14', '#6d6046', lit); g.lineWidth = Math.max(0.8, rx * 0.16);
+  for (let i = 0; i < 3; i++){
+    const a = project(p.x + (i - 1) * r * 0.42, p.y, zr - 0.02);
+    const b = project(p.x + (i - 1) * r * 0.72, p.y, zr + LEADS_POT.lf * (0.24 + 0.36 * lf));
+    g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke();
+  }
+  const nb = p.sp ? 5 : 4;
+  for (let i = 0; i < nb; i++){
+    const u = hash(p.key * 11 + i, 1033), v = hash(p.key * 13 + i, 1039);
+    const bx = p.x + (u - 0.5) * r * 2.3 * (0.45 + 0.55 * lf);
+    const bz = zr + LEADS_POT.lf * lf * (0.22 + v * 0.82);
+    const q = project(bx, p.y - 0.02, bz);
+    const g0 = 52 + (v * 34 | 0), g1 = 84 + (u * 46 | 0);
+    g.fillStyle = mix('#1d2118', 'rgb(' + g0 + ',' + g1 + ',' + (44 + (u * 26 | 0)) + ')', 0.30 + 0.62 * lit);
+    g.beginPath(); g.ellipse(q[0], q[1], rx * (0.52 + 0.3 * lf), ry * (0.62 + 0.4 * lf), 0, 0, 7); g.fill();
+    if (bl > 0.04 && i < 3){
+      const fq = project(bx + (v - 0.5) * r * 0.7, p.y - 0.03, bz + 0.06 * lf);
+      g.fillStyle = mix('#3a2320', p.warm ? '#d4746a' : '#e0c07a', 0.34 + 0.6 * lit);
+      g.beginPath(); g.ellipse(fq[0], fq[1], rx * 0.26 * bl, ry * 0.30 * bl, 0, 0, 7); g.fill();
+    }
+  }
+}
+function drawLeadCrate(g, c, lit){
+  const z0 = roofWalkZ(c.x, c.y);
+  for (let i = 0; i < c.n; i++){
+    const s = i ? 0.84 : 1, dx = i ? (hash(c.key, 1049) - 0.5) * 0.20 : 0;
+    const w = LEADS_CRATE.w * s, z = z0 + i * LEADS_CRATE.h;
+    leadBox(g, c.x + dx, c.y, w, LEADS_CRATE.d * s, z, LEADS_CRATE.h,
+            mix('#241b13', '#7d6440', lit), mix('#2b2119', '#8e7550', lit), i === c.n - 1 ? 1.6 : 0);
+    // two slats on the face, which is all a crate is at this size
+    g.strokeStyle = 'rgba(22,17,12,.38)'; g.lineWidth = 0.8;
+    for (const t of [0.36, 0.70]){
+      const a = project(c.x + dx - w * 0.5, c.y + LEADS_CRATE.d * s, z + LEADS_CRATE.h * t);
+      const b = project(c.x + dx + w * 0.5, c.y + LEADS_CRATE.d * s, z + LEADS_CRATE.h * t);
+      g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke();
+    }
+  }
+}
+/* The chair, folded through one scalar. At tip 0 the seat is level and the back stands
+ * up; at tip 1 the front rail has risen by the seat's own depth — which puts the seat
+ * vertical — and the back has gone over forward and down. Both ends of every stroke are
+ * solved in WORLD space and projected, never offset in pixels (the law project() earns). */
+function drawLeadChair(g, c, lit){
+  const z = roofWalkZ(c.x, c.y), tip = chairTip();
+  const {w, d, seat, back} = LEADS_CHAIR;
+  const sz = z + seat * (1 - 0.30 * tip), fz = sz + tip * d * 2;
+  const dark = mix('#211d18', c.col, lit * 0.72), face = mix('#231f19', c.col, lit);
+  g.strokeStyle = dark; g.lineWidth = Math.max(1, cellW * 0.05);
+  for (const lx of [-w, w]){                        // the back pair; the front pair is off the roof when it goes over
+    for (const [ly, zt, z0] of [[-d, sz, z], [d, fz, z + tip * d * 1.6]]){
+      const a = project(c.x + lx, c.y + ly, z0), b = project(c.x + lx, c.y + ly, zt);
+      g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke();
+    }
+  }
+  g.fillStyle = face;
+  poly(g, [project(c.x - w, c.y - d, sz), project(c.x + w, c.y - d, sz),
+           project(c.x + w, c.y + d, fz), project(c.x - w, c.y + d, fz)]); g.fill();
+  const by = c.y - d - tip * back * 0.85, bz = sz + back * (1 - 0.88 * tip);
+  g.fillStyle = mix('#1e1a15', c.col, lit * 0.88);
+  poly(g, [project(c.x - w * 0.86, by, bz), project(c.x + w * 0.86, by, bz),
+           project(c.x + w * 0.86, c.y - d, sz + back * 0.30 * (1 - tip)),
+           project(c.x - w * 0.86, c.y - d, sz + back * 0.30 * (1 - tip))]); g.fill();
+  g.strokeStyle = 'rgba(16,14,11,.45)'; g.lineWidth = 0.8;
+  const q = [project(c.x - w, c.y - d, sz), project(c.x + w, c.y - d, sz),
+             project(c.x + w, c.y + d, fz), project(c.x - w, c.y + d, fz)];
+  poly(g, q); g.stroke();
+}
+function drawLeadMat(g, m, lit){
+  const z = roofWalkZ(m.x, m.y) + 0.010, w = LEADS_MAT.w, d = LEADS_MAT.d;
+  const wet = wetBucket();
+  const q = [project(m.x - w, m.y - d, z), project(m.x + w, m.y - d, z),
+             project(m.x + w, m.y + d, z), project(m.x - w, m.y + d, z)];
+  g.fillStyle = mix(mix('#1c1610', '#7c6845', lit * (1 - 0.42 * wet)), SNOW_COL, clamp(snowCover * 1.7, 0, 0.9));
+  poly(g, q); g.fill();
+  g.strokeStyle = 'rgba(18,14,10,.45)'; g.lineWidth = 0.8; poly(g, q); g.stroke();
+}
+/* THE SWEPT FLAT AND THE UNSWEPT ONE. What blows onto a roof is what blows off the trees,
+ * so the drift is the YEAR's — leaf fall in October, grit and soot the rest of it — and
+ * it GATHERS. One uniform hash over the bay is a texture and never a PLACE, so this is
+ * banked: east against the party wall and north into the lap where the slate comes down
+ * onto the lead, which is the corner a flat roof actually silts up in. Flat on the lead,
+ * so it has no height to carry north and no bound of its own to clear. */
+function drawLeadLitter(g, bay){
+  const un = 1 - bay.kit.tidy;
+  if (un < 0.24 || snowCover > 0.45) return;
+  const fall = leafFallF(), n = Math.round(8 + 26 * un);
+  for (let i = 0; i < n; i++){
+    const u = hash(bay.house * 23 + i, 1051), v = hash(bay.house * 29 + i, 1057);
+    const x = bay.x0 + 0.30 + (bay.x1 - bay.x0 - 0.60) * (1 - u * u);
+    const y = LEADS_Y0 + 0.14 + 1.60 * (v * v);
+    const leaf = hash(bay.house * 31 + i, 1061) < 0.18 + 0.62 * fall;
+    const p = project(x, y, roofWalkZ(x, y) + 0.006);
+    g.fillStyle = leaf
+      ? 'rgba(' + (116 + (u * 44 | 0)) + ',' + (84 + (v * 30 | 0)) + ',42,' + (0.30 + 0.30 * un).toFixed(3) + ')'
+      : 'rgba(44,40,34,' + (0.26 + 0.26 * un).toFixed(3) + ')';
+    g.beginPath();
+    g.ellipse(p[0], p[1], cellW * (leaf ? 0.055 : 0.030), cellH * (leaf ? 0.048 : 0.028), 0, 0, 7);
+    g.fill();
   }
 }
 buildRoofFurn();      // the volumes are built above, and nothing here is seeded
@@ -12101,8 +12368,12 @@ function tenSunFine(){
 function tenantCount(){ let n = 0; for (const a of agents) if (a.tenant) n++; return n; }
 /* Which household. A per-day hash and not R(): the same family hangs out the same
  * terrace's washing all day, and the choice costs the seeded world nothing. */
-function freeBay(k){
-  const open = LEADS_BAYS.filter(b => !b.busy);
+/* #201: and asked WITH a condition where the errand has one. Nobody goes up to peg out a
+ * wash on a terrace whose line is bare all week — bayWash() is what the cord itself is
+ * drawn from, so the person and the cloth cannot drift apart, which is the whole of why
+ * the errands were read off washOut() in the first place. */
+function freeBay(k, want){
+  const open = LEADS_BAYS.filter(b => !b.busy && (!want || want(b)));
   return open.length ? open[Math.min(open.length - 1, (hash(day, k) * open.length) | 0)] : null;
 }
 function tenStand(act){ const [lo, hi] = TEN_STAND[act]; return (lo + R() * (hi - lo)) / HOURS_PER_S; }
@@ -12116,7 +12387,11 @@ function spawnTenant(bay, act){
   };
   const wx = (bay.wx0 + bay.wx1) / 2 + (R() - 0.5) * (bay.wx1 - bay.wx0) * 0.34;
   if (act === 'sun'){
-    a.wp.push([bay.x0 + 3.4 + R() * 1.4, TEN_WALK_Y + 0.15], [bay.hx, bay.hy]);
+    /* #201: in the chair, if that terrace keeps one out. The draw is spent either way —
+     * the R() stream IS the seeded world — so the fabric moves where they sit and never
+     * whether they came up at all. */
+    const ch = bay.kit && bay.kit.chair, sx0 = bay.x0 + 3.4 + R() * 1.4;
+    a.wp.push([ch ? ch.x : sx0, ch ? ch.y : TEN_WALK_Y + 0.15], [bay.hx, bay.hy]);
     a.stops.push({act:'sun', st:'sit', dur:tenStand('sun'), faceL:R() < 0.5}, null);
   } else if (act === 'lean'){
     a.wp.push([bay.x1 - 1.05, TEN_WALK_Y], [bay.hx, bay.hy]);
@@ -12163,7 +12438,7 @@ function tenantErrands(){
   if (washWas === null){ washWas = out; return; }
   if (out !== washWas){
     washWas = out;
-    const b = tenantCount() < TEN_CAP ? freeBay(829) : null;
+    const b = tenantCount() < TEN_CAP ? freeBay(829, bayWash) : null;
     if (b){
       spawnTenant(b, out ? 'peg' : 'take');
       sayAt(b.hx, b.hy, out ? 'A hatch goes back on the roof below the window and a basket of washing comes up.'
@@ -12228,6 +12503,23 @@ function leadsName(x, y){
   for (const h of HATCHES)
     if (Math.abs(x + 0.5 - h.x) < 0.75 && Math.abs(y + 0.5 - h.y) < 0.7)
       return h.bay.busy ? 'the roof hatch, standing open' : 'the roof hatch, shut on its stair';   // #170
+  /* #201: and what is left out on it, read off the same kit the cache drew and the same
+   * scalars — a chair is named in whichever state chairTip() just folded it into, exactly
+   * as the hatch is named in whichever state drawHatch drew. */
+  const near = (o, rx, ry) => !!o && Math.abs(x + 0.5 - o.x) < rx && Math.abs(y + 0.5 - o.y) < ry;
+  for (const b of LEADS_BAYS){
+    const k = b.kit;
+    if (!k) continue;
+    if (near(k.chair, 0.55, 0.62)) return chairTip() > 0.5 ? 'a kitchen chair, tipped forward off the weather'
+                                                           : 'a kitchen chair, left out on the leads';
+    if (near(k.crate, 0.55, 0.60)) return k.crate.n > 1 ? 'crates, stacked against the party wall' : 'a crate, out on the leads';
+    if (near(k.mat, 0.52, 0.58)) return 'a mat, put down at the head of the stair';
+    for (const p of k.pots) if (near(p, 0.50, 0.55))
+      return p.sp ? 'a bay tree in a tub, wintered out on the leads'
+           : potBloom(0) > 0.3 ? 'a tub of geraniums, in flower on the leads'
+           : potLeaf(0) > 0.45 ? 'a tub of geraniums on the leads'
+           : 'a tub cut hard back for the winter';
+  }
   return snowCover > 0.10 ? 'the leads, under a lying cover'
        : wetF() > 0.35 ? 'the leads, water standing in the fall'
        : 'the leads — a roof terrace on our own block';
@@ -12407,6 +12699,10 @@ function drawNearRoof(g){
    * Then the furniture. Then the DORMERS, which stand on row 85 and whose ridges reach
    * back to depth 81.55, inside the furniture's band and nearer than all of it. */
   drawParapet(g);
+  /* #201: the terrace fabric goes in BEFORE the furniture and after the parapet. The
+   * cords are ROOF_FURN's and hang at row 87.75 — nearer than everything standing on the
+   * flat behind them — so the washing has to be able to paint over a chair, and does. */
+  drawLeadsFabric(g);
   drawRoofFurn(g);
   for (let x = XLO; x < XHI; x++){
     // one per house, set just east of its party wall — and solidC is asked about the cell
@@ -12479,9 +12775,9 @@ function drawParapet(g){
  * Everything here is drawn SOUTH-FACE-then-TOP: we are above this roof, so a box shows
  * us the side turned toward the window and the lid, and nothing else. */
 function drawRoofFurn(g){
-  const lit = 0.24 + 0.58 * daylight, out = washOut();
+  const lit = 0.24 + 0.58 * daylight;
   for (const f of ROOF_FURN){
-    if (f.kind === 'line') drawWashLine(g, f, lit, out);   // the line stays strung; the washing does not
+    if (f.kind === 'line') drawWashLine(g, f, lit, lineWash(f));   // the line stays strung; the washing does not
     else if (f.kind === 'tank') drawWaterTank(g, f, lit);
     else drawPigeonLoft(g, f, lit);
   }
@@ -17353,7 +17649,7 @@ function roofFurnName(f){
   // The new middle rung is deliberately a THIN band — 0.30..0.40 — and it fires on 3.4%
   // of the hours washing is out (probe-wind-consumers, 6 seeds x 26 d), which is a few
   // afternoons a year rather than a common sight. Counted, not assumed.
-  if (washOut()) return isWindy()              ? 'a line of washing, blowing about on the roof'
+  if (lineWash(f)) return isWindy()              ? 'a line of washing, blowing about on the roof'
                       : windF() > WIND_STILL_HI ? 'a line of washing lifting in the breeze'
                                                : 'a line of washing out to dry';
   if (snowCover > 0.04) return 'a washing line, the cord under snow';
@@ -17378,7 +17674,7 @@ function roofFurnAt(p){
     const x0 = line ? f.x : f.x - b.w, x1 = line ? f.x1 : f.x + b.w;
     const d = line ? 0.30 : b.d;
     const zt = z + (line ? washH(f) : f.kind === 'tank' ? b.legh + b.hgt : b.base + b.hgt + b.rid);
-    const zb = line ? (washOut() ? zt - (WASH_DROP + WASH_DROP_R) : zt - 0.10) : z;
+    const zb = line ? (lineWash(f) ? zt - (WASH_DROP + WASH_DROP_R) : zt - 0.10) : z;
     const lo = project(x0, f.y + d, zb), hi = project(x1, f.y + d, zb), top = project(x0, f.y - d, zt);
     if (p[0] < lo[0] - FURN_PAD || p[0] > hi[0] + FURN_PAD) continue;
     if (p[1] < top[1] - FURN_PAD || p[1] > lo[1] + FURN_PAD) continue;
@@ -18301,6 +18597,10 @@ window.__census = function(){
      * it made the census non-reproducible. Census fields must be town state, not
      * render state. */
     chimneys: CHIMNEYS.length, roofFurniture: ROOF_FURN.length, roofHatches: HATCHES.length,
+    /* #201: what the terraces have out on them. Rides beside roofHatches for the reason
+       eaveLine does — it is what makes a bare near roof evidence of a bug rather than of
+       a system that is not there. Build-time town state: a pure function of hash(house). */
+    terraceFabric: leadsKitN(),
     plotFurniture: ALLOT_FURN.length,
     ringNodes: RING.length, edgeBeds: EDGE_BEDS.length, arcadeBays: ARCADE_BAYS.length,
     /* #189: the colony, and the eave line it grows on. `eaveLine` is a build-time

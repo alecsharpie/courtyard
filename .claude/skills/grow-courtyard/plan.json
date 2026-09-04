@@ -15,40 +15,6 @@
   "rationale": "I SHOT THE TOWN BEFORE PLANNING IT — seed 42, day 3 at 10:22 and day 22 at 03:49, wide plus the near band plus the phone — and the pictures say one thing loudly. The block below our window is 23% of the wide frame and about 40% of the phone's, and by day it is the dullest large surface in the picture: slate, party walls, washing, chimney pots, and nothing that moves. That is not because it is empty. #170 gave it LEADS terraces and a hatch and #171 gave it tenants, and the inventory line saying so is why the bet I first drafted (\"put people on the near roof\") died before it was written — the law works. What the shots actually show is subtler and better: the terrace's whole life is EVENTS. tenantErrands fires on washOut()'s EDGE, at most twice a day, plus one sun stay behind tenSunFine()'s five clauses and one evening lean, all under TEN_CAP 2. An event is seen by whoever is watching that second; FABRIC is in every frame. So b201 asks for the number nobody has (tenant presence per daylight sample over 6 seeds x a year) and then for the thing that survives the empty frames.\n\nTHE RUNG IS A 3 AND THE CLIMB IS THE POINT. This is the move the previous loop could not make: the foreground quarter of every frame has no domain. Its material has been filed under Roofs & skyline — whose seam list is buildVolumes, CHIMNEYS, drawClockTower, all FAR roof — or under The sill & the observer, which is chrome plus a saturated harness cell. Six iterations built the near block (#100 #106 #110 #123 #170 #171) and not one of them could be briefed AT it, because there was nowhere on the menu to write it down. `nearblock` — Our block & the leads — is now a domain, and b201 founds it.\n\nWHY NOT 4b: unchanged and I re-checked it. GW is 138, every quarter is allocated, the wide frame is edge to edge, and #144 priced the phone at 2.8 px a cell. A spatial climb still needs the FRAME to move first, and that is c296, not a brief I can hand a worker tonight. WHY NOT 5: I looked, and the observer changes actually available are chrome-shaped — 7 of the 14 interactions this run has ever built are already the sill's own furniture, and an eighth is not the frontier. The two observer findings the shots did produce are written down as cues (c295 the ticker clipped mid-word at 1600x950; c296 the phone opening on Wide with half the town off-frame) and one of them will be a rung-5 brief once it is priced.\n\nThe rest of the queue rotates and pays debts: b202 takes People & animals, 11 back and the longest untouched, at #189's own unfixed surprise — a third of worlds never get a martin colony because rain is the only mud there is. b203 is a FIDELITY brief, the thinnest kind at 4 of 200, on a promise the sky already makes and breaks. b204 takes the plaza's fair, which loses a whole day to a shower at the raise. b205 is HARNESS, which costs a domain nothing and closes three instrument cues at once, including a collapse guard that cannot see winter — the one that would have caught a #200-shaped bug.\n\nMEMORY, this pass: the worker read was OVER at 46.9/46 KB and is 45.9 now. I cut TWO laws rather than deferring — \"An instrument is a build artifact too\" (its general half is the control law's, its specific half a dated fact about one shelf; the surviving clause is folded into \"Compare against a control you RAN, and SMOKE it first\") and the `!daylight`/dawn corollary (folded back into the sun-and-night law it is a corollary of). I also cut the hash-gating recipe out of \"A scalar is not a switch\": four real CAs (#181 #189 #192 #197) now cluster with neighbourhood rules and nothing has reached for a coarse-gate since #156, so it is superseded, not merely unused. LAWS is 27 laws / 11.9 KB. Seven cues promoted into this batch, two closed on their evidence (c292, c293), two raised.",
   "queue": [
     {
-      "id": "b201",
-      "domain": "Our block & the leads",
-      "kind": "Deepen",
-      "brief": "THE BET, and the brief that founds a new domain — take the swing; a 150-300 line diff is expected and welcome. The block below our window is the foreground quarter of every frame (23% of the wide shot, ~40% of the phone) and by day it is the dullest large surface in the picture. It is NOT empty: #170 gave it LEADS terraces on rows 86-87 (LEADS_SHARE 0.42 of the bays, chosen off hash(house)), a hatch that opens, a cord and washing; #171 gave it tenants. Its whole life is EVENTS — tenantErrands fires on washOut()'s EDGE (two a day at most), plus one sun stay a day behind tenSunFine()'s five clauses and one evening lean, all under TEN_CAP 2. I shot HEAD at seed 42, day 3, 10:22 and there was nobody up there. PRICE THAT FIRST: a new probe over 6 seeds x a year reporting, per daylight sample, how many tenants are visible and on which bay — the number nobody has, and the premise this brief rests on. THEN make the terrace read as somebody's place in the frames where it is empty, by giving it FABRIC rather than another thing that happens on it: pots, a chair left out, a crate, a mat, a swept flat and an unswept one, a bay that keeps its line full all week and one that never hangs any. Carried on the BAY, differing bay to bay off hash(house) exactly as LEADS_SHARE already does, and reading the year and the weather the way #191 gave the sill six seasonal readers. Presence may rise as well — that is welcome — but the deliverable is a near roof that reads as inhabited in a STILL.",
-      "seams": [
-        "LEADS_BAYS",
-        "HATCHES",
-        "leadsAt",
-        "leadsHouse",
-        "LEADS_SHARE",
-        "drawLeadsCell",
-        "ROOF_FURN",
-        "FURN_BOX",
-        "furnRow",
-        "furnDmax",
-        "drawRoofFurn",
-        "roofFurnAt",
-        "roofFurnName",
-        "tenantErrands",
-        "spawnTenant",
-        "tenSunFine",
-        "TEN_CAP",
-        "washOut",
-        "WASH_H_LEADS",
-        "roofWalkZ",
-        "nearHidden",
-        "nearScale"
-      ],
-      "successLooksLike": "A stranger's first ten seconds on the wide shot find the near roof worth looking at. At any hour of any season at least two terraces carry something that says a household uses them, no two alike, and what they carry differs between February and July and between a dry week and a wet one. The probe prints tenant presence per daylight sample before and after; the new fabric's mass is FULL minus FULL-with-it-zeroed at 1600x950 AND at 390x844, quoted against a same-code floor of 0 px.",
-      "avoid": "Do NOT answer this by raising TEN_CAP — a cap you RAISE is how the last loop died, and the supply here is LEADS_BAYS, not the cap. Do not add a fourth ROOF_FURN kind out on the slate pitch; the terrace is the subject. Every new piece must clear the sill at the SHORTEST framing you support: #123 measured that at 1280x700 and 1200x720 the sill covered all 21 existing pieces, and the bound is on the piece's DEEPEST DRAWN POINT, not its anchor. Zero R() in anything built once — the bays are hash(house) and a draw here reshuffles the seeded world. The leads live in the ground cache: register at cache time and repaint live only what must be live, as drawHatch already does.",
-      "budgetMin": 90,
-      "risk": "high"
-    },
-    {
       "id": "b202",
       "domain": "People & animals",
       "kind": "Deepen",
@@ -131,5 +97,11 @@
       "risk": "low"
     }
   ],
-  "recommendStop": null
+  "recommendStop": null,
+  "consumed": [
+    {
+      "id": "b201",
+      "at": "2026-09-04T11:12:20.133Z"
+    }
+  ]
 }
