@@ -64,7 +64,10 @@
      the sill reads title · season · clock · ticker · counts, coarse to fine, and the
      two serif items are the two that SPEAK (one fixed, one changing) while the two
      tabular ones are the two that COUNT. min-width holds the longest name so the
-     clock beside it never slides when the year turns.
+     clock beside it never slides when the year turns — and it has to hold the LONGEST,
+     which 10.5ch did not: `Early summer` renders 91px plus an 8px chevron against a
+     81.75px reservation, so the season has been shoving the row 17px sideways twice a
+     year since it was written, and the ticker beyond it has been paying for it.
      It lives INSIDE #plate rather than beside it so the narrow breakpoint can drop it
      onto the caption line without reparenting — see the media query.
      And it is a BUTTON, because the year is 26 sim days — 24 real minutes at 1x —
@@ -82,7 +85,7 @@
      label is a 17px target); the equal negative margin gives every pixel of it
      back to the layout, so the sill is the same height it was. */
   #season{ flex:none; font-size:14px; font-family:inherit;
-    color:var(--ink); letter-spacing:.02em; white-space:nowrap; min-width:10.5ch;
+    color:var(--ink); letter-spacing:.02em; white-space:nowrap; min-width:12.5ch;
     background:transparent; border:0; padding:5px 0; margin:-5px 0; text-align:left;
     cursor:pointer; transition:color .25s;
     text-decoration:underline; text-decoration-color:var(--ink-dim);
@@ -121,9 +124,12 @@
      seconds off, and the only fast-forward skipped a quarter-year), so the hour is a
      button too and reaches this evening — then the next dawn. Same underline, same
      chevron, same hit-area trick; but it keeps the clock's sans and tabular figures,
-     because it is still the thing in the row that COUNTS. 13ch holds the longest label
-     plus the chevron so nothing beside it slides when the hour turns. */
-  #daytime{ flex:none; font-variant-numeric:tabular-nums; white-space:nowrap; min-width:13ch;
+     because it is still the thing in the row that COUNTS. The min-width holds the
+     longest label plus the chevron so nothing beside it slides when the hour turns;
+     13ch did not — the longest of the 156 forms this takes, `Day 26 - Afternoon`, is
+     114px beside a 106.45px reservation, and the day count grew a digit after the
+     number was chosen. 15.5ch, measured. */
+  #daytime{ flex:none; font-variant-numeric:tabular-nums; white-space:nowrap; min-width:15.5ch;
     font:inherit; color:var(--ink); background:transparent; border:0; padding:5px 0; margin:-5px 0;
     text-align:left; cursor:pointer; transition:color .25s;
     text-decoration:underline; text-decoration-color:var(--ink-dim);
@@ -133,6 +139,11 @@
   #daytime:hover, #daytime:hover::after{ color:var(--accent); opacity:1; }
   #daytime:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:3px; }
   #daytime[disabled]{ cursor:default; opacity:.55; }
+  /* The ticker takes the row's slack, so its width is a fact about everything else in
+     the row. text-overflow:ellipsis is kept, but it is no longer what does the cutting
+     — it cuts at a PIXEL and so lands mid-word four times in five. fitLine() composes
+     the line to the box instead, and this is the last resort for a box too narrow for
+     one word of it. See the SLOT block in the ticker section. */
   #ticker{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
     font-family:"Iowan Old Style", Palatino, Georgia, serif; font-style:italic; font-size:14px;
     color:var(--ink); opacity:.9; transition:opacity .6s; }
@@ -149,6 +160,8 @@
   #sill.naming #ticker{ display:none; }
   #sill.naming #naming{ display:block; }
   #stats{ flex:none; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  /* ...and they yield to the INVITATION at any width — see showLine(). */
+  #sill.lent #stats{ display:none; }
   #ctrl{ flex:none; display:flex; gap:6px; }
   #ctrl button{
     font:inherit; font-size:12px; color:var(--ink); background:transparent;
@@ -156,15 +169,21 @@
   }
   #ctrl button:hover{ border-color:var(--accent); color:var(--accent); }
   #ctrl button:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
-  /* The season is a sixth item in a fixed-width row, and the row was already tight in
-     the 640-860 band: on HEAD the ticker was down to 71px of box at 641px, ellipsised
-     to nothing. So the COUNTS yield first. They are the most expendable thing here —
-     people and blooms and ducks are all visible in the picture above, whereas which
-     season it is was the one fact the sill could not tell you. Net effect in this band
-     is a season gained and a ticker that reads BETTER than it did (126px at 641,
-     253px at 768, against HEAD's 71 and 193). */
-  @media (max-width:860px){
+  /* The COUNTS yield first, and they now yield much sooner. They are the most
+     expendable thing in the row — people and blooms and ducks are all visible in the
+     picture above — and they are also the most EXPENSIVE: at their widest form they
+     are 203px plus an 18px gap, 221px, which is more than half of what the ticker
+     gets at any width. 860px was chosen when the row had neither the where control
+     nor an honest reservation on the clock and the season, and it left the band just
+     above it starved: measured on HEAD at day 4, the ticker's box is 31px at 900 and
+     150px at 1024, against a corpus whose lower quartile is 284px
+     (probes/ticker-fit.mjs). So the counts stand only while the prose beside them
+     still holds a typical line: 1185px is where the slot falls to that quartile.
+     Below it the sentence has the room instead — 350px at 1024, 231px at 900. */
+  @media (max-width:1185px){
     #stats{ display:none; }
+  }
+  @media (max-width:860px){
     /* In this band the ticker's box is down to 136 px at 641, and the label is the one
        item here that is answering a hand. So the CLOCK yields to it as well, for as long
        as the pointer is on something — the hour is legible in the picture (the sun is in
@@ -3903,10 +3922,145 @@ let lineDwell = TICK_DWELL;
  * a stopped clock is waiting forever. Reading is a real-time act, so it is timed on the
  * real clock, exactly as TICK_DWELL is documented to be. */
 let lineAt = -99;
+/* ---- the SLOT, and composing a line to it ----------------------------------
+ * #ticker is flex:1 of a row of five fixed items, so its width is a fact about the
+ * ROW and never about the line standing in it. Measured over the whole corpus
+ * (probes/ticker-fit.mjs, 240 sentences lifted statically out of this file and
+ * rendered in the ticker's own computed font): the box is 494 px inside the 1280 px
+ * room, 249 px at a 1024 px window, and the widest sentence renders 756 px. There is
+ * nothing in the row to delete to close that — plate 233, clock 106, where 73,
+ * counts 120, controls 93 and five 18 px gaps IS the 1228 px sill — so the box
+ * cannot be made to hold the corpus, and 16 of the 240 overflow it at every size.
+ *   Worse, the box BREATHES. refreshStats() rewrites #stats twice a second, and
+ * `31 people · 214 blooms · 3 ducks` is ~80 px wider than `0 people · 0 blooms`: the
+ * ticker's slot narrows as the town fills, under a line already on screen.
+ *   What the browser did with the overflow was text-overflow:ellipsis, which cuts at
+ * a PIXEL and so lands mid-word four times in five — `…and a basket of wash…`. So the
+ * slot COMPOSES instead. It takes the last clause that fits (a stop, a semicolon, a
+ * dash, a comma, or a conjunction opening the next clause) and only falls back to the
+ * last whole word when the tidy cut would throw away more than TICK_CLAUSE of the
+ * room. A cut landing on a finished sentence keeps its full stop and takes no
+ * ellipsis — it is not a truncation then, it is the first sentence of two.
+ *   None of this touches the 37 sentences. The rule is the slot's, so the next line
+ * anybody writes is composed by it too; the full text is kept in `lineFull`, hung on
+ * the element's title for a pointer, and re-composed whenever the room moves. */
+const TICK_GUARD = 2;        // px kept back so the CSS ellipsis is never the one to cut
+const TICK_CLAUSE = 0.55;    // a tidy cut is worth having down to this share of the room
+const TICK_CONJ = new Set(['and','but','or','so','then','while','though','because','until','before','after','as']);
+const tickMeas = document.createElement('span');
+tickMeas.setAttribute('aria-hidden', 'true');
+tickMeas.style.cssText = 'position:absolute;visibility:hidden;white-space:pre;left:-9999px;top:0';
+document.body.appendChild(tickMeas);
+let lineFull = '', lineRoom = -1;
+/* The counts are the thing that makes the box breathe, so the composer holds back
+ * exactly what they can still take. Measured over three seeds x a year
+ * (probes/ticker-fit.mjs sits beside the sweep that found it): #stats runs from
+ * `0 people · 0 blooms` at 119.9 px on the first dawn to two digits of people, three
+ * of blooms and one of ducks at 202.9 px in high summer — 83 px, a sixth of the slot,
+ * taken out from under a line already on screen. The digits are tabular, so that
+ * widest form is a SHAPE and not a number, and it is measured in the counts' own font
+ * rather than stored as a length. Subtracting the slack makes the room CONSTANT:
+ * box is (the row minus the counts now), slack is (the counts' widest minus now), and
+ * the town's population cancels out of the sum. A line composed at dawn still fits at
+ * noon, so nothing ever re-truncates while it is being read. */
+const statsEl = document.getElementById('stats');
+const sillBox = tickerEl.parentElement;      // #sill, without waiting for sillEl's const
+const STATS_WIDEST = '88 people · 888 blooms · 8 ducks';
+/* Put the measurer in some element's type. NOT via the `font` shorthand: Chrome
+ * serialises getComputedStyle().font to the EMPTY STRING whenever a longhand cannot be
+ * expressed in it, and #stats sets font-variant-numeric:tabular-nums — so `cs.font`
+ * there is '', which assigns nothing and silently measures the last element's face.
+ * (That is also the longhand that makes STATS_WIDEST a shape rather than a number, so
+ * it is exactly the one that must be carried across.) */
+let measKey = '';
+function measAs(cs){
+  const key = [cs.fontStyle, cs.fontWeight, cs.fontSize, cs.fontFamily, cs.letterSpacing, cs.fontVariantNumeric].join('|');
+  if (key === measKey) return key;
+  measKey = key;
+  const s = tickMeas.style;
+  s.fontStyle = cs.fontStyle; s.fontWeight = cs.fontWeight; s.fontSize = cs.fontSize;
+  s.fontFamily = cs.fontFamily; s.letterSpacing = cs.letterSpacing; s.fontVariantNumeric = cs.fontVariantNumeric;
+  return key;
+}
+let statsKey = '', statsMax = 0;
+function statsSlack(){
+  const cs = getComputedStyle(statsEl);
+  if (cs.display === 'none') return 0;                  // the counts have already yielded
+  const key = measAs(cs);
+  if (key !== statsKey){ statsKey = key; tickMeas.textContent = STATS_WIDEST; statsMax = tickMeas.offsetWidth; }
+  return Math.max(0, statsMax - statsEl.getBoundingClientRect().width);
+}
+/* The room the NEXT composition has, and the measurer's type synced to the box it is
+ * standing in for — the ticker is 14 px italic serif at every width, but it is the
+ * element that says so, not this. 0 means the slot is not on screen (the naming has
+ * the box, or the window is under 640), and nothing is composed against nothing. */
+function tickRoom(){
+  const cs = getComputedStyle(tickerEl);
+  if (cs.display === 'none') return 0;
+  const slack = statsSlack();                           // borrows tickMeas in the counts' type
+  measAs(cs);                                           // ...and takes it back
+  return tickerEl.getBoundingClientRect().width - slack;
+}
+function tickCut(txt, n){
+  let s = txt.slice(0, n).replace(/[\s,;:—-]+$/, '');
+  return /[.!?…]$/.test(s) ? s : s + '…';
+}
+function fitLine(txt, room){
+  if (room <= 0) return txt;
+  measAs(getComputedStyle(tickerEl));      // whoever had the measurer last, it is the ticker's now
+  const lim = room - TICK_GUARD;
+  const wide = s => { tickMeas.textContent = s; return tickMeas.offsetWidth; };
+  if (wide(txt) <= lim) return txt;
+  const word = [], clause = [];
+  for (let i = 1; i < txt.length - 1; i++){
+    if (txt[i] !== ' ') continue;
+    word.push(i);
+    if ('.!?;:,—'.indexOf(txt[i - 1]) !== -1) clause.push(i);
+    else { const j = txt.indexOf(' ', i + 1); if (TICK_CONJ.has(txt.slice(i + 1, j === -1 ? txt.length : j).toLowerCase())) clause.push(i); }
+  }
+  if (!word.length) return txt;                 // one word, and it does not fit: the CSS cuts it
+  let lo = 0, hi = word.length - 1, best = -1;  // the longest WORD cut that fits
+  while (lo <= hi){ const m = (lo + hi) >> 1; if (wide(tickCut(txt, word[m])) <= lim){ best = m; lo = m + 1; } else hi = m - 1; }
+  if (best < 0) return tickCut(txt, word[0]);
+  const wordCut = tickCut(txt, word[best]), wordPx = wide(wordCut);
+  for (let i = clause.length - 1; i >= 0; i--){
+    if (clause[i] > word[best]) continue;
+    const c = tickCut(txt, clause[i]);
+    if (wide(c) >= wordPx * TICK_CLAUSE) return c;
+    break;                                      // clauses only get shorter from here
+  }
+  return wordCut;
+}
+/* Re-compose the standing line against the room it has NOW. Called off the half-second
+ * bucket (where the counts are rewritten) and off a real resize, never per frame: it
+ * reads a layout box, and it only does the measuring when the box has actually moved. */
+function refitTicker(){
+  const room = tickRoom();
+  if (!lineFull || room <= 0 || Math.abs(room - lineRoom) < 0.5) return;
+  lineRoom = room;
+  const shown = fitLine(lineFull, room);
+  tickerEl.textContent = shown;
+  if (shown === lineFull) tickerEl.removeAttribute('title'); else tickerEl.title = lineFull;
+}
+// the bucket runs on SIM dt and stops dead on a paused page; a window dragged wider
+// while paused still has to re-fit, so the real event is listened to as well
+addEventListener('resize', refitTicker);
 function showLine(e){
   lineDwell = e.dwell || TICK_DWELL;
   lineAt = performance.now() / 1000;             // the same epoch as frame()'s `now`
-  tickerEl.textContent = e.txt;
+  // The invitation is an INSTRUCTION, not a remark, so it is the one line that has to
+  // read whole — and it is also the longest thing the town says (the wide offers run to
+  // 80 characters against a corpus median of 61). It is the only caller that buys its
+  // own dwell, so that is what identifies it. On a phone it already borrows the whole
+  // sill for its few seconds; a wide sill lends it just the COUNTS, whose 221px is the
+  // difference between an offer reading whole and being composed down to its first
+  // clause. Five times in a session, and handed back with the next line.
+  sillBox.classList.toggle('lent', !!e.dwell);
+  lineFull = e.txt;
+  lineRoom = tickRoom();
+  const shown = fitLine(e.txt, lineRoom);
+  tickerEl.textContent = shown;
+  if (shown === e.txt) tickerEl.removeAttribute('title'); else tickerEl.title = e.txt;
   tickerEl.classList.remove('fade');
   tickerTimer = TICK_LIFE;
   // The ticker is ticked from the half-second stat bucket, so a line that goes up
@@ -3936,7 +4090,9 @@ function announce(txt, then, dwell, until){
   // as stale news after the lapse ended. The lapse says one thing, on arrival: land().
   if (skipping()) return;
   if (tickerFree()){ showLine({ txt, then, dwell }); return; }
-  if (txt === tickerEl.textContent) return;
+  // the surface holds a COMPOSED line, so the thing to compare against is the line the
+  // town said, not the part of it that fitted — otherwise a clipped line is repeatable
+  if (txt === lineFull) return;
   if (tickerQ.some(q => q.txt === txt)) return;
   tickerQ.push({ txt, then, age: 0, until });
   while (tickerQ.length > TICK_QMAX) tickerQ.shift();   // stale goes, not the news
@@ -4001,6 +4157,7 @@ const LANE_MID = { x: KIOSK.x, y: (LN_ROAD0 + LN_ROAD1) / 2 };
 function tickTicker(){
   tickerAge += 0.5;
   tickerTimer -= 0.5;
+  refitTicker();                 // the counts were just rewritten; the slot may have moved
   if (tickerTimer < 0) tickerEl.classList.add('fade');
   for (let i = tickerQ.length - 1; i >= 0; i--){
     tickerQ[i].age += 0.5;
@@ -17509,7 +17666,8 @@ function offerInvite(now){
 }
 // the borrowed sill goes back the moment the hold runs out or the news moves on
 function endInvite(now){
-  if (now < inviteHold && tickerEl.textContent === inviteTxt) return;
+  // the surface holds a COMPOSED line, so ask what the town SAID, not what fitted
+  if (now < inviteHold && lineFull === inviteTxt) return;
   inviteHold = 0;
   sillEl.classList.remove('inviting', 'at-season', 'at-clock', 'at-where');
 }

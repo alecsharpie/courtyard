@@ -660,7 +660,8 @@
       "the ticker knows where you are LOOKING: inView(x,y) the ONE reader of whereN, AMBIENT_PLACES/ambientHere, SOUNDS bypass it; THREE ranks — background(rank,txt,then,until), announce(), CLOCK, MURMUR",
       "the ground cache is relit when the LIGHT moves, not the clock: lightNow/lightMoved an L1 distance from lightPainted, LIGHT_MOVE/LIGHT_SLOW, markGroundPainted; a landing DISSOLVES both — fadeCaches/fadeF",
       "HARNESS (not town nouns): census WINTER row — warp 1220, winterLadder, --ref, WCORE its per-field floor, STRUCT_CONST/LIVE + constAudit splitting `structures`; probe-smoke.mjs runs all THREE probe trees",
-      "the WIDE fit is a QUARTER now: WIDE_AIR/WIDE_KEEP centre the band -AIR..WH in sillTop()'s picture at s=1; WIDE_FILL/WIDE_SPAN lean a tall frame in on the world's rows; gardenWest() walks FOCUS west with it"
+      "the WIDE fit is a QUARTER now: WIDE_AIR/WIDE_KEEP centre the band -AIR..WH in sillTop()'s picture at s=1; WIDE_FILL/WIDE_SPAN lean a tall frame in on the world's rows; gardenWest() walks FOCUS west with it",
+      "the ticker's SLOT: fitLine()/TICK_CLAUSE composes each line at a clause then a word, never mid-word; the room is CONSTANT via statsSlack() + honest min-widths on #daytime/#season; counts yield at 1185px, #sill.lent lends them to the invitation"
     ],
     "roofs": [
       "the town is HOUSES not regions: buildVolumes() makes roofs EMERGENT — eaveFor(x,y), vZ four-corner average, vD a distance transform, SLOPE; houseAt/houseIx, EAVE_LO 4.62/EAVE_HI 7.15",
@@ -702,6 +703,12 @@
     {
       "id": "c304",
       "note": "The overflow crates carry more readable ink (420 device px) than all three trestles combined (297) — the market's day reads on the pavement, not on the boards.",
+      "raisedBy": 207,
+      "seenBy": 0
+    },
+    {
+      "id": "c305",
+      "note": "at 641-760px the ticker's box is 0-40px: plate+clock+where+ctrl fill the row alone and no composer can help. HEAD was 3-60px there; the band shows nothing either way (probes/ticker-fit.mjs)",
       "raisedBy": 207,
       "seenBy": 0
     }

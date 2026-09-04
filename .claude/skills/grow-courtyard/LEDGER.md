@@ -215,3 +215,26 @@ magnified, still slight at the shipping size.
 **Law:** a control making an input EXTREME is degenerate where the quantity it feeds SATURATES — control with
 the BRANCH replaced. `getImageData` ignores the ctx transform: a `project()` band is CSS px, not device.
 **Cue:** the overflow crates carry more readable ink (420 px) than the three trestles (297).
+
+## Iteration 208 — the ticker's slot stops moving, and stops cutting words (2026-09-05) [The sill x Polish]
+
+**Brief:** b208 — c295: the ticker clips mid-word. Fix the SLOT, not the sentences.
+**Premise, HEAD** (`probes/ticker-fit.mjs`, new; 240 sentences lifted statically out of the file and
+rendered in its type; `--head` its control): at day 4 the box is 394.9 px at 1600 and
+150 at 1024, the corpus median 346 and its max 756 — **64/240 and 208/240 cut MID-WORD**. 756 is
+unreachable: the five fixed items and their gaps ARE the 1228 px sill.
+**Did.** (1) `fitLine()` composes to the box — the last CLAUSE that fits, falling back to the last
+whole WORD only when the tidy cut costs over `TICK_CLAUSE` 0.55 of the room. The rule is the SLOT's, so
+it composes the next sentence written too. (2) The room is made CONSTANT, since a slot moving
+under a standing line re-truncates it as it is read: `statsSlack()` holds back what the counts can still
+grow into, and `#daytime`/`#season` got min-widths holding their longest labels. (3) The counts yield
+at 1185 px, not 860; `#sill.lent` lends them to the invitation.
+**Gates:** census + motion PASS · canvas **pixel-identical to HEAD** at three framings, sill height 53
+· `ticker-queue` unchanged · mid-word at 1600/1280/1024 **64/62/208 -> 0/0/0**, room **374.7 fresh vs 374.4
+at day 4**, 1024 150 -> 350.
+**Verdict:** shipped
+**Surprise:** the box was never the width I first measured. `#stats` breathes 83 px as the town fills
+and the clock and season another 33 — `13ch` never held `Day 26 - Afternoon` — so it loses 99 px
+between dawn and day 4, under whatever line stands there.
+**Law:** `getComputedStyle().font` is the EMPTY STRING when a longhand cannot go in the shorthand
+(`font-variant-numeric` did it): it assigns nothing and silently measures the previous face.
