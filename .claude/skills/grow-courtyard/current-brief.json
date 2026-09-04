@@ -20,7 +20,7 @@
   "avoid": "Do not fix this by changing the DEFAULT QUARTER: #144 closed that as c217, and a first-run auto-zoom hides the wide shot the town is composed for. The change belongs in the WIDE fit itself. Do not redefine `sillTop()` and do not touch `drawSill`.",
   "budgetMin": 75,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 206,
   "issued": "2026-09-04T13:57:49.315Z",
