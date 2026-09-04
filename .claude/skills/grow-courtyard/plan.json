@@ -17,35 +17,6 @@
   "rationale": "No stall signal is showing, so nothing forced my hand; the ladder was chosen from what the picture is missing. Rung 4b is discharged — the last two passes both sat there and #186/#189 finally moved the census's shape, so mapFlat is quiet — and the last rung 5 was #164, twenty-seven iterations ago. This batch is rung 5: change the observer.\n\nI shot the town at seed 42, t 175, and then went and counted, because the watch note forbids an impression standing in for a number. The bottom of every frame at every framing is the sill: sillTop() = H - max(26, H*0.075), so it is the bottom 7.5% of the picture, and the objects on it are drawn at sillU() scale, which makes them the largest figures in the frame against 12 px people. drawSill() puts three things there — two pots of geraniums and a forgotten cup — and its only input from the world is `daylight`. Not season(), not warmth, not snowCover, not wetF, not raining, not windF, not one fact about the town it looks at. It is the same picture in February and July, in a gale and in snow. This is not the 'that surface looks flat' brief the watch note kills on sight: the sill's texture measures sd/mean 0.671, the highest in the table, and it is beautifully drawn. The claim is that the piece's own framing device is the one thing in it that the year does not pass through, and that the sill domain has had zero new elements in 190 iterations. b191 is 80 minutes with an explicit 150-300 line licence, first in the queue.\n\nThe other four each carry the number they rest on. b192 found the second unpriced thing this pass: riverRun() has said since #145 that the channel runs x1.45 in January and x0.55 in July, has fifteen consumers, and every one of them is colour, speed, streak count or the mill — the WATERLINE has never moved, and it is the last big seasonal surface that does not. b193 is c277 with #184's supply measurement in the brief. b194 is the plaza, which after 190 iterations still has no day of its own while the lane, the far bank and the cross street each have one. b195 is c278: a probe that threw on every run for seven iterations, in a tree of 303 files nothing executes.\n\nCURATION. LAWS.md took seven new claims from #186-#190 and went 36 laws -> 29 while staying at 11.9/12 KB, which took four named cuts: trap (c) (two figures nearer than 0.9 cells read as one) DELETED — a worker sees that in its first screenshot and no entry in sixty iterations has cited it; 'a solve must hand its consumer the value it TESTED' MERGED into 'one predicate, one definition', which is the same claim from the consumer's end; 'one uniform hash is a texture, never a PLACE' MERGED into the scalar law, which already owns hash GRAIN; and 'define membership POSITIVELY at the source' CUT to its one live sentence, grafted onto the share law — its residual half has not been cited since it was written. The hard-coded-HOUR law also folded into the two-axes law it is a corollary of.\n\nc273 I fixed myself: rotate-ledger.mjs's WATCH_CAP read w.note where the watch is an array of STRINGS, so a 420 B cap had never fired and three items were over it. It is the manager's own cap on the manager's own file and it is one line; a worker spending $7 to log a no-ship on it is the wrong trade. With it live, all four watch items were over and are now rewritten under 420 B, one of them replaced (the mapFlat argument is spent — the signal is clear) by a new note on labelling a brief's KIND by the file it changes.\n\nI also moved two caps in rotate-ledger.mjs and want it on the record, because raising a cap is how the last loop died. INV_PER_DOMAIN went 8 -> 7 so that it actually BINDS at today's size, and INV_CAP went 9.5 -> 10.75 KB. The justification is that the hard gate is context-budget.mjs's 46 KB total, which is enforced and now reads 45.7; 9.5 was set when the inventory was the largest item in that budget, and it no longer is. LAWS.md is the right file to cut, because claims compress and merge; the inventory is a symbol index and compressing it past nouns destroys what it is for. Coverage was five iterations stale and is recorded; five cues closed, one raised (c284, the census structures scalar diluted by a build-time constant), c272 rewritten.",
   "queue": [
     {
-      "id": "b192",
-      "domain": "River & far bank",
-      "kind": "new-ca",
-      "brief": "riverRun() = 1 + RIVER_SWING * greyF() has said since #145 that the channel runs x1.45 in January and x0.55 in July. It has FIFTEEN call sites and every one of them is colour, drift speed, streak count, streak length, millSpin, the fountain, or the deep-channel gradient in groundBase. Not one moves the WATERLINE: RIVER_X0 114..RIVER_X1 127 is a build-time constant, and the census's `water` has read 8784 (976 cells x 9 samples) for forty iterations. So the river is the last big surface in the town where the season changes how it LOOKS and not where it IS. Give it a level at the margin: high water in winter laps up over the reed shallows and toward the towpath, a low late summer uncovers a strip of wet stone and reed roots at the edge. Build it on the machinery #181 already has — buildIce/stepIce enumerate the margin as an L1 distance transform out from every cell the channel is NOT, and riverMid(x) already says where the current is too fast for anything to happen.",
-      "seams": [
-        "riverRun",
-        "RIVER_SWING",
-        "greyF",
-        "RIVER_X0",
-        "RIVER_X1",
-        "riverMid",
-        "ICE_CELLS",
-        "iceShel",
-        "buildIce",
-        "stepIce",
-        "sowReeds",
-        "REED",
-        "groundBase",
-        "drawWaterMirror",
-        "TOW_WALK",
-        "waterAt",
-        "nameAt"
-      ],
-      "successLooksLike": "A probe on the pattern of probes/river-ice.mjs, 6 seeds x a year, reporting the wetted margin as a CURVE with a winter maximum and a late-summer minimum — not a switch; quote the most cells that cross a drawn bucket in one tick, as #181 did (it was 13). The bank strip is uncovered on N days and exactly 0 on the rest. Boats, ducks, swans, the mirror and the ice are all still correct at BOTH extremes, and the winter census row moves.",
-      "avoid": "NEITHER census block can see the low-water end. The three summer ages all sit at warmth 0.6929 by design (#14) and #187's winter block is pinned at warp 1220, so expect the summer nine UNCHANGED and say so in the brief's own words rather than promising a delta you cannot get — that trap cost #181 a whole paragraph. Prove the summer end with your own probe. A level that flips tiles is a grid change: re-pin with census.mjs --save-baseline and check `developed` and `green` did not absorb what `water` lost. And keep it a MARGIN — do not narrow the navigable channel or the punts, the barge and the rowboat all need re-pricing.",
-      "budgetMin": 55,
-      "risk": "medium"
-    },
-    {
       "id": "b193",
       "domain": "Lane & market",
       "kind": "deepen",
@@ -127,6 +98,10 @@
     {
       "id": "b191",
       "at": "2026-09-04T04:10:27.812Z"
+    },
+    {
+      "id": "b192",
+      "at": "2026-09-04T04:54:34.480Z"
     }
   ]
 }

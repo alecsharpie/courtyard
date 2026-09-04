@@ -26,7 +26,8 @@ const { chromium } = (await import(pathToFileURL(PW).href)).default;
 
 /* the HEAD fixture is REGENERATED from git on every run rather than read out of a
  * scratch copy: a stale fixture is a control that tests nothing (LAW). */
-writeFileSync('.probe-head.html', execFileSync('git', ['show', 'HEAD:courtyard.html']));
+// maxBuffer: courtyard.html passed node's 1 MB default at #192 and the probe died in git
+writeFileSync('.probe-head.html', execFileSync('git', ['show', 'HEAD:courtyard.html'], { maxBuffer: 1 << 28 }));
 const files = { HEAD: '.probe-head.html', cand: 'courtyard.html' };
 const seed = +(process.argv[2] || 7), t = +(process.argv[3] || 175);
 const W = +(process.argv[4] || 1600), H = +(process.argv[5] || 950);

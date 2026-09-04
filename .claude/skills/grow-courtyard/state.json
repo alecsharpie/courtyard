@@ -2,7 +2,7 @@
   "updated": "2026-09-04",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 191,
+  "lastIteration": 192,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -362,7 +362,8 @@
         155
       ],
       "new-ca": [
-        181
+        181,
+        192
       ]
     },
     "sky": {
@@ -581,7 +582,7 @@
       "the two doors are CORRIDORS (#173): plazaLane() a no-R() golden sequence per walker, alleyRow/alleyGate/alleyLead the cut's 3.0 cells at BOTH ends, ringNode(i,lane)/RING_NODES; FAM_CAP 5. No event of its own is on the calendar"
     ],
     "river": [
-      "river 13 cols (RIVER_X0 114..RIVER_X1 127) — its EXTENT is a build constant; ONE rowboat, three-arch bridge, TOW_WALK/FAR_WALK, church + clock tower + rose window, bandstand, ORCHARD, JETTY, a swan PAIR",
+      "river 13 cols 114..127, the fairway; rowboat, bridge, TOW_WALK/FAR_WALK, church+clock+rose window, bandstand, ORCHARD, JETTY, swan PAIR. Its EXTENT is NOT a build constant (#192): riverLev/RIVER_LAG, stepBank/bankBed/BANK_CELLS 90, SHOAL/shoalRuns",
       "FOOTBRIDGE DECK rows 30..32 (drawDeckSpan/Front, boatUnderDeck), WATERMILL x130-133 (MILL_WHEEL/millSpin), EYOT (124.3,46) onEyot/eyotShore/drawWillow/nestF",
       "the far bank's day: spawnFarAgent/farOpen/FAR_CAP, FAR_GATE, a.jetty, overDeck's east door; concert bandF/isBandDay; FIELD EDGE east of GW painted in the cache",
       "the evening ends: EVE_GONE/EVE_HURRY/EVE_BELL, eveOutH -> a.eveOut, goHome(a,maxH). Night water: drawRiverLights, RIVER_LAMPS, a.nightRail, roseLit",
@@ -677,6 +678,12 @@
       "id": "c285",
       "note": "drawSill 0.72 -> 1.67 ms in snow+rain (#191, interleaved control), on a 25-27 ms cache repaint at 76.03/day - and that bar itself drifted 75.14 -> 76.03 between #180 and #191 with no iteration naming it. Nobody watches it between briefs.",
       "raisedBy": 190,
+      "seenBy": 0
+    },
+    {
+      "id": "c286",
+      "note": "ICE_CELLS is built from onChannel at BUILD time, when column 127 was still SIDE - so a towpath cell the winter lap floods can never freeze. At midwinter the margin is iced and the water lying over the towpath beside it is open (shots/ice-east.png).",
+      "raisedBy": 191,
       "seenBy": 0
     }
   ],

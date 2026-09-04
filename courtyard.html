@@ -300,7 +300,7 @@ const WALL = 0, PATH = 1, GRASS = 2, BED = 3, CBED = 4, TRUNK = 5, SIDE = 6, ROA
                                // WATER to `water` in the census and to the eyot's shingle rim; it is NOT
                                // water to a duck, a swan, the boat, a streak or the mirror, and it is not
                                // walkable either — margin ice bears rushes, not people
-      ARCADE = 19;             // the covered walk along the north range (#186): the two rows of that
+      ARCADE = 19,             // the covered walk along the north range (#186): the two rows of that
                                // range's thickness where its ground floor is opened up on piers, so the
                                // garden has a roofed edge you can be under. It takes the shape GLASS and
                                // LEADS already proved — WALL to buildVolumes(), which never sees the tile,
@@ -310,6 +310,18 @@ const WALL = 0, PATH = 1, GRASS = 2, BED = 3, CBED = 4, TRUNK = 5, SIDE = 6, ROA
                                // is BUILT ground and it is stood on, so `developed` counts it; unlike
                                // LEADS every route in the garden may take a walker onto it, and the
                                // openings are drawn LIVE over the cached facade exactly as an arch is
+      SHOAL = 20;              // the river bed where the water is not (#192): the second tile that is
+                               // not FABRIC. stepBank() flips a WATER or REED cell of the margin to it
+                               // as the year's LEVEL falls under that cell's own bed height, and back
+                               // when it rises — so with ICE it is one of the two kinds whose count
+                               // moves with the calendar, and it is the only one that is not water at
+                               // all. It is NOT counted by `water`, and it is not `green` or
+                               // `developed` either: uncovered bed is not ground, which is why the
+                               // census gives it a bucket of its own rather than letting the loss the
+                               // river takes be absorbed by the land. Not walkable, not a target, no
+                               // snow (it only exists in high summer); the rushes that stood in it go
+                               // on standing, which is what makes it read as roots and not as a hole.
+
 /* the eyot: ONE ellipse, evaluated once in buildGrid() — everything else (the swans' third
  * bank, the ducks' nest, the streaks that part round it) reads the tile back off the grid.
  * Sited in the river's east half, clear of the boat's channel (x 116.5–121.5, hull ±0.5) by
@@ -2557,6 +2569,22 @@ function riverRun(){ return 1 + RIVER_SWING * greyF(); }
  * cell in the fast middle cannot take ice), so it is one definition with two readers.
  * Negative west of RIVER_X0 — the near reach starts at the quay — so a reader clamps. */
 function riverMid(x){ return 1 - Math.abs((x + 0.5 - (RIVER_X0 + RIVER_X1) / 2) / ((RIVER_X1 - RIVER_X0) / 2)); }
+/* HOW FULL, as against how fast (#192). riverRun() has said since #145 that the channel
+ * runs x1.45 in January and x0.55 in July, and every one of its fifteen readers is a
+ * colour, a speed, a streak or a gradient: not one moves the WATERLINE, which has been
+ * RIVER_X0..RIVER_X1 since the town was built. riverLev() is that missing number — the
+ * level at the MARGIN, +1 at its highest and -1 at its lowest, read against a bed height
+ * per cell by stepBank().
+ *
+ * It is greyF()'s own cosine (greyF() IS cos(2*PI*seasonPhase)) run RIVER_LAG of a year
+ * late, and the lag is the whole reason it is a second function rather than a second
+ * reader of the first: a catchment answers the weather about two days after the sky does,
+ * so the river is still falling when the year has already turned to warm, and it is
+ * LOWEST in late summer rather than at midsummer, which is where every other term in the
+ * town has its extreme. At SEASON_START it is 0.454 — well inside both bands below, so
+ * the anchor state is HEAD's exactly: no cell is flipped either way. */
+const RIVER_LAG = 0.075;                       // of a year: ~2 days behind the sky
+function riverLev(){ return Math.cos(2 * Math.PI * (season() - RIVER_LAG)); }
 /* The channel's own colour, applied on top of whatever groundCol() already decided,
  * so the anchor is neutral as an identity: at greyF() 0 the mix amount is 0 and the
  * string that comes back is the same one. */
@@ -3038,6 +3066,110 @@ function riverSkin(){
   return kf * (2 - kf);
 }
 buildIce();       // after buildMoss: mossShelterAt() counts the WATER neighbours the grid was BUILT with
+
+/* ============ the waterline, at the margin (#192) ============
+ * riverLev() says how full the channel is; this is where that number is CASHED, and it
+ * is built on the machinery #181 already put here, because the question is the same one:
+ * which cells are at the EDGE of the river, and how far in is each of them. The ice reads
+ * that edge as shelter; this reads it as HEIGHT.
+ *
+ *   the bed    every cell of the margin gets a bank height in riverLev()'s own units,
+ *              hashed, so the strip comes and goes cell by cell down the bank instead of
+ *              switching on in three tidy columns. Negative in the channel (the level has
+ *              to FALL past it to uncover the cell), positive on the bank (it has to RISE
+ *              past it to get onto it). One array, one sign convention, both directions.
+ *              Both spans run PAST the level's own reach of 1, so the deepest fifth of the
+ *              margin never comes out and the highest fifth of the strip is never under:
+ *              the edge stays ragged at the extremes instead of squaring off into a line.
+ *   the margin is one cell wide on purpose. A river's summer strand is a strand; more than
+ *              that is the channel narrowing, and the barge, the punts, the rowboat and
+ *              both swans are priced on a channel RIVER_X0..RIVER_X1 wide. So the set is
+ *              the cells the SIDE of the quay or the towpath is next to, minus the fast
+ *              middle (riverMid), minus the eyot's own laps (drawEyot paints that ring
+ *              whole, and a tile under it would disagree with the picture), minus every
+ *              right of way reedKeepOut() already names — the deck, the mill race, the
+ *              jetty, the barge's berth and both punt tracks. The bank half is the
+ *              towpath's first column and NOT the quay's: a stone wharf is built high and
+ *              a towpath is the bank the river actually gets onto.
+ *   the flip    WATER or REED -> SHOAL as the level falls under the bed; SIDE -> WATER as
+ *              it rises over it. The tile it was is READ OFF THE GRID at build and put
+ *              back, never re-derived (#151's law), so a reed cell comes back a reed cell
+ *              with its own species and stage still under it.
+ *
+ * ZERO R(), like the ice and the reeds: every draw is hash(x, y) and the rest is the
+ * calendar, so the seeded world is byte-for-byte the one it was. */
+const BANK_CELLS = [];                          // the margin, both ways, row-major: the step's whole world
+const bankBed = new Float32Array(GW * WH),      // its bank height, in riverLev()'s units
+      bankWas = new Uint8Array(GW * WH);        // the tile it is at the anchor, to put back
+const BANK_DRY_LO = 0.50, BANK_DRY_SPAN = 0.62, // the channel margin's beds: -0.50..-1.12
+      BANK_WET_LO = 0.58, BANK_WET_SPAN = 0.60, // the bank strip's:          +0.58..+1.18
+      BANK_FAST = 0.30,                         // riverMid() over this is the navigable channel: never margin
+      BANK_FADE = 0.45;                         // how far past its bed the level falls before a cell reads DRY
+let bankDry = 0,                                // cells uncovered right now — the census's `shoal`
+    bankLap = 0;                                // cells of bank under water — its `lap`
+/* the ONE reading, for anything drawn over the water that must not be drawn over mud */
+function onShoal(x, y){
+  const gx = x | 0, gy = y | 0;
+  return gx >= 0 && gy >= 0 && gx < GW && gy < WH && grid[gy * GW + gx] === SHOAL;
+}
+/* A stand of rushes is drawn and stepped off the cell it GREW in and not off the tile the
+ * level is showing today: the water goes off their roots, the reeds stay where they are.
+ * Without this the first low summer took 39 stands out of the picture — while REED_RUNS,
+ * static since the sow, went on casting their image into the water beside them — and froze
+ * their stage at whatever the day of the flip left, which the census read as `blooming` +3. */
+function reedHere(i){ return grid[i] === REED || (grid[i] === SHOAL && bankWas[i] === REED); }
+/* Called after sowReeds(), not from buildGrid(): the reeds ARE half the margin, and the
+ * berths reedKeepOut() clears are declared ten thousand lines below the grid. */
+function buildBank(){
+  BANK_CELLS.length = 0; bankBed.fill(0); bankWas.fill(0);
+  for (let y = REED_Y0; y < REED_Y1; y++) for (let x = RIVER_X0; x <= TOW_X0; x++){
+    const i = y * GW + x, t = grid[i];
+    if (reedKeepOut(x + 0.5, y + 0.5)) continue;
+    let bed = 0;
+    if (x < RIVER_X1){                                       // the channel side: what a low river uncovers
+      if (t !== WATER && t !== REED) continue;               // the deck's span and the island are not margin
+      if (reedRim(x, y)) continue;                           // the eyot's laps: the island is painted whole
+      if (clamp(riverMid(x), 0, 1) > BANK_FAST) continue;    // the fairway, which may never narrow
+      // and the barge's LANE, which reedKeepOut does not name: it clears the length she
+      // LIES alongside (3.4 of each berth bollard) and she RUNS the whole of column 114,
+      // in off the top of the frame and back out of it, hard against the quay wall. A
+      // hull 1.48 cells across at BARGE_X 114.86 covers 88% of that column, so a strand
+      // under it is a barge aground — the corridor is cleared end to end, the way the
+      // punts' is, and the west strand starts south of where she stops. Measured: she was
+      // the ONE thing in the town standing on mud (probes/river-level, 6 seeds x a year).
+      if (Math.abs(x + 0.5 - BARGE_X) < BARGE_HW + 0.5 && y < BARGE_MOOR_Y + BARGE_HH + 1) continue;
+      let shore = false;
+      for (const d of [-1, 1, -GW, GW]) if (grid[i + d] === SIDE) shore = true;
+      if (!shore) continue;                                  // one cell wide: the strand, not the channel
+      bed = -(BANK_DRY_LO + BANK_DRY_SPAN * hash(x, y + 911));
+    } else {                                                 // the bank side: what a high one gets onto
+      if (t !== SIDE || !onChannel(x - 1, y, grid[i - 1])) continue;
+      bed = BANK_WET_LO + BANK_WET_SPAN * hash(x, y + 917);
+    }
+    bankBed[i] = bed; bankWas[i] = t; BANK_CELLS.push(i);
+  }
+}
+/* One pass of the margin per CA tick, beside the ice's. A cell carrying a skin belongs to
+ * stepIce and is left alone — the two can never want the same cell at the same time (ice
+ * asks for warmth under ICE_COLD, an uncovered strand for a level that is only reached
+ * three seasons away from it), but the guard is what makes that a fact and not a hope. */
+function stepBank(){
+  const lev = riverLev();
+  let dry = 0, lap = 0, n = 0;
+  for (let k = 0; k < BANK_CELLS.length; k++){
+    const i = BANK_CELLS[k], was = bankWas[i], t = grid[i];
+    if (t === ICE) continue;
+    const wet = lev > bankBed[i];
+    const want = was === SIDE ? (wet ? WATER : SIDE) : (wet ? was : SHOAL);
+    if (t !== want){ grid[i] = want; n++; }
+    if (want === SHOAL) dry++;
+    else if (was === SIDE && wet) lap++;
+  }
+  bankDry = dry; bankLap = lap;
+  // a flip is a change to the CACHED layer, and it is quantized by BEING a flip: the
+  // whole margin turns over perhaps ninety times a year, not once per rounding of a clock
+  if (n) groundDirty = true;
+}
 
 /* ============ the martins under the eaves (#189) ============
  * The town has put birds ON roofs since #106 and answered for them since #113, but a
@@ -3861,6 +3993,7 @@ function caTick(){
   stepLitter();
   stepMoss();
   stepIce();
+  stepBank();     // after the ice: a skinned cell is stepIce's, and stepBank() stands off it
   stepMartins();
   const m = maturity(), boost = raining ? 3 : 1;
   const vig = growF(), die = dieF();          // the ceiling is per-cell now: bedCap(x, y)
@@ -3904,7 +4037,7 @@ function caTick(){
         const crowd = nm > 5 ? 0.03 : 0;
         if (R() < (0.0025 + crowd + bAge[i] * 0.0004) * die){ bSp[i] = 0; bSt[i] = 0; bAge[i] = 0; }
       }
-    } else if (t === REED){
+    } else if (reedHere(i)){
       // the shallows step on the same tick as the beds and out of the same arrays, but
       // with no die roll in them at all: a stand of rushes is where it was last year, and
       // only how far ON it is answers to the season. Zero R() — so adding the whole reed
@@ -6983,7 +7116,7 @@ function pairStands(x, y){
   const g = grid[gy * GW + gx];
   // LEADS is walkable ground and it is deliberately NOT here: the terrace is the
   // tenant's own place and no route in the town may take a companion onto our roof (#170)
-  return g !== WATER && g !== REED && g !== ICE && g !== VOID && g !== WALL && g !== LEADS && g !== BED && g !== CBED && g !== TRUNK && g !== DIAL && g !== EYOT;
+  return g !== WATER && g !== REED && g !== ICE && g !== SHOAL && g !== VOID && g !== WALL && g !== LEADS && g !== BED && g !== CBED && g !== TRUNK && g !== DIAL && g !== EYOT;
 }
 /* the dawn sweeper */
 let sweeper = null;
@@ -8165,7 +8298,11 @@ function buildSunShade(){
  * land path and keep the flat quad they have always had. The near reach is wider than the
  * far one, because the quay ends at the lane; that is where buildGrid cuts it. */
 function onChannel(x, y, t){
-  return (t === WATER || t === REED || t === ICE) && x < RIVER_X1 && x >= (y >= LN_WALK_S ? QUAY_X0 : RIVER_X0);
+  // #192: <= RIVER_X1, not <, because the towpath's first column carries WATER when the
+  // high water is on it — and a lap of the river is the river, to the shadow mask, to the
+  // cache's colour and to the naming. Nothing else east of the channel is ever a wet tile,
+  // so the widened bound admits exactly stepBank()'s lap and nothing besides.
+  return (t === WATER || t === REED || t === ICE) && x <= RIVER_X1 && x >= (y >= LN_WALK_S ? QUAY_X0 : RIVER_X0);
 }
 /* The mask, as quads on `g` — but only over the cells whose ground is the KIND asked for.
  * The channel does not take a shadow the way stone does (see drawWaterShade), so the one
@@ -10280,6 +10417,16 @@ function groundBase(x, y, t, hv, m){
     for (const d of [-1, 1, -GW, GW]){ const g = grid[y * GW + x + d]; if (g === WATER || g === REED || g === ICE) shore++; }
     const turf = mix('#9db06e', '#7d9a56', 0.5 + 0.5 * hash(x, y + 5) - 0.25 * (1 - m));
     return shore ? mix(turf, mix('#b9ae93', '#cbc2ac', hv), 0.35 + 0.25 * shore) : turf;
+  }
+  if (t === SHOAL){
+    // uncovered bed. How DRY it looks is how far the level has fallen past this cell's own
+    // bed — so the strand dries outward from the waterline as the summer goes on, rather
+    // than the whole strip changing colour at once, and it is dark and wet the day it
+    // comes out. West of the channel the bed is the quay's stone footing; east of it, silt
+    // and the roots of the rushes still standing in it.
+    const k = clamp((bankBed[y * GW + x] - riverLev()) / BANK_FADE, 0, 1), stone = x <= RIVER_X0;
+    return mix(mix('#4f5a52', '#5a6155', hv),
+               stone ? mix('#a2977f', '#b1a78f', hv) : mix('#8a8164', '#978d6e', hv), k);
   }
   if (t === ROAD) return trodStone(wetCol(mix('#87806f', '#8d8675', hv * 0.5), hv), y * GW + x);
   if (t === WATER || t === ICE){
@@ -12400,6 +12547,7 @@ function drawPuddles(){
   if (wetness <= PUD_LO) return;
   const sky = skyCols()[1], gl = 0.18 + 0.82 * daylight;
   for (const p of PUDDLES){
+    if (grid[p.i] === WATER) continue;      // #192: the high water is over this stone — it is river now, not a pool
     const d = pudDepth(p);
     if (d <= 0.03) continue;
     const [sx, sy] = project(p.cx, p.cy, 0);
@@ -12495,7 +12643,7 @@ function drawScene(t, dt){
   for (let y=3;y<LN_WALK_S;y++) for (let x=0;x<GW;x++){
     const i=y*GW+x;
     if (bSp[i] && (grid[i]===BED || grid[i]===CBED)) items.push({y:y+0.5, f:drawPlant, x, gy:y, i});
-    else if (grid[i]===REED) items.push({y:y+0.5, f:drawReeds, x, gy:y, i});   // #155: the shallows sort with the beds
+    else if (reedHere(i)) items.push({y:y+0.5, f:drawReeds, x, gy:y, i});   // #155: the shallows sort with the beds; #192: a stand a low river left dry is still a stand
   }
   for (const b of BENCH_SPOTS) items.push({y:b.y+0.2, f:drawBench, b});
   for (const b of LANE_BENCHES) items.push({y:b.y+0.2, f:drawBench, b});
@@ -13710,6 +13858,7 @@ function drawRiverFlow(t){
       if (fx < RIVER_X0 + 0.5 || fx > RIVER_X1 - 0.5) continue;
     }
     if (frozen(fx, fy) || frozen(fx, fy + 1)) continue;  // #181: nothing runs over the skin — the flow is squeezed into the open channel
+    if (onShoal(fx, fy) || onShoal(fx, fy + 1)) continue; // #192: nor over the strand a low summer has uncovered
     const [sx, sy] = project(fx, fy, 0);
     ctx.moveTo(sx, sy); ctx.lineTo(sx - 1.2 + lean, sy + len);
   }
@@ -13784,8 +13933,7 @@ function riverWaterPath(g){
  * which stepIce() counts anyway. ICE_CELLS is built row-major, so a run is a stretch of
  * consecutive indices in one row. Both ends of every edge are solved in WORLD space and
  * projected separately: project() pinches on screen depth (#138). */
-function iceRuns(g){
-  if (!iceOn) return 0;
+function cellRuns(g, list, keep){
   let runs = 0, a = -1, b = -1;
   const flush = () => {
     if (a < 0) return;
@@ -13794,15 +13942,19 @@ function iceRuns(g){
     g.moveTo(p0[0], p0[1]); g.lineTo(p1[0], p1[1]); g.lineTo(p2[0], p2[1]); g.lineTo(p3[0], p3[1]); g.closePath();
     runs++; a = -1;
   };
-  for (let k = 0; k < ICE_CELLS.length; k++){
-    const i = ICE_CELLS[k];
-    if (rice[i] < ICE_SET){ flush(); continue; }
+  for (let k = 0; k < list.length; k++){
+    const i = list[k];
+    if (!keep(i)){ flush(); continue; }
     if (a >= 0 && i === b + 1 && ((i / GW) | 0) === ((a / GW) | 0)) b = i;
     else { flush(); a = b = i; }
   }
   flush();
   return runs;
 }
+function iceRuns(g){ return iceOn ? cellRuns(g, ICE_CELLS, i => rice[i] >= ICE_SET) : 0; }
+/* and the same shape for the strand (#192): BANK_CELLS is built row-major too, and an
+ * uncovered cell is no more water to a reflection than a frozen one is. */
+function shoalRuns(g){ return bankDry ? cellRuns(g, BANK_CELLS, i => grid[i] === SHOAL) : 0; }
 /* Everything that stands over the channel, with the row its image starts at (its feet on
  * the water) and how far up it reaches. x0/x1 bound the DRAW, not the reflection: a caster
  * paints its ramps and its bank posts too, and the water path is what keeps those out.
@@ -13971,6 +14123,9 @@ function drawWaterMirror(t){
   // ...and neither is the frozen margin (#181): the bridge's image ends at the edge of
   // the skin, which is what makes the ice read as a SURFACE rather than as pale water
   if (iceOn){ rtx.beginPath(); iceRuns(rtx); rtx.fill(); }
+  // ...and neither is the strand a low summer has uncovered (#192): the reeds' own image
+  // is drawn from the run that is standing in it, and it must end where the water does
+  if (bankDry){ rtx.beginPath(); shoalRuns(rtx); rtx.fill(); }
   rtx.globalCompositeOperation = 'source-over';
   /* the water is taken at the COMPOSITE and not as a clip on the offscreen: a second
    * clip per caster measured 0.689 ms at Plaza against this one's 0.528 (probes/refl-cost),
@@ -15803,7 +15958,7 @@ function answersTouch(x, y){
   if (x < 0 || y < 0 || x >= GW || y >= WH) return false;
   const g = grid[y * GW + x];
   return g === BED || g === CBED || g === GRASS || g === WATER || g === REED || g === ICE ||
-         g === SIDE || g === ROAD || g === PATH;
+         g === SHOAL || g === SIDE || g === ROAD || g === PATH;
 }
 /* SIDE, ROAD and PATH are the paving of the WHOLE town — the courtyard's flags,
  * the lane, the cross street, the plaza and its mouth, the quay, the bridge deck,
@@ -16004,6 +16159,12 @@ cv.addEventListener('click', ev => {
   } else if (grid[j] === ICE){
     announce(pick(['You put a foot to the ice at the river\'s edge; it holds, and you take it back anyway.',
       'You slide a pebble out over the skinned margin. It goes a long way, and stops.']));
+  } else if (grid[j] === SHOAL){
+    announce(pick(bankWas[j] === REED
+      ? ['You crouch at the strand. The rushes are standing on their own roots, out of the water.',
+         'The reeds have been left dry. Their roots are a tangle of grey wood, and something small goes back under them.']
+      : ['A strip of the bed is out of the water, dark and cold. The river has gone down a foot.',
+         'You put a hand to the uncovered stone. It is still wet, and it will not be dry before the autumn.']));
   } else if (grid[j] === WATER){
     const w = waterAt(x);
     announce(w.line);
@@ -16200,7 +16361,15 @@ function nameAt(x, y){
   if (g === GRASS) return daisy[j] ? 'the lawn, daisies in it'
                  : wear[j] > 0.45 ? 'the lawn, worn to a path' : 'the lawn';
   if (g === REED) return REED_NAMES[bSt[j] - 1] || REED_NAMES[0];
-  if (g === WATER){ const w = waterAt(x); return w.x0 === RIVER_X0 && mistF() > 0.3 ? 'mist on the river' : w.what; }
+  if (g === SHOAL) return bankWas[j] === REED ? 'the reeds, standing on dry roots'
+                 : x <= RIVER_X0 ? 'the quay\'s footing, out of the water'
+                 : 'the strand, uncovered by a low river';
+  if (g === WATER){
+    // #192: the lap is the same river, and worth saying so — it is standing where the
+    // towpath is the rest of the year
+    if (bankWas[j] === SIDE) return 'the river, up over the edge of the towpath';
+    const w = waterAt(x); return w.x0 === RIVER_X0 && mistF() > 0.3 ? 'mist on the river' : w.what;
+  }
   if (g === ICE) return rice[j] > 0.75 ? 'the river, frozen right in to the channel'
                 : snowCover > 0.3 ? 'the river\'s ice, snow lying on it' : 'the river, skinned over at the edge';
   if (g === GLASS) return 'the glasshouse, warm under the panes';
@@ -16839,6 +17008,7 @@ whereEl.addEventListener('click', () => whereGo(whereN + 1));
  * for BED, so cutting water into REED after it would have moved nothing but still had to
  * be explained. It spends no R(), so the eight opening beds are the eight they were. */
 sowReeds();
+buildBank();      // the margin is read off the grid the reeds are already in
 (function seed(){
   let planted = 0, guard = 0;
   while (planted < 8 && guard++ < 4000){
@@ -17388,7 +17558,7 @@ window.__entities = function(){
   return out;
 };
 window.__census = function(){
-  const tiles = {}, TN = ['WALL','PATH','GRASS','BED','CBED','TRUNK','SIDE','ROAD','VOID','WATER','TUNNEL','SLOT','DECK','DIAL','EYOT','GLASS','REED','LEADS','ICE','ARCADE'];
+  const tiles = {}, TN = ['WALL','PATH','GRASS','BED','CBED','TRUNK','SIDE','ROAD','VOID','WATER','TUNNEL','SLOT','DECK','DIAL','EYOT','GLASS','REED','LEADS','ICE','ARCADE','SHOAL'];
   for (let i = 0; i < GW * WH; i++){ const n = TN[grid[i]] || ('T' + grid[i]); tiles[n] = (tiles[n] || 0) + 1; }
 
   /* planting CA: how much of the beds is actually growing, and how far along */
@@ -17457,6 +17627,11 @@ window.__census = function(){
        reach is. Town state: a pure function of the calendar and the weather that has run,
        and the only field in the census whose tile count moves with the season. */
     ice: { frozen: iceOn, skin: +riverSkin().toFixed(4), margin: ICE_CELLS.length },
+    /* #192: the WATERLINE, the same two numbers again — cells of channel the falling
+       level has uncovered (`shoal`) and cells of bank the rising one is over (`lap`),
+       with the level itself. Town state: a pure function of the calendar, like the ice's,
+       and the pair that says the river's EXTENT is no longer a build constant. */
+    bank: { shoal: bankDry, lap: bankLap, level: +riverLev().toFixed(4), margin: BANK_CELLS.length },
     planting: { planted, blooming, daisies, mossy, matureTrees, worn, harvested,
                 produce: +produce.reduce((a, b) => a + b, 0).toFixed(1),
                 species: SPECIES.length, bySpecies },
@@ -17474,6 +17649,9 @@ window.__census = function(){
       // `green` and `developed` are untouched: nothing here is ground.
       // #181: and an ICE cell is cut out of WATER too, by the calendar rather than by
       // buildGrid — without it a February census reads as the river draining away.
+      // #192: SHOAL is deliberately NOT here and not in `green` or `developed` either.
+      // Uncovered bed is not water and it is not ground: what the low summer takes off
+      // `water` is meant to be visible as a LOSS, and `bank.shoal` is where it went.
       water: (tiles.WATER || 0) + (tiles.REED || 0) + (tiles.ICE || 0),
       passages: (tiles.TUNNEL || 0) + (tiles.SLOT || 0),
       people: agents.length, planted, blooming,

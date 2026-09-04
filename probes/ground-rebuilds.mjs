@@ -43,6 +43,7 @@ const SITES = [
   ['  if (washOut() !== washPainted) groundDirty = true;', 'wash'],
   ['  if (barrowKey() !== barrowPainted) groundDirty = true;', 'barrow'],
   ['  if (wearDirty && wearAcc >= WEAR_REPAINT) groundDirty = true;', 'wear'],
+  ['  if (n) groundDirty = true;', 'bank'],   // #192: the waterline flips tiles in the cached layer
 ];
 const REQUIRED = new Set(['light', 'snow', 'wet', 'wash', 'wear']);
 const ANCHOR = 'let groundDirty = true;';

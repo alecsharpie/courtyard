@@ -246,3 +246,27 @@ is composited under `applyLight`, whose sun colour is seasonal. The function rea
 picture never did.
 **Law:** a cached layer's inputs are not its PICTURE's inputs — what is composited over it after
 the blit is an input too. Price a "reads nothing" premise on PIXELS, not the function body.
+
+## Iteration 192 — the waterline moves with the year (2026-09-04) [River & far bank × New CA]
+
+**Brief:** b192 — give the channel a LEVEL. Attempt 1 left 174 lines uncommitted; that design is
+its own. I audited it and fixed two defects.
+**Did.** `riverLev()` = greyF()'s cosine run `RIVER_LAG` 0.075 of a year late, cashed by `stepBank()`
+against `bankBed[]`, a hashed bank height per cell — negative in the channel, positive on the bank.
+`BANK_CELLS` is #181's margin re-read as HEIGHT. New tile `SHOAL`, in neither `water` nor `green`;
+`onChannel` widened so a lap is river to the cache.
+**Defects.** (1) A REED cell flipping to SHOAL lost its rushes from the item loop — while REED_RUNS,
+static since the sow, cast their image into the water still — and froze its stage (`blooming` +3);
+`reedHere(i)`. (2) The BARGE ran aground: reedKeepOut clears the length she LIES alongside, not the
+column she RUNS; lane cleared, 103 -> 90.
+**Measured** (`probes/river-level.mjs`, new; 6 seeds x 26 d). A CURVE: shoal 0·0·0·0·6·25·40·50·**53**·
+50·41·29·8·0…, lap peaking 26 at day 21; most cells crossing in ONE tick **3** (#181's 13). Uncovered
+**9 of 27 days, exactly 0 on 18**; 0 entities on mud.
+**Gates:** census PASS (summer `water` -72, `green`/`developed` UNCHANGED; winter SIDE -78 -> WATER
++78) · motion · 0 POP · frame-diff **0 of 1,054,852 px at the anchor** · look 2049/1417 px on a 0 px
+floor · repaints +3.7%
+**Verdict:** shipped
+**Surprise:** the brief said the census could not see the low end and told me to say so in my own
+words. It can: the three ages sit at two phases symmetric about midsummer, but riverLev is LAGGED,
+so those two are no longer one number and the strand reads on one cell of three.
+**Law:** #189's, backwards — a symmetric ladder CAN see a term whose extreme is off midsummer.
