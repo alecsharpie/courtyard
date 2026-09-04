@@ -22,7 +22,7 @@
   "avoid": "Do not place nests from a constant list — a fixed array is a new-element, not a CA, and the kind is the point. Do not spread them evenly over every house; one uniform hash is a texture, never a PLACE. Do not add a new bird population with its own cap on top of `birds[]` until you have shown the existing one cannot carry it.",
   "budgetMin": 50,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 189,
   "issued": "2026-09-04T02:48:45.358Z",
