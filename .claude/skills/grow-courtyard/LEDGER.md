@@ -250,3 +250,23 @@ censuses the build with its one behaviour change backed out against HEAD: **6 fi
 `freeBay`'s filter, one refused spawn.
 **Law:** a cached draw is free to the seeded world, so a build with its one BEHAVIOUR change backed
 out must census IDENTICALLY to HEAD but for its new fields.
+## Iteration 202 — the martins get a second mud source: the river's strand (2026-09-04) [People & animals × Deepen]
+
+**Brief:** b202 — the mud is on wetF() alone and two worlds in six see no rain in the birds' season.
+**Priced first** (probes/mart-mud.mjs, 6 seeds x 2 yr): first-season integral 0, 8.1, 55, 64, 214, 222;
+year-one peaks 0, 1, 24, 39, 63, 126. Premise holds — 2 of 6 towns open bare.
+**Did.** `martStrandF() = MART_STRAND_K * clamp(bankDry / MART_STRAND, 0, 1)`;
+`martMudF() = max(rain-mud, strand)`. `bankDry` is stepBank's uncovered river bed — mud by
+definition — and riverLev() is a CALENDAR, not weather: the same in every seed, 0 cells until phase 0.40, 43
+at midsummer, gone by 0.72, in a window of 0.27..0.70 (probes/mart-strand.mjs, new). So a rainless
+colony is founded LATE, at midsummer. K=0.07 off the strand's own season
+integral (~760 -> 53), between the two thinnest years that already grew one.
+**Gates:** census PASS (reshuffled: nests arrive earlier, so martSpot()'s R() draws move) · motion PASS · 4 shots + a midsummer pair v HEAD · filmstrip 0 POP · mart-mass
+130-719 px on a same-code floor of 0 · mart-birds offNest 0/6 · mart-year: year-one peaks -> 20, 24,
+45, 56, 61, 108, **6 of 6 colonies**, meanRun 9.0-41.7 v a uniform control's 1.27-2.17, empty in late winter 6/6, all back to 0 by 0.923.
+**Verdict:** shipped
+**Surprise:** the wettest world got no denser — seed 99's peak 126 -> 125 — while the thin ones
+converged UP (42: 39 -> 76, 271: 59 -> 85).
+**Law:** where one quantity has two sources take the MAX, not the sum: it lifts the starved tail
+without moving the head, which a threshold cannot do. Size the second off the TAIL's own missing
+integral, never the mean. A SEASONAL driver is the same in every world — that is what makes it an antidote to a weather coin.

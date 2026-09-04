@@ -3303,7 +3303,29 @@ function martHere(){
   return clamp((p - MART_IN) / MART_IN_W, 0, 1) * clamp((MART_OUT - p) / MART_OUT_W, 0, 1);
 }
 const MART_WET = 0.30;                            // full mud at a third of a soaking
-function martMudF(){ return clamp(wetF() / MART_WET, 0, 1); }
+/* THE SECOND SOURCE (#202). #189 put the whole build on wetF(), and the weather is a
+ * coin: measured over six seeds, a town's FIRST season carries 0, 8, 55, 64, 214 and 222
+ * of a soaking's integral, so two worlds in six spend the whole opening year with bare
+ * eaves and no colony at all. But a martin does not wait for a puddle — it goes to the
+ * WATER'S EDGE, and the water's edge is wet whatever the sky is doing. stepBank already
+ * uncovers one: `bankDry` is the strand, river bed with the water off it, which is what
+ * mud IS. And riverLev()'s year hands it over on exactly the right days — the channel is
+ * brim-full when the birds arrive, the strand comes out as the level falls, 0 cells at
+ * phase 0.40, 43 at midsummer, gone again by 0.72, inside a window that runs 0.27..0.70.
+ *
+ * So this is a SOURCE and not a floor: it has a shape of its own, it is LATE (a rainless
+ * colony is founded at midsummer, not in the spring), and it is off entirely for the half
+ * of the year the birds are not here. The two do not ADD — a bird carries one beakful at
+ * a time — so the wetter of them wins, which is why a wet world barely moves and a dry
+ * one is saved. MART_STRAND_K is the ferry: the river is thirty cells from the eaves and
+ * a puddle is underfoot, so a full strand is worth a fourteenth of a soaking. Swept on
+ * the dry worlds (probes/mart-strand.mjs): the strand's own season integrates to ~760,
+ * and 0.07 of that is 53 — between seed 1234's 55 and seed 42's 64, the two thinnest
+ * seasons that already grew a colony. Zero R() and zero new state: the term is read off
+ * the margin the census already reports. */
+const MART_STRAND = 43, MART_STRAND_K = 0.07;     // a full strand, and what one is worth against a soaking
+function martStrandF(){ return MART_STRAND_K * clamp(bankDry / MART_STRAND, 0, 1); }
+function martMudF(){ return Math.max(clamp(wetF() / MART_WET, 0, 1), martStrandF()); }
 /* MART_SEED_K is the one constant here that was swept rather than chosen, and it was
  * swept on the FIRST YEAR, which is the one the mud gate can starve: measured over six
  * seeds (probes/mart-mud.mjs) the town's opening season carries 0, 16, 53, 223, 255 and

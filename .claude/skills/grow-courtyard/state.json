@@ -2,7 +2,7 @@
   "updated": "2026-09-04",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 201,
+  "lastIteration": 202,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -461,7 +461,8 @@
         118,
         128,
         152,
-        161
+        161,
+        202
       ],
       "polish": [
         "pre9",
@@ -646,7 +647,7 @@
       "crowds outside laneCount: concert, evening door, homers, cafe, evening posts; goHome after dusk, HOMES read by windowLit, eveOpen; every arrival ends in a stop that performs and usually SAYS it (sayAt, 37 sites)",
       "POPULATION caps swept by presence per PLACE (probes/town-caps.mjs): capacity 10, laneCap 10, eastCap min(9,*8), FAR_CAP 5, LAWN_CAP 8, FAM_CAP 5, EVE_CAP 6, ALLOT_CAP 5, TEN_CAP 2; laneCount POSITIVE",
       "MOTHS at the LIGHTS (#177): own source+cap updateMoths/mothPos, NIGHT_LAMPS the ONE lamp list; mothRate() carries year+rain, MOTH_CAP, MOTH_PER_LAMP 3 x MOTH_JOIN; mothName, drawMoths LAST",
-      "MARTINS on the eaves (#189): a CA over MART_CELLS (217, drawFaceRow’s test), martSeed x creep x martTop, mud on wetF(); martHere p 0.27-0.70; drawNest in the facade; birds[] b.mart, MART_BIRDS 5"
+      "MARTINS on the eaves (#189): a CA over MART_CELLS (217, drawFaceRow’s test), martSeed x creep x martTop; mud = max(wetF/MART_WET, bankDry/MART_STRAND x .07) — TWO sources (#202), the strand a calendar not a coin; martHere .27-.70; b.mart 5"
     ],
     "sill": [
       "#plate, #daytime, #season, #where, #ticker (TICK_DWELL/QMAX), #stats, #ctrl; hidden under 640px; two LAPSE buttons, one beginLapse",
@@ -705,6 +706,12 @@
       "id": "c298",
       "note": "freeBay starves its index-0 bay: on HEAD house 1 took 0.35-0.75% of daylight samples to house 7's 4.9%, a 7x gap over 6 seeds x a year (probes/terrace-presence.mjs). #201's filter evened it by accident; the branch is unexamined.",
       "raisedBy": 200,
+      "seenBy": 0
+    },
+    {
+      "id": "c299",
+      "note": "the strand is the same in every world, so a rainless colony now founds on the SAME days in all of them — the seeds differ only in their founders; a per-world salt on the level's lag would put the mud year back on a per-town clock",
+      "raisedBy": 201,
       "seenBy": 0
     }
   ],
