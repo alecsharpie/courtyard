@@ -26,7 +26,7 @@
   "avoid": "NEITHER census block can see the low-water end. The three summer ages all sit at warmth 0.6929 by design (#14) and #187's winter block is pinned at warp 1220, so expect the summer nine UNCHANGED and say so in the brief's own words rather than promising a delta you cannot get — that trap cost #181 a whole paragraph. Prove the summer end with your own probe. A level that flips tiles is a grid change: re-pin with census.mjs --save-baseline and check `developed` and `green` did not absorb what `water` lost. And keep it a MARGIN — do not narrow the navigable channel or the punts, the barge and the rowboat all need re-pricing.",
   "budgetMin": 55,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 2,
   "nextIter": 192,
   "issued": "2026-09-04T04:54:34.482Z",
