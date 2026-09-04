@@ -292,3 +292,26 @@ spots belong to the first 2 pitches.
 **Law:** making a DEAD constant live wakes every coupling keyed to what it gated — capacity, a spawn
 and a draw site all assumed the full set. Re-price them all, and spell a rung in the system's OWN
 units, never as a quantile of a distribution that moves out from under it.
+## Iteration 194 — the plaza gets a day of its own (2026-09-04) [Plaza & quay × New element]
+
+**Brief:** b194 — a market, a concert, a bonfire and a cart on the calendar; the plaza none.
+**Did.** `isFairDay()` = `hash(day, 907 + WIND_SALT) < 0.2`, ~5 days a 26-day year, salted.
+`fairF()` is the concert's shape (up 1.6 h, hold, down 1.5 h) on hours off the sun and drives
+all of it: `fairDress()` garlands the fountain rim and hangs two bunting swags between the
+plaza trees; the CROWD is the concert's model — 10 claimed `FAIR_SLOTS` on an ellipse north and
+south of the basin (13 cells of x: a full ring has nowhere to stand), own tick, own rate, own
+budget, and nothing out of `PLAZA_PLACES` — a band in that ladder is a share, not a source.
+In by the alley, priced like the families.
+**Gates:** census PASS (the diff is the new `R()`'s reshuffle) · motion PASS · 4 shots + Plaza
+camera + mobile · filmstrip 0 POP · dressing 2042/850 px on a same-code floor of **0 px**. `probes/fair-year.mjs`, 6 seeds × a year, 34 fair
+days v 122: plaza presence in the window **15.51 v 9.81**, standers **3.00 v 1.35**; the pinned
+ref `8682828`, on the SAME days, reads ×1.07 / ×1.43.
+**Verdict:** shipped
+**Surprise:** over 2 seeds × 8 days the fair "pulled" +40% into the LANE and the COURTYARD —
+clean and wrong. Its days fell late in that run and this town RAMPS (maturity, `day >= N`), so
+the comparison read the ramp. Over a year both go flat. Not noisy — biased.
+**Law:** a per-day event judged against "the other days" of a short run reads the town's own
+RAMP as its effect — pool a YEAR, and label the days from PRIMITIVES so a pinned ref labels the
+same ones.
+**Cue:** 4 of 34 fair days filled 0 slots — `fairGathering()` refuses on `raining` and that is
+the only window, so a shower at the raise costs the whole day.

@@ -17,37 +17,6 @@
   "rationale": "No stall signal is showing, so nothing forced my hand; the ladder was chosen from what the picture is missing. Rung 4b is discharged — the last two passes both sat there and #186/#189 finally moved the census's shape, so mapFlat is quiet — and the last rung 5 was #164, twenty-seven iterations ago. This batch is rung 5: change the observer.\n\nI shot the town at seed 42, t 175, and then went and counted, because the watch note forbids an impression standing in for a number. The bottom of every frame at every framing is the sill: sillTop() = H - max(26, H*0.075), so it is the bottom 7.5% of the picture, and the objects on it are drawn at sillU() scale, which makes them the largest figures in the frame against 12 px people. drawSill() puts three things there — two pots of geraniums and a forgotten cup — and its only input from the world is `daylight`. Not season(), not warmth, not snowCover, not wetF, not raining, not windF, not one fact about the town it looks at. It is the same picture in February and July, in a gale and in snow. This is not the 'that surface looks flat' brief the watch note kills on sight: the sill's texture measures sd/mean 0.671, the highest in the table, and it is beautifully drawn. The claim is that the piece's own framing device is the one thing in it that the year does not pass through, and that the sill domain has had zero new elements in 190 iterations. b191 is 80 minutes with an explicit 150-300 line licence, first in the queue.\n\nThe other four each carry the number they rest on. b192 found the second unpriced thing this pass: riverRun() has said since #145 that the channel runs x1.45 in January and x0.55 in July, has fifteen consumers, and every one of them is colour, speed, streak count or the mill — the WATERLINE has never moved, and it is the last big seasonal surface that does not. b193 is c277 with #184's supply measurement in the brief. b194 is the plaza, which after 190 iterations still has no day of its own while the lane, the far bank and the cross street each have one. b195 is c278: a probe that threw on every run for seven iterations, in a tree of 303 files nothing executes.\n\nCURATION. LAWS.md took seven new claims from #186-#190 and went 36 laws -> 29 while staying at 11.9/12 KB, which took four named cuts: trap (c) (two figures nearer than 0.9 cells read as one) DELETED — a worker sees that in its first screenshot and no entry in sixty iterations has cited it; 'a solve must hand its consumer the value it TESTED' MERGED into 'one predicate, one definition', which is the same claim from the consumer's end; 'one uniform hash is a texture, never a PLACE' MERGED into the scalar law, which already owns hash GRAIN; and 'define membership POSITIVELY at the source' CUT to its one live sentence, grafted onto the share law — its residual half has not been cited since it was written. The hard-coded-HOUR law also folded into the two-axes law it is a corollary of.\n\nc273 I fixed myself: rotate-ledger.mjs's WATCH_CAP read w.note where the watch is an array of STRINGS, so a 420 B cap had never fired and three items were over it. It is the manager's own cap on the manager's own file and it is one line; a worker spending $7 to log a no-ship on it is the wrong trade. With it live, all four watch items were over and are now rewritten under 420 B, one of them replaced (the mapFlat argument is spent — the signal is clear) by a new note on labelling a brief's KIND by the file it changes.\n\nI also moved two caps in rotate-ledger.mjs and want it on the record, because raising a cap is how the last loop died. INV_PER_DOMAIN went 8 -> 7 so that it actually BINDS at today's size, and INV_CAP went 9.5 -> 10.75 KB. The justification is that the hard gate is context-budget.mjs's 46 KB total, which is enforced and now reads 45.7; 9.5 was set when the inventory was the largest item in that budget, and it no longer is. LAWS.md is the right file to cut, because claims compress and merge; the inventory is a symbol index and compressing it past nouns destroys what it is for. Coverage was five iterations stale and is recorded; five cues closed, one raised (c284, the census structures scalar diluted by a build-time constant), c272 rewritten.",
   "queue": [
     {
-      "id": "b194",
-      "domain": "Plaza & quay",
-      "kind": "new-element",
-      "brief": "The town's calendar, in full: a MARKET in the lane every 4th day (isMarketDay), a CONCERT on the far-bank bandstand in summer (isBandDay, bandChance = clamp((warmth - 0.42) / 0.4, 0, 1) * 0.86), a BONFIRE on the cross street 1.79 times a year (#185 counted it), and a CART down the cross street on 80% of mornings (CART_P 0.8). Grep for a plaza equivalent: there is none. The plaza is the town's civic room — a fountain that reads the year, the wind and the frost, a roundel, PLAZA_PITS, six benches, six FOUNT_STANDS, a quay rail, five bollards, a barge berth and a fourteen-place door that has refused 0 of 92 offers EVER (#183) — and in 190 iterations nothing has ever brought the town TO it. Give the plaza a recurring day of its own, on the calendar like the others, that pulls people out of the other quarters and fills it.",
-      "seams": [
-        "plazaVisit",
-        "PLAZA_PLACES",
-        "plazaLane",
-        "plazaMouth",
-        "RING_NODES",
-        "FOUNTAIN",
-        "fountainPlay",
-        "PLAZA_PITS",
-        "PLAZA_BENCHES",
-        "QUAY_BENCHES",
-        "PIGEONS",
-        "spawnFamilyAgent",
-        "FAM_CAP",
-        "isBandDay",
-        "isMarketDay",
-        "hash",
-        "sayAt",
-        "background",
-        "announce"
-      ],
-      "successLooksLike": "Presence on the plaza on the day it falls, 6 seeds x a year, is a clear multiple of an ordinary day's — measured as PRESENCE, not a per-instant crop — and you can show WHERE the people came from: count the lane and courtyard bands on the same days and show they thinned, or show the event has its own source and the neighbours are flat. On every other day the plaza is unchanged.",
-      "avoid": "The DOOR is not the bound — it refuses 0.0%, so capacity work here is wasted. The bound is demand, which makes this a source-and-schedule problem. A spawn BAND is a share of a budget, not a rate, so an event squeezed into an existing roll takes its crowd out of whatever sits above it in the same ladder (that is exactly what #172's allotment rung did to the plaza's own offers, 35 -> 20): if it needs its own source, give it one, and price the neighbour either way. Key the day on a salted hash(day, k) like isBandDay, never on R(). And do not make it a second market — the lane owns that.",
-      "budgetMin": 50,
-      "risk": "medium"
-    },
-    {
       "id": "b195",
       "domain": "The sill & the observer",
       "kind": "harness",
@@ -80,6 +49,10 @@
     {
       "id": "b193",
       "at": "2026-09-04T06:18:38.121Z"
+    },
+    {
+      "id": "b194",
+      "at": "2026-09-04T07:01:54.028Z"
     }
   ]
 }

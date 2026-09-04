@@ -2,7 +2,7 @@
   "updated": "2026-09-04",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 192,
+  "lastIteration": 194,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -295,7 +295,8 @@
     "plaza": {
       "new-element": [
         "pre22",
-        136
+        136,
+        194
       ],
       "deepen": [
         5,
@@ -580,7 +581,8 @@
       "the paving AGES in two regions (plaza PATH, quay SIDE): moss[]/mossOwn[], buildMossRegion/stepMossRegion, trodStone() in groundBase",
       "the quay is a WHARF: BARGE_BOLLARDS 5, BARGE_BERTH, structure.moorings; the BARGE on the punt shape — barge{leg}/updateBarge, own tick, BARGE_LAMP after applyLight, BARGE_HAND_Y",
       "the DOOR is FOURTEEN places (#160): PLAZA_PLACES + a.pheld, ONE claim 3 callers — 6 FOUNT_STANDS on r 3.5, 6 benches, 2 crumbs; plazaWay/plazaMouth, a.stop2 the 2nd act; refuses 0.0% (#183)",
-      "the two doors are CORRIDORS (#173): plazaLane() a no-R() golden sequence per walker, alleyRow/alleyGate/alleyLead the cut's 3.0 cells at BOTH ends, ringNode(i,lane)/RING_NODES; FAM_CAP 5. No event of its own is on the calendar"
+      "the two doors are CORRIDORS (#173): plazaLane() a no-R() golden sequence per walker, alleyRow/alleyGate/alleyLead the cut's 3.0 cells at BOTH ends, ringNode(i,lane)/RING_NODES; FAM_CAP 5. No event of its own is on the calendar",
+      "the plaza's FAIR DAY (#194): isFairDay hash(day,907+WIND_SALT)<0.2, salted, ~5/yr; fairF up/hold/down off the sun; fairDress = rim garland + 2 bunting swags; own source spawnFairAgent, 10 claimed FAIR_SLOTS, own tick"
     ],
     "river": [
       "river 13 cols 114..127, the fairway; rowboat, bridge, TOW_WALK/FAR_WALK, church+clock+rose window, bandstand, ORCHARD, JETTY, swan PAIR. Its EXTENT is NOT a build constant (#192): riverLev/RIVER_LAG, stepBank/bankBed/BANK_CELLS 90, SHOAL/shoalRuns",
@@ -690,6 +692,12 @@
     {
       "id": "c287",
       "note": "shelved is capped at exactly the open boards' capacity now, so a board is full or the day is bare — a half-stocked pitch is unreachable (#193)",
+      "raisedBy": 192,
+      "seenBy": 0
+    },
+    {
+      "id": "c288",
+      "note": "4 of 34 fair days filled 0 slots: fairGathering() refuses on raining and the gathering is the only window there is, so a shower at the raise costs the whole fair even when it clears by noon.",
       "raisedBy": 192,
       "seenBy": 0
     }

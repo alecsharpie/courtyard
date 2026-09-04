@@ -4829,6 +4829,7 @@ function stepAgent(a, dt){
     // progress the players pack away on, and a latecomer who never heard it at all
     // leaves when the last case comes off the stand.
     if (a.band && !a.heard && bandF() > 0.98) a.heard = true;
+    if (a.fair && !a.came && fairF() > 0.98) a.came = true;   // the fair is OPEN and they are in it: the latch the leave below reads
     // a companion keeps no clock of its own: it gets up when the leader does
     if (a.with){ if (a.with.done || a.with.state === 'walk'){ a.state = 'walk'; a.cup = false; }
       // a family's child rests a beat at the parent's side, then is off again (#92)
@@ -4854,7 +4855,8 @@ function stepAgent(a, dt){
         || (a.fam && !famSun())
         || (a.lawn && lawnClosed())           // rain or the failing light ends a stay on the lawn (#95)
         || (a.tap && !tapOpen())
-        || (a.band && (bandF() <= 0 || (a.heard && bandF() < a.leaveAt)))){
+        || (a.band && (bandF() <= 0 || (a.heard && bandF() < a.leaveAt)))
+        || (a.fair && (fairF() <= 0 || (a.came && fairF() < a.leaveAt)))){
       /* #186: the garden has a roof now, so the sky's first answer is the covered walk
        * and the gate is only its second. The trigger is the town's OWN bar for a turning
        * sky (SIT_REFUSE, the one every seat is already judged on) and not `raining`:
@@ -6927,6 +6929,112 @@ function plazaBirdSpot(){
   if (F && !inPlaza(clamp(x | 0, 0, GW - 1), clamp(y | 0, 0, WH - 1))) return null;
   if (agents.some(a => Math.hypot(a.x - x, a.y - y) < (F ? CRUMB_SHY : 4.6))) return null;
   return [x, y];
+}
+/* ============ the plaza's fair day (#194) ============ *
+ * The calendar had a market in the lane every fourth day, a concert on the far bank
+ * through the summer, a bonfire on the cross street twice a year and a cart on four
+ * mornings in five — and nothing at all in the plaza, which is the square the whole
+ * town is built round. Its people are the lane's overflow, the east's wanderers and
+ * FAM_CAP families: everybody in it is somebody who happened to be passing.
+ *
+ * So the plaza gets a day of its own, and gets it the way the others have theirs — a
+ * salted hash(day, k). No R(), so a day five in six do not have cannot reshuffle the
+ * seeded world, and the fair falls on different days in different worlds the way the
+ * wind, the cart and the dray already do.
+ *
+ * The DAY is the fountain dressed (drawFountainGarland) and bunting strung between the
+ * four plaza trees (drawFairBunting), both hung off ONE progress — fairF(), the
+ * concert's shape: up, hold, down — so the square dresses and undresses in order for
+ * free. The CROWD is the concert's model too, and for its reasons: its OWN slots, its
+ * own budget, its own clock.
+ *   - own SLOTS, because PLAZA_PLACES is a fourteen-place DOOR that three callers
+ *     already share; a band inside that ladder is a SHARE of a budget and not a source,
+ *     so a fair fed from it would take its crowd out of the families and the lane's own
+ *     plaza band and the square would hold exactly the people it holds today.
+ *   - own CLOCK, because the shared spawn tick is one roll a second and the gathering
+ *     is about six seconds of sim wide.
+ * The slots are two arcs north and south of the basin, OUTSIDE the walked ring
+ * (PLAZA_RING 5.9) in y and inside the paving in x: the square is thirteen cells wide,
+ * the ring owns the middle of them, and a full circle of standers is not something the
+ * plaza has the room for. Claimed like BAND_SLOTS, so two never draw as one shape, and
+ * the arcs break either side of the alley — the door they all come in by. */
+const FAIR_P = 0.2, FAIR_SALT = 907;      // ~5 fair days in a 26-day year; salted, like windyDay() and cartToday()
+function isFairDay(){ return day > 1 && hash(day, FAIR_SALT + WIND_SALT) < FAIR_P; }
+/* The hours, solved off the sun at the instant they apply and not hard-coded: the fair
+ * ends FAIR_DUSK before sunset so the last of it walks home in the light, and no later
+ * than FAIR_LATEST, which is what stops midsummer running it into the evening's own
+ * window. The START is what the season actually cuts — a midwinter day cannot pay for
+ * a 6.5 h fair AND the walks either side of it — but it is floored at FAIR_EARLIEST so
+ * the raise (FAIR_UP before it) still starts inside its own day: `hour` rolls at 6.00
+ * and everything before that belongs to the previous day, where isFairDay() is false.
+ * Midwinter runs 9.40-15.90, midsummer 11.10-17.60. */
+const FAIR_UP = 1.6, FAIR_LEN = 6.5, FAIR_DOWN = 1.5;
+const FAIR_DUSK = 2.6, FAIR_LATEST = 17.6, FAIR_EARLIEST = 9.4;
+function fairEnd(){ return Math.min(sunDown - FAIR_DUSK, FAIR_LATEST); }
+function fairStart(){ return Math.max(fairEnd() - FAIR_LEN, FAIR_EARLIEST); }
+function fairF(){
+  if (!isFairDay()) return 0;
+  const s = fairStart(), e = fairEnd();
+  if (hour < s - FAIR_UP || hour >= e + FAIR_DOWN) return 0;
+  if (hour < s) return (hour - s + FAIR_UP) / FAIR_UP;
+  if (hour < e) return 1;
+  return 1 - (hour - e) / FAIR_DOWN;
+}
+const FAIR_RX = 7.4, FAIR_RY = 8.2;        // an ellipse, not a circle: the square is 13 cells of x and 45 of y
+const FAIR_TH = [215, 240, 265, 290, 315, 45, 70, 95, 120, 145];   // the gap is the alley, at 180
+const FAIR_SLOTS = FAIR_TH.map(d => ({
+  x: FOUNTAIN.x + Math.cos(d * Math.PI / 180) * FAIR_RX,
+  y: FOUNTAIN.y + Math.sin(d * Math.PI / 180) * FAIR_RY, taken:0 }));
+/* Its own tick and its own rate, sized on the GATHERING and not on a day: the window is
+ * FAIR_UP + FAIR_GATHER = 2.6 h ≈ 6.0 s, which is 15 rolls at FAIR_TICK, and 15 rolls at
+ * FAIR_RATE fill ten slots with a little to spare for the ones the alley walk turns away.
+ * The walk itself is the families' — the alley gate is 4 to 15 cells from these slots,
+ * 0.8 to 2.9 h — so a fair-goer set out at the raise is standing before the fair opens. */
+/* the two swags: the north pair of plaza trees and the south pair, on the trunk each
+ * tree is actually drawn on (drawLaneTree offsets the pit by half a cell in x and 0.4
+ * in y, and a rope tied to the pit instead of the tree hangs off the trunk). */
+const FAIR_SPANS = [[PLAZA_PITS[0][0], PLAZA_PITS[0][1] + 0.4, PLAZA_PITS[1][0], PLAZA_PITS[1][1] + 0.4],
+                    [PLAZA_PITS[2][0], PLAZA_PITS[2][1] + 0.4, PLAZA_PITS[3][0], PLAZA_PITS[3][1] + 0.4]];
+const FAIR_TICK = 0.4, FAIR_RATE = 0.7, FAIR_GATHER = 1.0;
+let fairAcc = 0, fairSetDay = -1, fairOnDay = -1;
+function fairGathering(){
+  return isFairDay() && !raining && hour >= fairStart() - FAIR_UP && hour < fairStart() + FAIR_GATHER;
+}
+function fairCount(){ return agents.reduce((n, a) => n + (a.fair ? 1 : 0), 0); }
+function spawnFairAgent(){
+  const free = FAIR_SLOTS.filter(s => !s.taken);
+  if (!free.length) return;
+  const s = pick(free);
+  s.taken = 1;
+  const a = {
+    kind:'fair', street:true, fair:true, slot:s,
+    x:0, y:0, wp:[], i:0, speed:1.4 + R() * 0.6, state:'walk', timer:0,
+    shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9, wary:R(),
+    /* when this one has had enough of it, as a level of the SAME progress the square
+       undresses on — so the fair thins across the strike instead of emptying in a
+       frame. Written once at spawn; never a countdown read as a threshold. */
+    leaveAt:0.30 + R() * 0.55,
+  };
+  plazaLane(a);                                  // its own way in through the cut and round the roundel (#173)
+  const gate = alleyGate(s, a.plane), L = alleyLead(s, a.plane);
+  const lead = L.concat(plazaWay(L[0][0], L[0][1], s, a.plane).slice(0, -1));
+  a.x = gate[0]; a.y = gate[1];
+  a.stop = {x:s.x, y:s.y, act:'stand', dur:90};   // the fair ends them, not a timer
+  for (const p of lead) a.wp.push(p.slice());
+  a.wp.push([s.x, s.y]);
+  for (let i = lead.length - 1; i >= 0; i--) a.wp.push(lead[i].slice());
+  a.wp.push(gate.slice());                       // and out the way they came in
+  agents.push(a);
+}
+function fairNews(){
+  if (!isFairDay()) return;
+  if (fairSetDay !== day && hour >= fairStart() - FAIR_UP && hour < fairStart()){
+    fairSetDay = day;
+    sayAt(FOUNTAIN.x, FOUNTAIN.y, 'Bunting is going up between the plaza trees, and the fountain is being dressed.');
+  } else if (fairOnDay !== day && hour >= fairStart() && hour < fairEnd()){
+    fairOnDay = day;
+    sayAt(FOUNTAIN.x, FOUNTAIN.y, 'It is fair day in the plaza; the town stands about the dressed fountain.');
+  }
 }
 /* ============ the evening's own arrivals (#79) ============ *
  * The town had an evening door (spawnTapAgent), homers (spawnHomeAgent) and a night on
@@ -12698,6 +12806,9 @@ function drawScene(t, dt){
   // tname is what the naming calls this tree; the four groups are the only kinds there are
   for (const px of TREE_PITS) items.push({y:66.9, f:drawLaneTree, px, pit:1, tname:'a street tree'});
   for (const [ppx, ppy] of PLAZA_PITS) items.push({y:ppy + 0.4, f:drawLaneTree, px:ppx - 0.5, py:ppy + 0.4, pit:1, tname:'a plaza tree'});
+  // fair day: the bunting sorts with the trees it is tied to, so the south swag is in
+  // front of the square and the north one behind it (#194)
+  if (fairF() > 0) FAIR_SPANS.forEach((sp, k) => items.push({y:sp[1] + 0.5, f:drawFairBunting, ax:sp[0], ay:sp[1], bx:sp[2], by:sp[3], k}));
   for (const [ox, oy] of ORCHARD) items.push({y:oy + 0.4, f:drawLaneTree, px:ox - 0.5, py:oy + 0.4, fruit:1, tname:'an orchard tree'});
   items.push({y:WILLOW.y + 0.4, f:drawWillow, tname:'the willow on the eyot'});
   for (const b of PLAZA_BENCHES) items.push({y:b.y + 0.2, f:drawBench, b});
@@ -13303,6 +13414,43 @@ function drawWillow(it){
     ctx.beginPath(); ctx.ellipse(hx, hy, r * cellW * 0.3 * out, r * cellH * 0.26 * out, 0, 0, 7); ctx.fill();
   }
 }
+/* ---- fair day, hung between the plaza trees (#194) ----
+ * Two swags, north and south of the basin, off the trunks the four plaza trees already
+ * stand on. Both ends of every stroke are solved in WORLD space and projected one by
+ * one, the control point included: project() pinches on screen depth, so a sag added to
+ * a PROJECTED y is a pixel and not a height, and an eight-cell span across a square this
+ * deep would hang crooked at one end. The flags take their colours off their own index —
+ * no R() and no hash in a per-frame draw — and they flutter on windT, the clock the
+ * washing and the fountain's own plume already lean on. */
+const FAIR_HANG = 2.35, FAIR_SAG = 0.95, FAIR_FLAGS = 7, FAIR_UPF = 0.18, FAIR_FADE = 0.16;
+const FAIR_COLS = ['#b8503f', '#d8b04a', '#4a7d78', '#c9b98a', '#8a6a9a'];
+function fairDress(){ return clamp((fairF() - FAIR_UPF) / FAIR_FADE, 0, 1); }   // ONE level, read by the bunting and by the rim
+function drawFairBunting(it){
+  const a0 = fairDress();
+  if (a0 <= 0) return;
+  const [x0, y0] = project(it.ax, it.ay, FAIR_HANG);
+  const [x1, y1] = project(it.bx, it.by, FAIR_HANG);
+  // the control point is a WORLD point too: the span's midpoint, 2*FAIR_SAG below the
+  // ends, so the curve's own midpoint hangs FAIR_SAG under them wherever it is drawn
+  const [cx, cy] = project((it.ax + it.bx) / 2, (it.ay + it.by) / 2, FAIR_HANG - FAIR_SAG * 2);
+  ctx.save(); ctx.globalAlpha = a0;
+  /* the rope is what makes this a STRUNG line rather than scattered triangles: at 1 px
+     in the paving's own straw it was invisible at the shipping size and the flags read
+     as confetti. Dark, and never thinner than 1.4 px. */
+  ctx.strokeStyle = 'rgba(74,64,48,.75)'; ctx.lineWidth = Math.max(1.4, cellW * 0.09);
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.quadraticCurveTo(cx, cy, x1, y1); ctx.stroke();
+  for (let j = 1; j <= FAIR_FLAGS; j++){
+    const u = j / (FAIR_FLAGS + 1), v = 1 - u;
+    const fx = v * v * x0 + 2 * v * u * cx + u * u * x1;
+    const fy = v * v * y0 + 2 * v * u * cy + u * u * y1;
+    const w = Math.max(3, cellW * 0.3);
+    const fl = RM ? 0 : Math.sin(windT * 2.4 + it.k * 1.7 + j * 2.1) * w * (0.25 + 0.75 * windF()) + w * 0.5 * windF() * windSign;
+    ctx.fillStyle = FAIR_COLS[(j + it.k) % FAIR_COLS.length];
+    ctx.beginPath(); ctx.moveTo(fx - w, fy); ctx.lineTo(fx + w, fy);
+    ctx.lineTo(fx + fl, fy + w * 1.9 - Math.abs(fl) * 0.3); ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+}
 function drawLaneTree(it){
   const px = it.px + 0.5, py = it.py || 66.9;
   const m = maturity();
@@ -13708,6 +13856,22 @@ function drawFountain(it, t){
   ctx.beginPath(); ctx.ellipse(cx2, cy2 + cellH * 0.4, cellW * 2.15, cellH * 2.4, 0, 0, 7); ctx.stroke();
   ctx.strokeStyle = 'rgba(60,56,50,.5)'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.ellipse(cx2, cy2 + cellH * 0.4, cellW * 2.15, cellH * 2.4, 0, 0, 7); ctx.stroke();
+  /* fair day: the rim DRESSED (#194). Blobs on the rim's own ellipse, between its two
+     strokes, so the garland sits on the lip rather than in the water — and on the same
+     one level the bunting goes up on, so the square dresses as one thing. */
+  const gf = fairDress();
+  if (gf > 0){
+    ctx.save(); ctx.globalAlpha = gf;
+    for (let k = 0; k < 18; k++){
+      const th = k / 18 * Math.PI * 2, gr = Math.max(1.3, cellW * 0.13);
+      ctx.fillStyle = FAIR_COLS[k % FAIR_COLS.length];
+      ctx.beginPath();
+      ctx.ellipse(cx2 + Math.cos(th) * cellW * 2.15, cy2 + cellH * (0.4 - 0.14) + Math.sin(th) * cellH * 2.4,
+                  gr, gr * 0.8, 0, 0, 7);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
   // centre column and bowl
   const [px2, py2] = project(FOUNTAIN.x, FOUNTAIN.y + 0.2, 1.5);
   ctx.strokeStyle = '#8f887c'; ctx.lineWidth = 3;
@@ -17305,6 +17469,13 @@ function simStep(sdt, dt){
   if (bandAcc > BAND_TICK){ bandAcc = 0;
     if (bandGathering() && bandCount < BAND_SLOTS.length && R() < BAND_RATE) spawnConcertAgent();
   }
+  // and the plaza's own, on its own tick for the same reason. fairGathering() is false
+  // on every day that has no fair and every hour of one that is not the gathering, so
+  // the R() draw below exists only on the ~5 afternoons a year it is spending.
+  fairAcc += sdt;
+  if (fairAcc > FAIR_TICK){ fairAcc = 0;
+    if (fairGathering() && fairCount() < FAIR_SLOTS.length && R() < FAIR_RATE) spawnFairAgent();
+  }
   for (let i = agents.length - 1; i >= 0; i--){
     stepAgent(agents[i], sdt);
     if (agents[i].done){
@@ -17326,6 +17497,7 @@ function simStep(sdt, dt){
   tenantErrands();
   stepCafeFront(sdt * HOURS_PER_S);
   bandNews();
+  fairNews();
   tapNews();
   tapCallers();
   updateWildlife(sdt);
@@ -17580,6 +17752,8 @@ window.__entities = function(){
                    // the audience on the green. A probe has to tell a listener from a
                    // passer-by, and a listener standing AT its claimed place from one
                    // that drifted off it — which is the exact inverse of cue c49's bug.
+                   if (a.fair){ o.fair = 1;
+                     o.slotD = +Math.hypot(a.x - a.slot.x, a.y - a.slot.y).toFixed(2); }
                    if (a.band){ o.band = 1;
                      o.slotD = +Math.hypot(a.x - a.slot.x, a.y - a.slot.y).toFixed(2); } });
   take(agents.filter(a => a.kind === 'sweeper'), 'sweeper',
