@@ -3,33 +3,6 @@
 Entries rotated out of `LEDGER.md`. Append-only. **Only the manager reads this** —
 a worker that opens it to "catch up" spends its whole context on history.
 
-## Iteration 149 — two gates that lied, and one of them now binds the worker (2026-09-03) [The sill & the observer × Harness]
-
-**Brief:** b149 — bound what ONE iteration ADDS; fix or retire `probes/punt.mjs`.
-**Budget.** `--additions` diffs the tree against a ref (`--since`, default HEAD) over the three surfaces a worker writes and every open re-reads: entries, inventory lines, cues. Quota: 1 entry ≤ 1.8 KB, ≤ 1 inventory line, ≤ 1 cue, 250 B each; exit 3, **naming** the offender.
-**Punt (c227).** Both stranding tests had stopped being faults. `punt.leg === 0` assumed ONE hull; #141's second leaves A moored while B carries. `!eastOpen()` is the case #131 BUILT — `eastOpenFor()` covers a rider to `a.puntBack`. Replaced by two questions no punt predicate can satisfy: ORPHAN (`a.eyot`, no hull holds them) and OVERDUE (`a.eyot` at `EVE_GONE`). Exits 1 now; also wrapped a trip length that read negative past midnight.
-**Gates:** `courtyard.html` **byte-identical** — census unchanged in all six blocks, shots clean; no draw. `--additions` 0/exit 0 on HEAD; staged over-quota state + a 2.35 KB entry → 6 named failures/exit 3. `punt.mjs` HEAD 0/exit 0; `--strand` (hull freed at leg 3) 2475 ORPHAN/exit 1; `--strand-late` (held at leg 3) 14 OVERDUE at 02:54/exit 1.
-**Surprise:** `state.inventory` holds a `note` **string** beside its nine domain arrays — iterated as a list it yields one "line" per CHARACTER. Only the falsification found it; HEAD was a clean, plausible zero.
-**Law:** a gate is a claim about a BUILD. Both punt tests were RIGHT when written and were invalidated by a later feature that never re-ran them — so a change redefining a gate's subject must re-run every gate that READS it, not only the one briefed.
-**Note:** total OVER, 49.7/46 KB (+506 B of it mine, SKILL.md). The manager's.
-## Iteration 142 — the clock stops being the loudest voice in the room (2026-09-03) [The sill & the observer × Connect]
-
-**Brief:** b142 — price the strike against everything else in the queue. Full entry in LEDGER-archive.md.
-**Did.** `background(rank, txt, then, until)` names the third rank the ticker always had. A MURMUR may never take a surface anyone holds *or is waiting for*; the CLOCK may also wait for a busy one, but only into an EMPTY queue, so "the clock never displaces the town's own news" is true by construction. `announce()` gained `until`: when a line stops being TRUE, as against `TICK_STALE`, how long anyone will WAIT for it. `CLOCK_SAID = [0, 9, 12, 18]` is the remark's cadence.
-**Gates:** census unchanged, all six groups (no `R()` spent) · motion PASS · visual PASS · perf skipped.
-**HEAD → cand** (`probes/ticker-price.mjs`, 6 days × 3 seeds, classed where each line is BORN). Courtyard: strike **46% → 20%**, the town's own places **118 → 164 lines (+39%)**. Wide: strike 30% → 8%, placed 53% → **71%**, all four remarked hours sound. Lateness ≥1 h: **23% → 0%**.
-**Verdict:** shipped
-**Surprise:** the queue price alone cannot reach this. At a quarter **there is nothing in the queue to price against** — `inView` withheld the competition; and pure drop-if-busy made the clock a function of how busy the *day* was (0 of 18 seed-days at six, nine, three and six again). A 55 s day holds ~22 lines: eight strikes was a third of everything the town can say.
-
-## Iteration 143 — the evening's warm wash rides the sun, as the morning already did (2026-09-03) [Sky, light & weather × Connect]
-
-**Brief:** b143 — `applyLight`'s dusk was `clamp(1 - |hour - 19|/1.8)`, a hard-coded hour in a light; #112 fixed the morning onto `sunUp` and left the evening. Full entry in LEDGER-archive.md.
-**Did.** One line: `DUSK_OFF = -1.0`, peak at `sunDown + DUSK_OFF`, which at SEASON_START is **19.00 exactly**, so the anchor day is provably the old evening. Half-width unchanged at 1.8 and deliberately unscaled. **No hard-coded hour is left in any light term.**
-**Gates:** census PASS, six groups unchanged (no `R()` spent) · motion PASS · visual PASS · filmstrip **0 POP** at a midwinter evening (t=1069) and a midsummer one (t=360) · perf skipped.
-**HEAD → cand.** `probes/dusk-year.mjs`, eight offsets from sunset over the year: HEAD's spread **0.72–1.00 at every k**, candidate's **0.000 at all eight**. `probes/dusk-frame.mjs`, R−B above `sillTop()`: midsummer sunset−1 **−0.47 → +19.39**, midwinter's peak holding at +27.07 — the peak is the *same*, it now happens on every evening instead of one.
-**Verdict:** shipped
-**Surprise:** the town's other dusk already knew. `skyCols` has ridden `sunDown - 0.6` since #11, so `applyLight`'s note reading "at dusk this wash and the sky's own peak nearly two hours apart" was never a taste observation — it was **this bug, measured and written down and left**. #112 read that sentence, used it to justify damping the morning to 0.55, and did not notice it was a symptom of the half it was leaving alone.
-
 ## Iteration 144 — the east gets a share of the lane's roll, and the plaza gets a third place (2026-09-03) [Lane & market × Connect]
 
 **Brief:** b144 — re-weight the lane roll so raising `laneCap` REACHES the east; reserve the fountain stand and re-sweep `FAM_CAP`. Full entry in LEDGER-archive.md.
@@ -970,4 +943,70 @@ threshold. u moves 1.08 in 0.24*dur on the exit leg — 7.5 u/h — so 0.4 per 0
 walk's own fastest phase. The instrument, not the build.
 **Law:** a jump threshold is priced off the subject's FASTEST phase, not its mean; a swap only
 SHOWS if both ends are inside the aperture.
+
+## Iteration 200 — the lap freezes with its channel (2026-09-04) [River & far bank × Fidelity]
+
+**Brief:** b200 — c286: `ICE_CELLS` is built from `onChannel()` at BUILD time, when the towpath's
+first column was still SIDE. #192 widened `onChannel` so a winter lap is river; the list was frozen
+already, so the water the flood lies over could never take ice.
+**Premise, HEAD** (`probes/lap-ice.mjs`, 3 seeds x 3 warps): **26 lapped cells, 26 of them against
+ice over ICE_SET, 0 in ICE_CELLS, 0 carrying any skin.**
+**Did.** (1) `buildIceLap()`, once, after `buildBank()`: 35 cells read off BANK_CELLS
+(`bankWas === SIDE`), never re-derived. Shelter 1.0, distance transform untouched, so every existing
+`iceShel`/`iceTop` is byte-identical: it ADDS cells, it does not re-cut them. (2)
+`iceHere(i)`, the one live test — step, `riverSkin()` and census all ask it, so `margin` is what was
+walked. (3) `stepBank`'s `if (t === ICE) continue` was the coupling, now the STRAND's guard only: the
+level owns a lap cell, skin and all, and water off the path clears `rice[i]` in the same tick.
+**Gates:** census PASS, pre-edit baseline — **summer nine byte-identical**; winter ICE +57/WATER
+-57, margin +78 · motion PASS incl. `night` (warp 1230), HEAD-pinned · 0 POP · look
+**1324-1343 of 1805 lap px on a same-code floor of 0-24** · `lap-year.mjs` **0 violations**, 137/858.
+**Verdict:** shipped
+**Surprise:** frozen +19/+17/+21 is exactly the lapped cells iced. I expected the new neighbours to
+feed `iceNb` and push the old margin's front in; not one channel cell crossed ICE_SET that had not
+already. The front was at its ceiling.
+**Law:** a build-time list derived from a predicate is a HOSTAGE to it — #192's widened `onChannel`
+silently un-completed a set frozen at #181. Grep a widened predicate's READERS, not its callers.
+
+## Iteration 201 — a terrace that is somebody's with nobody on it (2026-09-04) [Our block & the leads × Deepen]
+
+**Brief:** b201 — price how often a tenant is up on the leads, then give the terrace FABRIC.
+**Premise** (`probes/terrace-presence.mjs`, new, HEAD, 6 seeds × a year, 10,362 daylight samples):
+**0.2102 tenants a sample, 18.57% with anybody up** — four daylight moments in five the frame's
+foreground quarter is bare, and the supply is six bays, not the cap.
+**Did.** `leadsKit(bay)`, every branch hash(house): pots, a crate stack, a chair, a mat, `tidy`,
+`wash`. No two of six alike; 23 pieces. `drawLeadsFabric()` is in the GROUND CACHE before
+drawRoofFurn so the cords hang over it, and reads only what that cache already repaints for:
+`potLeaf`/`potBloom` closed both sides of seasonPhase, `chairTip()` a SCALAR folding the chair onto
+its own seat as the wet and cold come in, litter that GATHERS into a corner. `freeBay(k, want)` pegs
+only where a line hangs; a sun stay takes the chair.
+**Gates:** census/motion PASS · 0 POP · drawGround **+0.20 ms on 27.1**, no new dirty reason ·
+`probes/terrace-mass.mjs` **424/483/343 px at 1600x950, 104/131/77 at 390x844** on a same-code floor
+of **0 px every row** · northmost drawn point **85.14** on the 84.93 bound · presence 0.2029 / 18.26%.
+**Verdict:** shipped
+**Surprise:** the fabric is FREE to the seeded world and it was PROVABLE. `probes/terrace-identity.mjs`
+censuses the build with its one behaviour change backed out against HEAD: **6 field diffs over 3 seeds
+× 300 s, all the new field and its subtotal.** Every other number in the histogram is
+`freeBay`'s filter, one refused spawn.
+**Law:** a cached draw is free to the seeded world, so a build with its one BEHAVIOUR change backed
+out must census IDENTICALLY to HEAD but for its new fields.
+## Iteration 202 — the martins get a second mud source: the river's strand (2026-09-04) [People & animals × Deepen]
+
+**Brief:** b202 — the mud is on wetF() alone and two worlds in six see no rain in the birds' season.
+**Priced first** (probes/mart-mud.mjs, 6 seeds x 2 yr): first-season integral 0, 8.1, 55, 64, 214, 222;
+year-one peaks 0, 1, 24, 39, 63, 126. Premise holds — 2 of 6 towns open bare.
+**Did.** `martStrandF() = MART_STRAND_K * clamp(bankDry / MART_STRAND, 0, 1)`;
+`martMudF() = max(rain-mud, strand)`. `bankDry` is stepBank's uncovered river bed — mud by
+definition — and riverLev() is a CALENDAR, not weather: the same in every seed, 0 cells until phase 0.40, 43
+at midsummer, gone by 0.72, in a window of 0.27..0.70 (probes/mart-strand.mjs, new). So a rainless
+colony is founded LATE, at midsummer. K=0.07 off the strand's own season
+integral (~760 -> 53), between the two thinnest years that already grew one.
+**Gates:** census PASS (reshuffled: nests arrive earlier, so martSpot()'s R() draws move) · motion PASS · 4 shots + a midsummer pair v HEAD · filmstrip 0 POP · mart-mass
+130-719 px on a same-code floor of 0 · mart-birds offNest 0/6 · mart-year: year-one peaks -> 20, 24,
+45, 56, 61, 108, **6 of 6 colonies**, meanRun 9.0-41.7 v a uniform control's 1.27-2.17, empty in late winter 6/6, all back to 0 by 0.923.
+**Verdict:** shipped
+**Surprise:** the wettest world got no denser — seed 99's peak 126 -> 125 — while the thin ones
+converged UP (42: 39 -> 76, 271: 59 -> 85).
+**Law:** where one quantity has two sources take the MAX, not the sum: it lifts the starved tail
+without moving the head, which a threshold cannot do. Size the second off the TAIL's own missing
+integral, never the mean. A SEASONAL driver is the same in every world — that is what makes it an antidote to a weather coin.
 

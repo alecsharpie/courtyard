@@ -13,7 +13,8 @@ Cap 60 laws / 12 KB; BYTES bind. Claims here, examples in the source.
 - **Compare against a control you RAN, and SMOKE it first** (`probe-smoke.mjs`, and mind its
   `--jobs`). A gate that fails on HEAD is not a gate, and an unrun probe breaks silently and
   stays broken. A control tests a build-INDEPENDENT fact, never a predicate the candidate
-  DEFINES, and differs from the thing measured in exactly ONE way.
+  DEFINES, and differs from the thing measured in exactly ONE way. A control that makes an
+  input EXTREME is degenerate wherever the quantity it feeds SATURATES — replace the BRANCH.
 
 ## Definitions and the grid
 
@@ -23,9 +24,7 @@ Cap 60 laws / 12 KB; BYTES bind. Claims here, examples in the source.
   A list cut ONCE off a predicate is that predicate's HOSTAGE — widen the test and the list is
   silently un-completed — so grep a widened predicate's READERS, not its callers. Routes are
   WAYPOINTS and nobody reads the grid between them: a non-walkable cell holds only where a
-  route's ENDPOINTS are chosen, so keep it out of every target set. A FALL-THROUGH answers with
-  a box and not a surface: intersect the GRID before counting off it, and bound what a screen
-  REGION answers by whatever rises THROUGH it.
+  route's ENDPOINTS are chosen, so keep it out of every target set.
 
 ## The seeded world
 
@@ -41,17 +40,13 @@ Cap 60 laws / 12 KB; BYTES bind. Claims here, examples in the source.
   change backed out: that must census IDENTICALLY to HEAD but for its new fields.
 - **Two seeds is not a sample**, a bar on a BIMODAL scalar is a coin, and a COUNT of a rare
   seeded event cannot resolve a build: pool six seeds and a YEAR, read nothing into 1 sd of the
-  binomial, and histogram the value AT THE CALL before sweeping the constant. A per-day event
-  judged against "the other days" of a SHORT run reads the town's own RAMP (`day >= N`) as its
-  effect — label the days off PRIMITIVES so a pinned ref labels the same ones.
+  binomial, and histogram the value AT THE CALL before sweeping the constant.
 
 ## The renderer's traps
 
 - **(a) `project()` pinches on *screen* depth and LIFTS z NORTHWARD** — price a foreground
   against what is BEHIND it. It is not linear, so a world offset added to a PROJECTED coordinate
-  is a PIXEL: solve BOTH ends of a stroke in world space and project each. A CAST image is a
-  visibility question first — the lift means a northward throw must be vetoed per column or it
-  paints the caster's own roof; the MIRROR is the same solve with a negative z.
+  is a PIXEL: solve BOTH ends of a stroke in world space and project each.
 - **(b) Roofs are EMERGENT from `buildVolumes()`**: change a footprint, never a roof; two
   that TOUCH are one roof. A FACE is drawn only where the SOUTH neighbour is open, so a hole
   cut in any other side of a volume is never seen, and a drawing height is not a CASTING one.
@@ -67,8 +62,7 @@ Cap 60 laws / 12 KB; BYTES bind. Claims here, examples in the source.
   owning its EXISTENCE bounds the other: solve the LENGTH inside that span before the hour, or
   the offers land where the subject is not. Charge the WALK where it can be PAID — at the door
   when the place is near, at the STAY when the crossing costs a day's light: a bound on ARRIVAL
-  with none on the walk fails as a population going to ZERO, never as a slower rate, and a
-  route's cost is not the distance between its ends. A WEATHER gate on a fixed window spends the
+  with none on the walk fails as a population going to ZERO, never as a slower rate. A WEATHER gate on a fixed window spends the
   window on weather it cannot use — make the budget the RESOURCE, spent only when usable.
 
 ## Rates, caps and shares
@@ -83,8 +77,8 @@ Cap 60 laws / 12 KB; BYTES bind. Claims here, examples in the source.
   feature that exists may exist at a rate of zero. Where one quantity has TWO sources
   take the MAX, not the sum: it lifts the starved tail without moving the head, which a
   threshold cannot do — size the second off the TAIL's own missing integral, never the mean, and
-  prefer a SEASONAL driver, which is the same in every world and so is the antidote to a
-  weather coin.
+  prefer a SEASONAL driver, the same in every world and so the antidote to a weather coin.
+  A second source taken as a MAX is DEAD unless its tail falls in a season the first is out of.
 - **Measure a share at the CHOICE, never by presence, which weights a branch by its dwell** —
   and count ADMISSIONS apart from choices: widened at a destination with a FIXED NUMBER OF
   PLACES, a share becomes overflow into its NEIGHBOUR, and the refused fraction is the one
@@ -93,8 +87,7 @@ Cap 60 laws / 12 KB; BYTES bind. Claims here, examples in the source.
   avoidance rule, not by the act: instrument the PAYOFF**, clause by clause, in the predicate's
   own evaluation order — the loudest refusal is usually the cheap boolean in front of the
   arithmetic, and a stay ended by weather has TWO edges, the loud one the ARRIVAL that turned
-  away. A ladder's lower rungs are bounded by its FIRST rung's HIT RATE, not by supply.
-  A rung nothing STEERS toward fires only when the crew happens to reach it.
+  away. A rung nothing STEERS toward fires at its FIRST rung's hit rate, not at supply.
   Attribute an EDGE-TRIGGERED event AT THE EDGE and subtract the DELIBERATE refusals before
   calling a conversion a LEAK: price the numerator's VOLUME.
 
@@ -118,8 +111,10 @@ Cap 60 laws / 12 KB; BYTES bind. Claims here, examples in the source.
 - **The ground is a CACHE**, and a system drawn into it that nothing DIRTIES repaints only when
   something else does. `drawBlocks`/`drawGround` rebuild at whatever cadence sets that flag most
   often, so a per-frame truth on a facade or the ground is a live overlay: register at cache
-  time, repaint live, quantize the QUANTITY and never a clock standing in for it. A cached
-  layer's inputs are not its PICTURE's — what is composited over it after the blit is an input
+  time, repaint live, quantize the QUANTITY and never a clock standing in for it. Before adding a TRIGGER, price
+  what ALREADY dirties that cache: the incumbent's rate caps the new one's mean win, so buy the
+  WORST CASE and set the deadband where the picture stops. 
+- **A cached layer's inputs are not its PICTURE's** — what is composited over it after the blit is an input
   too, so price a "reads nothing" premise on PIXELS, and what you lift OUT carries what was
   drawn on top. Anything registered in SCREEN space at cache time
   (`FACES`) goes stale through the camera ease: map it through `k = viewS/gview.s`.
@@ -131,9 +126,9 @@ Cap 60 laws / 12 KB; BYTES bind. Claims here, examples in the source.
 
 - **The FRAMING decides what exists.** The sill eats the bottom ~7% of every frame
   (`sillTop()`), and no world-space ROW bound is safe at every size: bound a near band in DEPTH
-  (`y − z·LIFT`, world state) for the SHORTEST framing you support. `resize()` and `viewFor()`
-  are TWO layouts — the quarters are fitted boxes, the wide view is `resize()`'s raw
-  `cellW/topPad` — so a fit priced in one is not priced in the other.
+  (`y − z·LIFT`, world state) for the SHORTEST framing you support. EVERY framing is a fitted box now
+  (`viewFor()`), the wide one included, and a frame's SHARE of the picture is a function of
+  the ZOOM alone: padding decides where the slack GOES, not how much of it there is.
 
 - **A probe's world is only as rewound as you make it.** `__reseed()`/`__setTime()` rewind the
   PRNG and clock, not latches or spawned agents; reseed, then step inside ONE `page.evaluate`.
@@ -146,8 +141,7 @@ Cap 60 laws / 12 KB; BYTES bind. Claims here, examples in the source.
   cosine, so they sit symmetric about midsummer and a winter-only tile is invisible to them (the
   winter row and its own WCORE floor exist for that). Price a predicted field against the ladder
   BEFORE promising it. An aggregate SUMMING two kinds of register is diluted by every constant
-  added, so report the constant share beside the total; and a TIMEOUT is the RUNNER's
-  concurrency before it is the instrument's.
+  added, so report the constant share beside the total.
 - **Read the REPORTER, not the producer.** `perf.mjs` is vsync-locked and blind to a pass costly
   only in a rare weather: time the FUNCTION, in its weather, at every camera, and an overlay's
   cost is the PATH BUILD, not the fill. A THRESHOLD is priced off the subject's FASTEST phase,
@@ -168,3 +162,6 @@ Cap 60 laws / 12 KB; BYTES bind. Claims here, examples in the source.
   divides by ~nothing; under mean 40 luma quote sd and RANGE. A diff needs a SAME-CODE control
   run: quote mass as a RATIO to that floor, never as an absolute. A cached layer drawn OVER a
   live one SUBTRACTS from it — price the live layer's SURVIVING mass, not the cache's gain.
+  Two silent liars when you measure INK: `getImageData` ignores the ctx transform, so a
+  `project()`ed band is CSS px and not device; and `getComputedStyle().font` is EMPTY wherever a
+  longhand cannot go in the shorthand, and measures the PREVIOUS face.
