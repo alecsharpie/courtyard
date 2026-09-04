@@ -3188,10 +3188,37 @@ const MK_CAP = MARKET_STALLS.length * MK_GOODS;      // what the whole market ca
  * and the middle state on the rest — the cold quarters and the growing ones. */
 const MK_NEED = [0, 4, 13];
 const MK_KEEP = 0.5;          // share of the surplus the market could not carry that keeps
+/* ---- where the surplus actually is (#184) ----
+ * The boards carry MK_CAP. The store hands them a median 53 units a market, so on most
+ * market days two thirds of the year's picking never reaches a pitch at all: MK_KEEP of
+ * it keeps to the next market and the remainder was, until here, a number that fell out
+ * of a `for` loop. All of it stands here for the length of the market, in crates on the
+ * footway south of the trestles.
+ * A crate is MK_GOODS units — one board's worth — so three full boards and six crates
+ * beside them is a picture of the SAME number the store is working in, and the year is
+ * legible in the count: none in spring, two in midwinter, the ends full in autumn.
+ * MK_CRATE_MAX is standing space on the pavement, not a claim about the glut: past it
+ * the crates saturate and the ticker's line is what still grows.
+ * The spots take the gaps between the pitches first and the two ends after, and each
+ * comes out on the RAISE of the stall it belongs to, so the overflow is carried out with
+ * its pitch and taken in with it. mkCrates is a DRAWING list cut from mkUnits exactly as
+ * mkBoards is; the stock it stands for is `produce`, and nothing reads it back. */
+const MK_STACK = 2;                                  // crates one spot will take, stacked
+/* In the order they fill: the two gaps between the pitches first, then out to the ends.
+ * Two high, never three — project() lifts z northward, so a third crate rises to the
+ * trestles' own row and the overflow stops reading as something standing beside the
+ * market and starts reading as more market. `s` is the stall whose raise it comes out on. */
+const MK_OVER_SPOTS = [{x:47.0, s:0}, {x:52.5, s:1}, {x:48.7, s:1}, {x:54.2, s:2},
+                       {x:42.6, s:0}, {x:58.2, s:2}, {x:41.2, s:0}, {x:59.8, s:2}];
+const MK_OVER_Y = 78.2;                              // on the footway, south of the walking line
+const MK_CRATE = MK_GOODS;                           // a crate is a board's worth
+const MK_CRATE_MAX = MK_OVER_SPOTS.length * MK_STACK;
+const MK_CRATE_W = 0.42, MK_CRATE_D = 0.34, MK_CRATE_H = 0.62;   // world units: a box a person can lift
 const MK_R = {8:1.5, 9:2.2, 10:1.4, 11:2.4};         // carrots, cabbages, beans, pumpkins
 const MK_FIRST = MK_RAISE + MK_STAGGER * (MARKET_STALLS.length - 1);   // hours of raise before opening
 const EMPTY = [];                                    // the shared no-goods board
 let mkDay = -1, mkTotal = 0, mkTop = 0, mkShelf = [], mkBoards = [EMPTY, EMPTY, EMPTY];
+let mkOver = 0, mkCrates = [];       // units the boards cannot carry, and the species standing in them
 const mkUnits = new Array(SPECIES.length).fill(0);
 function stockMarket(){
   if (!isMarketDay() || mkDay === day) return;
@@ -3212,19 +3239,34 @@ function stockMarket(){
      market four days behind the block is a market whose worst week is not the block's
      worst week. It cannot rescue deep winter, and should not: by the third market of
      the cold the boards genuinely are bare, and the ticker says so. */
-  // a pitch is a whole vegetable, so the shelf is whole even though the store is not
-  const sold = Math.min(Math.round(mkTotal), MK_CAP);
+  // a pitch is a whole vegetable, so the shelf is whole even though the store is not.
+  // This is what the boards can SHOW, not what leaves in anybody's basket: the market
+  // has never had a buyer, and `shelved` is named for what it is.
+  const shelved = Math.min(Math.round(mkTotal), MK_CAP);
   const keep = mkTotal > MK_CAP ? MK_KEEP * (1 - MK_CAP / mkTotal) : 0;
   for (let s = 0; s < produce.length; s++) produce[s] = mkUnits[s] * keep;
-  if (sold > 0){
+  if (shelved > 0){
     for (let s = 0; s < mkUnits.length; s++){
-      const n = Math.round(mkUnits[s] * sold / mkTotal);
+      const n = Math.round(mkUnits[s] * shelved / mkTotal);
       for (let k = 0; k < n; k++) mkShelf.push(s + 1);
     }
-    while (mkShelf.length > sold) mkShelf.pop();          // rounding, either way
-    while (mkShelf.length < sold) mkShelf.push(mkTop + 1);
+    while (mkShelf.length > shelved) mkShelf.pop();       // rounding, either way
+    while (mkShelf.length < shelved) mkShelf.push(mkTop + 1);
   }
   mkTop = mkUnits[mkTop] > 0 ? mkTop + 1 : 0;             // species id, or 0 for a bare day
+  /* and the rest of it, in board-loads, cut from the same units in the same species
+     order so a crate stack is the same vegetables the boards beside it are selling. */
+  mkOver = Math.max(0, mkTotal - MK_CAP);
+  mkCrates = [];
+  const nc = Math.min(MK_CRATE_MAX, Math.floor(mkOver / MK_CRATE));
+  if (nc > 0){
+    for (let s = 0; s < mkUnits.length; s++){
+      const n = Math.round(mkUnits[s] * nc / mkTotal);
+      for (let k = 0; k < n; k++) mkCrates.push(s + 1);
+    }
+    while (mkCrates.length > nc) mkCrates.pop();
+    while (mkCrates.length < nc) mkCrates.push(mkTop || 1);
+  }
   /* Each trading stall's board is cut from the shelf HERE, once, and not per frame:
      the draw runs three times a frame all day and a slice() apiece is garbage for
      nothing. Contiguous slices, so a stall tends to sell one or two things. */
@@ -3240,11 +3282,27 @@ function mkTrades(i){ return mkDay === day && mkTotal >= MK_NEED[i]; }
 function mkOpenCount(){ let n = 0; for (let i = 0; i < MARKET_STALLS.length; i++) if (mkTrades(i)) n++; return n; }
 function mkShelfFor(i){ return mkTrades(i) ? mkBoards[i] : EMPTY; }   // stall i's board
 function mkGoods(i){ return mkShelfFor(i).length; }
+/* crate i: its spot, how high it stands in it, and how far out it is on its stall's
+   raise. Round-robin over the spots, so a small surplus is two low stacks in the gaps
+   and a big one fills the ends — and each level comes out after the one under it. */
+function mkCrateSpot(i){ return MK_OVER_SPOTS[i % MK_OVER_SPOTS.length]; }
+function mkCrateLvl(i){ return (i / MK_OVER_SPOTS.length) | 0; }
+function mkCrateP(i){
+  return clamp((marketRaise(mkCrateSpot(i).s) - 0.66 - mkCrateLvl(i) * 0.05) / 0.06, 0, 1);
+}
+function mkCrateAt(x, y){          // the pointer: the stacks are a row of the footway
+  if (!mkCrates.length || y !== (MK_OVER_Y | 0)) return false;
+  for (let i = 0; i < mkCrates.length; i++)
+    if (mkCrateP(i) > 0 && Math.abs(x + 0.5 - mkCrateSpot(i).x) < 0.9) return true;
+  return false;
+}
 function mkLine(){
   if (!mkTotal) return 'Market morning — trestles out, though the plots have sent almost nothing to put on them.';
   const nm = SPECIES[mkTop - 1].name;
   if (mkOpenCount() < MARKET_STALLS.length)
     return 'Market morning — one canvas rolls open, and it is ' + nm + ' on nearly every board.';
+  if (mkCrates.length)
+    return 'Market morning — the boards fill up with ' + nm + ', and what will not fit stands in crates along the pavement.';
   return 'Market morning — trestles out, the canvas rolls open, and the boards fill up with ' + nm + '.';
 }
 
@@ -11718,6 +11776,9 @@ function drawScene(t, dt){
     const p = marketRaise(i);                    // 0 well before opening and well after close
     if (p > 0) items.push({y:MARKET_STALLS[i].y + 0.8, f:drawMarketStall, s:MARKET_STALLS[i], p, sh:mkShelfFor(i)});
   }
+  // the overflow is south of the trestles and south of the browsers standing at them,
+  // so it sorts after both: one item, since every stack is on the same row (#184)
+  if (mkCrates.length && marketUp()) items.push({y:MK_OVER_Y + 0.5, f:drawMarketOver});
   const cellAt = (x, y) => grid[clamp(y|0, 0, WH-1) * GW + clamp(x|0, 0, GW-1)];
   for (const a of agents){
     if (!a.aboard && cellAt(a.x, a.y) !== TUNNEL)   // inside an archway: hidden under the roof; aboard: the punt's crew item draws them
@@ -14270,6 +14331,54 @@ function drawMarketStall(it){
     skin:SKIN[(hash(s.x, 4) * SKIN.length) | 0]}});
   ctx.restore();
 }
+/* the market's overflow: the crates the boards could not take, standing on the footway.
+ * Every box is solved in WORLD space and projected corner by corner — the lid is at the
+ * crate's own z with its back edge a third of a cell north of its front, so project()
+ * lifts it and the box is seen from just above, the same way the trestles are. The
+ * come-out is the crate's own height growing out of the pavement, so nothing arrives
+ * finished and running the raise backwards takes the stacks in from the top down. */
+function drawMarketOver(){
+  const sc = cellW / 13;
+  for (let i = 0; i < mkCrates.length; i++){
+    const g = mkCrateP(i); if (g <= 0) continue;
+    const sp = SPECIES[mkCrates[i] - 1], st = mkCrateSpot(i), lvl = mkCrateLvl(i);
+    // nobody stacks eight identical boxes: each SPOT keeps its own width and its own
+    // stand-off from the kerb, so the run has a rhythm and a stack stays plumb
+    const j = i % MK_OVER_SPOTS.length;
+    const wj = MK_CRATE_W * (0.84 + hash(j, 311) * 0.30), yj = MK_OVER_Y + (hash(j, 907) - 0.5) * 0.30;
+    const yF = yj + MK_CRATE_D, yB = yj - MK_CRATE_D;
+    const zb = lvl * MK_CRATE_H, zt = zb + MK_CRATE_H * g;
+    if (lvl === 0){                                  // one shadow per stack, under the bottom crate
+      const [gx, gy] = project(st.x, yF, 0);
+      ctx.fillStyle = 'rgba(20,20,15,' + (0.1 + 0.16 * daylight).toFixed(3) + ')';
+      ctx.beginPath(); ctx.ellipse(gx, gy, cellW * 0.5, cellH * 0.2, 0, 0, 7); ctx.fill();
+    }
+    const a = project(st.x - wj, yF, zb), b = project(st.x + wj, yF, zb),
+          c = project(st.x + wj, yF, zt), d = project(st.x - wj, yF, zt),
+          e = project(st.x - wj, yB, zt), f = project(st.x + wj, yB, zt);
+    ctx.fillStyle = mix('#5b4430', '#a37b47', 0.25 + 0.6 * daylight);   // the lid, behind the front
+    poly(ctx, [d, c, f, e]); ctx.fill();
+    ctx.fillStyle = mix('#4a3524', '#8a6134', 0.25 + 0.6 * daylight);   // and the boarded front
+    poly(ctx, [a, b, c, d]); ctx.fill();
+    ctx.strokeStyle = 'rgba(38,30,20,.45)'; ctx.lineWidth = 1;
+    for (const t of [0.34, 0.72]){
+      const p1 = project(st.x - wj, yF, zb + (zt - zb) * t),
+            p2 = project(st.x + wj, yF, zb + (zt - zb) * t);
+      ctx.beginPath(); ctx.moveTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]); ctx.stroke();
+    }
+    // what is in it, standing proud of the rim — only the crate nothing is stacked on
+    if (g > 0.9 && i + MK_OVER_SPOTS.length >= mkCrates.length){
+      const [tx, ty] = project(st.x, yj, zt);
+      const r = (MK_R[mkCrates[i]] || 1.8) * sc;
+      for (let k = 0; k < 3; k++){
+        ctx.fillStyle = k % 2 ? sp.col2 : sp.col;
+        ctx.beginPath();
+        ctx.arc(tx + (k - 1) * r * 1.4, ty - r * 0.45 - (k === 1 ? r * 0.55 : 0), r, 0, 7);
+        ctx.fill();
+      }
+    }
+  }
+}
 function drawCafeTable(it){
   /* it.p is the table's own 0..1 set-out (#169). Nothing arrives finished: the pedestal comes up
    * first and the chair is unfolded onto the pavement after it, and running p backwards
@@ -15324,6 +15433,7 @@ function nameAt(x, y){
   if (g === DECK) return 'the footbridge';
   if (g === DIAL) return sundialName();
   if (y === 65 && roundMarkAt(x)) return 'a bottle left on the step';
+  if (mkCrateAt(x, y)) return 'crates of what the boards could not take';
   if (y >= LN_WALK_S) return g === VOID ? 'a light well, down through our own roof'
        : g === LEADS ? leadsName(x, y)
        : y < LN_WALK_S + 3 ? 'the parapet of our own roof'

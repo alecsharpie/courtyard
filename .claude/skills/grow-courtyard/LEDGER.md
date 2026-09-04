@@ -277,3 +277,27 @@ the frame still armed, against the comment above it. Ladder bit-identical after;
 **Surprise:** #160's fourteen-place door has refused **0 of 92 offers, ever**.
 **Law:** a conversion is not a leak until the DELIBERATE refusals are subtracted — a fair coin and a
 weather guard were 100% of this one. Price the numerator's VOLUME, not the ratio.
+
+## Iteration 184 — the surplus is standing on the pavement (2026-09-04) [Lane & market × Connect]
+
+**Brief:** b184 — `sold` goes nowhere; give the market's output a destination.
+**Half the premise is dead.** `sold` is a local — what the boards can SHOW — and it IS drawn, by
+mkShelf→mkBoards→drawMarketStall. The leak is one line up: the store hands the market a **median
+53.1 units against MK_CAP 18** (51 mkts), **three stalls open on 86%**, and mkTotal 0
+**cannot happen** (min 0.7) — the February test is unreachable. A probe killed my first design
+too: shoppers carrying it off is **0.72 browsers a market, median 0** at the arrival edge. The
+crowd is the bound, not the shelf.
+**Did.** `mkOver` + `mkCrates`, cut from `mkUnits` exactly as `mkBoards` is; `drawMarketOver`
+stands them on the footway, **two high, never three** — a third rises to the trestles' row.
+**Measured** (`probes/market-over.mjs`, new): crates **0.67 spring · 1.87 winter · 5.33
+summer · 11.44 autumn**; same-code control **0 px, every size**, glut **987 px**, a
+0.7-unit market **0** — 10.4x the ink of all 18 pitches.
+**Gates:** census unchanged in EVERY field (no new `R()`) · motion PASS vs a HEAD baseline · 4
+shots · timed by hand at 1% of a frame; `perf.mjs` cannot see a 1-in-4-day pass
+**Verdict:** shipped
+**Surprise:** my own diff probe read a **750,000 px control**. Entered without `?t=`, and `__warp`
+ADVANCES — three calls to one "pin" landed on three days. Pinned, it was still non-zero and GREW
+per redraw: `drawScene(simT, 1/30)` steps per-frame phases, so draw 1 vs draw 3 is not one
+picture. dt 0 took it to exactly 0.
+**Law:** a redraw is not a re-read — a draw pass given a dt ADVANCES what it draws, so N draws of
+one pinned state are N pictures. Pin dt to 0 or a same-code control carries the drift.
