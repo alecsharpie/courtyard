@@ -4385,6 +4385,17 @@ function harvestPlot(a){
     }
   }
   if (!took) return 0;                        // nothing ripe here — they sow it instead
+  /* #209: a row too rank to pick THROUGH is cleared by the same hand that lifts it. The
+     hoe cannot come at this plot any other way — plotAct, where #197 put it first, is
+     only reached when this function has already refused — and the crop is not what wants
+     clearing, so the weed goes and the lift goes on below. bAge stays where the lift
+     leaves it (0 on every cell, the plot going bare), so the CA's neglect clock restarts
+     with the visit exactly as the hoe rung's does. */
+  const choked = plotRank(ox, oy) >= WEED_CHOKE;
+  if (choked){
+    for (let y = oy; y < oy + 2; y++) for (let x = ox; x < ox + 3; x++){ const i = y * GW + x; if (isWeed[i]) rank[i] = 0; }
+    a.act = 'clearing the row and lifting it';
+  }
   for (let c = 1; c <= SPECIES.length; c++) if (plotTal[c]){ produce[c - 1] += plotTal[c]; if (c !== sp) oth = c; }
   // the row is lifted whole, not cell by cell: the bed goes bare, and because it comes
   // back with no crop remembered it comes back under a different one. Picking only the
@@ -4396,7 +4407,11 @@ function harvestPlot(a){
   }
   // the basket now has somewhere to go: the store the lane's stalls are stocked from
   a.crop = sp; harvested += took; groundDirty = true;
-  sayAt(a.x, a.y, pick(oth
+  sayAt(a.x, a.y, pick(choked
+    ? ['The bed has gone over — the hoe goes through it first, and the ' + SPECIES[sp-1].name + ' come up out of the clearing.',
+       'Weeds come off the row in armfuls before the ' + SPECIES[sp-1].name + ' can be got at.',
+       'Somebody clears the rank stuff off the ' + SPECIES[sp-1].name + ' and lifts the row out of it.']
+    : oth
     ? ['Two crops come off the one bed — ' + SPECIES[sp-1].name + ' and ' + SPECIES[oth-1].name + ' together.',
        'The ' + SPECIES[sp-1].name + ' come up, and the ' + SPECIES[oth-1].name + ' worked in among them.',
        'A mixed plot is cleared in one go; the basket goes out heavy.']
@@ -4467,6 +4482,24 @@ let WEED_COLD = 0.0035, WEED_SNOW = 0.0045;     // the dieback, per tick, at war
 const WEED_SEED = 0.16;                         // rank below this is a trace: it draws nothing and creeps nothing
 const WEED_STEPS = 5;                           // the cache is repainted on the QUANTITY, in five steps
 const WEED_HOE = 1.15;                          // summed plot rank that sends the hoe out ahead of everything
+/* #209: what STEERS the crew at a plot that has gone over. `let`, all three swept by
+ * probes/allot-steer.mjs.
+ *
+ * WEED_PULL is a share taken AT THE CHOICE — the target draw, not the arrival — so the
+ * block's other work still happens at 1 - PULL. WEED_BIAS keeps a just-over plot
+ * reachable in the weighted draw, so five holders do not all pile on to one bed.
+ *
+ * WEED_CHOKE is the second threshold, and it exists because #197's hoe is still a LOWER
+ * rung of the ladder that decides the visit. The kneel's ladder is
+ * `harvestPlot(a) || plotAct(a)`: the hoe going FIRST inside plotAct buys nothing on a
+ * plot that is also ripe, and measured on HEAD (probes/allot-steer.mjs, 12 seed-years)
+ * 195 of 234 landings on a gone-over plot were taken by the LIFT above it — the crew
+ * knelt in the weeds and picked straight through them. Over CHOKE the row cannot be
+ * picked through, so the hand that lifts it clears it first: ONE kneel, both acts. The
+ * first cut of this had the lift REFUSE and come back for the crop next kneel, which is
+ * also true to life and cost 20% of the year's harvest — 128 of 653 kneels spent
+ * crossing the town to produce nothing, measured, t ~ 4 over 12 seeds. */
+let WEED_PULL = 0.6, WEED_BIAS = 0.4, WEED_CHOKE = 4.2;
 /* the block's own cells, off the lattice ripePlots() and fallowPlots() walk — read back
    off the grid once, never re-derived, and a build-time constant like MART_CELLS. */
 const WEED_CELLS = [], isWeed = new Uint8Array(GW * WH);
@@ -4500,6 +4533,36 @@ function plotRank(ox, oy){
   for (let y = oy; y < oy + 2; y++) for (let x = ox; x < ox + 3; x++){ const i = y * GW + x; if (isWeed[i]) s += rank[i]; }
   return s;
 }
+/* The plots that have gone over — the hoe's own target set, read straight off the CA on
+   the lattice ripePlots() and fallowPlots() already walk. Two readers want two shapes:
+   the RATE wants how many are calling, sendToPlot wants which one to walk to. */
+function weedPlots(){
+  const out = [];
+  for (let oy = 8; oy <= 50; oy += 7) for (let ox = 80; ox <= 90; ox += 5){
+    const v = plotRank(ox, oy);
+    if (v >= WEED_HOE) out.push([ox, oy, v]);
+  }
+  return out;
+}
+/* which bed somebody walks to, weighted by how far over it is. Not the maximum: a crew
+   of five all sent to the rankest plot is four of them arriving at a bed the first one
+   has already hoed clean. [ox, oy] is the plot's own north-west cell, which is what
+   sendToPlot lands its holder west of. */
+function weedTarget(a, skip){
+  const over = skip ? weedPlots().filter(p => p[0] !== skip[0] || p[1] !== skip[1]) : weedPlots();
+  if (!over.length) return null;
+  let s = 0; for (const p of over) s += p[2] - WEED_HOE + WEED_BIAS;
+  let r = weedRoll(a, 3) * s;
+  for (const p of over){ r -= p[2] - WEED_HOE + WEED_BIAS; if (r <= 0) return [p[0], p[1]]; }
+  return [over[over.length - 1][0], over[over.length - 1][1]];
+}
+/* This holder's own 0..1, for the k-th question asked of them, and NOT out of R(). The
+   whole weed CA is hashed for this reason (#197) — a system laid over 102 cells that
+   spent draws would move every other seeded draw in the loop, and the steer is worse
+   than the CA was, because the branch it replaces (pickPlot) spends a draw PER BED CELL.
+   Salted with WIND_SALT so the choice still differs per world, and keyed on the holder's
+   own seeded `wary` and the clock so two people do not answer alike. */
+function weedRoll(a, k){ return hash(((simT * 3) | 0) + (((a && a.wary || 0.37) * 4096) | 0), 991 + k * 37 + WIND_SALT); }
 function caTick(){
   stepLitter();
   stepMoss();
@@ -5534,7 +5597,12 @@ function stepAgent(a, dt){
           // a digger works the next fallow plot; when none is left they leave, not pick
           const more = a.dig ? fallowPlots() : null;
           if (!more || more.length){
-            const next = more ? pick(more) : pickPlot();
+            /* the same steer as the way in (#209) — but never the bed under their own
+               hand. The next row is chosen HERE, at the arrival, before this kneel's act
+               has fired, so the plot they are about to clear still reads as gone over. */
+            const [cox, coy] = plotOrigin(a.plot[0], a.plot[1]);
+            const next = more ? pick(more)
+              : ((weedRoll(a, 2 + a.rows) < WEED_PULL && weedTarget(a, [cox, coy])) || pickPlot());
             a.plot = next; a.tendPlot = true;
             a.wp.push([next[0] - 0.6, next[1] + 0.5]);
             return;
@@ -5719,7 +5787,14 @@ function sendToPlot(a){
   a.kind = 'allot';
   const gateY = pick([20, 45]);
   const fallow = digWeather() ? fallowPlots() : [];
-  const plot = fallow.length ? pick(fallow) : pickPlot();
+  /* #209: the plot that has gone over is the plot somebody walks to. A SHARE of the
+     target choice, under the winter dig and over the uniform one, so the block still gets
+     picked and sown at 1 - WEED_PULL of its visits. pickPlot() is still CALLED on exactly
+     the branch it was called on, spent draws and all — the steer must not move the seeded
+     stream, only what is done with it. (`weedy`, not `rank`: the CA's array is that name.) */
+  let plot;
+  if (fallow.length) plot = pick(fallow);
+  else { const uniform = pickPlot(); plot = (weedRoll(a, 1) < WEED_PULL && weedTarget(a)) || uniform; }
   a.dig = fallow.length > 0;                  // the winter job: turn it, don't pick it
   a.x = XS_WALK_E; a.y = -2.5;
   if (R() < 0.5){ a.x = laneEdge(); a.y = LANE_N_Y; a.wp.push([ALT_GATE, LANE_N_Y], [ALT_GATE, 62], [ALT_GATE, 58]); }
@@ -18609,6 +18684,13 @@ function simStep(sdt, dt){
   // roll chain put one gardener in every 5-15 days against 17 plots, which is why
   // the block sat permanently full. Ripeness is the rate.
   // + the winter digging, 0 by construction outside digWeather() (which is dry, so the rain term is moot)
+  /* #209 tried a SECOND source here — the weeds calling their own hoe, taken as a MAX
+     against the crop's term, since summing would have doubled a summer in which a ripe
+     block and a rank one are the same block. Swept at 12 seed-years it was DEAD: 10.7
+     clearings and 197 picked cells a year at 0.16, and 10.7 and 197 at 0. The tail it was
+     meant to lift is not there — the beds go over in the warm half, which is the half the
+     crop ripens in, so ALLOT_RIPE's term is above it whenever there is anything to hoe.
+     The steer is at the CHOICE (sendToPlot), and the choice was always the bound. */
   const allotRate = (ALLOT_FLOOR + ALLOT_RIPE * ripePlots() / 17 + (digWeather() && fallowPlots().length ? DIG_RATE : 0)) * (raining ? 0.2 : 1);
   spawnAcc += sdt;
   if (spawnAcc > 1){ spawnAcc = 0;

@@ -2,7 +2,7 @@
   "updated": "2026-09-04",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 207,
+  "lastIteration": 209,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -297,7 +297,8 @@
       "connect": [
         "pre7",
         72,
-        127
+        127,
+        209
       ],
       "new-ca": [
         7,
@@ -615,7 +616,8 @@
       "a CREW, not three slots: ALLOT_CAP 5, ALLOT_ROWS/MORE 4/0.70, ALLOT_FLOOR/RIPE named+sweepable (probes/allot-supply.mjs)",
       "TILES 20 (..GLASS, LEADS, ICE, ARCADE), SPECIES 13 via speciesFor; GLASSHOUSE x84-93 y34-39, the one surface you see THROUGH — bedCap, drawGlassBack cached + drawGlassFront live, snowAt indoors",
       "weeds are a CA: rank[] over WEED_CELLS 102, founded on bAge's UP half; weedAge/creep/SHADE/WEED_WORK the harvest cycle and cold dieback; plotAct's hoe rung goes FIRST; drawWeed in the ground cache",
-      "The market spends its day: mkStock (boards + crates) drawn down by mkDemand() over the market own span, boards refilled from the crates till MK_LAST_OUT then sold away; mkDeliver() banks the cart basket; six pitches staggered on the trestle"
+      "The market spends its day: mkStock (boards + crates) drawn down by mkDemand() over the market own span, boards refilled from the crates till MK_LAST_OUT then sold away; mkDeliver() banks the cart basket; six pitches staggered on the trestle",
+      "the weeds STEER the crew (#209): weedPlots/weedTarget over WEED_HOE, a WEED_PULL 0.6 share of BOTH target choices, hashed (weedRoll) so it spends no R(); WEED_CHOKE 4.2 — a row too rank to pick THROUGH is cleared by the hand that lifts it"
     ],
     "plaza": [
       "FOUNTAIN (105.5,30) reads year, wind and frost: fountainPlay/Ice/Jet. Roundel, PLAZA_PITS, PLAZA_BENCHES, QUAY_BENCHES, quay rail x112.9, crumbSpot, PIGEONS",
@@ -709,6 +711,12 @@
     {
       "id": "c305",
       "note": "at 641-760px the ticker's box is 0-40px: plate+clock+where+ctrl fill the row alone and no composer can help. HEAD was 3-60px there; the band shows nothing either way (probes/ticker-fit.mjs)",
+      "raisedBy": 207,
+      "seenBy": 0
+    },
+    {
+      "id": "c306",
+      "note": "weed-spread.mjs's `hoe` column counts the act STRING 'hoeing the plot clean' and so under-reports #209's clear-and-lift by ~2/3; probes/allot-steer.mjs measures clearings off the world instead",
       "raisedBy": 207,
       "seenBy": 0
     }

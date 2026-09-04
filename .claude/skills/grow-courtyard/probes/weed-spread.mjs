@@ -1,7 +1,14 @@
 /* probe: the brief's success test is NOT a total — it is "a plot nobody has reached in a
  * fortnight reads differently from one worked yesterday". That is cross-plot variance AT
  * AN INSTANT, and the season's own swing will fake it in any year-pooled number. So:
- * restricted to the peak quarter, the histogram of per-plot rank across the 17 plots. */
+ * restricted to the peak quarter, the histogram of per-plot rank across the 17 plots.
+ *
+ * NOTE (#209): the trailing `hoe` column counts the act STRING 'hoeing the plot clean',
+ * which is plotAct's rung only. #209 added a second way a bed is cleared — the row too
+ * rank to pick through, hoed by the same hand that lifts it inside harvestPlot — so this
+ * column now UNDER-reports clearings by roughly two thirds. Left as it is on purpose:
+ * the stored baselines above travel with it. For clearings measured off the WORLD and
+ * not off either build's act names, use probes/allot-steer.mjs. */
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';

@@ -238,3 +238,24 @@ and the clock and season another 33 — `13ch` never held `Day 26 - Afternoon` �
 between dawn and day 4, under whatever line stands there.
 **Law:** `getComputedStyle().font` is the EMPTY STRING when a longhand cannot go in the shorthand
 (`font-variant-numeric` did it): it assigns nothing and silently measures the previous face.
+
+## Iteration 209 — the allotments answer their own weeds (2026-09-05) [Cross street & allotments × Connect]
+
+**Brief:** b209 — c291: `rank` steers nobody, so #197's hoe fires only where a picker lands.
+**Premise, HEAD** (`probes/allot-steer.mjs`, new; 12 seed-years, instrumented at the kneel): the brief's
+half holds, at chance. The half not in it is bigger — of 234 landings that DID hit a gone-over plot,
+**195 were taken by the LIFT above the hoe**. #197 put the hoe first in `plotAct`, itself the lower rung.
+**Did.** (1) `weedPlots()`/`weedTarget()`: a `WEED_PULL` 0.6 share of BOTH target choices goes to the
+plots over `WEED_HOE`, weighted by how far over. (2) `WEED_CHOKE` 4.2 — a row too rank to pick THROUGH
+is cleared by the hand that lifts it: one kneel, both acts. The first cut had the lift REFUSE and come
+back, which cost 20% of the harvest. (3) No R() spent — `weedRoll()` is hashed, `pickPlot()` still called.
+**Gates:** census PASS (`rankBeds` 253→188, `rankPlots` 42→31, `harvested` +67) · motion PASS ·
+`weed-spread` both-ends **78.0%→76.2%**, so #197's bimodal block lives. Clearings/yr **3.3→10.7**,
+rank@land vs block mean **1.18×→1.80×**, harvested 212→197/yr — in the seed noise, 199 steer-only.
+**Verdict:** shipped
+**Surprise:** the control the laws ask for paid twice. Three switches backed out, the build censuses
+**byte-identically to HEAD, 0 of 12 cells** — which first caught that `ALLOT_RANK`, a second arrival
+source I had added as a MAX, was moving the world's weather for nothing, and then proved it **dead**:
+10.7 clearings and 197 cells a year at 0.16, the same at 0 — the beds go over in the warm half the
+crop ripens in, so `ALLOT_RIPE` is always above it. Cut.
+**Law:** a second source taken as a MAX is dead unless its tail falls in a season the first is out of.
