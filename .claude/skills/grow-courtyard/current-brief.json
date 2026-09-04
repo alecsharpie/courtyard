@@ -17,7 +17,7 @@
   "avoid": "Do not change SEEDS or the three AGES, and do not re-pin the baseline in a way that makes today's rows incomparable. Do not turn this into a general census rewrite — one axis, proved against one ref.",
   "budgetMin": 45,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 187,
   "issued": "2026-09-04T01:56:34.939Z",
