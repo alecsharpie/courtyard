@@ -24,7 +24,7 @@
   "avoid": "Do not re-tune MOSS_GROW/MOSS_DIE/MOSS_COLD/MOSS_DRY — they are the plaza's and the quay's, and moving them moves two shipped systems. Do not add a second wear array: paveWear[] and wear[] already exist and MOSS_SCUFF is the scuff term. The lawn is GRASS, not paving; the region stops at the flags.",
   "budgetMin": 45,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 212,
   "issued": "2026-09-04T21:50:13.426Z",
