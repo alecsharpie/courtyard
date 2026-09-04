@@ -18,7 +18,7 @@
   "avoid": "Do not raise FAIR_SLOTS or the share — the supply is 10 claimed slots and #194 measured them under-used. And do not make the fair rain-proof: a crowd standing in the rain is a worse picture than a fair that waits. END a one-shot choice AT THE CLAIM — a re-offer guarded only by the state it consumes is re-entrant.",
   "budgetMin": 40,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 204,
   "issued": "2026-09-04T12:19:45.474Z",
