@@ -111,13 +111,21 @@ if (!PRUNE_ONLY) {
  * back over anyway: with only a count cap, cues had grown to 390 B each and the whole
  * state block was 15.2 KB. That is the Solvista shape for the third time — cap one
  * dimension and the growth moves to the neighbouring one. So every dimension is capped
- * here, and each cap is a CEILING rather than a trajectory: 8 domains x 8 entries x
- * 300 B, 8 cues x 250 B, 4 watch items x 420 B. Add a ninth entry to a full domain and
+ * here, and each cap is a CEILING rather than a trajectory: 9 domains x 7 entries x
+ * 300 B, 8 cues x 250 B, 4 watch items x 420 B. Add an eighth entry to a full domain and
  * two existing ones have to merge, which is what "the inventory is nouns, not history"
- * means in practice. */
+ * means in practice.
+ *
+ * Pass #191 moved two of these, and said why. The domain count went 8 -> 7 so that it
+ * BINDS at today's size (every domain was at 6 or 7, so the old 8 could never fire and
+ * the total was carrying the whole load alone). The total went 9.5 -> 10.75 KB, which is
+ * a cap being RAISED and wants justifying: the hard gate is context-budget.mjs's 46 KB
+ * for everything a worker reads, and 9.5 was set when this block was the largest item in
+ * it. LAWS.md is now the file to cut, because its CLAIMS compress and merge; the
+ * inventory is a symbol index, and compressing it past nouns destroys what it is for. */
 {
   const f = join(HERE, 'state.json');
-  const INV_ENTRY_CAP = 300, INV_PER_DOMAIN = 8, INV_CAP = 9.5 * 1024;
+  const INV_ENTRY_CAP = 300, INV_PER_DOMAIN = 7, INV_CAP = 10.75 * 1024;
   const CUES_MAX = 8, CUE_CAP = 250, WATCH_MAX = 4, WATCH_CAP = 420;
   if (existsSync(f)) {
     try {
@@ -143,8 +151,14 @@ if (!PRUNE_ONLY) {
       for (const c of cues) if (Buffer.byteLength(c.note || '') > CUE_CAP)
         console.log(`  ← over ${CUE_CAP} B  cue ${c.id}: ${Buffer.byteLength(c.note)} B — a cue is a POINTER; its evidence is in the ledger entry that raised it.`);
       if (watch.length > WATCH_MAX) console.log(`  ${watch.length - WATCH_MAX} watch items over cap. One is spent — a watch item ends when a brief lands on it.`);
-      for (const w of watch) if (Buffer.byteLength(w.note || '') > WATCH_CAP)
-        console.log(`  ← over ${WATCH_CAP} B  watch since #${w.since}: ${Buffer.byteLength(w.note)} B`);
+      /* #191: a watch item is a STRING in state.json and always has been, so `w.note`
+       * was undefined on every one of them and this cap could not fire — three items
+       * were over it the day it was found. Take the text off whichever shape it is. */
+      for (const w of watch){
+        const txt = typeof w === 'string' ? w : (w.note || '');
+        if (Buffer.byteLength(txt) > WATCH_CAP)
+          console.log(`  ← over ${WATCH_CAP} B  watch "${txt.slice(0, 34)}…": ${Buffer.byteLength(txt)} B`);
+      }
     } catch { /* state.json is the manager's problem elsewhere */ }
   }
 }

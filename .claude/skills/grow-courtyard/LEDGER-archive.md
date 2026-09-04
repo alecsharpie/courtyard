@@ -3,53 +3,6 @@
 Entries rotated out of `LEDGER.md`. Append-only. **Only the manager reads this** —
 a worker that opens it to "catch up" spends its whole context on history.
 
-## Iteration 138 — the plots get their tools (2026-09-03) [Cross street & allotments × New element]
-
-**Brief:** b138 — give the seventeen plots their furniture on ROOF_FURN's model, placed per plot off hash(plot), read off the plot's own state.
-**Did.** `ALLOT_FURN` + `PLOT_BOX`: six kinds — shed, compost bay, water butt, barrow, bean canes, cloche — solved ONCE off `hash(plot)`, held as world coordinates, drawn into the ground cache before `drawGlassBack`, named by `allotFurnAt`/`allotFurnName` off the same boxes the paint uses. **38 pieces over 15 plots** (the span's two are somebody's furniture already). Zero `R()`. Each plot owns x [ox, ox+4) y [oy, oy+3) — beds plus a south and east apron, which leaves a whole cell of way in x and four rows in y, and keeps everything off the WEST side, where `sendToPlot` lands its holder at `[cell-0.6, cell+0.5]`. Three pieces are gated at draw time: canes and cloche on the warm/cold half of `warmth` (each plot's own few days of slack), the barrow on somebody actually kneeling — live state under a cached surface, so `barrowKey()` drives `groundDirty` the way `washPainted` drives the washing (**2.5 extra rebuilds a sim day**).
-**Gates:** census PASS — `structures +342` / new `plotFurniture 342` and **nothing else** across 9 cells, so the seeded world is bit-identical beside it; **baseline re-pinned** · motion PASS · filmstrip day 0 POP · `perf.mjs` ±0.0%, and `drawGround()` timed directly against HEAD interleaved is **34.00 → 34.10 ms (+0.3%)** — 38 pieces are noise against #135's 6,000 setts · legible at 1600×950 Street, Wide, 390×844, night, and in the cold half with the cloches out.
-**Proof:** `probes/plot-furniture.mjs` — 0 geometry violations on five clauses (west of plot / into either way / north of plot / on a kneel spot), **all five FIRE** against a piece deliberately moved, same set in 3 seeds. `probes/plot-naming.mjs` drives a **real mousemove** at each kind's displayed position: all six named, each distinct from the grass 1.5 cells south.
-**Verdict:** shipped
-**Surprise:** the brief's gate for the canes was a feature at a rate of zero, and the reason was dwell. "Canes where something climbs" is beans, and beans are **3.1% of standing allotment cells** against carrots 27.8 and cabbages 47.1 — not because beans are rarely sown (`speciesFor` offers four veg flat) but because cabbages are the one `hardy` species and stand the winter while the rest die back. A presence test on the crop showed canes on **1.5%** of a year's samples. Gated on the season instead they are up 49.7% of the year, and the crop now decides what the pointer SAYS rather than whether there is anything to point at.
-**Budget:** `context-budget.mjs` **OVER at 51.7 KB** against the 46 KB cap, before this pass. Distil.
-**Law:** at n = 15 a one-in-three hash threshold is not one in three — the first build put 7 sheds, 1 bay and 7 bare corners on the block, and a flat `h < 0.62` put a butt on all seven west plots (a 3.5% run, not a broken hash: 667 such lines in 20,000 against 704 expected). Rank the members by their own hash and cut at the quantiles: same answer per member in every seed, right mix at the n you actually have.
-**Law:** a world-space offset added to a projected coordinate is a pixel, and 0.46 of a cell is one and a half of them — the canes' eight tops landed within 1.5 px of each other and read as a broom. Solve BOTH ends of a stroke in world space and project each.
-**Cue:** `plotCrop()` returns the FIRST sown cell of a plot, but a kneel scatters over a 3×3 and crosses plot edges, so a plot under two species answers with whichever cell the loop reaches first. `plotStands()`/`bedCap()` read it — a plot with one hardy cell and five tender ones may be keeping the full ceiling on the strength of that one cell.
-## Iteration 131 — the last punt: the crossing runs on after the east half has closed (2026-09-02) [River & far bank × Deepen]
-
-**Brief:** b131 — open the evening crossing; pick which end gives and price it.
-**The premise was wrong in its detail, and that decided it.** Instrumented `puntFits` clause by clause in its own evaluation order (`probes/punt-evening.mjs`, 10 seeds × 14 days): of HEAD's 181 refusals only **8** die on the TIME term. The deck supply dies on a BOOLEAN — 39 on `!eastOpen()`, median arrival at the planks **20.47** against a close at **20.17**. Nothing done to a stay reaches past a hard gate, so the jetty is the end that gives.
-**Did.** Two fits over the same state (the claim asks again which trip it is). The evening one stands on the eyot's north lawn instead of walking to the willow — out 2.99 h → 2.37 h, which lets the round trip be priced ONCE against `EVE_GONE`; `eastOpenFor`'s cover EXPIRES at `a.puntBack`, so the retire rule still brings them home. `eastOpen()` untouched.
-**Gates:** census PASS · visual PASS ×6 · filmstrip 0 POP · motion FAIL on 2 rows, both replayed as HEAD's own. **context-budget OVER at 48.0 KB.**
-**HEAD → candidate:** crossings 46 → **66**; **people carried 65 → 92**; boarded after the close **0 → 18**, carrying 25, **18/18 under lit lamps**; 66/66 home; nobody on the eyot at the bell; worst return 25.46 against the promised 26.15.
-**Verdict:** shipped
-**Surprise:** the first build forked on `!eastOpen()` and so refused an 18:30 stander while taking a 20:30 one — a step in the evening with nothing under it. Making the handover continuous (the short trip the moment the long one stops fitting, ~16.4) carried most of the gain: 52 → 66.
-**Law:** instrument a compound predicate CLAUSE BY CLAUSE in its own evaluation order — a refusal total says nothing about which clause to loosen, and the loudest is usually the cheap boolean in front of the arithmetic.
-**Law:** a stop needs PAIR_GAP of margin all round, not just legal ground under itself — the shore stand was on turf and put its COMPANION in the river on 9.9% of its samples.
-
-## Iteration 139 — the gardener works the stretch the light allows (2026-09-03) [Courtyard & garden × Deepen]
-
-**Brief:** b139 — re-price gardenerKneel's continuation so a gardener who has knelt finishes the bed.
-**Premise confirmed, diagnosis wrong.** `probes/gardener-rows.mjs` (10 seeds × 26 days) reads the branch off the R() call count *inside* the call: a growing morning is **1.54 rows/visit**, exactly #129's number. But the light-fit refusals are ARITHMETICALLY HONEST — the cheapest legal continuation finishes **2.75 h after the lawn closes**. Nothing was double-charged; there was nothing to give back.
-**Did.** The row is drawn BEFORE it is priced, so a drawn length that did not fit refused the *whole* continuation and the gardener walked off a border they still had light to work. Now `room` is what is left for the row once the shuffle and the walk home are paid, and the row takes `min(nd, room)`, floored at `GARDEN_ROW_MIN` 2.5 s — the same test solved for the row instead of thrown away. Draw COUNT unchanged in every branch, so nothing past it moves except through the gardener.
-**Gates:** census PASS, baseline re-pinned (the wide species/weather churn is the stream: more rows fire the existing planting draws more often) · motion PASS · filmstrip 0 POP · visual PASS, HEAD vs candidate at a *divergent* instant (s1234 t124) — the first pair I shot was byte-identical because the builds had not diverged there yet.
-**HEAD → cand:** growing morning **1.54 → 1.79** rows/visit; continuation 33.4% → 42.1%; growing-morning light refusals **10.6% → 0.7%**; spare light left unspent 2.38 h → **1.19 h**; refusals with >1 h of room 64/186 → **3/165**, so the budget is now genuinely exhausted rather than mis-priced. Choice shares hold (gardener 17.6% → 16.7%, no kind moves >2 pp); latest departure 19.61 h, identical to HEAD.
-**Verdict:** shipped — but the brief's **2.5 bar is not met and is not reachable**, and that is the finding.
-**Surprise:** the bar was set without pricing the row. The window is 12.0 h; the walk in is 3.4 h and already optimised (#108's shortest door, #129's near third); the nearest *other* edge bed is **4.08 cells**, so the shuffle is irreducible; and a row is 2.91 h. From a 10.4 h first kneel the day holds 2.1 rows at best. Swept and rejected: halving the row buys +0.39 and costs the gardener's dwell; GARDEN_MORE 0.9 buys **+0.05**, because after this fix the roll is no longer the binder — the light is.
-**Budget:** `context-budget.mjs` **OVER at 51.6 KB** against 46 KB, before this pass.
-**Law:** a unit of work drawn BEFORE it is priced makes the price all-or-nothing — solve the test for the unit and take `min(drawn, room)`.
-**Law:** `__reseed()` REASSIGNS `R`, it does not just rewind it, so a monkeypatch on `R` installed before it is silently eaten — and the probe then reports a clean, plausible, wrong attribution.
-## Iteration 132 — the ticker learns where you are looking (2026-09-02) [The sill & the observer × Connect]
-
-**Brief:** b132 — prefer a subject inside the frame; do not take the surface with a line about somewhere you cannot see. Full entry in LEDGER-archive.md.
-**Did.** `inView(x,y)`, the only reader `whereN` has ever had: a cell projected through `viewFor(whereN)` against the frame and `sillTop()` — not the quarter's BOX and not `gview` (the ground CACHE's view). Intent beats the live camera: the ease is 0.9 s, a line lives 2.5–9. `sayAt(x,y,txt)` = announce with a SUBJECT, 33 sites. `AMBIENT_PLACES` 8 → 30 placed lines, `ambientHere()` preferring the in-frame ones and falling back to the WHOLE pool, never to silence.
-**Premise correction, and it was the iteration.** That fallback was DEAD CODE: the roll wanted `tickerTimer < -8`, seventeen seconds of dead surface, and the town speaks every three — **0 ambient lines in 8 sim days, `tickerTimer` never once reaching 0**. Re-gated on `tickerFree()` (tested at the roll, so a blocked line is DROPPED not queued), restraint moved into the cadence, driven by `hash(ambIdx)` not `R()`.
-**Gates:** census unchanged · motion PASS · filmstrip 0 POP · canvas **bit-identical to HEAD** at three pinned instants, fingerprint NONE.
-**HEAD → cand** (3 seeds × 5 days × 5 quarters): off-frame subjects, fixed-place only — Courtyard **40/78 → 1/69**, Far bank **69/78 → 2/25**. In-frame share 19→33, 27→34, 14→25, 4→11%; Wide unchanged.
-**Verdict:** shipped
-**Surprise:** the roll self-balances unasked — ambient lines a day Wide 1.6, Courtyard 2.3, Far bank 3.4. The offer rate is flat and `tickerFree()` decides how many land, so the emptier suppression leaves a frame, the more the town murmurs about it.
-
-
 ## Iteration 140 — the buildings get their shadows (2026-09-03) [Roofs & skyline × Connect]
 
 **Brief:** b140 — nine cast shadows in this town and every one is an object; give the BUILDINGS theirs.
@@ -731,4 +684,83 @@ page still runs rAF, so entering without `?t=` starts ~2.2 s of un-reseeded worl
 the same clock hour. Two towns; `filmstrip.mjs`/`shoot.mjs` pin `?t=0`, so an unpinned probe
 measures a world they cannot show.
 **Law:** pin `?t=` on every probe page — the default entry is a DIFFERENT WORLD from `?t=0`.
+
+## Iteration 179 — the garden's walk is handed the leg it was priced for (2026-09-04) [Courtyard & garden × Deepen]
+
+**Brief:** b179 — c256: `exitLeg` runs to `laneEdge`: a dusk sitter walks the dark town all night.
+**CONFIRMED, then RE-AIMED** (`probes/lawn-exit.mjs`, new; 6 seeds x a year). The exit is real — longest **162.6 cells / 36.95 h** — but its 308 night-hours are of 813; the rest never reach `routeToExit`. `LAWN_OFF.south` is 40 cells — the WEST edge — and `entryLeg`'s coin hands half of them 108: **all 50 south arrivals overran, priced 9.63 h and walking 23.19.**
+**Did.** One law, both ends: hand the consumer the leg it TESTED. (1) `laneEdge(nearX)` takes the near world edge for a leaver; the coin stays for a passer-by whose errand IS the crossing. `entryLeg`/`exitLeg` carry it, lawn-only, draw COUNT held. (2) `lawnGate()`: the door minimising the WHOLE way off the frame over that same `LAWN_OFF`, replacing `nearDoor()` (a chord's question) in `routeToExit`, `lawnHome` and the gardener's beds. (3) a kid already on its exit leg is not rebuilt from `a.exit` and sent 150 cells BACK.
+**HEAD -> cand.** Out past EVE_GONE **0.874 -> 0.100**; longest exit **44.8 cells / 11.24 h**; dark lawn 2.714 -> 1.865. Presence: lawn 9.107 -> 8.908, **stopped on the grass 1.140 -> 1.144**, inside the wall 19.283 -> 19.242.
+**Gates:** census PASS (`worn +104`, the new chords' desire lines) · motion PASS · 6 shots · 0 POP
+**Verdict:** shipped
+**Surprise:** `hourEve() >= EVE_GONE` is 2.30 to 6 am, so the next morning's set-outs share it: 0.713 of HEAD's 1.587 walked IN, not home. Unsplit it reads 47% where the vector moved 89%.
+**Law:** a window past a day's LAST hour is also its NEXT morning's first — split a late population by DIRECTION before quoting it.
+
+## Iteration 180 — the ground is relit when the light moves, not when the clock does (2026-09-04) [Sill & observer × Polish]
+
+**Brief:** b180 — c258: cut the ground cache's rebuild rate; land the ease without the crisp.
+**Half the premise REFUTED** (`probes/ground-rebuilds.mjs`, new): the rate has NOT grown 2.5x since
+#138 — **107.50 at `Iter 138^` v 108.25 on HEAD**. What IS true: **90% was ONE term**,
+`Math.floor(hour * 4)`, untouched since the loop began.
+**Did.** (1) `lightNow`/`lightMoved`: an L1 DISTANCE from what was last PAINTED (daylight, nightF,
+SUN[0], SUN[2], cover, mist), `LIGHT_MOVE` 0.12, the first two counted once at whichever moved
+further, over a `LIGHT_SLOW` 4 s floor for the drift no light and no flag covers,
+`markGroundPainted()` setting every mark in one place. (2) A landing DISSOLVES, not snaps:
+`fadeCaches`/`fadeF`/`dropFade`, both caches, `VIEW_FADE` 0.30 s.
+**HEAD -> cand.** Repaints/day **110.78 -> 75.14** (6 d x 6 seeds), light 98.17 -> 35.94; ground paint
+2938 -> 2266 ms/sim day, ms per repaint FLAT. `ground-cost.mjs` (new)
+prices asking less often as STALENESS: Pareto, not a trade — **max 1.11 -> 0.96, 0% over HEAD's**. `ease-land.mjs` (new): the frame after a landing was **2.5-3.8x** the last eased frame,
+now **0.4-0.7x**, at four quarters.
+**Gates:** census · motion · wide-identity 4x4 · filmstrip 0 POP · perf +0% · 5 framings · a follow
+release, held at s=1 under 2.6x, dissolved on landing.
+**Verdict:** shipped
+**Surprise:** the first reading was **868 washing repaints a sim day** — the instrument cleared
+`groundDirty` without setting `washPainted`, so that gate stayed true for ever.
+**Law:** quantize the QUANTITY, never a clock standing for it — a clock spends a fixed budget on
+something changing at a varying rate, and N roundings fire N times for ONE change.
+
+## Iteration 181 — the river is given a winter it grows into (2026-09-04) [River & far bank × New CA]
+
+**Brief:** b181 — seasonal colour and speed, no seasonal STATE.
+**Did.** A skin CA over the margin, stepped in `caTick` beside the moss on its three terms. Shelter is an
+L1 **distance transform out from every cell the channel is NOT**, so the REED shallows, the quay, the
+eyot's laps and the footbridge's still water all fall out of it unnamed. `ICE_CURRENT` cuts the ceiling by
+`riverMid(x)`; that, not a bound, keeps midstream open. Growth reads FROZEN NEIGHBOURS 5:1 against
+nucleation, so it comes and goes as a FRONT. `iceSkinCol` is shared with the basin; zero R().
+**Measured** (`probes/river-ice.mjs`, `probes/ice-step.mjs`, new; 4 seeds x a year). Days 19-24 only:
+0 → 192/72/117 → 313 → 340 → **peak 341 of 680 margin cells** → 142 → 0 (976 water cells, not the brief's
+8,784 — that is a census AGGREGATE), and not a switch: **at most 13 cells cross a drawn bucket in one
+tick**, mean 2.5 over 559. Summer census identical to HEAD; 9 cells recoloured, all column 112.
+**Gates:** census · motion (night t 1230 is in the freeze) · 8 shots · 0 POP · perf +0.0% · ground
++0.8 ms at 333 frozen — all PASS. Baselines re-pinned: winter forks the seed.
+**Verdict:** shipped
+**Surprise:** **the census cannot see winter, by design.** Its three AGES all sit at warmth 0.6929 — a
+#14 fix, so the age axis measures age — so `tileKinds` 18→19 is invisible to it, and this brief's "the
+census tileKinds must move" is unprovable there. Its one COLLAPSE (people −9.4%) was a crop of that fork:
+mean people over a year, 3 seeds x 60, is **43.89 vs 43.91**.
+**Law:** a gate's ladder can be blind to a WHOLE AXIS on purpose — price a predicted field against it
+first; a seasonal system needs its own probe.
+
+## Iteration 182 — somebody is at the window (2026-09-04) [Roofs & skyline × Deepen]
+
+**Brief:** b182 — c267: ~20 panes light every night and nobody has ever been at one.
+**Which register.** `LIT_PANES`, not `LIT[]` (a centre point, for the halo) and not `FACES` (a
+CACHE-time register, stale through the camera ease, #86). It is the pane's own PER-FRAME screen
+QUAD, projected with the glass it belongs to, so a figure solved in its (u,v) has no anchor that
+can go stale and nothing to keep between frames. It carries `{q,sa,sb,room}` now: the ONE address
+`windowLit()` hashes, so lit and occupied cannot drift apart.
+**Did.** `paneFigure`: 2 slots a night, 0.32 taken, the accepted coin re-used as that slot's phase
+(uniform GIVEN acceptance — one hash, not two); on `nid`, never `R()`. `drawPaneFigures()` is LAST, source-over,
+with the moths and for their reason inverted: a moth CATCHES a light, a figure BLOCKS one.
+**Measured** (`probes/pane-figures.mjs`, new; a 104-day year): occupied at once mean **1.17** of
+13.05 lit, **52 / 18 / 12%** at 0 / 1 / 2, **0 empty nights, 0.00 by day**. Seeds 42 and 7 are
+bit-identical: `hash()` is unseeded, so two seeds are one sample.
+**Gates:** census unchanged in EVERY field (no `R()` draw) · motion · perf +0.0% · 0 POP.
+**Verdict:** shipped
+**Surprise:** the first build scaled the figure off the pane's HEIGHT and the pane just went dark.
+These panes are **5 x 11 css px**: shoulders at 0.72 of that height are 90% of the width, and the
+head came out an EGG, because `at(a,b)` scales `a` by the axis and `b` by the lateral. Bounding the
+lateral by the APERTURE and sweeping the head as a circle off that one scale is the whole
+difference between a person and a lamp going out.
+**Law:** a silhouette's scale is a fact about the APERTURE it is seen through, not the body.
 
