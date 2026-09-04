@@ -17,33 +17,6 @@
   "rationale": "I SHOT THE TOWN BEFORE PLANNING IT — seed 42, four instants (day 5 07:45 early summer, day 65 12:58 autumn clear, day 6 dusk, and the lane and courtyard crops at noon) — and one band decides this batch. The ROADWAY. LN_ROAD0 68..76 is eight rows across all 138 columns, ~9% of the world, the single longest continuous line in every framing and the thing a viewer's eye slides down to after the courtyard. It is built with more care than almost anything in the town: settGrid/settRun, camberZ, gutterF, rutF, KERB_RUN, paveWear, PUDDLES. On a clear autumn midday with 73 people out, the lane crop shows exactly TWO things on it — one cyclist and one figure. Then I greped rather than trusted the picture, and the cause is structural, not a rate: LANE_N_Y 66.4 and LANE_S_Y 77.3, the two walking lines, both sit on the FOOTWAYS; every one of spawnLaneAgent's branches picks one of them; and the only object in 210 iterations that has ever driven on the carriageway is `cart`, one dray, on market days, at CART_LANE_Y. The town built a road and then walked around it. That is fabric, not an event — the managerWatch note's own test — and it changes the wide shot in the first ten seconds, which is what a bet is for.\n\nRUNG 2, AND I AM SAYING SO RATHER THAN DRESSING IT UP. This batch deepens and interconnects systems that already exist; nothing here widens the menu, moves the census, or changes the observer. The last five passes were 4b/5/4a/3/5, so one low pass is legal and this is the first of at most two — the pass after next climbs to 3+ whatever it finds, and the named claim on it is the Interaction column (15 of 210, 8 of them sill chrome; four domains have never had one).\n\nTWO PREMISES DIED BEFORE THEY BECAME BRIEFS, WHICH IS THE POINT OF SHOOTING FIRST. (1) 'Nothing in this town casts a shadow' — the midday and morning wides both look shadowless, and it is false: buildSunShade()/shTop/shCast/shOpen throw every solid volume from sunVec(), at BSH_MAX*daylight*shadowF(), which is faintest at dawn and shortest at noon by construction. Filed as a worker WATCH note so the next pass to see that picture does not write the brief I nearly did. (2) 'The near roof reads as one flat texture' — dead three times already (c232/c259/c271, sd/mean 0.281, the highest large surface on the record); I did not write it a fourth time.\n\nTHE OTHER FOUR ARE THE LONGEST-NEGLECTED DOMAINS, EACH CARRYING A NUMBER. b212 courtyard (12 back): buildMossRegion is called exactly twice, for PLAZA and QUAY, and the piece's namesake — the largest paved surface in the town — is the one big paving that does not age with the year. b213 roofs (11 back): grep finds no drip, downpipe, gutter or runoff anywhere in 1.25 MB of source; the roofs wet (drawSlateCell mixes on wetF) and shed nothing, and the lane already has PUDDLES/pudHollow waiting for a foot to form under. b214 nearblock (9 back) and b215 life (8 back) spend c298 and c299, both of which arrive with their probe and their number already measured.\n\nWHAT I CUT, AND WHICH WAY EVERY CAP MOVED. No cap was raised; two things were cut to fit under caps that did not move. INVENTORY 11.7 -> 9.8 KB against an unchanged 10.0: the market's day was re-filed from `street` (where #207 had put it) into the lane line that owns it, #209's weed-steering merged into the weeds CA line, sill's 9 entries merged to 6, and every remaining line stripped of tuning constants and coordinates — which is what the file's own note has always said belongs in the source. Two entries deleted outright: sill's HARNESS line (instrument nouns; SKILL.md names every gate already) and sky's two-PRNG-streams line (that is a LAW, and LAWS.md carries it). LAWS.md 25 -> 26 laws at 11.9/12 KB: added #206's (a frame's share is a function of the ZOOM alone), #207's control-saturation clause and its two ink-measurement liars with #208's, and merged #209's and #210's into the laws they extend — paid for by SUPERSEDING the two-layouts law, whose claim that 'the wide view is resize()'s raw cellW/topPad' #206 made false; by deleting the CAST/MIRROR clause of trap (a) (buildSunShade/shOpen and drawWaterMirror carry it in the source, and the new watch note points at them by name), the residual FALL-THROUGH clause, the short-run RAMP clause (subsumed by 'pool six seeds and a YEAR'), a route-cost restatement and a TIMEOUT clause; and by SPLITTING the ground-cache law, 902 B against the 900 B advisory, into its two claims. Cues 8 -> 6: two promoted (c298 -> b214, c299 -> b215), c305 closed on its own probe's evidence, c308 raised. Worker read 45.6 -> 44.0/46 KB, every sub-cap met.",
   "queue": [
     {
-      "id": "b212",
-      "domain": "Courtyard & garden",
-      "kind": "Connect",
-      "brief": "The piece's namesake is the one big paving that does not age. `buildMossRegion()` is called exactly twice — MOSS_PLAZA over the plaza's PATH, MOSS_QUAY over the quay's SIDE — and the courtyard's own flags, the largest paved surface in the town and the brightest thing in every wide shot, were left out. The machinery is already general: mossOwn[] masks the region, the creep stops at a change of owner, mossShel/mossTop set the ceiling per cell, MOSS_BUCKET quantizes the draw, MOSS_SCUFF wears it under feet, and trodStone() puts it in groundBase. Give the courtyard the third region. Its regime is genuinely different from the other two and that is the point: it is WALLED, so shelter is high; it has EDGE_BEDS on all four ranges and now an ARCADE along the north, so the damp edges are where moss should gather; and its ring path carries the densest foot traffic in the town plus a pre-dawn sweeper, so the desire lines should read as CLEAN stone through a green that thickens at the walls and under the arcade. Price the premise first: how much moss the plaza actually shows through a year on HEAD, and whether the courtyard's own shelter and scuff leave anything standing — if the answer is that the ring scours it flat, the measurement is the deliverable and say so.",
-      "seams": [
-        "buildMossRegion",
-        "stepMossRegion",
-        "mossOwn",
-        "mossShel",
-        "mossTop",
-        "MOSS_BUCKET",
-        "MOSS_SCUFF",
-        "MOSS_PLAZA",
-        "MOSS_QUAY",
-        "trodStone",
-        "groundBase",
-        "inPlaza",
-        "PATH",
-        "EDGE_BEDS",
-        "ARCADE"
-      ],
-      "successLooksLike": "Through an autumn and a winter the courtyard's flags green at the walls and under the arcade while the ring path stays stone, and the plaza and quay regions are BYTE-IDENTICAL to HEAD (mossOwn is a mask; a new owner must not leak into either). Census PASS, and quote the courtyard's mean moss by season against the plaza's.",
-      "avoid": "Do not re-tune MOSS_GROW/MOSS_DIE/MOSS_COLD/MOSS_DRY — they are the plaza's and the quay's, and moving them moves two shipped systems. Do not add a second wear array: paveWear[] and wear[] already exist and MOSS_SCUFF is the scuff term. The lawn is GRASS, not paving; the region stops at the flags.",
-      "budgetMin": 45,
-      "risk": "medium"
-    },
-    {
       "id": "b213",
       "domain": "Roofs & skyline",
       "kind": "New element",
@@ -127,6 +100,10 @@
     {
       "id": "b211",
       "at": "2026-09-04T20:52:04.778Z"
+    },
+    {
+      "id": "b212",
+      "at": "2026-09-04T21:50:13.424Z"
     }
   ]
 }

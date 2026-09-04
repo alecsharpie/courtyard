@@ -237,3 +237,27 @@ cell at 1055–1068 (HEAD 1063), yet `TRAF_BASE` 0.120 → 0.122 flipped it: it 
 write it so — a read-only avoidance costs the seeded world nothing.
 **Law:** a weather band read over the whole clock is a DAYTIME band: showers fall by day, `dry` carries
 every night. Cut both inside ONE hour and 52.9% vs 51.3% became 60.9% vs 78.3%.
+
+## Iteration 212 — the courtyard's own flags age (2026-09-05) [Courtyard & garden × Connect]
+
+**Brief:** b212 — give the namesake the third `buildMossRegion`; price the premise first.
+**Premise, HEAD** (`probes/court-moss.mjs`, new): both the brief's reasons are BACKWARDS. By
+the shelter predicate the court is the MORE OPEN room — 79% of its 1896 flags have eight PATH
+neighbours to the plaza's 74% — and its ring is the QUIETER stone, 0.14 foot-s/cell/day to the
+plaza's 0.40. And "under the arcade" cannot happen — just **2** PATH cells in the whole town
+touch an ARCADE cell.
+**Did.** `MOSS_COURT`/`inCourt`, plus `MOSS_WALL` folded into `mossShelterAt` as `courtShade()`
+fading over `WALL_H`: shelter is an 8-neighbour count, one cell deep, so it cannot see a wall,
+and the lee of the ranges IS this room's regime. `mossShelterAt` forks on the QUAY (the one
+region in SIDE); `buildMossRegion` takes its predicate. `pavedAt()` NOT widened.
+**Gates:** census PASS, `mossy` +4368, **every other field byte-identical** · plaza+quay
+**byte-identical to HEAD** over 36 checksummed samples · motion PASS · `drawGround` 27.6→28.6
+ms, paints/day flat. Court spring 0.192 to the plaza's 0.187; wall band 0.268 vs open court
+0.146; untouched flags 0.214, walked 0.068.
+**Verdict:** shipped
+**Surprise:** 4049 px over a 0 px same-code floor — and the two spring shots are
+INDISTINGUISHABLE by eye. What settled it was the SHIPPED plaza killed the same way
+(`moss.fill(0)`): 1016 px at Δ5.8, 2.1% of its box, to the court's 2.5%. The courtyard is not
+faint; the plaza is this faint, and has been since #103.
+**Law:** to judge whether a new instance of a SHIPPED system reads, kill the shipped instance
+the same way and compare mass per unit box — the incumbent's own legibility is the bar.

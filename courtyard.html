@@ -2440,9 +2440,14 @@ function pavedAt(x, y){
   /* #126: and the two surfaces that already AGE. The plaza's roundel and the quay were
    * the only paving in the town that remembered nothing at all — no feet, no water —
    * while the joints between their setts have been going green since #103. These are
-   * the MOSS regions' own predicates, each already intersected with the grid, so the
-   * stone that holds water is exactly the stone that goes green: 730 + 130 cells, the
-   * same 860 mossOwn[] carries. One definition, not a second box. */
+   * two of the MOSS regions' own predicates, each already intersected with the grid, so
+   * the stone that holds water is stone that goes green: 730 + 130 cells.
+   * #212: it is no longer the WHOLE of mossOwn[]. The courtyard's 1896 flags are the
+   * third moss region and they are NOT here — a walled garden's paths are laid to a
+   * camber and drain, and nothing in the courtyard has ever puddled or worn. That is a
+   * deliberate one-way inclusion, not an oversight: this predicate answers "does this
+   * stone hold water", mossIn() answers "does this stone go green", and #212 is the
+   * iteration those two stopped being the same question. */
   if (t === PATH) return inPlaza(x, y);          // the courtyard's paths are PATH too, and are not the plaza
   if (t !== ROAD && t !== SIDE) return false;
   if (inQuay(x, y)) return true;                 // SIDE, but east of the cross street's columns
@@ -2862,7 +2867,7 @@ function stepSnow(dt){
  * wearDirty already throttles that to WEAR_REPAINT. */
 const moss = new Float32Array(GW * WH), mossShel = new Float32Array(GW * WH),
       mossTop = new Float32Array(GW * WH);
-const MOSS_PLAZA = 1, MOSS_QUAY = 2;               // #114: which region a cell belongs to
+const MOSS_PLAZA = 1, MOSS_QUAY = 2, MOSS_COURT = 3;   // #114/#212: which region a cell belongs to
 const mossOwn = new Uint8Array(GW * WH);           // 0 = not a mossy surface; the creep stops at a change of owner
 const MOSS_COLD = 0.26,      // below this warmth nothing grows and the frost term rises
       MOSS_DRY = 0.66,       // above this warmth a dry spell starts to bleach it back
@@ -2871,7 +2876,8 @@ const MOSS_COLD = 0.26,      // below this warmth nothing grows and the frost te
       MOSS_FLOOR = 0.16,     // must stay UNDER 1/MOSS_BUCKET — see mossFloor()
       MOSS_SCUFF = 1.6,      // per second of a full-size walker standing on the cell
       MOSS_WET = 0.55,       // #114: a WATER neighbour holds a joint damp on top of being an edge
-      MOSS_POOL = 0.45;      // #126: what a full hollow is worth in shelter's own units
+      MOSS_POOL = 0.45,      // #126: what a full hollow is worth in shelter's own units
+      MOSS_WALL = 0.45;      // #212: what standing in the ranges' own shade is worth, likewise
 function inPlaza(x, y){ return x >= PLAZA_X0 && x < PLAZA_X1 && grid[y * GW + x] === PATH; }
 /* #114: the quay is the SECOND surface that ages, and it is the one place the town most
  * obviously stands still — a stone edge against moving water, identical in February and
@@ -2894,7 +2900,27 @@ function inPlaza(x, y){ return x >= PLAZA_X0 && x < PLAZA_X1 && grid[y * GW + x]
 function inQuay(x, y){
   return x >= QUAY_X0 && x < RIVER_X0 && y < LN_WALK_N && grid[y * GW + x] === SIDE;
 }
-function mossIn(x, y){ return inPlaza(x, y) || inQuay(x, y); }
+/* #212: the THIRD surface, and the piece's namesake. The courtyard's ring is 1896 PATH
+ * cells — 2.6x the plaza's 730 — and it was the one big paving that did not age. Two
+ * things the measurement said that the eye would not have.
+ *
+ * ONE, it is not a narrow band of edges. 79% of its cells have eight PATH neighbours,
+ * against the plaza's 74%: by the shelter rule alone the courtyard is the MORE open of
+ * the two, so the ceiling machinery works here exactly as designed and the region does
+ * not paint as one green field.
+ *
+ * TWO, its regime is genuinely the ranges'. Shelter is an 8-neighbour count, so it is one
+ * cell deep and cannot say "in the lee of a five-metre wall" — which is the whole
+ * difference between this room and the open square. MOSS_WALL is the courtyard's own damp
+ * term, the way MOSS_WET is the quay's: how deep into the block a joint sits, fading over
+ * WALL_H because a wall shades about its own height. Geometry, fixed at build.
+ *
+ * It is a moss region and deliberately NOT a pavedAt() one: the flags take no puddles and
+ * no paveWear, so the desire lines here are cut by MOSS_SCUFF alone — which is what the
+ * ring path actually is, feet on stone that has nothing else to remember them by. */
+function courtShade(x, y){ return clamp(1 - Math.min(x - 3, 60 - x, y - 3, 60 - y) / WALL_H, 0, 1); }
+function inCourt(x, y){ return x >= 3 && x < 61 && y >= 3 && y < 61 && grid[y * GW + x] === PATH; }
+function mossIn(x, y){ return inPlaza(x, y) || inQuay(x, y) || inCourt(x, y); }
 /* how damp a joint stays: the share of the eight neighbours that is not paving. Read off
  * the grid once, after buildGrid — one predicate, one definition. */
 /* How damp a joint stays, in the terms its OWN region is laid in. The plaza's rule is
@@ -2904,25 +2930,32 @@ function mossIn(x, y){ return inPlaza(x, y) || inQuay(x, y); }
  * the river. A WATER neighbour is an edge AND it is wet, so it counts MOSS_WET extra.
  * That is the whole of the difference between the column against the rail and the
  * column people walk: 3 water neighbours against none. */
+/* #212: the courtyard is laid in the same PATH the plaza is, so it reads the same rule —
+ * the fork is on the QUAY, which is the one region laid in SIDE. What the court adds
+ * afterwards is the ranges' shade, which no 8-neighbour count can reach. */
 function mossShelterAt(x, y, own){
   let n = 0;
   for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++){
     if (!dx && !dy) continue;
     const gx = x + dx, gy = y + dy;
     const g = (gx < 0 || gy < 0 || gx >= GW || gy >= WH) ? -1 : grid[gy * GW + gx];
-    if (own === MOSS_PLAZA){ if (g !== PATH) n++; }
-    else { if (g !== SIDE) n++; if (g === WATER || g === REED) n += MOSS_WET; }
+    if (own === MOSS_QUAY){ if (g !== SIDE) n++; if (g === WATER || g === REED) n += MOSS_WET; }
+    else { if (g !== PATH) n++; }
   }
-  return clamp(n / 5, 0, 1);
+  const s = clamp(n / 5, 0, 1);
+  return own === MOSS_COURT ? clamp(s + MOSS_WALL * courtShade(x, y), 0, 1) : s;
 }
 function buildMoss(){
   moss.fill(0); mossShel.fill(0); mossOwn.fill(0);
-  buildMossRegion(PLAZA_X0, PLAZA_X1, 3, 61, MOSS_PLAZA);
-  buildMossRegion(QUAY_X0, RIVER_X0, 0, LN_WALK_N, MOSS_QUAY);
+  buildMossRegion(PLAZA_X0, PLAZA_X1, 3, 61, MOSS_PLAZA, inPlaza);
+  buildMossRegion(QUAY_X0, RIVER_X0, 0, LN_WALK_N, MOSS_QUAY, inQuay);
+  buildMossRegion(3, 61, 3, 61, MOSS_COURT, inCourt);      // #212: the namesake, last, and it touches neither
 }
-function buildMossRegion(x0, x1, y0, y1, own){
+// the region's own predicate travels WITH it (#212): a third owner is a third argument,
+// not a third arm of a ternary that every future region has to be threaded through
+function buildMossRegion(x0, x1, y0, y1, own, inRegion){
   for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++){
-    if (own === MOSS_PLAZA ? !inPlaza(x, y) : !inQuay(x, y)) continue;
+    if (!inRegion(x, y)) continue;
     const i = y * GW + x;
     mossOwn[i] = own;
     mossShel[i] = mossShelterAt(x, y, own);
@@ -2970,6 +3003,7 @@ function stepMoss(){
   const gf = mossGrowF(), df = mossDieF();
   stepMossRegion(PLAZA_X0, PLAZA_X1, 3, 61, MOSS_PLAZA, gf, df);
   stepMossRegion(QUAY_X0, RIVER_X0, 0, LN_WALK_N, MOSS_QUAY, gf, df);
+  stepMossRegion(3, 61, 3, 61, MOSS_COURT, gf, df);
 }
 function stepMossRegion(x0, x1, y0, y1, own, gf, df){
   for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++){
@@ -5693,6 +5727,8 @@ function stepAgent(a, dt){
       // the roundel's rings, the mouth and the bench approaches stay clean. Bucketed:
       // the repaint is asked for only when a drawn level can have changed
       // #114: and the quay's walked column, which is what keeps it off the rail line
+      // #212: and the courtyard's ring, where it is the ONLY memory of feet the flags
+      // have — they take no paveWear (see pavedAt), so this is the whole desire line
       const wasB = moss[j] * MOSS_BUCKET | 0;
       moss[j] = Math.max(0, moss[j] - (a.small ? 0.6 : 1) * MOSS_SCUFF * dt);
       if ((moss[j] * MOSS_BUCKET | 0) !== wasB) wearDirty = true;
@@ -5712,7 +5748,8 @@ function stepAgent(a, dt){
 /* #72: the street clears itself. A heap on the road or the footway is cut by the
  * traffic that uses it — faster than the lawn's scuff, and a wheel scatters what a foot
  * only treads (a cyclist crosses a cell in ~0.17 s and takes a whole leaf with him).
- * The courtyard's PATH is left to the broom, so its sums do not move. No R(): the
+ * The courtyard's PATH is left to the broom, so its sums do not move — and #212's moss
+ * branch does not change that: it clears no litter off PATH either. No R(): the
  * repaint is asked for on a drawn-bucket change, the way landLeaf() asks.
  * Factored out at #114 because the quay's moss branch now sits in front of it. */
 function scuffLitter(j, a, dt){
