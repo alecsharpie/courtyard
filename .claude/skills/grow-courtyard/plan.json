@@ -14,34 +14,7 @@
     "balance": "The five domains in this queue are the five longest-untouched, in order of neglect: Lane & market 11 back (#169), Roofs & skyline 9 (#171), Cross street & allotments 8 (#172), Plaza & quay 7 (#173), River & far bank 6 (#174). Courtyard (#179), Sky (#178), People (#177) and the Sill (#180) all rest this batch. But the balance that actually chose the bet is a COLUMN, not a row: across 180 iterations the kinds run deepen 49, connect 40, new-element 30, polish 28, scale 20, interaction 13, harness 12, NEW-CA 7, fidelity 1. New CA rules are 7 in 180, the last at #135, and River, Sky, People and the Sill have never had one — in a piece whose own subtitle is 'a cellular block'."
   },
   "rationale": "I shot the town before planning it (wide, seed 42, at t=175 early-summer morning, t=1210 late-winter night and t=1224 late-winter midday) and then measured the two things the picture made me want to brief, because the standing WATCH note says to. Both premises died. (1) The SILL, c259's 'same near-black bar at midday as at midnight': luma over the sill band at 1600x950 DPR 1 reads mean 13.98 sd 9.39 at midday with a range of 1.9-63.6, and sd/mean 0.671 — 2.4x the near roof's 0.281, the previous record. It is the most differentiated surface in the frame, and what the number exposes is the METRIC: sd/mean divides by a mean of 14. c259 closed, and the law that produced it corrected in LAWS.md. (2) The BACKDROP, the other class the note called unmeasured: sd/mean 0.150 / 0.160 over the frame's top 10% / 18% at midday, above GRASS and SIDE.cross. Also fine. That list is now empty; two briefs' worth of worker time saved, the same way #164's near-roof measurement saved 90 minutes.\n\nWhat the third shot found instead is the batch. In a late-winter midday frame — day 23, raining, every tree bare, thirty umbrellas up, the whole town gone grey-brown — the river is the most saturated, most summer-looking object in the picture. Priced on HEAD: riverCol() mixes toward RIVER_COLD by RIVER_TINT 0.30 and riverRun() runs 1.45x in January, so the channel has seasonal COLOUR and seasonal SPEED and no seasonal STATE. The fountain's basin, about thirty cells, skins over cell by cell in winter (FOUNT_ICE 0.7, fountainSkin(), ceiling 0.43 at midwinter). The 8784-cell channel does not. That is rung 4b by the census — ice is a new TILE kind and tileKinds moves — and it is the first new-ca in the River domain in 180 iterations, which is why I am taking 4b again rather than climbing past it: the RUNG repeats, the MOVE does not. mossCreep is the model and the brief says so; the town's best CA should not be reinvented next door.\n\nThe other four spend cues rather than inventing premises. b182 takes c267 (the lit panes have nobody at them), b183 takes c262 with its premise explicitly marked STALE and the re-measurement as the deliverable if it has died, b185 takes c268 against the source's OWN sentence — the second use of the `fidelity` kind the last pass added at rung 3, which is what tells us whether that menu widening was worth anything. b184 is the one I invented, and it is the weakest brief here: the town grows food and sells it and the food then evaporates, which I could see in the source but cannot see in a screenshot, so the brief makes the worker price it first and permits it to come back small.\n\nCuration. Coverage was three iterations stale (#178, #179, #180) so the balance grid I plan from was blind to them. LAWS.md was the real work: 38 laws at 12184 bytes against a 12288 cap, so every promotion had to be paid for. I merged all five of #176-#180's laws into laws they SUPERSEDE rather than stacking (the canvas-PRNG law into R(); cap-and-rate over cap-and-share; the two-dawns law absorbing the late-window split; the clock-vs-quantity law into the ground cache; ?t= into the probe-rewind law), corrected the sd/mean law with this pass's own measurement, folded the rate-of-zero law into cap-and-rate, and paid with three INSTRUMENT clauses — the rotation control, the dead-worker working tree, and #173's speedometer — on the ground that sill x harness is saturated at 9 entries, that motion.mjs now carries ABS_JUMP_KIND so the speedometer law is embodied in the tool, and that the loop's tooling is over-represented in the one file every worker reads whole. 36 laws, 12258 bytes, budget OK. Four cues closed, two raised, the stale VIEWPORT watch item rewritten as a standing rule now that #176 fixed it, and a new watch item aimed at this seat: read the KIND totals before the domain gaps.",
-  "queue": [
-    {
-      "id": "b185",
-      "domain": "Cross street & allotments",
-      "kind": "Fidelity",
-      "brief": "c268, and the source's own sentence is the claim under test. BON_K's comment states: 'hash share of shed days offered one — 5-6 of the 7 in every year of 12 (histogram); the weather then takes ~2/3'. #178 then measured HEAD at 37 bonfires and its candidate at 44 over IDENTICAL hash-only calendars, because the fire COUNT rides on bonfireWeather() at TWO gates — the spawn hour and the match — and nobody has bounded that swing. Re-run the histogram over at least 6 seeds x 4 years, check the comment's numbers against what HEAD actually does, bound the weather's swing at both gates, and make the sentence TRUE. Rewriting the sentence to what is true is an equally good outcome and is the point of the `fidelity` kind: the artifact keeping a promise it already makes in its own comments. probes/bonfire-year.mjs and probes/bonfire-wind.mjs already exist — read them before writing a third.",
-      "seams": [
-        "BONFIRE",
-        "BON_K",
-        "BON_SALT",
-        "bonfireWeather",
-        "stepBonfire",
-        "bon.spent",
-        "bon.blown",
-        "BON_WIND_HURRY",
-        "BON_BURN_H",
-        "isWindy",
-        "windF",
-        "snowCover",
-        "raining",
-        "bonfireName"
-      ],
-      "successLooksLike": "One number for offered shed days per year and one for fires actually lit, both with their spread across seeds, and the BON_K comment agreeing with them to the digit. The swing between two builds on identical calendars is bounded and stated.",
-      "avoid": "Do not add a new weather term — #178 already showed both faces of ONE scalar are enough, and this is a fidelity job, not a deepening. Do not touch the burn model (bon.spent as a fuel budget) unless the histogram says the burn is where the count moves.",
-      "budgetMin": 30,
-      "risk": "low"
-    }
-  ],
+  "queue": [],
   "recommendStop": null,
   "consumed": [
     {
@@ -59,6 +32,10 @@
     {
       "id": "b184",
       "at": "2026-09-03T23:42:45.738Z"
+    },
+    {
+      "id": "b185",
+      "at": "2026-09-04T00:29:02.885Z"
     }
   ]
 }

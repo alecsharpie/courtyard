@@ -5151,11 +5151,29 @@ function spawnAllotAgent(){
  * (litter's autumn bbox is x 4..71 — the trees are all west of the fence), so a consumer
  * here would run at a rate of zero. */
 const BONFIRE = {x:84.0, y:19.5};
-const BON_K = 0.8, BON_SALT = 285;                           // hash share of shed days offered one — 5–6 of the 7 in every year of 12 (histogram); the weather then takes ~2/3 (snow lies by day 18; #156 re-keyed the wind clause onto isWindy())
+const BON_K = 0.8, BON_SALT = 285;                           // hash share of shed days offered one — 5 or 6 of the 7, in EVERY year of 12 (histogram); the weather then takes ~2/3, at the TWO gates below (snow lies by day 18; #156 re-keyed the wind clause onto isWindy())
 const BON_RISE_H = 1.0, BON_BURN_H = 3.5, BON_FALL_H = 1.2, BON_EMBER_H = 4.0, BON_RAIN_H = 0.25;
 const BON_PUFFS = 18, BON_THICK = 0.62, BON_EMB_THICK = 0.12;   // the column's mass (#104): nine puffs at 0.34 read as dots at 1x
 const BON_WIND_HURRY = 0.9;                                  // how much faster moving air eats the heap: dead calm 1.0x, at the blow bar 1.36x
 const bon = {fire:0, ember:0, on:false, spent:0, blown:false, day:-1, holder:null};
+/* #185 — THE SENTENCE ABOVE IS TRUE. WHAT IT LEAVES OUT IS THAT THE WEATHER IS TWO GATES.
+ * Measured (probes/bonfire-gates.mjs). The OFFER is hash-only, so ONE page is every seed's
+ * calendar: 7 shed days in every year of 12, 5 or 6 of them offered (mean 5.58), share
+ * 0.798 against BON_K 0.8. Over 6 seeds x 4 years — 132 offered days — the weather takes
+ * 0.674 of them, and it takes it TWICE, the WIND at both:
+ *   GATE 1, the WINDOW. bonfireDue() asks 2.8 times across its 2 h; 50.0% set out. Of the
+ *     66 refusals, in the predicate's own order: rain 6, wet 9, WIND 49, snow 2.
+ *   GATE 2, the MATCH, nine hours of walking later: 65.2% light. All 23 refusals are the
+ *     WIND, and `!skyLifts(a)` has refused 0 of 66 — a hardy holder's bar (wary 0.75–1)
+ *     sits above any front a morning this dry hands them.
+ *   43 fires in 24 seed-years = 1.79 a year, running 0/1/2/3/4 on 1/11/6/4/2 of them.
+ * A COUNT OF FIRES CANNOT RESOLVE A BUILD. #178's own before/after (f7f3729^ -> HEAD) reads
+ * 36 -> 43 fires and NONE of it is an effect: on the identical calendar — the same 132
+ * (seed, day) offers in both — the two builds disagree at the WINDOW on 36.4% of them, a
+ * gate whose logic #178 never touched, because ending a fire early frees its holder early
+ * and reshuffles the seeded stream from there on. Per SEED the set-outs swing 16 -> 10 and
+ * 7 -> 12; POOLED over the six they are 68 -> 66. So pool at least six seeds, and read
+ * nothing into ±5 fires — that is one sd of the binomial on n 132. */
 function bonfireDay(){ return leafShed() > 0.1 && hash(day, BON_SALT) < BON_K; }   // the SHED, days 12–18: leafFallF() > 0.3 is also every spring day
 // #156: this clause was `windF() < 0.5`, which with a windF of 0 or 1 was isWindy()
 // spelled by hand. Graded, a hand-spelled bar is a coin on the HOUR — the heap was

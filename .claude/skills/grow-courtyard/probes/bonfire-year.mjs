@@ -43,15 +43,20 @@ for (const seed of SEEDS) {
     for (let d = 0; d < 40; d++) cal.push(hash(d, BON_SALT) < BON_K ? 1 : 0);
     const cx = Math.floor(BONFIRE.x), cy = Math.floor(BONFIRE.y);
     const litNear = () => { let s = 0; for (let y = cy - 3; y <= cy + 3; y++) for (let x = cx - 3; x <= cx + 3; x++) if (Math.hypot(x - cx, y - cy) <= 3) s += litter[y * GW + x]; return s; };
-    let lastDay = -1, spawnT = -1;
+    // #178 deleted bon.lit (BON_BURN_H stopped being a clock), and this probe read it
+    // straight into a toFixed: it has thrown on every run since. The column meant "the simT
+    // this fire was lit at", so latch it on the rising edge — same semantics, no field.
+    let lastDay = -1, spawnT = -1, litAt = -1, onPrev = false;
     for (let k = 0; k < n; k++) {
       window.__warp(step);
+      if (bon.on && !onPrev) litAt = simT;
+      onPrev = bon.on;
       if (bon.day !== lastDay) { lastDay = bon.day; spawnT = simT; }
       const stander = agents.some(a => a.tend && a.state === 'stand');
       const hd = agents.find(a => a.tend); const hx = hd ? +hd.x.toFixed(2) : NaN, hy = hd ? +hd.y.toFixed(2) : NaN;
       const walker = agents.some(a => a.tend && a.state === 'walk');
       out.push([+simT.toFixed(2), day, +hour.toFixed(2), +seasonPhase.toFixed(4), +leafShed().toFixed(3), raining ? 1 : 0, +windF().toFixed(2), +wetF().toFixed(2),
-                +bon.fire.toFixed(3), +bon.ember.toFixed(3), bon.on ? 1 : 0, +bon.lit.toFixed(2), bon.day, stander ? 1 : 0, walker ? 1 : 0, litNear(), snowCover > 0 ? 1 : 0, spawnT, agents.length, hx, hy]);
+                +bon.fire.toFixed(3), +bon.ember.toFixed(3), bon.on ? 1 : 0, +litAt.toFixed(2), bon.day, stander ? 1 : 0, walker ? 1 : 0, litNear(), snowCover > 0 ? 1 : 0, spawnT, agents.length, hx, hy]);
     }
     return { out, cal, BON_K, salt: BON_SALT };
   }, { step: STEP, n: Math.round(DAYS * DAY / STEP) });

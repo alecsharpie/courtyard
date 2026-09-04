@@ -301,3 +301,24 @@ per redraw: `drawScene(simT, 1/30)` steps per-frame phases, so draw 1 vs draw 3 
 picture. dt 0 took it to exactly 0.
 **Law:** a redraw is not a re-read — a draw pass given a dt ADVANCES what it draws, so N draws of
 one pinned state are N pictures. Pin dt to 0 or a same-code control carries the drift.
+
+## Iteration 185 — the bonfire's sentence is true, and its fire count cannot resolve a build (2026-09-04) [Cross street & allotments × Fidelity]
+
+**Brief:** b185 — c268: make BON_K's comment true, and bound the 37-vs-44 swing #178 left unpriced.
+**The claim SURVIVES.** `probes/bonfire-gates.mjs` (new) takes the OFFER analytically (`hash()` is
+unseeded, so one page IS every seed's calendar) and the GATES live: `bonfireWeather()`'s two call
+sites are told apart by `bon.day === day`. **7 shed days in every year of 12, 5 or 6 offered
+(mean 5.58), share 0.798 vs BON_K 0.8; the weather takes 0.674** — both numbers right.
+**What it never said is that it is TWO gates**, the WIND at both: the WINDOW refuses 50.0% (rain 6,
+wet 9, **wind 49**, snow 2, in the predicate's own order), the MATCH 34.8% (**23 of 23 wind**), and
+`!skyLifts(a)` has refused **0 of 66**. 43 fires / 24 seed-years = 1.79 a year. Comment rewritten
+to that; two independent counts agree (43 match records, 43 `bon.on` edges).
+**Gates:** census PASS, unchanged in EVERY field (comments only) · 4 shots · motion n/a
+**Verdict:** shipped
+**Surprise:** the brief told me to read `probes/bonfire-year.mjs` first. It has **thrown on every
+run since #178**, which deleted `bon.lit` out from under its `toFixed`. Fixed by latching the lit
+time on the `bon.on` rising edge. Dead seven iterations; nothing runs probes/.
+**Law:** a count of a rare seeded event cannot resolve a build. #178's 36 -> 43 fires is ALL
+reshuffle: on the identical 132-offer calendar the two builds disagree at the WINDOW on **36.4%**
+of days — a gate whose logic neither touched — and per seed the set-outs swing 16 -> 10 and 7 -> 12
+where the pooled six move 68 -> 66. Pool six seeds; read nothing into 1 sd of the binomial.
