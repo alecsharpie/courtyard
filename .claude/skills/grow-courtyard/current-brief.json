@@ -21,7 +21,7 @@
   "avoid": "Do not raise TEN_CAP or TEN_STAND to paper over it — the cap is not the fault and a raised cap hides the diagnosis. If the measurement says the gap is by construction and correct, say so and close the cue: a killed premise is a good iteration.",
   "budgetMin": 30,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 214,
   "issued": "2026-09-04T22:56:59.277Z",
