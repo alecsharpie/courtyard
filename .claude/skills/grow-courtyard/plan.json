@@ -17,29 +17,6 @@
   "rationale": "No stall signal, so nothing forced the rung; I picked it from what the picture is missing, and then went and shot the picture. Two wide frames at seed 42, hour 23.00 in both, moonLit 0.999 and 0.003 (shots/mgrfull-wide.png, shots/mgrnew-wide.png). A full moon and a new moon are the SAME NIGHT. The only difference in 3200x1900 px is the ~20 px disc itself. The source says why in one line: applyLight()'s night is a single multiply keyed on nightF, and in 17,889 lines moonLit() is read by exactly three things — the disc, the river's glitter, and the label under the pointer. #188 gave this town a real 29.53-day month on the CALENDAR, one moon in every seed, and then nothing was allowed to see by it.\n\nThat is b196 and it is rung 4a, which wants defending because it is the rung this run uses least — once in sixteen passes (#139) against five 4bs. The ladder's 4a is 'a season, a longer cycle, weather, an hour nobody has seen', and the lunar month is the only cycle in the piece that does not divide into anything else: the day is 55 s, the year is 26 days, the moon is 29.53 — it beats against the year instead of nesting inside it, so no two nights of a season are alike. And a moonlit night is, flatly, an hour nobody has seen in 195 iterations. The brief has an explicit 150-300 line licence, 80 minutes, and is first in the queue.\n\nEvery other brief carries the number it rests on. b197 is the cross street's turn (10 back) and the grid's second-thinnest kind: bAge[] is ALREADY the fallow clock on an empty bed and plotAct already has five rungs, so the state a neglect-CA needs exists and nothing reads it — but the risk here is legibility, not mechanism, so the brief orders the measurement FIRST and says which fallback to take if a weed cannot be told from a crop at wide. b198 is c279 with #186's own numbers in it. b199 is c283, and it is #190's other half: lampBurn() solved the EVENING and the sunrise-keyed branch was never offered a figure at all. b200 is c286, fidelity, the thinnest column in the grid — ICE_CELLS was frozen at build time before #192 widened the channel, so at midwinter the margin is iced and the flood lying over the towpath beside it is open water.\n\nCURATION, and it opened OVER at 48.3/46 KB. Three moves, in order of how much I trust them.\n\n(1) The honest one. Two of the four WATCH notes open with the words 'for the manager' and were being charged to the worker's read budget — 815 B an iteration of text about coverage grids and runlog labelling that no worker can act on. They are now `managerWatch`, printed by state.mjs --show, capped at the same 420 B in rotate-ledger.mjs, and outside context-budget.mjs's count. Moving bytes off a budget is only honest if the reader they were moved off never needed them; that is the case here and rotate-ledger.mjs now says so in a comment, because this is exactly the manoeuvre that would let a future pass cheat.\n\n(2) INV_CAP goes back to 10.0 KB, undoing most of the 9.5 -> 10.75 raise I made five passes ago. That raise bought room the inventory then filled — it opened this pass at 10.7 KB with two domains over the entry count — so it bought nothing but a later reckoning. The inventory is 57 entries / 9.99 KB after two merges (the market's calendar and its size are ONE market; the census's winter row and probe-smoke are ONE instrument shelf) and a trim of the reasoning tails off twenty lines. The eaveFor() gotcha left the inventory entirely: it was a law sitting in a symbol index, and it is now inside trap (b).\n\n(3) LAWS.md took five new claims from #191-#195 and came out at 12,282 of 12,288 bytes with 27 laws, down from 29 — which means real cuts, and here they are. MERGED: #192's lagged-ladder finding into #189's three-ages law, which it corrects rather than repeats (a lagged term IS seen by a symmetric ladder, because the lag breaks the symmetry); #193's dead-constant law into the cap-and-rate law that already owned half of it; #194's ramp law into 'two seeds is not a sample', same subject; #191's picture-inputs law into the ground-cache law; the whole 'price the WALK where it can be PAID' bullet into the window/population bullet above it, which was already saying bound both ends; and the routes/waypoints law into the one-predicate-one-definition law, since it is that claim applied to target sets. ADDED WHOLE: #195's, that an instrument is a build artifact too and the cause is usually the artifact crossing a limit it never named. DELETED: 'a FIELD is not a READING — a gate wired into a row can sit at null for ever', because its subject moved (stall.mjs and probe-smoke.mjs now report an unread gate as a number, so it is enforced rather than remembered); the two-dawns corollary of the DAWN law, a quoting gotcha that fired once; and trap (c)'s 'height is read off the place under the feet, never written at spawn', because the source makes it unwriteable — an agent has no z field to set. The rest is compression, and compression is now nearly exhausted: this file is dense enough that the next law in costs a law out, and a future pass should expect to delete rather than tighten.\n\nSeven cues closed (five promoted to briefs, c260 deferred with a re-raise condition, c270 folded into c285, c272 rewritten into a managerWatch note), six left open, coverage recorded for #191-#195. One new managerWatch note: A CONSERVATION SCALAR IS NOT A FROZEN MAP. I spent a good part of this pass building a thesis on developed/green/passages having been flat for 95, 79 and 193 iterations, and the census's own comments killed it — those three are deliberately conserving, LEADS and ARCADE and REED each cut OUT of the tile they replace so the total holds, and #119 declined to move passages on purpose. It is a good premise-shaped trap and the next manager should not have to fall into it too.",
   "queue": [
     {
-      "id": "b198",
-      "domain": "Courtyard & garden",
-      "kind": "Connect",
-      "brief": "c279: the garden has ONE budget across every weather, so every new way to be in it is paid for out of the others. #186 built the covered walk and measured it: set-outs 495 / 491 / 488 at stroll shares 0.20 / 0.12 / 0.07 — the arcade's walkers come out of the benches and the blankets, not out of inflow, because LAWN_CAP 8 is the bound. But #186 also measured that on a wet afternoon the benches are refused anyway: seatRefused() fired 237 times on weatherComing() > SIT_REFUSE, against 7 for the stop branch. So the covered walk should be paid by the WEATHER, not by the seats. Make the garden's inflow (LAWN_RATE, or LAWN_CAP, whichever is the slack bound — sweep and find out) read the weather, with the arcade the branch that survives it.",
-      "seams": [
-        "LAWN_CAP",
-        "LAWN_RATE",
-        "spawnLawnAgent",
-        "lawnFits",
-        "lawnHolds",
-        "lawnStart",
-        "arcShelter",
-        "seatRefused",
-        "weatherComing",
-        "SIT_REFUSE",
-        "skyLifts"
-      ],
-      "successLooksLike": "In rain the courtyard is neither empty nor as full as a fine afternoon: the arcade holds people the lawn cannot. On a fine day the arcade's share falls back and the benches and blankets are no worse off than at #186 — quote the three set-out counts against #186's 495/491/488 on a pinned ref.",
-      "avoid": "Do not raise LAWN_CAP flat. A bigger number in all weathers is the dimmer-switch answer, and LAWS says it plainly: hang the scalar on whichever bound is SLACK and prove it by sweeping the AXIS — the weather — not the constant. Also: a cap and a rate are only both alive if they bind at different times, so establish which one is actually binding on a wet day before you move either.",
-      "budgetMin": 40,
-      "risk": "low"
-    },
-    {
       "id": "b199",
       "domain": "Roofs & skyline",
       "kind": "Deepen",
@@ -99,6 +76,10 @@
     {
       "id": "b197",
       "at": "2026-09-04T09:14:58.736Z"
+    },
+    {
+      "id": "b198",
+      "at": "2026-09-04T09:46:05.855Z"
     }
   ]
 }

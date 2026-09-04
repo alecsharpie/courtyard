@@ -560,7 +560,8 @@
       "bed planting CA over SPECIES (13 kinds, flat since #155): bSp/bSt, growF/dieF/bloomCap",
       "the lawn has its OWN source: spawnLawnAgent/LAWN_RATE/LAWN_CAP, sub-caps (benches, naps, blankets, runs); lawnStart/End/Holds/Gone/Fits/Home/Stay, the STAY priced at the walk home (#168); the way OUT is its own question (#179) — lawnGate()/LAWN_OFF, laneEdge/entryLeg/exitLeg",
       "the gardener on a SCHEDULE outside LAWN_CAP: gardenDue/GARD_K over growSeason(), gardenFits both ends (#157), gardWalk/gardWin/gardNearest/GARD_LAND, gardenerKneel/GARDEN_REACH",
-      "the COVERED WALK (#186): ARCADE tile, the north range’s inner rows, 96 cells / 16 ARCADE_BAYS; WALL to buildVolumes, own cache fill, drawArcadeRun live over the cached facade; stroll + arcShelter, arcWay"
+      "the COVERED WALK (#186): ARCADE tile, the north range’s inner rows, 96 cells / 16 ARCADE_BAYS; WALL to buildVolumes, own cache fill, drawArcadeRun live over the cached facade; stroll + arcShelter, arcWay",
+      "the covered walk is the garden's WET branch (#198): lawnAdmits/lawnRoofed at the choice, lawnOpen is the sun only, LAWN_WET 0.35 on lawnRate — the town's highest rain factor"
     ],
     "lane": [
       "kiosk, pavement cafe, awnings, washing lines, planters, LANE_LAMPS, LANE_BENCHES; morning ROUND mround/updateRound",
@@ -679,6 +680,12 @@
     {
       "id": "c291",
       "note": "rank does not steer sendToPlot's target set — a plot gone over draws no picker; the hoe rung fires only when the crew happens to reach it (20x in 6 seed-years)",
+      "raisedBy": 196,
+      "seenBy": 0
+    },
+    {
+      "id": "c292",
+      "note": "c280 (#198): 2 tick-people of 9,372 small-hours ticks stand under the arcade past 22 h, both already lawnOut; 0 on HEAD. One tick of lag in the a.arc release, or a real hole.",
       "raisedBy": 196,
       "seenBy": 0
     }

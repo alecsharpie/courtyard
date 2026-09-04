@@ -4356,13 +4356,50 @@ function lawnClosed(){ return raining || !lawnSun(); }   // the ONE closing rule
 function lawnGone(){ return !lawnSun() && !(hour > sunUp && hour < lawnStart()); }
 function lawnEnd(t){ const s = sunAt(t === undefined ? simT : t); return s.down - (s.down - s.up) * Math.asin(LAWN_SUN) / Math.PI; }   // the hour daylight drops under LAWN_SUN
 function lawnStart(t){ const s = sunAt(t === undefined ? simT : t); return s.up + (s.down - s.up) * Math.asin(LAWN_SUN) / Math.PI; }   // …and the hour it first clears it
-function lawnRate(){ return LAWN_RATE * (0.45 + 0.55 * clamp((warmth - 0.2) / 0.5, 0, 1)); }   // a winter noon keeps a child and a sitter (HEAD ± 1)
+/* #198: and the sky, now that the gate no longer shuts on it. With lawnAdmits() open the
+ * rain to the covered walk and NOTHING else changed, a wet sun-up tick held 4.25 people
+ * against a fair one's 4.15 — the garden was as busy in a shower as on a fine afternoon,
+ * which is not what a roof over one range should buy. The reason is that an arcade stay is
+ * released by the WEATHER (the a.arc branch) and so outlives every timer on the lawn:
+ * presence is rate x visit, the visit is the sky's, so the RATE is the end that can be
+ * paid. It is also the SLACK bound in rain — a wet tick sits at LAWN_CAP 10.8% of the time
+ * against a fair one's 27.0%, so the cap is not what holds the wet courtyard and moving it
+ * would move the fine afternoon instead (LAW: hang the scalar on whichever bound is slack).
+ * `raining` and not `rainFall`, because this is BEHAVIOUR and the switch/scalar split is
+ * already drawn (see RAIN_TAIL) — the whole town's spawn rates read the boolean.
+ * SWEPT on the axis, 6 seeds x 26 days (probes/lawn-weather.mjs), rain-tick presence
+ * against a fair tick's 4.13-4.19 (which does not move at any setting):
+ *   0.00 (= HEAD) 1.94 · 0.25 3.04 · 0.35 3.19 · 0.45 3.75 · 0.55 4.00 · 1.00 4.25
+ * and 0.00's 1.94 is entirely shelterers and people walking out — its set-outs are 0.
+ * 0.35 is where the wet courtyard is three-quarters of a fine one, and it is still the
+ * town's highest rain factor: the lane's is 0.30, the ring's and the far bank's 0.25, the
+ * allotments' 0.20. That ordering IS the roof — the courtyard is the one place in the town
+ * with somewhere dry to walk, so it is the one that loses least when it rains. */
+const LAWN_WET = 0.35;
+function lawnRate(){ return LAWN_RATE * (0.45 + 0.55 * clamp((warmth - 0.2) / 0.5, 0, 1)) * (raining ? LAWN_WET : 1); }   // a winter noon keeps a child and a sitter (HEAD ± 1); a shower keeps the colonnade
 /* …and it is still not the lever, re-swept at #168 in the SHORT-STAY regime lawnStay()
  * created, where the cap should have stopped binding: 0.9 / 1.4 / 2.0 over 6 seeds x a
  * year buys set-outs 1580 -> 1771 -> 1829 and people STOPPED on the grass 1.164 ->
  * 1.243 -> 1.276. A 2.2x rate for +9.6% of stillness — LAWN_CAP absorbs it exactly as
  * #121 found, so the presence a shorter stay costs cannot be bought back with inflow. */
-function lawnOpen(){ return day >= 1 && !raining && hour > sunUp && hour < sunDown; }   // set-outs need dry weather and the sun UP; the arrival's daylight is priced in lawnFits (open a trip earlier than its hour) — without the sunrise gate every midnight roll picks the one door whose walk is long enough to land in the window, and the east arch feeds the lawn marathon walkers
+/* ---- #198: the weather is a DOOR, not a shutter ----
+ * lawnOpen() carried `!raining` from #95, when every place in the garden was open to the
+ * sky and closing the gate was the only honest answer to a shower. #186 gave the garden a
+ * roof and the shutter outlived it: over 6 seeds x 26 days rain is 11.7% of the sun's own
+ * window and the lawn's set-outs in it were 0 of 1,221 — the covered walk could only ever
+ * be reached by somebody already inside the wall when the front arrived. So the shutter
+ * comes off the WINDOW and goes onto the KINDS, one predicate, asked where the kind is
+ * chosen: rain refuses a bench, a blanket, a nap and a run, and it does not refuse the one
+ * place with sixteen bays and a vault over them. lawnAdmits() is the whole weather rule at
+ * the door; everything downstream (seatRefused at the seat, skyLifts over a stop,
+ * lawnClosed ending a stay, the a.arc release on wetF) is unchanged and still owns its own
+ * edge. The gardener is not re-gated here — gardenDue() has carried its own `!raining`
+ * since #129 — but they go through the same filter so there is only one sentence to read.
+ * The sunrise gate stays: without it every midnight roll picks the one door whose walk is
+ * long enough to land in the window, and the east arch feeds the lawn marathon walkers. */
+function lawnRoofed(k){ return k === 'stroll'; }                 // the covered walk, and it is the only one
+function lawnAdmits(k){ return lawnRoofed(k) || !raining; }      // may this kind be offered in the sky there is?
+function lawnOpen(){ return day >= 1 && hour > sunUp && hour < sunDown; }   // the sun UP; the arrival's daylight is priced in lawnFits (open a trip earlier than its hour), and the WEATHER is priced per kind in lawnAdmits
 function lawnHolds(o){ return o.lawn && o.lawnLead && !o.with && !o.lawnOut; }   // on the way in or at the place; a holder walking out has given it up
 /* the cap counts the lawn's VISITORS. The gardener is not one: they come to WORK, on
  * their own schedule (gardenDue, #129) and to a place — the edge beds — that no other
@@ -4566,21 +4603,25 @@ function spawnLawnAgent(want){
   // tree is 29 cells ≈ 7 h from every door; a bench by the wall is 3): one roll picks
   const freeGaps = GAP_ANGLES.filter(g => !has(o => o.place === g));
   const freeBenches = BENCH_SPOTS.filter(b => !has(o => o.place === b));
-  const kinds = [];
+  const kinds0 = [];
   // one gardener at a time, but held like every other lawn place — the bed comes back
   // as the walk OUT begins (lawnRelease), not when they are finally off the frame (#108)
   if (EDGE_BEDS.length && !has(o => o.kind === 'gardener')
-      && ENTR.some(e => { const b = EDGE_BEDS.reduce((p, q) => Math.hypot(q.px - e.door[0], q.py - e.door[1]) < Math.hypot(p.px - e.door[0], p.py - e.door[1]) ? q : p); return gardenFits(e, lawnWay(e, b.px, b.py), speed); })) kinds.push('gardener');
-  if (held.filter(o => o.kind === 'kid').length < LAWN_RUNS && ENTR.some(e => lawnFits(e, [RING[e.k], [CX + (RING[e.k][0] - CX) * 0.6, CY + (RING[e.k][1] - CY) * 0.6]], 2.6))) kinds.push('kid');
-  if (day >= 2 && lie && freeGaps.length && freeGaps.some(g => ENTR.some(e => lawnFits(e, gapWay(e, g).concat([nap(g)]), speed * 0.8)))) kinds.push('napper');
+      && ENTR.some(e => { const b = EDGE_BEDS.reduce((p, q) => Math.hypot(q.px - e.door[0], q.py - e.door[1]) < Math.hypot(p.px - e.door[0], p.py - e.door[1]) ? q : p); return gardenFits(e, lawnWay(e, b.px, b.py), speed); })) kinds0.push('gardener');
+  if (held.filter(o => o.kind === 'kid').length < LAWN_RUNS && ENTR.some(e => lawnFits(e, [RING[e.k], [CX + (RING[e.k][0] - CX) * 0.6, CY + (RING[e.k][1] - CY) * 0.6]], 2.6))) kinds0.push('kid');
+  if (day >= 2 && lie && freeGaps.length && freeGaps.some(g => ENTR.some(e => lawnFits(e, gapWay(e, g).concat([nap(g)]), speed * 0.8)))) kinds0.push('napper');
   if (day >= 3 && lie && held.filter(o => o.kind === 'picnic').length < LAWN_BLANKETS
-      && ENTR.some(e => warmth > 0.65 && shadowF() > 0.5 ? GAP_ANGLES.some(g => lawnFits(e, gapWay(e, g).concat([[CX + Math.cos(g) * 3.3, CY + Math.sin(g) * 3.3]]), speed)) : lawnFits(e, lawnWay(e, CX + (RING[e.k][0] - CX) * 0.55, CY + (RING[e.k][1] - CY) * 0.55), speed))) kinds.push('picnic');
-  if (freeBenches.some(b => ENTR.some(e => lawnFits(e, lawnWay(e, b.x + 0.5, b.y + 0.6), speed)))) kinds.push('sitter');
+      && ENTR.some(e => warmth > 0.65 && shadowF() > 0.5 ? GAP_ANGLES.some(g => lawnFits(e, gapWay(e, g).concat([[CX + Math.cos(g) * 3.3, CY + Math.sin(g) * 3.3]]), speed)) : lawnFits(e, lawnWay(e, CX + (RING[e.k][0] - CX) * 0.55, CY + (RING[e.k][1] - CY) * 0.55), speed))) kinds0.push('picnic');
+  if (freeBenches.some(b => ENTR.some(e => lawnFits(e, lawnWay(e, b.x + 0.5, b.y + 0.6), speed)))) kinds0.push('sitter');
   // #186: the covered walk is a place with places in it, so it is offered like the
   // benches — a free bay AND a door whose walk to it fits the window. It is the one
   // courtyard stay the weather cannot refuse, which is the whole point of a roof.
   const freeBays = ARCADE_BAYS.filter(b => !has(o => o.place === b));
-  if (freeBays.some(b => ENTR.some(e => lawnFits(e, arcWay(e, b), speed)))) kinds.push('stroll');
+  if (freeBays.some(b => ENTR.some(e => lawnFits(e, arcWay(e, b), speed)))) kinds0.push('stroll');
+  // …and now the sky (#198). The place list above is what the GARDEN has free today; this
+  // is what the WEATHER will have. In rain it leaves the arcade and nothing else, so the
+  // roll below is a roll over one kind and the courtyard's wet inflow is the covered walk's.
+  const kinds = kinds0.filter(lawnAdmits);
   if (!kinds.length) return false;
   /* `want` is a scheduled source's forced kind (#129). It skips the LOTTERY and nothing
    * else: the kind is still only offered if the list above found it a free place and a

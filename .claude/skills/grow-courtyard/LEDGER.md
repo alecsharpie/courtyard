@@ -271,3 +271,28 @@ inverted. What makes it read is that the HARVEST CYCLE holds weeds back: a plot 
 and re-sown is ground being worked, and one nobody reaches is not.
 **Law:** a "nothing shows X" premise names a STATE, usually on the OTHER BRANCH of the array
 named. Price both halves before calling a system absent.
+
+## Iteration 198 — the rain stops shutting the gate (2026-09-04) [Courtyard & garden × Connect]
+
+**Brief:** b198 — c279: the garden's inflow should read the weather.
+**Neither named bound was the bound** (lawn-weather.mjs, 6x26, every sun-up tick classed
+fair/coming/RAIN): rain is **11.7%** of the sun's window, `lawnOpen()` true on **0.0%** of
+it, **0 of 1,221 set-outs**. Not the cap, not the rate — `!raining`, carried since #95,
+when nothing in the garden had a roof.
+**Did.** (1) `lawnAdmits(k)` = `lawnRoofed(k) || !raining`, asked at the CHOICE in
+spawnLawnAgent; `lawnOpen()` keeps only the sun, so in rain the kind list is the arcade
+alone. (2) `LAWN_WET 0.35` on `lawnRate()` — the SLACK bound: a wet tick is at LAWN_CAP
+**10.8%** v a fair one's **27.0%**. Swept on the AXIS, six settings, in the source.
+**Ref -> cand:** under the walk **0.404 -> 0.763 people per rain tick** (arcade.mjs); four
+there at once in rain, **day 139 -> day 13**. #186's stroll-weight control 0.20/0.12/0.07:
+**474/480/479 -> 514/490/501** (#186: 495/491/488) — new inflow, not off the benches. Fine
+days untouched *exactly* (lawn-dry.mjs): rain held off, **6/6 seeds byte-identical over 12
+days**, census too; rain left in, **0/3**.
+**Gates:** census PASS · motion PASS (HEAD-pinned) · filmstrip 0 POP · 4 framings + the
+arcade in rain · #168 lawn-dark flat per visit.
+**Verdict:** shipped
+**Surprise:** the gate was not it — the VISIT was. An arcade stay is released by the
+weather (`a.arc`), not a timer, so at an unchanged rate a wet courtyard came out **fuller
+than a fine one, 4.25 v 4.15.** A roof does not only admit people, it holds them.
+**Law:** a place whose stay ends on a CONDITION turns inflow into presence at a different
+rate from its timed neighbours — price presence as rate x visit before choosing the rate.
