@@ -16,7 +16,7 @@
   "avoid": "This is the SATURATED sill x harness cell (9 entries, twice any other in the grid) and it is admissible only because it names a gate that failed SILENTLY for seven iterations and produces a number nobody has — do not widen it into a new gate, and do not wire it into the worker's per-iteration path, because a 300-probe run is a manager-cadence tool. Do not mass-fix or mass-delete what it finds; report, and fix only what the report makes trivially obvious. And note the labelling: this brief is HARNESS and will not touch courtyard.html, so runlog.mjs will read srcChanged:false. That is expected and is not a no-ship — say so in your ledger entry.",
   "budgetMin": 30,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 195,
   "issued": "2026-09-04T07:23:39.077Z",
