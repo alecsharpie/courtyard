@@ -224,3 +224,26 @@ since. `bonfire-year.mjs`, the brief's motivating corpse, **passes**: #185 fixed
 **Law:** an instrument is a build artifact too — nothing runs the shelf, so a probe breaks silently
 and stays broken, and the cause is usually not the probe but the ARTIFACT crossing a limit it never
 named. Smoke a control before you trust it.
+
+## Iteration 196 — a moon to see by (2026-09-04) [Sky, light & weather × Connect]
+
+**Brief:** b196 — #188 put a month on the calendar; no light in the town could see it.
+**Did.** `moonLight()` = moonLit × ALTITUDE × (1 − cloudCover), RAMPED off nightF and gated on the
+DISC's own `daylight`. INSIDE applyLight's night multiply, signed about MOON_REF so both ends open.
+Then `drawMoonSheen()` in the screen pass — water, ice, snow, wet paving, the near slates — off the
+GRID via cellRuns().
+**Pivot MEASURED** (moon-light.mjs, 6 seeds × a lunation): mean **0.162**.
+**HEAD → cand, same instants** (moon-night.mjs, 3 seeds × a lunation, 1,062 frames): mean **47.94 → 48.30 (+0.75%)**, RANGE **75.7 → 79.0**, **715
+darker, 340 brighter**; new under cloud 49.71 → **45.23**, full and clear 38.43 → **57.44** (sd
+20.9 → **29.2**). CONTROL, one instant, only MOON_START moved: **33.3 → 51.5, ×1.55**. The DAY frame
+is **0 of 778,752 px** off HEAD; that test at night, 21.4%.
+**Gates:** census PASS (unchanged — zero R()) · motion PASS · filmstrip 0 POP · 8 framings · not
+in `lightNow()`: 98 ground rebuilds/day on BOTH builds.
+**Verdict:** shipped
+**Surprise:** the slate pass cost **2.641 ms of a 5.8 ms night frame — 47%** — and perf.mjs read
++0.0% straight through it, vsync-locked at 16.70. Not the arithmetic: baking every corner height
+into a Float32Array changed **nothing**. It was 5,475 canvas path calls. The camera is still
+on **599 of 600 frames** of play, so a Path2D keyed on project()'s own seven terms: **0.001 ms**.
+**Law:** a lift taken out of a multiply's ALPHA moves every channel toward the un-multiplied
+source, so it WARMS — only the COLOUR lifts and cools at once (50% off alpha: blue/red 1.27 v
+HEAD's 1.90). A per-cell overlay's cost is the PATH BUILD, not the fill.

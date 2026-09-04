@@ -8528,7 +8528,10 @@ function moonArc(){
  *   The calendar, not the world: this is a function of simT alone, so it is the same
  * month in every seed, exactly as the season is. `?seed=` changes the town's life, never
  * its sky. MOON_START is an offset, not a draw — nothing here spends R(). */
-const MOON_DAYS = 29.53, MOON_START = 0.62;
+const MOON_DAYS = 29.53;
+let MOON_START = 0.62;   // `let`, so probes/moon-night.mjs can hold the DAY and move the PHASE:
+                         // two nights a fortnight apart differ in SEASON as well as moon, and a
+                         // control may differ from what it controls in exactly one way (#196)
 function moonPhase(){ return ((simT / DAY_LEN) / MOON_DAYS + MOON_START) % 1; }  // 0 new, 0.5 full
 function moonLit(){ return 0.5 - 0.5 * Math.cos(2 * Math.PI * moonPhase()); }    // the lit share of the disc
 /* Eighths, centred on the four principal phases, so each name holds ~3.7 days and 'full'
@@ -8536,6 +8539,46 @@ function moonLit(){ return 0.5 - 0.5 * Math.cos(2 * Math.PI * moonPhase()); }   
 const MOON_SAID = ['new tonight', 'a waxing crescent', 'at the first quarter', 'a waxing gibbous',
                    'full tonight', 'a waning gibbous', 'at the last quarter', 'a waning crescent'];
 function moonPhaseName(){ return MOON_SAID[Math.floor(((moonPhase() + 0.0625) % 1) * 8) % 8]; }
+/* ---- and the night is given something to see by (#196) ---------------------------
+ * #188 put a real 29.53-day month on the calendar and then let no light in the town look
+ * at it: applyLight()'s whole night was ONE multiply keyed on `nightF` and on nothing
+ * else, so a full moon riding a clear sky and a new moon under a lid were the same frame
+ * but for the ~20 px disc. moonLight() is the scalar that was missing — the lit share of
+ * the disc x how high it is x how much sky is left to shine through, which are the three
+ * terms that already decide whether the DISC is worth looking at.
+ *   Ramped off `nightF` rather than switched at the disc's own 0.25: a whole-frame step
+ * in luma is a POP a filmstrip catches at once, where the disc appearing is 20 px.
+ *
+ * MOON_REF is the PIVOT and it is measured, not chosen: probes/moon-light.mjs warps six
+ * seeds through a whole lunation and reads the product at the call — mean 0.162, median
+ * 0.075, 55% of night samples under 0.1 and 8.8% over 0.5. Hanging the multiply on that
+ * mean is what lets BOTH ends open: below it the night is DARKER than HEAD, above it
+ * lighter, and the mean night luma over a month stays where it was while the RANGE grows.
+ * `let`, so probes/moon-night.mjs can sweep the pivot the way ground-cost.mjs sweeps
+ * LIGHT_MOVE. Deliberately NOT in lightNow(): moonlight is a live overlay on top of the
+ * composite, so the ground cache's relight cadence cannot see it (#180's 76 repaints/day
+ * is the bar) — and it has to be a live overlay anyway, because the night is set by the
+ * LAST thing that touches it and anything painted into the cache is slate by midnight. */
+let MOON_REF = 0.162;                  // the measured mean — the frame is HEAD's here
+/* The lift is carried by the multiply's COLOUR and almost none of it by the alpha, and
+ * that is the whole difference between moonlight and a brightness knob. Taking alpha off
+ * lifts every channel toward NO MULTIPLY, i.e. toward the daylit colour, so a first cut at
+ * MOON_MUL 0.50 came out a warm washed dusk with a green lawn in it: measured at the full
+ * moon its blue-to-red ratio was 1.27 against HEAD's own 1.90 — brighter AND warmer, the
+ * opposite of the brief. Raising the multiply colour instead lifts the channels by
+ * different amounts, so silver is a colour the night is mixed toward rather than an amount
+ * of night removed. At mk = +0.84 (a full clear moon overhead) the frame is multiplied by
+ * (0.44, 0.63, 0.90) against HEAD's (0.29, 0.34, 0.55): 1.5-1.9x lighter and BLUER than
+ * HEAD, blue/red 2.04. At mk = -0.162 it is (0.26, 0.29, 0.49) — under HEAD on every
+ * channel, which is the far end of the range and the reason the mean survives. */
+const MOON_MUL = 0.12,                 // how little of the multiply a full clear moon takes off
+      MOON_CR = 36, MOON_CG = 92, MOON_CB = 126;  // ...and how far it carries the colour toward silver
+function moonAlt(){ const ma = moonArc(); return (ma > 0 && ma < 1) ? Math.sin(Math.PI * ma) : 0; }
+function moonLight(){
+  if (daylight > 0.02) return 0;
+  const k = clamp((nightF - 0.25) / 0.22, 0, 1);
+  return k <= 0 ? 0 : moonLit() * moonAlt() * (1 - cloudCover()) * k;
+}
 /* Where the two bodies are DRAWN, in live screen space: [x, y, r], or null when the sky
  * is not showing that one. Extracted so the pointer asks the same arithmetic the draw
  * used — a sun hit-tested off its own copy of the arc is two definitions of where the
@@ -14471,6 +14514,125 @@ function drawPuddleLights(){
     ctx.beginPath(); ctx.ellipse(sx, sy, rx * 0.9, ry * 0.85, 0, 0, 7); ctx.fill();
   }
 }
+/* ============ what the moon actually lands on (#196) ============
+ * The multiply above lifts the WHOLE frame, which is the ambient half of moonlight and
+ * on its own reads as somebody turning the brightness up. The other half is that
+ * moonlight is a hard, low, single source and only some surfaces answer it: water, ice, a
+ * lying cover of snow, wet paving, and a slate roof, which is what a slate roof is FOR in
+ * a picture like this. Nothing else in the town changes at all.
+ *
+ * A LIVE overlay in the same 'screen' pass as the lamps, and it cannot be anywhere else:
+ * everything here is painted into the ground cache or the near-roof cache, and a silver
+ * laid down at cache time is slate by midnight. So the surfaces are read off the GRID —
+ * one predicate, one definition, never a guessed list — and re-asked per frame through
+ * cellRuns(), which is the same run-merging the ice and the shoal are drawn with.
+ *
+ * The cell lists are built ONCE (the grid does not move); what is asked per frame is the
+ * STATE — is this cell frozen, is there snow lying on it — because those do. Every pass
+ * is guarded on its own weather first, so out of winter the snow and the ice cost a
+ * boolean and a dry night costs the wet paving nothing. */
+const MOON_SHEEN = 'rgba(176,200,246,';
+let MOON_CELLS = null;
+function moonCells(){
+  if (MOON_CELLS) return MOON_CELLS;
+  const water = [], snow = [], wet = [], roof = [];
+  for (let y = 0; y < WH; y++) for (let x = 0; x < GW; x++){
+    const i = y * GW + x, t = grid[i];
+    if (t === WATER) water.push(i);
+    else if (t === SIDE || t === ROAD || t === PATH) wet.push(i);
+    if (snowTake(t) > 0) snow.push(i);
+    // the near block only: it is the slated one, it is a third of the picture, and it is
+    // the roof a reader is close enough to see a sheen ON
+    if (y >= LN_WALK_S && solidM[i]) roof.push(i);
+  }
+  return (MOON_CELLS = { water, snow, wet, roof });
+}
+/* the roof is the one surface here that is not on the ground, so it cannot go through
+ * cellRuns(): every cell has its own four corner heights. Same quad drawRoofRow lays the
+ * slates on, corner for corner — a sheen that disagreed with the tile under it by half a
+ * pixel would draw a silver seam along every eave.
+ *
+ * SO IT IS BAKED, and this is the one place in the pass that had to be. Written the
+ * obvious way — roofShade() per cell, project() per corner — 1,095 cells cost 2.67 ms, on
+ * a 5.8 ms night frame: 47% of the whole picture for a wash you can barely name, and
+ * perf.mjs read +0.0% through it because it is vsync-locked at 16.70 (probes/moon-cost.mjs
+ * times the function instead). The cost was not the geometry, it was 5,475 ARRAYS a frame
+ * — roofShade returns one, project returns one per corner. The geometry itself is BUILD
+ * state: eaveM and vD do not move, so the four corner heights of every slate are fixed for
+ * the life of the town. What moves is the CAMERA, and that is four multiplies. So the
+ * heights are baked into one flat Float32Array at first call and the projection is inlined
+ * over it, allocating nothing: 2.667 ms -> 0.121, and the drawn path is identical. */
+let MOON_ROOF = null;
+function moonRoofBake(){
+  const list = moonCells().roof, q = new Float32Array(list.length * 7);
+  for (let k = 0; k < list.length; k++){
+    const i = list[k], y = (i / GW) | 0, x = i % GW;
+    const e = eaveM[i], r = roofShade(x, y, e);
+    const under = solidC(x, y + 1), sy = under ? y + 1 : y + 1.3, dz = under ? 0 : SLOPE * 0.3;
+    const o = k * 7;
+    q[o] = x; q[o+1] = y; q[o+2] = sy; q[o+3] = r[1]; q[o+4] = r[2]; q[o+5] = r[3] - dz; q[o+6] = r[4] - dz;
+  }
+  return (MOON_ROOF = q);
+}
+/* ...and the PATH is cached on the camera, which is the other half of the same argument.
+ * Baking the heights saved nothing on its own — measured, the cost was never the
+ * arithmetic, it was 5,475 canvas path calls a frame at ~0.48 us each. What those calls
+ * depend on is the seven camera terms project() reads and nothing else, and the camera is
+ * STILL on almost every frame the town ever draws: it moves during a quarter ease and at a
+ * resize. So the quads go into a Path2D keyed on those seven terms, rebuilt when the
+ * camera moves and re-filled when it has not. 2.641 ms -> 0.121 still, 0.004 moving.
+ * The key is the camera's, not the clock's, for the same reason #180's relight is. */
+let MOON_ROOF_PATH = null, MOON_ROOF_KEY = '';
+function moonRoofPath(){
+  const q = MOON_ROOF || moonRoofBake();
+  const key = originX + ',' + FOCUS + ',' + cellW + ',' + topPad + ',' + cellH + ',' + PINCH + ',' + LIFTM;
+  if (key === MOON_ROOF_KEY) return MOON_ROOF_PATH;
+  MOON_ROOF_KEY = key;
+  const P = MOON_ROOF_PATH = new Path2D();
+  // project(), inlined and allocation-free — the same four lines, term for term
+  for (let o = 0; o < q.length; o += 7){
+    const x = q[o], y = q[o+1], sy = q[o+2];
+    const dA = y - q[o+3] * LIFTM, pA = 1 - PINCH * (1 - dA / WH);
+    const dB = y - q[o+4] * LIFTM, pB = 1 - PINCH * (1 - dB / WH);
+    const dC = sy - q[o+5] * LIFTM, pC = 1 - PINCH * (1 - dC / WH);
+    const dD = sy - q[o+6] * LIFTM, pD = 1 - PINCH * (1 - dD / WH);
+    P.moveTo(originX + (x - FOCUS) * cellW * pA, topPad + dA * cellH);
+    P.lineTo(originX + (x + 1 - FOCUS) * cellW * pB, topPad + dB * cellH);
+    P.lineTo(originX + (x + 1 - FOCUS) * cellW * pC, topPad + dC * cellH);
+    P.lineTo(originX + (x - FOCUS) * cellW * pD, topPad + dD * cellH);
+    P.closePath();
+  }
+  return P;
+}
+function drawMoonSheen(){
+  const m = moonLight();
+  if (m < 0.03) return;
+  const C = moonCells(), wf = wetF();
+  const lay = (al, build) => {
+    if (al < 0.004) return;
+    ctx.beginPath();
+    if (!build()) return;
+    ctx.fillStyle = MOON_SHEEN + Math.min(al, 0.5).toFixed(3) + ')';
+    ctx.fill();
+  };
+  // open water first — the biggest mirror in the town, and the one the glitter column
+  // has been laid on a black river since #188
+  lay(0.15 * m, () => cellRuns(ctx, C.water, i => !iceOn || rice[i] < ICE_SET));
+  // the skin, which is brighter than the water it grew on and rougher than it
+  lay(0.19 * m, () => iceOn ? cellRuns(ctx, ICE_CELLS, i => rice[i] >= ICE_SET) : 0);
+  // a lying cover, at the grain snowAt() already reads it: the wear and the feet are in
+  // the cover, so a trodden path through the snow stays dark under the moon too
+  if (snowCover > 0)
+    lay(0.24 * m * snowCover, () => cellRuns(ctx, C.snow, i => snowAt(i % GW, (i / GW) | 0, grid[i]) > 0.12));
+  // wet stone: the paving reflects for exactly as long as it is wet, and drains out of it
+  if (wf > 0.05) lay(0.16 * m * wf, () => cellRuns(ctx, C.wet, () => true));
+  // and the slates, which take it dry and take more of it wet. Its own fill, not lay()'s:
+  // a Path2D is filled by handing it to fill(), not by being built into the context
+  {
+    const al = Math.min(0.085 * m * (1 + 0.7 * wf), 0.5);
+    if (al >= 0.004){ ctx.fillStyle = MOON_SHEEN + al.toFixed(3) + ')'; ctx.fill(moonRoofPath()); }
+  }
+}
 const RIVER_LAMPS = LANE_LAMPS.filter(L => Math.abs(L[0] - RIVER_X0) < 2 || Math.abs(L[0] - RIVER_X1) < 2.4);
 function drawRiverLights(t){
   const veil = 1 - cloudCover();
@@ -15973,11 +16135,26 @@ function applyLight(t){
   }
   if (nightF > 0.02){
     ctx.globalCompositeOperation = 'multiply';
-    const a = 0.8 * nightF;
-    ctx.fillStyle = 'rgba(' + (44 - 16*nightF|0) + ',' + (56 - 12*nightF|0) + ',' + (112) + ',' + a + ')';
+    /* THE MOON IS INSIDE THE MULTIPLY (#196). It has to be: the night is a composite set
+     * by the LAST thing that touches it, so a silver wash laid on before this fill comes
+     * out the same slate as everything else by midnight. What the moon does here is take
+     * some of the multiply AWAY and carry the rest of it toward silver — the frame lifts
+     * and the blue opens out, which is what a moonlit night looks like and is not the
+     * same operation as turning the night up.
+     *   Signed about MOON_REF, so this is not a gift. At the measured mean of a lunation
+     * the arithmetic below is HEAD's exactly; under it — a new moon, a thick lid, a moon
+     * near the horizon — the multiply is HEAVIER and the town is blacker than HEAD has
+     * ever drawn it, which is the half of the range that makes the other half worth
+     * having. Clamped at both ends because mk runs -0.162..+0.84. */
+    const ml = moonLight(), mk = ml - MOON_REF;
+    const a = 0.8 * nightF * clamp(1 - MOON_MUL * mk, 0.35, 1.25);
+    ctx.fillStyle = 'rgba(' + clamp(44 - 16*nightF + MOON_CR*mk, 0, 255).toFixed(0) + ','
+                            + clamp(56 - 12*nightF + MOON_CG*mk, 0, 255).toFixed(0) + ','
+                            + clamp(112 + MOON_CB*mk, 0, 255).toFixed(0) + ',' + a.toFixed(4) + ')';
     ctx.fillRect(0, 0, W, H);
     ctx.save(); clipOffSill(ctx);      // every glow below is the TOWN's light, and the sill is in front of the town
     ctx.globalCompositeOperation = 'screen';
+    drawMoonSheen();          // the moon's own light, on the surfaces that answer it — under the lamps, which are nearer
     for (const L of NIGHT_LAMPS){
       const [x, y] = project(L[0], L[1], 2.6);
       const hr = cellW * 2.4 * (1 + 0.7 * mistAt(L[0]));           // a halo widens in the mist (#88); exactly 2.4 out of it

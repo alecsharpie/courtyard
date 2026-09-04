@@ -2,7 +2,7 @@
   "updated": "2026-09-04",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 195,
+  "lastIteration": 196,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -403,7 +403,8 @@
         124,
         133,
         143,
-        165
+        165,
+        196
       ],
       "scale": [
         12,
@@ -602,7 +603,8 @@
       "the SUN: sunVec() the one vector every cast shadow reads (lx 0.8..-0.8, ly 0.58..0.32, ALWAYS northward), shadowF/shSpread/shOffset, dialThrow(h); BUILDING SHADOW shTop/shOpen/buildSunShade (#140)",
       "weather: snowF/Cover/At, wetF, raining/rainFall/coverF, mistAt, chillF/hearthF, dawnF; windF=windDayF x windHourF, isWindy (#156); bonfireWeather re-asked lit (#178), BOTH gates measured (#185)",
       "two PRNG streams (#176): R() for the town, RS (SEED^RS_SALT, rewound by __reseed) for canvas-space draws — stepDrops() only, outside the raining branch",
-      "the SKY ANSWERS (#188): skyAt() asked LAST (sun/moon first), balloonAt first; skyHz() one horizon; sunName/moonName/skyName/towerAt off SH_TOWERS; moonPhase/moonLit a 29.53 d month; balloonOut/Down off the sun"
+      "the SKY ANSWERS (#188): skyAt() asked LAST (sun/moon first), balloonAt first; skyHz() one horizon; sunName/moonName/skyName/towerAt off SH_TOWERS; moonPhase/moonLit a 29.53 d month; balloonOut/Down off the sun",
+      "MOONLIGHT (#196): moonLight() = moonLit x altitude x (1-cloudCover), ramped off nightF; INSIDE applyLight's multiply, signed about measured MOON_REF 0.162; drawMoonSheen live over water/ice/snow/wet paving/near slates, MOON_ROOF a camera-keyed Path2D"
     ],
     "life": [
       "ring transit via spawnAgent: walker, crosser, dogwalker; drawPerson 12 px with a contact patch; greetPass/chatty; arrivals come in TWOS, withCompanion(a,room) under the SAME cap",
@@ -665,6 +667,12 @@
       "id": "c289",
       "note": "9 probes still throw spawnSync git ENOBUFS: courtyard.html passed Node's 1 MiB default maxBuffer at #181, so every 'git show HEAD' control without maxBuffer is dead. 11 sites. And 96 probes time out at 75 s - unresolved.",
       "raisedBy": 194,
+      "seenBy": 0
+    },
+    {
+      "id": "c290",
+      "note": "daylight and nightF OVERLAP: at midsummer nightF reaches 0.90 while daylight is still 0.062, so the sky is night-dark for ~an hour in which the moon disc, gated on daylight > 0.02, is not drawn at all (#196)",
+      "raisedBy": 195,
       "seenBy": 0
     }
   ],
