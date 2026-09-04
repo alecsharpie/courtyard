@@ -23,7 +23,7 @@
   "avoid": "Do not spend an R() draw on this — the strand is hashed and must stay hashed, or every downstream draw in the world reshuffles (LAWS.md: any new draw reshuffles the whole seeded world). Do not touch MART_WET or the rain source; only the strand's clock is at issue.",
   "budgetMin": 30,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 215,
   "issued": "2026-09-04T23:17:47.625Z",
