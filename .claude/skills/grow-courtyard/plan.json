@@ -16,31 +16,6 @@
   "rationale": "mapFlat is showing at 16, so the rung is 4+ and the signal names 4b. The standing watch note forbids re-deriving the map-is-full argument, and this pass found the reason it keeps firing anyway, which is worth more than the brief it produced: #181 added ICE, the 19th tile kind, and the census reported UNCHANGED IN EVERY FIELD. All three census ages sit at warmth 0.6929 on purpose (the #14 fix, so that the age axis measures age), so a winter-only kind is structurally invisible to the gate that mapFlat reads. The signal has been telling the truth about a blind instrument. So this batch does both halves: b186 makes a spatial change the census CAN see, and b187 makes the instrument able to see the one it could not.\n\nI shot and MEASURED the town before planning it, as the watch note demands, and the bet is a number rather than an impression. The courtyard — the piece's namesake, the left half of every wide frame — has 1,896 PATH cells in the annulus between the ring bed and the edge beds (seed 42, warp 625; r 13.8 to 37.8 off the linden). That is 15.6% of the world's 12,144 cells, the largest single-tile ground surface in the town, 2.6x the plaza's 730 PATH and larger than the river's 920 WATER. Standing on it: four BENCH_SPOTS. The plaza, a third the size, carries a fountain, a roundel, PLAZA_PITS, six benches, six FOUNT_STANDS, two crumb spots, a rail, five bollards and a fourteen-place door. This is NOT the 'that surface looks flat' brief the watch note kills on sight — PATH.court measures sd/mean 0.143, mid-table, and the texture is fine. The claim is OCCUPANCY, and it is counted.\n\nb186 puts a covered walk on that ring: rung 4b by the census (a new tile kind, and unlike ICE one that exists in July), a new-element in the domain that has had exactly one in 185 iterations, and the biggest change available to a visitor's first ten seconds. The other four spend the thin kinds and the long-untouched domains, each carrying the number it rests on. Curation: coverage four stale; six cues closed (two spent by #183/#182, one duplicated by the watch table, two promoted to b188/b190, one folded into b187); inventory merged 58 -> 55 entries and 9.6 -> 9.4 KB with the note's stale caps corrected to the ones rotate-ledger actually enforces; and LAWS took #181-#185's five laws by MERGING into the bullets they sharpen, paid for with eight named cuts. Quota back to 45.4/46 and laws to 11.9/12.",
   "queue": [
     {
-      "id": "b189",
-      "domain": "People & animals",
-      "kind": "new-ca",
-      "brief": "The 9th new-CA in 185 iterations and the FIRST in the life domain (c272: new-ca lives in courtyard, lane, street, plaza, river and roofs; after this, sky and the sill are the only domains without one — in a piece subtitled 'a cellular block'). Give the eaves a colony of martins: a per-cell state over the eave line that GROWS, the way `mossCreep` and #181's `stepIce` do, rather than a fixed list of nests placed at build time. A colony is the honest subject for a CA because these birds are colonial — a cell's chance of gaining a nest should read its NEIGHBOURS, so the colony spreads along one house's eave as a front instead of speckling the town uniformly; mud is a weather term, so wet spells build and dry ones do not; and it is seasonal, occupied and busy through the summer and abandoned in autumn. Price the premise first: `roofBirdSpot` and `birds[]` already put birds on roofs, and `nestF` is the ducks' nest on the eyot. A perch is a moment and a nest is FABRIC — say in the ledger how yours differs, or kill the brief and say why.",
-      "seams": [
-        "caTick",
-        "mossCreep",
-        "stepIce",
-        "eaveFor",
-        "houseAt",
-        "houseIx",
-        "EAVE_LO",
-        "EAVE_HI",
-        "roofBirdSpot",
-        "birds",
-        "wetF",
-        "growSeason",
-        "__census"
-      ],
-      "successLooksLike": "Over a seeded year the colony's count rises from 0 in spring to a plateau and empties in autumn, measured by a probe over 4+ seeds and reported as a curve, not a single instant; the nests are CLUSTERED (quote the run-length or nearest-neighbour distance against a uniform control at the same count); and at midsummer the wide shot has birds shuttling to one stretch of eave. Report the colony in `__census` under `structure` so the gate can see it.",
-      "avoid": "Do not place nests from a constant list — a fixed array is a new-element, not a CA, and the kind is the point. Do not spread them evenly over every house; one uniform hash is a texture, never a PLACE. Do not add a new bird population with its own cap on top of `birds[]` until you have shown the existing one cannot carry it.",
-      "budgetMin": 50,
-      "risk": "medium"
-    },
-    {
       "id": "b190",
       "domain": "Roofs & skyline",
       "kind": "connect",
@@ -76,6 +51,10 @@
     {
       "id": "b188",
       "at": "2026-09-04T02:18:02.830Z"
+    },
+    {
+      "id": "b189",
+      "at": "2026-09-04T02:48:45.357Z"
     }
   ]
 }

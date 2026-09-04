@@ -3039,6 +3039,135 @@ function riverSkin(){
 }
 buildIce();       // after buildMoss: mossShelterAt() counts the WATER neighbours the grid was BUILT with
 
+/* ============ the martins under the eaves (#189) ============
+ * The town has put birds ON roofs since #106 and answered for them since #113, but a
+ * perch is a MOMENT: roofBirdSpot() picks a place, a bird stands in it for twenty
+ * seconds and leaves, and the roof is exactly as it was. nestF() is the ducks' window
+ * on the eyot, a rate, not a thing. Nothing the town has ever grown has been FABRIC
+ * that birds made — mud stuck to a wall, which is there tomorrow whether or not a bird
+ * is on it, and which the eave keeps until the winter takes it back down.
+ *
+ * The subject is honest for a CA because these birds are COLONIAL. A cell's chance of
+ * gaining a nest is not its own: it is its NEIGHBOURS' — so the colony advances along
+ * one house's eave as a front, the way stepIce's skin walks in from the shore, instead
+ * of speckling the town at one uniform rate. It has stepIce's three terms:
+ *
+ *   the FOUNDER  martSeed[] — a coarse hash over the HOUSE gating a fine one over the
+ *                cell, because one uniform hash is a texture and the house is the scale
+ *                a colony gathers on. Rare: most terraces never see a bird.
+ *   the CREEP    the mean of the two neighbours ALONG the eave line, which is the only
+ *                direction a face runs. Weighted well over the founder, so a colony is
+ *                mostly other nests and only barely a first one.
+ *   the CEILING  martTop[] — a tall eave is a deep eave and holds a whole cup, a low
+ *                one takes a half, and a per-cell hash keeps a full run from reading
+ *                as a ruled line of beads.
+ *
+ * MUD is a weather term. A nest is built out of the puddles, so wetF() gates the build
+ * and a dry fortnight in July stops the colony where it stands — the thing a season
+ * scalar alone could not say. And it is SEASONAL at the other end too: the birds are
+ * in from spring, out by autumn, and what they leave is unrepaired, so the frost and
+ * the rain have the whole of the winter to take it off the wall. The count goes to
+ * zero and starts again, which is what makes it a year and not a ratchet.
+ *
+ * THE EAVE LINE is read back off the grid, never re-derived: a cell is on it if and
+ * only if drawFaceRow would draw a wall there — solid, with its south neighbour open.
+ * That is 225 cells, and two of them are terraces worth the name: row 2, the north
+ * range over the courtyard (102 cells), and row 64, the gatehouse front onto the lane
+ * (104). The rest are the ends of the north-south slivers, three and five at a time.
+ *
+ * ZERO R(). Every draw here is hash(), so the CA itself leaves the seeded world
+ * bit-identical — the reed beds' argument (#155). What DOES cost a draw is the birds,
+ * and they are a population, so they pay for one like every other. hash() is not
+ * seeded, so the founder set would otherwise be the same colony on the same house in
+ * every world; MART_SALT is what makes it a different town's colony, at no draw at all
+ * (WIND_SALT's trick, #172). */
+const MART_CELLS = [];                            // the eave line, in grid order
+const mart = new Float32Array(GW * WH);           // how far ON each cup is, 0..martTop
+const martTop = new Float32Array(GW * WH), martSeed = new Float32Array(GW * WH);
+const MART_NESTS = [];                            // the ones built enough to fly to
+let martOn = 0, martAny = 0;
+let MART_SALT = SEED === null ? 0 : SEED;
+const MART_SET = 0.28;                            // a nest rather than a smear of mud
+const MART_HOUSE = 0.88, MART_CELL = 0.55;        // the founder's two hashes: the house, then the cell
+function buildMartins(){
+  for (let y = 0; y < LN_WALK_S; y++) for (let x = 0; x < GW; x++){
+    const i = y * GW + x;
+    if (!solidM[i] || solidM[i + GW]) continue;   // drawFaceRow's own test, and only that
+    if (churchAt(x, y) || millAt(x, y)) continue; // the skyline's two incidents are nobody's eave
+    const e = eaveM[i];
+    if (e < 2.4) continue;                        // and its own floor: below it there is no wall to speak of
+    martTop[i] = (0.55 + 0.45 * clamp((e - EAVE_LO) / (EAVE_HI - EAVE_LO), 0, 1))
+                        * (0.72 + 0.28 * hash(x, y + 829));
+    const id = houseAt(x, y);
+    if (id >= 0 && hash(id, 811 + MART_SALT) > MART_HOUSE && hash(x, y + 823 + MART_SALT) > MART_CELL)
+      martSeed[i] = 1;
+    MART_CELLS.push(i);
+  }
+}
+buildMartins();
+/* The birds' own window. In on the spring flush, busy through the summer, gone by the
+ * turn — the shape nestF() makes about the eyot, said about the eaves and a season
+ * wider, because a colony raises two broods where the ducks raise one. */
+const MART_IN = 0.27, MART_IN_W = 0.06, MART_OUT = 0.70, MART_OUT_W = 0.05;
+function martHere(){
+  const p = seasonPhase;
+  return clamp((p - MART_IN) / MART_IN_W, 0, 1) * clamp((MART_OUT - p) / MART_OUT_W, 0, 1);
+}
+const MART_WET = 0.30;                            // full mud at a third of a soaking
+function martMudF(){ return clamp(wetF() / MART_WET, 0, 1); }
+/* MART_SEED_K is the one constant here that was swept rather than chosen, and it was
+ * swept on the FIRST YEAR, which is the one the mud gate can starve: measured over six
+ * seeds (probes/mart-mud.mjs) the town's opening season carries 0, 16, 53, 223, 255 and
+ * 0 wet ticks of ~1685 — two worlds in six do not see a single drop of rain between the
+ * birds arriving and the birds leaving. At 0.30 a founder needs an integral of ~20 and
+ * seed 5's marginal season delivered 18.3, so it missed its whole first year by a tenth
+ * of a cup. The CREEP is untouched: what this buys is a colony FOUNDED in a thin
+ * season, not a faster front once one is. A bone-dry year still gets nothing, which is
+ * the point of putting the build on the weather at all. */
+const MART_BUILD = 0.055, MART_SEED_K = 0.50, MART_CREEP = 1.0, MART_FALL = 0.0015;
+/* What takes it down: nobody repairing it, and then the weather. Both halves of the
+ * shape iceThawF() uses — the cold, and a rain that is falling as rain. */
+function martFallF(){
+  return (1 - martHere()) * (0.30 + 0.70 * (1 - warmth) + (raining ? 1.2 * rainFall : 0));
+}
+const martNb = new Float32Array(MART_CELLS.length);   // read in ONE pass, so the front has no favoured direction
+function stepMartins(){
+  const bf = martHere() * martMudF(), ff = martFallF();
+  if (bf <= 0 && !martAny) return;                // the dead of winter: nothing to build and nothing left to take
+  for (let k = 0; k < MART_CELLS.length; k++){
+    const i = MART_CELLS[k], x = i % GW;
+    martNb[k] = ((x > 0 ? mart[i - 1] : 0) + (x < GW - 1 ? mart[i + 1] : 0)) * 0.5;
+  }
+  let on = 0, any = 0;
+  MART_NESTS.length = 0;
+  for (let k = 0; k < MART_CELLS.length; k++){
+    const i = MART_CELLS[k], x = i % GW, y = (i / GW) | 0;
+    const rate = 0.45 + 0.55 * hash(x, y + 827);  // this cup's own speed, forever
+    const w = clamp(mart[i] + MART_BUILD * bf * rate * (MART_SEED_K * martSeed[i] + MART_CREEP * martNb[k])
+                            - MART_FALL * ff * rate, 0, martTop[i]);
+    mart[i] = w;
+    if (w > 0) any++;
+    if (w >= MART_SET){ on++; MART_NESTS.push(i); }
+  }
+  martOn = on; martAny = any;
+}
+/* Where the cup hangs, in world z — ONE definition, so the picture and the bird
+ * standing on it cannot disagree about which wall it is stuck to. The wall's top is
+ * the lower of its two roof corners, exactly as drawFaceRow solves it. */
+const MART_DROP = 0.20, MART_W = 0.25, MART_H = 0.55;
+function martZAt(x, y){
+  const e = eaveM[y * GW + x];
+  return Math.min(roofZE(x, y + 1, e), roofZE(x + 1, y + 1, e)) - MART_DROP;
+}
+/* Picks a cup off the list the CA keeps, never by rejecting cells until one is a nest:
+ * at the plateau the colony is a fifth of the eave line and in the first week of it a
+ * fortieth, which is the rate-of-zero trap roofBirdSpot() was written around. */
+const MART_BIRDS = 5, MART_BIRD_RATE = 1.2;
+function martSpot(){
+  const i = MART_NESTS[(R() * MART_NESTS.length) | 0], x = i % GW, y = (i / GW) | 0;
+  return [x + 0.5, y + 1, martZAt(x, y)];
+}
+
 /* ============ the band on the green ============ */
 /* The bandstand has stood on the far bank since before the loop and nothing has ever
  * happened in it. Nor does anything east of the bridge GATHER: every crowd this town
@@ -3732,6 +3861,7 @@ function caTick(){
   stepLitter();
   stepMoss();
   stepIce();
+  stepMartins();
   const m = maturity(), boost = raining ? 3 : 1;
   const vig = growF(), die = dieF();          // the ceiling is per-cell now: bedCap(x, y)
   const availF = SPECIES.filter(s => !s.wild && s.minDay <= day && !s.veg);   // `wild` is nobody's to sow (#155)
@@ -7381,6 +7511,17 @@ function updateWildlife(dt){
                         roof:true, perch:sp[3], bx:sp[4], by:sp[1], bz:sp[2], bw:sp[5],
                         col:pick(['#5c5850','#33302c','#4a4640','#6e6a60'])});
   }
+  /* #189: the eaves' own birds. Their own roll and their own cap, never a share of the
+   * three above — a colony is a rare thing and a share of somebody else's budget prices
+   * it at zero. The roll is spent every tick whether or not there is a colony to fly to,
+   * so the cadence of every draw after it does not depend on the answer (#92); the SPOT
+   * costs the second draw, and only when there is a nest. */
+  if (R() < dt * MART_BIRD_RATE && MART_NESTS.length && martHere() > 0.15 && daylight > 0.25
+      && !raining && birds.filter(b => b.mart).length < MART_BIRDS){
+    const sp = martSpot();
+    birds.push({x:sp[0], y:sp[1], z:sp[2] + 5.5, zf:sp[2], state:'land', hop:0, t:0,
+                mart:true, dir: hash(sp[0] | 0, 831) < 0.5 ? -1 : 1, col:'#33363d'});
+  }
   if (!raining && daylight>0.3 && birds.filter(b => b.ground).length < GROUND_BIRDS && R() < dt*0.06*(0.5+m)){
     const onLane = R() < 0.4;
     const th=R()*Math.PI*2, r=6+R()*10;
@@ -7396,6 +7537,16 @@ function updateWildlife(dt){
   for (let i=birds.length-1; i>=0; i--){
     const b = birds[i];
     const zf = b.zf || 0;                       // #106: the ground is 0 everywhere but the roof
+    /* A martin is not a perching bird and does not use the states below: it comes down
+     * the face of the wall to the cup, CLINGS to it, and goes out over the open side the
+     * face looks at. No scare test — a nest 5 cellH up is out of everybody's reach, which
+     * is why it is up there. */
+    if (b.mart){
+      if (b.state === 'land'){ b.z -= dt*7; if (b.z <= zf){ b.z = zf; b.state = 'cling'; b.t = 1.0 + R()*2.4; } }
+      else if (b.state === 'cling'){ b.t -= dt; if (b.t <= 0) b.state = 'fly'; }
+      else { b.z += dt*5; b.y += dt*2.4; b.x += dt*3.2*b.dir; if (b.z > zf + 7) birds.splice(i,1); }
+      continue;
+    }
     if (b.state==='land'){ b.z -= dt*6; if (b.z<=zf){ b.z=zf; b.state='hop'; b.t=b.roof ? 16+R()*18 : 6+R()*8; } }
     else if (b.state==='hop'){
       /* On the roof a bird sits the night out instead of leaving — a roost is the whole
@@ -9155,6 +9306,7 @@ function drawFaceRow(g, y){
     const gl1 = project(x, y + 1, 0.16), gl2 = project(x + 1, y + 1, 0.16);
     poly(g, [gl1, gl2, b, a]); g.fill();
     const e = Math.min(zL, zR);
+    if (mart[y * GW + gx] > 0) drawNest(g, gx, y, e);
     if (millAt(gx, y)){
       if (gx === MILL_WIN[0]) drawWindow(g, x + 0.5, y + 1, e * 0.8, e * 0.3, MILL_WIN[0], MILL_WIN[1]);
       else if (gx === MILL.x1 - 1) drawFrontDoor(g, x, y, e * 0.36, -1, -1);
@@ -9181,6 +9333,36 @@ function drawFaceRow(g, y){
       drawFrontDoor(g, x, y, e * 0.34, -1, -1);
     }
   }
+}
+/* The cup: mud, laid in a half-dome against the wall right under the eave, and drawn
+ * at the size it has actually reached — so a colony BUILDS on the wall over its own
+ * days instead of appearing, which is the one part of this CA a still frame can show.
+ * It rides in the ground cache with the facade it is stuck to and needs no repaint gate
+ * of its own: LIGHT_SLOW already floors the rebuild at every 4 sim seconds, and at
+ * MART_BUILD's ceiling a cup gains 0.18 of itself in that time. The gatehouse row is
+ * drawn live (drawSouthBand), so the nearest colony in the frame is never quantized at
+ * all. Dark along the top, where the cup meets the eave and the way in is. */
+function drawNest(g, x, y, e){
+  /* `s` is the ABSOLUTE state, not the fraction of this cell's own ceiling: a cup that
+   * has reached a poor cell's ceiling is a SMALL cup for ever, which is the only way
+   * martTop[]'s per-cell grain shows up on the wall at all. Fractioned, a full colony
+   * came out as one ruled scallop course — a moulding, not a set of nests. */
+  const i = y * GW + x, s = clamp(mart[i], 0, 1);
+  const w = MART_W * (0.50 + 0.50 * s), h = MART_H * (0.42 + 0.58 * s), zt = e - MART_DROP;
+  const tl = project(x + 0.5 - w, y + 1, zt), tr = project(x + 0.5 + w, y + 1, zt);
+  const bt = project(x + 0.5, y + 1, zt - h);
+  const cup = () => { g.beginPath(); g.moveTo(tl[0], tl[1]);
+                      g.bezierCurveTo(tl[0], bt[1], tr[0], bt[1], tr[0], tr[1]); g.closePath(); };
+  g.fillStyle = 'rgba(24,18,13,.34)';                   // what it throws on the wall it is stuck to
+  g.save(); g.translate(Math.max(1, cellW * 0.07), Math.max(1, cellW * 0.05)); cup(); g.fill(); g.restore();
+  g.fillStyle = mix('#241e19', '#63543f', clamp(0.20 + 0.50 * daylight, 0, 1));   // dried mud, and it lives in the eave's shade
+  cup(); g.fill();
+  /* the way in: a NOTCH at the crown, not a line along the whole lip. Full width, the
+   * strokes of two neighbouring cups meet and a terrace of nests reads as one scalloped
+   * moulding along the wall — a course of dentils, which is the last thing this is. */
+  g.strokeStyle = 'rgba(20,15,10,.66)'; g.lineWidth = Math.max(0.9, cellW * 0.09);
+  const el = project(x + 0.5 - w * 0.42, y + 1, zt), er = project(x + 0.5 + w * 0.42, y + 1, zt);
+  g.beginPath(); g.moveTo(el[0], el[1]); g.lineTo(er[0], er[1]); g.stroke();
 }
 function drawFrontDoor(g, x, y, dh, sa, sb){
   const dw = 0.34;
@@ -15913,7 +16095,7 @@ function cartName(){
  * straight onto the spot it was given (the land state moves z alone), so that one does.
  *   And DOWN is drawBird's own test, not a second reading of the state machine: the words
  * and the picture cannot disagree about whether a bird is on its feet. */
-function birdDown(b){ return b.state === 'hop' || (b.state === 'land' && b.z < (b.zf || 0) + 1); }
+function birdDown(b){ return b.state === 'hop' || b.state === 'cling' || (b.state === 'land' && b.z < (b.zf || 0) + 1); }
 function birdPlace(b){
   const x = clamp(b.x | 0, 0, GW - 1), y = clamp(b.y | 0, 0, WH - 1), g = grid[y * GW + x];
   if (g === GRASS) return 'the lawn';
@@ -15922,6 +16104,9 @@ function birdPlace(b){
 function birdName(b){
   if (b.state === 'wheel') return 'a pigeon put up off the belfry by the bell';
   const down = birdDown(b);
+  if (b.mart) return down ? 'a house martin at its nest under the eaves'
+                          : (b.state === 'land' ? 'a house martin dropping onto its nest'
+                                                : 'a house martin, in and out of the eaves');
   if (b.roof) return !down ? (b.state === 'land' ? 'a bird coming down onto our own roof' : 'a bird, up off our own roof')
        : b.perch === 'well'    ? 'a bird on the lip of the light well, looking down'
        : b.perch === 'parapet' ? 'a bird on the parapet, over the lane'
@@ -16979,7 +17164,7 @@ window.__entities = function(){
   take(ducks, 'duck'); take(swans, 'swan', (o, s) => { o.act = s.state; });
   take(butterflies, 'butterfly'); take(fireflies, 'firefly');
   take(moths, 'moth', (o, m) => { o.act = m.out ? 'off' : 'orbit'; o.lamp = m.li; });
-  take(birds, 'bird', (o, b) => { o.act = b.state; if (b.plaza) o.plaza = 1; if (b.roof){ o.roof = 1; o.perch = b.perch; } }); take(leaves, 'leaf');
+  take(birds, 'bird', (o, b) => { o.act = b.state; if (b.plaza) o.plaza = 1; if (b.mart) o.mart = 1; if (b.roof){ o.roof = 1; o.perch = b.perch; } }); take(leaves, 'leaf');
   if (catA) take([catA], 'cat', (o, c) => { o.act = c.leg; });
   if (balloon) take([balloon], 'balloon');
   if (boat) take([boat], 'boat');
@@ -17035,6 +17220,12 @@ window.__census = function(){
     chimneys: CHIMNEYS.length, roofFurniture: ROOF_FURN.length, roofHatches: HATCHES.length,
     plotFurniture: ALLOT_FURN.length,
     ringNodes: RING.length, edgeBeds: EDGE_BEDS.length, arcadeBays: ARCADE_BAYS.length,
+    /* #189: the colony, and the eave line it grows on. `eaveLine` is a build-time
+       constant and rides here for the reason ICE_CELLS.length does in the ice block —
+       it is what makes `martinNests: 0` in the winter row evidence of an empty summer
+       rather than of a system that is not there. Town state: a pure function of the
+       calendar and the weather that has run. */
+    martinNests: martOn, eaveLine: MART_CELLS.length,
     benches: BENCH_SPOTS.length + LANE_BENCHES.length + QUAY_BENCHES.length + FAR_BENCHES.length,
     cafeTables: CAFE_TABLES.length, marketStalls: MARKET_STALLS.length,
     treePits: TREE_PITS.length, orchard: ORCHARD.length, plazaPits: PLAZA_PITS.length,

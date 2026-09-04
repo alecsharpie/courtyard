@@ -255,3 +255,27 @@ filmstrip day+night 0 POP · 8 framings, a flight, a month of moons.
 called the two tallest drawn things in the town "the sky".
 **Law:** a fall-through answering for a screen REGION is bounded by what rises THROUGH it: ask the
 solids first, off geometry that already describes them.
+
+## Iteration 189 — the eaves are given a colony (2026-09-04) [People & animals × New CA]
+
+**Brief:** b189 — the life domain's first new-CA: a colony of martins over the eave line.
+**Did.** `roofBirdSpot` and `nestF` are a PERCH and a rate; nothing here was fabric a bird MADE.
+`MART_CELLS` is the eave line read off drawFaceRow's own test (solid, south neighbour open, less
+church and mill) — 217 cells, two of them terraces: rows 2 and 64. stepIce's three terms in
+`caTick`: a FOUNDER (`hash(house)` gating `hash(cell)`, salted per world), a CREEP off the
+neighbours ALONG the line, a CEILING off the eave. MUD is the weather — `wetF()` gates the build, so
+a dry fortnight stops the colony where it stands. `martHere()` p 0.27..0.70, and unrepaired it is 0 by 0.88. Zero R() in the
+CA. `drawNest` rides in drawFaceRow; `birds[]` carries the martins on their own cap and roll.
+**Measured**, 6 seeds x 2 years (probes/mart-{year,mud,mass,birds}.mjs). CURVE 0 -> plateau 33..94
+-> 0, empty in autumn and in late winter 6 of 6. CLUSTERED: mean run **9.7..16.3** v a uniform
+control at the same count on the same line, **1.26..1.78**. DRAWN: FULL minus FULL-with-`mart`-zeroed
+is 371..776 px at 1600x950 on a same-code floor of **0**, 0 px empty. **0 of 682 clinging birds off
+a nest.**
+**Gates:** census PASS (`martinNests` 158, `eaveLine` 1953, winter 0) · motion PASS · perf +0.0% ·
+filmstrip 0 POP · 6 framings.
+**Verdict:** shipped
+**Surprise:** the mud gate can starve a whole year. Two seeds of six saw **0 wet ticks of 1685**
+between the birds arriving and leaving — no rain at all in season — and those eaves stayed bare for
+the town's whole first year.
+**Law:** the census's three ages equalise WARMTH, a cosine, so they sit at TWO phases: a season not
+symmetric about midsummer reads on ONE cell of three.
