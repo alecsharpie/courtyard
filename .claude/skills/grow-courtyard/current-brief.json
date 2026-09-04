@@ -20,7 +20,7 @@
   "avoid": "Do not add a second balloon or a fleet; the rarity is the point. Do not hard-code an hour for the descent — a hard-coded HOUR in a light or warmth term is a seasonal bug invisible to a screenshot; solve an hour OF THE SUN. Do not make the naming a tooltip with its own UI: it goes through the one cursor naming path.",
   "budgetMin": 45,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 188,
   "issued": "2026-09-04T02:18:02.831Z",
