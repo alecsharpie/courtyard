@@ -577,7 +577,8 @@
       "harvest cycle: harvestPlot/bAge/ripePlots/pickPlot/plotCrop/sendToPlot/spawnAllotAgent, digWeather; ONE cart cartToday/cartHomeX/drayToday (WIND_SALT-salted, #172) into MARKET_STALLS[1]",
       "a plot is MOSTLY one crop (#159): plotCrop the MAJORITY tally, cellStands the per-cell winter, plotAct's five rungs, harvest paid per cell",
       "a CREW, not three slots (#172): ALLOT_CAP 5, ALLOT_ROWS/MORE 4/0.70, ALLOT_FLOOR/RIPE named+sweepable (probes/allot-supply.mjs)",
-      "TILES 20 (..GLASS, LEADS, ICE, ARCADE), SPECIES 13 via speciesFor; GLASSHOUSE x84-93 y34-39, the one surface you see THROUGH — bedCap, drawGlassBack cached + drawGlassFront live, snowAt indoors"
+      "TILES 20 (..GLASS, LEADS, ICE, ARCADE), SPECIES 13 via speciesFor; GLASSHOUSE x84-93 y34-39, the one surface you see THROUGH — bedCap, drawGlassBack cached + drawGlassFront live, snowAt indoors",
+      "weeds are a CA (#197): rank[] over WEED_CELLS 102, founded on bAge's UP half (a planted cell AT its ceiling); weedAge/creep/SHADE/WEED_WORK the harvest cycle/cold dieback; plotAct's hoe rung goes FIRST; drawWeed in the ground cache"
     ],
     "plaza": [
       "FOUNTAIN (105.5,30) reads year, wind and frost: fountainPlay/Ice/Jet. Roundel, PLAZA_PITS, PLAZA_BENCHES, QUAY_BENCHES, quay rail x112.9, crumbSpot, PIGEONS",
@@ -673,6 +674,12 @@
       "id": "c290",
       "note": "daylight and nightF OVERLAP: at midsummer nightF reaches 0.90 while daylight is still 0.062, so the sky is night-dark for ~an hour in which the moon disc, gated on daylight > 0.02, is not drawn at all (#196)",
       "raisedBy": 195,
+      "seenBy": 0
+    },
+    {
+      "id": "c291",
+      "note": "rank does not steer sendToPlot's target set — a plot gone over draws no picker; the hoe rung fires only when the crew happens to reach it (20x in 6 seed-years)",
+      "raisedBy": 196,
       "seenBy": 0
     }
   ],

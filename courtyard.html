@@ -1240,6 +1240,7 @@ const wear = new Float32Array(GW * WH);
 const daisy = new Uint8Array(GW * WH);
 const bSp = new Uint8Array(GW * WH), bSt = new Uint8Array(GW * WH), bAge = new Float32Array(GW * WH);
 const turned = new Uint8Array(GW * WH);   // allotment cell dug over for the winter: dark until the spring sowing clears it
+const rank = new Float32Array(GW * WH);   // #197: 0..1, how far an allotment bed has gone over to weed
 
 const SPECIES = [
   {name:'marigolds', col:'#e0913a', col2:'#f3b04e', h:0.55, style:'dot',   minDay:0},
@@ -4029,12 +4030,108 @@ function harvestPlot(a){
        'Someone straightens up out of the ' + SPECIES[sp-1].name + ' with an armful.']));
   return took;
 }
+/* ============ the block goes over (#197) ==========================================
+ * Seventeen plots, a fallow clock, a winter dig, a glasshouse, five rungs of tending —
+ * and every square of it read as TENDED. Nothing in the piece showed neglect.
+ *
+ * The brief named `bAge` on an EMPTY bed as the clock to found a weed on. Measured on
+ * HEAD (probes/allot-neglect.mjs, 6 seeds x a seeded year): that clock counts DOWN, from
+ * FALLOW+R()*8, at 1.0 a sim second — its maximum over 437,580 cell-samples is 19.98 s,
+ * 0.36 of a day, and it stands on 2.48% of them. There is no long-fallow cell in the
+ * block to found anything on.
+ *
+ * But bAge has a SECOND life, on the other side of the same branch, and that one is the
+ * clock the brief wanted: on a PLANTED cell AT its ceiling caTick counts it UP, +0.35 a
+ * tick, unbounded, and the only thing that ever puts it back is plotAct's `age` rung —
+ * the crew weeding the row. So bAge on a standing crop IS "how long since anybody came",
+ * in sim seconds, already there and read by nothing. Its distribution over the same run:
+ * mean 22.1 s, max 232.8 s (4.2 days), 20.5% of at-ceiling cells past 40 s
+ * (probes/allot-age.mjs). The rung that clears it fired 5 times in six seed-years,
+ * because it is the ladder's LAST rung and `up.length` (a cell under its ceiling, 14%
+ * of them) takes the visit first.
+ *
+ * So: `rank`, a per-cell 0..1 stepped in caTick beside the moss and the ice, modelled on
+ * stepMossRegion term for term.
+ *
+ *   FOUND   a cell whose own patience — weedAge(i), 42..120 s, hashed per cell and
+ *           salted per world — has run out on a bAge nobody reset.
+ *   CREEP   off the four neighbours, weighted 0.5 along the drill (x) against 0.22
+ *           across it (y): a row goes over as a row, which is how the crop was sown.
+ *   SHADE   a standing crop holds it down (bSt/3), so the loudest ground is the bare
+ *           ground — which is also the ground the eye can see it on.
+ *   WORK    a cell whose crop is still CLIMBING (bSt under bedCap) is ground in active
+ *           cultivation, and rank falls on it. This is the term that stops the block
+ *           going uniformly rank, which is no better a picture than uniformly tidy: the
+ *           first cut had 90 of 102 cells over at midsummer. It is also what ties the
+ *           weed to the HARVEST CYCLE — a plot that is lifted and re-sown knocks its
+ *           weeds back by being worked, and a plot that stands at its ceiling with
+ *           nobody coming does not.
+ *   COLD    it dies back in the cold half, and faster under snow. warmth is the same
+ *           cosine growF()/dieF() ride, so this moves with SEASON_LEN and is not a
+ *           hard-coded month.
+ *   HOE     plotAct's new FIRST rung. Not appended at the bottom, for the reason the
+ *           weeding rung is dead: a ladder's lower rungs are bounded by its first rung's
+ *           hit rate. You clear the ground before you sow it, so the hoe goes in front.
+ *
+ * ZERO R() in the whole CA — every draw is hash(), as the martins' is (#189), so adding
+ * a system over 102 cells left every other seeded draw in the loop on its own sequence.
+ */
+/* `let`, not `const`: probes/weed-sweep.mjs sweeps all of them. */
+let WEED_AGE = 42, WEED_SPAN = 78;              // a cell's own patience, sim seconds, hashed per cell
+let WEED_FOUND = 0.0115, WEED_CREEP = 0.0165;   // per tick, at full warmth, on bare ground
+let WEED_SHADE = 0.62;                          // what a crop AT its ceiling takes off the gain
+let WEED_WORK = 0.010;   // per tick, off a cell whose crop is still coming on. SWEPT, 6 seeds x a
+                         // seeded year (probes/weed-spread.mjs), on the peak quarter's CROSS-PLOT
+                         // histogram and not on any total — the season's own swing fakes a spread
+                         // in a year-pooled number. 0 leaves the block uniformly rank (66% of plots
+                         // pegged at the top, the middle bins empty); 0.020 leaves it uniformly tidy
+                         // again (50% at the bottom). 0.010 spreads it: 28/11/12/8/7/35 across the
+                         // six bands, and in 77.9% of peak frames at least three plots are clean
+                         // AND at least three have gone right over, in the same picture.
+let WEED_COLD = 0.0035, WEED_SNOW = 0.0045;     // the dieback, per tick, at warmth 0
+const WEED_SEED = 0.16;                         // rank below this is a trace: it draws nothing and creeps nothing
+const WEED_STEPS = 5;                           // the cache is repainted on the QUANTITY, in five steps
+const WEED_HOE = 1.15;                          // summed plot rank that sends the hoe out ahead of everything
+/* the block's own cells, off the lattice ripePlots() and fallowPlots() walk — read back
+   off the grid once, never re-derived, and a build-time constant like MART_CELLS. */
+const WEED_CELLS = [], isWeed = new Uint8Array(GW * WH);
+for (let oy = 8; oy <= 50; oy += 7) for (let ox = 80; ox <= 90; ox += 5)
+  for (let y = oy; y < oy + 2; y++) for (let x = ox; x < ox + 3; x++){
+    const i = y * GW + x;
+    if (grid[i] === BED || grid[i] === CBED){ WEED_CELLS.push(i); isWeed[i] = 1; }
+  }
+function weedAge(i){ return WEED_AGE + hash(i, 617 + WIND_SALT) * WEED_SPAN; }
+function weedNb(j){ return isWeed[j] ? rank[j] : 0; }
+function stepWeeds(){
+  const warm = clamp((warmth - 0.16) / 0.55, 0, 1);         // the warm half; 0 for a third of the year
+  const wet = raining ? 1.7 : 1;
+  const loss = (WEED_COLD * (1 - warm) + WEED_SNOW * Math.min(1, snowCover * 2));
+  for (const i of WEED_CELLS){
+    const v = rank[i];
+    const nb = (weedNb(i - 1) + weedNb(i + 1)) * 0.5 + (weedNb(i - GW) + weedNb(i + GW)) * 0.22;
+    const found = (v < WEED_SEED && bSp[i] && bAge[i] > weedAge(i)) ? WEED_FOUND : 0;
+    const vig = 0.55 + 0.45 * hash(i, 331);                  // this cell's own vigour, forever
+    const shade = bSp[i] ? WEED_SHADE * (bSt[i] / 3) : 0;
+    const work = bSp[i] && bSt[i] < bedCap(i % GW, (i / GW) | 0) ? WEED_WORK : 0;
+    const gain = (found + WEED_CREEP * nb) * warm * wet * vig * (1 - shade);
+    rank[i] = clamp(v + gain - (loss + work) * vig, 0, 1);
+  }
+}
+/* what the ground cache was painted against. The QUANTITY, in WEED_STEPS steps, not a
+   clock standing in for it — 102 cells summed is cheaper than one of the gates beside it. */
+function weedBucket(){ let s = 0; for (const i of WEED_CELLS) s += Math.round(rank[i] * WEED_STEPS); return s; }
+function plotRank(ox, oy){
+  let s = 0;
+  for (let y = oy; y < oy + 2; y++) for (let x = ox; x < ox + 3; x++){ const i = y * GW + x; if (isWeed[i]) s += rank[i]; }
+  return s;
+}
 function caTick(){
   stepLitter();
   stepMoss();
   stepIce();
   stepBank();     // after the ice: a skinned cell is stepIce's, and stepBank() stands off it
   stepMartins();
+  stepWeeds();     // after the martins, before the beds: rank reads the bAge the bed loop is about to move
   const m = maturity(), boost = raining ? 3 : 1;
   const vig = growF(), die = dieF();          // the ceiling is per-cell now: bedCap(x, y)
   const availF = SPECIES.filter(s => !s.wild && s.minDay <= day && !s.veg);   // `wild` is nobody's to sow (#155)
@@ -5497,11 +5594,12 @@ function plotFurn(ox, oy, kind){
 }
 function plotAct(a){
   const [ox, oy] = plotOrigin(a.plot[0], a.plot[1]);
-  const crop = plotCrop(ox, oy), sow = [], up = [], age = [], rest = [];
+  const crop = plotCrop(ox, oy), sow = [], up = [], age = [], rest = [], all = [];
   let dug = 0;
   for (let y = oy; y < oy + 2; y++) for (let x = ox; x < ox + 3; x++){
     const i = y * GW + x;
     if (grid[i] !== BED) continue;
+    all.push(i);
     if (bSp[i]){ if (bSt[i] < bedCap(x, y)) up.push(i); if (bAge[i] > 0) age.push(i); }
     else if (bAge[i] > 0) rest.push(i);      // bAge on an EMPTY cell is the fallow clock
     else { sow.push(i); if (turned[i]) dug++; }
@@ -5527,7 +5625,23 @@ function plotAct(a){
   }
   const oName = oth ? SPECIES[oth - 1].name : '';
   let n = 0, lines;
-  if (sow.length){
+  if (plotRank(ox, oy) >= WEED_HOE){
+    /* #197: the hoe goes FIRST, and it is the whole of what closes the weed loop. Put at
+       the bottom of the ladder it would fire as often as the weeding rung it sits beside
+       — five times in six seed-years — because `up.length` takes almost every visit. A
+       plot somebody kneels at is a plot that comes clean, and bAge goes back to 0 on the
+       standing crop, so the neglect clock the CA founds on restarts with the visit. */
+    for (const i of all){ rank[i] = 0; if (bSp[i]) bAge[i] = 0; }
+    groundDirty = true;
+    n = all.length; a.act = 'hoeing the plot clean';
+    lines = crop
+      ? ['The hoe goes down the ' + name + ' and the weeds come out in a wave.',
+         'Somebody works the hoe in between the ' + name + ' until the row shows earth again.',
+         'The rank stuff is hoed off the ' + name + ' and left to wilt on the path.']
+      : ['A hoe goes over the run-down plot and the weeds come off it in sheets.',
+         'The plot is hoed back to bare earth, a strip at a time.',
+         'Somebody takes a hoe to a bed that has gone over, and it comes up brown again.'];
+  } else if (sow.length){
     for (const i of sow){ bSp[i] = sp; bSt[i] = 1; bAge[i] = 0; turned[i] = 0; }
     if (oth) for (const i of othCells) bSp[i] = oth;
     n = sow.length; a.act = oth ? 'sowing a second crop in' : 'sowing a drill';
@@ -8015,6 +8129,7 @@ function refreshStats(){
 const gcv = document.createElement('canvas');
 const gtx = gcv.getContext('2d');
 let groundDirty = true;
+let weedPainted = -1;
 /* Feet darken wear[]/trod[] every step, but the layer is 9 ms to repaint against ~2 ms
  * for the rest of the frame, and left to the walkers it rebuilt ~650x a day (#48). So a
  * step only raises wearDirty; the tick promotes it to a rebuild once WEAR_REPAINT sim
@@ -8093,6 +8208,7 @@ function lightNow(){
  * without them reads a gate as true for ever (that is 868 washing repaints a day). */
 function markGroundPainted(){
   snowPainted = snowCover; wetPainted = wetBucket(); washPainted = washOut(); barrowPainted = barrowKey();
+  weedPainted = weedBucket();
   lightPainted = lightNow(); slowPainted = simT;
   lightBucket = lightPainted.map(v => v.toFixed(3)).join(',');   // what the BACKDROP cache rides
 }
@@ -10288,6 +10404,43 @@ function groundCol(x, y, t, hv, m){
  * seams — bucketed to MOSS_BUCKET levels, hash-placed, no R(). The tint under it is in
  * groundBase; this is the part that says "grass in a crack" rather than "a stain". */
 const MOSS_COLS = ['#6a7f45', '#5b7240', '#768a4e', '#4f6539'];
+/* #197: what a rank bed looks like. Drawn into the GROUND cache with drawMoss, for the
+ * same reason: the layer rebuilds ~98x a sim day and rank moves over tens of sim seconds,
+ * so a live overlay would buy nothing and cost a path build a frame (#196's law).
+ *
+ * A tuft is deliberately NOT the crop: the drill in drawPlant is one upright stem in
+ * #4c7440 with a head on it, so a weed is a low SPRAY of three-to-seven leaning blades in
+ * a paler, yellower olive, out of one root, breaking the row's regularity — and above
+ * WEED_RANK_HI a seed head, which is what a bed that has gone right over actually shows.
+ * The mat under them is groundBase's hue shift; this is the part that has a silhouette.
+ */
+const WEED_COLS = ['#93a04d', '#a4ac57', '#879544'];
+const WEED_RANK_HI = 0.66;
+function drawWeed(g, x, y, rk){
+  const lv = clamp((rk - WEED_SEED) / (1 - WEED_SEED), 0, 1);
+  const n = 3 + (lv * 4.5 | 0);                              // 3..7 blades, out of one root
+  const [rx, ry] = [x + 0.18 + hash(x * 5, y * 7 + 401) * 0.64, y + 0.24 + hash(x + 7, y * 3 + 409) * 0.52];
+  g.strokeStyle = WEED_COLS[(hash(x, y + 413) * 3) | 0];
+  g.lineWidth = Math.max(0.7, cellW * 0.045);
+  g.beginPath();
+  for (let k = 0; k < n; k++){
+    const h1 = hash(x * 3 + k, y + 419), h2 = hash(x + k, y * 3 + 421);
+    const hgt = (0.10 + 0.22 * lv) * (0.55 + 0.75 * h1);     // low: a weed is under the crop, not over it
+    const lean = (h2 - 0.5) * 0.46;
+    const [bx, by] = project(rx, ry, 0);
+    const [tx, ty] = project(rx + lean, ry - 0.06 * h2, hgt);
+    g.moveTo(bx, by); g.lineTo(tx, ty);
+  }
+  g.stroke();
+  if (lv > WEED_RANK_HI){                                    // gone right over: it has seeded
+    g.fillStyle = WEED_COLS[1];
+    for (let k = 0; k < 2; k++){
+      const h1 = hash(x * 9 + k, y + 431), h2 = hash(x + k, y * 9 + 433);
+      const [hx, hy] = project(rx + (h2 - 0.5) * 0.42, ry - 0.05, (0.16 + 0.20 * lv) * (0.7 + 0.6 * h1));
+      g.beginPath(); g.arc(hx, hy, Math.max(0.7, cellW * 0.075), 0, 7); g.fill();
+    }
+  }
+}
 function drawMoss(g, x, y, mv){
   const b = Math.min(MOSS_BUCKET - 1, mv * MOSS_BUCKET | 0);
   if (b < 1) return;                                        // a trace of moss draws nothing
@@ -10602,8 +10755,14 @@ function groundBase(x, y, t, hv, m){
              : mix('#9aa96b', '#74a04c', health);
     return mix(g1, '#a4906a', Math.pow(wear[y * GW + x], 0.7));
   }
-  if (t === BED || t === CBED) return turned[y * GW + x] ? mix('#31261c', '#3e3022', hv)   // dug over: darker, colder; furrowed in drawGround
-                                                          : mix('#5c4832', '#6b563c', hv);
+  if (t === BED || t === CBED){
+    const i = y * GW + x;
+    const c = turned[i] ? mix('#31261c', '#3e3022', hv)   // dug over: darker, colder; furrowed in drawGround
+                        : mix('#5c4832', '#6b563c', hv);
+    // #197: the weed is drawn ON THE SOIL, which is brown — a rank cell is a HUE change
+    // against its neighbours, not a green on a green, which is how this vector fails
+    return rank[i] > 0 ? mix(c, '#7c8342', 0.66 * rank[i]) : c;
+  }
   if (t === SIDE){                                    // #114: the quay ages; moss is 0 on every other footway and the mix is exact at 0
     const i = y * GW + x;
     const p = trodStone(wetCol(mix('#b3a88f', '#bfb49b', hv), hv), i), mo = moss[i];
@@ -11099,6 +11258,7 @@ function drawGround(){
     // after the SIDE joints, so the green sits IN the seam it grows in. PATH never takes
     // that branch, so the plaza's draw order is HEAD's.
     if ((t === PATH || t === SIDE) && moss[i] > 0) drawMoss(gtx, x, y, moss[i]);
+    if (rank[i] > WEED_SEED) drawWeed(gtx, x, y, rank[i]);   // #197: 0 on every cell but the 102 in the allotment lattice
     if (rice[i] > 0) drawIce(gtx, x, y, rice[i]);            // #181: 0 on every cell but the channel's margin
     if (t === GRASS && x >= ALT_X0){                     // reeds where bank meets water (the eyot's are drawn with the island below)
       let nearWater = false;
@@ -16724,8 +16884,12 @@ function bedName(x, y, j){
  * the majority's rather than becoming the better of two unrelated rows. */
 function plotName(x, y){
   const sp = plotCrop(x, y);
-  if (!sp) return 'a plot lately lifted, lying bare';
   const [ox, oy] = plotOrigin(x, y);
+  /* #197: read off the CA, not inferred — the same sum plotAct's hoe rung is gated on,
+     so what the pointer says and what sends the hoe out are one predicate. */
+  const rk = plotRank(ox, oy), gone = rk >= WEED_HOE ? ', gone over to weed'
+           : rk >= WEED_HOE * 0.45 ? ', weeds coming up in it' : '';
+  if (!sp) return (rk >= WEED_HOE ? 'a plot let go, rank with weed' : 'a plot lately lifted, lying bare' + gone);
   let st = 0, oth = 0;
   for (let yy = oy; yy < oy + 2; yy++) for (let xx = ox; xx < ox + 3; xx++){
     const i = yy * GW + xx;
@@ -16734,7 +16898,7 @@ function plotName(x, y){
   }
   return (inGlass(x, y) ? 'a row of ' : 'a plot of ') + SPECIES[sp - 1].name +
          (oth ? ' with ' + SPECIES[oth - 1].name + ' worked in among them' : '') + ', ' +
-         stageOf(SPECIES[sp - 1], st, bedCap(x, y)) + (inGlass(x, y) ? ', under glass' : '');
+         stageOf(SPECIES[sp - 1], st, bedCap(x, y)) + (inGlass(x, y) ? ', under glass' : '') + gone;
 }
 function nameAt(x, y){
   if (x < 0 || y < 0 || x >= GW || y >= WH) return '';
@@ -17520,6 +17684,7 @@ function simStep(sdt, dt){
   if (wetBucket() !== wetPainted) groundDirty = true;                        // the paving soaks and dries in WET_STEPS steps
   if (washOut() !== washPainted) groundDirty = true;                         // #110: the washing goes out, and comes in
   if (barrowKey() !== barrowPainted) groundDirty = true;                     // #138: a barrow appears at a plot somebody kneels at, and goes when they do
+  if (weedBucket() !== weedPainted) groundDirty = true;                      // #197: the beds go over, and are hoed, in WEED_STEPS steps
   wearAcc += sdt;
   if (wearDirty && wearAcc >= WEAR_REPAINT) groundDirty = true;               // the trodden paths, throttled
 
@@ -18000,6 +18165,13 @@ window.__census = function(){
        rather than of a system that is not there. Town state: a pure function of the
        calendar and the weather that has run. */
     martinNests: martOn, eaveLine: MART_CELLS.length,
+    /* #197: the weed CA. `allotBeds` rides here for the reason `eaveLine` does — it is
+       what makes `rankBeds: 0` in the winter row evidence of a block the cold has cleaned
+       rather than of a system that is not there. Both are town state: a pure function of
+       the calendar and the weather that has run. */
+    rankBeds: WEED_CELLS.reduce((n, i) => n + (rank[i] > WEED_SEED ? 1 : 0), 0),
+    rankPlots: (() => { let n = 0; for (let oy = 8; oy <= 50; oy += 7) for (let ox = 80; ox <= 90; ox += 5) if (plotRank(ox, oy) >= WEED_HOE) n++; return n; })(),
+    allotBeds: WEED_CELLS.length,
     benches: BENCH_SPOTS.length + LANE_BENCHES.length + QUAY_BENCHES.length + FAR_BENCHES.length,
     cafeTables: CAFE_TABLES.length, marketStalls: MARKET_STALLS.length,
     treePits: TREE_PITS.length, orchard: ORCHARD.length, plazaPits: PLAZA_PITS.length,

@@ -247,3 +247,27 @@ on **599 of 600 frames** of play, so a Path2D keyed on project()'s own seven ter
 **Law:** a lift taken out of a multiply's ALPHA moves every channel toward the un-multiplied
 source, so it WARMS — only the COLOUR lifts and cools at once (50% off alpha: blue/red 1.27 v
 HEAD's 1.90). A per-cell overlay's cost is the PATH BUILD, not the fill.
+
+## Iteration 197 — the allotments are allowed to go over (2026-09-04) [Cross street & allotments × New CA]
+
+**Brief:** b197 — a weed CA on the beds, founded on a cell fallow past some age.
+**Premise half wrong** (allot-neglect/allot-age.mjs, 6 seeds x a year). bAge on an EMPTY bed
+— the clock the brief named — counts DOWN: over 437,580 cell-samples its **max is 19.98 s**,
+and it stands on 2.48% of them. Nothing is ever fallow *past* an age. Its OTHER branch, on a
+PLANTED cell at its ceiling, counts UP unbounded and is cleared only by plotAct's weeding
+rung — **max 232.8 s**. Right array, wrong half.
+**Did.** `rank[]` in caTick beside the moss: FOUND on weedAge(i) (42..120 s, hashed, salted),
+CREEP 0.5 along the drill / 0.22 across, SHADE off bSt, WORK off a climbing crop, COLD off
+warmth. **Zero R().** The hoe rung goes FIRST in plotAct: the rung beside it fires **5x in 6
+seed-years** — `up.length` takes almost every visit. Drawn in the GROUND CACHE with the moss.
+**Gates:** census PASS (rankBeds 287, winter 0) · motion PASS on a HEAD-pinned baseline ·
+filmstrip 0 POP · 6 framings · rebuilds and drawGround flat, interleaved. MASS **1,658-2,894
+px at 1600x950**, same-code floor **0 of 18 rows**. SPREAD, peak quarter: **77.9%** of frames
+hold 3+ clean plots AND 3+ gone right over.
+**Verdict:** shipped
+**Surprise:** WEED_WORK is the whole build. Without it the block goes **uniformly rank** — 66%
+of plots pegged at the top, the middle bands empty — as dead a picture as uniformly tidy, just
+inverted. What makes it read is that the HARVEST CYCLE holds weeds back: a plot being lifted
+and re-sown is ground being worked, and one nobody reaches is not.
+**Law:** a "nothing shows X" premise names a STATE, usually on the OTHER BRANCH of the array
+named. Price both halves before calling a system absent.
