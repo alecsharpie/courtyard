@@ -296,3 +296,28 @@ weather (`a.arc`), not a timer, so at an unchanged rate a wet courtyard came out
 than a fine one, 4.25 v 4.15.** A roof does not only admit people, it holds them.
 **Law:** a place whose stay ends on a CONDITION turns inflow into presence at a different
 rate from its timed neighbours — price presence as rate x visit before choosing the rate.
+
+## Iteration 199 — somebody in the room before dawn (2026-09-04) [Roofs & skyline × Deepen]
+
+**Brief:** b199 — c283: #190 fixed the EVENING burn; windowLit's sunrise branch was never
+offered a paneFigure, so first light was lit panes with nobody in them.
+**Premise** (`probes/pane-morning.mjs`, new, on HEAD): **4.55 lit panes** per pre-dawn sample,
+**0 visits a year** — a third of the evening's lit population, not the two I guessed.
+**Did.** (1) `lampBurn` gains `[rOn, rOff)` — the early-riser test lifted out, in the night's
+units: `t = span - D + s`, `D = dawnEdge() - sunUp`, which `rOff` cancels exactly.
+windowLit reads it: **0 disagreements over 2,595,892 pane-samples** (9.8% lit: not vacuous).
+(2) One visit is offered over that burn — no band to intersect, the burn IS the offer, so only
+the LENGTH is solved before the hour; `paneWalk()` factored out, told apart by `k = FIG_SLOTS`,
+so the evening's coin is untouched. (3) A 9.4 h midsummer night leaves the evening band open at
+that pane's `rOn`, so `mLo = max(rOn, hi)`: the morning starts no earlier than an evening visit
+must END by, disjoint by construction.
+**A year:** MORNING 0.006 -> **0.641** figures/sample of 4.55 lit, **0 -> 182** visits, nights
+with one **0 -> 87/104**. EVENING identical: 1.152 of 11.95, 886 visits.
+**Gates:** census PASS (render state) · motion PASS · filmstrip 0 POP · continuity 0 swaps both
+sides · look 199 px on 0 px
+**Verdict:** shipped
+**Surprise:** the continuity gate reported **754 swaps/yr on HEAD** before I priced its
+threshold. u moves 1.08 in 0.24*dur on the exit leg — 7.5 u/h — so 0.4 per 0.1 h flagged the
+walk's own fastest phase. The instrument, not the build.
+**Law:** a jump threshold is priced off the subject's FASTEST phase, not its mean; a swap only
+SHOWS if both ends are inside the aperture.

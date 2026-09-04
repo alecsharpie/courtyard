@@ -631,7 +631,7 @@
       "the STEP that makes a terrace: roofZE(vx,vy,e) read from INSIDE its own house; drawGable, party-wall line in drawRoofRow, buildStacks/STACK_ROWS -> CHIMNEYS; WEATHERVANES, MURMURATION",
       "OUR OWN ROOF below the lane: rows 79..WH WALL, NEAR_SPANS, NEAR_HOUSE 7/houseOf, NEAR_RIDGE; drawNearRoof CACHED — drawCrests, WELLS, DORM_Y, drawParapet, OUR_AWNINGS, LOFTS, roofWalkZ; TOP (#171) LEADS 86-87, HATCHES/LEADS_BAYS, tenantErrands",
       "the near block is SLATED: drawRoofRow forks at LN_WALK_S to drawSlateCell/slateRun on slateGrid(y); per-slate roofMossF()/sootAt()/slipped; roofBirdSpot; ROOF_FURN 24 per BAY",
-      "somebody AT a window (#182, #190): paneFigure/drawPaneFigures off LIT_PANES {q,sa,sb,room}, hashed on nid, drawn last with the moths; lampBurn() is windowLit’s evening burn [on,off) and the figure clips to it; FIG_SHARE 0.16"
+      "somebody AT a window (#182/#190/#199): paneFigure/paneWalk/drawPaneFigures off LIT_PANES, hashed on nid; lampBurn() is BOTH burns — evening [on,off) and the sunUp-keyed riser [rOn,rOff) — windowLit reads it; FIG_SHARE .16 x2, FIG_M_SHARE .45 x1"
     ]
   },
   "openCues": [
@@ -686,6 +686,12 @@
     {
       "id": "c292",
       "note": "c280 (#198): 2 tick-people of 9,372 small-hours ticks stand under the arcade past 22 h, both already lawnOut; 0 on HEAD. One tick of lag in the a.arc release, or a real hole.",
+      "raisedBy": 196,
+      "seenBy": 0
+    },
+    {
+      "id": "c293",
+      "note": "paneFigure's two EVENING slots are not constructed disjoint the way #199's morning is (mLo = max(rOn,hi)): slot 1 can be offered while slot 0 runs, masked till it ends. pane-figure-continuity.mjs measures 0 swaps/yr — measured, not constructed.",
       "raisedBy": 196,
       "seenBy": 0
     }

@@ -9589,9 +9589,21 @@ function millWindow(sa, sb){ return sa === MILL_WIN[0] && sb === MILL_WIN[1]; }
  * object, which is fresh per call, so no other caller of windowHours() sees them and
  * there is nothing to keep between frames. null = nobody home tonight. */
 function lampBurn(sa, sb){
-  if (millWindow(sa, sb)){ const n = nightAt(); n.on = 0; n.off = n.span; return n; }   // the miller's lamp is the whole night
+  if (millWindow(sa, sb)){ const n = nightAt(); n.on = 0; n.off = n.span; n.rOn = n.rOff = null; return n; }   // the miller's lamp is the whole night
   const w = windowHours(sa, sb);
   if (!w) return null;
+  // ...and the MORNING burn [rOn, rOff), the same lift for windowLit's other branch: the
+  // early risers. Keyed on the SUN, never on the night's span — s = hour - sunUp is the
+  // hour the branch is written in, and t = span - D + s with D = dawnEdge() - sunUp, so
+  // rOn carries D and rOff cancels it exactly. Both read the CURRENT instant's sunUp and
+  // dawnEdge, so the window breathes with the season the way the branch always did; the
+  // arithmetic below is windowLit's own, rearranged, not a second definition of it. The
+  // rise is the hash's alone: HOMES may move the EVENING lamp to a door, never this one.
+  if (w.hRise < 0.14){
+    const r = w.hRise / 0.14, D = dawnEdge() - sunUp;
+    w.rOn = w.span - D - 2.2 + 1.4 * r;                  // wakes in the dark, 2.2 h before first light at the earliest
+    w.rOff = w.span - 0.8 * (1 - r);                     // and out again across sunUp - 0.3 .. + 0.4 as the light comes up
+  } else w.rOn = w.rOff = null;
   const home = HOMES.get(sa * 1000 + sb);
   if (home && home.nid === w.nid){
     if (home.t !== null){ const burn = w.off - w.on; w.on = home.t; w.off = Math.min(w.last, home.t + burn); }   // in: the hash's evening, from the door
@@ -9610,14 +9622,10 @@ function windowLit(sa, sb){
   // there a lamp came ON as late as sunUp+1.1 and burned to sunUp+1.6, and the town lit UP as
   // the sun rose: 5 panes at sunUp-0.8 against 10 at sunUp+0.5 in winter. They now wake in the
   // dark (all of them lit by sunUp-0.8) and go out one by one across sunUp-0.3..+0.4 as the
-  // light comes up, so the count is FALLING through sunrise. `sunUp` is the current instant's,
-  // recomputed by updateClock every frame: the hour of the sun asked where it is answered, so
-  // no fixed point. Continuous across the 06.00 day roll, which `nid` already crosses whole.
-  if (w.hRise < 0.14){
-    const r = w.hRise / 0.14, s = hour - sunUp;                    // 0..1 within the early-rising seventh
-    const out = (dawnEdge() - sunUp) - 0.8 * (1 - r);              // #112: the LAST one goes out exactly at the dawn edge, so
-    if (s >= -2.2 + 1.4 * r && s < out) return true;               // the gate above never clips the stagger into one blink
-  }
+  // light comes up, so the count is FALLING through sunrise. The hours are lampBurn's now
+  // (#199) — the same sunUp-keyed arithmetic, in the night's units, so a visit at the glass
+  // can be solved inside them; the #112 stagger and the dawn edge it ends on are unmoved.
+  if (w.rOn !== null && w.t >= w.rOn && w.t < w.rOff) return true;
   return false;
 }
 /* The pane and its mullions, drawn twice over: once dark into the cached ground layer
@@ -9682,6 +9690,19 @@ const FIG_SHARE = 0.16;                 // ...and this share of those slots is t
 const FIG_T0 = 0.20, FIG_T1 = 7.6;      // the band of the night they fall in, night-hours
 const FIG_MIN = 0.75, FIG_SPAN = 0.95;  // and how long one lasts, night-hours (a night-hour
                                         // is 2.3 s of wall clock: under one, a visit is a blink)
+/* THE MORNING. The evening's constants above do not carry over, because the two burns are
+ * not the same shape: an evening lamp is on for 1.2..8 night-hours and a visit is offered
+ * into a BAND inside it, while the early riser's burn is 1.0..1.8 h long and IS the band —
+ * there is no second clock over it to intersect, which is the whole of #190's lesson taken
+ * one step further. So the morning gets its own three numbers and its own hash addresses
+ * (slot index FIG_SLOTS, past the evening's), and the evening's coin is not touched: this
+ * cannot make the glass busier at nine o'clock, and the probe says it does not.
+ * The SHARE is higher than the evening's on purpose and is not a look knob borrowed from
+ * it — a lamp burning at five in the morning is somebody who has just got up, so the
+ * chance the room has somebody crossing it is the chance they are not still in the
+ * kitchen. One slot: a 1.4 h burn has room for one visit, not two. */
+const FIG_M_SHARE = 0.45;               // ...of early-riser burns get a visit at the glass
+const FIG_M_MIN = 0.60, FIG_M_SPAN = 0.55;   // 0.60..1.15 night-hours: shorter than an evening's — a stir, not a sit
 function paneFigure(sa, sb){
   const n = lampBurn(sa, sb);
   if (!n) return null;
@@ -9704,19 +9725,44 @@ function paneFigure(sa, sb){
     const t0 = lo + (last - lo) * (k + h0 / FIG_SHARE) / FIG_SLOTS;
     const s = (n.t - t0) / dur;
     if (s < 0 || s >= 1) continue;
-    const hs = hash(sa * 37 + k + 2, sb * 41 + n.nid * 13);
-    let u;
-    if (hs < 0.46) u = -0.44 + 1.88 * s;                  // straight across the room and out
-    else {                                                // or up to the glass, a while, on
-      const uS = 0.36 + 0.30 * (hs - 0.46) / 0.54, sm = x => x * x * (3 - 2 * x);
-      if (s < 0.26) u = -0.44 + (uS + 0.44) * sm(s / 0.26);
-      else if (s < 0.76) u = uS + 0.010 * Math.sin(28 * (s - 0.26) + sa);
-      else u = uS + (1.44 - uS) * sm((s - 0.76) / 0.24);
-    }
-    if (hash(sa * 43 + k, sb * 47 + n.nid * 3) < 0.5) u = 1 - u;     // and from the other side
-    return { u, sc: 0.86 + 0.26 * hash(sa * 53 + k, sb * 59 + n.nid) };
+    return paneWalk(sa, sb, k, n.nid, s);
   }
-  return null;
+  // ...and once more before dawn, over the early riser's own burn. No band to intersect:
+  // [rOn, rOff) is both the lamp and the offer, so the only thing solved before the hour
+  // is the LENGTH — a stir longer than the burn is refused rather than truncated (#190).
+  if (n.rOn === null) return null;
+  // Midsummer's night is 9.4 night-hours, so a burn-through lamp's evening band (to
+  // FIG_T1 = 7.6) can still be open when the SAME pane's rise begins at span - D - 2.2 =
+  // 6.8. The evening is asked first, so an overlap would swap one figure for another mid
+  // room — a teleport across the glass no motion gate can see, panes not being entities.
+  // Starting the morning no earlier than `hi`, the hour the last evening visit must END
+  // by, makes the two disjoint by construction. It costs the morning, never the evening.
+  const mLo = Math.max(n.rOn, hi);
+  const k = FIG_SLOTS;                                     // one slot, addressed past the evening's
+  const h0 = hash(sa * 19 + k * 3 + 5, sb * 23 + n.nid * 7 + k);
+  if (h0 >= FIG_M_SHARE) return null;
+  const dur = FIG_M_MIN + FIG_M_SPAN * hash(sa * 29 + k, sb * 31 + n.nid * 11 + 1);
+  const last = n.rOff - dur;
+  if (last <= mLo) return null;                            // this rise is too short for one
+  const t0 = mLo + (last - mLo) * (h0 / FIG_M_SHARE);      // the accepted coin re-used as the phase
+  const s = (n.t - t0) / dur;
+  if (s < 0 || s >= 1) return null;
+  return paneWalk(sa, sb, k, n.nid, s);
+}
+/* Where in the glass, and how big — the same walk for either burn, told apart by the slot
+ * index k alone, so the morning cannot collide with an evening's hash. */
+function paneWalk(sa, sb, k, nid, s){
+  const hs = hash(sa * 37 + k + 2, sb * 41 + nid * 13);
+  let u;
+  if (hs < 0.46) u = -0.44 + 1.88 * s;                  // straight across the room and out
+  else {                                                // or up to the glass, a while, on
+    const uS = 0.36 + 0.30 * (hs - 0.46) / 0.54, sm = x => x * x * (3 - 2 * x);
+    if (s < 0.26) u = -0.44 + (uS + 0.44) * sm(s / 0.26);
+    else if (s < 0.76) u = uS + 0.010 * Math.sin(28 * (s - 0.26) + sa);
+    else u = uS + (1.44 - uS) * sm((s - 0.76) / 0.24);
+  }
+  if (hash(sa * 43 + k, sb * 47 + nid * 3) < 0.5) u = 1 - u;     // and from the other side
+  return { u, sc: 0.86 + 0.26 * hash(sa * 53 + k, sb * 59 + nid) };
 }
 const FIG_BODY = [[-0.02, -0.40], [0.42, -0.35], [0.58, -0.24]];   // [along the axis, across]
 const FIG_HC = 0.83, FIG_HR = 0.20, FIG_NECK = 0.110;
