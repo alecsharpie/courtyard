@@ -19,7 +19,7 @@
   "avoid": "Do not widen the season, and do not simply lower the mud threshold — that makes the WET years denser as well as saving the dry ones, and #189 tuned the plateau against the eave line's 217 cells. The fix is a SOURCE, not a constant. Keep the CA's shape: zero R(), founder x creep x ceiling.",
   "budgetMin": 45,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 202,
   "issued": "2026-09-04T11:42:34.717Z",
