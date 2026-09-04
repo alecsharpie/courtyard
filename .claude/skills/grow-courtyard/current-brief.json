@@ -26,7 +26,7 @@
   "avoid": "Do not add a fourth stall — MK_NEED is measured off 120 markets and says one stall on 24% of them already, so the pitches are under-used before you add one. Do not add a second text surface: the town has exactly ONE line of prose and it stays one line. If the honest answer after pricing is a 40-line change, ship 40 lines and say why.",
   "budgetMin": 45,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 184,
   "issued": "2026-09-03T23:42:45.740Z",
