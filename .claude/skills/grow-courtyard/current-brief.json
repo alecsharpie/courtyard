@@ -19,7 +19,7 @@
   "avoid": "Do not dirty the cache per frame — LAWS: the ground is a CACHE; quantize the QUANTITY the way `snowCover` and `wetBucket()` do, and price the rebuild cost against `probes/ground-rebuilds.mjs` before and after.",
   "budgetMin": 30,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 2,
   "nextIter": 210,
   "issued": "2026-09-04T17:25:29.420Z",
