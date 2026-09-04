@@ -29,7 +29,7 @@
   "avoid": "Do not add another walker band — eastEdges already has six and the cyclist and the dog have fixed widths for a reason (see the comment above EAST_TAIL). Do not put anything on the roadway that stops there: this is TRANSIT, and a parked thing is roof furniture. Do not touch the market, the cafe or the kiosk. Do not widen or re-lay the road surface; it is right, it is simply unused. Anything drawn per frame must be a live overlay — do not set groundDirty from it.",
   "budgetMin": 80,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 211,
   "issued": "2026-09-04T20:52:04.780Z",
