@@ -805,21 +805,75 @@ function unproject(sx, sy){
   const wx = (sx - originX) / (cellW * p) + FOCUS;
   return [wx, wy];
 }
+/* #206: the WIDE view's own vertical intent, in the same three words the quarters are
+ * fitted with (`air`/`keep`/`share`, viewFor below) — because until now it had none.
+ * HEAD budgeted `topPad = 4 + 9.6*cellH` of sky and then banked 82% of whatever the
+ * window had left BELOW that as more of it, against H and never against sillTop(): the
+ * sill paints over the bottom 7.5% of every frame, so the one framing every visitor
+ * lands on was the only one in the town laying itself out against a canvas rather than
+ * against the picture.
+ *   WIDE_AIR is the band of air above the world's north edge the wide view reaches up
+ * to — the spires stand in it (project() lifts z northward, so the clock tower's vane
+ * sits 18.4 rows of screen depth above the roof it is bolted to) and the far bands hang
+ * from its foot. It is pinned to the value that reproduces HEAD's 1600x950 composition
+ * EXACTLY — `WH + 2*(topPad - pic/2)/cellH` solved on HEAD at that framing, which makes
+ * the frame every desktop visitor lands on identical to the pixel (0.00% of pixels differ,
+ * against a same-code control floor of 0.00%). That framing is the one the town is composed
+ * for, so this pass re-prices the fit around it rather than at its expense. HEAD's own
+ * implied air is `9.6 + (0.075H - 2)/cellH` — 19.6 rows at 1600x950 and 23.4 at 390x844,
+ * an aspect the layout never meant to state.
+ *   WIDE_KEEP splits the overflow when the band is taller than the picture, exactly as a
+ * quarter's `keep` does: 0 keeps the air, 1 keeps the near row, 0.5 loses each end alike.
+ * HEAD's implied keep ranged 0.25 to 0.79 across the framings this repo tracks — one
+ * number is the point of saying it out loud. */
+const WIDE_AIR = 19.6217, WIDE_KEEP = 0.5;
+/* And the LEAN. A tall narrow window cannot hold the world's 138 columns at any useful
+ * size, so it trades width for scale — HEAD at a flat 2.1x the width fit, which is a
+ * number about the WINDOW and not about the picture, and which on a phone left 27.5% of
+ * the frame empty sky above the town and 21.7% blank near slate below it, with the town
+ * itself under half the frame (probe-wide-frame.mjs).
+ *   The town's rows are the only thing that can fill a portrait frame — the share of the
+ * picture they cover is WH*cellH/pic and nothing else moves it, so the lean is priced on
+ * that share directly: lean in until the world's own rows cover WIDE_FILL of the picture.
+ * WIDE_SPAN floors what that may cost: the frame never narrows past this many columns,
+ * which is what keeps the courtyard whole. Neither may zoom out from HEAD's 2.1. */
+const WIDE_FILL = 0.60, WIDE_SPAN = 54;
+/* A lean has to land somewhere, and HEAD's tall branch leaned in around a centre chosen
+ * for a frame 66 columns wide: FOCUS = 54, which is the LANE's middle, not the garden's.
+ * The lawn is x 11..50, so a phone was already cutting 29% of it off the west side before
+ * this pass and 42% after it — the courtyard traded away for the town, which is the one
+ * trade this piece may not make. So the centre walks west with the lean, far enough to
+ * hold the garden's own west edge at the row the garden stands on, and never further west
+ * than its middle. The edge is READ OFF THE GRID rather than named again here. */
+let gWest = -1;
+function gardenWest(){
+  if (gWest < 0)
+    for (let x = 0; x < GW && gWest < 0; x++)
+      for (let y = 0; y < WH; y++) if (grid[y * GW + x] === GRASS){ gWest = x; break; }
+  return gWest < 0 ? CX : gWest;
+}
 function resize(){
   DPR = Math.min(devicePixelRatio || 1, 2);
   const r = cv.parentElement.getBoundingClientRect();
   W = r.width; H = r.height;
   cv.width = W * DPR; cv.height = H * DPR;
+  const pic = sillTop();                          // the PICTURE: what the sill does not paint over
   const fitW = W / GW, fitH = (H - 16) / ((WH + 10.5) * 0.70);
   if (fitH > fitW * 1.5){                         // tall, narrow window: lean in rather than shrink away
-    cellW = Math.min(fitH, fitW * 2.1); FOCUS = 54;
+    const fill = pic * WIDE_FILL / (WH * 0.70);   // the lean whose rows cover WIDE_FILL of the picture
+    cellW = Math.min(fitH, Math.max(fitW * 2.1, Math.min(fill, W / WIDE_SPAN)));
+    const half = W / (2 * cellW * (1 - PINCH * (1 - CY / WH)));   // half the span at the garden's own row
+    FOCUS = clamp(gardenWest() + half, CX, 54);
   } else {
     cellW = Math.min(fitW, fitH); FOCUS = GW / 2;
   }
   cellH = cellW * 0.70;
-  topPad = 4 + 9.6 * cellH;                       // headroom for sky, distant hills and spires
-  const spare = H - (topPad + WH * cellH + 6);
-  if (spare > 0) topPad += spare * (spare > 12 * cellH ? 0.5 : 0.82);
+  // the band -WIDE_AIR .. WH, laid out in the picture by viewFor()'s own expression at
+  // s = 1: centred while it fits, and losing WIDE_KEEP of the overflow at the near end
+  // when it does not. `4 + 9.6*cellH` and the 0.82/0.5 split of the spare are both gone.
+  const rows = pic * 0.96 / cellH, span = WH + WIDE_AIR;
+  const top = -WIDE_AIR + Math.max(0, span - rows) * WIDE_KEEP - Math.max(0, rows - span) * 0.5;
+  topPad = pic * 0.02 - top * cellH;
   originX = W / 2;
   cellW0 = cellW; cellH0 = cellH; topPad0 = topPad; originX0 = originX;   // the wide view
   viewSnap();                                     // a resize lands the camera; no ease across it

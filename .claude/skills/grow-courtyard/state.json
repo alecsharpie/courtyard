@@ -657,7 +657,8 @@
       "the PAINTED sill: drawSill in drawOurSide, in the ground cache; sillTop() the ONE definition, sillU/sillBoxes/sillOver/clipOffSill, nearShadow; reads the YEAR — gerLeaf/Bloom/Drop, sillFrost/Wet/Snow, sillCup, sillAt",
       "the ticker knows where you are LOOKING: inView(x,y) the ONE reader of whereN, AMBIENT_PLACES/ambientHere, SOUNDS bypass it; THREE ranks — background(rank,txt,then,until), announce(), CLOCK, MURMUR",
       "the ground cache is relit when the LIGHT moves, not the clock: lightNow/lightMoved an L1 distance from lightPainted, LIGHT_MOVE/LIGHT_SLOW, markGroundPainted; a landing DISSOLVES both — fadeCaches/fadeF",
-      "HARNESS (not town nouns): census WINTER row — warp 1220, winterLadder, --ref, WCORE its per-field floor, STRUCT_CONST/LIVE + constAudit splitting `structures`; probe-smoke.mjs runs all THREE probe trees"
+      "HARNESS (not town nouns): census WINTER row — warp 1220, winterLadder, --ref, WCORE its per-field floor, STRUCT_CONST/LIVE + constAudit splitting `structures`; probe-smoke.mjs runs all THREE probe trees",
+      "the WIDE fit is a QUARTER now: WIDE_AIR/WIDE_KEEP centre the band -AIR..WH in sillTop()'s picture at s=1; WIDE_FILL/WIDE_SPAN lean a tall frame in on the world's rows; gardenWest() walks FOCUS west with it"
     ],
     "roofs": [
       "the town is HOUSES not regions: buildVolumes() makes roofs EMERGENT — eaveFor(x,y), vZ four-corner average, vD a distance transform, SLOPE; houseAt/houseIx, EAVE_LO 4.62/EAVE_HI 7.15",
@@ -688,6 +689,12 @@
       "id": "c301",
       "note": "the fair's lead is 1.2-8.6 h (med 4.4) of a 6.5 h fair, so ~7 of its 10 are walking the corridor, not standing — the plaza's own day may want a nearer door (#204)",
       "raisedBy": 202,
+      "seenBy": 0
+    },
+    {
+      "id": "c303",
+      "note": "the wide lean reads sillTop() now, so a sill that borrows a line re-leans the camera ~2% as well as moving it; HEAD only moved topPad. Ground pad at 390: 303->493 px, drawGround 29.8->30.1 ms",
+      "raisedBy": 205,
       "seenBy": 0
     }
   ],

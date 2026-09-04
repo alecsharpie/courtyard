@@ -220,3 +220,26 @@ allowed to run, so nobody knew they were long sweeps and not wrecks. And winter 
 **Law:** an aggregate SUMMING two kinds of register is diluted by every constant added: report the constant
 share beside the total, or a floor on the sum watches a number 93% frozen. A TIMEOUT is the RUNNER's
 concurrency before it is the instrument's.
+
+## Iteration 206 — the wide view gets a vertical intent (2026-09-05) [The sill & the observer × Interaction/UX]
+
+**Brief:** b206 — give WIDE, the framing everyone lands on, an intent priced on `sillTop()` and aspect.
+**Measured first** (probes/wide-frame.mjs, new; 12 framings): HEAD at 390x844 is sky **27.5%** / TOWN
+**43.4%** / near slate **21.7%**. The premise's other half: town share is `WH*cellH/pic` and nothing else
+moves it — `topPad` only splits the slack between sky above and apron below, so the sky never competed for
+those pixels, the LEAN did. And no lean that keeps the courtyard puts the plaza in a phone.
+**Did.** (1) `WIDE_AIR 19.6217`/`WIDE_KEEP 0.5` — the band `-AIR..WH` laid out by viewFor()'s expression at
+s=1; `4 + 9.6*cellH` and the 0.82/0.5 spare are gone. AIR is solved on HEAD at 1600x950, so that frame is
+**0.00% changed** (control floor 0.00). (2) `WIDE_FILL 0.60`/`WIDE_SPAN 54` — a tall frame leans in
+until the world's rows cover 60% of the picture, never past 54 columns, never below HEAD's 2.1x. (3) the
+centre walks west with the lean, off `gardenWest()` read off the GRID — HEAD cut 8 of the lawn's 40 columns
+on every portrait framing, the lean alone would have cut 16.
+**390x844: 22.5 / 52.0 / 18.0%, lawn 19..50 -> 11..50**; landscape and tablet scale untouched.
+**Gates:** census PASS · motion PASS (HEAD-pinned) · filmstrip day+night 0 POP · where-faces, where-void and
+follow-cam as HEAD.
+**Verdict:** shipped
+**Surprise:** the quarters are fitted in cellW0-INVARIANT units — s falls exactly as cellW0 rises — so
+re-pricing the whole wide view moved three of the four fits **0 px**; only Courtyard's moved, s already
+1.0175.
+**Law:** a frame's share is a function of the ZOOM alone — padding decides where the slack goes, not how
+much there is.

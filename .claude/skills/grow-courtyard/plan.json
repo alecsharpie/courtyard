@@ -17,22 +17,22 @@
   "rationale": "I SHOT THE TOWN BEFORE PLANNING IT — seed 42, t=224, day 5 at 07:45, wide + the lane band + the phone — and one picture decides this batch. At 390x844 roughly 27% of the frame is empty sky and another ~29% is near slate and the black sill: the TOWN gets under half the phone's frame, and what it gets is the courtyard and a sliver of allotments. The plaza, the river and the far bank are not in the picture at all. Then I greped rather than trusted, and the cause is not the phone. QUARTERS[0] — Wide, the framing every visitor lands on and the one 100% of first frames use — has no y1, so viewFor() short-circuits at line 883 to {s:1, ox:originX0, tp:topPad0} and hands the whole job to resize(), which budgets topPad = 4 + 9.6*cellH of sky at every size and then pushes 82% of any spare down as well, and never reads sillTop(). Every OTHER quarter has had a fitted vertical intent since #120 — air, keep, share, all priced on sillTop(). The default framing is the one framing in the town that was never fitted. That is rung 5 by name: not a new thing in the world, a change to how the world is READ, and it is worth more to a thirty-second visitor than anything on the map.\n\nRUNG 5 AND NOT 4b, DELIBERATELY. mapFlat is not showing and structures has moved on four of the last six iterations, so the census is not asking for a spatial change; and the phone shot says the constraint is not that the town is too small but that the window on it is badly spent. Extending the map would put MORE town outside a frame that already cannot hold what exists.\n\nTHE OTHER FOUR ARE THE CUE BACKLOG, PAID DOWN. Ten cues were open and seven had been seen by zero manager passes — the loop was raising questions faster than this seat was answering them, which is precisely the run-up to the last loop's nine-iteration death spiral. Four are promoted into briefs here (c287 -> b207, c295 -> b208, c291 -> b209, c294 -> b210), two are closed as answered by the work that followed them (c300 by #203's moonShows(), c302 by #205's own measurement), and three stay open. b207 also serves the balance: the lane is 12 iterations back, longest by the raw count.\n\nWHAT I CUT, AND WHY. The worker read 48.2 KB against a 46 KB cap. LAWS.md was at its 12 KB cap, so adding #201's, #202's and #204's laws meant cutting, and I cut two whole laws rather than shaving prose (shaving 8 bullets bought 133 bytes; deleting bought 400). DELETED: (1) the APERTURE law — its subject is paneFigure/drawPaneFigures, built at #182 and tuned at #190 and #199, and 'bound the lateral by the aperture' now lives inside that function; by this file's own header it had become an example, and examples belong in the source. (2) the NAMING FALL-THROUGH law — skyAt() has been the last-asked answer since #188 with no work since, and its general half already sits two bullets above it under 'one predicate, one definition'; its one uncovered clause survives there. MERGED: trap (c), the cast image's target set, into trap (a) it was derived from. The inventory was rewritten from 58 narrated lines to 59 lines of nouns, and its own note was quoting caps rotate-ledger.mjs no longer uses (8 lines / 300 B / 9.5 KB against its real 7 / 250 / 10.0) — a wrong instruction the worker read every iteration. I did NOT raise a cap to clear a breach: the inventory sits 0.3 KB over its 10 KB sub-cap and I am recording that rather than moving the line, because a cap raised to fit is how the last loop died. The number that binds — the worker's total read — is 44.2/46 with 1.8 KB of slack, and it falls to ~43.4 the moment pop-brief.mjs replaces #205's 2.2 KB brief with these.",
   "queue": [
     {
-      "id": "b206",
-      "domain": "The sill & the observer",
-      "kind": "Interaction/UX",
-      "brief": "THIS IS THE BET: a 150-300 line diff is expected and welcome, take the swing. WIDE is the framing every visitor lands on and the only framing in the town with no vertical intent. QUARTERS[0] has no `y1`, so `viewFor()` short-circuits to `{s:1, ox:originX0, tp:topPad0}` and hands the job to `resize()`, which budgets `topPad = 4 + 9.6*cellH` of sky at every size, pushes 82% of any spare down as well, and never reads `sillTop()` — which all four fitted quarters do. MEASURE FIRST, at 1600x950 and 390x844: the share of canvas rows that is TOWN, against sky above and near-slate + sill below. My shot of HEAD at 390x844 reads ~27% sky and ~29% near roof + sill, so the town is under half a phone's frame and the plaza, river and far bank are not in it. Then give WIDE what #120 gave the quarters: an air/keep/share-shaped intent priced on `sillTop()` AND on the frame's aspect, so a tall narrow window leans in rather than banking sky. This is the camera, so re-run everything downstream of it: the ground cache and `gview`, the backdrop blit's `k = viewS/bview.s`, `FACES` screen-space registration, `unproject()`, `nearHidden()`, `groundPad()`, the follow camera, and every quarter's own fit.",
-      "seams": ["resize", "QUARTERS", "viewFor", "topPad0", "originX0", "sillTop", "cellW0", "FOCUS", "viewSnap", "groundPad", "nearHidden"],
-      "successLooksLike": "At 390x844 the opening frame is mostly town — the measured town share rises materially against HEAD and the plaza is in the picture — while 1600x950 keeps its composition (sky band, clock tower and church spire all still in frame, near band still legible) and every quarter's fit is unchanged.",
-      "avoid": "Do not fix this by changing the DEFAULT QUARTER: #144 closed that as c217, and a first-run auto-zoom hides the wide shot the town is composed for. The change belongs in the WIDE fit itself. Do not redefine `sillTop()` and do not touch `drawSill`.",
-      "budgetMin": 75,
-      "risk": "high"
-    },
-    {
       "id": "b207",
       "domain": "Lane & market",
       "kind": "Deepen",
       "brief": "The market's stock is a switch where it should be a gradient: `shelved` is capped at exactly the open boards' capacity, so a board is either full or the day is bare and a half-stocked pitch is unreachable (c287, raised at #192, unanswered for 13 iterations). Lane & market is the longest-untouched domain, 12 back. PRICE THE PREMISE FIRST: histogram `shelved` against `mkOpenCount()*MK_GOODS` over 6 seeds x a year and count the days that sit at the cap — if the cap never binds, or the SUPPLY is the real bound, say so and make the measurement the deliverable. If it does bind, make the fill something the day spends: stocked up by mid-morning, thinned by late afternoon, out of the supply the allotments' cart actually delivered.",
-      "seams": ["MARKET_STALLS", "stockMarket", "mkTrades", "mkShelfFor", "mkOpenCount", "MK_GOODS", "MK_NEED", "MK_CAP", "mkOver", "cartToday"],
+      "seams": [
+        "MARKET_STALLS",
+        "stockMarket",
+        "mkTrades",
+        "mkShelfFor",
+        "mkOpenCount",
+        "MK_GOODS",
+        "MK_NEED",
+        "MK_CAP",
+        "mkOver",
+        "cartToday"
+      ],
       "successLooksLike": "On a market day the boards are visibly fuller at mid-morning than at four o'clock, in the Street quarter, without needing a difference image to see it.",
       "avoid": "Do not add a stall type and do not raise MK_CAP — #193 already re-sized the market and LAWS says a cap and a rate are two bounds, only one of which can be swept.",
       "budgetMin": 35,
@@ -43,7 +43,15 @@
       "domain": "The sill & the observer",
       "kind": "Polish",
       "brief": "The ticker is the town's one channel for saying what it is doing, and it loses the end of what it says. Re-shot on HEAD at 1600x950 during this manager pass: `A hatch goes back on the roof below the window and a basket of wash…` clipped mid-word. The slot is a fixed width and the 37 `sayAt` sentences are not (c295). Fix the SLOT, not the sentences — measure the rendered width of the whole corpus at the sizes the ticker is shown at, and make the layout hold the longest of them.",
-      "seams": ["#ticker", "TICK_DWELL", "QMAX", "background", "announce", "sayAt", "refreshStats"],
+      "seams": [
+        "#ticker",
+        "TICK_DWELL",
+        "QMAX",
+        "background",
+        "announce",
+        "sayAt",
+        "refreshStats"
+      ],
       "successLooksLike": "At 1600x950, 1280x800 and 1024x700 no ticker line is cut mid-word — every one of the 37 sentences either fits its slot or is composed to fit it.",
       "avoid": "Do not shrink the ticker's type below the footer's other text, and do not solve it by hand-shortening the 37 sentences: the fix must hold for the next sentence somebody writes. The chrome is hidden under 640px, so the phone is not in scope here — it is b206's.",
       "budgetMin": 25,
@@ -54,7 +62,18 @@
       "domain": "Cross street & allotments",
       "kind": "Connect",
       "brief": "#197 gave the beds a weed CA over `rank[]` and put a hoe rung FIRST in `plotAct` — but nothing steers the crew toward a plot that has gone over. `rank` does not enter `sendToPlot`'s target set, so the hoe fires only when a picker happens to land on that plot: 20 times in 6 seed-years (c291). A CA that grows and a crew that cannot see it is half a system. Make the allotments answer their own weeds — the plot that has gone over should be the plot somebody walks to.",
-      "seams": ["rank", "WEED_CELLS", "weedAge", "plotAct", "sendToPlot", "ripePlots", "spawnAllotAgent", "ALLOT_CAP", "ALLOT_FLOOR", "ALLOT_RIPE"],
+      "seams": [
+        "rank",
+        "WEED_CELLS",
+        "weedAge",
+        "plotAct",
+        "sendToPlot",
+        "ripePlots",
+        "spawnAllotAgent",
+        "ALLOT_CAP",
+        "ALLOT_FLOOR",
+        "ALLOT_RIPE"
+      ],
       "successLooksLike": "A plot left to go over draws somebody to it: hoe events per seed-year rise well clear of 20, and a summer walk past the allotments finds a kneeling figure in the weediest bed rather than a random one.",
       "avoid": "Do not starve the harvest to feed the hoe — measure picked cells per year on both sides of the change. LAWS: a ladder's lower rungs are bounded by its FIRST rung's hit rate, and a rung nothing steers toward fires only when the crew happens to reach it.",
       "budgetMin": 35,
@@ -65,12 +84,29 @@
       "domain": "River & far bank",
       "kind": "Fidelity",
       "brief": "`stepIce` sets no `groundDirty`, and there is no ice trigger among the seven that dirty the ground cache (light, snow, wet, wash, barrow, weed, wear), so the ice skin's five drawn levels repaint only when something ELSE happens to dirty it (c294). The river promises a freeze that arrives and a thaw that goes; what it delivers is a skin that updates when the snow or the light next moves. Price the lag first — sim-hours between a level change in the state and the repaint that shows it, across a freeze and a thaw — then give the ice its own quantized trigger alongside the other seven.",
-      "seams": ["stepIce", "iceSkinCol", "drawIce", "groundDirty", "snowPainted", "wetPainted", "barrowPainted", "markGroundPainted", "iceHere", "buildIceLap"],
+      "seams": [
+        "stepIce",
+        "iceSkinCol",
+        "drawIce",
+        "groundDirty",
+        "snowPainted",
+        "wetPainted",
+        "barrowPainted",
+        "markGroundPainted",
+        "iceHere",
+        "buildIceLap"
+      ],
       "successLooksLike": "A winter dawn's freeze and the thaw that follows both appear on the river within the same quantized step the other seven triggers get, shown as sim-hours of lag before and after.",
       "avoid": "Do not dirty the cache per frame — LAWS: the ground is a CACHE; quantize the QUANTITY the way `snowCover` and `wetBucket()` do, and price the rebuild cost against `probes/ground-rebuilds.mjs` before and after.",
       "budgetMin": 30,
       "risk": "low"
     }
   ],
-  "recommendStop": null
+  "recommendStop": null,
+  "consumed": [
+    {
+      "id": "b206",
+      "at": "2026-09-04T13:57:49.313Z"
+    }
+  ]
 }
