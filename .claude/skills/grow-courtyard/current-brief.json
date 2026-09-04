@@ -21,7 +21,7 @@
   "avoid": "Do not eat the edge beds — 523 BED cells and EDGE_BEDS 204 carry the planting CA, and paying for the arcade with them turns a 4b into a swap. Do not put it across the four gateway approaches (`nearEntrance`). Do not brief yourself into a texture job: PATH.court is sd/mean 0.143, mid-table, and the surface is NOT the problem — occupancy is. Do not add a second tree; matureTrees is a census field and the linden is the courtyard's one landmark.",
   "budgetMin": 90,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 186,
   "issued": "2026-09-04T01:21:17.948Z",
