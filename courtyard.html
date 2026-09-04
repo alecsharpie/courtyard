@@ -12808,7 +12808,7 @@ function buildLeads(){
       // in a bay whose cells belong to the edge column
       if (x1 > sx1 || x1 <= 0 || x0 >= GW || !leadsHouse(h)) continue;
       const bay = {house:h, x0, x1, hx:x0 + 1.5 + hash(h, 911) * 0.9, hy:LEADS_HATCH_Y,
-                   wx0:x0 + 0.9, wx1:x1 - 0.9, wy:LEADS_LINE_Y, busy:0};
+                   wx0:x0 + 0.9, wx1:x1 - 0.9, wy:LEADS_LINE_Y, busy:0, last:-99};
       bay.kit = leadsKit(bay);          // #201: what this household leaves out on theirs
       LEADS_BAYS.push(bay);
       HATCHES.push({x:bay.hx, y:bay.hy, house:h, bay});
@@ -13140,14 +13140,40 @@ function tenantCount(){ let n = 0; for (const a of agents) if (a.tenant) n++; re
 /* #201: and asked WITH a condition where the errand has one. Nobody goes up to peg out a
  * wash on a terrace whose line is bare all week — bayWash() is what the cord itself is
  * drawn from, so the person and the cloth cannot drift apart, which is the whole of why
- * the errands were read off washOut() in the first place. */
+ * the errands were read off washOut() in the first place.
+ *
+ * #214, and both faults are in this one function (probes/bay-choice.mjs, 6 seeds x 26
+ * days, counted AT THE CHOICE and not by presence).
+ *   (a) the key was unSALTED. `hash(day, k)` is a fact about the CALENDAR, so the same
+ *       day sent somebody up the same terrace in every world there will ever be: six
+ *       seeds were ONE sample shown six times, which is why h1 sat in the sun exactly
+ *       zero times in 156 seed-days and h7 leaned out exactly zero. The gates around it
+ *       are weather and so they ARE seeded; only the choice was not.
+ *   (b) a UNIFORM draw over whoever is eligible is not uniform over the TERRACES. The
+ *       wash errand is 70% of every visit, and bayWash() rightly refuses a bay whose
+ *       line is never strung — that refusal is correct and it stays — but it left the
+ *       two terraces without a line on a twenty-fourth of the presence of the one with
+ *       one. The two errands that ask nothing of the wash, the afternoon in the sun and
+ *       the evening lean, were being spent on households already up and down their own
+ *       stair twice a day.
+ * So: weight the draw by how long it has been since anybody was up on that bay. A
+ * household that has not been out on their own leads in a week is the likelier one to
+ * come up today, and the two with no line are always the stalest, so the sun and the
+ * lean drift to them without anybody's washing moving. Nothing about the RATE changes —
+ * same gates, same TEN_CAP, same calls: this decides only WHOSE roof it is. */
+const BAY_STALE = 6;                  // a week; past it a bay is no keener, or it runs away
 function freeBay(k, want){
   const open = LEADS_BAYS.filter(b => !b.busy && (!want || want(b)));
-  return open.length ? open[Math.min(open.length - 1, (hash(day, k) * open.length) | 0)] : null;
+  if (!open.length) return null;
+  let tot = 0;
+  for (const b of open) tot += (b.w = 1 + Math.min(BAY_STALE, day - b.last));
+  let r = hash(day, k + WIND_SALT) * tot;
+  for (const b of open) if ((r -= b.w) < 0) return b;
+  return open[open.length - 1];
 }
 function tenStand(act){ const [lo, hi] = TEN_STAND[act]; return (lo + R() * (hi - lo)) / HOURS_PER_S; }
 function spawnTenant(bay, act){
-  bay.busy = 1;
+  bay.busy = 1; bay.last = day;        // #214: freeBay() weighs the draw off this
   const a = {
     kind:'tenant', tenant:true, street:true, priced:true, bay, act:'',
     x:bay.hx, y:bay.hy, z:roofWalkZ(bay.hx, bay.hy), wp:[], stops:[], i:0,

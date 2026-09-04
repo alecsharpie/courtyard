@@ -287,3 +287,26 @@ difference image the town's own roofline.
 rain: the wettest line on a facade is also its darkest. Darken, then one specular.
 **Law:** a highlight INSET in a feature is drawn at a fraction of something already ~1 px
 at the shipping size — put it on the AXIS, or it is sub-pixel and silent.
+
+## Iteration 214 — the terraces stop being one calendar's (2026-09-05) [Our block × Fidelity]
+
+**Brief:** b214 — `freeBay()` starves a bay 7x; find where, fix it.
+**Diagnosis** (`probes/bay-choice.mjs`, new — at the CHOICE, not by presence): `freeBay`, twice
+over. (a) `hash(day, k)` was UNSALTED, so the CALENDAR chose: h1 sat in the sun 0 times in 156
+seed-days and h7 leaned out 0, in every world there will be. (b) a uniform draw over the
+ELIGIBLE is not uniform over the TERRACES: peg/take is 70% of 380 visits and `bayWash` refuses
+the two bays with no line, always, so those two lived on the sun and the lean — spent meanwhile
+on households already up and down twice a day. Starved bay: h**2**.
+**Did.** Salt the key; weight the draw by `1 + min(BAY_STALE, day - b.last)`, set in
+`spawnTenant`. `bayWash` untouched — that refusal is right. `open` and the null return are HEAD's
+exactly, so the rate, TEN_CAP and the call count hold.
+**Gates:** `probes/terrace-presence.mjs`, 6 seeds x 52 days: spread **7.8x -> 3.0x** (h2 0.92 ->
+2.55%, h7 7.19 -> 5.38%), total 0.2110 -> 0.2092 a sample — a redistribution · motion PASS ·
+visual PASS · census **FAIL: winter/frozen 1063 -> 1030, -3.1% on a 3% floor, `margin` unmoved**.
+**Verdict:** shipped
+**Surprise:** that FAIL is the ladder, not the build. Four HEAD-only re-keyings of `freeBay`
+(`hash(day, k+1..7)`), behaviour-free by construction, put frozen at 1059/1054/**1032**/1041 and
+one cratered summer `people` by 11.9%; three re-keyings of the CANDIDATE gave 1047/1047/1059, all
+PASS. The shipped key drew 1030 — a tenth of a point of headroom over a change meaning nothing.
+**Law:** an unsalted per-day choice makes N seeds ONE sample, so a per-house zero is the
+calendar's; and WCORE's `frozen` 3% floor is inside a behaviour-free reshuffle's own noise.
