@@ -19,7 +19,7 @@
   "avoid": "Do not keep a pane lit because somebody is in it — the lamp's clock is the town's bedtime and it wins. Do not give the figure its own persistent object; #182's whole design is that it is solved per frame from `nid` with no anchor that can go stale.",
   "budgetMin": 25,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 190,
   "issued": "2026-09-04T03:22:31.237Z",
