@@ -15,7 +15,7 @@
   "avoid": "Do not touch courtyard.html. Do not re-cut CORE's existing ladder string — EXTEND it by ADDING a row under it, or every stored baseline stops comparing. The 96 probe TIMEOUTS are explicitly out of scope; they need a budget this brief does not have, and half-diagnosing them is worse than leaving them named.",
   "budgetMin": 45,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 205,
   "issued": "2026-09-04T12:40:23.868Z",
