@@ -71,6 +71,10 @@ if (has('--show')) {
   for (const c of s.openCues) console.log(`  ${c.id} (#${c.raisedBy}, seen by ${c.seenBy || 0} manager passes): ${c.note}`);
   console.log('\nWATCH');
   for (const w2 of s.watch) console.log(`  · ${typeof w2 === "string" ? w2 : w2.note}`);
+  /* #195: the two halves of the watch. `watch` is charged to the worker's read budget;
+   * `managerWatch` is not, and is only ever printed here — a note that opens "for the
+   * manager" was costing every worker ~400 B an iteration it could do nothing with. */
+  for (const w2 of s.managerWatch || []) console.log(`  · [manager] ${typeof w2 === "string" ? w2 : w2.note}`);
   console.log('\nINVENTORY (counts)');
   for (const d of s.menu.domains) console.log(`  ${d.name.padEnd(w)}  ${(s.inventory[d.id] || []).length} entries`);
   process.exit(0);

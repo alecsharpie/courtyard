@@ -112,7 +112,7 @@ if (!PRUNE_ONLY) {
  * state block was 15.2 KB. That is the Solvista shape for the third time — cap one
  * dimension and the growth moves to the neighbouring one. So every dimension is capped
  * here, and each cap is a CEILING rather than a trajectory: 9 domains x 7 entries x
- * 300 B, 8 cues x 250 B, 4 watch items x 420 B. Add an eighth entry to a full domain and
+ * 300 B, 8 cues x 250 B, 2 worker + 4 manager watch items x 420 B. Add an eighth entry to a full domain and
  * two existing ones have to merge, which is what "the inventory is nouns, not history"
  * means in practice.
  *
@@ -122,11 +122,20 @@ if (!PRUNE_ONLY) {
  * a cap being RAISED and wants justifying: the hard gate is context-budget.mjs's 46 KB
  * for everything a worker reads, and 9.5 was set when this block was the largest item in
  * it. LAWS.md is now the file to cut, because its CLAIMS compress and merge; the
- * inventory is a symbol index, and compressing it past nouns destroys what it is for. */
+ * inventory is a symbol index, and compressing it past nouns destroys what it is for.
+ *
+ * Pass #195 put INV_CAP back to 10.0 KB. The raise five passes ago bought room the
+ * inventory then went and filled (10.7 KB, and two domains over the entry count), so
+ * it bought nothing but a later reckoning — which is the shape the whole file exists
+ * to refuse. It also SPLIT the watch: two of the four items opened "for the manager"
+ * and were still charged to the worker's budget, ~815 B an iteration of text no worker
+ * can act on. `managerWatch` is that half, capped here exactly as `watch` is, and
+ * OUTSIDE the worker read. Moving bytes off a budget is only honest if the reader they
+ * were moved off never needed them; say which, in the log, whenever it happens. */
 {
   const f = join(HERE, 'state.json');
-  const INV_ENTRY_CAP = 300, INV_PER_DOMAIN = 7, INV_CAP = 10.75 * 1024;
-  const CUES_MAX = 8, CUE_CAP = 250, WATCH_MAX = 4, WATCH_CAP = 420;
+  const INV_ENTRY_CAP = 300, INV_PER_DOMAIN = 7, INV_CAP = 10.0 * 1024;
+  const CUES_MAX = 8, CUE_CAP = 250, WATCH_MAX = 2, MWATCH_MAX = 4, WATCH_CAP = 420;
   if (existsSync(f)) {
     try {
       const s = JSON.parse(readFileSync(f, 'utf8'));
@@ -140,24 +149,28 @@ if (!PRUNE_ONLY) {
           if (b > INV_ENTRY_CAP) fat.push(`${dom}: ${b} B — ${e.slice(0, 52)}…`);
         }
       }
-      const cues = s.openCues || [], watch = s.watch || [];
+      const cues = s.openCues || [], watch = s.watch || [], mwatch = s.managerWatch || [];
       const state = Buffer.byteLength(JSON.stringify({ i: s.inventory, c: cues, w: watch }));
       console.log(`\nstate.json (worker-read): ${(state / 1024).toFixed(1)} KB`);
       console.log(`  inventory ${n} entries, ${(bytes / 1024).toFixed(1)}/${(INV_CAP / 1024).toFixed(1)} KB${bytes > INV_CAP ? '   ← OVER' : ''}`);
-      console.log(`  cues ${cues.length}/${CUES_MAX}   watch ${watch.length}/${WATCH_MAX}`);
+      console.log(`  cues ${cues.length}/${CUES_MAX}   watch ${watch.length}/${WATCH_MAX} (worker) + ${mwatch.length}/${MWATCH_MAX} manager`);
       for (const line of fat) console.log(`  ← over cap  ${line}`);
       if (fat.length) console.log(`  ${fat.length} inventory offenders. Entries are NOUNS — a number in one is ledger text.`);
       if (cues.length > CUES_MAX) console.log(`  ${cues.length - CUES_MAX} cues over cap. Promote one to a brief or close it with a reason.`);
       for (const c of cues) if (Buffer.byteLength(c.note || '') > CUE_CAP)
         console.log(`  ← over ${CUE_CAP} B  cue ${c.id}: ${Buffer.byteLength(c.note)} B — a cue is a POINTER; its evidence is in the ledger entry that raised it.`);
-      if (watch.length > WATCH_MAX) console.log(`  ${watch.length - WATCH_MAX} watch items over cap. One is spent — a watch item ends when a brief lands on it.`);
       /* #191: a watch item is a STRING in state.json and always has been, so `w.note`
        * was undefined on every one of them and this cap could not fire — three items
        * were over it the day it was found. Take the text off whichever shape it is. */
-      for (const w of watch){
-        const txt = typeof w === 'string' ? w : (w.note || '');
-        if (Buffer.byteLength(txt) > WATCH_CAP)
-          console.log(`  ← over ${WATCH_CAP} B  watch "${txt.slice(0, 34)}…": ${Buffer.byteLength(txt)} B`);
+      /* `managerWatch` is off the worker's budget but NOT off a cap — an unbounded
+       * file the manager reads every pass is the same failure one seat further up. */
+      for (const [list, name, max] of [[watch, 'watch', WATCH_MAX], [mwatch, 'managerWatch', MWATCH_MAX]]){
+        if (list.length > max) console.log(`  ${list.length - max} ${name} items over cap. One is spent — a watch item ends when a brief lands on it.`);
+        for (const w of list){
+          const txt = typeof w === 'string' ? w : (w.note || '');
+          if (Buffer.byteLength(txt) > WATCH_CAP)
+            console.log(`  ← over ${WATCH_CAP} B  ${name} "${txt.slice(0, 34)}…": ${Buffer.byteLength(txt)} B`);
+        }
       }
     } catch { /* state.json is the manager's problem elsewhere */ }
   }
