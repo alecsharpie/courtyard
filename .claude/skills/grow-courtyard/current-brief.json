@@ -23,7 +23,7 @@
   "avoid": "Do not touch windowLit, the lamps, or anybody's behaviour — this is light, not people; that is a different brief and it would confound the measurement. Do not add an R() draw: the moon is on the calendar and must stay one moon in every seed. And watch the ground cache — if moonLight() feeds lightNow, #180's relight cadence moves; measure it against the 76.03 repaints/day bar c285 is watching and put the number in the entry. Note for your control: the two shots above are 14 days apart, so they differ in SEASON as well as phase — they are a look, not a control. Hold the instant and move the build, or hold the day and move MOON_START.",
   "budgetMin": 80,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 196,
   "issued": "2026-09-04T08:40:49.420Z",
