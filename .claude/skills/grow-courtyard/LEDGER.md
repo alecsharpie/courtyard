@@ -261,3 +261,29 @@ INDISTINGUISHABLE by eye. What settled it was the SHIPPED plaza killed the same 
 faint; the plaza is this faint, and has been since #103.
 **Law:** to judge whether a new instance of a SHIPPED system reads, kill the shipped instance
 the same way and compare mass per unit box — the incumbent's own legibility is the bar.
+
+## Iteration 213 — the roofs get rainwater goods (2026-09-05) [Roofs & skyline × New element]
+
+**Brief:** b213 — nothing carries a drop off the roofs. Gutter + downpipe, foot biasing
+`pudHollow`.
+**Premise, HEAD:** holds for the TOWN, not the world. `drawParapet` has always had a lead
+gutter and hopper heads, but that is OUR block, behind the sill.
+**Did.** One register after `buildVolumes`, off `solidM`/`eaveM`, no footprint touched:
+`frontAt()` is drawFaceRow's own south-open test, `gutAt[]` the ONE predicate drawRoofRow
+reads back, `EAVES` all 225 fronts, `PIPES` 73 = 60 on the PARTY WALL + 13 at a run's end
+— both lines the facade already draws. The gutter is in **drawRoofRow**: the eave
+overhangs the wall 0.3 rows, so one on the facade sits behind the roof draining into it.
+`pudHollow` +0.30 at the foot BEFORE `PUD_CUT`: a foot is an ordinary pool. The water is
+an overlay, `drawRunoff` twice — after the blit for the cached rows, inside
+`drawSouthBand` for the live ones.
+**Gates:** census **byte-identical** (3 seeds x 3 ages + winter), motion PASS, 0 POP,
+`drawGround` 33.3 flat, `drawRunoff` **0.36 ms only in rain**, 390x844 clean. PUDDLES
+792->806; fill threshold at a foot **0.445** to **0.900** beside it, so 56% of paved feet
+pool to 9% of the stone by them. At 1600x950: dry fabric **6760 px at d17.7** over a
+**0 px** same-code control; the water alone (runoff 1->0) **8894 px at d8.2**, its
+difference image the town's own roofline.
+**Verdict:** shipped
+**Surprise:** the first cut laid the sky over the pipe's width and the pipes VANISHED in
+rain: the wettest line on a facade is also its darkest. Darken, then one specular.
+**Law:** a highlight INSET in a feature is drawn at a fraction of something already ~1 px
+at the shipping size — put it on the AXIS, or it is sub-pixel and silent.

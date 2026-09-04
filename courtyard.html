@@ -1716,6 +1716,59 @@ function roofTopAt(x, y){                          // the roof surface at a cell
   return (roofZE(x, y, e) + roofZE(x + 1, y, e) + roofZE(x + 1, y + 1, e) + roofZE(x, y + 1, e)) / 4;
 }
 
+/* ============ rainwater goods (#213) ============
+ * It rains on this town and until now nothing carried a drop off the roofs — the largest
+ * sloped surfaces in the picture darkened when wet and that was the whole of it.
+ *
+ * Placed OFF THE GEOMETRY, not off a new list. A facade exists exactly where the SOUTH
+ * neighbour is open (frontAt below is drawFaceRow's own test, read back rather than
+ * re-derived), so the gutter is the eave lip drawRoofRow already overhangs by 0.3 rows,
+ * and a downpipe stands on the PARTY WALL — the same boundary drawFaceRow already draws
+ * a line at — or at the end of a run, where the terrace's water has nowhere else to go.
+ * Nothing here touches a footprint or an eave: it is read back off solidM/eaveM AFTER
+ * buildVolumes, so the roofs stay as emergent as they were.
+ *
+ * ONE register, three consumers: the fabric (drawDownpipe, in the ground cache for most
+ * of the town and live for the gatehouse row), the water (drawRunoff, an overlay), and
+ * the paving at the foot (buildPuddles biases pudHollow there). They cannot drift.
+ * The near block is excluded — it already has a lead gutter and hopper heads behind its
+ * parapet, and at NEAR_SZ everything on it is drawn twice the size it is across the lane. */
+const PIPE_MINZ = 2.6;                        // under this a wall is a garden wall, not a house
+const PIPE_W = 0.052;                         // half-width of a pipe, in cells of x
+const GUT_H = 0.135;                          // and the gutter's own depth, in cells of z
+const EAVE_DROP = SLOPE * 0.3;                // drawRoofRow's own overhang: the lip sits this far under the eave
+const gutAt = new Uint8Array(GW * WH);        // 1 where a gutter is hung. drawRoofRow READS this rather than re-testing
+const pipeZ = new Float32Array(GW * WH);      // the eave a pipe hangs from, at the cell's EAST edge; 0 = none
+const pipeFoot = new Float32Array(GW * WH);   // ...and the one cell of paving it lets go over
+const PIPES = [];                             // {x, y, z, i} — x is the pipe's own world x, the cell's east edge
+const EAVES = [];                             // {x, y, zL, zR} — every guttered cell's own lip, in world z
+function frontAt(x, y){                       // drawFaceRow's test: a face is drawn only where the south is open
+  return x >= 0 && x < GW && y >= 0 && y < WH && solidM[y * GW + x] === 1 && !solidC(x, y + 1);
+}
+/* The rows a facade is actually DRAWN in — drawBlocks lays 0..61 into the ground cache
+ * and drawSouthBand repaints 61..64 live, and nothing past that is a front at all. The
+ * register is bounded by it rather than by the near block, because a pipe registered
+ * where no facade is drawn would still bias a flag of paving: a puddle standing under a
+ * downpipe nobody drew. */
+const FACE_Y1 = 65;
+function buildPipes(){
+  for (let y = 0; y < FACE_Y1; y++) for (let x = 0; x < GW; x++){
+    if (!frontAt(x, y)) continue;
+    const eh = eaveM[y * GW + x];
+    const zL = roofZE(x, y + 1, eh) - EAVE_DROP, zR = roofZE(x + 1, y + 1, eh) - EAVE_DROP;
+    if (Math.min(zL, zR) < PIPE_MINZ) continue;      // a garden wall, not a house: no goods
+    // the gutter runs the WHOLE front, so it is registered per cell; the pipe under it is
+    // the exception, and stands only on a line the facade already draws
+    gutAt[y * GW + x] = 1;
+    EAVES.push({ x, y, zL, zR });
+    if (frontAt(x + 1, y) && houseIx(x + 1) === houseIx(x)) continue;   // mid-house: the water runs on along the gutter
+    pipeZ[y * GW + x] = zR;
+    pipeFoot[(y + 1) * GW + x] = 1;
+    PIPES.push({ x: x + 1, y, z: zR, i: y * GW + x });
+  }
+}
+buildPipes();
+
 /* ---- the two grids a roof needs before it can reach the ground (#140) -------------
  * Every cast shadow in this town belonged to an OBJECT — a tree, a bench, the barrow,
  * the sundial's gnomon — and the buildings, which are the only things tall enough to
@@ -2393,6 +2446,14 @@ function weatherComing(){
  * steps" is WET_RISE / WET_DRY. */
 let wetness = 0, wetPainted = 0;
 const WET_RISE = 3.0, WET_DRY = 7.0, WET_STEPS = 5;
+/* #213: how hard the gutters are running, which is the ROOF's clock and not the ground's.
+ * wetF() is how wet the paving is and it is deliberately slow — three sim hours back to
+ * zero. A roof is not a sponge: it sheds what lands on it in minutes and the pipes are
+ * quiet again long before the stone is dry, which is why this cannot be a function of
+ * wetness. RUN_FALL 1.2 s is ~35 sim minutes of the last of it draining away. Lands ON
+ * zero, so a town that has not seen rain draws byte for byte what it always did. */
+let runoff = 0;
+const RUN_RISE = 0.45, RUN_FALL = 1.2;
 function wetF(){ return wetness; }
 function wetBucket(){ return Math.round(wetness * WET_STEPS) / WET_STEPS; }
 function stepWet(dt){
@@ -2401,6 +2462,8 @@ function stepWet(dt){
     const r = dt / WET_DRY * (0.3 + 0.7 * daylight) * (0.5 + 0.7 * warmth);
     wetness = wetness <= r ? 0 : wetness - r;
   }
+  if (rainFall > 0) runoff = Math.min(1, runoff + dt / RUN_RISE * Math.min(1, 0.35 + rainFall * 1.3));
+  else if (runoff > 0){ const r = dt / RUN_FALL; runoff = runoff <= r ? 0 : runoff - r; }
 }
 
 /* ============ standing water (#122) ============
@@ -2457,6 +2520,14 @@ function pavedAt(x, y){
  * gets a fixed shape at build (a pool is not a cell), so the draw path has no R() and no
  * per-frame allocation; only the DEPTH is read each frame. */
 const PUD_K = 173, PUD_DIP = 311, PUD_CUT = 0.66, PUD_SOFT = 0.22, PUD_TROD = 0.90;
+/* #213: and the third term, which is not a hash at all. A downpipe empties a whole roof
+ * onto one flag of paving, so that flag is a hollow whether the stone was laid low there
+ * or not. This is a BIAS on the dish the two hashes cut, not a second source of water:
+ * the foot cell goes through PUD_CUT, hollow, PUDDLES and pudDepth exactly like every
+ * other pool, so it fills earlier and dries later by the same arithmetic and nothing
+ * downstream (drawPuddles, the lamps, MOSS_POOL) needs to know it is there. Clamped at
+ * 1 before the cut, or a hollow of 1.9 would give one flag a pool a cell and a half across. */
+const PUD_PIPE = 0.30;
 // The wetness the deepest / shallowest cell first holds water at. PUD_LO is the length of
 // the TAIL and it is the whole point: at 0.30 the street went from streaming to bare stone
 // inside forty drying minutes, which is a switch, not an arc. At 0.16 the deep and trodden
@@ -2477,7 +2548,8 @@ function buildPuddles(){
     // do that: it has a FALL, and water gathers in the low stretches and leaves the rest
     // dry. So the fine hash sits inside a coarse one over a ~4x2-cell dip, and the pools
     // cluster where the paving lies low.
-    const h = 0.45 * hash(x, y + PUD_K) + 0.55 * hash(x >> 2, (y >> 1) + PUD_DIP);
+    const h = Math.min(1, 0.45 * hash(x, y + PUD_K) + 0.55 * hash(x >> 2, (y >> 1) + PUD_DIP)
+                         + PUD_PIPE * pipeFoot[y * GW + x]);
     if (h <= PUD_CUT) continue;
     const hollow = (h - PUD_CUT) / (1 - PUD_CUT);
     pudHollow[y * GW + x] = hollow;
@@ -10157,6 +10229,24 @@ function drawRoofRow(g, y){
       g.fillStyle = 'rgba(30,22,16,.32)';
       const e1 = project(x, y + 1, r[4]), e2 = project(x + 1, y + 1, r[3]);
       poly(g, [e1, e2, c, d]); g.fill();
+      /* #213: and the gutter hung off that lip, which is why it is here and not in
+       * drawFaceRow — the eave overhangs the wall by 0.3 rows, so a gutter drawn on the
+       * facade would sit a third of a cell BEHIND the roof that is meant to drain into
+       * it. Both ends solved in world space and projected each: the terrace steps, so
+       * r[3] and r[4] are not the same height, and a world offset added to a projected
+       * point is a pixel (project() pinches on screen depth). */
+      if (gutAt[y * GW + gx]){
+        const l0 = project(x, sy, r[4] - dz - GUT_H), l1 = project(x + 1, sy, r[3] - dz - GUT_H);
+        // the repeat past the frame keeps its eave line — a terrace that stops having
+        // gutters at x = 0 is a seam — but takes the haze the tile above it took
+        let gc = mix('#2f3336', '#7b858c', 0.18 + 0.52 * daylight);
+        if (out) gc = mix(gc, HAZE, 0.55);
+        g.fillStyle = gc; poly(g, [d, c, l1, l0]); g.fill();
+        if (!out){
+          g.strokeStyle = 'rgba(22,26,28,.40)'; g.lineWidth = 0.8;
+          g.beginPath(); g.moveTo(l0[0], l0[1]); g.lineTo(l1[0], l1[1]); g.stroke();
+        }
+      }
     }
     /* and the party wall itself, where two heights meet along the terrace. We look
      * straight down its length, so it draws as a line — the same thing drawPartyWalls
@@ -10543,6 +10633,28 @@ function drawWindow(g, wx, wy, zTop, hgt, sa, sb){
   g.fillStyle = 'rgba(232,224,206,.9)'; poly(g, [s1, s2, s3, s4]); g.fill();
 }
 const PLASTER = ['#cabda2', '#c8b596', '#c1bda8', '#d0c1a4', '#bcb49c', '#c9b9a4', '#c4b291'];
+/* A downpipe, standing on the party wall or at the end of the run — the two lines the
+ * facade already has (see PIPES). It hangs at the WALL plane while the gutter it comes
+ * off is out at the eave's 0.3-row overhang, which is what a real one does, and its top
+ * runs up behind the shadow drawRoofRow lays under that overhang, so the join needs no
+ * mitre. FABRIC only: this is in the ground cache for rows 0..61 and repainted live for
+ * the gatehouse row, so nothing here may read the clock. The water is drawRunoff(). */
+function drawDownpipe(g, px, y, zTop, lit){
+  const a = project(px - PIPE_W, y + 1, zTop), b = project(px + PIPE_W, y + 1, zTop);
+  const c = project(px + PIPE_W, y + 1, 0), d = project(px - PIPE_W, y + 1, 0);
+  g.save(); g.translate(Math.max(1, cellW * 0.055), 0);       // what it throws on the wall beside it
+  g.fillStyle = 'rgba(26,21,16,.26)'; poly(g, [a, b, c, d]); g.fill(); g.restore();
+  g.fillStyle = mix('#292a26', mix('#6c685b', '#8a7f6a', hash(y, px | 0)), lit);
+  poly(g, [a, b, c, d]); g.fill();
+  // the ROUND of it: a lit edge down the west side. Without this a pipe is a black slot
+  // in the wall at eight pixels across, which reads as a drainpipe-shaped hole.
+  g.fillStyle = 'rgba(236,228,210,.20)';
+  poly(g, [a, project(px - PIPE_W * 0.28, y + 1, zTop), project(px - PIPE_W * 0.28, y + 1, 0), d]); g.fill();
+  // the shoe at the foot, kicking the water out over the paving it has been biasing
+  const s1 = project(px - PIPE_W * 1.7, y + 1, 0.34), s2 = project(px + PIPE_W * 1.7, y + 1, 0.34);
+  const s3 = project(px + PIPE_W * 1.7, y + 1, 0.02), s4 = project(px - PIPE_W * 1.7, y + 1, 0.02);
+  g.fillStyle = mix('#25251f', '#5d5949', lit); poly(g, [s1, s2, s3, s4]); g.fill();
+}
 function drawFaceRow(g, y){
   const wt = 0.22 + 0.6 * daylight;
   for (let x = XLO; x < XHI; x++){
@@ -10578,6 +10690,7 @@ function drawFaceRow(g, y){
     g.fillStyle = 'rgba(24,18,12,.16)';                       // ground line, so walls sit rather than float
     const gl1 = project(x, y + 1, 0.16), gl2 = project(x + 1, y + 1, 0.16);
     poly(g, [gl1, gl2, b, a]); g.fill();
+    if (pipeZ[y * GW + gx]) drawDownpipe(g, x + 1, y, pipeZ[y * GW + gx], wt);   // #213
     const e = Math.min(zL, zR);
     if (mart[y * GW + gx] > 0) drawNest(g, gx, y, e);
     if (millAt(gx, y)){
@@ -11167,6 +11280,8 @@ function drawSouthBand(){
   for (let y = 61; y <= 64; y++){
     drawFaceRow(ctx, y); drawRoofRow(ctx, y); drawCrests(ctx, y);
   }
+  drawRunoff(ctx, 61, 65);          // #213: and this band's, which is repainted live above
+
   if (richness() > 0.2){                               // ivy climbing the gatehouse
     // the same warmth again, not a private one. Which vines EXIST stays on richness():
     // an established vine thins back over winter, it does not blink out of the wall and
@@ -14020,6 +14135,85 @@ function drawPuddles(){
     ctx.globalAlpha = 1;
   }
 }
+/* ============ what comes off the roof (#213) ============
+ * The gutter and the pipe are FABRIC and ride in the ground cache, which repaints on the
+ * light; what runs down them is a per-frame truth, so it is an overlay — the same split
+ * the puddles and their lamps already use, and for the same reason.
+ *
+ * TWO callers at two depths, because the facades are at two depths: rows 0..61 are cached
+ * and arrive with the blit, so their water goes on straight after it, beside the puddles
+ * it feeds; rows 61..64 are repainted LIVE by drawSouthBand every frame, so theirs goes on
+ * at the end of that or the band would paint the wall back over its own water. One
+ * function, two call sites — the alternative is two definitions of the same water.
+ *
+ * No particles, and not because they would be dear: at eight pixels to a storey a drop is
+ * subpixel. What reads as falling water at this scale is a translucent SHEET with a bright
+ * band travelling down it, which is two strokes a pipe. Every phase is simT and a per-pipe
+ * hash — no state, nothing spawned, nothing for the motion gate to see — and RM pins the
+ * phase so a still town stays still. */
+const RUN_SPEED = 1.35;                        // lengths of pipe a second
+const RUN_SPILL = 0.45;                        // above this the gutter is running full and lets go at the eave
+function drawRunoff(g, y0, y1){
+  if (runoff <= 0.02) return;
+  const sky = skyCols()[1], gl = 0.22 + 0.78 * daylight;
+  const ph = RM ? 0.35 : simT * RUN_SPEED;
+  const w = Math.max(1.1, cellW * PIPE_W * 2.3);
+  for (const p of PIPES){
+    if (p.y < y0 || p.y >= y1) continue;
+    const a = project(p.x, p.y + 1, p.z), f = project(p.x, p.y + 1, 0);
+    if (!inFrameBox((a[0] + f[0]) / 2, (a[1] + f[1]) / 2, cellW * 1.6, (f[1] - a[1]) / 2 + cellH)) continue;
+    const hp = hash(p.x, p.y * 7);
+    g.lineCap = 'butt';
+    /* The sheet DARKENS. A first cut laid the sky over the pipe's whole width and the
+     * pipes vanished on a wet day — the thing the water is running down is the darkest
+     * line on the facade, and a pale wash over it is a pipe rubbed out. Water on iron
+     * is the same as water on stone: darker everywhere but the specular. */
+    g.globalAlpha = 0.30 * runoff; g.strokeStyle = '#1e242a'; g.lineWidth = w;
+    g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(f[0], f[1]); g.stroke();
+    /* ...and the band that says FALLING. On the pipe's own axis and nearly its own
+     * width: a pipe at the wide framing is 1.3 CSS px, so a highlight inset to one side
+     * of it is drawn at 0.6 px and is a sub-pixel nothing. Full width, brighter, and
+     * the sheet above supplies the contrast it sits against. */
+    g.strokeStyle = mix(sky, '#e8f2fb', 0.55);
+    for (let k = 0; k < 2; k++){
+      const u = (ph * (0.85 + hp * 0.4) + hp + k * 0.5) % 1;
+      const q1 = project(p.x, p.y + 1, p.z * (1 - u));
+      const q2 = project(p.x, p.y + 1, Math.max(0, p.z * (1 - u) - p.z * 0.22));
+      g.globalAlpha = 0.80 * runoff * gl * Math.min(1, u * 8);    // fades IN at the head, lands at the foot
+      g.lineWidth = Math.max(1, w * 0.85);
+      g.beginPath(); g.moveTo(q1[0], q1[1]); g.lineTo(q2[0], q2[1]); g.stroke();
+    }
+    const [sx, sy] = project(p.x, p.y + 1.10, 0);                 // and where it lands, on the flag it biased
+    g.globalAlpha = 0.30 * runoff * gl; g.fillStyle = sky;
+    g.beginPath(); g.ellipse(sx, sy, cellW * 0.20, cellH * 0.15, 0, 0, 7); g.fill();
+  }
+  /* THE EAVE ITSELF. The pipes are 73 lines; the gutter is 225 cells and is the thing
+   * that actually runs, so a wet lip along EVERY front is what "the eaves are running"
+   * looks like — and it is one stroke a cell, at the lip the register already solved.
+   * Above RUN_SPILL the gutter is full and lets go: one drip per cell, hashed in x
+   * inside the cell it belongs to and phased on the same clock, so the drop line is the
+   * eave's own and not the pipes'. */
+  const spill = (runoff - RUN_SPILL) / (1 - RUN_SPILL);
+  g.strokeStyle = mix(sky, '#e8f2fb', 0.55);
+  for (const e of EAVES){
+    if (e.y < y0 || e.y >= y1) continue;
+    const l0 = project(e.x, e.y + 1.3, e.zL - GUT_H * 0.72), l1 = project(e.x + 1, e.y + 1.3, e.zR - GUT_H * 0.72);
+    if (!inFrameBox((l0[0] + l1[0]) / 2, (l0[1] + l1[1]) / 2, Math.abs(l1[0] - l0[0]) / 2 + cellW, cellH * 2)) continue;
+    g.globalAlpha = 0.55 * runoff * gl;                       // the water standing in the lip
+    g.lineWidth = Math.max(1, cellH * 0.14);
+    g.beginPath(); g.moveTo(l0[0], l0[1]); g.lineTo(l1[0], l1[1]); g.stroke();
+    if (spill <= 0) continue;
+    const hx = hash(e.x, 300 + e.y), u = (ph * 1.7 + hash(e.x * 3, 400 + e.y)) % 1;
+    const zt = Math.min(e.zL, e.zR) - GUT_H - u * 0.95;       // it falls clear of the eave, not to the pavement
+    if (zt < 0.25) continue;
+    const d1 = project(e.x + 0.18 + hx * 0.64, e.y + 1.3, zt);
+    const d2 = project(e.x + 0.18 + hx * 0.64, e.y + 1.3, zt - 0.24);
+    g.globalAlpha = 0.55 * gl * spill * Math.min(1, u * 6);
+    g.lineWidth = Math.max(0.8, cellW * 0.055);
+    g.beginPath(); g.moveTo(d1[0], d1[1]); g.lineTo(d2[0], d2[1]); g.stroke();
+  }
+  g.globalAlpha = 1;
+}
 function drawScene(t, dt){
   ctx.setTransform(DPR,0,0,DPR,0,0);
   if (groundDirty && !viewEasing()){ drawGround(); groundDirty = false; wearDirty = false; wearAcc = 0; }
@@ -14058,6 +14252,7 @@ function drawScene(t, dt){
     ctx.globalCompositeOperation = 'source-over';
   }
   drawPuddles();
+  drawRunoff(ctx, 0, 61);        // #213: the cached facades' water, over the blit that carried them
 
   windT += dt * (RM ? 0.15 : 0.6) * (1 + 1.4 * windF());
   const sway = RM ? 0 : (Math.sin(windT) * 0.14 + Math.sin(windT*2.7)*0.05) * (1 + 0.7 * windF());

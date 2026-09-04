@@ -17,34 +17,6 @@
   "rationale": "I SHOT THE TOWN BEFORE PLANNING IT — seed 42, four instants (day 5 07:45 early summer, day 65 12:58 autumn clear, day 6 dusk, and the lane and courtyard crops at noon) — and one band decides this batch. The ROADWAY. LN_ROAD0 68..76 is eight rows across all 138 columns, ~9% of the world, the single longest continuous line in every framing and the thing a viewer's eye slides down to after the courtyard. It is built with more care than almost anything in the town: settGrid/settRun, camberZ, gutterF, rutF, KERB_RUN, paveWear, PUDDLES. On a clear autumn midday with 73 people out, the lane crop shows exactly TWO things on it — one cyclist and one figure. Then I greped rather than trusted the picture, and the cause is structural, not a rate: LANE_N_Y 66.4 and LANE_S_Y 77.3, the two walking lines, both sit on the FOOTWAYS; every one of spawnLaneAgent's branches picks one of them; and the only object in 210 iterations that has ever driven on the carriageway is `cart`, one dray, on market days, at CART_LANE_Y. The town built a road and then walked around it. That is fabric, not an event — the managerWatch note's own test — and it changes the wide shot in the first ten seconds, which is what a bet is for.\n\nRUNG 2, AND I AM SAYING SO RATHER THAN DRESSING IT UP. This batch deepens and interconnects systems that already exist; nothing here widens the menu, moves the census, or changes the observer. The last five passes were 4b/5/4a/3/5, so one low pass is legal and this is the first of at most two — the pass after next climbs to 3+ whatever it finds, and the named claim on it is the Interaction column (15 of 210, 8 of them sill chrome; four domains have never had one).\n\nTWO PREMISES DIED BEFORE THEY BECAME BRIEFS, WHICH IS THE POINT OF SHOOTING FIRST. (1) 'Nothing in this town casts a shadow' — the midday and morning wides both look shadowless, and it is false: buildSunShade()/shTop/shCast/shOpen throw every solid volume from sunVec(), at BSH_MAX*daylight*shadowF(), which is faintest at dawn and shortest at noon by construction. Filed as a worker WATCH note so the next pass to see that picture does not write the brief I nearly did. (2) 'The near roof reads as one flat texture' — dead three times already (c232/c259/c271, sd/mean 0.281, the highest large surface on the record); I did not write it a fourth time.\n\nTHE OTHER FOUR ARE THE LONGEST-NEGLECTED DOMAINS, EACH CARRYING A NUMBER. b212 courtyard (12 back): buildMossRegion is called exactly twice, for PLAZA and QUAY, and the piece's namesake — the largest paved surface in the town — is the one big paving that does not age with the year. b213 roofs (11 back): grep finds no drip, downpipe, gutter or runoff anywhere in 1.25 MB of source; the roofs wet (drawSlateCell mixes on wetF) and shed nothing, and the lane already has PUDDLES/pudHollow waiting for a foot to form under. b214 nearblock (9 back) and b215 life (8 back) spend c298 and c299, both of which arrive with their probe and their number already measured.\n\nWHAT I CUT, AND WHICH WAY EVERY CAP MOVED. No cap was raised; two things were cut to fit under caps that did not move. INVENTORY 11.7 -> 9.8 KB against an unchanged 10.0: the market's day was re-filed from `street` (where #207 had put it) into the lane line that owns it, #209's weed-steering merged into the weeds CA line, sill's 9 entries merged to 6, and every remaining line stripped of tuning constants and coordinates — which is what the file's own note has always said belongs in the source. Two entries deleted outright: sill's HARNESS line (instrument nouns; SKILL.md names every gate already) and sky's two-PRNG-streams line (that is a LAW, and LAWS.md carries it). LAWS.md 25 -> 26 laws at 11.9/12 KB: added #206's (a frame's share is a function of the ZOOM alone), #207's control-saturation clause and its two ink-measurement liars with #208's, and merged #209's and #210's into the laws they extend — paid for by SUPERSEDING the two-layouts law, whose claim that 'the wide view is resize()'s raw cellW/topPad' #206 made false; by deleting the CAST/MIRROR clause of trap (a) (buildSunShade/shOpen and drawWaterMirror carry it in the source, and the new watch note points at them by name), the residual FALL-THROUGH clause, the short-run RAMP clause (subsumed by 'pool six seeds and a YEAR'), a route-cost restatement and a TIMEOUT clause; and by SPLITTING the ground-cache law, 902 B against the 900 B advisory, into its two claims. Cues 8 -> 6: two promoted (c298 -> b214, c299 -> b215), c305 closed on its own probe's evidence, c308 raised. Worker read 45.6 -> 44.0/46 KB, every sub-cap met.",
   "queue": [
     {
-      "id": "b213",
-      "domain": "Roofs & skyline",
-      "kind": "New element",
-      "brief": "It rains on this town and the water never leaves the roofs. A grep of the whole source finds no gutter, no downpipe, no eave drip and no runoff anywhere: the roofs are the top third of every wide frame and the largest sloped surface in the picture, they DARKEN when wet (drawSlateCell and drawRoofRow both mix on wetF), and nothing carries a drop off them. Give the houses their rainwater goods — a gutter line along the eave and a downpipe down the face, placed off the geometry that already exists rather than a new list, and let them do something: on a wet day the eaves drip and the pipes run; on a dry day the town gains a vertical rhythm on a hundred facades that it has never had. Then CONNECT it, which is the half that makes this worth an iteration: PUDDLES[] and pudHollow[] already stand water on the pavement off the GRID, and the foot of a downpipe is where a puddle belongs — bias the hollow there rather than adding a new puddle source. Read the traps first: roofs are EMERGENT from buildVolumes(), so read eaveFor()/roofZE() and change no footprint; a FACE is drawn only where the SOUTH neighbour is open, so a pipe on any other side will never be seen; and both the facades and the ground are CACHED, so a static pipe registers at cache time while a running one is a live overlay.",
-      "seams": [
-        "eaveFor",
-        "roofZE",
-        "buildVolumes",
-        "drawGable",
-        "drawRoofRow",
-        "drawFaceRow",
-        "drawSlateCell",
-        "FACES",
-        "wetF",
-        "raining",
-        "coverF",
-        "PUDDLES",
-        "pudHollow",
-        "pavedAt",
-        "gutterF",
-        "markGroundPainted"
-      ],
-      "successLooksLike": "At the shipping size, on a dry day the facades read with a regular vertical accent they did not have; in rain the eaves are visibly running, and the pavement under a pipe holds water sooner than the pavement beside it. Quote the wet-day diff's mass as a ratio to a same-code control, quote it at the SHIPPING size, and show the dry-day frame is not cluttered.",
-      "avoid": "Do not change a footprint or a roof height — the roofs are emergent and the law is explicit. Do not add a per-drop particle system; this is fabric, and the rain already has stepDrops(). Do not create a second puddle source: bias pudHollow, do not bypass it. Do not put pipes on the near block's slates without checking nearScale — at NEAR_SZ 1.95 anything drawn there is twice the size it is across the lane.",
-      "budgetMin": 55,
-      "risk": "medium"
-    },
-    {
       "id": "b214",
       "domain": "Our block & the leads",
       "kind": "Fidelity",
@@ -104,6 +76,10 @@
     {
       "id": "b212",
       "at": "2026-09-04T21:50:13.424Z"
+    },
+    {
+      "id": "b213",
+      "at": "2026-09-04T22:13:05.503Z"
     }
   ]
 }
