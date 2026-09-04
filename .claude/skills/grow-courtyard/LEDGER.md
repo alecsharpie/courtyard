@@ -222,3 +222,27 @@ probe 122 px on a 0 px same-code floor (HEAD 77) · perf skipped
 into dark rooms. The two clocks did not merely disagree at the END; they barely overlapped.
 **Law:** two clocks over one subject: the one owning its EXISTENCE bounds the other. And a hand-tuned
 SHARE prices the YIELD — a fix making each accepted coin pay must re-price the coin.
+
+## Iteration 191 — the ledge reads the year and the weather (2026-09-04) [The sill & the observer × New element]
+
+**Brief:** b191 — drawSill's one world input is `daylight`; make Feb and July two pictures.
+**Did.** Six readers off `seasonPhase`, closed both sides: `gerLeaf` (stubs at 0.10
+through the cold, never 0), `gerBloom`, `gerDrop`, `sillFrost`, `sillWet` (wetBucket x windF: the
+wet is the town's, the REACH the wind's), `sillSnow`, `sillCup` (a salted per-day hash, likelier in
+the cold, a whole day at a time so nothing can pop mid-afternoon). Stems, leaves and umbels
+inside sillBoxes' unchanged box; rime, a snow lip and beads on the OUTER edge; what it drops lies
+on it. `sillAt`/`gerName` name pots, cup and ledge FIRST in `lookAt` (c282). All of it stays in the
+ground cache, reading only what it repaints for.
+**Measured** (`probes/sill-calendar.mjs`, new), seed 7, hour 17.0. Feb v Jul in the band at
+1600x950: **NEW 50200 px v HEAD 39964**, same-code control **0**. NEW v HEAD at ONE
+instant **@Feb 9859, @Jul 638**; ABOVE the band **0 px, every size**.
+**Gates:** census PASS (unchanged) · motion · filmstrip 0 POP day and night · 6 shots · rebuilds
+**76.03 -> 76.03/day, 0.0%**, causes identical.
+**Verdict:** shipped
+**Surprise:** the isolation is **15:1 winter to summer** — HEAD's nine-leaf pot already WAS the
+summer plant, and the sill lacked every other month. And my cleanest control failed by
+design: pin `daylight` and HEAD's strip STILL moves 10638 px from February to July, because the band
+is composited under `applyLight`, whose sun colour is seasonal. The function read one input; the
+picture never did.
+**Law:** a cached layer's inputs are not its PICTURE's inputs — what is composited over it after
+the blit is an input too. Price a "reads nothing" premise on PIXELS, not the function body.

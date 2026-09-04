@@ -92,10 +92,14 @@ function __gd(t){ const R = window.__GDR; R[t + ':raw'] = (R[t + ':raw'] || 0) +
   return out;
 }
 
-/* The control is a REF, not "HEAD": HEAD expires the moment this change commits, and the
+/* maxBuffer: courtyard.html passed node's default 1 MB at #191 and spawnSync answered
+ * ENOBUFS, i.e. the probe died of the file GROWING. Any probe that shells out for the
+ * source needs the same.
+ *
+ * The control is a REF, not "HEAD": HEAD expires the moment this change commits, and the
  * premise being priced here is a claim about a much older build. GR_REF names it. */
 const REF = process.env.GR_REF || 'HEAD';
-const builds = { [REF === 'HEAD' ? 'HEAD' : 'REF']: execFileSync('git', ['show', REF + ':courtyard.html']).toString(),
+const builds = { [REF === 'HEAD' ? 'HEAD' : 'REF']: execFileSync('git', ['show', REF + ':courtyard.html'], { maxBuffer: 64 << 20 }).toString(),
                  CAND: readFileSync('courtyard.html', 'utf8') };
 const files = {};
 for (const [k, src] of Object.entries(builds)){

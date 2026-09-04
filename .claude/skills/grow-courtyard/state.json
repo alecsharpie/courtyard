@@ -2,7 +2,7 @@
   "updated": "2026-09-04",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 190,
+  "lastIteration": 191,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -496,6 +496,9 @@
       "fidelity": [
         176,
         187
+      ],
+      "new-element": [
+        191
       ]
     },
     "roofs": {
@@ -607,7 +610,7 @@
       "#plate, #daytime, #season, #where, #ticker (TICK_DWELL/QMAX), #stats, #ctrl; hidden under 640px; two LAPSE buttons, one beginLapse",
       "NAMING under the pointer, off lookAt: beds, plots, paving, trees, livingAt, FACES[]/faceAt, roofFurnAt, allotFurnAt, vanes, the field edge, birds, moths, sky/sun/moon/towers; evPx -> DRAWING",
       "quarter CAMERA #where: Wide/Courtyard/Street/Plaza/Far bank, viewFor/whereGo/stepView, wide cache through gview, a WORLD not the grid (WORLD_X0/X1, held); it FOLLOWS a person (#166) — followQuarter, FOLLOW_S 2.6, viewEasing()",
-      "the PAINTED sill: drawSill inside drawOurSide, baked into the ground cache; sillTop() the ONE definition, sillU/sillBoxes/sillOver/clipOffSill, nearShadow(g). Two geranium pots and a cup, and its only world input is daylight",
+      "the PAINTED sill: drawSill in drawOurSide, in the ground cache; sillTop() the ONE definition, sillU/sillBoxes/sillOver/clipOffSill, nearShadow. Reads the YEAR (#191): gerLeaf/Bloom/Drop, sillFrost/Wet/Snow, sillCup off hash(day); named by sillAt",
       "the ticker knows where you are LOOKING: inView(x,y) the ONE reader of whereN, AMBIENT_PLACES/ambientHere, SOUNDS bypass it; THREE ranks — background(rank,txt,then,until), announce(), CLOCK, MURMUR",
       "the ground cache is relit when the LIGHT moves, not the clock (#180): lightNow/lightMoved an L1 distance from lightPainted, LIGHT_MOVE/LIGHT_SLOW, markGroundPainted; a landing DISSOLVES both caches — fadeCaches/fadeF, VIEW_FADE",
       "the census has a WINTER row (#187): WINTER warp 1220 + winterLadder in its own block off groups(); ice+snowCover in BOTH; --ref reads a past tree; runlog/stall carry winter tileKinds/margin"
@@ -667,6 +670,12 @@
     {
       "id": "c284",
       "note": "census scalars.structures SUMS heterogeneous registers, so a build-time CONSTANT dilutes the collapse guard: #189's eaveLine (217/sample) took it 4059 -> 6314 and 31% of it can now never move.",
+      "raisedBy": 190,
+      "seenBy": 0
+    },
+    {
+      "id": "c285",
+      "note": "drawSill 0.72 -> 1.67 ms in snow+rain (#191, interleaved control), on a 25-27 ms cache repaint at 76.03/day - and that bar itself drifted 75.14 -> 76.03 between #180 and #191 with no iteration naming it. Nobody watches it between briefs.",
       "raisedBy": 190,
       "seenBy": 0
     }

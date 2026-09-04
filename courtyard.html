@@ -12080,6 +12080,54 @@ function nearShadow(g){
  * also what lets sillOver() put it back 1:1 instead of scaling it through the ease. */
 function sillU(){ return Math.max(5, cellW0 * 0.7); }
 function sillPots(){ return [[W * 0.055, 1], [W * 0.945, 0.85]]; }
+/* ---- the ledge's own year (#191) -----------------------------------------------
+ * For 190 iterations this strip was the one surface in the picture that did not know
+ * what month it was: ninety lines whose ONLY input from the world was `daylight`. It
+ * is the bottom 7.5% of every frame at every framing and the pots are the largest
+ * figures in the picture, so the year read everywhere in this town EXCEPT in the one
+ * place the observer is standing.
+ *
+ * Written the way the canopy's terms are: off seasonPhase, never warmth alone —
+ * warmth 0.5 happens twice — and closed on both sides, so each is zero for most of
+ * the year. Phase 0 is midwinter, 0.25 spring, 0.5 midsummer.
+ *
+ * All of it is baked into the GROUND CACHE with the rest of drawSill, so it may only
+ * read quantities the cache ALREADY repaints for, or it buys back the repaints #180
+ * cut (110.78 -> 75.14/day). The four it reads are all free: the light (lightMoved(),
+ * the cache's most frequent cause by far), snowCover (SNOW_REPAINT), wetness — via
+ * wetBucket(), the bucket the ground itself is painted at, never the live value — and
+ * `day`, which turns once. The year moves at 7.0e-4 of a phase a second and is
+ * carried by the light's own cadence for nothing. NO new dirty reason is added. */
+const SILL_CUP = 0.34, SILL_CUP_COLD = 0.46;   // share of days a cup is left standing: a third in July, four of five in February
+/* A pelargonium overwintered on the ledge, which is what a geranium on a windowsill
+ * IS: cut hard back as it goes over, holding a few stubs through the cold, breaking
+ * again in late winter. It never reaches zero — the plant does not leave. */
+function gerLeaf(){ const p = seasonPhase;
+  return clamp(Math.min((p - 0.10) / 0.17, (0.86 - p) / 0.07), 0.10, 1); }
+function gerBloom(){ const p = seasonPhase;    // it flowers from early summer and gives up at the turn
+  return clamp((p - 0.31) / 0.11, 0, 1) * clamp((0.76 - p) / 0.09, 0, 1); }
+function gerDrop(){ const p = seasonPhase;     // and drops what it sheds on the stone beside itself
+  return clamp((p - 0.72) / 0.07, 0, 1) * clamp((1.02 - p) / 0.14, 0, 1); }
+/* Rime on the outer stone. A COLD term, not a winter one — chillF() is the town's own
+ * cold and already carries snow lying — burnt off by any real sun, and it cannot be
+ * there while the stone is wet: water on stone is the other state of the same surface. */
+function sillFrost(){
+  return clamp((chillF() - 0.62) / 0.30, 0, 1) * clamp(1.15 - daylight * 1.7, 0, 1)
+       * clamp(1 - wetBucket() * 2.5, 0, 1);
+}
+/* How far in over the outer edge the rain has driven, 0..1. The WET is the town's and
+ * the REACH is the wind's: a still shower darkens the outer nosing and no more, a gale
+ * puts water a third of the way across the boards. */
+function sillWet(){ return wetBucket() * (0.34 + 0.66 * windF()); }
+/* Snow does not fall on a sill under a lintel; it BLOWS in, and lies along the outer
+ * edge where the ledge meets the opening. */
+function sillSnow(){ return clamp(snowCover * 1.4, 0, 1); }
+/* The cup comes and goes — a whole day at a time, so nothing on the ledge can pop
+ * mid-afternoon — and it is likelier in the cold, which is what a windowsill is for.
+ * hash(), never R(): the sill is a CANVAS-EXTENT population and the draws a frame
+ * spends are a fact about the window. Salted per world, so the cup is not left out on
+ * the same days of the calendar in every town. */
+function sillCup(){ return hash(day, 431 + WIND_SALT) < SILL_CUP + SILL_CUP_COLD * (1 - warmth); }
 /* Where the sill lands on SCREEN, in CSS px: the strip below sillTop(), and the three
  * things standing on it, which rise above its top edge. ONE definition — drawSill paints
  * into these, sillOver() reads the same rects back out of the cache, so the two cannot
@@ -12171,6 +12219,59 @@ function drawSill(g){
   g.fillStyle = 'rgba(196,168,124,' + (0.10 + 0.22 * warm) + ')';
   g.fillRect(0, sy, W, 2.2);                                   // the lit front edge of the sill
   g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(0, sy + 2.2, W, 2.2);
+  /* ---- what the weather has left on the stone ---------------------------------
+   * Three states of ONE surface, exclusive by construction: wet stone cannot carry
+   * frost (sillFrost divides wetBucket out) and snow lies over either. All of it sits
+   * against the OUTER edge — the far one, at sy, where the opening is — because that
+   * is the only part of a sill under a lintel the weather can reach at all. */
+  const wetS = sillWet(), frostS = sillFrost(), snowS = sillSnow();
+  if (wetS > 0.02){
+    const reach = B * (0.08 + 0.30 * wetS), k = Math.min(1, wetS * 1.6);
+    const wg = g.createLinearGradient(0, sy, 0, sy + reach);
+    wg.addColorStop(0,    'rgba(4,5,7,' + (0.66 * k).toFixed(3) + ')');
+    wg.addColorStop(0.62, 'rgba(4,5,7,' + (0.34 * k).toFixed(3) + ')');
+    wg.addColorStop(1,    'rgba(4,5,7,0)');
+    g.fillStyle = wg; g.fillRect(0, sy, W, reach);
+    // wet stone returns the SKY, not the room: the one cool thing in the whole band
+    g.fillStyle = 'rgba(132,152,178,' + (0.05 + 0.18 * lit * Math.min(1, wetS * 2)).toFixed(3) + ')';
+    g.fillRect(0, sy + 1.6, W, Math.max(1, B * 0.035));
+    // and it stands in beads, which is what says WATER rather than shadow
+    for (let j = 0, n = 10 + (28 * k | 0); j < n; j++){
+      // biased toward the OUTER edge: the drops thin out the further in you look
+      const bx = hash(j, 191) * W, by = sy + 2.5 + Math.pow(hash(j, 193), 1.7) * reach * 0.9;
+      const r = Math.max(0.9, B * (0.022 + hash(j, 197) * 0.034));
+      g.fillStyle = 'rgba(0,0,0,.44)';
+      g.beginPath(); g.ellipse(bx, by + r * 0.45, r * 1.15, r * 0.72, 0, 0, 7); g.fill();
+      g.fillStyle = 'rgba(198,214,236,' + (0.18 + 0.44 * lit).toFixed(3) + ')';
+      g.beginPath(); g.ellipse(bx - r * 0.28, by - r * 0.26, r * 0.50, r * 0.36, 0, 0, 7); g.fill();
+    }
+  }
+  if (frostS > 0.02){
+    const fr = B * 0.16;
+    const fg = g.createLinearGradient(0, sy, 0, sy + fr);
+    fg.addColorStop(0, 'rgba(188,204,226,' + (0.30 * frostS).toFixed(3) + ')');
+    fg.addColorStop(1, 'rgba(188,204,226,0)');
+    g.fillStyle = fg; g.fillRect(0, sy, W, fr);
+    g.fillStyle = 'rgba(214,228,244,' + (0.36 * frostS).toFixed(3) + ')';   // the rime ON the edge itself
+    g.fillRect(0, sy, W, Math.max(1.2, B * 0.05));
+    for (let j = 0; j < 34; j++){                                           // and where it has grown out into feathers
+      const fx = hash(j, 211) * W, fy = sy + hash(j, 223) * fr * 0.9;
+      g.fillStyle = 'rgba(226,238,252,' + (0.44 * frostS * (0.4 + 0.6 * hash(j, 227))).toFixed(3) + ')';
+      g.fillRect(fx, fy, Math.max(1, B * (0.010 + hash(j, 229) * 0.050)), Math.max(0.8, B * 0.014));
+    }
+  }
+  if (snowS > 0.02){
+    /* a shallow drift, and its LOWER edge is what makes the eye read snow instead of a
+     * highlight: broken, in runs, the way the grain is */
+    const dp = B * (0.04 + 0.13 * snowS), seg = 64;      // fine enough to read as a LIP, not as mountains
+    g.fillStyle = 'rgba(226,234,246,' + (0.28 + 0.40 * lit * snowS).toFixed(3) + ')';
+    g.beginPath(); g.moveTo(0, sy);
+    for (let j = 0; j <= seg; j++) g.lineTo(W * j / seg, sy + dp * (0.58 + 0.42 * hash(j, 233)));
+    g.lineTo(W, sy); g.closePath(); g.fill();
+    // and its own shadow ON the stone, which is what separates it from the lit town above
+    g.fillStyle = 'rgba(0,0,0,' + (0.30 * snowS).toFixed(3) + ')';
+    g.fillRect(0, sy + dp, W, Math.max(1, B * 0.030));
+  }
   /* Everything on the sill throws something onto it. The light comes in over the far edge,
    * so every shadow lies toward US — down the frame, out of the lit band and into the near
    * dark, which is what tells you the band is a surface and not a hole. Drawn before the
@@ -12187,10 +12288,21 @@ function drawSill(g){
     g.closePath(); g.fill();
   };
   const silh = 'rgba(9,8,6,1)', rim = 'rgba(190,164,120,' + (0.06 + 0.18 * warm) + ')';
-  // two pots of geraniums and, between them, a forgotten cup
-  const POTS = sillPots();
-  for (const [px, s] of POTS) cast(px, u * 1.5 * s * 0.72, 0.52);
-  cast(W * 0.5, u * 0.62 * 0.7, 0.34);
+  // two pots of geraniums and, between them, a cup — on the days there is one
+  const POTS = sillPots(), leafF = gerLeaf(), bloomF = gerBloom(), dropF = gerDrop(), cupOut = sillCup();
+  /* what the pots have dropped, lying on the stone where it fell: the only mark on the
+   * ledge that says a plant has been standing HERE all year */
+  if (dropF > 0.02){
+    g.fillStyle = 'rgba(0,0,0,.36)';
+    for (let j = 0, n = Math.round(7 * dropF); j < n; j++){
+      const [px, s] = POTS[j & 1];
+      const lx = px + (hash(j, 241) - 0.5) * u * 7 * s, ly = sy + B * (0.07 + hash(j, 251) * 0.30);
+      g.beginPath(); g.ellipse(lx, ly, u * 0.30 * s, u * 0.15 * s, hash(j, 257) * 3, 0, 7); g.fill();
+    }
+  }
+  // the shadow is the PLANT's, so it grows and shrinks with it
+  for (const [px, s] of POTS) cast(px, u * 1.5 * s * 0.72, 0.32 + 0.24 * leafF);
+  if (cupOut) cast(W * 0.5, u * 0.62 * 0.7, 0.34);
   for (const [px, s] of POTS){
     const pw = u * 1.5 * s, ph = u * 1.25 * s;
     g.fillStyle = silh;
@@ -12199,23 +12311,60 @@ function drawSill(g){
     g.lineTo(px + pw * 0.72, sy + 3); g.lineTo(px - pw * 0.72, sy + 3);
     g.closePath(); g.fill();
     g.fillStyle = rim; g.fillRect(px - pw, sy - ph, pw * 2, 2);
+    /* Nine leaves on a fixed radius was a plastic geranium. What moves through the
+     * year is how MANY there are, how far out they stand and whether anything is
+     * flowering; the STEMS stay, because a cut-back geranium is stubs in a pot and not
+     * an empty pot, and the pot itself never changes size for the reason a tree's
+     * maturity() does not. Every extent below is bounded by sillBoxes()' 3.3u x 4.3u
+     * (probes/sill-containment.mjs), which is why the box is a CONSTANT and does not
+     * breathe with the season: sillOver() blits it back over the live world every
+     * frame, and a box that moved with the year would crawl. */
+    const top = sy - ph, SPR = 1.1 + 1.5 * leafF, STEMS = 5;
+    const ang = k => -Math.PI / 2 + (k / (STEMS - 1) - 0.5) * SPR;
+    const len = k => u * (1.0 + hash(k, px | 0) * 1.7) * s * (0.34 + 0.66 * leafF);
+    g.strokeStyle = silh; g.lineWidth = Math.max(1, u * 0.11 * s);
+    for (let k = 0; k < STEMS; k++){
+      const a2 = ang(k), r2 = len(k);
+      g.beginPath(); g.moveTo(px, top + u * 0.10 * s);
+      g.lineTo(px + Math.cos(a2) * r2, top + Math.sin(a2) * r2 * 0.85); g.stroke();
+    }
     g.fillStyle = silh;
-    for (let k = 0; k < 9; k++){
-      const a2 = -Math.PI / 2 + (k / 8 - 0.5) * 2.5;
-      const r2 = u * (1.4 + hash(k, px | 0) * 1.5) * s;
-      const lx = px + Math.cos(a2) * r2, ly = sy - ph + Math.sin(a2) * r2 * 0.85;
-      g.beginPath(); g.ellipse(lx, ly, u * 0.42 * s, u * 0.3 * s, a2, 0, 7); g.fill();
+    const leaves = 2 + Math.round(7 * leafF);
+    for (let k = 0; k < leaves; k++){
+      const a2 = -Math.PI / 2 + (k / Math.max(1, leaves - 1) - 0.5) * SPR;
+      const r2 = u * (0.9 + hash(k, 1 + (px | 0)) * 1.9) * s * (0.36 + 0.64 * leafF);
+      const lx = px + Math.cos(a2) * r2, ly = top + Math.sin(a2) * r2 * 0.85;
+      g.beginPath();
+      g.ellipse(lx, ly, u * s * (0.20 + 0.24 * leafF), u * s * (0.15 + 0.17 * leafF), a2, 0, 7);
+      g.fill();
+    }
+    /* the heads, on their own stalks above the leaves, and the one thing on the ledge
+     * the light gets round: a geranium in flower reads here as a RIM, not as a colour */
+    for (let k = 0, heads = Math.round(4 * bloomF); k < heads; k++){
+      // their OWN spread, narrower than the leaves': a geranium holds its umbels UP,
+      // and a head hung out sideways on a horizontal stem reads as a lollipop
+      const a2 = -Math.PI / 2 + (k / Math.max(1, heads - 1) - 0.5) * SPR * 0.52;
+      const r2 = len(1 + k % (STEMS - 2)) * 1.16;
+      const hx = px + Math.cos(a2) * r2, hy = top + Math.sin(a2) * r2 * 0.85 - u * 0.34 * s;
+      g.strokeStyle = silh; g.lineWidth = Math.max(0.9, u * 0.08 * s);
+      g.beginPath(); g.moveTo(hx, hy + u * 0.50 * s); g.lineTo(hx, hy); g.stroke();
+      g.fillStyle = silh;
+      g.beginPath(); g.ellipse(hx, hy, u * 0.32 * s, u * 0.25 * s, 0, 0, 7); g.fill();
+      g.fillStyle = 'rgba(216,152,128,' + (0.16 + 0.36 * warm).toFixed(3) + ')';
+      g.beginPath(); g.ellipse(hx, hy - u * 0.05 * s, u * 0.25 * s, u * 0.14 * s, 0, Math.PI, 2 * Math.PI); g.fill();
     }
   }
-  const cx2 = W * 0.5, cw = u * 0.62;
-  g.fillStyle = silh;
-  g.beginPath();
-  g.moveTo(cx2 - cw, sy - u * 0.72); g.lineTo(cx2 + cw, sy - u * 0.72);
-  g.lineTo(cx2 + cw * 0.7, sy + 2); g.lineTo(cx2 - cw * 0.7, sy + 2);
-  g.closePath(); g.fill();
-  g.strokeStyle = silh; g.lineWidth = Math.max(1.6, u * 0.16);
-  g.beginPath(); g.arc(cx2 + cw * 1.3, sy - u * 0.4, u * 0.36, -1.4, 1.4); g.stroke();
-  g.fillStyle = rim; g.fillRect(cx2 - cw, sy - u * 0.72, cw * 2, 1.6);
+  if (cupOut){
+    const cx2 = W * 0.5, cw = u * 0.62;
+    g.fillStyle = silh;
+    g.beginPath();
+    g.moveTo(cx2 - cw, sy - u * 0.72); g.lineTo(cx2 + cw, sy - u * 0.72);
+    g.lineTo(cx2 + cw * 0.7, sy + 2); g.lineTo(cx2 - cw * 0.7, sy + 2);
+    g.closePath(); g.fill();
+    g.strokeStyle = silh; g.lineWidth = Math.max(1.6, u * 0.16);
+    g.beginPath(); g.arc(cx2 + cw * 1.3, sy - u * 0.4, u * 0.36, -1.4, 1.4); g.stroke();
+    g.fillStyle = rim; g.fillRect(cx2 - cw, sy - u * 0.72, cw * 2, 1.6);
+  }
 }
 
 /* ============ dynamic drawing ============ */
@@ -16524,7 +16673,39 @@ function balloonName(){
   return 'a hot-air balloon, drifting east over the rooftops'
        + (isWindy() ? ', going along smartly on the wind' : ', barely moving in the calm');
 }
+/* c282: two pots and a cup have stood at the bottom of every frame since #99 and the
+ * pointer has never had a word for any of them. The sill is where this piece says what
+ * it contains, and the sill itself was the one thing in the picture it would not name.
+ * The boxes are sillBoxes()' own — the same rects drawSill paints into and sillOver()
+ * blits back — so the words and the paint cannot drift apart. */
+function gerName(){
+  const b = gerBloom(), l = gerLeaf();
+  return b > 0.50 ? 'the geraniums on our sill, in full flower'
+       : b > 0.08 ? 'the geraniums on our sill, still throwing a flower or two'
+       : l > 0.80 ? 'the geraniums on our sill, gone all to leaf'
+       : l > 0.40 ? 'the geraniums on our sill, breaking into leaf'
+       : sillFrost() > 0.3 ? 'the geraniums, cut back for the winter, frost on the pot'
+                           : 'the geraniums, cut back and waiting out the cold';
+}
+function sillAt(p){
+  const sy = sillTop();
+  if (p[1] < sy - sillU() * 4.3) return '';              // above the tallest thing on the ledge
+  const bx = sillBoxes();
+  const inside = b => p[0] >= b[0] && p[0] <= b[0] + b[2] && p[1] >= b[1] && p[1] <= b[1] + b[3];
+  if (inside(bx[1]) || inside(bx[2])) return gerName();
+  if (sillCup() && inside(bx[3]))
+    return daylight < 0.15 ? 'a cup left on the sill, long gone cold'
+                           : 'a cup somebody left on the sill';
+  if (p[1] < sy) return '';
+  return sillSnow() > 0.15 ? 'our own windowsill, snow blown in along the outer edge'
+       : sillFrost() > 0.25 ? 'our own windowsill, frost on the outer stone'
+       : sillWet() > 0.12 ? 'our own windowsill, the rain driven in over the edge'
+       : daylight < 0.12 ? 'our own windowsill, dark under the window'
+                         : 'our own windowsill, warm where the light lands';
+}
 function lookAt(p){
+  // the sill is in front of the ENTIRE town (nearHidden), so it is asked before anything
+  { const sl = sillAt(p); if (sl) return sl; }
   /* Behind the sill nothing on the near block is DRAWN — nearHidden() is the renderer's
    * own rule and it guarded drawBird and drawCat alone, so a bird the sill covers was
    * still hit-tested and still named, and the words described a picture nobody could

@@ -17,36 +17,6 @@
   "rationale": "No stall signal is showing, so nothing forced my hand; the ladder was chosen from what the picture is missing. Rung 4b is discharged — the last two passes both sat there and #186/#189 finally moved the census's shape, so mapFlat is quiet — and the last rung 5 was #164, twenty-seven iterations ago. This batch is rung 5: change the observer.\n\nI shot the town at seed 42, t 175, and then went and counted, because the watch note forbids an impression standing in for a number. The bottom of every frame at every framing is the sill: sillTop() = H - max(26, H*0.075), so it is the bottom 7.5% of the picture, and the objects on it are drawn at sillU() scale, which makes them the largest figures in the frame against 12 px people. drawSill() puts three things there — two pots of geraniums and a forgotten cup — and its only input from the world is `daylight`. Not season(), not warmth, not snowCover, not wetF, not raining, not windF, not one fact about the town it looks at. It is the same picture in February and July, in a gale and in snow. This is not the 'that surface looks flat' brief the watch note kills on sight: the sill's texture measures sd/mean 0.671, the highest in the table, and it is beautifully drawn. The claim is that the piece's own framing device is the one thing in it that the year does not pass through, and that the sill domain has had zero new elements in 190 iterations. b191 is 80 minutes with an explicit 150-300 line licence, first in the queue.\n\nThe other four each carry the number they rest on. b192 found the second unpriced thing this pass: riverRun() has said since #145 that the channel runs x1.45 in January and x0.55 in July, has fifteen consumers, and every one of them is colour, speed, streak count or the mill — the WATERLINE has never moved, and it is the last big seasonal surface that does not. b193 is c277 with #184's supply measurement in the brief. b194 is the plaza, which after 190 iterations still has no day of its own while the lane, the far bank and the cross street each have one. b195 is c278: a probe that threw on every run for seven iterations, in a tree of 303 files nothing executes.\n\nCURATION. LAWS.md took seven new claims from #186-#190 and went 36 laws -> 29 while staying at 11.9/12 KB, which took four named cuts: trap (c) (two figures nearer than 0.9 cells read as one) DELETED — a worker sees that in its first screenshot and no entry in sixty iterations has cited it; 'a solve must hand its consumer the value it TESTED' MERGED into 'one predicate, one definition', which is the same claim from the consumer's end; 'one uniform hash is a texture, never a PLACE' MERGED into the scalar law, which already owns hash GRAIN; and 'define membership POSITIVELY at the source' CUT to its one live sentence, grafted onto the share law — its residual half has not been cited since it was written. The hard-coded-HOUR law also folded into the two-axes law it is a corollary of.\n\nc273 I fixed myself: rotate-ledger.mjs's WATCH_CAP read w.note where the watch is an array of STRINGS, so a 420 B cap had never fired and three items were over it. It is the manager's own cap on the manager's own file and it is one line; a worker spending $7 to log a no-ship on it is the wrong trade. With it live, all four watch items were over and are now rewritten under 420 B, one of them replaced (the mapFlat argument is spent — the signal is clear) by a new note on labelling a brief's KIND by the file it changes.\n\nI also moved two caps in rotate-ledger.mjs and want it on the record, because raising a cap is how the last loop died. INV_PER_DOMAIN went 8 -> 7 so that it actually BINDS at today's size, and INV_CAP went 9.5 -> 10.75 KB. The justification is that the hard gate is context-budget.mjs's 46 KB total, which is enforced and now reads 45.7; 9.5 was set when the inventory was the largest item in that budget, and it no longer is. LAWS.md is the right file to cut, because claims compress and merge; the inventory is a symbol index and compressing it past nouns destroys what it is for. Coverage was five iterations stale and is recorded; five cues closed, one raised (c284, the census structures scalar diluted by a build-time constant), c272 rewritten.",
   "queue": [
     {
-      "id": "b191",
-      "domain": "The sill & the observer",
-      "kind": "new-element",
-      "brief": "THE BET — take the swing; a 150-300 line diff is expected and welcome. Grep drawSill() (~line 12131) before anything else and confirm the premise for yourself: it is ~90 lines, it draws three objects — two geranium pots and a forgotten cup, from sillPots() — and its ONLY input from the world is `daylight`, via `warm = 0.10 + 0.55 * daylight` and `lit`. Nothing in it reads season(), warmth, growSeason(), snowCover, wetF, raining, windF, chillF or any town state. Yet it is the bottom 7.5% of every frame at every framing (sillTop() = H - max(26, H * 0.075)), it is drawn at sillU() scale so its objects are the largest figures in the picture, and it is the one place in the world the observer is nominally standing. Make the ledge a place the year and the weather pass through: geraniums that come on and die back, rain that beads on the glass and darkens the stone, a rim of snow or frost on the outer nosing in winter, the cup that comes and goes. What exactly it holds is yours to choose — the requirement is that a February evening and a July morning are two different pictures at the bottom of the frame, and that the difference is legible at the shipping size. The sill domain has had ZERO new elements in 190 iterations; this is the piece's framing device and it has never changed.",
-      "seams": [
-        "drawSill",
-        "sillPots",
-        "sillTop",
-        "sillU",
-        "sillBoxes",
-        "sillOver",
-        "clipOffSill",
-        "drawOurSide",
-        "season",
-        "warmth",
-        "growSeason",
-        "snowCover",
-        "wetF",
-        "raining",
-        "windF",
-        "chillF",
-        "nameAt",
-        "livingAt"
-      ],
-      "successLooksLike": "Two shots at one seed, size and hour — one in February, one in July — and the bottom of the frame is two different pictures, quoted as diff MASS against a same-code control that reads 0. Plus: the ground cache's repaint rate is still at or under #180's 75.14/day (probes/ground-rebuilds.mjs exists), and whatever you put on the ledge ANSWERS THE POINTER — c282, folded in here: the pots and the cup have never had a name.",
-      "avoid": "drawSill is baked INTO the ground cache, from inside drawOurSide. Anything that must be true per frame is a live overlay drawn after, not a new reason to rebuild the cache — #180 cut the repaint rate 110.78 -> 75.14/day and this must not push it back; measure it, do not assume it. Nothing here may draw from R(): the sill is a CANVAS-EXTENT population and the draws a frame spends are a fact about the WINDOW, so use hash(). And do NOT crowd it — the sill is the frame, and the change through the year is the content, not the number of objects. If you end with more silhouettes than you started with and they do not each earn their place, you have made a shelf, not a sill.",
-      "budgetMin": 80,
-      "risk": "high"
-    },
-    {
       "id": "b192",
       "domain": "River & far bank",
       "kind": "new-ca",
@@ -153,5 +123,10 @@
     }
   ],
   "recommendStop": null,
-  "consumed": []
+  "consumed": [
+    {
+      "id": "b191",
+      "at": "2026-09-04T04:10:27.812Z"
+    }
+  ]
 }
