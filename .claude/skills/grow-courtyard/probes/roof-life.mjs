@@ -15,7 +15,7 @@ const ART = path.join(REPO, 'courtyard.html');
 
 const N = +(process.argv[2] || 10), DAYS = +(process.argv[3] || 6);
 const HEAD = path.resolve('.probe-head.html');
-fs.writeFileSync(HEAD, execSync('git show HEAD:courtyard.html', { cwd: REPO }, { maxBuffer: 1 << 28 }));
+fs.writeFileSync(HEAD, execSync('git show HEAD:courtyard.html', { cwd: REPO, maxBuffer: 1 << 28 }));
 
 const br = await chromium.launch();
 async function run(file, label){

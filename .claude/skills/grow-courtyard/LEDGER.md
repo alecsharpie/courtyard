@@ -315,3 +315,26 @@ RAMP as its effect — pool a YEAR, and label the days from PRIMITIVES so a pinn
 same ones.
 **Cue:** 4 of 34 fair days filled 0 slots — `fairGathering()` refuses on `raining` and that is
 the only window, so a shower at the raise costs the whole day.
+## Iteration 195 — how much of the shelf still runs (2026-09-04) [The sill & the observer × Harness]
+
+**Brief:** b195 — smoke-run every probe; the NUMBER is the deliverable.
+**Did.** `probe-smoke.mjs`: every `.mjs`/`.sh`/`.py` probe spawned with a timeout, N-way
+→ PASS / THROW / TIMEOUT, timeouts split `partial`/`silent`. Manager cadence, not a gate.
+**The number** (75 s, 7-way): **361 instruments — 230 pass, 35 throw, 96 time out**, 58 of
+the 96 partial. skill 283 · root 56 · scratch 23.
+**THREE trees, not two.** The third is a *tracked* `probes/` at the repo root: 56 files, 36
+iterations, **#191/#192/#193 landed there**, named by no doc. SKILL.md's "`git mv` it into
+`probes/`" is correct for the WRONG tree from the repo root; it now spells the path out.
+**One cause owns 9 of the 32 .mjs throws:** `spawnSync git ENOBUFS`. courtyard.html crossed Node's
+1 MiB default `maxBuffer` at **#181**, so every probe shelling `git show HEAD:courtyard.html`
+without raising it has thrown for 13 iterations — the *control* pattern LAWS.md mandates, dead
+across the shelf. Fixed the 2 where `maxBuffer` sat as a 3rd arg `execSync` never reads.
+**Gates:** census PASS · visual PASS. HARNESS — courtyard.html is byte-identical to HEAD, so
+`srcChanged:false` is expected.
+**Verdict:** shipped
+**Surprise:** `probes/README.md` closed this bug at **#11** — "There is one `probes/`, and this is
+it." It held 102 iterations, reopened at #113, and has sat in the winning tree denying the loser
+since. `bonfire-year.mjs`, the brief's motivating corpse, **passes**: #185 fixed it.
+**Law:** an instrument is a build artifact too — nothing runs the shelf, so a probe breaks silently
+and stays broken, and the cause is usually not the probe but the ARTIFACT crossing a limit it never
+named. Smoke a control before you trust it.

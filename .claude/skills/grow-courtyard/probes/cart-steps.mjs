@@ -12,7 +12,7 @@ const { chromium } = (await import(pathToFileURL(PW).href)).default;
 const REPO = path.resolve(new URL('.', import.meta.url).pathname, '../../../..');
 const ART = path.join(REPO, 'courtyard.html');
 const N = +(process.argv[2] || 14);
-fs.writeFileSync('.probe-head.html', execSync('git show HEAD:courtyard.html', { cwd: REPO }, { maxBuffer: 1 << 28 }));
+fs.writeFileSync('.probe-head.html', execSync('git show HEAD:courtyard.html', { cwd: REPO, maxBuffer: 1 << 28 }));
 const br = await chromium.launch();
 async function run(file, label){
   const steps = [];                       // every non-zero step of every cart, over N seeds

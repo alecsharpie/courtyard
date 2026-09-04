@@ -617,7 +617,8 @@
       "the PAINTED sill: drawSill in drawOurSide, in the ground cache; sillTop() the ONE definition, sillU/sillBoxes/sillOver/clipOffSill, nearShadow. Reads the YEAR (#191): gerLeaf/Bloom/Drop, sillFrost/Wet/Snow, sillCup off hash(day); named by sillAt",
       "the ticker knows where you are LOOKING: inView(x,y) the ONE reader of whereN, AMBIENT_PLACES/ambientHere, SOUNDS bypass it; THREE ranks — background(rank,txt,then,until), announce(), CLOCK, MURMUR",
       "the ground cache is relit when the LIGHT moves, not the clock (#180): lightNow/lightMoved an L1 distance from lightPainted, LIGHT_MOVE/LIGHT_SLOW, markGroundPainted; a landing DISSOLVES both caches — fadeCaches/fadeF, VIEW_FADE",
-      "the census has a WINTER row (#187): WINTER warp 1220 + winterLadder in its own block off groups(); ice+snowCover in BOTH; --ref reads a past tree; runlog/stall carry winter tileKinds/margin"
+      "the census has a WINTER row (#187): WINTER warp 1220 + winterLadder in its own block off groups(); ice+snowCover in BOTH; --ref reads a past tree; runlog/stall carry winter tileKinds/margin",
+      "HARNESS (not a town noun) probe-smoke.mjs: runs every probe in all THREE trees — skill 283, TRACKED root probes/ 56, gitignored scratch 23 — with a per-probe timeout. Manager cadence, not a gate."
     ],
     "roofs": [
       "the town is HOUSES not regions: buildVolumes() makes roofs EMERGENT — eaveFor(x,y), vZ four-corner average, vD a distance transform, SLOPE; houseAt/houseIx, EAVE_LO 4.62/EAVE_HI 7.15",
@@ -699,6 +700,12 @@
       "id": "c288",
       "note": "4 of 34 fair days filled 0 slots: fairGathering() refuses on raining and the gathering is the only window there is, so a shower at the raise costs the whole fair even when it clears by noon.",
       "raisedBy": 192,
+      "seenBy": 0
+    },
+    {
+      "id": "c289",
+      "note": "9 probes still throw spawnSync git ENOBUFS: courtyard.html passed Node's 1 MiB default maxBuffer at #181, so every 'git show HEAD' control without maxBuffer is dead. 11 sites. And 96 probes time out at 75 s - unresolved.",
+      "raisedBy": 194,
       "seenBy": 0
     }
   ],

@@ -156,7 +156,10 @@ you can generate the same filmstrip before and after and compare frame for frame
 count the pixels, sample the colour, assert the entity moved. A twenty-line probe
 beats a confident visual opinion: in the previous loop, three separate agents
 looked at a bug and all three named the wrong cause; a short probe found it in one
-run. If a probe earns its keep, `git mv` it into `probes/`.
+run. If a probe earns its keep, `git mv` it into
+`.claude/skills/grow-courtyard/probes/` — **spell the path out.** Your cwd is the repo
+root, where a bare `probes/` is a *second, also-tracked* tree; 36 iterations have landed
+there by accident, 7 names now exist in both with different contents, and nothing runs it.
 
 **Perf (when the brief asks, or you added a per-frame pass).**
 
@@ -267,5 +270,6 @@ honestly, claim nothing, and let the diff speak.
   archives.mjs          the one place that knows a rotated file has two halves
   pop-brief.mjs         queue → current-brief.json (the runner calls this)
   run-loop.sh           the runner
-  probes/               probes that earned their keep
+  probe-smoke.mjs       runs every probe in all three trees; how much of the shelf still works
+  probes/               probes that earned their keep (see also the stray tree at the repo root)
 ```
