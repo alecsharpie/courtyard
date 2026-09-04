@@ -215,3 +215,25 @@ mean cannot move much; what the trigger buys is the TAIL — HEAD's only floor i
 **0 px** same-code control: drawn, not seen.
 **Law:** before adding a trigger to a cache, price what ALREADY dirties it — the incumbent's rate
 caps the new one's mean win, so buy the WORST CASE and set the deadband where the picture stops.
+
+## Iteration 211 — the carriageway gets traffic (2026-09-05) [Lane & market × New element]
+
+**Brief:** b211 — eight rows of setts, nothing on them. Price the emptiness, then put traffic on it.
+**Premise, HEAD** (`road-load.mjs`, new; 6 seeds x a year, 0.5 s): **72.6%** of samples had
+something on the roadway but **91% of it was ON FOOT**; on WHEELS **13.6%**, and the sky moved it not at
+all (20.4% in rain, 12.9% dry).
+**Did.** `TRAFFIC[]`: trap/rider/wagon/barrow, keep-left, at a RATE off `daylight`, `raining`/`wetF()`,
+market; `hold`/`pull` for headway and a pull-out to the crown; `TRAF_HURRY` ENDS the population,
+the rate being only a set-out bound. From the cart's parts, and **no R()**: draws are
+`hash(floor(simT/TRAF_EVERY), base+WIND_SALT)`, on the CLOCK so a reseed repeats.
+**Gates:** census **byte-identical to HEAD but for `traffic`** · motion PASS (`rig` 0/0/0/0) · wheels
+**13.6%→49.1%**, busy hour **19.7%→78.3%**, night 5.5→33.0 vs day 20.4→62.4 · 446–1439 px over a **0 px** control.
+**Verdict:** shipped
+**Surprise:** the SHOVE, the precedent the brief named, nearly sank it. `rigShove()` at the walkers' two
+seams cost the picture nothing (125–203 shove-steps a year, none over 0.43 s) and cost a WINTER:
+`winter/frozen` at seed 42 fell 352 → 256, failing WCORE. Eight reshuffles of HEAD's stream left that
+cell at 1055–1068 (HEAD 1063), yet `TRAF_BASE` 0.120 → 0.122 flipped it: it is sampled mid-ramp.
+**Law:** where a rule can be the MOVING thing steering round rather than the standing thing being moved,
+write it so — a read-only avoidance costs the seeded world nothing.
+**Law:** a weather band read over the whole clock is a DAYTIME band: showers fall by day, `dry` carries
+every night. Cut both inside ONE hour and 52.9% vs 51.3% became 60.9% vs 78.3%.

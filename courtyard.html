@@ -6752,14 +6752,158 @@ function stepCart(dt){
 /* a walker inside the cart's berth is moved across its heading, away from the axle-to-
  * nose segment — the bicycle-bell dodge the announcement always described and nothing
  * ever did. The loader is exempt: standing at the side IS the job. */
-function cartShove(a, dt){
-  const c = cart, px = a.x - c.x, py = a.y - c.y;
-  const u = clamp(px * c.hx + py * c.hy, 0, CART_LEN);
+function rigShove(a, dt, c, len, berth){
+  const px = a.x - c.x, py = a.y - c.y;
+  const u = clamp(px * c.hx + py * c.hy, 0, len);
   const qx = px - c.hx * u, qy = py - c.hy * u;
-  if (Math.hypot(qx, qy) >= CART_BERTH) return false;
+  if (Math.hypot(qx, qy) >= berth) return false;
   const side = (px * -c.hy + py * c.hx) >= 0 ? 1 : -1, push = CART_SHOVE * dt;
   a.x += -c.hy * side * push; a.y += c.hx * side * push;
   return true;
+}
+function cartShove(a, dt){ return rigShove(a, dt, cart, CART_LEN, CART_BERTH); }
+
+/* ============ the traffic on it (#211) ============ *
+ * The carriageway is eight rows of laid setts with a camber, gutters, ruts and kerbs
+ * (LN_ROAD0..LN_ROAD1), it crosses the whole width of every framing, and for 210
+ * iterations almost nothing used it. Priced on HEAD over 6 seeds x a year at 0.5 s
+ * (probes/road-load.mjs): SOMETHING stood on the roadway in 72.6% of samples, but 91%
+ * of that was people ON FOOT — a walker crossing to the stalls, the sweeper working the
+ * busiest row, the drayman at DRAY_ROAD. Something on WHEELS was there in 15.5%: the
+ * cyclist band and, on four days in five, the cart. And the weather moved none of it —
+ * 37.3% dry against 36.9% wet, a road that does not know it is raining.
+ *
+ * So: FABRIC, not an event. A rig sets out at a RATE, crosses the whole width and
+ * leaves; the trip sets how many are in frame (LAWS: a day is 55 s, so a ~40 s crossing
+ * is a resident). Mean trip over the four kinds is ~25 s, so a peak rate near 0.083 a
+ * second holds ~2 on the road at midday, and the hour, the market and the rain scale
+ * the RATE, never the cap.
+ *
+ * NO R(), which is the cart's own rule and the reason it exists: every draw is a
+ * hash off the SIM CLOCK (floor(simT / TRAF_EVERY)), salted with WIND_SALT so the
+ * stream is not one calendar in every world. The town's seeded sequence is untouched,
+ * which is what lets the census be byte-identical to HEAD but for the one new field —
+ * and it makes the traffic at any simT a pure function of the seed, so __reseed()
+ * plus a warp reproduces it, which a private counter would not.
+ *
+ * Nothing here stops: a parked thing is roof furniture, this is transit. The roadway
+ * lives in the GROUND CACHE and a rig is a LIVE overlay — nothing below dirties it. */
+const TRAF_OFF = 6;                                   // how far off each end a rig is born, and dies
+const TRAF_Y_E = LN_ROAD0 + 1.75, TRAF_Y_W = LN_ROAD1 - 1.75;   // keep left: east on the north half, west on the south, the crown between them
+const TRAF_BASE = 0.125, TRAF_NIGHT = 0.10;           // per TRAF_EVERY; the share of the day rate the dark keeps
+const TRAF_RAIN = 0.30, TRAF_WET = 0.45;              // in the shower, and on the day after one
+const TRAF_MARKET = 1.55, TRAF_EVERY = 1;             // market day, and the tick the roll rides
+const TRAF_CAP = 6, TRAF_GAP = 9;                     // nothing is born onto another rig's tail
+/* The night and the shower are PRESENCE bounds and the rate is only a SET-OUT one
+ * (LAWS): a rig that left at four is still crossing at midnight, so cutting arrivals to
+ * TRAF_NIGHT alone bought a night/day ratio of only 0.79 — and TRAF_RAIN bought NOTHING
+ * at all (52.9% on wheels in the rain against 51.3% dry, measured), because a shower is
+ * shorter than a crossing and the rate cannot reach what is already on the road. What
+ * ends a population is how fast it LEAVES. So what is out in the dark or in the wet
+ * hurries: the cart's own dusk rule at 1.5, harder, and it is the second half of the
+ * same bound rather than a second bound. */
+const TRAF_HURRY = 1.75;
+const TRAF_LOOK = 3.4, TRAF_PASS = 1.15, TRAF_STEER = 0.5;   // headway, the pull-out, and how hard a rig leans onto its line
+const TRAF_PAINT = ['#6b4a30', '#4a5240', '#5a4230', '#3f4a58', '#6a5a3a', '#54402e'];
+const TRAF_COAT  = ['#5a3f2a', '#4e3524', '#6b5340', '#3a2c22', '#7a6248'];
+const TRAF_GOODS = ['#8a6f4a', '#9c8259', '#7a5c3c', '#a3b876', '#8d7a5c'];
+/* Four kinds, and their WEIGHTS are not a taste — presence is w x rate x trip, so the
+ * slowest kind is the loudest one at equal weight. At these numbers the barrow is 0.14
+ * of the arrivals and 0.25 of what is on the road, which is as far as a thing crossing
+ * the frame in 44 s may go before it IS the traffic. */
+const TRAF_KINDS = [
+  { k:'trap',   w:0.34, sp:9.6, len:3.4, berth:1.15 },
+  { k:'rider',  w:0.26, sp:12.0, len:2.2, berth:1.00 },
+  { k:'wagon',  w:0.26, sp:5.8, len:4.6, berth:1.55 },
+  { k:'barrow', w:0.14, sp:3.8, len:2.2, berth:1.00 },
+];
+let TRAFFIC = [], trafLast = -1;
+/* The three scalars the lane already knows, on the RATE. daylight is the hour (and at
+ * daylight 0 the term is TRAF_NIGHT in every season, the way the town's own caps hold
+ * their night floor); raining/wetF() is the sky; marketActive() is the day. maturity()
+ * is the town filling in, so day 0 is not a highway. */
+function trafRate(){
+  if (day < 1) return 0;
+  return TRAF_BASE * (TRAF_NIGHT + daylight) * (0.3 + 0.7 * maturity())
+       * (raining ? TRAF_RAIN : 1 - TRAF_WET * wetF())
+       * (marketActive() ? TRAF_MARKET : 1);
+}
+function trafKind(n){
+  const u = hash(n, 1201 + WIND_SALT);
+  let acc = 0;
+  for (const K of TRAF_KINDS){ acc += K.w; if (u < acc) return K; }
+  return TRAF_KINDS[TRAF_KINDS.length - 1];
+}
+function spawnTraffic(n){
+  const K = trafKind(n), dir = hash(n, 1213 + WIND_SALT) < 0.5 ? 1 : -1;
+  const x0 = dir > 0 ? -TRAF_OFF : GW + TRAF_OFF;
+  for (const o of TRAFFIC) if (o.dir === dir && Math.abs(o.x - x0) < TRAF_GAP) return;   // the road is not clear at that end yet
+  const lane = (dir > 0 ? TRAF_Y_E : TRAF_Y_W) + (hash(n, 1223) - 0.5) * 0.7;
+  TRAFFIC.push({
+    kind:K.k, dir, lane, len:K.len, berth:K.berth,
+    x:x0, y:lane, hx:dir, hy:0, ph:hash(n, 1229) * 9,
+    sp:K.sp * (0.86 + hash(n, 1231) * 0.28),
+    col:TRAF_PAINT[(hash(n, 1237) * TRAF_PAINT.length) | 0],
+    coat:TRAF_COAT[(hash(n, 1241) * TRAF_COAT.length) | 0],
+    load:K.k === 'wagon' ? 1 + ((hash(n, 1249) * 3) | 0) : (hash(n, 1249) < 0.55 ? 1 : 0),
+    goods:TRAF_GOODS[(hash(n, 1259) * TRAF_GOODS.length) | 0],
+    mate:K.k === 'trap' && hash(n, 1493) < 0.35,      // somebody up beside the driver
+    who:{ shirt:SHIRT[(hash(n, 1277) * SHIRT.length) | 0], pants:PANTS[(hash(n, 1283) * PANTS.length) | 0],
+          skin:SKIN[(hash(n, 1289) * SKIN.length) | 0], hat:hash(n, 1297) < 0.6 },
+  });
+}
+function stepTraffic(dt){
+  const n = Math.floor(simT / TRAF_EVERY);
+  if (n !== trafLast){ trafLast = n;
+    if (TRAFFIC.length < TRAF_CAP && hash(n, 1301 + WIND_SALT) < trafRate()) spawnTraffic(n); }
+  for (let i = TRAFFIC.length - 1; i >= 0; i--){
+    const t = TRAFFIC[i];
+    if (t.dir > 0 ? t.x > GW + TRAF_OFF : t.x < -TRAF_OFF){ TRAFFIC.splice(i, 1); continue; }
+    /* the horse pulls up for whatever is in the road ahead of it — the cart's own
+     * `held` test, widened to the other rigs. If what is ahead is on WHEELS the rig
+     * pulls OUT toward the crown and goes by; if it is a person it slows, and the
+     * berth walks them clear. The look-ahead scales with the pace: a trap at 7.8
+     * needs more road in front of it than a barrow at 3.4. */
+    let hold = 0, pull = 0;
+    const look = t.len + TRAF_LOOK * (t.sp / CART_SPEED);
+    const near = (ox, oy, w) => { const u = (ox - t.x) * t.hx + (oy - t.y) * t.hy;
+      return u > 0 && u < look && Math.abs((ox - t.x) * -t.hy + (oy - t.y) * t.hx) < w; };
+    for (const o of TRAFFIC) if (o !== t && near(o.x, o.y, 1.15)){ hold = 1; if (o.dir === t.dir) pull = 1; }
+    if (cart && near(cart.x, cart.y, 1.4)){ hold = 1; pull = 1; }
+    for (const a of agents) if (near(a.x, a.y, 1.0)){ hold = 1; pull = 1; }
+    // the cross-track the heading eases onto: its own line, or a rig's width off it
+    const ty = t.lane + (pull ? t.dir * TRAF_PASS : 0);
+    let hx = t.dir, hy = clamp(ty - t.y, -1.2, 1.2) * TRAF_STEER;
+    const hn = Math.hypot(hx, hy) || 1;
+    t.hx += (hx / hn - t.hx) * Math.min(1, dt * 5);    // the cart's ease, on a road that does not turn
+    t.hy += (hy / hn - t.hy) * Math.min(1, dt * 5);
+    const cn = Math.hypot(t.hx, t.hy) || 1; t.hx /= cn; t.hy /= cn;
+    const sp = t.sp * (hold ? (pull ? 0.7 : 0.2) : 1) * (nightF > 0.4 || raining ? TRAF_HURRY : 1);   // out after dark, or caught in a shower: press on
+    const mv = sp * dt;
+    t.x += t.hx * mv; t.y = clamp(t.y + t.hy * mv, LN_ROAD0 + 0.55, LN_ROAD1 - 0.55); t.ph += mv;
+  }
+}
+/* NOBODY IS SHOVED, and that is the whole of why this system is free.
+ * The first cut called rigShove() from the walkers' two seams, exactly as the cart
+ * does. It cost the town almost nothing to look at — 125-203 shove-steps in a whole
+ * year, none longer than 0.43 s (probes/shove-cost.mjs) — and it cost the CENSUS a
+ * winter: touching an agent's position changes when a count-gated R() branch fires,
+ * the seeded world forks, and `winter/frozen` at seed 42 fell 352 -> 256 and failed
+ * WCORE. That cell sits on the FREEZE RAMP, so it is bistable there: TRAF_BASE 0.120
+ * put it back at 355 and 0.122 knocked it out again, and eight strong stream
+ * reshuffles of HEAD could not move it at all.
+ * The cart shoves because it STOPS in the road and somebody is standing at its side.
+ * A rig is in TRANSIT and has a whole carriageway to use, so it goes ROUND — `pull`
+ * above is set by a person exactly as it is by another rig, and the heading eases out
+ * toward the crown. That test is READ-ONLY, so the traffic censuses byte-identically
+ * to HEAD but for its own new field, and rigShove() stays where it was, with the cart
+ * as its one caller. */
+function trafName(t){
+  const w = t.dir > 0 ? 'east' : 'west';
+  return t.kind === 'trap'   ? 'a trap, trotting ' + w + ' along the lane'
+       : t.kind === 'rider'  ? 'a rider, going ' + w + ' at a trot'
+       : t.kind === 'wagon'  ? (t.load > 1 ? 'a loaded wagon, ' : 'a wagon, ') + 'rolling ' + w
+                             : 'a handcart, pushed ' + w + ' up the road';
 }
 /* Nothing in the sill ever said this was here, and a feature nobody finds is a feature
  * at a rate of zero. Once a day, when the lamp is up and the dark is real. */
@@ -13947,6 +14091,9 @@ function drawScene(t, dt){
   // the near wheel, near board and near legs after (#73's rule)
   if (cart){ items.push({y:Math.min(cart.y, cart.y + cart.hy * CART_LEN) - 0.9, f:drawCartBody});
              items.push({y:Math.max(cart.y, cart.y + cart.hy * 2.3) + 0.6, f:drawCartFront}); }
+  // #211: one item apiece, sorted on the rig's NEAR side, so anyone on the south footway
+  // is drawn over it and anyone on the north footway behind it
+  for (const t of TRAFFIC) items.push({y:t.y + 0.7, f:drawRig, t});
   for (const s of swans) items.push({y:s.y + 0.3, f:drawSwan, s});
   if (boat && (boat.y < 64.5 || boat.y > 79) && !boatUnderDeck()) items.push({y:boat.y + 0.6, f:drawBoat});
   for (const P of PUNTS) items.push({y:P.y + 0.4, f:drawPuntHull, tname:'the punt', P});
@@ -16547,8 +16694,9 @@ function cartNear(c){ return c.hx >= 0 ? 1 : -1; }          // the v side with t
  * that plane projects to. Seen from behind (heading straight down the street) the two
  * are parallel and the disc is a sliver, which is what a wheel from behind is — a
  * minimum rim width keeps it a wheel and not a hair. */
-function drawCartWheel(c, v, r){
-  const [cx, cy] = cartPt(c, 0, v, r), [ax, ay] = cartPt(c, r, v, r), [tx, ty] = cartPt(c, 0, v, 2 * r);
+function drawCartWheel(c, v, r, u){
+  u = u || 0;
+  const [cx, cy] = cartPt(c, u, v, r), [ax, ay] = cartPt(c, u + r, v, r), [tx, ty] = cartPt(c, u, v, 2 * r);
   let e1x = ax - cx, e1y = ay - cy; const e2x = tx - cx, e2y = ty - cy;
   const cross = Math.abs(e1x * e2y - e1y * e2x), e2n = Math.hypot(e2x, e2y) || 1;
   if (cross < 0.35 * e2n * e2n){ const w = 0.14 * cellW; e1x += -e2y / e2n * w; e1y += e2x / e2n * w; }
@@ -16619,6 +16767,125 @@ function drawCartFront(){
   drawCartWheel(c, near * 0.9, 0.5);
   cartQuad(c, [[1.65, near * 0.3, 0.55], [2.95, near * 0.3, 0.55], [2.95, near * 0.3, 1.15], [1.65, near * 0.3, 1.15]], '#523823');
   drawHorseLegs(c, near * 0.2, -swing);
+}
+/* ---- the rigs on the road (#211) ----
+ * The cart's own frame and the cart's own parts: cartPt/cartQuad, drawCartWheel (which
+ * grew a u offset for the wagon's second axle) and a horse on drawHorseLegs' exact
+ * proportions, shifted to wherever the shafts end. ONE item per rig, not the cart's
+ * two: the cart splits round its loader because it STOPS beside one, and nothing here
+ * ever stops — so the painter's order inside a rig is far side, body, horse, driver,
+ * near side, and the town's own sort puts a walker on the pavement in front of it. */
+const RIG_SHADE = '#241c14';
+function rigLegs(t, u0, v, swing, col){
+  ctx.strokeStyle = col; ctx.lineWidth = Math.max(1.1, cellW * 0.10);
+  for (const u of [u0 + 0.3, u0 + 1.2]){
+    const [hx, hy] = cartPt(t, u, v, 0.62), [fx, fy] = cartPt(t, u + (u > u0 + 0.75 ? swing : -swing), v, 0);
+    ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(fx, fy); ctx.stroke();
+  }
+}
+/* u0 is the horse's TAIL end, so a kind places it by where its shafts finish; every
+ * offset below is drawCartBody's, minus the cart's own 1.55. */
+function rigHorse(t, u0, swing, half){
+  const near = cartNear(t), v = half > 0 ? near : -near, col = half > 0 ? mix(t.coat, RIG_SHADE, 0.22) : t.coat;
+  rigLegs(t, u0, v * 0.22, half > 0 ? -swing : swing, mix(t.coat, RIG_SHADE, 0.5));
+  cartQuad(t, [[u0 + 0.1, v * 0.3, 0.55], [u0 + 1.4, v * 0.3, 0.55], [u0 + 1.4, v * 0.3, 1.15], [u0 + 0.1, v * 0.3, 1.15]], col);
+  if (half > 0) return;
+  cartQuad(t, [[u0 + 0.1, -0.3, 1.15], [u0 + 1.4, -0.3, 1.15], [u0 + 1.5, 0.3, 1.15], [u0, 0.3, 1.15]], mix(t.coat, '#e8ddc4', 0.12));
+  cartQuad(t, [[u0 + 1.3, -0.16, 1.05], [u0 + 1.5, -0.16, 1.05], [u0 + 1.95, -0.14, 1.65], [u0 + 1.75, -0.14, 1.7]], t.coat);
+  const [hx, hy] = cartPt(t, u0 + 2.05, 0, 1.6);
+  ctx.fillStyle = mix(t.coat, RIG_SHADE, 0.18);
+  ctx.beginPath(); ctx.ellipse(hx, hy, 0.26 * cellW, 0.2 * cellH * (1 + LIFT), Math.atan2(t.hy * 0.3, t.hx), 0, 7); ctx.fill();
+  const [tx, ty] = cartPt(t, u0 + 0.05, 0, 0.95), [tx2, ty2] = cartPt(t, u0 - 0.1, 0, 0.5);
+  ctx.strokeStyle = '#2e2018'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(tx2, ty2); ctx.stroke();
+}
+/* the cart's carter, given legs for the one kind whose driver is on foot */
+function rigFigure(t, u, v, z, who, shirt, swing){
+  const [px, py] = cartPt(t, u, v, z);
+  if (swing !== undefined){
+    ctx.strokeStyle = who.pants; ctx.lineWidth = Math.max(1.1, cellW * 0.09);
+    for (const k of [swing, -swing]){ const [fx, fy] = cartPt(t, u + k, v, 0);
+      ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(fx, fy); ctx.stroke(); }
+  }
+  ctx.fillStyle = shirt || who.shirt;
+  ctx.beginPath(); ctx.ellipse(px, py - cellH * 0.35, 0.22 * cellW, 0.45 * cellH, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = who.skin; ctx.beginPath(); ctx.arc(px, py - cellH * 0.95, 0.13 * cellW, 0, 7); ctx.fill();
+  if (who.hat){ ctx.fillStyle = '#6b4a30';
+    ctx.beginPath(); ctx.ellipse(px, py - cellH * 1.05, 0.24 * cellW, 0.07 * cellH + 1, 0, 0, 7); ctx.fill(); }
+}
+function rigShadow(t, us, ru){
+  const pHard = 1 - 0.45 * (1 - shadowF()), sp = shSpread();
+  ctx.fillStyle = 'rgba(20,25,15,' + 0.26 * pHard + ')';
+  for (const u of us){ const [sx, sy] = cartPt(t, u, 0, 0);
+    ctx.beginPath(); ctx.ellipse(sx, sy, ru * cellW * sp, 0.55 * cellH * sp, 0, 0, 7); ctx.fill(); }
+}
+function rigShafts(t, u0, u1, v, z0, z1){
+  ctx.strokeStyle = '#7a5a3c'; ctx.lineWidth = 1.1;
+  for (const s of [-v, v]){ const [ax, ay] = cartPt(t, u0, s, z0), [bx, by] = cartPt(t, u1, s * 0.5, z1);
+    ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke(); }
+}
+function drawRig(it){
+  const t = it.t, near = cartNear(t), far = -near;
+  const swing = Math.sin(t.ph * 2.6) * 0.22, board = mix(t.col, RIG_SHADE, 0.2);
+  if (t.kind === 'rider'){
+    rigShadow(t, [0.75], 0.8);
+    rigHorse(t, -0.15, swing, -1);
+    rigFigure(t, 0.55, 0, 1.42, t.who);
+    ctx.strokeStyle = t.who.pants; ctx.lineWidth = Math.max(1.2, cellW * 0.10);
+    const [sx, sy] = cartPt(t, 0.55, near * 0.14, 1.38), [kx, ky] = cartPt(t, 0.35, near * 0.34, 0.7);
+    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(kx, ky); ctx.stroke();
+    rigHorse(t, -0.15, swing, 1);
+    return;
+  }
+  if (t.kind === 'trap'){
+    rigShadow(t, [0, 1.9], 0.72);
+    drawCartWheel(t, far * 0.78, 0.52, 0.05);
+    cartQuad(t, [[-0.7, -0.62, 0.62], [0.7, -0.62, 0.62], [0.7, 0.62, 0.62], [-0.7, 0.62, 0.62]], '#8f6b48');
+    cartQuad(t, [[-0.7, -0.62, 0.62], [-0.7, 0.62, 0.62], [-0.7, 0.62, 1.12], [-0.7, -0.62, 1.12]], board);   // the seat back
+    cartQuad(t, [[-0.7, far * 0.62, 0.62], [0.7, far * 0.62, 0.62], [0.7, far * 0.62, 0.95], [-0.7, far * 0.62, 0.95]], t.col);
+    rigHorse(t, 1.4, swing, -1);
+    rigShafts(t, 0.7, 1.6, 0.5, 0.66, 0.8);
+    rigFigure(t, -0.3, t.mate ? -0.26 : 0, 1.05, t.who);
+    if (t.mate) rigFigure(t, -0.3, 0.26, 1.05, t.who, t.goods);
+    rigHorse(t, 1.4, swing, 1);
+    drawCartWheel(t, near * 0.78, 0.52, 0.05);
+    cartQuad(t, [[-0.7, near * 0.62, 0.62], [0.7, near * 0.62, 0.62], [0.7, near * 0.62, 0.95], [-0.7, near * 0.62, 0.95]], board);
+    return;
+  }
+  if (t.kind === 'wagon'){
+    rigShadow(t, [-0.5, 2.5], 1.0);
+    drawCartWheel(t, far * 0.88, 0.55, -1.25);
+    drawCartWheel(t, far * 0.80, 0.40, 0.55);
+    cartQuad(t, [[-1.7, -0.8, 0.58], [1.0, -0.8, 0.58], [1.0, 0.8, 0.58], [-1.7, 0.8, 0.58]], '#8f6b48');
+    cartQuad(t, [[-1.7, -0.8, 0.58], [-1.7, 0.8, 0.58], [-1.7, 0.8, 1.05], [-1.7, -0.8, 1.05]], mix(t.col, RIG_SHADE, 0.35));
+    cartQuad(t, [[-1.7, far * 0.8, 0.58], [1.0, far * 0.8, 0.58], [1.0, far * 0.8, 1.05], [-1.7, far * 0.8, 1.05]], t.col);
+    for (let k = 0; k < t.load; k++){          // what it is carrying, stacked forward off the tail board
+      const [x, y] = cartPt(t, -1.25 + k * 0.72, (k % 2 ? 0.26 : -0.26), 0.95);
+      ctx.fillStyle = k % 2 ? t.goods : mix(t.goods, RIG_SHADE, 0.16);
+      ctx.beginPath(); ctx.ellipse(x, y, 0.3 * cellW, 0.26 * cellH * (1 + LIFT * 0.6), 0, 0, 7); ctx.fill();
+    }
+    rigHorse(t, 1.95, swing, -1);
+    rigShafts(t, 1.0, 2.15, 0.62, 0.62, 0.8);
+    rigFigure(t, 0.62, 0, 1.02, t.who);
+    rigHorse(t, 1.95, swing, 1);
+    drawCartWheel(t, near * 0.88, 0.55, -1.25);
+    drawCartWheel(t, near * 0.80, 0.40, 0.55);
+    cartQuad(t, [[-1.7, near * 0.8, 0.58], [1.0, near * 0.8, 0.58], [1.0, near * 0.8, 1.05], [-1.7, near * 0.8, 1.05]], board);
+    return;
+  }
+  // the barrow: no horse, and the one driver in the town's traffic who is walking
+  rigShadow(t, [0.15, -1.1], 0.5);
+  drawCartWheel(t, far * 0.5, 0.38, 0.2);
+  cartQuad(t, [[-0.4, -0.48, 0.45], [0.7, -0.48, 0.45], [0.7, 0.48, 0.45], [-0.4, 0.48, 0.45]], '#8f6b48');
+  cartQuad(t, [[0.7, -0.48, 0.45], [0.7, 0.48, 0.45], [0.7, 0.48, 0.9], [0.7, -0.48, 0.9]], t.col);
+  cartQuad(t, [[-0.4, far * 0.48, 0.45], [0.7, far * 0.48, 0.45], [0.7, far * 0.48, 0.82], [-0.4, far * 0.48, 0.82]], t.col);
+  if (t.load){ const [x, y] = cartPt(t, 0.2, 0, 0.72);
+    ctx.fillStyle = t.goods; ctx.beginPath(); ctx.ellipse(x, y, 0.42 * cellW, 0.3 * cellH * (1 + LIFT * 0.6), 0, 0, 7); ctx.fill(); }
+  ctx.strokeStyle = '#7a5a3c'; ctx.lineWidth = 1.1;
+  for (const v of [-0.42, 0.42]){ const [ax, ay] = cartPt(t, 0.55, v, 0.5), [bx, by] = cartPt(t, -1.0, v, 0.78);
+    ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke(); }
+  rigFigure(t, -1.2, 0, 0.85, t.who, null, swing);
+  drawCartWheel(t, near * 0.5, 0.38, 0.2);
+  cartQuad(t, [[-0.4, near * 0.48, 0.45], [0.7, near * 0.48, 0.45], [0.7, near * 0.48, 0.82], [-0.4, near * 0.48, 0.82]], board);
 }
 function drawKiosk(){
   const [x, y] = project(KIOSK.x, KIOSK.y + 0.9, 0);
@@ -18045,6 +18312,8 @@ function livingAt(p){
   for (const s of swans) hit(s.x, s.y, 0, s.state === 'upend' ? 0.7 : 0.8, s.y + 0.3,
     s.state === 'upend' ? 'a swan, upended' : s.state === 'preen' ? 'a swan, preening' : 'a swan, on the river', 1.1);
   if (cart) hit(cart.x + cart.hx * 1.2, cart.y + cart.hy * 1.2, 0, 1.8, Math.max(cart.y, cart.y + cart.hy * 2.3) + 0.6, cartName(), 3.2);
+  // #211: the road answers too — the box is the rig's own length, on the key the draw sorts it by
+  for (const t of TRAFFIC) hit(t.x + t.hx * t.len * 0.35, t.y + t.hy * t.len * 0.35, 0, 1.8, t.y + 0.7, trafName(t), t.len * 0.8);
   if (boat && (boat.y < 64.5 || boat.y > 79)) hit(boat.x, boat.y, 0, 1.4, boat.y + 0.6, boatLampF() > 0.5 ? 'the rowboat, going downriver by lantern' : 'the rowboat, going downriver');
   if (barge) hit(barge.x, barge.y, BARGE_Z, 1.2, barge.y + 1.2,
                  barge.leg === 'work' ? 'the barge, alongside the quay and loading'
@@ -18798,6 +19067,7 @@ function simStep(sdt, dt){
   updateBarge(sdt);
   updateMill(sdt);
   stepCart(sdt);
+  stepTraffic(sdt);
 
   statAcc += dt;
   if (statAcc > 0.5){ statAcc = 0; refreshStats(); tickTicker(); }
@@ -19056,6 +19326,7 @@ window.__entities = function(){
   take([punt], 'punt', (o, p) => { o.act = ['moored', 'claimed', 'out', 'ashore', 'back'][p.leg]; if (p.rider) o.rider = 1; });
   if (barge) take([barge], 'barge', (o, b) => { o.act = b.leg; o.load = b.load; o.aboard = b.aboard; });
   if (cart) take([cart], 'cart', (o, c) => { o.act = c.state; o.at = c.at; o.load = c.load; o.sacks = c.sacks ? 1 : 0; o.hx = +c.hx.toFixed(2); o.hy = +c.hy.toFixed(2); });
+  take(TRAFFIC, 'rig', (o, t) => { o.act = t.kind; o.dir = t.dir; o.hx = +t.hx.toFixed(2); o.hy = +t.hy.toFixed(2); });
   /* Raindrops are the one population here in SCREEN space, not world space — x,y are
    * canvas pixels, so motion.mjs must exempt this kind from the world-bounds test or
    * every drop reads as out of bounds. Until #21 the gate could only watch the shower
@@ -19096,6 +19367,9 @@ window.__census = function(){
     ducks: ducks.length, swans: swans.length, birds: birds.length,
     butterflies: butterflies.length, fireflies: fireflies.length, moths: moths.length,
     leaves: leaves.length, raindrops: raindrops.length,
+    /* #211: what is on the carriageway. Not a subset of `people` — a rig is not an
+       agent — and nothing else the hook reports moves when the road fills or empties. */
+    traffic: TRAFFIC.length,
   };
   const structure = {
     /* NB: no LIT.length here. It is a per-frame draw accumulator (reset at the top
