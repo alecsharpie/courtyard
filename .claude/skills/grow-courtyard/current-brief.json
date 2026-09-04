@@ -22,7 +22,7 @@
   "avoid": "The risk here is LEGIBILITY, not mechanism — green weeds on green beds is how this fails, and three 'that surface looks flat' premises have already died in this run. MEASURE FIRST, before you build the CA: how many BED cells sit fallow (bSp 0, bAge > 0) over 6 seeds x a year, and what a rank cell is worth in pixels at the shipping size. If a weed cannot be told from a crop at wide, say so in the entry with the number and take the PLOT-scale version instead — a whole neglected plot reading rank — rather than the cell-scale one. Either outcome is a shipped iteration.",
   "budgetMin": 55,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 197,
   "issued": "2026-09-04T09:14:58.737Z",
