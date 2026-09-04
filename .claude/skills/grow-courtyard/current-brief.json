@@ -23,7 +23,7 @@
   "avoid": "Do not add a fourth stall — #184 already found the CROWD is the bound, not the shelf (0.72 browsers a market, median 0). Do not read a ratio: identical numbers at two settings is a DEAD constant and the supply was always the cap, so sweep the AXIS — the season — and not the constant, and pool six seeds. If the honest answer turns out to be that MK_NEED should be a function of the season rather than a fixed ladder, say so and build that; the deliverable is a market whose size tracks the year, not three numbers.",
   "budgetMin": 35,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 193,
   "issued": "2026-09-04T06:18:38.122Z",
