@@ -35,7 +35,7 @@ const US = [0, 0.1, 0.2, 0.35, 0.5, 0.65, 0.8, 1];      // fractions of VIEW_SEC
 const NQ = 5, STEP = 3;                                  // sample every 3rd device px
 
 const cand = readFileSync('courtyard.html', 'utf8');
-const head = execFileSync('git', ['show', 'HEAD:courtyard.html']).toString();
+const head = execFileSync('git', ['show', 'HEAD:courtyard.html'], { maxBuffer: 1 << 28 }).toString();
 const LIVE_A = '  const easing = viewEasing();';
 if (!cand.includes(LIVE_A)){ console.log('PATCH MISS: the easing line'); process.exit(1); }
 // the ground truth: never take the ease's path — paint the cache in the LIVE view,

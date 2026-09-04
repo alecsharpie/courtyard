@@ -11,7 +11,7 @@ const REPO = fileURLToPath(new URL('../../../../', import.meta.url));
 const PW = join(homedir(), '.claude/skills/screenshot-verify/node_modules/playwright/index.js');
 const { chromium } = (await import(pathToFileURL(PW).href)).default;
 const HERE = join(REPO, 'courtyard.html'), REF = '/tmp/head.html';
-if (!existsSync(REF)) writeFileSync(REF, execFileSync('git', ['show', 'HEAD:courtyard.html'], { cwd: REPO }));
+if (!existsSync(REF)) writeFileSync(REF, execFileSync('git', ['show', 'HEAD:courtyard.html'], { cwd: REPO, maxBuffer: 1 << 28 }));
 /* cover, how far to warp ON FROM THE LAST CASE. __reseed() rewinds the PRNG and the
  * world, NOT the clock, so these are cumulative — the hour each case actually lands on is
  * read back off the page and the expectation is derived from it, never from the label. */

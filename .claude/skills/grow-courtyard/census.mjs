@@ -16,7 +16,9 @@
  * animation) legitimately moves nothing here. It fails only on a page error or a
  * headline COLLAPSE. Growth is judged from the histogram diff plus screenshots.
  *
- * Exit 0 = pass. Exit 1 = a page threw, or a core aggregate cratered.
+ * Exit 0 = pass. Exit 1 = a page threw, or a core aggregate cratered — in the summer
+ * nine (CORE) or, since #205, in the winter row (WCORE), which has its own floors cut
+ * from its own baseline.
  */
 import { homedir } from 'node:os';
 import { readFileSync, writeFileSync, existsSync, appendFileSync } from 'node:fs';
@@ -94,9 +96,107 @@ const WINTER = [{ name: 'winter', warp: 1220 }];
 const WLADDER = `${SEEDS.join(',')} x ${WINTER.map(a => a.warp).join(',')}`;
 
 /* Headline aggregates. `CORE` are structural: if one of these craters the town has
- * genuinely broken, and that is the only thing this gate hard-fails on. */
+ * genuinely broken, and that is the only thing this gate hard-fails on.
+ *
+ * CORE reads `cur.scalars` — the SUMMER nine, and ONLY those. See WCORE below. */
 const CORE = ['developed', 'green', 'people', 'planted'];
 const TOL = 0.08;   // an 8% dip in a core aggregate is the collapse threshold
+
+/* THE WINTER FLOOR (#205, c280). #187 added the winter row and its report, but the
+ * collapse check went on reading `cur.scalars` alone — the summer sum — so for 18
+ * iterations the winter block could diff as loudly as it liked and the gate still
+ * exited 0. A build that breaks the town only in February had no guard at all.
+ *
+ * CORE cannot be reused as-is, and not only because of scale: winter `planted` is
+ * 720 against summer's 6583, so the same list against the same numbers is a floor
+ * cut for a town that is not there. The winter row is also 3 cells, not 9, so every
+ * live field in it is a third of the sample its summer twin is.
+ *
+ * `frozen` and `margin` come from the winter `ice` block, not from `scalars`: the
+ * two aggregates that ONLY a cold cell can hold are the whole reason this row
+ * exists, and no summer scalar can see either.
+ *
+ * THE FLOORS ARE CUT FROM DRIFT, NOT FROM SEED SPREAD. The spread across the three
+ * seeds of one build is 0% on the grid fields and 9-13% on the live ones, but that
+ * is not what a floor has to clear: what it has to clear is what an ORDINARY build
+ * does to this row, and every iteration that adds an `R()` call reshuffles the whole
+ * town. Measured over six committed builds, #189 -> #204, worst DOWNWARD step
+ * (.claude/skills/grow-courtyard/probes/winter-drift.mjs):
+ *
+ *   developed -0.3%   green 0%   water 0%   passages 0%   structures 0%
+ *   frozen    -0.9%   margin 0%                     <- grid and calendar facts
+ *   people   -14.2%   planted -13.2%                <- live populations
+ *   blooming -16.3%   creatures -16.7%              <- and these two are NOT floored
+ *
+ * So the live pair get 0.25 (1.8x the worst honest step) and the grid fields keep
+ * CORE's 0.08 (27x). `blooming` and `creatures` are left out: they drift as hard as
+ * the floored pair on a base a fifth the size, and a guard that cannot separate a
+ * reshuffle from a regression is not a guard.
+ *
+ * `frozen` and `margin` are floored an order of magnitude tighter, because the
+ * failure they exist to catch is SMALL: reverting #200's buildIceLap() takes the
+ * margin 2118 -> 2040 and frozen 1064 -> 1014, i.e. -3.7% and -4.7%. At CORE's 0.08
+ * that February-only breakage still walks through. Verified both ways in a scratch
+ * worktree at #205: HEAD's census exits 0 on it, this one exits 1. */
+const WCORE = {
+  developed: 0.08, green: 0.08, water: 0.08, passages: 0.08, structures: 0.08,
+  people: 0.25, planted: 0.25,
+  frozen: 0.03, margin: 0.02,
+};
+
+/* WHICH `structures` REGISTERS CAN MOVE (#205, c284).
+ *
+ * `scalars.structures` is `Object.values(structure).reduce(sum)` — twenty registers
+ * of two completely different kinds added into one number. Most are the `.length` of
+ * an array built once at load (CHIMNEYS, EDGE_BEDS, MART_CELLS…) or a pure function
+ * of a build-time hash (`leadsKitN()`); three are live counts that the sim moves.
+ * Each one added to the census DILUTES the aggregate: #189's `eaveLine` is 217 a
+ * sample, and took the summer sum 4059 -> 6314 without adding a single number that
+ * can ever change. The constants are there for a good reason — a `martinNests: 0`
+ * beside `eaveLine: 217` is evidence of an empty summer rather than of a missing
+ * system — but they must not be counted as if the aggregate were watching them.
+ *
+ * So: declare both halves, print them apart, and AUDIT the declaration against the
+ * matrix on every run (constAudit below), so a register that changes character —
+ * or a twenty-first that arrives — is named instead of silently absorbed.
+ *
+ * CONSTANT — `.length` of a build-time array, or a pure function of the built town.
+ * Verified against the source at #205: none of these arrays is pushed to, popped
+ * from or spliced outside a build*() call.
+ *   chimneys roofFurniture roofHatches terraceFabric plotFurniture ringNodes
+ *   edgeBeds arcadeBays eaveLine allotBeds benches cafeTables marketStalls
+ *   treePits orchard plazaPits moorings
+ * `cafeTables` and `marketStalls` belong here despite naming live systems: what
+ * the census reports is the array LENGTH, and the shopkeeper's `tb.p` and the
+ * market's open/shut both ride on properties inside a fixed-length array.
+ *
+ * LIVE — a count the sim recomputes: the martin colony, and the weed CA's two rungs.
+ *   martinNests rankBeds rankPlots */
+const STRUCT_CONST = new Set(['chimneys', 'roofFurniture', 'roofHatches', 'terraceFabric',
+  'plotFurniture', 'ringNodes', 'edgeBeds', 'arcadeBays', 'eaveLine', 'allotBeds', 'benches',
+  'cafeTables', 'marketStalls', 'treePits', 'orchard', 'plazaPits', 'moorings']);
+const STRUCT_LIVE = new Set(['martinNests', 'rankBeds', 'rankPlots']);
+
+/* total, and the share of it that cannot move. `unclassified` is the important
+ * return: a register in neither set is a new one, and nobody has said which it is. */
+function structSplit(structure) {
+  let constant = 0, live = 0; const unclassified = [];
+  for (const k in structure) {
+    if (STRUCT_CONST.has(k)) constant += structure[k];
+    else { live += structure[k]; if (!STRUCT_LIVE.has(k)) unclassified.push(k); }
+  }
+  return { constant, live, total: constant + live, unclassified };
+}
+
+/* The declaration is a claim about the source; this is the check against the data.
+ * A "constant" that differs between two cells of the same matrix was never one. */
+function constAudit(cells) {
+  const seen = {};
+  for (const key in cells) for (const k in cells[key].structure) (seen[k] ||= new Set()).add(cells[key].structure[k]);
+  const moved = Object.keys(seen).filter(k => STRUCT_CONST.has(k) && seen[k].size > 1);
+  const flat = Object.keys(seen).filter(k => STRUCT_LIVE.has(k) && seen[k].size === 1);
+  return { moved, flat };
+}
 
 async function run() {
   const b = await chromium.launch();
@@ -221,6 +321,13 @@ function report(now, was, tag) {
   console.log(diffBlock(tag + 'tiles', now.tiles, was && was.tiles));
   console.log(diffBlock(tag + 'life', now.life, was && was.life));
   console.log(diffBlock(tag + 'structure', now.structure, was && was.structure));
+  /* …and beside the register diff, what the ONE number folded out of it is made of.
+   * `scalars.structures` moving by 3 means nothing until you know whether 3 came out
+   * of the 5.6% of it that is allowed to. */
+  const s = structSplit(now.structure);
+  console.log(`    ${tag}structures ${s.total} = ${s.constant} build-time constant `
+            + `(${(100 * s.constant / (s.total || 1)).toFixed(1)}%, can never move) + ${s.live} live`
+            + (s.unclassified.length ? `   UNCLASSIFIED: ${s.unclassified.join(' ')} — add to STRUCT_CONST or STRUCT_LIVE` : ''));
   console.log(diffBlock(tag + 'species', now.species, was && was.species));
   console.log(diffBlock(tag + 'ice', now.ice, was && was.ice));
   if (was && !was.planting) console.log('planting: (baseline predates #115 and holds no planting group — absolutes, no deltas; re-pin to diff it)');
@@ -238,6 +345,8 @@ if (save) {
   console.log(diffBlock('scalars', cur.scalars, null));
   console.log(diffBlock('planting', cur.planting, null));
   console.log(diffBlock('winter/ice', cur.winter.ice, null));
+  const s0 = structSplit(cur.structure), s1 = structSplit(cur.winter.structure);
+  console.log(`structures: summer ${s0.total} = ${s0.constant} constant + ${s0.live} live · winter ${s1.total} = ${s1.constant} constant + ${s1.live} live`);
   process.exit(cur.pageerrors ? 1 : 0);
 }
 
@@ -279,10 +388,27 @@ if (!REF) appendFileSync(histFile, JSON.stringify({
   winter: { tileKinds: Object.keys(cur.winter.tiles).length, ...cur.winter.ice },
 }) + '\n');
 
+/* Does the declared split still hold on this build? Printed once, over both blocks —
+ * the registers are the same twenty in every season. */
+const audit = constAudit({ ...raw.cells, ...raw.wcells });
+if (audit.moved.length) console.log(`\nSTRUCT: declared CONSTANT but moved across the matrix: ${audit.moved.join(' ')} — re-classify in STRUCT_CONST.`);
+if (audit.flat.length) console.log(`\nSTRUCT: declared LIVE but flat across all 12 cells: ${audit.flat.join(' ')} — either the ladder cannot see it, or it is a constant now.`);
+
 const collapsed = [];
 if (base) for (const k of CORE) {
   const a = base.scalars[k] || 0, b = cur.scalars[k] || 0;
   if (a > 0 && (a - b) / a > TOL) collapsed.push(`${k} ${a} -> ${b} (-${(((a - b) / a) * 100).toFixed(1)}%)`);
+}
+
+/* The winter row's own collapse check, against its own baseline and its own floors.
+ * It runs only when the baseline carries a winter row on THIS winter ladder — the
+ * same condition the winter diff runs under, for the same reason: a pre-#187
+ * baseline has nothing to compare and must not fail a build for it. */
+const wnow = { ...cur.winter.scalars, frozen: cur.winter.ice.frozen, margin: cur.winter.ice.margin };
+const wwas = wbase && { ...wbase.scalars, frozen: wbase.ice.frozen, margin: wbase.ice.margin };
+if (wwas) for (const k in WCORE) {
+  const a = wwas[k] || 0, b = wnow[k] || 0, tol = WCORE[k];
+  if (a > 0 && (a - b) / a > tol) collapsed.push(`winter/${k} ${a} -> ${b} (-${(((a - b) / a) * 100).toFixed(1)}%, floor ${(tol * 100).toFixed(0)}%)`);
 }
 
 /* A ZERO is evidence only if the test could have been non-zero. The winter row exists
@@ -294,7 +420,9 @@ const winterWeak = !cur.winter.ice.frozen;
 if (winterWeak) console.log(`\nWEAK: the winter row froze 0 cells of ${cur.winter.ice.margin || 0} margin — the seasonal axis is not exercised; re-pin WINTER.`);
 
 if (asJson) console.log('\nJSON ' + JSON.stringify({ pageerrors: cur.pageerrors, collapsed, scalars: cur.scalars,
-  winter: { tileKinds: Object.keys(cur.winter.tiles).length, ...cur.winter.ice, weak: winterWeak } }));
+  structures: structSplit(cur.structure), structAudit: audit,
+  winter: { tileKinds: Object.keys(cur.winter.tiles).length, ...cur.winter.ice, weak: winterWeak,
+            scalars: cur.winter.scalars, structures: structSplit(cur.winter.structure) } }));
 
 if (ladderChanged) {
   console.error('\nVERDICT: NO COMPARISON — the age ladder moved, so there is nothing to diff against.');

@@ -29,7 +29,7 @@ const seed = +(process.argv[2] || 7), T = +(process.argv[3] || 175);
 const QS = (process.argv[4] ? [+process.argv[4]] : [1, 2, 3, 4]);
 const W = 1600, H = 950, RDT = 1 / 60, AFTER = 24;
 const files = { HEAD: '/tmp/probe-land-head.html', CAND: '/tmp/probe-land-cand.html' };
-writeFileSync(files.HEAD, execFileSync('git', ['show', 'HEAD:courtyard.html']).toString());
+writeFileSync(files.HEAD, execFileSync('git', ['show', 'HEAD:courtyard.html'], { maxBuffer: 1 << 28 }).toString());
 writeFileSync(files.CAND, readFileSync('courtyard.html', 'utf8'));
 
 const b = await chromium.launch();

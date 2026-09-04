@@ -42,7 +42,7 @@ const REF = process.argv[2] || 'HEAD';
 let refFile = resolve(REF);
 if (!existsSync(refFile)){
   refFile = join(tmpdir(), `courtyard-${REF.replace(/\W/g, '_')}.html`);
-  writeFileSync(refFile, execFileSync('git', ['show', `${REF}:courtyard.html`], { cwd: REPO }));
+  writeFileSync(refFile, execFileSync('git', ['show', `${REF}:courtyard.html`], { cwd: REPO, maxBuffer: 1 << 28 }));
 }
 
 const SEED = 42, T0 = 175;                       // day 4 mid-morning: shoot.mjs's own instant

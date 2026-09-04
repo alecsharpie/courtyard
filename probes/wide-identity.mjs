@@ -15,7 +15,7 @@ const { chromium } = (await import(pathToFileURL(PW).href)).default;
 const SIZES = [[1600, 950], [1200, 700], [900, 560], [390, 844]];
 const TS = [120, 175, 200, 460];                        // morning, midday, night, another day
 const files = { HEAD: '/tmp/probe-wide-head.html', CAND: '/tmp/probe-wide-cand.html' };
-writeFileSync(files.HEAD, execFileSync('git', ['show', 'HEAD:courtyard.html']).toString());
+writeFileSync(files.HEAD, execFileSync('git', ['show', 'HEAD:courtyard.html'], { maxBuffer: 1 << 28 }).toString());
 writeFileSync(files.CAND, readFileSync('courtyard.html', 'utf8'));
 
 const b = await chromium.launch();

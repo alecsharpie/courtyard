@@ -66,7 +66,7 @@ function instrument(src, name, sets){
   }
   return out;
 }
-const refSrc = execFileSync('git', ['show', REF + ':courtyard.html']).toString();
+const refSrc = execFileSync('git', ['show', REF + ':courtyard.html'], { maxBuffer: 1 << 28 }).toString();
 const candSrc = readFileSync('courtyard.html', 'utf8');
 const runs = [[REF, refSrc, []], ['CAND', candSrc, []]];
 for (const sw of SWEEPS){

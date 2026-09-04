@@ -312,3 +312,26 @@ in the corridor for four hours of a six-and-a-half hour day. The fair is mostly 
 **Law:** a weather gate on a FIXED window spends the window on weather it cannot use: make the budget the RESOURCE it
 needs and the far end becomes the WALK, priced per arrival or the rescue arrives to nothing. A route's cost is not the
 distance between its ends — a lead down a corridor and round a ring is twice it.
+
+
+## Iteration 205 — the winter row gets a floor (2026-09-04) [The sill & the observer × Harness]
+
+**Brief:** b205 — three instrument cues. HARNESS: `courtyard.html` byte-identical to HEAD.
+**Did.** (1) **WCORE**, the winter row's own collapse floor off its own baseline, one tolerance per field,
+`frozen`/`margin` off the `ice` block, which no scalar sees. Cut from DRIFT, not seed spread
+(probes/winter-drift.mjs, new; #189->#204, six builds): worst downward step -0.3% grid, -0.9% frozen,
+**-14.2% people, -13.2% planted**. (2)
+`STRUCT_CONST`/`STRUCT_LIVE` + `constAudit()`, printed under every structure block, audited each run. (3)
+`maxBuffer` on the last **10** unbuffered `git show :courtyard.html` captures — 8 tracked, 2 scratch tree.
+**Gates:** census **PASS exit 0** · **the differential**, scratch worktree with #200's `buildIceLap()` call
+commented out: HEAD's census exits **0**, this one **1** — `winter/frozen 1064->1014 (-4.7%, floor 3%)`,
+`winter/margin 2118->2040 (-3.7%, floor 2%)`; at CORE's 8% that February break still walks · probe-smoke,
+389/75 s/7-way: **247 pass, 36 throw, 106 t/out** (#195: 361/230/35/96), all 7 ENOBUFS throws gone.
+**Verdict:** shipped
+**Surprise:** fixing the ENOBUFS did not raise PASS at the smoke's own settings. All 7 run now — but 6 hit the
+75 s wall at `--jobs 7`, and at `--jobs 4` every one **passes in 6.7-61.1 s**: they had never once been
+allowed to run, so nobody knew they were long sweeps and not wrecks. And winter `structures` is **2427 of
+2427 constant**, 100% against summer's 93%.
+**Law:** an aggregate SUMMING two kinds of register is diluted by every constant added: report the constant
+share beside the total, or a floor on the sum watches a number 93% frozen. A TIMEOUT is the RUNNER's
+concurrency before it is the instrument's.

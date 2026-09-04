@@ -30,7 +30,7 @@ const { chromium } = (await import(pathToFileURL(PW).href)).default;
 const seed = +(process.argv[2] || 7), T = +(process.argv[3] || 175), FILE = process.argv[4] || 'courtyard.html';
 const SIZES = [[1600, 950], [1200, 700], [900, 560], [390, 844]];
 
-let src = FILE === 'HEAD' ? execFileSync('git', ['show', 'HEAD:courtyard.html']).toString() : readFileSync(FILE, 'utf8');
+let src = FILE === 'HEAD' ? execFileSync('git', ['show', 'HEAD:courtyard.html'], { maxBuffer: 1 << 28 }).toString() : readFileSync(FILE, 'utf8');
 const patch = (a, b) => { if (!src.includes(a)){ console.log('PATCH MISS: ' + a.slice(0, 70)); process.exit(1); } src = src.replace(a, b); };
 patch('function drawBackdrop(g, hz, low){\n  FAR_WIN.length = 0;',
       'function drawBackdrop(g, hz, low){\n  FAR_WIN.length = 0;\n  window.__hz = hz; window.__cellH = cellH;\n  window.__topPad = topPad; window.__rI = -1;');
