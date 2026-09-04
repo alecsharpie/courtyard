@@ -15,34 +15,7 @@
     "balance": "By domain, after recording #206-#210 (coverage had never seen four of them): courtyard 12 back and longest, roofs 11, nearblock 9, life 8, sky 7, plaza 6, lane 3, sill 2, street 1, river 0. This queue takes the four longest-untouched in order and puts the bet on the lane, which is 3 back but holds the frontier. By kind through #210: deepen 59, connect 44, new-element 33, polish 30, scale 20, harness 15, interaction 15, new-ca 12, fidelity 6. Fidelity is still the thin column and gets two here. Interaction is the standing problem — 15 in 210 iterations and 8 of them the sill's own chrome; lane, street, river and nearblock have never had one, and that is the FIRST claim on the pass after next."
   },
   "rationale": "I SHOT THE TOWN BEFORE PLANNING IT — seed 42, four instants (day 5 07:45 early summer, day 65 12:58 autumn clear, day 6 dusk, and the lane and courtyard crops at noon) — and one band decides this batch. The ROADWAY. LN_ROAD0 68..76 is eight rows across all 138 columns, ~9% of the world, the single longest continuous line in every framing and the thing a viewer's eye slides down to after the courtyard. It is built with more care than almost anything in the town: settGrid/settRun, camberZ, gutterF, rutF, KERB_RUN, paveWear, PUDDLES. On a clear autumn midday with 73 people out, the lane crop shows exactly TWO things on it — one cyclist and one figure. Then I greped rather than trusted the picture, and the cause is structural, not a rate: LANE_N_Y 66.4 and LANE_S_Y 77.3, the two walking lines, both sit on the FOOTWAYS; every one of spawnLaneAgent's branches picks one of them; and the only object in 210 iterations that has ever driven on the carriageway is `cart`, one dray, on market days, at CART_LANE_Y. The town built a road and then walked around it. That is fabric, not an event — the managerWatch note's own test — and it changes the wide shot in the first ten seconds, which is what a bet is for.\n\nRUNG 2, AND I AM SAYING SO RATHER THAN DRESSING IT UP. This batch deepens and interconnects systems that already exist; nothing here widens the menu, moves the census, or changes the observer. The last five passes were 4b/5/4a/3/5, so one low pass is legal and this is the first of at most two — the pass after next climbs to 3+ whatever it finds, and the named claim on it is the Interaction column (15 of 210, 8 of them sill chrome; four domains have never had one).\n\nTWO PREMISES DIED BEFORE THEY BECAME BRIEFS, WHICH IS THE POINT OF SHOOTING FIRST. (1) 'Nothing in this town casts a shadow' — the midday and morning wides both look shadowless, and it is false: buildSunShade()/shTop/shCast/shOpen throw every solid volume from sunVec(), at BSH_MAX*daylight*shadowF(), which is faintest at dawn and shortest at noon by construction. Filed as a worker WATCH note so the next pass to see that picture does not write the brief I nearly did. (2) 'The near roof reads as one flat texture' — dead three times already (c232/c259/c271, sd/mean 0.281, the highest large surface on the record); I did not write it a fourth time.\n\nTHE OTHER FOUR ARE THE LONGEST-NEGLECTED DOMAINS, EACH CARRYING A NUMBER. b212 courtyard (12 back): buildMossRegion is called exactly twice, for PLAZA and QUAY, and the piece's namesake — the largest paved surface in the town — is the one big paving that does not age with the year. b213 roofs (11 back): grep finds no drip, downpipe, gutter or runoff anywhere in 1.25 MB of source; the roofs wet (drawSlateCell mixes on wetF) and shed nothing, and the lane already has PUDDLES/pudHollow waiting for a foot to form under. b214 nearblock (9 back) and b215 life (8 back) spend c298 and c299, both of which arrive with their probe and their number already measured.\n\nWHAT I CUT, AND WHICH WAY EVERY CAP MOVED. No cap was raised; two things were cut to fit under caps that did not move. INVENTORY 11.7 -> 9.8 KB against an unchanged 10.0: the market's day was re-filed from `street` (where #207 had put it) into the lane line that owns it, #209's weed-steering merged into the weeds CA line, sill's 9 entries merged to 6, and every remaining line stripped of tuning constants and coordinates — which is what the file's own note has always said belongs in the source. Two entries deleted outright: sill's HARNESS line (instrument nouns; SKILL.md names every gate already) and sky's two-PRNG-streams line (that is a LAW, and LAWS.md carries it). LAWS.md 25 -> 26 laws at 11.9/12 KB: added #206's (a frame's share is a function of the ZOOM alone), #207's control-saturation clause and its two ink-measurement liars with #208's, and merged #209's and #210's into the laws they extend — paid for by SUPERSEDING the two-layouts law, whose claim that 'the wide view is resize()'s raw cellW/topPad' #206 made false; by deleting the CAST/MIRROR clause of trap (a) (buildSunShade/shOpen and drawWaterMirror carry it in the source, and the new watch note points at them by name), the residual FALL-THROUGH clause, the short-run RAMP clause (subsumed by 'pool six seeds and a YEAR'), a route-cost restatement and a TIMEOUT clause; and by SPLITTING the ground-cache law, 902 B against the 900 B advisory, into its two claims. Cues 8 -> 6: two promoted (c298 -> b214, c299 -> b215), c305 closed on its own probe's evidence, c308 raised. Worker read 45.6 -> 44.0/46 KB, every sub-cap met.",
-  "queue": [
-    {
-      "id": "b215",
-      "domain": "People & animals",
-      "kind": "Fidelity",
-      "brief": "c299: the martins' second mud source is the same in every world. #202 gave the colony a strand — `martStrandF()` off the river's drying bank — but the strand is built from `hash()`, which is NOT seeded, so a rainless colony now founds on the SAME days in every seed and the worlds differ only in which birds turn up. LAWS.md states the rule this breaks: hash() is one town in every world, and a per-day hash is one sample of the calendar in every seed — SALT it when the calendar must differ per world. Put a per-world salt on the level's lag so the mud year runs on a per-town clock, the way the cart's calendar (WIND_SALT) and the fair's (isFairDay) already do. Price it as the laws require: histogram the founding day over the YEAR across six seeds on HEAD and on the candidate, and show the distribution is the same SHAPE with the seeds no longer in lockstep — this is a fidelity fix, not a behaviour change, and the colony's size and timing must not move.",
-      "seams": [
-        "martStrandF",
-        "martMudF",
-        "MART_WET",
-        "MART_STRAND",
-        "martSeed",
-        "martTop",
-        "MART_CELLS",
-        "riverLev",
-        "RIVER_LAG",
-        "stepBank",
-        "bankBed",
-        "hash",
-        "WIND_SALT",
-        "isFairDay"
-      ],
-      "successLooksLike": "Founding day across six seeds spreads instead of coinciding, while the per-seed distribution over a year keeps HEAD's shape and the colony's mean size is inside the seed noise. Name the salt in the source next to the two that precede it.",
-      "avoid": "Do not spend an R() draw on this — the strand is hashed and must stay hashed, or every downstream draw in the world reshuffles (LAWS.md: any new draw reshuffles the whole seeded world). Do not touch MART_WET or the rain source; only the strand's clock is at issue.",
-      "budgetMin": 30,
-      "risk": "low"
-    }
-  ],
+  "queue": [],
   "recommendStop": null,
   "consumed": [
     {
@@ -60,6 +33,10 @@
     {
       "id": "b214",
       "at": "2026-09-04T22:56:59.275Z"
+    },
+    {
+      "id": "b215",
+      "at": "2026-09-04T23:17:47.623Z"
     }
   ]
 }

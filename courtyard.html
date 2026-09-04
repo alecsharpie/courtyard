@@ -2735,7 +2735,25 @@ function riverMid(x){ return 1 - Math.abs((x + 0.5 - (RIVER_X0 + RIVER_X1) / 2) 
  * town has its extreme. At SEASON_START it is 0.454 — well inside both bands below, so
  * the anchor state is HEAD's exactly: no cell is flipped either way. */
 const RIVER_LAG = 0.075;                       // of a year: ~2 days behind the sky
-function riverLev(){ return Math.cos(2 * Math.PI * (season() - RIVER_LAG)); }
+/* ...and a catchment is not the same catchment in every world (#215). The lag was a bare
+ * constant, so the LEVEL's year — and with it the strand the martins found on when the
+ * sky gives them nothing (#202) — was bit-identical in every seed: over twelve seeds x two
+ * years (probes/mart-clock.mjs) bankDry opened at phase 0.4190 in ALL 24, sd 0.0000, peaked
+ * at 0.5508 in all 24, and the five rainless colonies of those 24 set their first nest inside
+ * 0.0026 of a year of one another. LAWS says a per-day hash is one
+ * sample of the calendar in every seed; this was worse, because it is not a sample of the
+ * calendar, it IS the calendar. So the lag takes WIND_SALT's trick (#172) — the third
+ * clock to take it, after the cart's and the fair's — one hash off the SEED, zero R(), so
+ * the seeded stream is byte-for-byte the one it was.
+ *
+ * RIVER_LAG_SWING is bounded by the ANCHOR, not by taste: lev at SEASON_START is sin(2*PI*lag),
+ * and BANK_WET_LO 0.58 is the lowest bed on the bank strip, so any lag over 0.0985 starts
+ * the world with the towpath already lapping. 0.02 puts the lag at 1.4-2.5 days and lev0
+ * at 0.335..0.556 — inside both of stepBank's bands in every world, so "no cell is flipped
+ * either way at the anchor" stays true, which is the claim the paragraph above makes. */
+let RIVER_LAG_SWING = 0.02;                    // of a year: how far the lag moves per town
+let RIVER_SALT = SEED === null ? 0 : (hash(SEED, 577) - 0.5) * 2 * RIVER_LAG_SWING;
+function riverLev(){ return Math.cos(2 * Math.PI * (season() - RIVER_LAG - RIVER_SALT)); }
 /* The channel's own colour, applied on top of whatever groundCol() already decided,
  * so the anchor is neutral as an identity: at greyF() 0 the mix amount is 0 and the
  * string that comes back is the same one. */

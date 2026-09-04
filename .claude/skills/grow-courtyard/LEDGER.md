@@ -310,3 +310,26 @@ one cratered summer `people` by 11.9%; three re-keyings of the CANDIDATE gave 10
 PASS. The shipped key drew 1030 — a tenth of a point of headroom over a change meaning nothing.
 **Law:** an unsalted per-day choice makes N seeds ONE sample, so a per-house zero is the
 calendar's; and WCORE's `frozen` 3% floor is inside a behaviour-free reshuffle's own noise.
+
+## Iteration 215 — the river's lag becomes the town's (2026-09-05) [People & animals × Fidelity]
+
+**Brief:** b215 — the martins' strand founds on the same days in every seed; salt its clock.
+**Premise, corrected:** the brief said the strand comes off an unsalted `hash()`. It does not.
+`riverLev()` is a bare cosine of `season()` — the strand is not one SAMPLE of the calendar in
+every world, it IS the calendar. HEAD (`probes/mart-clock.mjs`, new, 12 seeds x 2 yr): `bankDry` opened
+at phase **0.4190 in all 24**, sd 0.0000, and the five rainless colonies set their first nest
+inside **0.0026 of a year** of one another.
+**Did.** `RIVER_SALT = (hash(SEED,577) - 0.5) * 2 * RIVER_LAG_SWING` on the lag — WIND_SALT's
+trick after the cart's and the fair's, zero R(). The swing is bounded by the ANCHOR, not
+by taste: lev at SEASON_START is `sin(2*PI*lag)`, BANK_WET_LO is 0.58, so a
+lag past 0.0985 starts the world with the towpath lapping. 0.02 = 1.4-2.5 days, nothing flipped.
+**Gates:** control = the candidate at swing 0, reproducing HEAD **row for row, all 24** · census
+PASS (reshuffled: the strand flips tiles, tiles gate R()) · motion · 0 POP · 4 shots. strandOn sd **0.0000 -> 0.0102** over 0.4015..0.4374;
+strand-led founding width **0.0026 -> 0.0105**; found histogram same shape (rain mass 0.28-0.40,
+strand 0.43-0.52); colony peak 75.9 +-7.9 -> 78.0.
+**Verdict:** shipped
+**Surprise:** the colony gets slightly BIGGER, and it has to. The birds' window shuts at 0.70 and
+the strand runs to 0.72, so an earlier river is worth more than a later one costs. Inside the
+noise, but keys 577/587/599 all landed above HEAD: 78.0, 81.4, 80.3.
+**Law:** a symmetric salt on a CALENDAR is not mean-neutral where what it feeds is a threshold
+read through a WINDOW — price the aggregate under two re-keyings and quote the SIGN.

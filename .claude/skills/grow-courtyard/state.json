@@ -633,7 +633,7 @@
       "the FAIR DAY ~5/yr: isFairDay salted, fairF off the sun, fairDress, spawnFairAgent, FAIR_SLOTS, own tick; the gathering a DRY-HOUR budget FAIR_GATH_H/fairGathSpent; fairFits/FAIR_STAND_MIN, fairLead()"
     ],
     "river": [
-      "river 13 cols; rowboat, bridge, TOW_WALK/FAR_WALK, church+clock+rose window, bandstand, ORCHARD, JETTY, swan PAIR; EXTENT moves — riverLev/RIVER_LAG, stepBank/bankBed/BANK_CELLS, SHOAL; the SURFACE drawWaterMirror/setMirror, REED/reedInk, drawWaterShade, drawBoatMirror",
+      "13 cols; rowboat, bridge, TOW/FAR_WALK, church+clock+rose, bandstand, ORCHARD, JETTY, swans; EXTENT: riverLev/RIVER_LAG+RIVER_SALT per world, stepBank/bankBed/BANK_CELLS, SHOAL; SURF drawWaterMirror/setMirror/Shade, REED/reedInk, drawBoatMirror",
       "FOOTBRIDGE DECK (drawDeckSpan/Front, boatUnderDeck), WATERMILL (MILL_WHEEL/millSpin), EYOT onEyot/eyotShore/drawWillow/nestF",
       "the far bank's day: spawnFarAgent/farOpen/FAR_CAP, FAR_GATE, a.jetty, overDeck's east door; concert bandF/isBandDay; FIELD EDGE east of GW in the cache",
       "the evening ends: EVE_GONE/EVE_HURRY/EVE_BELL, eveOutH -> a.eveOut, goHome(a,maxH); night water drawRiverLights, RIVER_LAMPS, a.nightRail, roseLit",
@@ -737,6 +737,12 @@
     {
       "id": "c312",
       "note": "the two never-wash bays h2/h14 sit 42% apart on presence at equal eligibility and equal staleness — unexplained",
+      "raisedBy": 212,
+      "seenBy": 0
+    },
+    {
+      "id": "c313",
+      "note": "census martinNests read +46 (130->176) on the change probes/mart-clock.mjs put at +2.1 on +-7.9 over 24 seed-years: 9 pinned instants cannot weigh a threshold CA",
       "raisedBy": 212,
       "seenBy": 0
     }
