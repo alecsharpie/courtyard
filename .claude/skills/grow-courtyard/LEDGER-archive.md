@@ -3,59 +3,6 @@
 Entries rotated out of `LEDGER.md`. Append-only. **Only the manager reads this** —
 a worker that opens it to "catch up" spends its whole context on history.
 
-## Iteration 127 — the allotments get their own fog, and ghPane's dead term wakes up (2026-09-02) [Cross street & allotments × Connect]
-
-**Brief:** b127 — a SECOND mist source over the allotments so `ghPane`'s `mistAt()` term, 0 every day of every year, reads something. Full entry in LEDGER-archive.md.
-**Did.** Found b127 already built and uncommitted (attempt 2, no ledger entry): verified rather than rebuilt — "an uncommitted WIP is UNPROVEN". `hollowMist` is a second scalar in the `cloudCover()`/`wetF()` family, RADIATIVE where the river's is evaporative — stiller, clearer, cold-only, so a mild wet morning mists the river and not the beds. `MIST_SRC[]` makes a source a span+reach+weight, `mistAt` takes the strongest at that x, and the two never overlap; the announcement stays latched on the RIVER.
-**Gates:** census PASS · motion PASS · visual PASS at 1600x950 and 390x844 · fogged frame +3.3%, unfogged byte-identical. Fogs 12.7% of mornings and 0 of 594 warm ones; `mistAt(88)` p50 0.82 vs HEAD's dead 0; exactly 0 change west of the allotments.
-**Verdict:** shipped
-**Surprise:** three of my four "failures" were my own instrument. A `day` index runs 06:00→06:00 and holds TWO dawns, so bucketing on it read the weather off one morning and the veil off the other, inventing a warm foggy day. And containment said 854/12060 diverged until HEAD-vs-HEAD gave 441: no `__reseed()`, so page-load frames left each run on a different PRNG offset. With it, both went to 0.
-
-## Iteration 128 — the punt takes two (2026-09-02) [People & animals × Deepen]
-
-**Brief:** b128 — let a pair cross to the eyot: seat two, land two, bring them home together (c160).
-**Premise corrected:** `puntFits`' `pairLead` refusal was only half the lock. `spawnFarAgent` — the source the punt exists FOR — never called `withCompanion` at all ("Always solo", its own header); the 26 pair-leaders refused on HEAD all came from the OTHER jetty door, `overDeck`'s east agents, which land at 19–21h and were refused on TIME anyway.
-**Did.** `spawnFarAgent(room)` + `withCompanion` — the far bank arrives in twos out of the SAME cap, the companion inheriting `far` so `farHolds` already counts it. `puntFits` drops `pairLead`. `punt.mate/pair/seating`; `PUNT_SEAT_Y −0.62` (the thwart) and `PUNT_POLE_Y +0.34` (the open end), both ends picked so neither walks THROUGH the other to a seat. `puntSeatStep`: the punt owns the passenger's tick from the moment the punter sits, and PAIR_MIN becomes a step ROUND, not a shove. +113 lines.
-**Gates:** census PASS · filmstrip 0 POP · shots: the pair legible out/across/ashore/back at three framings incl. mobile · motion FAIL `dusk/cart 0→1` dismissed on a HEAD control. Paired crossings 0% → 50%; 21/21 landed both ashore and came home together.
-**Verdict:** shipped
-**Surprise:** the cap priced it for free. Crossings fell 62 → 42 but **people carried went 62 → 63** — a pair spends two of FAR_CAP's three, so fewer distinct walkers set out and the same humans reach the island, half now with someone. A companion keeps no clock of its own, so the trip is the leader's both ways.
-
-
-<!-- full text of #136, condensed in LEDGER.md at the pass that wrote it -->
-## Iteration 136 — a barge works the quay, and the horn gets a subject (2026-09-03) [Plaza & quay × New element]
-
-**Brief:** b136 — bring a barge up the west channel on some days, let it work the quay, and give the ticker's unplaced barge horn somewhere to come from.
-**Did.** `BARGE_BOLLARDS`: five iron posts on the quay's edge — FABRIC, there every day, and what `structure.moorings` counts. Then `barge`, on the punt's shape: its own tick (`updateBarge`), its own schedule, legs `in`/`work`/`out`, hard alongside at x 114.86 between the two berth bollards at rows 20.6 and 27.4, south tip 26.8 against `boatUnderDeck`'s 28.7. The crew are the BOAT's, not agents — a steerer at the cabin and a hand shuttling sacks quay→hold on a triangle wave, so the two stacks between them are the clock and no cap pays for anyone. Four `sayAt` lines at the hull. Her lantern registers `BARGE_LAMP` and is repainted in the screen pass beside `BOAT_LAMP`. **Zero `R()` draws** — day, hour and load are all `hash(day, …)`.
-**Gates:** census PASS, **`structures +45` and literally nothing else across 9 cells** — the seeded world is bit-identical beside her · motion PASS · filmstrip day 0 POP; cropped to the berth 0 POP against a **HEAD control with the same shape** (0.40/0.37 then 2.3+, the town's own light step, not mine) · perf skipped (7 items a frame).
-**HEAD → cand pixel diff** (`probes/frame-diff.mjs`, 5 instants, 2 seeds, day and night): every changed pixel in a **22–28 px column** of a 1228 px frame, 0.010% with no barge, 0.090% with her lit at night. At 390×844 Wide: **0 changed pixels** — the phone's Wide never reaches the river, and she needs the Plaza quarter.
-**Calendar** (520 days): 30.6% barge days, median gap 3, arrival 6.43–7.79 h, 6–10 sacks. Continuity (10 s samples, 14 days): worst y step = exactly one warp step, 0 NaN, 0 teleports, control fires 316.
-**Verdict:** shipped
-**Surprise:** the horn was the easy half; the *lamp* was the trap. Drawn in the item pass it was invisible at ten o'clock — `applyLight`'s multiply had made it slate, exactly as the law says — and the rowboat only escapes because it registers `BOAT_LAMP` for the pass AFTER. The punt does not, so **the last punt has been carrying an unlit lantern since #131**. Second surprise: `sayAt`'s gate is finer than the eye. At the Plaza quarter — the camera that FRAMES the quay — the arrival line was the one of four never heard, because at row 0.6 she was inside Wide but above Plaza's box (y0 2). Moved to row 5.0, all four land at both.
-**Law:** a light drawn in the item pass is slate by midnight — anything meant to READ as a flame must register its point and be repainted after `applyLight`, and "it is drawn" is not "it can be seen".
-**Cue:** `puntLampF()`'s lantern is drawn before `applyLight` and never registered, so the last punt's light does not read at night. `BARGE_LAMP` is the two-line pattern to copy.
-**Cue:** on a phone the Wide camera does not reach the river at all — 0 of the barge's pixels, and `inView` correctly says none of her lines. Everything east of the plaza is Plaza-quarter-only on 390×844.
-## Iteration 129 — the gardener gets a schedule, and a walk that is bounded at both ends (2026-09-02) [Courtyard & garden × Deepen]
-
-**Brief:** b129 — give the gardener its own source so someone works the beds on most growing mornings.
-**Premise corrected, twice.** (a) The gardener is not short of ARRIVALS: HEAD lands 1.17 per growing day. (b) The 0.65 the brief priced off is `inWall`, and 13 of 204 EDGE_BEDS sit OUTSIDE `wallR()`'s square — the axis beds a near-door walk picks. By POSITION HEAD's gardener is in the beds 0.06 of a growing morning: not rare, never there while it matters. The limiter was the WALK, not the supply.
-**Did.** `spawnLawnAgent(want)` takes a forced kind (fits unchanged — a schedule skips the lottery, not the pricing). `gardenDue()` on the bonfire's model: no roll, `hash(gardenIdx(), GARD_SALT) < GARD_K` over the beds' own season, off `gardenIdx()` because `day` rolls at hour 6. Outside `LAWN_CAP`. `gardenFits()` bounds the pre-dawn walk at BOTH ends; the bed is drawn from the near third by walk; `a.dawnWalk` licences the climb past `lawnGone()`.
-**Gates:** census/perf/filmstrip/visual PASS · motion FAIL dismissed on a HEAD control. In the beds on a growing morning 0.06 → 0.22 (3.7×), 0.08 → 0.26 when the lawn is BUSY, nothing displaced.
-**Verdict:** shipped
-**Surprise:** every lever was already in the source one level up, unused. #108 fixed the gardener's DOOR and left the BED a flat `pick()` over all 204; the dawn start made that WORSE, because with the whole day ahead every bed passes `lawnFits` — the priced walk went 5.8 h → 9.2 h, all spent crossing the town. `lawnFits` bounds the LANDING only, which is all a visitor needs because none sets out before the lawn opens. Ranking beds by walk and bounding both ends turned 0.06 into 0.22; the schedule alone gave 0.08.
-
-## Iteration 130 — the town gets houses, and the roofline stops being a ruled line (2026-09-02) [Roofs & skyline × Scale/World]
-
-**Brief:** b130 — a house index per terrace, an eave per house, and what the step implies.
-**Premise held.** HEAD had **4 distinct eaves along its whole north row, 1 along each side wall**.
-**Did.** `houseAt(x,y)` indexes every terrace on `drawFaceRow`'s own 3.5-cell rhythm, counted the way the terrace RUNS: x for the long rows, y for the slivers. `houseLift` is a coarse hash (`runOf`, a builder's run of 1-6) with a fine one gated on it (one house in seven rebuilt). The step is **`roofZE(vx,vy,e)`**: a vertex read from INSIDE its own house, `e + SLOPE*min(vD)` — bit-identical to `vZ` in a block of one eave, different only where the town steps. Then its implications: `drawGable`, a party-wall line, `buildStacks` (a stack per party WALL, into `CHIMNEYS`). +213 lines.
-**Gates:** census PASS, **structures +369 / chimneys 27→68 a run**, tiles and life unchanged · motion PASS · filmstrip 0 POP · perf ±0.0% · legible at 1600x950, 390x844, night. Terrace eaves 4→20 / 18 steps (north row), 1→7 and 1→11 on the walls. Baseline re-pinned.
-**Verdict:** shipped
-**Surprise:** the near roof, which I never touched, came back **23.4% changed**. `roofShade` gained an `e` parameter and the APRON called it with none, so every apron slate shaded off NaN. Eyeballing two framings missed it; a difference image against a same-code control (0.000%) found it in one run.
-**Law:** widening a shared draw helper's SIGNATURE changes every caller — grep them all; the missing argument arrives `undefined`, and a colour off NaN still paints something plausible.
-**Law:** `hash(x,y)` is NOT seeded; `?seed=` swaps `R()` alone. The built FABRIC is one town in every world; only its life varies.
-
-
-<!-- full text of #138, condensed in LEDGER.md to stay inside the read budget -->
 ## Iteration 137 — the lane's cap starts counting the lane (2026-09-03) [People & animals × Scale/World]
 
 **Brief:** b137 — presence per PLACE across whole days, sweep every cap, keep the knee.
@@ -661,4 +608,117 @@ alone, invisible to ledger, runlog, census. Diff the tree before calling a brief
 **Verdict:** shipped — but the success line wanted tend-rungs in double figures; they went **4.25 → 8.83**, because more supply buys more harvests too.
 **Surprise:** the morning round's skin was `hash(day, 811)` — `drayToday()`'s OWN key — so its index was PARTITIONED by whether a dray came: dray days {0,1,2}, dray-less {2,3,4}. Re-keyed to 619.
 **Law:** a fall-through ladder's lower rungs are bounded by its FIRST rung's hit rate, not by supply — doubling arrivals doubles both. Instrument the rung, not the population.
+
+## Iteration 173 — the plaza's doors become corridors, and the cap wakes (2026-09-04) [Plaza & quay × Deepen]
+
+**Brief:** b173 — re-price the `FAM_CAP` cue against #148's "DEAD past 4".
+**Re-measured** (`town-caps`, 6 seeds x 12 d, paired): the cue HOLDS — 4 binds **86.5%** of open
+daylight — and #148's reading is dead: #160's fourteen places woke a constant that had sat at a
+rate of zero, and it is live to 12. But it buys CROWDING (0.117 pairs per plaza person at 4,
+0.221 at 7), and `probes/plaza-crowd.mjs` (new) says what of: **93.6% of those pairs have a WALKER
+in them** and **74% sit in the two 30-degree bins either side of the ALLEY** — whose lead was one
+waypoint, duplicated in two branches, with four ring POINTS after it.
+**Did.** `plazaLane(a)`, a golden-ratio SEQUENCE, no `R()`, so the seeded world is untouched. Off it:
+`alleyRow/alleyGate/alleyLead`, the cut's 3.0 cells at BOTH ends, and
+`ringNode(i,lane)` for `RING_NODES`; `plazaWay`/`famWalk` take the lane, so the price is the walk. Then FAM_CAP 4 -> 5. Plaza presence **10.05 -> 12.18**, crowded pairs
+per person **0.117 -> 0.103**; the door still refuses 0.0%, quay flat.
+**Verdict:** shipped
+**Surprise:** motion failed `cart: jumps 0 -> 1` on a plaza-only change.
+`probes/cart-step.mjs` (new): HEAD's cart takes **186 steps over ABS_JUMP 2.5 in 600 s, max 3.9** —
+identical on both builds. CART_SPEED 6.5 x TROT 1.5 x a dusk 1.5 is 3.66 a step; the gate read 0
+only because its windows had missed a trot. `ABS_JUMP_KIND={cart:4.5}`; HEAD still PASSES against the pinned baseline.
+**Law:** many PLACES is not many WAYS IN — split crowded pairs WALKING vs STOPPED before widening.
+**Law:** a jump threshold under a kind's cruising speed is a speedometer: its zero is a fact about
+the sampling window, so the next reshuffle names the wrong change.
+
+## Iteration 174 — the boats get their image; a premise dies (2026-09-04) [River & far bank × Deepen]
+
+**Brief:** b173/#174 — the BOATS into the water; re-price #159's cue that the shade needs its sheen cut.
+**(b) REFUTED, both halves** (`probes/water-sheen`, new; control 0 px). Not "1-86 px of change": at
+h8.18, the year's largest wet mask, FULL vs NOSHADE moves **8138 channel px at d 7.4**, widening the
+wet-vs-open luma gap 3.47 → **11.07**, ~1 sd of the open channel. `drawRiverFlow` killed outright moves
+~2% of that; streaks cut inside `shMask`, **0-41 px**.
+**(a) Did.** `spriteMirror(fy)`, then `drawBoatMirror` — live on `ctx` under `riverWaterPath`'s clip:
+two punts + crew, the rowboat, the barge. One alpha per hull for the ramp (deepest image 1.17 cells vs
+REFL_FADE's 3.6), no chop. The barge needs no flip (real z); `drawPerson` flips itself.
+**Measured** (`probes/boat-mirror`, new; BEFORE = this source, members emptied): control **0 px**;
+image **266 px** (punt 120, barge 85, boat 61), none north of a hull; the rowboat's image centroid
+tracks her foot to **1.6 px** as she runs 21 px a step.
+**Gates:** all PASS; the pass is 0.236 ms at Wide. **Verdict:** shipped
+**Surprise:** giving the barge a reflection found a PERSON in the wrong place. Her shore hand is drawn
+at `BARGE_HAND_Y`, the berth's shuttle line, and `bargeHandU` returns 1 off `'work'` — so her x followed
+the hull and her y never did: on every barge day a figure stood in the open channel at row 25 for the
+whole approach and departure. 74 px of image, her hull fifteen cells north.
+**Law:** `project()` reflects only what is solved with a real z; a SPRITE — pixel offsets off a
+projected foot — is blind to the mirror's sign and flips about ITS OWN foot. A reflection is a POSITION
+test too: a stale anchor shows as ink in open water.
+
+## Iteration 175 — the manager's files get the worker's rotation (2026-09-04) [The sill & the observer × Harness]
+
+**Brief:** b174/#175 — bound the four files a manager opens, by rotation, never deletion.
+**Premise half refuted.** A manager opens none whole: its SKILL.md `tail -40`s the runlog, and that
+tail is FLAT — 36.4 KB at row 40, 38.5 at row 211, while the file went 191 → 204 KB. Its cost is no
+read either (uncached `in` 64–178 tokens a pass; last six level at $3.40–$8.66), so the table's
+"nothing caps these, and the manager reads all of them" is deleted.
+**Did.** `archives.mjs`, the one place knowing a rotated file has halves. `rotate-ledger.mjs`
+rolls LEDGER-archive.md past 60 entries → `LEDGER-deep.md`, RUNLOG.jsonl past 80 rows, MANAGER-LOG.md
+past 16 passes into archives beside them, and measures MANAGER-LOG's unenforced "one line" (15 of 16
+over 1.5 KB). `build-stats`/`stall` read both halves; `stall --report` prints **WORKER 46.3/46 KB
+beside MANAGER 80.6/96**, each rule quoted from its script.
+**Measured.** 993,951 B → 994,416: **+465 B, exactly the archive headers**. 211 rows / 257
+entries / 36 passes, 0 unparseable. Live 1010.8 → **300.4 KB**; **stats.html is byte-identical
+to HEAD** with 551 KB moved out from under it.
+**Gates:** census PASS, six groups unchanged · courtyard.html byte-identical · visual PASS.
+**Verdict:** shipped
+**Surprise:** the check passed **while a row was being destroyed**. `byLine` measured offsets in
+BYTES and gave them to `String.slice`; the cut fell inside an em-dash, split a row in two, every
+reader dropped both fragments — 211 runs → 210 — and the bytes still balanced exactly.
+**Law:** byte conservation is necessary, NOT sufficient — blind to a cut INSIDE a unit. Prove a
+rotation on its READERS' output against a pre-rotation control.
+
+## Iteration 176 — the rain forked the seeded world (2026-09-04) [The sill & the observer × Fidelity]
+
+**Brief:** b176 — `?seed=` does not name a world. Find the fork, name it, gate it.
+**Premise CONFIRMED to the digit** (49 vs 48 people at simT 125; two skies by 700).
+**It was the RAIN, and only the rain.** Mapping every `R()` to its enclosing function: the renderer
+is already clean — all 24 draw-site hits are comments *saying* "no R()". Two forks, one block.
+(1) The drop field is CANVAS space — spawned across W, recycled at `r.y > H`, culled by the frame
+— and drew from the town's PRNG, so *the draws the sky spent* were a fact about the window.
+(2) The shower's END was `rainLeft <= 0 && !raindrops.length`: a WORLD event waiting on a screen.
+**Did** (50 lines): `RS` beside `R`; the field out of `if (raining)` into `stepDrops(dt)`, `RS`
+only; the shower ends on `rainLeft <= 0` alone; `drawRain` gates on `raindrops.length`, so the tail
+outlives the flag. Tail probe, H 950 vs 560: HEAD's `raining` ends LATER at a taller window; cand
+ends at **132 at both**, its tail honestly H-shaped (3 drops vs 1).
+**Gates:** `probes/seed-identity.mjs` (new) **FAILS on HEAD 12/12, PASSES on cand 15/15** · census
+PASS (reshuffle, not collapse: 449→441) · shots · motion · perf +0.0% · baselines re-pinned.
+**Verdict:** shipped
+**Surprise:** the filmstrip's one POP at the shower's end — Δ7.35, 4.4x median — was **the next
+shower arriving**: the census row carried `raining: true` at that very frame. The same measurement
+on HEAD at *its own* shower end peaks at 18.1x median; both builds sit at 0.65 vs 0.71 dry.
+**Law:** a canvas-extent population must never draw from the world's PRNG, and no world event may
+wait on a screen-space one — the draws a frame spends are a fact about the WINDOW.
+
+## Iteration 177 — the lamps get moths at them (2026-09-04) [People & animals × New element]
+
+**Brief:** b177 — a nocturnal species, own source and cap, gathered AT the lights, not a second
+firefly. **Premise held:** no `moth`/`bat` in the source, nothing keyed on a lamp.
+**Did.** `moths[]`, `updateMoths/mothPos/mothRate`, `drawMoths`, `mothName`, `NIGHT_LAMPS` —
+ONE lamp list, which the halo pass now reads too, so a lit lamp and an occupied lamp cannot
+drift apart. A moth belongs to ONE lamp and orbits it on its own phases — no per-frame `R()`,
+and a `^6` term on the radius that closes it right onto the glass.
+**Gathered, not scattered.** `MOTH_JOIN` of arrivals join an occupied lamp, and both candidate
+lists are pre-filtered to lamps under `MOTH_PER_LAMP`, so a knot saturates and the overflow
+starts the next. 5 seeds x a year (`probes/moth-night.mjs`, new): **9.1 of 24 lamps occupied**,
+busiest 2.97 — one speck each at 24 is nothing at 3 px. Daylight **0.00**, deep night 23.8,
+**0 of 135 nights empty**.
+**Gates:** census PASS (`moths +93`, `creatures +88`) · motion PASS (moth 0/0/0/0) · perf +0%
+· filmstrip 0 POP · 6 framings incl. mobile · naming 31/32, same points, moths gone: 0.
+**Verdict:** shipped
+**Surprise:** the season was on the CEILING first, and the year came back **13.8 / 16.3 / 15.8
+/ 15.1** across its four quarters — dead. At 1.5 arrivals/s the SUPPLY was the bound in every
+season and the ceiling was decoration, which a sweep of the ceiling cannot see. Year and rain
+onto the INFLOW, `MOTH_CAP` left a pure ceiling: **20.2 / 27.0 / 29.2 / 18.6**, cap
+binding in midsummer, rate in winter and rain.
+**Law:** a cap and a rate are both alive only if they bind at DIFFERENT times — put the
+modulating scalar on whichever is SLACK, and prove it by sweeping the AXIS, not the constant.
 

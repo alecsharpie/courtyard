@@ -1,41 +1,134 @@
 {
-  "generated": "2026-09-03T22:13:39.594Z",
-  "byIteration": 180,
+  "generated": "2026-09-04T01:19:44.773315Z",
+  "byIteration": 185,
   "rung": "4b",
   "diagnosis": {
-    "health": "Healthy, and cooling slightly rather than dying. 17 of the last 20 shipped, 0 reverts, selfVerdict == verdict on 19 of 20 (the exception is #171, correctly downgrading its own predecessor). src moved 8 of the last 10; the two that did not are Harness by design. Cost fell for the first time in five passes: 24 min / $8.20 against last pass's 28 min / $10.02, against a ~$5.77 run median. But OUTPUT fell with it — the last five diffs mean 100 lines (70/173/42/71/143) against 148 the pass before, which ends a four-pass rise of 49 -> 86 -> 103 -> 129 -> 148. Falling cost with falling output is not the Solvista shape (that was RISING cost with flat output) and it is one pass, not a trend; the honest reading is that #176-#180 were four medium jobs and one small one, and no bet among them was priced as a bet. That is my fault, not the workers'; b181 corrects it. stall.mjs shows no stall and no advisory signals: smallDiff, mapFlat and rungHeld are all clear, revertStreak=0, briefRejected 1 in 20.",
+    "health": "Healthy, and the correction I made last pass took. 18 of the last 20 shipped, 0 reverts, selfVerdict == verdict on all 20, src moved 10/10, attempts=1 on 8 of 10. Cost is FLAT \u2014 $7.90/iter over #181-#185 against $7.92 over #176-#180 \u2014 while output ROSE: diff mean 99.8 -> 118.4. Last pass I wrote that #176-#180's fall to a mean of 100 was my fault for not pricing a bet as a bet; b181 got 80 minutes and an explicit 150-300-line licence and came in at 325 lines and $15.47, the largest diff and the dearest row of the run. The other four averaged 66 lines and $6.01. The two CHEAPEST iterations of the batch are the two I am most pleased with: #183 shipped 4 lines for $4.46 and #185 shipped 20 for $2.99, because both spent their time killing a premise (c262 was not reproducible on the build it was taken from; BON_K's 0.8 and 0.674 both survived) instead of building on it. That is the opposite of the Solvista shape in every axis I can measure: rising cost with flat output was the death signature, and this is flat cost with rising output and a falling attempts count.",
     "signals": [
-      "no stall signals; no advisory signals (smallDiff / mapFlat / rungHeld all clear)",
-      "revertStreak=0, shipped 17/20, selfVerdict == verdict 19/20",
-      "diff mean 148 -> 100: the first fall after four rises, with cost falling too",
-      "worker quota 45.4/46 KB at open, laws 38/60 but 12184/12288 BYTES — the byte cap was the binding one and I had to cut to add",
-      "MEASURED THIS PASS, not from the runlog: both surfaces the WATCH note called unmeasured are fine, and the river has no winter"
+      "no hard stall signals; ONE advisory: mapFlat=16, which binds this batch to rung 4+ and names 4b",
+      "revertStreak=0, shipped 18/20, selfVerdict == verdict 20/20, briefRejected 0 in 5",
+      "cost FLAT $7.92 -> $7.90 while diff mean rose 99.8 -> 118.4; the bet took 325 of those lines",
+      "worker quota OVER at open (46.9/46 KB) and LAWS.md over on BYTES again (12192/12288 with five laws waiting) \u2014 the third pass running that the byte cap, not the count, is the binding one",
+      "MEASURED THIS PASS, not read from the runlog: the courtyard's paved annulus is 1,896 cells (seed 42, warp 625) \u2014 15.6% of the whole world, 2.6x the plaza's 730 \u2014 and four BENCH_SPOTS is everything standing on it"
     ],
-    "balance": "The five domains in this queue are the five longest-untouched, in order of neglect: Lane & market 11 back (#169), Roofs & skyline 9 (#171), Cross street & allotments 8 (#172), Plaza & quay 7 (#173), River & far bank 6 (#174). Courtyard (#179), Sky (#178), People (#177) and the Sill (#180) all rest this batch. But the balance that actually chose the bet is a COLUMN, not a row: across 180 iterations the kinds run deepen 49, connect 40, new-element 30, polish 28, scale 20, interaction 13, harness 12, NEW-CA 7, fidelity 1. New CA rules are 7 in 180, the last at #135, and River, Sky, People and the Sill have never had one — in a piece whose own subtitle is 'a cellular block'."
+    "balance": "Coverage was four iterations stale (lastIteration 181 against a run at 185); recorded and re-read. By domain the queue takes the five longest-untouched in order of neglect: People & animals 8 back (#177), Sky 7 (#178), Courtyard 6 (#179), the Sill 5 (#180), Roofs 4 (#182). By KIND \u2014 which the standing watch note says to read first, and which is the axis that actually moves \u2014 the totals through #185 are deepen 53, connect 41, new-element 30, polish 29, scale 20, interaction 13, harness 12, new-ca 8, fidelity 2. Three of the five briefs come from the three thinnest columns: b187 is the 3rd fidelity ever, b188 the 14th interaction and the FIRST in the sky domain, b189 the 9th new-ca and the first in the life domain (c272: sky and the sill are then the only two left without one)."
   },
-  "rationale": "I shot the town before planning it (wide, seed 42, at t=175 early-summer morning, t=1210 late-winter night and t=1224 late-winter midday) and then measured the two things the picture made me want to brief, because the standing WATCH note says to. Both premises died. (1) The SILL, c259's 'same near-black bar at midday as at midnight': luma over the sill band at 1600x950 DPR 1 reads mean 13.98 sd 9.39 at midday with a range of 1.9-63.6, and sd/mean 0.671 — 2.4x the near roof's 0.281, the previous record. It is the most differentiated surface in the frame, and what the number exposes is the METRIC: sd/mean divides by a mean of 14. c259 closed, and the law that produced it corrected in LAWS.md. (2) The BACKDROP, the other class the note called unmeasured: sd/mean 0.150 / 0.160 over the frame's top 10% / 18% at midday, above GRASS and SIDE.cross. Also fine. That list is now empty; two briefs' worth of worker time saved, the same way #164's near-roof measurement saved 90 minutes.\n\nWhat the third shot found instead is the batch. In a late-winter midday frame — day 23, raining, every tree bare, thirty umbrellas up, the whole town gone grey-brown — the river is the most saturated, most summer-looking object in the picture. Priced on HEAD: riverCol() mixes toward RIVER_COLD by RIVER_TINT 0.30 and riverRun() runs 1.45x in January, so the channel has seasonal COLOUR and seasonal SPEED and no seasonal STATE. The fountain's basin, about thirty cells, skins over cell by cell in winter (FOUNT_ICE 0.7, fountainSkin(), ceiling 0.43 at midwinter). The 8784-cell channel does not. That is rung 4b by the census — ice is a new TILE kind and tileKinds moves — and it is the first new-ca in the River domain in 180 iterations, which is why I am taking 4b again rather than climbing past it: the RUNG repeats, the MOVE does not. mossCreep is the model and the brief says so; the town's best CA should not be reinvented next door.\n\nThe other four spend cues rather than inventing premises. b182 takes c267 (the lit panes have nobody at them), b183 takes c262 with its premise explicitly marked STALE and the re-measurement as the deliverable if it has died, b185 takes c268 against the source's OWN sentence — the second use of the `fidelity` kind the last pass added at rung 3, which is what tells us whether that menu widening was worth anything. b184 is the one I invented, and it is the weakest brief here: the town grows food and sells it and the food then evaporates, which I could see in the source but cannot see in a screenshot, so the brief makes the worker price it first and permits it to come back small.\n\nCuration. Coverage was three iterations stale (#178, #179, #180) so the balance grid I plan from was blind to them. LAWS.md was the real work: 38 laws at 12184 bytes against a 12288 cap, so every promotion had to be paid for. I merged all five of #176-#180's laws into laws they SUPERSEDE rather than stacking (the canvas-PRNG law into R(); cap-and-rate over cap-and-share; the two-dawns law absorbing the late-window split; the clock-vs-quantity law into the ground cache; ?t= into the probe-rewind law), corrected the sd/mean law with this pass's own measurement, folded the rate-of-zero law into cap-and-rate, and paid with three INSTRUMENT clauses — the rotation control, the dead-worker working tree, and #173's speedometer — on the ground that sill x harness is saturated at 9 entries, that motion.mjs now carries ABS_JUMP_KIND so the speedometer law is embodied in the tool, and that the loop's tooling is over-represented in the one file every worker reads whole. 36 laws, 12258 bytes, budget OK. Four cues closed, two raised, the stale VIEWPORT watch item rewritten as a standing rule now that #176 fixed it, and a new watch item aimed at this seat: read the KIND totals before the domain gaps.",
-  "queue": [],
-  "recommendStop": null,
-  "consumed": [
+  "rationale": "mapFlat is showing at 16, so the rung is 4+ and the signal names 4b. The standing watch note forbids re-deriving the map-is-full argument, and this pass found the reason it keeps firing anyway, which is worth more than the brief it produced: #181 added ICE, the 19th tile kind, and the census reported UNCHANGED IN EVERY FIELD. All three census ages sit at warmth 0.6929 on purpose (the #14 fix, so that the age axis measures age), so a winter-only kind is structurally invisible to the gate that mapFlat reads. The signal has been telling the truth about a blind instrument. So this batch does both halves: b186 makes a spatial change the census CAN see, and b187 makes the instrument able to see the one it could not.\n\nI shot and MEASURED the town before planning it, as the watch note demands, and the bet is a number rather than an impression. The courtyard \u2014 the piece's namesake, the left half of every wide frame \u2014 has 1,896 PATH cells in the annulus between the ring bed and the edge beds (seed 42, warp 625; r 13.8 to 37.8 off the linden). That is 15.6% of the world's 12,144 cells, the largest single-tile ground surface in the town, 2.6x the plaza's 730 PATH and larger than the river's 920 WATER. Standing on it: four BENCH_SPOTS. The plaza, a third the size, carries a fountain, a roundel, PLAZA_PITS, six benches, six FOUNT_STANDS, two crumb spots, a rail, five bollards and a fourteen-place door. This is NOT the 'that surface looks flat' brief the watch note kills on sight \u2014 PATH.court measures sd/mean 0.143, mid-table, and the texture is fine. The claim is OCCUPANCY, and it is counted.\n\nb186 puts a covered walk on that ring: rung 4b by the census (a new tile kind, and unlike ICE one that exists in July), a new-element in the domain that has had exactly one in 185 iterations, and the biggest change available to a visitor's first ten seconds. The other four spend the thin kinds and the long-untouched domains, each carrying the number it rests on. Curation: coverage four stale; six cues closed (two spent by #183/#182, one duplicated by the watch table, two promoted to b188/b190, one folded into b187); inventory merged 58 -> 55 entries and 9.6 -> 9.4 KB with the note's stale caps corrected to the ones rotate-ledger actually enforces; and LAWS took #181-#185's five laws by MERGING into the bullets they sharpen, paid for with eight named cuts. Quota back to 45.4/46 and laws to 11.9/12.",
+  "queue": [
     {
-      "id": "b181",
-      "at": "2026-09-03T22:17:05.795Z"
+      "id": "b186",
+      "domain": "Courtyard & garden",
+      "kind": "new-element",
+      "brief": "THE BET. Expect and welcome a 150-300 line diff; this is not a polish job. Measured on HEAD this pass (seed 42, warp 625): the courtyard's paved annulus between the ring bed and the edge beds is 1,896 PATH cells running r 13.8 to 37.8 off the linden \u2014 15.6% of the world's 12,144 cells, the largest single-tile ground surface in the town, against the plaza's 730 PATH and the river's 920 WATER. Everything standing on it is four BENCH_SPOTS. The plaza, a third the size, carries a fountain, a roundel, pits, six benches, six fount stands, two crumb spots, a rail, five bollards and a fourteen-place door. Give the courtyard a COVERED WALK: an arcade along the inside face of one range of the surrounding block, so that the garden has a roofed edge you can be under. The recommended shape is the one GLASS (#116) and LEADS (#170) already proved \u2014 a tile of its own with its own fill in the ground cache, so that the floor reads as roofed ground you see UNDER, and WALL to buildVolumes() so the range's own roof extends over it rather than a new roof being invented (trap b: change a footprint, never a roof). Pick the range yourself and say why you picked it: the north range is drawn behind the whole garden and the south range is drawn nearest and largest, and that is a real trade you should make with a screenshot, not with an argument. It must be USED: in rain, people in the courtyard should shelter under it rather than only leaving by lawnGate (#179), and a walk under a colonnade is a stop that can perform and say something like every other visit in this town.",
+      "seams": [
+        "buildGrid",
+        "GLASS",
+        "LEADS",
+        "buildVolumes",
+        "eaveFor",
+        "EDGE_BEDS",
+        "BENCH_SPOTS",
+        "nearEntrance",
+        "lawnGate",
+        "spawnLawnAgent",
+        "groundBase",
+        "__census"
+      ],
+      "successLooksLike": "In the wide shot at 1600x950 AND at 390x844 the courtyard has a roofed walk down one side with its own shadow line, and in rain there are figures standing under it. In the census: tileKinds 162 -> 171 in ALL THREE ages (this is the obligation ICE could not meet \u2014 see b187 and the watch note), `structures` up by the arcade's own count, EDGE_BEDS still 204, `green` and `planted` within the 2% cross-seed noise floor. Re-pin with `census.mjs --save-baseline` and SAY SO in the ledger.",
+      "avoid": "Do not eat the edge beds \u2014 523 BED cells and EDGE_BEDS 204 carry the planting CA, and paying for the arcade with them turns a 4b into a swap. Do not put it across the four gateway approaches (`nearEntrance`). Do not brief yourself into a texture job: PATH.court is sd/mean 0.143, mid-table, and the surface is NOT the problem \u2014 occupancy is. Do not add a second tree; matureTrees is a census field and the linden is the courtyard's one landmark.",
+      "budgetMin": 90,
+      "risk": "high"
     },
     {
-      "id": "b182",
-      "at": "2026-09-03T22:52:51.830Z"
+      "id": "b187",
+      "domain": "The sill & the observer",
+      "kind": "fidelity",
+      "brief": "The census cannot see winter, and it has been telling the manager the map is flat for 16 iterations partly because of it. #181 added ICE, the 19th tile kind, and `census.mjs` reported unchanged in EVERY field. The cause is deliberate and documented in census.mjs's own comment: all three AGES sit at warmth 0.6929 so that the age axis measures age (the #14 fix), which means no seasonal state exists in any of the nine cells. Give the gate a winter reading. The existing 3 seeds x 3 ages must stay BIT-IDENTICAL and comparable \u2014 the baseline travels with the ladder, and breaking that throws away every census row in RUNLOG \u2014 so this is an ADDITION, not a re-cut of the ladder. Prove it the way a gate must be proved: pin a 'before' to the REF at #181's commit and show the new reading MOVES across it while the old nine cells do not. Fold in c266 while you are here: seed-identity pins five instants at seed 42 and 125/128 are wet, i.e. seed 42 gets ONE shower in 800 sim s, so its second seed should be chosen FOR its weather and the choice written down.",
+      "seams": [
+        "census.mjs",
+        "AGES",
+        "SEEDS",
+        "LADDER",
+        "census-baseline.json",
+        "__census",
+        "stall.mjs",
+        "seed-identity"
+      ],
+      "successLooksLike": "`node census.mjs` prints a winter reading beside the summer one; run against the tree at #181 it shows ICE non-zero and tileKinds moving, where the current gate shows nothing. The nine existing cells are byte-identical to today's `census-latest.json`. The ledger says in one line whether `stall.mjs`'s mapFlat now reads the new fields or still cannot.",
+      "avoid": "Do not change SEEDS or the three AGES, and do not re-pin the baseline in a way that makes today's rows incomparable. Do not turn this into a general census rewrite \u2014 one axis, proved against one ref.",
+      "budgetMin": 45,
+      "risk": "medium"
     },
     {
-      "id": "b183",
-      "at": "2026-09-03T23:27:12.202Z"
+      "id": "b188",
+      "domain": "Sky, light & weather",
+      "kind": "interaction",
+      "brief": "The first interaction the sky has ever had in 185 iterations (the column is empty for sky, lane, street and river; interaction is 13 entries in the whole run). The pointer names beds, plots, paving, trees, tenants, faces, roof furniture, allotment furniture, vanes, the mill wheel, the field edge, every bird, every moth and the starlings coming in to roost \u2014 and above the horizon it names NOTHING but the murmuration box. Make the sky answer: the moon and its phase, the sun and its hour, the weather the cloud bank is carrying, and the balloon. And the balloon needs the second half of c265 before it can be named honestly. Priced on HEAD: it spawns at x -8 on `day >= 4 && daylight > 0.4 && !raining` at `R() < dt*0.007`, moves at 0.9 cells/s and is deleted only at `x > GW + 8` \u2014 154 cells at 0.9 = 171 sim seconds against a 55 s day, so it is aloft for 3.1 DAYS, across three nights, and it is the night frame's one moving object. Either it comes down or it is explained; a thing you can point at and name is a thing whose day the viewer will notice.",
+      "seams": [
+        "lookAt",
+        "nameAt",
+        "murBox",
+        "balloon",
+        "drawBalloon",
+        "moonPhase",
+        "sunVec",
+        "cloudCover",
+        "drawClouds",
+        "hz",
+        "announce"
+      ],
+      "successLooksLike": "Pointing anywhere above the horizon returns a name that changes with the hour and the weather, and pointing at the balloon names it. The balloon's time aloft, measured over a seeded year, is a fraction of a day rather than 3.1 days, and a night frame no longer has one unexplained moving object.",
+      "avoid": "Do not add a second balloon or a fleet; the rarity is the point. Do not hard-code an hour for the descent \u2014 a hard-coded HOUR in a light or warmth term is a seasonal bug invisible to a screenshot; solve an hour OF THE SUN. Do not make the naming a tooltip with its own UI: it goes through the one cursor naming path.",
+      "budgetMin": 45,
+      "risk": "medium"
     },
     {
-      "id": "b184",
-      "at": "2026-09-03T23:42:45.738Z"
+      "id": "b189",
+      "domain": "People & animals",
+      "kind": "new-ca",
+      "brief": "The 9th new-CA in 185 iterations and the FIRST in the life domain (c272: new-ca lives in courtyard, lane, street, plaza, river and roofs; after this, sky and the sill are the only domains without one \u2014 in a piece subtitled 'a cellular block'). Give the eaves a colony of martins: a per-cell state over the eave line that GROWS, the way `mossCreep` and #181's `stepIce` do, rather than a fixed list of nests placed at build time. A colony is the honest subject for a CA because these birds are colonial \u2014 a cell's chance of gaining a nest should read its NEIGHBOURS, so the colony spreads along one house's eave as a front instead of speckling the town uniformly; mud is a weather term, so wet spells build and dry ones do not; and it is seasonal, occupied and busy through the summer and abandoned in autumn. Price the premise first: `roofBirdSpot` and `birds[]` already put birds on roofs, and `nestF` is the ducks' nest on the eyot. A perch is a moment and a nest is FABRIC \u2014 say in the ledger how yours differs, or kill the brief and say why.",
+      "seams": [
+        "caTick",
+        "mossCreep",
+        "stepIce",
+        "eaveFor",
+        "houseAt",
+        "houseIx",
+        "EAVE_LO",
+        "EAVE_HI",
+        "roofBirdSpot",
+        "birds",
+        "wetF",
+        "growSeason",
+        "__census"
+      ],
+      "successLooksLike": "Over a seeded year the colony's count rises from 0 in spring to a plateau and empties in autumn, measured by a probe over 4+ seeds and reported as a curve, not a single instant; the nests are CLUSTERED (quote the run-length or nearest-neighbour distance against a uniform control at the same count); and at midsummer the wide shot has birds shuttling to one stretch of eave. Report the colony in `__census` under `structure` so the gate can see it.",
+      "avoid": "Do not place nests from a constant list \u2014 a fixed array is a new-element, not a CA, and the kind is the point. Do not spread them evenly over every house; one uniform hash is a texture, never a PLACE. Do not add a new bird population with its own cap on top of `birds[]` until you have shown the existing one cannot carry it.",
+      "budgetMin": 50,
+      "risk": "medium"
     },
     {
-      "id": "b185",
-      "at": "2026-09-04T00:29:02.885Z"
+      "id": "b190",
+      "domain": "Roofs & skyline",
+      "kind": "connect",
+      "brief": "c275, promoted. A pane's lamp can go out in the middle of somebody's crossing. `windowLit(sa,sb)` owns bedtime \u2014 `windowHours`, HOMES, the miller, the early risers keyed on sunrise \u2014 and `paneFigure(sa,sb)` owns the visit, solving `s = (n.t - t0)/(FIG_MIN + FIG_SPAN*hash(...))` over its own window FIG_T0..FIG_T1 clipped to `n.span - 0.8`. Neither asks the other, and `drawPaneFigures` walks LIT_PANES, which is rebuilt each frame from the panes that are lit \u2014 so when the lamp goes out under a figure at s = 0.4 the figure does not finish crossing, it ceases. Measure it first (#182's own probe, `probes/pane-figures.mjs`, already reports 1.17 occupied of 13.05 lit and 0 empty nights): count the crossings that are cut short over a seeded year before you fix anything, so the ledger carries the number. Then make the two clocks agree \u2014 the cheapest correct fix is for the visit to be offered only inside the lamp's own remaining hours.",
+      "seams": [
+        "windowLit",
+        "windowHours",
+        "paneFigure",
+        "drawPaneFigures",
+        "LIT_PANES",
+        "HOMES",
+        "nightAt",
+        "FIG_T0",
+        "FIG_T1",
+        "probes/pane-figures.mjs"
+      ],
+      "successLooksLike": "A probe reports the truncation rate on HEAD and 0 after, with occupancy (1.17 of 13.05) and the 52/18/12% at 0/1/2 within noise of #182's numbers \u2014 the fix must cost the town almost no figures, and if it costs many, say so and re-price.",
+      "avoid": "Do not keep a pane lit because somebody is in it \u2014 the lamp's clock is the town's bedtime and it wins. Do not give the figure its own persistent object; #182's whole design is that it is solved per frame from `nid` with no anchor that can go stale.",
+      "budgetMin": 25,
+      "risk": "low"
     }
-  ]
+  ],
+  "recommendStop": null
 }
