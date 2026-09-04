@@ -13,8 +13,7 @@ Cap 60 laws / 12 KB; BYTES bind. Claims here, examples in the source.
 - **Compare against a control you RAN, and SMOKE it first** (`probe-smoke.mjs`, and mind its
   `--jobs`). A gate that fails on HEAD is not a gate, and an unrun probe breaks silently and
   stays broken. A control tests a build-INDEPENDENT fact, never a predicate the candidate
-  DEFINES, and differs from the thing measured in exactly ONE way. A control that makes an
-  input EXTREME is degenerate wherever the quantity it feeds SATURATES — replace the BRANCH.
+  DEFINES, and differs from the thing measured in exactly ONE way.
 
 ## Definitions and the grid
 
@@ -30,8 +29,10 @@ Cap 60 laws / 12 KB; BYTES bind. Claims here, examples in the source.
 
 - **Every random draw goes through `R()`** (or `hash(x,y)` per cell); `Math.random()` is
   invisible to `?seed=`. `hash()` is NOT seeded, so the built FABRIC is one town in every
-  world; a per-day `hash(day,k)` is one sample of the calendar in every seed — histogram the
-  YEAR, and SALT it if the calendar must differ per world. A CANVAS-EXTENT population must not
+  world; a per-day `hash(day,k)` is one sample of the calendar in every seed, so a per-subject
+  ZERO over N seeds is the CALENDAR’s — histogram the YEAR and SALT it. A symmetric salt is
+  not mean-neutral where what it feeds is a THRESHOLD read through a WINDOW: re-key twice and
+  quote the SIGN. A CANVAS-EXTENT population must not
   draw from `R()`: the draws a frame spends are a fact about the WINDOW, and no world event may
   wait on one.
 - **Any new draw reshuffles the whole seeded world.** Read the census for *collapse*, not
@@ -70,15 +71,13 @@ Cap 60 laws / 12 KB; BYTES bind. Claims here, examples in the source.
 - **A cap and a rate are two bounds, only one can be swept, and both are alive only if they
   bind at DIFFERENT times.** Re-weight the branch, then re-sweep: identical numbers at two
   settings is a DEAD constant and the SUPPLY was always the cap. MAKING one live wakes every
-  coupling keyed to what it gated, so re-price them all, and spell the rung in the system's OWN
-  units, never as a quantile that moves out from under it. Hang a modulating scalar on whichever
+  coupling keyed to what it gated, so re-price them all. Hang a modulating scalar on whichever
   bound is SLACK and prove it by sweeping the AXIS — season or weather — not the constant.
 - **A spawn BAND is a share of a budget, not a rate**: a rare thing needs its OWN source and a
   feature that exists may exist at a rate of zero. Where one quantity has TWO sources
   take the MAX, not the sum: it lifts the starved tail without moving the head, which a
   threshold cannot do — size the second off the TAIL's own missing integral, never the mean, and
   prefer a SEASONAL driver, the same in every world and so the antidote to a weather coin.
-  A second source taken as a MAX is DEAD unless its tail falls in a season the first is out of.
 - **Measure a share at the CHOICE, never by presence, which weights a branch by its dwell** —
   and count ADMISSIONS apart from choices: widened at a destination with a FIXED NUMBER OF
   PLACES, a share becomes overflow into its NEIGHBOUR, and the refused fraction is the one
@@ -140,8 +139,9 @@ Cap 60 laws / 12 KB; BYTES bind. Claims here, examples in the source.
   and its LADDER can be blind to a whole AXIS by design** — the census's three ages equalise a
   cosine, so they sit symmetric about midsummer and a winter-only tile is invisible to them (the
   winter row and its own WCORE floor exist for that). Price a predicted field against the ladder
-  BEFORE promising it. An aggregate SUMMING two kinds of register is diluted by every constant
-  added, so report the constant share beside the total.
+  BEFORE promising it. A gate’s own FLOOR can sit inside the noise of a
+  BEHAVIOUR-FREE reshuffle — WCORE’s `frozen` 3% does — so re-key the CANDIDATE twice before
+  you believe its FAIL.
 - **Read the REPORTER, not the producer.** `perf.mjs` is vsync-locked and blind to a pass costly
   only in a rare weather: time the FUNCTION, in its weather, at every camera, and an overlay's
   cost is the PATH BUILD, not the fill. A THRESHOLD is priced off the subject's FASTEST phase,
@@ -160,8 +160,8 @@ Cap 60 laws / 12 KB; BYTES bind. Claims here, examples in the source.
   at the SHIPPING size.** A diff answers "is it drawn", not "can it be seen": legibility is MASS
   and COHERENCE, not peak Δ. Grade a MID-TONE on **sd/mean**, never a near-black one — it
   divides by ~nothing; under mean 40 luma quote sd and RANGE. A diff needs a SAME-CODE control
-  run: quote mass as a RATIO to that floor, never as an absolute. A cached layer drawn OVER a
-  live one SUBTRACTS from it — price the live layer's SURVIVING mass, not the cache's gain.
-  Two silent liars when you measure INK: `getImageData` ignores the ctx transform, so a
-  `project()`ed band is CSS px and not device; and `getComputedStyle().font` is EMPTY wherever a
-  longhand cannot go in the shorthand, and measures the PREVIOUS face.
+  run: quote mass as a RATIO to that floor, never as an absolute. A highlight INSET in a
+  feature already ~1 px at the shipping size is sub-pixel and silent — put it on the AXIS.
+  A cached layer drawn OVER a live one SUBTRACTS from it — price the live layer's SURVIVING mass, not the cache's gain.
+  When you measure INK, `getImageData` ignores the ctx transform: a `project()`ed band is
+  CSS px and not device.

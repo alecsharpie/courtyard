@@ -3,58 +3,6 @@
 Entries rotated out of `LEDGER.md`. Append-only. **Only the manager reads this** —
 a worker that opens it to "catch up" spends its whole context on history.
 
-## Iteration 144 — the east gets a share of the lane's roll, and the plaza gets a third place (2026-09-03) [Lane & market × Connect]
-
-**Brief:** b144 — re-weight the lane roll so raising `laneCap` REACHES the east; reserve the fountain stand and re-sweep `FAM_CAP`. Full entry in LEDGER-archive.md.
-**Did.** Re-measured the premise on HEAD first (6 seeds × 14 days): cap 10 → 16 buys the lane +3.05 and the east +0.17 plaza, **−0.28 quay, −0.12 far bank**. So `eastEdges(cap)`: the four east bands scale by `eastPull(cap)`, 1.0 below `EAST_CAP0` 6 and 2.0 at `EAST_CAP1` 14, the width from the PLAIN passer-by alone — keyed on the CAP, not on fill, since an east trip holds its `lane` slot for its whole ~40 s. `FOUNT_STANDS`: three stands on the roundel's inner ring, one party each (`a.fstand`).
-**Gates:** census PASS, structure unchanged, baseline **re-pinned** · motion PASS · visual PASS · filmstrip 1 POP at seed 42 = **rain onset**, uniform across a block map and HEAD rains through it · `probes/fount-stands.mjs` 10/10.
-**HEAD → shipped**, laneCap 10 → 16: plaza **+0.17 → +1.02**, quay −0.28 → +0.08, far bank −0.12 → +0.11; east half **9.73 → 10.96**, the lane holding. Plaza crowded pairs PER PERSON **0.237 → 0.153**.
-**Verdict:** shipped
-**Surprise:** the family half was right about the crowding and wrong about the cap. Reserving the stand does what the brief predicted (0.145–0.159 crowded pairs per person across `FAM_CAP` 3, 4, 5 and 7, against HEAD's 0.282 at 5). But the higher cap buys nobody: **5 and 7 return byte-identical numbers and bind 0.0%**. Past 4 the bound was never the places — it is `FAM_RATE` and the 9.5–17 window, which the source comment had guessed and nobody had tested. Kept the knee, `FAM_CAP` 3 → 4.
-
-## Iteration 145 — the town gets into its river (2026-09-03) [River & far bank × Deepen]
-
-**Brief:** b145 — the water held the moon and one baked bank-smear; put the standing things IN it. Full entry in LEDGER-archive.md.
-**Did.** One SIGN in `project()` — `MIRROR`, folded into `LIFTM = LIFT * MIRROR`. A negative z is the mirror, so **each caster's reflection is the caster's own draw** and nothing can drift out of register. `drawWaterMirror` runs five casters (bridge, footbridge, wheel, jetty, willow) into an offscreen at `setMirror(-1)`, fades each from its own waterline, chops the rest into bars on `FLOW_SPEED`/`windT`, punches the eyot, composites once under a water clip. Six `MIRROR > 0` guards stand down what is drawn ON the water: four shadows, the foam, the boat under the deck, the willow's `crowns` push.
-**Premise half-wrong:** the clock tower is at **x 63.8-66.2**, the church at **x 131-136**; an image runs *southward* out of its caster's feet, so both fall on dry land.
-**Gates:** census PASS, motion PASS, 0 POP day and night; `frame-diff.mjs` 0.362% moved, all the river column, courtyard/lane/mobile **byte-identical**; worst cost **+0.57 ms** (Plaza, windy).
-**HEAD -> cand.** `road-surface.mjs`: FRAME **WATER sd/mean 0.1737 -> 0.1772**, every other class 0.0%, **CACHE unchanged**. `refl-band.py`: hf/mean 0.065 calm -> 0.218 windy; the bridge's band moves **0.000 a frame calm, 1.4-2.0 windy**.
-**Verdict:** shipped
-**Surprise:** the pass is not its draws - they total **0.118 ms**, the other 0.41 is compositing, and both obvious savings made it worse (offscreen water clip 0.689, full-canvas `destination-in` **1.48**).
-**Law:** a cast image's TARGET SET is southward at this camera, and a caster's own draw is its image - put the sign in `project()`, and make every draw landing ON the plane read it.
-
-## Iteration 146 — the two towers cast from their own height (2026-09-03) [Roofs & skyline × Deepen]
-
-**Brief:** b146 — `shTop[]` is filled from the eave, and the tallest drawn things in town are not eaves. Give each tower its real height.
-**Priced first, as asked, and the price is the finding.** `-S/S[2]` says a throw is long at a low sun; it does not say there is anywhere for it to GO. `sunVec()`'s `S[1]` is 0.32..0.58 at every hour of every season, so the throw is **always northward** — and both towers stand at the world's north edge (clock rows 1–2, church rows 4–7). A ray leaves the world at ~2 cells of height above the clock tower and ~5–22 above the church. Height past that is thrown into nothing.
-**Did.** `CT` hoisted beside `CHURCH` (it was declared 5,600 lines below the grid that now needs it) and `CHURCH` given `tBase/tTop/tRise`, so `drawChurchTower`/`drawClockTower`/`VANES` read one definition instead of four literals. `SH_TOWERS` + `towerShTop()` beside `buildShadowGrid`: `shTop[i] = max(roofTopAt, towerShTop)`. Not an `eaveBand` branch — a tower is a thing standing ON a block, not the block's height. A spire is a CONE, so the height a cell casts from tapers on `1 − max(dx/hx, dy/hy)` from the cell's NEAREST point to the axis: only the axis column reaches 23.1, its flanks 18.7.
-**Gates:** census PASS, unchanged · motion PASS · filmstrip day 0 POP · `frame-cost.mjs` summer 4.96→4.96 ms, winter 5.11→5.14, interleaved · wide/courtyard/east/lane clean · `shOpen[]` provably unmoved (rows north of both towers were already vetoed at the old height, so the northward veto could not regress).
-**HEAD → cand** (`probes/tower-reach.mjs`, the tower's OWN mask contribution, held out against a mask built without its cells): midsummer 7 h reach **7.35 → 13.85 cells**, 36 → 100 sub-cells; equinox 7 h 10.85 → 14.6, 15 → 30; midwinter **0 → 0**. `shade-diff.mjs` t=387.3: **1,328 px** changed against a same-code control of **462** (2.9×), 96.6% open ground, p0.1 luma 33→33.
-**Verdict:** shipped — but the brief's bar is unreachable and that is the finding.
-**Surprise:** the clock tower gains **nothing, at any hour, in any season** — 0 novel sub-cells at both equinoxes and midwinter, ≤14 at midsummer. Its old 7.2 already saturated the two rows of world in front of it. And the church's win is not "across the far bank's green" but out onto the WATER: the spire's tip crosses the towpath at x 127 and lies on the river, and only in the warm half's morning — at midwinter the sun is steep enough (`uy` −1.27) that the whole throw is off the north edge by 5 cells of height.
-**Law:** a caster's value is bounded by the OPEN WORLD downwind of it, not by its height — price the reachable GROUND before raising a caster, because `-S/S[2]` prices the ray and says nothing about where it lands.
-
-
-
-## Iteration 154 — the punt's wind stops being a bar, and the swans give way to a track (2026-09-03) [River & far bank × Deepen]
-
-**Brief:** b154 — instrument `puntFits` clause by clause, sweep the wind threshold, and make the give-way clear the whole track.
-**Priced first, and the sweep is the finding.** WIND *is* the top refusal (136 of 446 offers, **30.5%**). But the threshold is a DEAD constant: `windTarget()` is `max(windyDay()?1:0, frontWind())`, so windF at an offer is **0 on 257 and exactly 1.0 on 134**, and **115 of the 136 refusals sit at a full wind**. Every bar in 0.5..0.999 buys ≤15 crossings of 446 (+3.4%). The threshold was never the price; the SHAPE was.
-**Did.** So the bar stops being one. `PUNT_WIND_SLOW` 0.45 makes the wind a COST — `puntSpeed()` is what `puntTripH` prices *and* `updateOnePunt` spends, so a windy evening trip is refused by its own clock. `PUNT_WIND_SHY` 0.65 makes it a SHARE, cut at a quantile of `puntNerve(a)`. `a.wary` will not serve as that coordinate: overDeck cuts at `wary < DECK_SHARE` so its standers are the bold fifth, while the far bank's jetty kind takes the whole range — one hash decorrelates both to [0,1). No new `R()` draw. `puntGiveWay`/`segNear`: the given-way thing is the segment moor→land while a hull is off its mooring, so #96's landing rule is now one END of it — one rule where there were two.
-**Gates:** census FAIL `people −10%` **replayed and dismissed** — on the gate's own ladder HEAD's 9-cell total spans **372..422 = 13% on identical code**, and over 8 seeds HEAD 1080 → 1117 (+3.4%) · motion PASS, 0 jumps · filmstrip **0 POP** day and night · shots clean · `punt.mjs` exit 0, `--strand` 5086 ORPHAN and `--strand-late` 72 OVERDUE both exit 1.
-**HEAD → cand.** `punt-track.mjs` (new, 74k swan × hull-under-way samples): HEAD least **1.033**, 16 samples inside 1.2, every one on hull1 legs 2/4 — **exit 1**; candidate least **1.200000**, 0 inside, exit 0. Windy days over two disjoint 10-seed sets: take **24.7% → 32.1%**, same crossings from 20% fewer callers.
-**Verdict:** shipped — the brief's "crossings per windy DAY rise" is missed, and that is the surprise.
-**Surprise:** the supply fell, and it is not the punt's doing. Offers/day 1.65 → 1.35 in **both** seed sets, which looked causal until the control: `spawnEastAgent()` fires **1787 → 1784** and the east cap binds **0.0% on both builds**. Nobody is being crowded out — the reshuffle simply lands the `wary < DECK_SHARE` coin and the far-kind roll differently, 211→176 and 235→179. A per-day rate cannot see the change; the take rate can.
-## Iteration 147 — the allotments are monoculture, and the brief's bug does not exist (2026-09-03) [Cross street & allotments × Deepen]
-
-**Brief:** b147 — make `plotCrop()` answer for the PLOT, not its first sown cell. Full entry in LEDGER-archive.md.
-**Priced the premise first, and it is false.** A year × 3 seeds (`probes/allot-year.mjs`, 69,008 sown plot-samples): **0** held two species (species/plot **1.000**), so the first cell WAS the majority, and **0** had a hardy cell under a tender majority. In deep winter tender cells in the open reach stage 3 **0 times**, against hardy 21,474 and glass 10,191: `successLooksLike` already holds on HEAD, exactly. Monoculture because caTick's infill sows a bare cell with `plotCrop()` itself, `harvestPlot()` lifts the row whole, and the kneel plants nothing.
-**The premise's source:** `plotClimbs()`'s comment claimed the first-cell read missed "a fifth of the plots that actually had beans". Re-counted, they agree **13,012 of 13,012**.
-**Did.** Killed the false claim; wrote the measured invariant at `plotCrop()` — the three conditions holding it, and the successor read for the day one goes.
-**Gates:** census **byte-identical** · visual PASS · motion/perf skipped: no draw, no `R()`.
-**Verdict:** briefRejected — source corrected, feature not built.
-**Surprise:** the hand-sow branch is dead. 101 allot kneels a year = 71 harvests + 15 turns + 15 hand-sows, and the hand-sows plant **0 cells** — a kneel only reaches an UNRIPE plot, and by then the infill has filled it. A holder comes in through the gate, kneels, plants nothing, says nothing, walks out.
-
 ## Iteration 148 — the plaza's families are priced at both ends of a window the sun cuts (2026-09-03) [Plaza & quay × Scale/World]
 
 **Brief:** b148 — price presence as rate × visit, then sweep and keep the knee. Full entry in LEDGER-archive.md.
@@ -1009,4 +957,114 @@ converged UP (42: 39 -> 76, 271: 59 -> 85).
 **Law:** where one quantity has two sources take the MAX, not the sum: it lifts the starved tail
 without moving the head, which a threshold cannot do. Size the second off the TAIL's own missing
 integral, never the mean. A SEASONAL driver is the same in every world — that is what makes it an antidote to a weather coin.
+
+## Iteration 203 — the moon shows on the sky's terms, not the sun's (2026-09-04) [Sky, light & weather × Fidelity]
+
+**Brief:** b203 — the disc is gated on `daylight`, which OVERLAPS nightF. Measure the hole, close it.
+**Measured first** (probes/moon-hole.mjs, new, HEAD, 6 seeds x a year): **792 of 6,690** samples with
+nightF > 0.5 and the moon up drew NO disc — 11.8%, ~27 h a year, all at DUSK in moonArc's 1.4 h lead on
+sunset; and the river carried the glitter column in **810** of them with no moon in the sky.
+**Did.** `moonShows() = nightF > MOON_ON && moonAlt() > 0` — ONE predicate for the disc, moonLight(), the
+sheen and the river's column; sun and moon stop being exclusive. The fault it turned up: moonCells() cuts
+water/wet/snow off a `grid` that MOVES all year — 89 px between bakes, and a bake under ice loses the river
+for good; stepBank/stepIce un-bake it now.
+**Gates:** census IDENTICAL · motion · perf +0.0% · probes/moon-frames.mjs (new) **DAY 0 px off HEAD**,
+NIGHT/LATE 0, hole 792 -> **0**, glitter -> **0** · filmstrip at the crossing: HEAD steps **2.392** on its
+0.824 median, the build **0.429**.
+**Verdict:** shipped
+**Surprise:** the disc is drawn and cannot be SEEN — drawSunMoon paints BEFORE the backdrop blit, so all
+through the hole it is behind the distance: its own 377 px move <=4.5 luma, and a full moon forced onto the
+instant moves them 4.7. What the hour gains is the LIGHT, 216,782 px over 4 luma at 21:09, because
+moonLight() returning 0 was never "no moon" — it was mk = -MOON_REF, the darkest there is, on every dusk.
+**Law:** a gate opened on a DRAWN thing is not a thing SEEN — price it on the subject's own pixels at its
+strongest phase, or occlusion reads as faintness. A term signed about a measured pivot has no "off": a 0
+into it is a claim, and the extreme one.
+
+## Iteration 204 — the fair's gathering is a budget of DRY hours (2026-09-04) [Plaza & quay × Deepen]
+
+**Brief:** b204 — a shower over the 2.6 h at the raise cost the whole fair day. Make the fair survive it.
+**Measured** (probes/fair-rain.mjs, new, 6 seeds x a yr, HEAD): 4 of 34 fair days filled 0 slots and **all four were
+raining for 100% of the gathering**; two had >2.7 dry hours left. Then the WALK (probes/fair-walk.mjs, new):
+gate to slot is **1.2-8.6 h, median 4.4** — #194's comment said 0.8-2.9, the straight line and not the route.
+**Did.** `FAIR_GATH_H` 2.6 h of DRY weather, `fairGathSpent` never refunded, so the offer still ENDS. The far end is no
+longer a clock: `fairFits(s, plane, speed)` prices the route this walker will walk at the speed they will walk it (the
+town's own `pathHours`), and takes a slot only if the arrival lands with FAIR_STAND_MIN of fairF() left.
+**Gates:** census PASS (reshuffled) · motion · perf +0.0% · filmstrip 0 POP · 4 shots. v a control RUN on HEAD:
+zero-slot fair days **4 -> 1**, the one left winWet 1.00; fill 8.12 -> 8.41; fair-year plaza presence 15.37 -> 16.15,
+standers 3.05 -> 3.12. Six FRESH seeds: 0 of 29. FAIR_STAND_MIN is live: standers 2.16 at 0.5
+and **2.35** at 1.0; 3.0 puts the zero days back to 4.
+**Verdict:** shipped
+**Surprise:** the walk is most of the fair. Ten slots fill but only ~3 are ever STANDING — the rest are on their feet
+in the corridor for four hours of a six-and-a-half hour day. The fair is mostly a procession.
+**Law:** a weather gate on a FIXED window spends the window on weather it cannot use: make the budget the RESOURCE it
+needs and the far end becomes the WALK, priced per arrival or the rescue arrives to nothing. A route's cost is not the
+distance between its ends — a lead down a corridor and round a ring is twice it.
+
+
+## Iteration 205 — the winter row gets a floor (2026-09-04) [The sill & the observer × Harness]
+
+**Brief:** b205 — three instrument cues. HARNESS: `courtyard.html` byte-identical to HEAD.
+**Did.** (1) **WCORE**, the winter row's own collapse floor off its own baseline, one tolerance per field,
+`frozen`/`margin` off the `ice` block, which no scalar sees. Cut from DRIFT, not seed spread
+(probes/winter-drift.mjs, new; #189->#204, six builds): worst downward step -0.3% grid, -0.9% frozen,
+**-14.2% people, -13.2% planted**. (2)
+`STRUCT_CONST`/`STRUCT_LIVE` + `constAudit()`, printed under every structure block, audited each run. (3)
+`maxBuffer` on the last **10** unbuffered `git show :courtyard.html` captures — 8 tracked, 2 scratch tree.
+**Gates:** census **PASS exit 0** · **the differential**, scratch worktree with #200's `buildIceLap()` call
+commented out: HEAD's census exits **0**, this one **1** — `winter/frozen 1064->1014 (-4.7%, floor 3%)`,
+`winter/margin 2118->2040 (-3.7%, floor 2%)`; at CORE's 8% that February break still walks · probe-smoke,
+389/75 s/7-way: **247 pass, 36 throw, 106 t/out** (#195: 361/230/35/96), all 7 ENOBUFS throws gone.
+**Verdict:** shipped
+**Surprise:** fixing the ENOBUFS did not raise PASS at the smoke's own settings. All 7 run now — but 6 hit the
+75 s wall at `--jobs 7`, and at `--jobs 4` every one **passes in 6.7-61.1 s**: they had never once been
+allowed to run, so nobody knew they were long sweeps and not wrecks. And winter `structures` is **2427 of
+2427 constant**, 100% against summer's 93%.
+**Law:** an aggregate SUMMING two kinds of register is diluted by every constant added: report the constant
+share beside the total, or a floor on the sum watches a number 93% frozen. A TIMEOUT is the RUNNER's
+concurrency before it is the instrument's.
+
+## Iteration 206 — the wide view gets a vertical intent (2026-09-05) [The sill & the observer × Interaction/UX]
+
+**Brief:** b206 — give WIDE, the framing everyone lands on, an intent priced on `sillTop()` and aspect.
+**Measured first** (probes/wide-frame.mjs, new; 12 framings): HEAD at 390x844 is sky **27.5%** / TOWN
+**43.4%** / near slate **21.7%**. The premise's other half: town share is `WH*cellH/pic` and nothing else
+moves it — `topPad` only splits the slack between sky above and apron below, so the sky never competed for
+those pixels, the LEAN did. And no lean that keeps the courtyard puts the plaza in a phone.
+**Did.** (1) `WIDE_AIR 19.6217`/`WIDE_KEEP 0.5` — the band `-AIR..WH` laid out by viewFor()'s expression at
+s=1; `4 + 9.6*cellH` and the 0.82/0.5 spare are gone. AIR is solved on HEAD at 1600x950, so that frame is
+**0.00% changed** (control floor 0.00). (2) `WIDE_FILL 0.60`/`WIDE_SPAN 54` — a tall frame leans in
+until the world's rows cover 60% of the picture, never past 54 columns, never below HEAD's 2.1x. (3) the
+centre walks west with the lean, off `gardenWest()` read off the GRID — HEAD cut 8 of the lawn's 40 columns
+on every portrait framing, the lean alone would have cut 16.
+**390x844: 22.5 / 52.0 / 18.0%, lawn 19..50 -> 11..50**; landscape and tablet scale untouched.
+**Gates:** census PASS · motion PASS (HEAD-pinned) · filmstrip day+night 0 POP · where-faces, where-void and
+follow-cam as HEAD.
+**Verdict:** shipped
+**Surprise:** the quarters are fitted in cellW0-INVARIANT units — s falls exactly as cellW0 rises — so
+re-pricing the whole wide view moved three of the four fits **0 px**; only Courtyard's moved, s already
+1.0175.
+**Law:** a frame's share is a function of the ZOOM alone — padding decides where the slack goes, not how
+much there is.
+
+## Iteration 207 — the market spends its day (2026-09-05) [Lane & market × Deepen]
+
+**Brief:** b207 — c287: `shelved` is capped at the open boards' capacity, so a half-stocked pitch is unreachable.
+**Premise priced on HEAD** (probes/market-fill.mjs, new; 6 seeds x 4 yrs, 144 markets): `shelved == cap` on
+**140/144 = 97.2%**, the four exceptions deep winter. It binds by CONSTRUCTION — MK_NEED's rungs
+0/12/36 sit at or above the capacity they unlock. The cap is RIGHT; the rate was missing.
+**Did.** `mkStock` = boards + crates (med 60), spent at `mkDemand()` = MK_SELL x the market's own SPAN x
+(stock/MK_STOCK_REF)^MK_DRAW, front-loaded. Boards refill from the crates until `MK_LAST_OUT` 0.6, then sell
+away — decoupling the afternoon from the glut. `mkDeliver()` makes #82's line true. Mean fill
+**0.961 / 0.803 / 0.281** at a tenth, half, nine tenths of the span; **144/144 stand PART stocked** where
+HEAD was 1.000 on all 432 samples.
+**Gates:** census PASS · motion PASS (HEAD-pinned) · filmstrip day+market 0 POP · 4 framings.
+**Verdict:** shipped
+**Surprise:** the model landed and the PICTURE nearly did not. The board's back row was drawn at the same x
+as the front, so half its ink was redundant and emptying from the top removed pixels nobody could see: 46 of
+222 device px at 16:07 for a board 59% gone. Staggering the six pitches across the trestle
+(probes/market-hours.mjs, new) took visible ink 222 -> 297 px and the loss to 87 px / 29% — readable
+magnified, still slight at the shipping size.
+**Law:** a control making an input EXTREME is degenerate where the quantity it feeds SATURATES — control with
+the BRANCH replaced. `getImageData` ignores the ctx transform: a `project()` band is CSS px, not device.
+**Cue:** the overflow crates carry more readable ink (420 px) than the three trestles (297).
 

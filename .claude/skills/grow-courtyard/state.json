@@ -2,7 +2,7 @@
   "updated": "2026-09-04",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 212,
+  "lastIteration": 215,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -494,6 +494,9 @@
       ],
       "new-ca": [
         189
+      ],
+      "fidelity": [
+        215
       ]
     },
     "sill": {
@@ -562,7 +565,8 @@
       ],
       "new-element": [
         97,
-        171
+        171,
+        213
       ],
       "scale": [
         100,
@@ -584,6 +588,9 @@
     "nearblock": {
       "deepen": [
         201
+      ],
+      "fidelity": [
+        214
       ]
     }
   },
@@ -601,19 +608,19 @@
     "note": "NOUNS + the seam that owns them. Constants live in the source, reasoning in LEDGER-archive.md, gotchas in LAWS.md. MERGE into the line that owns the system. Caps: 7 lines/domain, 300 B/line, 10 KB.",
     "courtyard": [
       "walled garden: EDGE_BEDS, four arches, BENCH_SPOTS, daisies, ivy, one linden, SUNDIAL/dialThrow, wear[]/trod[]/paveWear[]/litter[], pre-dawn sweeper",
-      "bed planting CA over SPECIES (13 kinds): bSp/bSt, growF/dieF/bloomCap",
+      "bed planting CA: bSp/bSt/bAge, growF/dieF/bloomCap, speciesFor",
       "the lawn's OWN source: spawnLawnAgent/LAWN_RATE/LAWN_CAP, sub-caps benches/naps/blankets/runs; lawnStart/End/Holds/Gone/Fits/Home/Stay; the way OUT lawnGate/LAWN_OFF",
       "the gardener on a SCHEDULE outside LAWN_CAP: gardenDue/GARD_K over growSeason(), gardenFits both ends, gardWalk/gardWin/gardNearest, gardenerKneel/GARDEN_REACH",
       "the COVERED WALK: ARCADE tile, north range inner rows, ARCADE_BAYS; drawArcadeRun live; stroll/arcShelter/arcWay. The garden's WET branch — lawnAdmits/lawnRoofed at the choice, lawnOpen the sun only, LAWN_WET"
     ],
     "lane": [
       "kiosk, pavement cafe, awnings, washing lines, planters, LANE_LAMPS, LANE_BENCHES; morning ROUND mround/updateRound; laneOpeners() — CAFE_TABLES out via cafeSetUp, CASKS at TAP_DOOR",
-      "MARKET every 4th day: isMarketDay/marketActive/marketOpen, MARKET_STALLS off produce[] via stockMarket; SIZE tracks the year (MK_NEED, cap mkOpenCount()*MK_GOODS); it SPENDS the day — mkStock, mkDemand(), MK_LAST_OUT, mkDeliver(), pitches staggered on the trestle",
-      "four sources besides the ring: spawnLaneAgent (in one edge, out the other via toX; the cyclist and the dog its two fixed-width tail bands), spawnTapAgent/TAP_DOOR/callIn, spawnCafeAgent, spawnHomeAgent",
+      "MARKET every 4th day: isMarketDay/marketActive/marketOpen, MARKET_STALLS off produce[] via stockMarket; SIZE tracks the year (MK_NEED, cap mkOpenCount()*MK_GOODS); SPENDS the day — mkStock, mkDemand(), MK_LAST_OUT, mkDeliver(), staggered pitches",
+      "four sources besides the ring: spawnLaneAgent (in one edge, out the other via toX; cyclist + dog on fixed-width tail bands), spawnTapAgent/TAP_DOOR/callIn, spawnCafeAgent, spawnHomeAgent",
       "STANDING WATER: PUDDLES[] off the GRID, pavedAt(); drawPuddles live before applyLight, drawPuddleLights after; paveWear[], pudHollow[]",
       "the ROADWAY in setts LN_ROAD0 68..76 + XS_R0..R1: settGrid/settRun, camberZ, gutterF, rutF, KERB_RUN; walks LN_WALK_N/LN_WALK_S, walking lines LANE_N_Y/LANE_S_Y; east SHARE eastEdges/eastPull",
       "the market's SURPLUS: mkOver/mkCrates cut from mkUnits like mkBoards; drawMarketOver on MK_OVER_SPOTS/MK_OVER_Y, 8 spots x MK_STACK",
-      "the ROAD IS USED: cart/dray (cartShove's berth now via rigShove) + TRAFFIC[] — trap/rider/wagon/barrow, keep-left TRAF_Y_E/W, trafRate() off daylight+rain+market, TRAF_HURRY ends it, hold/pull headway, drawRig on the cart's parts; hash(simT) not R"
+      "the ROAD IS USED: cart/dray (berth via rigShove) + TRAFFIC[] — trap/rider/wagon/barrow, keep-left TRAF_Y_E/W, trafRate() off daylight+rain+market, TRAF_HURRY, hold/pull headway, drawRig; hash(simT) not R. Nothing TURNS: x runs edge to edge, y is the lane only"
     ],
     "street": [
       "cross street: two footways, its own roadway, kerbs, lamps, TREE_PITS, alley ALLEY_Y; seasonal canopy on 13 trees leafOut/Turn/Shed, blossomF/fruitF",
@@ -621,24 +628,24 @@
       "harvest cycle: harvestPlot/bAge/ripePlots/pickPlot/plotCrop/sendToPlot/spawnAllotAgent, digWeather; ONE cart (WIND_SALT-salted) into MARKET_STALLS",
       "a plot is MOSTLY one crop: plotCrop the MAJORITY tally, cellStands the per-cell winter, plotAct's five rungs, harvest paid per cell",
       "a CREW, not three slots: ALLOT_CAP 5, ALLOT_ROWS/MORE, ALLOT_FLOOR/RIPE named+sweepable (probes/allot-supply.mjs)",
-      "TILES 20 (..GLASS, LEADS, ICE, ARCADE), SPECIES 13 via speciesFor; GLASSHOUSE, the one surface you see THROUGH — bedCap, drawGlassBack cached + drawGlassFront live, snowAt indoors",
-      "weeds are a CA: rank[] over WEED_CELLS; weedAge/creep/SHADE/WEED_WORK, cold dieback, drawWeed in the ground cache. They STEER the crew — weedPlots/weedTarget, WEED_PULL of both target choices, hashed weedRoll (no R()), WEED_CHOKE clears a row too rank to pick through"
+      "GLASSHOUSE, the one surface you see THROUGH — bedCap, drawGlassBack cached + drawGlassFront live, snowAt indoors; speciesFor picks from SPECIES",
+      "weeds are a CA: rank[] over WEED_CELLS; weedAge/creep/SHADE/WEED_WORK, cold dieback, drawWeed in the ground cache. They STEER the crew — weedPlots/weedTarget, WEED_PULL, weedRoll hashed (no R()), WEED_CHOKE"
     ],
     "plaza": [
       "FOUNTAIN reads year, wind and frost: fountainPlay/Ice/Jet. Roundel, PLAZA_PITS, PLAZA_BENCHES, QUAY_BENCHES, the quay rail, crumbSpot, PIGEONS",
       "FAMILIES priced at the CHOICE: spawnFamilyAgent, famWalk() the two legs, famWin() cut to the sun, dwell clipped to the room left; FAM_CAP",
-      "the paving AGES in THREE regions (plaza PATH, quay SIDE, court PATH #212): moss/mossOwn/mossShel/mossTop, buildMossRegion(pred)/stepMossRegion, MOSS_BUCKET/SCUFF, MOSS_WET quay + MOSS_WALL/courtShade the court's; trodStone in groundBase",
+      "the paving AGES in THREE regions (plaza PATH, quay SIDE, court PATH #212): moss/mossOwn/mossShel/mossTop, buildMossRegion(pred)/stepMossRegion, MOSS_BUCKET/SCUFF, MOSS_WET quay, MOSS_WALL/courtShade the court’s; trodStone in groundBase",
       "the quay is a WHARF: BARGE_BOLLARDS, BARGE_BERTH, structure.moorings; the BARGE on the punt shape — barge{leg}/updateBarge, own tick, BARGE_LAMP after applyLight",
-      "the DOOR is FOURTEEN places down TWO corridors: PLAZA_PLACES + a.pheld, ONE claim 3 callers — FOUNT_STANDS, benches, crumbs; plazaWay/plazaMouth/a.stop2; plazaLane() no-R(), alleyRow/Gate/Lead, RING_NODES",
+      "FOURTEEN places, TWO corridors: PLAZA_PLACES + a.pheld, ONE claim 3 callers — FOUNT_STANDS, benches, crumbs; plazaWay/plazaMouth/a.stop2; plazaLane() no-R(), alleyRow/Gate/Lead, RING_NODES",
       "the FAIR DAY ~5/yr: isFairDay salted, fairF off the sun, fairDress, spawnFairAgent, FAIR_SLOTS, own tick; the gathering a DRY-HOUR budget FAIR_GATH_H/fairGathSpent; fairFits/FAIR_STAND_MIN, fairLead()"
     ],
     "river": [
-      "13 cols; rowboat, bridge, TOW/FAR_WALK, church+clock+rose, bandstand, ORCHARD, JETTY, swans; EXTENT: riverLev/RIVER_LAG+RIVER_SALT per world, stepBank/bankBed/BANK_CELLS, SHOAL; SURF drawWaterMirror/setMirror/Shade, REED/reedInk, drawBoatMirror",
+      "rowboat, bridge, TOW/FAR_WALK, church+clock+rose, bandstand, ORCHARD, JETTY, swans; EXTENT riverLev/RIVER_LAG+RIVER_SALT per world, stepBank/bankBed/BANK_CELLS, SHOAL; SURF drawWaterMirror/setMirror/Shade, REED/reedInk, drawBoatMirror",
       "FOOTBRIDGE DECK (drawDeckSpan/Front, boatUnderDeck), WATERMILL (MILL_WHEEL/millSpin), EYOT onEyot/eyotShore/drawWillow/nestF",
       "the far bank's day: spawnFarAgent/farOpen/FAR_CAP, FAR_GATE, a.jetty, overDeck's east door; concert bandF/isBandDay; FIELD EDGE east of GW in the cache",
       "the evening ends: EVE_GONE/EVE_HURRY/EVE_BELL, eveOutH -> a.eveOut, goHome(a,maxH); night water drawRiverLights, RIVER_LAMPS, a.nightRail, roseLit",
       "the PUNT a FLEET of two: PUNTS/PUNT_BERTHS, hull B 0.95 west so tracks are PARALLEL, punt{leg 0..4}, puntFits -> OFFER; wind is a SHARE PUNT_WIND_SLOW/SHY",
-      "WINTER: ICE off rice[]/iceShel/iceTop, buildIce/stepIce/iceSkinCol/drawIce/iceRuns; the LAP iceLap[]/buildIceLap off BANK_CELLS, iceHere(), iceMargin(); stepBank's ICE guard is the STRAND's; iceLevel()/ICE_REPAINT dirty the cache"
+      "WINTER: ICE off rice[]/iceShel/iceTop, buildIce/stepIce/iceSkinCol/drawIce/iceRuns; the LAP iceLap[]/buildIceLap off BANK_CELLS, iceHere(), iceMargin(); stepBank ICE guard is the STRAND’s; iceLevel()/ICE_REPAINT dirty the cache"
     ],
     "sky": [
       "day/night (55 s day), sun and moon arc, chimney smoke/hearthF; windowLit the ONE pane predicate + LIT[], relit AFTER applyLight; season() over SEASON_LEN 26 days, greyF the year",
@@ -646,82 +653,38 @@
       "cloudCover one slow rate-capped scalar, drawClouds 11 hashed banks SKY STRIP ONLY; drawCloudShade/cloudShadeF ONE live multiply after the items, before applyLight",
       "the SUN: sunVec() the one vector every cast shadow reads (ALWAYS northward), shadowF/shSpread/shOffset, dialThrow(h); BUILDING SHADOW shTop/shCast/shOpen/buildSunShade/BSH_MAX",
       "weather: snowF/Cover/At, wetF, raining/rainFall/coverF, mistAt, chillF/hearthF, dawnF; windF=windDayF x windHourF, isWindy; bonfireWeather re-asked lit, BOTH gates measured",
-      "MOONLIGHT + the SKY ANSWERS: skyAt() asked LAST, balloonAt first, skyHz(), sunName/moonName/skyName/towerAt; moonPhase/moonLit a 29.53 d month; moonShows() the ONE gate — disc, moonLight(), drawMoonSheen"
+      "MOONLIGHT + the SKY ANSWERS: skyAt() asked LAST, balloonAt first, skyHz(), sunName/moonName/skyName/towerAt; moonPhase/moonLit a 29.53 d month; moonShows() the ONE gate, moonLight(), drawMoonSheen"
     ],
     "life": [
       "ring transit via spawnAgent: walker, crosser, dogwalker; drawPerson 12 px with a contact patch; greetPass/chatty; arrivals come in TWOS, withCompanion(a,room) under the SAME cap",
-      "wildlife: butterflies, fireflies, birds[], ducks, swans, catA, leaves. EVERY bird answers the pointer — birdName/birdPlace, birdDown the ONE posture test",
-      "catA's second act lane->cross->climb->ridge on its own R() roll; the near cat crosses on catLine(x,ph) to CAT_SOUTH, pinned by wellNear()",
-      "crowds outside laneCount: concert, evening door, homers, cafe, evening posts; goHome after dusk, HOMES read by windowLit, eveOpen; arrivals end in a stop that usually SAYS it (sayAt)",
-      "POPULATION caps are swept by PRESENCE per PLACE (probes/town-caps.mjs) and each domain's cap is named on its own line here; laneCount POSITIVE",
+      "wildlife: butterflies, fireflies, birds[], ducks, swans, leaves. EVERY bird answers the pointer — birdName/birdPlace, birdDown the ONE posture test. catA lane->cross->climb->ridge on its own R() roll; the near cat on catLine(x,ph) to CAT_SOUTH, wellNear()",
+      "crowds outside laneCount: concert, evening door, homers, cafe, evening posts; goHome after dusk, HOMES read by windowLit, eveOpen; an arrival ends in a stop that SAYS it (sayAt)",
+      "POPULATION caps swept by PRESENCE per PLACE (probes/town-caps.mjs); laneCount POSITIVE",
       "MOTHS at the LIGHTS: own source+cap updateMoths/mothPos, NIGHT_LAMPS the ONE lamp list; mothRate() carries year+rain, MOTH_CAP/PER_LAMP/JOIN; mothName, drawMoths LAST",
       "MARTINS on the eaves: a CA over MART_CELLS (drawFaceRow's test), martSeed x creep x martTop; mud = max(wetF/MART_WET, bankDry/MART_STRAND) — TWO sources; martHere, b.mart"
     ],
     "sill": [
       "#plate, #daytime, #season, #where, #ticker (TICK_DWELL/QMAX), #stats, #ctrl; hidden under 640px; two LAPSE buttons, one beginLapse",
-      "NAMING under the pointer, off lookAt: every drawn thing answers — nameAt over FACES[]/faceAt, roofFurnAt, allotFurnAt, beds, plots, paving, trees, livingAt, vanes, the field edge, birds, moths, sky/sun/moon/towers; evPx -> DRAWING",
-      "quarter CAMERA #where: five framings, viewFor/whereGo/stepView, wide cache through gview; FOLLOWS a person (followQuarter). WIDE is fitted too — WIDE_AIR/KEEP centre -AIR..WH in sillTop()'s picture, WIDE_FILL/SPAN lean a tall frame in, gardenWest()",
+      "NAMING under the pointer, off lookAt: every drawn thing answers — nameAt over FACES[]/faceAt, roofFurnAt, allotFurnAt, livingAt, vanes, the field edge, birds, moths, sky/sun/moon/towers; evPx -> DRAWING",
+      "quarter CAMERA #where: five framings, viewFor/whereGo/stepView, wide cache through gview; FOLLOWS a person (followQuarter). WIDE is fitted too — WIDE_AIR/KEEP centre -AIR..WH in sillTop()’s picture, WIDE_FILL/SPAN, gardenWest()",
       "the PAINTED sill: drawSill in drawOurSide, in the ground cache; sillTop() the ONE definition, sillU/sillBoxes/sillOver/clipOffSill, nearShadow; reads the YEAR — gerLeaf/Bloom/Drop, sillFrost/Wet/Snow, sillCup, sillAt",
-      "the ticker knows where you are LOOKING: inView(x,y) the ONE reader of whereN, AMBIENT_PLACES/ambientHere, SOUNDS bypass it; ranks background/announce/CLOCK/MURMUR. Its SLOT: fitLine()/TICK_CLAUSE never cuts mid-word; room CONSTANT via statsSlack() + min-widths, #sill.lent",
+      "the ticker knows where you are LOOKING: inView(x,y) the ONE reader of whereN, AMBIENT_PLACES/ambientHere, SOUNDS bypass it; ranks background/announce/CLOCK/MURMUR. SLOT: fitLine()/TICK_CLAUSE never cut mid-word; room CONSTANT via statsSlack() + min-widths, #sill.lent",
       "the ground cache is relit when the LIGHT moves, not the clock: lightNow/lightMoved an L1 distance from lightPainted, LIGHT_MOVE/LIGHT_SLOW, markGroundPainted; a landing DISSOLVES both — fadeCaches/fadeF"
     ],
     "roofs": [
       "the town is HOUSES not regions: buildVolumes() makes roofs EMERGENT — eaveFor(x,y), vZ a four-corner average, vD a distance transform, SLOPE; houseAt/houseIx, EAVE_LO/EAVE_HI",
       "the STEP that makes a terrace: roofZE(vx,vy,e) read from INSIDE its own house; drawGable, party-wall line in drawRoofRow, buildStacks/STACK_ROWS -> CHIMNEYS; WEATHERVANES, MURMURATION",
       "somebody AT a window: paneFigure/paneWalk/drawPaneFigures off LIT_PANES, hashed on nid; lampBurn() is BOTH burns — the evening [on,off) and the sunUp-keyed riser [rOn,rOff); FIG_SHARE",
-      "RAINWATER GOODS off the geometry: frontAt()/gutAt[] the ONE predicate, EAVES 225 fronts, PIPES 73 on party walls + run ends; the gutter in drawRoofRow at the eave LIP, drawDownpipe in drawFaceRow; pudHollow +PUD_PIPE at the foot; drawRunoff live"
+      "RAINWATER GOODS off the geometry: frontAt()/gutAt[] the ONE predicate, EAVES 225 fronts, PIPES 73 on party walls + run ends; gutter in drawRoofRow at the eave LIP, drawDownpipe in drawFaceRow; pudHollow +PUD_PIPE; drawRunoff live"
     ],
     "nearblock": [
       "OUR OWN ROOF below the lane: rows 79..WH WALL, NEAR_SPANS, NEAR_HOUSE/houseOf, NEAR_RIDGE; drawNearRoof CACHED — drawCrests, WELLS, DORM_Y, drawParapet, OUR_AWNINGS, roofWalkZ; nearHidden + nearScale the bounds",
       "SLATED: drawRoofRow forks at LN_WALK_S to drawSlateCell/slateRun; per-slate roofMossF/sootAt/slipped; roofBirdSpot; ROOF_FURN a BAY — line/tank/loft ONLY, placed by furnRow/furnDmax",
-      "the LEADS are a terrace: tile 17, LEADS_SHARE on hash(house), refused across the river; LEADS_BAYS/HATCHES, drawHatch LIVE, leadsName, WASH_H_LEADS + washOut(); FURNISHED by leadsKit(bay) in drawLeadsFabric(), freeBay(k,want)",
-      "and INHABITED: spawnTenant/stepTenant, outside the town's routing (no exit, no door; pairStands REFUSES leads); TEN_CAP 2, TEN_STAND in HOURS; washOut()'s EDGE, one tenSunFine() sun stay, one evening lean",
-      "freeBay(k,want) SALTED (k+WIND_SALT) and weighted by staleness 1+min(BAY_STALE 6, day-bay.last), bay.last set in spawnTenant — it decides WHOSE terrace, not the rate; bayWash still refuses a bare line"
+      "the LEADS are a terrace: tile 17, LEADS_SHARE on hash(house), refused across the river; LEADS_BAYS/HATCHES, drawHatch LIVE, WASH_H_LEADS + washOut(); leadsKit(bay) furnishes; freeBay(k,want) SALTED (k+WIND_SALT), staleness 1+min(BAY_STALE 6, day-bay.last); bayWash refuses a bare line",
+      "and INHABITED: spawnTenant/stepTenant, outside the town routing (no exit, no door; pairStands REFUSES leads); TEN_CAP 2, TEN_STAND in HOURS; washOut() EDGE, tenSunFine() sun stay + evening lean"
     ]
   },
   "openCues": [
-    {
-      "id": "c301",
-      "note": "the fair's lead is 1.2-8.6 h (med 4.4) of a 6.5 h fair, so ~7 of its 10 are walking the corridor, not standing — the plaza's own day may want a nearer door (#204)",
-      "raisedBy": 202,
-      "seenBy": 0
-    },
-    {
-      "id": "c303",
-      "note": "the wide lean reads sillTop() now, so a sill that borrows a line re-leans the camera ~2% as well as moving it; HEAD only moved topPad. Ground pad at 390: 303->493 px, drawGround 29.8->30.1 ms",
-      "raisedBy": 205,
-      "seenBy": 0
-    },
-    {
-      "id": "c304",
-      "note": "The overflow crates carry more readable ink (420 device px) than all three trestles combined (297) — the market's day reads on the pavement, not on the boards.",
-      "raisedBy": 207,
-      "seenBy": 0
-    },
-    {
-      "id": "c306",
-      "note": "weed-spread.mjs's `hoe` column counts the act STRING 'hoeing the plot clean' and so under-reports #209's clear-and-lift by ~2/3; probes/allot-steer.mjs measures clearings off the world instead",
-      "raisedBy": 207,
-      "seenBy": 0
-    },
-    {
-      "id": "c307",
-      "note": "The three quantized ground triggers disagree on a rule: weedBucket() repaints on ANY change over 102 cells, snow and now ice hold deadbands (SNOW_REPAINT 3%, ICE_REPAINT 8/2860). One of the three is priced wrong.",
-      "raisedBy": 210,
-      "seenBy": 0
-    },
-    {
-      "id": "c308",
-      "note": "the NAMESAKE holds almost nobody at its best hour: seed 42, autumn day 65, 12.98h, cloud 0.03, 73 people in town — ~6 in the walled garden. MEASURE at the CHOICE, not by presence, and name the bound (#186 answered with a ROOF, #198 with rain)",
-      "raisedBy": 210,
-      "seenBy": 0
-    },
-    {
-      "id": "c309",
-      "note": "census WCORE's winter cell (warp 1220) is sampled MID-FREEZE: 8 reshuffles of HEAD's stream leave winter/frozen at 1055-1068, but a 1.7% move in an unrelated constant took it to 956. The 3% floor is under the ramp's slope (probes/winter-drift.mjs)",
-      "raisedBy": 210,
-      "seenBy": 0
-    },
     {
       "id": "c310",
       "note": "pavedAt() and mossIn() have DIVERGED at #212: the courtyard's 1896 flags green but take no puddles and no paveWear. Whether a walled garden's paths should hold water is now an open, measurable question.",
@@ -733,18 +696,6 @@
       "note": "The near block's lead gutter (drawParapet) and the town's new goods share no predicate: the parapet's hopper heads are still a hand-placed x%9 loop while every front across the lane is a register.",
       "raisedBy": 212,
       "seenBy": 0
-    },
-    {
-      "id": "c312",
-      "note": "the two never-wash bays h2/h14 sit 42% apart on presence at equal eligibility and equal staleness — unexplained",
-      "raisedBy": 212,
-      "seenBy": 0
-    },
-    {
-      "id": "c313",
-      "note": "census martinNests read +46 (130->176) on the change probes/mart-clock.mjs put at +2.1 on +-7.9 over 24 seed-years: 9 pinned instants cannot weigh a threshold CA",
-      "raisedBy": 212,
-      "seenBy": 0
     }
   ],
   "watch": [
@@ -752,78 +703,6 @@
     "THE BUILDINGS ALREADY CAST. buildSunShade()/shTop/shCast/shOpen throw every solid volume's shadow from sunVec(), softened by shadowF() and retracted by shOffset(), at BSH_MAX*daylight*shadowF() — faintest at dawn (low daylight), shortest at noon (retracted throw), which is why a midday shot looks shadowless. 'Nothing here casts a shadow' is a dead premise; price BSH at the hour first."
   ],
   "closedCues": [
-    {
-      "id": "c262",
-      "note": "plaza-visit read 13 second acts ARMED and only 6 REACHED (5 seeds x 14 d), the lane band the sole caller at 0.29 people in the square. PREMISE NOW STALE — #173 re-cut this plaza; re-measure before building.",
-      "raisedBy": 171,
-      "seenBy": 1,
-      "closed": 180,
-      "why": "promoted to brief b183 (Plaza & quay x Deepen), with the re-measurement as the deliverable if the premise is dead."
-    },
-    {
-      "id": "c267",
-      "note": "the LIT WINDOWS still have nothing at them - ~20 panes a night, and #177's moths bind to NIGHT_LAMPS only. A pane is a FACES SCREEN-space register, not a world point: a different solve.",
-      "raisedBy": 176,
-      "seenBy": 0,
-      "closed": 180,
-      "why": "promoted to brief b182 (Roofs & skyline x Deepen)."
-    },
-    {
-      "id": "c268",
-      "note": "HEAD had 37 bonfires and the candidate 44 over identical hash-only calendars (#178): the fire COUNT rides on bonfireWeather() at TWO gates, the spawn hour and the match, and nobody has bounded that swing.",
-      "raisedBy": 177,
-      "seenBy": 0,
-      "closed": 180,
-      "why": "promoted to brief b185 (Cross street & allotments x Fidelity)."
-    },
-    {
-      "id": "c276",
-      "note": "two armed plaza walkers a run reach timer -85 s with a.stop still on p1 and stop2 nulled by neither the promotion nor the sky - a clause outside the end block is holding them past their own clock.",
-      "raisedBy": 181,
-      "seenBy": 0,
-      "closedBy": 185,
-      "reason": "fixed at #183: the end block's else nulls a.stop2 with a.pheld; strandeds 7 -> 0, ladder bit-identical."
-    },
-    {
-      "id": "c271",
-      "note": "the BACKDROP is measured (#180 mgr): sd/mean 0.150 / 0.160 over the frame's top 10% / 18% at midday, 0.226 / 0.253 at hour 8, above GRASS and SIDE.cross. Mid-contrast, not flat. Nobody may brief it as flat; see the WATCH table.",
-      "raisedBy": 180,
-      "seenBy": 0,
-      "closedBy": 185,
-      "reason": "duplicate of the WATCH table, which carries the whole sd/mean row incl. BACKDROP 0.150 / 0.160. One copy is enough."
-    },
-    {
-      "id": "c265",
-      "note": "the balloon is aloft at 02.5h (seed 42, t 432) and at 19.1h — nothing puts it away. If a balloon is a daytime thing, it is a hard-coded-hour bug waiting to happen; if it is not, the night frame's one moving object is unexplained.",
-      "raisedBy": 175,
-      "seenBy": 0,
-      "closedBy": 185,
-      "reason": "promoted to b188 (Sky x Interaction): the balloon cannot be named honestly until it has a day."
-    },
-    {
-      "id": "c275",
-      "note": "a pane's lamp can go out mid-crossing: windowLit owns bedtime, paneFigure owns the visit, neither asks the other",
-      "raisedBy": 181,
-      "seenBy": 0,
-      "closedBy": 185,
-      "reason": "promoted to b190 (Roofs x Connect)."
-    },
-    {
-      "id": "c269",
-      "note": "lawnGate moved the dusk emptying INTO the garden: lawn people dark inside the wall 1.015 -> 1.284, all at hourEve 18-22 with the 1-3 am tail flat. A good trade at #179; watch it does not creep later.",
-      "raisedBy": 177,
-      "seenBy": 0,
-      "closedBy": 185,
-      "reason": "closed as a WATCH, not a brief: #179's lawnGate trade was the intent and the number is in the ledger; nothing to build."
-    },
-    {
-      "id": "c266",
-      "note": "seed-identity pins 5 instants at seed 42 and only 125/128 are wet — seed 42 gets ONE shower in 800 sim s. The gate prints WEAK if a re-pin drifts off it; a second seed chosen FOR its weather would harden it.",
-      "raisedBy": 175,
-      "seenBy": 0,
-      "closedBy": 185,
-      "reason": "folded into b187 — the seasonal-ladder brief owns the 'one seed, one shower' problem."
-    },
     {
       "id": "c273",
       "note": "rotate-ledger.mjs's WATCH_CAP reads w.note and state.json's watch is an array of STRINGS, so the 420 B per-item cap has never fired — three items are over it today. A gate that cannot fail. WATCH_MAX works, which is why it went unseen.",
@@ -1071,12 +950,84 @@
       "seenBy": 0,
       "closedBy": 210,
       "reason": "promoted -> b215."
+    },
+    {
+      "id": "c301",
+      "note": "the fair's lead is 1.2-8.6 h (med 4.4) of a 6.5 h fair, so ~7 of its 10 are walking the corridor, not standing — the plaza's own day may want a nearer door (#204)",
+      "raisedBy": 202,
+      "seenBy": 0,
+      "closedBy": 215,
+      "reason": "promoted to b217 — the fair's corridor is the brief"
+    },
+    {
+      "id": "c303",
+      "note": "the wide lean reads sillTop() now, so a sill that borrows a line re-leans the camera ~2% as well as moving it; HEAD only moved topPad. Ground pad at 390: 303->493 px, drawGround 29.8->30.1 ms",
+      "raisedBy": 205,
+      "seenBy": 0,
+      "closedBy": 215,
+      "reason": "superseded by #206: the wide framing is now fitted through sillTop() and the number is in that ledger entry; 'HEAD only moved topPad' is stale"
+    },
+    {
+      "id": "c304",
+      "note": "The overflow crates carry more readable ink (420 device px) than all three trestles combined (297) — the market's day reads on the pavement, not on the boards.",
+      "raisedBy": 207,
+      "seenBy": 0,
+      "closedBy": 215,
+      "reason": "not a question — it describes #207's own build. The overflow crates ARE the market's day on the pavement; the trestles are not meant to out-ink them"
+    },
+    {
+      "id": "c306",
+      "note": "weed-spread.mjs's `hoe` column counts the act STRING 'hoeing the plot clean' and so under-reports #209's clear-and-lift by ~2/3; probes/allot-steer.mjs measures clearings off the world instead",
+      "raisedBy": 207,
+      "seenBy": 0,
+      "closedBy": 215,
+      "reason": "delete, not fix: probes/allot-steer.mjs already measures clearings off the world, so weed-spread.mjs act-STRING hoe column has a working replacement and should just be cut next time that probe is touched"
+    },
+    {
+      "id": "c307",
+      "note": "The three quantized ground triggers disagree on a rule: weedBucket() repaints on ANY change over 102 cells, snow and now ice hold deadbands (SNOW_REPAINT 3%, ICE_REPAINT 8/2860). One of the three is priced wrong.",
+      "raisedBy": 210,
+      "seenBy": 0,
+      "closedBy": 215,
+      "reason": "promoted to b219 — the three ground-cache triggers are the brief"
+    },
+    {
+      "id": "c308",
+      "note": "the NAMESAKE holds almost nobody at its best hour: seed 42, autumn day 65, 12.98h, cloud 0.03, 73 people in town — ~6 in the walled garden. MEASURE at the CHOICE, not by presence, and name the bound (#186 answered with a ROOF, #198 with rain)",
+      "raisedBy": 210,
+      "seenBy": 0,
+      "closedBy": 215,
+      "reason": "promoted to b216, the bet: the namesake is empty because it is ONE room of mostly bare PATH, so the answer is fabric, not another population knob"
+    },
+    {
+      "id": "c309",
+      "note": "census WCORE's winter cell (warp 1220) is sampled MID-FREEZE: 8 reshuffles of HEAD's stream leave winter/frozen at 1055-1068, but a 1.7% move in an unrelated constant took it to 956. The 3% floor is under the ramp's slope (probes/winter-drift.mjs)",
+      "raisedBy": 210,
+      "seenBy": 0,
+      "closedBy": 215,
+      "reason": "promoted to b218 — the census's winter floor is the brief"
+    },
+    {
+      "id": "c312",
+      "note": "the two never-wash bays h2/h14 sit 42% apart on presence at equal eligibility and equal staleness — unexplained",
+      "raisedBy": 212,
+      "seenBy": 0,
+      "closedBy": 215,
+      "reason": "answered by #214: h2 was the unsalted calendar plus a uniform draw over the ELIGIBLE; the staleness weighting took the spread 7.8x -> 3.0x and h2 0.92 -> 2.55%"
+    },
+    {
+      "id": "c313",
+      "note": "census martinNests read +46 (130->176) on the change probes/mart-clock.mjs put at +2.1 on +-7.9 over 24 seed-years: 9 pinned instants cannot weigh a threshold CA",
+      "raisedBy": 212,
+      "seenBy": 0,
+      "closedBy": 215,
+      "reason": "folded into b218 — same disease as c309: the census ladder's nine pinned instants cannot weigh a threshold CA"
     }
   ],
-  "cueSeq": 308,
+  "cueSeq": 313,
   "managerWatch": [
     "LABEL THE KIND BY THE FILE IT CHANGES. runlog.mjs takes the verdict from courtyard.html’s diff, so a brief touching only census.mjs or a probe logs srcChanged:false and lands as no-ship however well it went — #187 and #195, both of the no-ships in the last 20. HARNESS is the kind for instrument-only work and costs a domain nothing; FIDELITY promises a change in the page and must make one.",
-    "A CONSERVATION SCALAR IS NOT A FROZEN MAP. developed last moved at #100, green at #116, passages NEVER in 193 — none of it a signal: developed/green deliberately CONSERVE (LEADS #170, ARCADE #186, REED #155 are cut OUT of the tile they replace so the total holds) and #119 declined to move passages on purpose. Read census.mjs’s comments before its flatness. mapFlat is tileKinds/structures, 31% constant (c284).",
+    "READ THE CENSUS BEFORE ITS FLATNESS. The runlog scalars are LADDER SUMS over census.mjs’s NINE runs (3 seeds x 3 ages + winter): developed 71730 is not 12144 cells, speciesKinds 117 is 9 x SPECIES.length. Those two are CONSTANT x 9 and move only when the VOCABULARY does — species last at #155, tiles at #192. developed/green/passages CONSERVE (LEADS/ARCADE/REED cut OUT of what they replace): no signal.",
     "NUMBERS THIS SEAT READS. stall.mjs’s disk slope diffs blobs at two Iter commits, so a rotation between them reads as a trend for ~20 passes. And a cap you RAISE is how the last loop died — INV_CAP went 9.5 -> 10.75 at #190 and back to 10.0 at #195; say which way and why, every time.",
     "[manager] FABRIC BEATS EVENTS FOR A THIRTY-SECOND VISITOR. An EVENT is seen by whoever is watching that second; FABRIC is in every frame. When a region reads dead, ask what it CARRIES before adding another thing that happens on it (#170/#171 -> #201)."
   ]
