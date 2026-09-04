@@ -292,3 +292,23 @@ moonLight() returning 0 was never "no moon" — it was mk = -MOON_REF, the darke
 **Law:** a gate opened on a DRAWN thing is not a thing SEEN — price it on the subject's own pixels at its
 strongest phase, or occlusion reads as faintness. A term signed about a measured pivot has no "off": a 0
 into it is a claim, and the extreme one.
+
+## Iteration 204 — the fair's gathering is a budget of DRY hours (2026-09-04) [Plaza & quay × Deepen]
+
+**Brief:** b204 — a shower over the 2.6 h at the raise cost the whole fair day. Make the fair survive it.
+**Measured** (probes/fair-rain.mjs, new, 6 seeds x a yr, HEAD): 4 of 34 fair days filled 0 slots and **all four were
+raining for 100% of the gathering**; two had >2.7 dry hours left. Then the WALK (probes/fair-walk.mjs, new):
+gate to slot is **1.2-8.6 h, median 4.4** — #194's comment said 0.8-2.9, the straight line and not the route.
+**Did.** `FAIR_GATH_H` 2.6 h of DRY weather, `fairGathSpent` never refunded, so the offer still ENDS. The far end is no
+longer a clock: `fairFits(s, plane, speed)` prices the route this walker will walk at the speed they will walk it (the
+town's own `pathHours`), and takes a slot only if the arrival lands with FAIR_STAND_MIN of fairF() left.
+**Gates:** census PASS (reshuffled) · motion · perf +0.0% · filmstrip 0 POP · 4 shots. v a control RUN on HEAD:
+zero-slot fair days **4 -> 1**, the one left winWet 1.00; fill 8.12 -> 8.41; fair-year plaza presence 15.37 -> 16.15,
+standers 3.05 -> 3.12. Six FRESH seeds: 0 of 29. FAIR_STAND_MIN is live: standers 2.16 at 0.5
+and **2.35** at 1.0; 3.0 puts the zero days back to 4.
+**Verdict:** shipped
+**Surprise:** the walk is most of the fair. Ten slots fill but only ~3 are ever STANDING — the rest are on their feet
+in the corridor for four hours of a six-and-a-half hour day. The fair is mostly a procession.
+**Law:** a weather gate on a FIXED window spends the window on weather it cannot use: make the budget the RESOURCE it
+needs and the far end becomes the WALK, priced per arrival or the rescue arrives to nothing. A route's cost is not the
+distance between its ends — a lead down a corridor and round a ring is twice it.

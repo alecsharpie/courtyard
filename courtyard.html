@@ -7219,11 +7219,15 @@ const FAIR_TH = [215, 240, 265, 290, 315, 45, 70, 95, 120, 145];   // the gap is
 const FAIR_SLOTS = FAIR_TH.map(d => ({
   x: FOUNTAIN.x + Math.cos(d * Math.PI / 180) * FAIR_RX,
   y: FOUNTAIN.y + Math.sin(d * Math.PI / 180) * FAIR_RY, taken:0 }));
-/* Its own tick and its own rate, sized on the GATHERING and not on a day: the window is
+/* Its own tick and its own rate, sized on the GATHERING and not on a day: the budget is
  * FAIR_UP + FAIR_GATHER = 2.6 h ≈ 6.0 s, which is 15 rolls at FAIR_TICK, and 15 rolls at
  * FAIR_RATE fill ten slots with a little to spare for the ones the alley walk turns away.
- * The walk itself is the families' — the alley gate is 4 to 15 cells from these slots,
- * 0.8 to 2.9 h — so a fair-goer set out at the raise is standing before the fair opens. */
+ * The walk itself is the families' and it is LONG: gate to slot is 1.2 to 8.6 h of sim,
+ * median 4.4 (probes/fair-walk.mjs, 276 arrivals) — the lead runs the cut, then the
+ * roundel's nodes, so the straight line between the two is less than half of it. Against
+ * a fair that is 8.1 h from raise to close, that is most of the day: a fair-goer set out
+ * at the raise is standing about halfway through the hold, and 16 of HEAD's 276 arrivals
+ * land after fairEnd(), 3 of them after the square is bare. */
 /* the two swags: the north pair of plaza trees and the south pair, on the trunk each
  * tree is actually drawn on (drawLaneTree offsets the pit by half a cell in x and 0.4
  * in y, and a rope tied to the pit instead of the tree hangs off the trunk). */
@@ -7231,18 +7235,52 @@ const FAIR_SPANS = [[PLAZA_PITS[0][0], PLAZA_PITS[0][1] + 0.4, PLAZA_PITS[1][0],
                     [PLAZA_PITS[2][0], PLAZA_PITS[2][1] + 0.4, PLAZA_PITS[3][0], PLAZA_PITS[3][1] + 0.4]];
 const FAIR_TICK = 0.4, FAIR_RATE = 0.7, FAIR_GATHER = 1.0;
 let fairAcc = 0, fairSetDay = -1, fairOnDay = -1;
+/* #204: the gathering is a BUDGET of DRY hours, not a window on the clock. It was
+ * `!raining` inside a fixed 2.6 h at the raise, so a shower over that one window cost
+ * the whole day even when the sky cleared by noon: 4 of 34 fair days in 6 seed-years
+ * filled ZERO slots and every one of the four was raining for 100% of the gathering,
+ * two of them with better than 2.7 dry hours left in the fair afterwards
+ * (probes/fair-rain.mjs). So the 2.6 h is spent in dry weather wherever in the fair it
+ * falls, and the far end is no longer a clock at all — it is the WALK, charged per
+ * arrival at fairFits() below. The budget only ever goes UP and is never refunded, so
+ * the offer ends: a re-offer guarded only by the state it consumes is re-entrant. */
+const FAIR_GATH_H = FAIR_UP + FAIR_GATHER;
+let fairGathDay = -1, fairGathSpent = 0;
 function fairGathering(){
-  return isFairDay() && !raining && hour >= fairStart() - FAIR_UP && hour < fairStart() + FAIR_GATHER;
+  return isFairDay() && !raining && fairGathSpent < FAIR_GATH_H
+      && hour >= fairStart() - FAIR_UP && hour < fairEnd();
+}
+/* Charge the WALK where it can be PAID. There is no clock left to keep a late set-out
+ * honest, so a slot is a PLACE for this walker only if this walker can still reach it
+ * with FAIR_STAND_MIN of the fair left — priced on the route they will actually walk,
+ * at the speed they will actually walk it, by the town's own pathHours(). The bound is
+ * the fair's EXISTENCE and not its hold: fairF() runs on for FAIR_DOWN after fairEnd()
+ * and a late arrival never latches a.came, so the strike is what ends their stay. 1.0 h
+ * is the bar 96.5% of HEAD's own arrivals already clear — it keeps the days that
+ * worked and drops the three walks a year that reach a square already bare. */
+const FAIR_STAND_MIN = 1.0;
+function fairLead(s, plane){
+  const L = alleyLead(s, plane);
+  return L.concat(plazaWay(L[0][0], L[0][1], s, plane).slice(0, -1));
+}
+function fairFits(s, plane, speed){
+  const gate = alleyGate(s, plane);
+  const walk = pathHours(gate[0], gate[1], fairLead(s, plane).concat([[s.x, s.y]]), speed);
+  return hour + walk + FAIR_STAND_MIN <= fairEnd() + FAIR_DOWN;
 }
 function fairCount(){ return agents.reduce((n, a) => n + (a.fair ? 1 : 0), 0); }
 function spawnFairAgent(){
-  const free = FAIR_SLOTS.filter(s => !s.taken);
+  /* the speed and the lane are drawn BEFORE the place, because the place is priced on
+     them: plazaLane()'s sequence is read here without being spent, and committed below
+     only if somebody actually sets out. */
+  const speed = 1.4 + R() * 0.6, plane = (plazaSeq * PLAZA_LANE_A) % 1;
+  const free = FAIR_SLOTS.filter(s => !s.taken && fairFits(s, plane, speed));
   if (!free.length) return;
   const s = pick(free);
   s.taken = 1;
   const a = {
     kind:'fair', street:true, fair:true, slot:s,
-    x:0, y:0, wp:[], i:0, speed:1.4 + R() * 0.6, state:'walk', timer:0,
+    x:0, y:0, wp:[], i:0, speed, state:'walk', timer:0,
     shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9, wary:R(),
     /* when this one has had enough of it, as a level of the SAME progress the square
        undresses on — so the fair thins across the strike instead of emptying in a
@@ -7250,8 +7288,7 @@ function spawnFairAgent(){
     leaveAt:0.30 + R() * 0.55,
   };
   plazaLane(a);                                  // its own way in through the cut and round the roundel (#173)
-  const gate = alleyGate(s, a.plane), L = alleyLead(s, a.plane);
-  const lead = L.concat(plazaWay(L[0][0], L[0][1], s, a.plane).slice(0, -1));
+  const gate = alleyGate(s, a.plane), lead = fairLead(s, a.plane);
   a.x = gate[0]; a.y = gate[1];
   a.stop = {x:s.x, y:s.y, act:'stand', dur:90};   // the fair ends them, not a timer
   for (const p of lead) a.wp.push(p.slice());
@@ -18308,6 +18345,8 @@ function simStep(sdt, dt){
   // and the plaza's own, on its own tick for the same reason. fairGathering() is false
   // on every day that has no fair and every hour of one that is not the gathering, so
   // the R() draw below exists only on the ~5 afternoons a year it is spending.
+  if (fairGathDay !== day){ fairGathDay = day; fairGathSpent = 0; }
+  if (fairGathering()) fairGathSpent += sdt * HOURS_PER_S;   // the budget spends DRY hours only (#204)
   fairAcc += sdt;
   if (fairAcc > FAIR_TICK){ fairAcc = 0;
     if (fairGathering() && fairCount() < FAIR_SLOTS.length && R() < FAIR_RATE) spawnFairAgent();

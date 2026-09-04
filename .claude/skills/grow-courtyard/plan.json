@@ -15,27 +15,6 @@
   "rationale": "I SHOT THE TOWN BEFORE PLANNING IT — seed 42, day 3 at 10:22 and day 22 at 03:49, wide plus the near band plus the phone — and the pictures say one thing loudly. The block below our window is 23% of the wide frame and about 40% of the phone's, and by day it is the dullest large surface in the picture: slate, party walls, washing, chimney pots, and nothing that moves. That is not because it is empty. #170 gave it LEADS terraces and a hatch and #171 gave it tenants, and the inventory line saying so is why the bet I first drafted (\"put people on the near roof\") died before it was written — the law works. What the shots actually show is subtler and better: the terrace's whole life is EVENTS. tenantErrands fires on washOut()'s EDGE, at most twice a day, plus one sun stay behind tenSunFine()'s five clauses and one evening lean, all under TEN_CAP 2. An event is seen by whoever is watching that second; FABRIC is in every frame. So b201 asks for the number nobody has (tenant presence per daylight sample over 6 seeds x a year) and then for the thing that survives the empty frames.\n\nTHE RUNG IS A 3 AND THE CLIMB IS THE POINT. This is the move the previous loop could not make: the foreground quarter of every frame has no domain. Its material has been filed under Roofs & skyline — whose seam list is buildVolumes, CHIMNEYS, drawClockTower, all FAR roof — or under The sill & the observer, which is chrome plus a saturated harness cell. Six iterations built the near block (#100 #106 #110 #123 #170 #171) and not one of them could be briefed AT it, because there was nowhere on the menu to write it down. `nearblock` — Our block & the leads — is now a domain, and b201 founds it.\n\nWHY NOT 4b: unchanged and I re-checked it. GW is 138, every quarter is allocated, the wide frame is edge to edge, and #144 priced the phone at 2.8 px a cell. A spatial climb still needs the FRAME to move first, and that is c296, not a brief I can hand a worker tonight. WHY NOT 5: I looked, and the observer changes actually available are chrome-shaped — 7 of the 14 interactions this run has ever built are already the sill's own furniture, and an eighth is not the frontier. The two observer findings the shots did produce are written down as cues (c295 the ticker clipped mid-word at 1600x950; c296 the phone opening on Wide with half the town off-frame) and one of them will be a rung-5 brief once it is priced.\n\nThe rest of the queue rotates and pays debts: b202 takes People & animals, 11 back and the longest untouched, at #189's own unfixed surprise — a third of worlds never get a martin colony because rain is the only mud there is. b203 is a FIDELITY brief, the thinnest kind at 4 of 200, on a promise the sky already makes and breaks. b204 takes the plaza's fair, which loses a whole day to a shower at the raise. b205 is HARNESS, which costs a domain nothing and closes three instrument cues at once, including a collapse guard that cannot see winter — the one that would have caught a #200-shaped bug.\n\nMEMORY, this pass: the worker read was OVER at 46.9/46 KB and is 45.9 now. I cut TWO laws rather than deferring — \"An instrument is a build artifact too\" (its general half is the control law's, its specific half a dated fact about one shelf; the surviving clause is folded into \"Compare against a control you RAN, and SMOKE it first\") and the `!daylight`/dawn corollary (folded back into the sun-and-night law it is a corollary of). I also cut the hash-gating recipe out of \"A scalar is not a switch\": four real CAs (#181 #189 #192 #197) now cluster with neighbourhood rules and nothing has reached for a coarse-gate since #156, so it is superseded, not merely unused. LAWS is 27 laws / 11.9 KB. Seven cues promoted into this batch, two closed on their evidence (c292, c293), two raised.",
   "queue": [
     {
-      "id": "b204",
-      "domain": "Plaza & quay",
-      "kind": "Deepen",
-      "brief": "c288: 4 of 34 fair days filled 0 slots. fairGathering() refuses on `raining` and the gathering is the only window the fair has, so a shower at the raise costs the whole day even when it clears by noon. #194 built the fair as a shape on the sun (fairF: up 1.6 h, hold, down 1.5 h) with one crowd window; #198 found the same shape in the garden — a weather gate carried from a time when nothing had a roof. Measure first over 6 seeds x a year: of the fair days that fill 0 slots, how many were raining at the raise and dry for the rest of the window. Then make the fair survive a shower — the concert's shape can be re-offered when the sky clears, or admission can be asked at the CHOICE per arrival instead of once at the raise.",
-      "seams": [
-        "isFairDay",
-        "fairF",
-        "fairGathering",
-        "fairDress",
-        "spawnFairAgent",
-        "FAIR_SLOTS",
-        "raining",
-        "wetF",
-        "PLAZA_PLACES"
-      ],
-      "successLooksLike": "Fair days filling 0 slots fall to the days that are actually wet across the whole window. A dry afternoon after a wet morning fills the ellipse. The fair-day presence ratios #194 measured (plaza presence 15.51 v 9.81, standers 3.00 v 1.35, pinned ref 8682828) do not fall on the days that already worked.",
-      "avoid": "Do not raise FAIR_SLOTS or the share — the supply is 10 claimed slots and #194 measured them under-used. And do not make the fair rain-proof: a crowd standing in the rain is a worse picture than a fair that waits. END a one-shot choice AT THE CLAIM — a re-offer guarded only by the state it consumes is re-entrant.",
-      "budgetMin": 40,
-      "risk": "medium"
-    },
-    {
       "id": "b205",
       "domain": "The sill & the observer",
       "kind": "Harness",
@@ -67,6 +46,10 @@
     {
       "id": "b203",
       "at": "2026-09-04T11:56:58.333Z"
+    },
+    {
+      "id": "b204",
+      "at": "2026-09-04T12:19:45.472Z"
     }
   ]
 }

@@ -619,7 +619,8 @@
       "the quay is a WHARF: BARGE_BOLLARDS 5, BARGE_BERTH, structure.moorings; the BARGE on the punt shape — barge{leg}/updateBarge, own tick, BARGE_LAMP after applyLight",
       "the DOOR is FOURTEEN places (#160): PLAZA_PLACES + a.pheld, ONE claim 3 callers — 6 FOUNT_STANDS on r 3.5, 6 benches, 2 crumbs; plazaWay/plazaMouth, a.stop2 the 2nd act; refuses 0.0% (#183)",
       "the two doors are CORRIDORS (#173): plazaLane() a no-R() golden sequence per walker, alleyRow/alleyGate/alleyLead the cut’s 3.0 cells at BOTH ends, ringNode(i,lane)/RING_NODES; FAM_CAP 5",
-      "the plaza’s FAIR DAY (#194): isFairDay hash(day,907+WIND_SALT)<0.2, salted, ~5/yr; fairF up/hold/down off the sun; fairDress = rim garland + 2 bunting swags; spawnFairAgent, 10 claimed FAIR_SLOTS, own tick"
+      "the plaza’s FAIR DAY (#194): isFairDay hash(day,907+WIND_SALT)<0.2, salted, ~5/yr; fairF up/hold/down off the sun; fairDress = rim garland + 2 bunting swags; spawnFairAgent, 10 claimed FAIR_SLOTS, own tick",
+      "the fair's gathering is a DRY-HOUR BUDGET (#204): FAIR_GATH_H 2.6/fairGathSpent, never refunded; the far end is the WALK — fairFits(s,plane,speed) off pathHours + FAIR_STAND_MIN 1.0 vs fairEnd+FAIR_DOWN; fairLead()"
     ],
     "river": [
       "river 13 cols 114..127, the fairway; rowboat, bridge, TOW_WALK/FAR_WALK, church+clock+rose window, bandstand, ORCHARD, JETTY, swan PAIR; EXTENT is not a constant (#192) — riverLev/RIVER_LAG, stepBank/bankBed/BANK_CELLS 90, SHOAL",
@@ -717,6 +718,12 @@
     {
       "id": "c300",
       "note": "the town has a moonrise it never shows: drawSunMoon paints BEFORE the backdrop blit, so through the whole 1.4 h between moonrise and sunset the disc's own 377 px move <=4.5 luma even at a forced full moon — it is behind the distance (#203)",
+      "raisedBy": 202,
+      "seenBy": 0
+    },
+    {
+      "id": "c301",
+      "note": "the fair's lead is 1.2-8.6 h (med 4.4) of a 6.5 h fair, so ~7 of its 10 are walking the corridor, not standing — the plaza's own day may want a nearer door (#204)",
       "raisedBy": 202,
       "seenBy": 0
     }
