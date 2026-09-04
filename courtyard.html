@@ -9090,18 +9090,30 @@ function windowHours(sa, sb){                      // null = nobody home tonight
  * the door, but defend it), the hash's hour resumes HOME_LATE past the priced arrival. */
 const HOMES = new Map();
 function millWindow(sa, sb){ return sa === MILL_WIN[0] && sb === MILL_WIN[1]; }
+/* The pane's EVENING BURN, in night-hours: the hour this lamp comes on tonight and the
+ * hour it goes out, HOMES and all. windowLit() is still the ONE predicate — this is its
+ * own body, lifted out — but the burn is now a value somebody ELSE can ask for, which is
+ * what lets a visit at the glass be offered inside the lamp's own hours instead of over a
+ * band that knows nothing about them (#190). It writes on/off onto windowHours()' own
+ * object, which is fresh per call, so no other caller of windowHours() sees them and
+ * there is nothing to keep between frames. null = nobody home tonight. */
+function lampBurn(sa, sb){
+  if (millWindow(sa, sb)){ const n = nightAt(); n.on = 0; n.off = n.span; return n; }   // the miller's lamp is the whole night
+  const w = windowHours(sa, sb);
+  if (!w) return null;
+  const home = HOMES.get(sa * 1000 + sb);
+  if (home && home.nid === w.nid){
+    if (home.t !== null){ const burn = w.off - w.on; w.on = home.t; w.off = Math.min(w.last, home.t + burn); }   // in: the hash's evening, from the door
+    else if (w.t < home.due + HOME_LATE) w.on = Infinity;                                                        // on their way: dark
+  }
+  return w;
+}
 function windowLit(sa, sb){
   if (nightF <= 0.3) return false;
   if (millWindow(sa, sb)) return true;           // the miller works the night's water
-  const w = windowHours(sa, sb);
+  const w = lampBurn(sa, sb);
   if (!w) return false;
-  const home = HOMES.get(sa * 1000 + sb);
-  let on = w.on, off = w.off;
-  if (home && home.nid === w.nid){
-    if (home.t !== null){ on = home.t; off = Math.min(w.last, home.t + (w.off - w.on)); }   // in: the hash's evening, from the door
-    else on = w.t < home.due + HOME_LATE ? Infinity : w.on;                                   // on their way: dark
-  }
-  if (w.t >= on && w.t < off) return true;
+  if (w.t >= w.on && w.t < w.off) return true;
   // The early risers key on SUNRISE, not on the night's dawn EDGE. The edge (t = span) is
   // sunUp + NIGHT_K*dayHours — 1.7 h past first light in winter, 2.5 h in summer — so keyed
   // there a lamp came ON as late as sunUp+1.1 and burned to sunUp+1.6, and the town lit UP as
@@ -9171,21 +9183,35 @@ function drawLitPanes(){
  * FIG_SHARE are taken, so one or two of the town's lit panes are occupied at any instant
  * and the rest are empty rooms; twenty silhouettes would read as a stencil, not a town. */
 const FIG_SLOTS = 2;                    // at most this many visits to one pane in one night
-const FIG_SHARE = 0.32;                 // ...and this share of those slots is taken at all
+const FIG_SHARE = 0.16;                 // ...and this share of those slots is taken at all. Re-priced from 0.32
+                                        // at #190: a slot used to be offered over the whole night and drawn only
+                                        // for the part of it the lamp happened to be burning — a third of itself,
+                                        // two in three not at all. Now every accepted slot is a whole visit, so the
+                                        // COIN carries the density #182 tuned by hand (0.91 -> 0.98 panes occupied).
 const FIG_T0 = 0.20, FIG_T1 = 7.6;      // the band of the night they fall in, night-hours
 const FIG_MIN = 0.75, FIG_SPAN = 0.95;  // and how long one lasts, night-hours (a night-hour
                                         // is 2.3 s of wall clock: under one, a visit is a blink)
 function paneFigure(sa, sb){
-  const n = nightAt();
-  const t1 = Math.min(FIG_T1, n.span - 0.8);
-  if (t1 <= FIG_T0) return null;
+  const n = lampBurn(sa, sb);
+  if (!n) return null;
+  // The LAMP's clock wins. FIG_T0..FIG_T1 is the band of the NIGHT a visit falls in;
+  // [on, off) is the band of this pane's own burn, and the visit lives in the INTERSECTION
+  // — so no bedtime can put a figure out half way across the glass, and none is offered to
+  // a room that is dark all evening (#190). Nothing keeps a pane lit for a figure: the two
+  // clocks are made to agree by the one that owns the town's bedtime.
+  const lo = Math.max(FIG_T0, n.on), hi = Math.min(FIG_T1, n.span - 0.8, n.off);
   for (let k = 0; k < FIG_SLOTS; k++){
     const h0 = hash(sa * 19 + k * 3 + 5, sb * 23 + n.nid * 7 + k);
     if (h0 >= FIG_SHARE) continue;
+    // the LENGTH is solved before the hour, because the last hour a visit may set out at is
+    // the one that still lets it finish before the lamp goes out
+    const dur = FIG_MIN + FIG_SPAN * hash(sa * 29 + k, sb * 31 + n.nid * 11 + 1);
+    const last = hi - dur;
+    if (last <= lo) continue;                     // this lamp does not burn long enough for one
     // the accepted coin is re-used as the slot's own phase: uniform on [0,1) GIVEN
     // acceptance, so it is one hash where two would do the same work
-    const t0 = FIG_T0 + (t1 - FIG_T0) * (k + h0 / FIG_SHARE) / FIG_SLOTS;
-    const s = (n.t - t0) / (FIG_MIN + FIG_SPAN * hash(sa * 29 + k, sb * 31 + n.nid * 11 + 1));
+    const t0 = lo + (last - lo) * (k + h0 / FIG_SHARE) / FIG_SLOTS;
+    const s = (n.t - t0) / dur;
     if (s < 0 || s >= 1) continue;
     const hs = hash(sa * 37 + k + 2, sb * 41 + n.nid * 13);
     let u;

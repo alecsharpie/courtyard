@@ -279,3 +279,25 @@ between the birds arriving and leaving — no rain at all in season — and thos
 the town's whole first year.
 **Law:** the census's three ages equalise WARMTH, a cosine, so they sit at TWO phases: a season not
 symmetric about midsummer reads on ONE cell of three.
+
+## Iteration 190 — a visit at a window is offered inside the lamp's own hours (2026-09-04) [Roofs & skyline × Connect]
+
+**Brief:** b190 — c275: a lamp goes out under a figure at s = 0.4
+**MEASURED** (`probes/pane-truncation.mjs`, new: a RUN is a maximal stretch where `paneFigure` != null,
+each sample also asked `windowLit`). Of **807 visits a year**: 158 CLEAN, **68 CUT SHORT** (half of
+themselves, worst 97%), 55 LATE, **527 UNSEEN** (dark room all evening). **80% thrown away.**
+**Did.** `lampBurn(sa,sb)`: windowLit's own body lifted out — this pane's evening burn `[on,off)`,
+HOMES and all, written onto `windowHours()`'s fresh object so no other caller sees it. windowLit reads it
+(lit/night **10.61 -> 10.61**: the lamp did not move). `paneFigure` reads it too and solves the
+LENGTH before the hour, the last set-out being the one that finishes:
+`t0 ∈ [max(FIG_T0,on), min(FIG_T1, span-0.8, off) - dur]`. After: **0 CUT, 0 LATE, 0 UNSEEN**.
+**Re-priced.** Every accepted coin is now a WHOLE visit: density 0.91 -> **1.64**. `FIG_SHARE` 0.32 ->
+**0.16** holds #182's hand-tuned look: **0.98 of 10.61** v HEAD's 0.91 of 10.61, 59/17/9% at 0/1/2 v
+57/18/12. (The brief's 1.17 of 13.05 is #182's own, pre-drift.)
+**Gates:** census PASS (unchanged: render state) · motion PASS · filmstrip 0 POP · 5 framings · look
+probe 122 px on a 0 px same-code floor (HEAD 77) · perf skipped
+**Verdict:** shipped
+**Surprise:** the bug the brief named was the small half — 68 truncations against 527 visits offered
+into dark rooms. The two clocks did not merely disagree at the END; they barely overlapped.
+**Law:** two clocks over one subject: the one owning its EXISTENCE bounds the other. And a hand-tuned
+SHARE prices the YIELD — a fix making each accepted coin pay must re-price the coin.

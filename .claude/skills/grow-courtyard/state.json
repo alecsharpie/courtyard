@@ -610,7 +610,8 @@
       "OUR OWN ROOF below the lane: rows 79..WH WALL, NEAR_SPANS, NEAR_HOUSE 7/houseOf(x), NEAR_RIDGE; drawNearRoof CACHED - drawCrests, WELLS, DORM_Y, drawParapet, OUR_AWNINGS, LOFTS, roofWalkZ; its TOP (#171) LEADS tile 17 rows 86-87, leadsHouse/drawLeadsCell, HATCHES/LEADS_BAYS, tenantErrands",
       "eaveFor() returns 0 for y >= LN_WALK_S deliberately: project() lifts z northward, so our block at its true eave would DRAW in front of the lane. A CASTING height is not that eave (#146, #151)",
       "the near block is SLATED: drawRoofRow forks at LN_WALK_S to drawSlateCell/slateRun on slateGrid(y); per-slate roofMossF()/sootAt()/slipped; roofBirdSpot; ROOF_FURN 24 per BAY",
-      "somebody AT a window (#182): paneFigure/drawPaneFigures off LIT_PANES {q,sa,sb,room}, hashed on nid, drawn last with the moths, clipped to its pane"
+      "somebody AT a window (#182): paneFigure/drawPaneFigures off LIT_PANES {q,sa,sb,room}, hashed on nid, drawn last with the moths, clipped to its pane",
+      "the lamp's clock owns the visit (#190): lampBurn() is windowLit's body lifted out — the pane's evening burn [on,off) incl HOMES; paneFigure clips to it, dur before t0 -> 0 cut/late/unseen; FIG_SHARE 0.32->0.16"
     ]
   },
   "openCues": [
@@ -677,6 +678,12 @@
     {
       "id": "c282",
       "note": "every bird answers the pointer but the CUP does not: a martin's nest is absent from the sill's naming fall-through, where roofFurnAt and faceAt both are.",
+      "raisedBy": 185,
+      "seenBy": 0
+    },
+    {
+      "id": "c283",
+      "note": "windowLit's early risers (the sunrise-keyed branch) are never offered a paneFigure, so a pane lit before dawn is always an empty room",
       "raisedBy": 185,
       "seenBy": 0
     }

@@ -14,30 +14,7 @@
     "balance": "Coverage was four iterations stale (lastIteration 181 against a run at 185); recorded and re-read. By domain the queue takes the five longest-untouched in order of neglect: People & animals 8 back (#177), Sky 7 (#178), Courtyard 6 (#179), the Sill 5 (#180), Roofs 4 (#182). By KIND — which the standing watch note says to read first, and which is the axis that actually moves — the totals through #185 are deepen 53, connect 41, new-element 30, polish 29, scale 20, interaction 13, harness 12, new-ca 8, fidelity 2. Three of the five briefs come from the three thinnest columns: b187 is the 3rd fidelity ever, b188 the 14th interaction and the FIRST in the sky domain, b189 the 9th new-ca and the first in the life domain (c272: sky and the sill are then the only two left without one)."
   },
   "rationale": "mapFlat is showing at 16, so the rung is 4+ and the signal names 4b. The standing watch note forbids re-deriving the map-is-full argument, and this pass found the reason it keeps firing anyway, which is worth more than the brief it produced: #181 added ICE, the 19th tile kind, and the census reported UNCHANGED IN EVERY FIELD. All three census ages sit at warmth 0.6929 on purpose (the #14 fix, so that the age axis measures age), so a winter-only kind is structurally invisible to the gate that mapFlat reads. The signal has been telling the truth about a blind instrument. So this batch does both halves: b186 makes a spatial change the census CAN see, and b187 makes the instrument able to see the one it could not.\n\nI shot and MEASURED the town before planning it, as the watch note demands, and the bet is a number rather than an impression. The courtyard — the piece's namesake, the left half of every wide frame — has 1,896 PATH cells in the annulus between the ring bed and the edge beds (seed 42, warp 625; r 13.8 to 37.8 off the linden). That is 15.6% of the world's 12,144 cells, the largest single-tile ground surface in the town, 2.6x the plaza's 730 PATH and larger than the river's 920 WATER. Standing on it: four BENCH_SPOTS. The plaza, a third the size, carries a fountain, a roundel, PLAZA_PITS, six benches, six FOUNT_STANDS, two crumb spots, a rail, five bollards and a fourteen-place door. This is NOT the 'that surface looks flat' brief the watch note kills on sight — PATH.court measures sd/mean 0.143, mid-table, and the texture is fine. The claim is OCCUPANCY, and it is counted.\n\nb186 puts a covered walk on that ring: rung 4b by the census (a new tile kind, and unlike ICE one that exists in July), a new-element in the domain that has had exactly one in 185 iterations, and the biggest change available to a visitor's first ten seconds. The other four spend the thin kinds and the long-untouched domains, each carrying the number it rests on. Curation: coverage four stale; six cues closed (two spent by #183/#182, one duplicated by the watch table, two promoted to b188/b190, one folded into b187); inventory merged 58 -> 55 entries and 9.6 -> 9.4 KB with the note's stale caps corrected to the ones rotate-ledger actually enforces; and LAWS took #181-#185's five laws by MERGING into the bullets they sharpen, paid for with eight named cuts. Quota back to 45.4/46 and laws to 11.9/12.",
-  "queue": [
-    {
-      "id": "b190",
-      "domain": "Roofs & skyline",
-      "kind": "connect",
-      "brief": "c275, promoted. A pane's lamp can go out in the middle of somebody's crossing. `windowLit(sa,sb)` owns bedtime — `windowHours`, HOMES, the miller, the early risers keyed on sunrise — and `paneFigure(sa,sb)` owns the visit, solving `s = (n.t - t0)/(FIG_MIN + FIG_SPAN*hash(...))` over its own window FIG_T0..FIG_T1 clipped to `n.span - 0.8`. Neither asks the other, and `drawPaneFigures` walks LIT_PANES, which is rebuilt each frame from the panes that are lit — so when the lamp goes out under a figure at s = 0.4 the figure does not finish crossing, it ceases. Measure it first (#182's own probe, `probes/pane-figures.mjs`, already reports 1.17 occupied of 13.05 lit and 0 empty nights): count the crossings that are cut short over a seeded year before you fix anything, so the ledger carries the number. Then make the two clocks agree — the cheapest correct fix is for the visit to be offered only inside the lamp's own remaining hours.",
-      "seams": [
-        "windowLit",
-        "windowHours",
-        "paneFigure",
-        "drawPaneFigures",
-        "LIT_PANES",
-        "HOMES",
-        "nightAt",
-        "FIG_T0",
-        "FIG_T1",
-        "probes/pane-figures.mjs"
-      ],
-      "successLooksLike": "A probe reports the truncation rate on HEAD and 0 after, with occupancy (1.17 of 13.05) and the 52/18/12% at 0/1/2 within noise of #182's numbers — the fix must cost the town almost no figures, and if it costs many, say so and re-price.",
-      "avoid": "Do not keep a pane lit because somebody is in it — the lamp's clock is the town's bedtime and it wins. Do not give the figure its own persistent object; #182's whole design is that it is solved per frame from `nid` with no anchor that can go stale.",
-      "budgetMin": 25,
-      "risk": "low"
-    }
-  ],
+  "queue": [],
   "recommendStop": null,
   "consumed": [
     {
@@ -55,6 +32,10 @@
     {
       "id": "b189",
       "at": "2026-09-04T02:48:45.357Z"
+    },
+    {
+      "id": "b190",
+      "at": "2026-09-04T03:22:31.236Z"
     }
   ]
 }
