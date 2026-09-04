@@ -3,59 +3,6 @@
 Entries rotated out of `LEDGER.md`. Append-only. **Only the manager reads this** —
 a worker that opens it to "catch up" spends its whole context on history.
 
-## Iteration 145 — the town gets into its river (2026-09-03) [River & far bank × Deepen]
-
-**Brief:** b145 — the water held the moon and one baked bank-smear and nothing else; put the standing things IN it, fade with depth, let windF break them. Take the swing.
-**Did.** `MIRROR`/`setMirror()`: one SIGN in `project()` (`LIFTM = LIFT * MIRROR`, folded so the hot path keeps its single multiply). A negative z is the mirror, so **each caster's reflection is the caster's own draw** — no second geometry to drift. `drawWaterMirror` draws five casters into an offscreen with `setMirror(-1)`, dies each away from its own waterline (`destination-in`, REFL_FADE 3.6 cells), chops what's left into bars that drift on `FLOW_SPEED` and shiver on `windT` (`destination-out`), punches the eyot, and composites once under a water-path clip at REFL_A 0.42. Casters: the lane bridge (arches + balustrade, into the near water), the footbridge, the mill wheel, the jetty, the willow. Six one-line `MIRROR > 0` guards stand down the things drawn ON the water — four cast shadows, the wheel's foam, the boat under the deck, and the willow's `crowns` push.
-**Premise half-wrong, and the geometry says so.** The clock tower is at **x 63.8–66.2**, fifty cells west of the channel, and the church at **x 131–136**: at LIFT 1.15 an image runs *southward* out of its caster's feet, so both fall on dry land. Named in the source comment with their coordinates.
-**Gates:** census PASS, six groups unchanged (no `R()`) · motion PASS · filmstrip **0 POP** day and night · `probes/frame-diff.mjs` **0.362%** of the picture moved, bbox x 986–1125 — the river column and nothing else; Courtyard/lane/mobile **byte-identical** (the box cull is exact) · perf: `probes/refl-cost.mjs`, windy, five cameras, +0.32 ms Wide, **+0.57 ms Plaza** (worst), **+0.008 ms Courtyard**.
-**HEAD → cand.** `probes/road-surface.mjs`: FRAME **WATER sd/mean 0.1737 → 0.1772**, every other class 0.0%, and the **CACHE unchanged everywhere** — nothing baked. Added mark 14 762 px against a same-code control floor of **450** (33×), and the shapes are the arches, the deck, the wheel. `probes/refl-band.py`: row-profile hf/mean **0.065 calm → 0.218 windy**. Frame-to-frame in the bridge's band: **0.000 calm, 1.4–2.0 windy** — a still river holds a still image.
-**Verdict:** shipped
-**Surprise:** the pass is not its draws. The five mirrored draws total **0.118 ms**; the other 0.41 ms is masking and compositing — and both "obvious" savings made it worse, clipping the offscreen to the water 0.689 ms and a full-canvas `destination-in` **1.48 ms**, against this arrangement's 0.57.
-**Law:** a cast image's TARGET SET is southward at this camera, and a caster's own draw is its image — put the sign in `project()`, and make every draw that lands ON the plane read it.
-**Cue:** the boats are the one caster class left out, and the rows-3-12 bank-smear is now the only un-live thing in the water.
-## Iteration 138 — the plots get their tools (2026-09-03) [Cross street & allotments × New element]
-
-**Brief:** b138 — furniture for the seventeen plots, on ROOF_FURN's model, per plot off hash(plot). Full entry in LEDGER-archive.md.
-**Did.** `ALLOT_FURN`/`PLOT_BOX`: shed, compost bay, water butt, barrow, bean canes, cloche — solved ONCE off `hash(plot)`, held in world coordinates, drawn into the ground cache before `drawGlassBack`, named by `allotFurnAt`/`allotFurnName` off the boxes the paint uses. **38 pieces over 15 plots**, zero `R()`. A plot owns x [ox, ox+4) y [oy, oy+3) — beds plus a south and east apron — leaving a whole cell of way in x and the WEST side clear, where `sendToPlot` lands its holder. Canes/cloche gated on the warm/cold half of `warmth` with per-plot slack; the barrow on somebody kneeling — live state under a cached surface, so `barrowKey()` drives `groundDirty` as `washPainted` does (2.5 extra rebuilds a sim day).
-**Gates:** census PASS — `structures +342`, new `plotFurniture 342`, nothing else across 9 cells; baseline **re-pinned** · motion PASS · 0 POP · perf ±0.0%, `drawGround()` interleaved 34.00 → 34.10 ms · legible Street/Wide/390×844/night. `probes/plot-furniture.mjs` 0 geometry violations, all five clauses fire on a moved piece; `probes/plot-naming.mjs` drives a real mousemove, all six kinds named.
-**Verdict:** shipped
-**Surprise:** the brief's cane gate was a feature at a rate of zero, through DWELL. Beans are **3.1%** of standing allotment cells against cabbages 47.1 — not because they are rarely sown but because cabbages are the one `hardy` species and stand the winter. Canes on a presence test showed on 1.5% of a year; gated on the season they are up 49.7%.
-
-## Iteration 139 — the gardener works the stretch the light allows (2026-09-03) [Courtyard & garden × Deepen]
-
-**Brief:** b139 — re-price gardenerKneel's continuation so a gardener who has knelt finishes the bed. Full entry in LEDGER-archive.md.
-**Premise confirmed, diagnosis wrong.** `probes/gardener-rows.mjs` (10 seeds × 26 days) reads the branch off the R() call count *inside* the call: a growing morning is **1.54 rows/visit**, exactly #129's number. But the refusals are ARITHMETICALLY HONEST — the cheapest legal continuation finishes 2.75 h after the lawn closes. Nothing was double-charged.
-**Did.** The row was drawn BEFORE it was priced, so a drawn length that did not fit refused the *whole* continuation. Now `room` is what is left for the row once the shuffle and the walk home are paid, and the row takes `min(nd, room)`, floored at `GARDEN_ROW_MIN` 2.5 s. Draw COUNT unchanged in every branch.
-**Gates:** census PASS, re-pinned · motion PASS · 0 POP · visual PASS at a *divergent* instant (my first HEAD/cand pair was byte-identical — the builds had not diverged there yet). Growing morning **1.54 → 1.79** rows/visit; continuation 33.4% → 42.1%; light refusals 10.6% → 0.7%; unspent light 2.38 → 1.19 h. Choice shares hold, latest departure identical.
-**Verdict:** shipped — but the brief's **2.5 bar is not met and is not reachable**, and that is the finding.
-**Surprise:** the bar was set without pricing the row. Window 12.0 h; walk in 3.4 h, already optimised; the nearest other edge bed is 4.08 cells so the shuffle is irreducible; a row is 2.91 h. From a 10.4 h first kneel the day holds 2.1 rows at best. Swept and rejected: halving the row buys +0.39 and costs the dwell; GARDEN_MORE 0.9 buys +0.05 — the roll is no longer the binder, the light is (c221).
-
-
-## Iteration 140 — the buildings get their shadows (2026-09-03) [Roofs & skyline × Connect]
-
-**Brief:** b140 — nine cast shadows and every one an object; give the BUILDINGS theirs. Full entry in LEDGER-archive.md.
-**Did.** Two static grids beside `buildVolumes()`, one live pass beside `drawCloudShade()`. `shTop[]` is a solid cell's ROOF SURFACE, not its eave, so the far edge is #130's ragged skyline. `shOpen[]` — one south-to-north sweep per column carrying the deepest thing standing in FRONT of each cell — is the whole design. `buildSunShade()` marches each solid column down-sun (`dialThrow`'s solve, per cell of height) into a quarter-cell mask cached on a sun quantised to 1/64; `drawSunShade()` merges each row into runs and fills them as ONE path, ONCE. `shadowF()` fades it, `shOffset()` retracts the throw, `shSpread()` is the blur radius, zero at a clear sky.
-**Gates:** census unchanged · motion PASS · filmstrip day/dusk/dawn 0 POP · `frame-cost.mjs` 4.18 → **4.31 ms** · the edge creeps 0 or +1 sub-cell (2.2 px) a frame, never more.
-**HEAD → cand** (`probes/shade-diff.mjs`, seed 42, clear 16.9 h, 1600×950; same-code control 815 px): **25,343 px changed (2.40%)**, **94.8% open ground**, 4.6% the seam against the wall casting it, 37 px sky. Ground shaded **5.1%**; midwinter 10.5%; summer noon 0.1% — in under the eaves. No stacking (p0.1 luma 34→34). sd/mean: PATH.other **0.148→0.187**, ROAD.cross +16%, PATH.court +2.3%; CACHE 0.0%. 390×844: 1.20%.
-**Verdict:** shipped — but "half the courtyard in shade" is not reachable, and that is the finding.
-**Surprise:** the binder is `sunVec()`, not the shadow. Midday sun sits at 65–76°, so a throw is 0.33–1.0 × height: a 5.4-cell courtyard wall reaches TWO cells across a courtyard 58 wide — hence PATH.court +2.3% while the ten-cell cross street moves +16%. And ROAD.lane moved **0.0%**: the only volume south of the lane is our own block, whose eave is a fiction at 0.
-**Law:** a cast shadow's TARGET SET is a visibility question before a geometry one — `project()` lifts a volume ~LIFT rows UP the frame, so a northward throw must be vetoed per column or it paints the caster's own roof; and price its EXTENT off `-S/S[2]` before briefing it, because `sunVec()` is a stylised HIGH sun.
-**Law:** quads that must not double-darken are ONE path filled ONCE — overlapping subpaths wind to 2; per-quad fills seam and multiply twice.
-**Note:** `context-budget.mjs` reads **OVER — 47.2 KB of 46 KB** after this entry, its laws and its two cues.
-
-
-## Iteration 147 — the allotments are monoculture, and the brief's bug does not exist (2026-09-03) [Cross street & allotments × Deepen]
-
-**Brief:** b147 — make `plotCrop()` answer for the PLOT, not its first sown cell, so one cabbage stops lifting a plot's tender cells to the winter ceiling.
-**Priced the premise first, and it is false.** A year x 3 seeds (`probes/allot-year.mjs`, 69,008 sown plot-samples): **0** held two species (species/plot **1.000**), so the first cell WAS the majority, and **0** had a hardy cell under a tender majority. In deep winter tender cells in the open reach stage 3 **0 times**, against hardy 21,474 and glass 10,191: `successLooksLike` already holds on HEAD, exactly. Monoculture because caTick's infill sows a bare cell with `plotCrop()` itself, `harvestPlot()` lifts the row whole, and the kneel plants nothing — none of it the read.
-**The premise's source:** `plotClimbs()`'s comment claimed the first-cell read missed "a fifth of the plots that actually had beans". Re-counted, they agree **13,012 of 13,012**.
-**Did.** Killed the false claim; wrote the measured invariant at `plotCrop()` — the three conditions holding it, and the successor read for the day one goes.
-**Gates:** census **byte-identical** · visual PASS · motion/perf skipped: no draw, no `R()`.
-**Verdict:** briefRejected — source corrected, feature not built.
-**Surprise:** the hand-sow branch is dead. 101 allot kneels a year = 71 harvests + 15 turns + 15 hand-sows, and the hand-sows plant **0 cells** — a kneel only reaches an UNRIPE plot, and by then the infill has filled it. A holder comes in through the gate, kneels, plants nothing, says nothing, walks out.
-**Law:** a stale source COMMENT is a brief generator — when you refute a premise, delete the sentence that produced it, or the loop pays for it again.
-
 ## Iteration 148 — the plaza's families are priced at both ends of a window the sun cuts (2026-09-03) [Plaza & quay × Scale/World]
 
 **Brief:** b148 — price presence as rate × visit BEFORE moving either, then sweep the rate and the window and keep the knee. Do not raise `FAM_CAP`.
@@ -878,4 +825,119 @@ floor · repaints +3.7%
 words. It can: the three ages sit at two phases symmetric about midsummer, but riverLev is LAGGED,
 so those two are no longer one number and the strand reads on one cell of three.
 **Law:** #189's, backwards — a symmetric ladder CAN see a term whose extreme is off midsummer.
+
+## Iteration 193 — the market's size tracks the year (2026-09-04) [Lane & market × Deepen]
+
+**Brief:** b193 — re-measure the supply MK_NEED is set against; set the rungs on it.
+**Measured** (`probes/market-need.mjs`, new; 6 seeds x 4 yrs = 156 markets, AT THE LATCH). Supply **0**, p25 20.0, MED **51.5**, p90 100 — #184's are stale both ways: 3 stalls on 82% not 86%,
+and mkTotal **0 IS reachable** (8 of 156 under 2 units).
+**Did.** `MK_NEED = [0, 2*MK_GOODS, 2*MK_CAP]` — two board-loads for a second trader, two market-loads
+for a third. 4 and 13 were #30's quartile and median, and #172's crew has since doubled the store, so
+both sat under today's p25. Mean pitches open, midwinter -> late autumn: 2.79 1.92 2.13 3 3 3 3 3
+-> **1.88 1.25 1.58 2.92 3 3 3 2.75**; three-stall markets 82% -> 62%. Then the couplings a live rung
+woke: capacity was the three pitches that EXIST and is off mkOpenCount() now (a control differing in
+only that strands **5.2 units a 2-stall market**, candidate 0.02); and `tapCallers`, which stood the
+evening trader down with stall 2, takes the last that traded.
+**Gates:** census PASS (reshuffled — that trader walks every market now) · motion · 0 POP day and
+night · lane, day 22, one seed: HEAD's three thin boards [5,5,5] -> two full [6,6,0], pavement bare.
+**Verdict:** shipped
+**Surprise:** the crate-spot guard for the same coupling measures **exactly 0** — 1343 footway cells
+with and without: a market thin enough to close a pitch carries 3 crates at most, and the first 3
+spots belong to the first 2 pitches.
+**Law:** making a DEAD constant live wakes every coupling keyed to what it gated — capacity, a spawn
+and a draw site all assumed the full set. Re-price them all, and spell a rung in the system's OWN
+units, never as a quantile of a distribution that moves out from under it.
+## Iteration 194 — the plaza gets a day of its own (2026-09-04) [Plaza & quay × New element]
+
+**Brief:** b194 — a market, a concert, a bonfire and a cart on the calendar; the plaza none.
+**Did.** `isFairDay()` = `hash(day, 907 + WIND_SALT) < 0.2`, ~5 days a 26-day year, salted.
+`fairF()` is the concert's shape (up 1.6 h, hold, down 1.5 h) on hours off the sun and drives
+all of it: `fairDress()` garlands the fountain rim and hangs two bunting swags between the
+plaza trees; the CROWD is the concert's model — 10 claimed `FAIR_SLOTS` on an ellipse north and
+south of the basin (13 cells of x: a full ring has nowhere to stand), own tick, own rate, own
+budget, and nothing out of `PLAZA_PLACES` — a band in that ladder is a share, not a source.
+In by the alley, priced like the families.
+**Gates:** census PASS (the diff is the new `R()`'s reshuffle) · motion PASS · 4 shots + Plaza
+camera + mobile · filmstrip 0 POP · dressing 2042/850 px on a same-code floor of **0 px**. `probes/fair-year.mjs`, 6 seeds × a year, 34 fair
+days v 122: plaza presence in the window **15.51 v 9.81**, standers **3.00 v 1.35**; the pinned
+ref `8682828`, on the SAME days, reads ×1.07 / ×1.43.
+**Verdict:** shipped
+**Surprise:** over 2 seeds × 8 days the fair "pulled" +40% into the LANE and the COURTYARD —
+clean and wrong. Its days fell late in that run and this town RAMPS (maturity, `day >= N`), so
+the comparison read the ramp. Over a year both go flat. Not noisy — biased.
+**Law:** a per-day event judged against "the other days" of a short run reads the town's own
+RAMP as its effect — pool a YEAR, and label the days from PRIMITIVES so a pinned ref labels the
+same ones.
+**Cue:** 4 of 34 fair days filled 0 slots — `fairGathering()` refuses on `raining` and that is
+the only window, so a shower at the raise costs the whole day.
+## Iteration 195 — how much of the shelf still runs (2026-09-04) [The sill & the observer × Harness]
+
+**Brief:** b195 — smoke-run every probe; the NUMBER is the deliverable.
+**Did.** `probe-smoke.mjs`: every `.mjs`/`.sh`/`.py` probe spawned with a timeout, N-way
+→ PASS / THROW / TIMEOUT, timeouts split `partial`/`silent`. Manager cadence, not a gate.
+**The number** (75 s, 7-way): **361 instruments — 230 pass, 35 throw, 96 time out**, 58 of
+the 96 partial. skill 283 · root 56 · scratch 23.
+**THREE trees, not two.** The third is a *tracked* `probes/` at the repo root: 56 files, 36
+iterations, **#191/#192/#193 landed there**, named by no doc. SKILL.md's "`git mv` it into
+`probes/`" is correct for the WRONG tree from the repo root; it now spells the path out.
+**One cause owns 9 of the 32 .mjs throws:** `spawnSync git ENOBUFS`. courtyard.html crossed Node's
+1 MiB default `maxBuffer` at **#181**, so every probe shelling `git show HEAD:courtyard.html`
+without raising it has thrown for 13 iterations — the *control* pattern LAWS.md mandates, dead
+across the shelf. Fixed the 2 where `maxBuffer` sat as a 3rd arg `execSync` never reads.
+**Gates:** census PASS · visual PASS. HARNESS — courtyard.html is byte-identical to HEAD, so
+`srcChanged:false` is expected.
+**Verdict:** shipped
+**Surprise:** `probes/README.md` closed this bug at **#11** — "There is one `probes/`, and this is
+it." It held 102 iterations, reopened at #113, and has sat in the winning tree denying the loser
+since. `bonfire-year.mjs`, the brief's motivating corpse, **passes**: #185 fixed it.
+**Law:** an instrument is a build artifact too — nothing runs the shelf, so a probe breaks silently
+and stays broken, and the cause is usually not the probe but the ARTIFACT crossing a limit it never
+named. Smoke a control before you trust it.
+
+## Iteration 196 — a moon to see by (2026-09-04) [Sky, light & weather × Connect]
+
+**Brief:** b196 — #188 put a month on the calendar; no light in the town could see it.
+**Did.** `moonLight()` = moonLit × ALTITUDE × (1 − cloudCover), RAMPED off nightF and gated on the
+DISC's own `daylight`. INSIDE applyLight's night multiply, signed about MOON_REF so both ends open.
+Then `drawMoonSheen()` in the screen pass — water, ice, snow, wet paving, the near slates — off the
+GRID via cellRuns().
+**Pivot MEASURED** (moon-light.mjs, 6 seeds × a lunation): mean **0.162**.
+**HEAD → cand, same instants** (moon-night.mjs, 3 seeds × a lunation, 1,062 frames): mean **47.94 → 48.30 (+0.75%)**, RANGE **75.7 → 79.0**, **715
+darker, 340 brighter**; new under cloud 49.71 → **45.23**, full and clear 38.43 → **57.44** (sd
+20.9 → **29.2**). CONTROL, one instant, only MOON_START moved: **33.3 → 51.5, ×1.55**. The DAY frame
+is **0 of 778,752 px** off HEAD; that test at night, 21.4%.
+**Gates:** census PASS (unchanged — zero R()) · motion PASS · filmstrip 0 POP · 8 framings · not
+in `lightNow()`: 98 ground rebuilds/day on BOTH builds.
+**Verdict:** shipped
+**Surprise:** the slate pass cost **2.641 ms of a 5.8 ms night frame — 47%** — and perf.mjs read
++0.0% straight through it, vsync-locked at 16.70. Not the arithmetic: baking every corner height
+into a Float32Array changed **nothing**. It was 5,475 canvas path calls. The camera is still
+on **599 of 600 frames** of play, so a Path2D keyed on project()'s own seven terms: **0.001 ms**.
+**Law:** a lift taken out of a multiply's ALPHA moves every channel toward the un-multiplied
+source, so it WARMS — only the COLOUR lifts and cools at once (50% off alpha: blue/red 1.27 v
+HEAD's 1.90). A per-cell overlay's cost is the PATH BUILD, not the fill.
+
+## Iteration 197 — the allotments are allowed to go over (2026-09-04) [Cross street & allotments × New CA]
+
+**Brief:** b197 — a weed CA on the beds, founded on a cell fallow past some age.
+**Premise half wrong** (allot-neglect/allot-age.mjs, 6 seeds x a year). bAge on an EMPTY bed
+— the clock the brief named — counts DOWN: over 437,580 cell-samples its **max is 19.98 s**,
+and it stands on 2.48% of them. Nothing is ever fallow *past* an age. Its OTHER branch, on a
+PLANTED cell at its ceiling, counts UP unbounded and is cleared only by plotAct's weeding
+rung — **max 232.8 s**. Right array, wrong half.
+**Did.** `rank[]` in caTick beside the moss: FOUND on weedAge(i) (42..120 s, hashed, salted),
+CREEP 0.5 along the drill / 0.22 across, SHADE off bSt, WORK off a climbing crop, COLD off
+warmth. **Zero R().** The hoe rung goes FIRST in plotAct: the rung beside it fires **5x in 6
+seed-years** — `up.length` takes almost every visit. Drawn in the GROUND CACHE with the moss.
+**Gates:** census PASS (rankBeds 287, winter 0) · motion PASS on a HEAD-pinned baseline ·
+filmstrip 0 POP · 6 framings · rebuilds and drawGround flat, interleaved. MASS **1,658-2,894
+px at 1600x950**, same-code floor **0 of 18 rows**. SPREAD, peak quarter: **77.9%** of frames
+hold 3+ clean plots AND 3+ gone right over.
+**Verdict:** shipped
+**Surprise:** WEED_WORK is the whole build. Without it the block goes **uniformly rank** — 66%
+of plots pegged at the top, the middle bands empty — as dead a picture as uniformly tidy, just
+inverted. What makes it read is that the HARVEST CYCLE holds weeds back: a plot being lifted
+and re-sown is ground being worked, and one nobody reaches is not.
+**Law:** a "nothing shows X" premise names a STATE, usually on the OTHER BRANCH of the array
+named. Price both halves before calling a system absent.
 
