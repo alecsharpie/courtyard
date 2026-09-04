@@ -25,7 +25,7 @@
   "avoid": "Do not change a footprint or a roof height — the roofs are emergent and the law is explicit. Do not add a per-drop particle system; this is fabric, and the rain already has stepDrops(). Do not create a second puddle source: bias pudHollow, do not bypass it. Do not put pipes on the near block's slates without checking nearScale — at NEAR_SZ 1.95 anything drawn there is twice the size it is across the lane.",
   "budgetMin": 55,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 213,
   "issued": "2026-09-04T22:13:05.505Z",
