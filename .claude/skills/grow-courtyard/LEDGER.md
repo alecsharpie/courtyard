@@ -208,4 +208,27 @@ loud edge is not the stop branch but `seatRefused()` — somebody who walked her
 the seat they came for. Both, on `weatherComing() > SIT_REFUSE`: 7 -> 237.
 **Law:** a weather-ended stay has two edges, the loud one the arrival's REFUSAL; and a face is
 drawn only on a SOUTH neighbour, so a hole cut in any other side is unseen.
-**Cue:** LAWN_CAP is the bound, a sixth kind a SHARE — 495/491/488 set-outs at stroll .20/.12/.07.
+
+## Iteration 187 — the gate is given a winter to read (2026-09-04) [Sill & observer × Fidelity]
+
+**Brief:** b187 — the census cannot see winter; add a reading without re-cutting the ladder.
+**Did.** An ADDITION, never a re-cut: `WINTER` is the same 3 seeds x warp 1220, summed into a `winter`
+block under its own `winterLadder`, off a shared `groups(cells)`. `LADDER` is untouched,
+so every RUNLOG row stays comparable and an old baseline diffs the summer nine as before. Also
+`--ref <rev>`. 1220 is the ice PLATEAU, not the cold: the freeze lags ~9 days and midwinter is
+nearly its emptiest instant (`probes/winter-window.mjs`, new).
+**Proved on two REFs, not on HEAD.** `#181^ -> #181`: the summer key IDENTICAL both sides, all 7
+scalars — the commit that added the 19th tile kind moved nothing. Winter moves: tileKinds
+**18 -> 19**, frozen **0 -> 1003**, margin **0 -> 2040**; #181^ prints WEAK, 0 of 0.
+**c266.** Seed 42 is now **0 of 5** wet at seed-identity's pins, 2 of 5 at #175: the drift the cue
+predicted, here. Only 99 of 15 seeds is wet at 3, so the default is `--seed 42,99` and the
+exemption differs at 3 of 15 where 42 gave 0.
+**Gates:** census PASS, nine cells byte-identical · winter noise 0 over two runs on a fresh pin ·
+2 shots · motion/perf skipped, the page untouched. mapFlat reads it from here: `runlog.mjs`
+carries `census.winter`, `stall.mjs` keys winter `tileKinds`/`margin`.
+**Verdict:** shipped
+**Surprise:** the ladder was the SECOND blindness. `__census().ice` has been in the page since #181
+and `summarize()` folded it NOWHERE, so a winter ladder alone would have reported only a tile
+count. Suspect the reporter before the sample.
+**Law:** extend a gate by ADDING a row under its own ladder string, never re-cutting the one the
+baseline travels with.

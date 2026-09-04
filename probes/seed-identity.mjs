@@ -3,7 +3,7 @@
  *
  *   node probes/seed-identity.mjs                       # the working tree
  *   node probes/seed-identity.mjs --ref 'Iter 175'      # a REF, checked out to /tmp
- *   node probes/seed-identity.mjs --seed 7 --verbose
+ *   node probes/seed-identity.mjs --seed 7,99 --verbose
  *
  * THE CLAIM. The frame is a WINDOW on the town and never a fork of it: given one seed,
  * every viewport must run the SAME simulation. So load `courtyard.html` at each framing
@@ -41,7 +41,17 @@ const REPO = resolve(HERE, '..');
 const arg = (n, d) => { const i = process.argv.indexOf(n); return i !== -1 && process.argv[i + 1] ? process.argv[i + 1] : d; };
 const has = (n) => process.argv.includes(n);
 
-const SEED = arg('--seed', '42');
+/* TWO seeds, and the second one is chosen FOR ITS WEATHER (#187, cue c266). The
+ * exemption below is only earned while the pinned instants actually RAIN, and seed 42
+ * no longer does: swept at 125/128/200/415/700 it now reads cloud 0.071 / 0.084 /
+ * 0.079 / 0.137 / 0.330 and raining=false at all five — 0 of 5, where #175 measured
+ * 2 of 5. The world drifted out from under the pins, which is exactly the rot c266
+ * predicted, and the gate has been printing WEAK for it. Of fifteen seeds swept
+ * (1..12, 42, 99, 1234) only three are wet at any pinned instant — 8 and 1234 at one
+ * each — and seed 99 is wet at THREE, including 125 and 128, the two instants written
+ * for the recycle branch that caused #176's fork. So 99 is the seed that keeps the
+ * mechanism under test; 42 stays because every earlier reading of this gate is its. */
+const SEEDS = arg('--seed', '42,99').split(',').map(x => x.trim()).filter(Boolean);
 const VERBOSE = has('--verbose');
 const REF = arg('--ref', null);
 let pagePath = arg('--page', join(REPO, 'courtyard.html'));
@@ -85,7 +95,7 @@ const flat = (o, pre = '', out = {}) => {
 };
 
 const browser = await chromium.launch();
-const read = async (sz) => {
+const read = async (sz, SEED) => {
   const pg = await browser.newPage({ viewport: { width: sz.w, height: sz.h } });
   const errs = []; pg.on('pageerror', e => errs.push(String(e)));
   await pg.goto(PAGE + `?pause&seed=${SEED}&t=0`);
@@ -110,15 +120,17 @@ const read = async (sz) => {
   return { out, errs };
 };
 
-console.log(`seed-identity — seed ${SEED} · page ${REF ? 'ref ' + REF : pagePath.replace(REPO + '/', '')}`);
+console.log(`seed-identity — seeds ${SEEDS.join(', ')} · page ${REF ? 'ref ' + REF : pagePath.replace(REPO + '/', '')}`);
 console.log(`  ${SIZES.length} framings: ${SIZES.map(s => `${s.w}x${s.h}(${s.from[0]})`).join(' ')}`);
 console.log(`  instants: simT ${INSTANTS.join(' ')}\n`);
 
+let allFails = 0, allPairs = 0, allWet = 0, allInstants = 0;
+for (const SEED of SEEDS){
 const reads = [];
-for (const sz of SIZES){ const r = await read(sz); reads.push(r);
-  if (r.errs.length){ console.log(`  PAGE ERRORS at ${sz.w}x${sz.h}: ${r.errs[0]}`); } }
-await browser.close();
+for (const sz of SIZES){ const r = await read(sz, SEED); reads.push(r);
+  if (r.errs.length){ console.log(`  PAGE ERRORS at seed ${SEED} ${sz.w}x${sz.h}: ${r.errs[0]}`); } }
 
+console.log(`--- seed ${SEED} ---`);
 const base = reads[0], baseSz = SIZES[0];
 let fails = 0, exempted = 0;
 for (let i = 0; i < INSTANTS.length; i++){
@@ -132,7 +144,7 @@ for (let i = 0; i < INSTANTS.length; i++){
     const eq = base.out[i].ents.join('\n') === reads[j].out[i].ents.join('\n');
     if (diff.length || !eq){
       fails++;
-      console.log(`FAIL  simT ${INSTANTS[i]}  ${baseSz.w}x${baseSz.h} vs ${SIZES[j].w}x${SIZES[j].h}`);
+      console.log(`FAIL  seed ${SEED} simT ${INSTANTS[i]}  ${baseSz.w}x${baseSz.h} vs ${SIZES[j].w}x${SIZES[j].h}`);
       for (const k of diff.sort().slice(0, 10)) console.log(`        ${k.padEnd(22)} ${bf[k]}  vs  ${cf[k]}`);
       if (diff.length > 10) console.log(`        …and ${diff.length - 10} more census fields`);
       if (!eq){
@@ -144,7 +156,7 @@ for (let i = 0; i < INSTANTS.length; i++){
         for (const e of only(reads[j].out[i].ents, bs).slice(0, 3)) console.log(`          only ${SIZES[j].w}x${SIZES[j].h}: ${e}`);
       }
     } else if (VERBOSE){
-      console.log(`ok    simT ${INSTANTS[i]}  ${baseSz.w}x${baseSz.h} vs ${SIZES[j].w}x${SIZES[j].h}  ` +
+      console.log(`ok    seed ${SEED} simT ${INSTANTS[i]}  ${baseSz.w}x${baseSz.h} vs ${SIZES[j].w}x${SIZES[j].h}  ` +
                   `${keys.size} census fields, ${base.out[i].ents.length} entities`);
     }
   }
@@ -163,11 +175,21 @@ for (let i = 0; i < INSTANTS.length; i++) for (let j = 1; j < reads.length; j++)
   if (base.out[i].census.clock.raining !== reads[j].out[i].census.clock.raining ||
       base.out[i].census.clock.cloud   !== reads[j].out[i].census.clock.cloud) worldRain.push(INSTANTS[i]);
 const wet = INSTANTS.filter((_, i) => reads.some(r => r.out[i].census.clock.raining)).length;
-console.log(`\nexempt: life.raindrops (canvas particles) — differed at ${exempted} of ${pairs} comparisons.`);
+console.log(`exempt: life.raindrops (canvas particles) — differed at ${exempted} of ${pairs} comparisons.`);
 console.log(`  earned? clock.raining + clock.cloud disagree at ${worldRain.length} of ${pairs}` +
             (worldRain.length ? `  ← NOT EARNED: the WORLD's rain forks at simT ${[...new Set(worldRain)].join(',')}` : '  — the world\'s rain is one world'));
 console.log(`rain reached: ${wet} of ${INSTANTS.length} instants had raining=true somewhere` +
-            (wet ? '' : '  ← WEAK: no instant exercised the shower; re-pin INSTANTS'));
-console.log(fails ? `\nVERDICT: FAIL — ${fails} of ${pairs} comparisons disagree. ?seed= does not name a world.`
-                  : `\nVERDICT: PASS — ${pairs} comparisons, all identical. One seed, one town.`);
-process.exit(fails ? 1 : 0);
+            (wet ? '' : '  ← this seed never rained') + '\n');
+allFails += fails; allPairs += pairs; allWet += wet; allInstants += INSTANTS.length;
+}
+await browser.close();
+
+/* WEAK is now a fact about the SEED SET, not about one seed: the exemption is earned
+ * as long as SOME pinned instant somewhere exercises the shower. A single dry seed is
+ * only a note; every seed dry is the rot c266 named, and the fix is a wetter seed
+ * rather than a wetter instant, because moving INSTANTS moves what #176 is tested at. */
+console.log(`rain, all seeds: ${allWet} of ${allInstants} seed x instant pins were wet` +
+            (allWet ? '' : '  ← WEAK: no pin exercised the shower; re-pick a seed FOR its weather'));
+console.log(allFails ? `\nVERDICT: FAIL — ${allFails} of ${allPairs} comparisons disagree. ?seed= does not name a world.`
+                     : `\nVERDICT: PASS — ${allPairs} comparisons over ${SEEDS.length} seeds, all identical. One seed, one town.`);
+process.exit(allFails ? 1 : 0);

@@ -4,6 +4,7 @@
  *   node census.mjs                  measure + diff against census-baseline.json
  *   node census.mjs --save-baseline  pin the current town as the baseline
  *   node census.mjs --json           machine-readable summary on stdout
+ *   node census.mjs --ref <rev>      measure a PAST tree (read-only: writes nothing)
  *
  * Loads courtyard.html across a FIXED seed x age matrix and dumps window.__census().
  * The page is loaded PAUSED and the sim is advanced by __warp() with a fixed dt, so
@@ -19,6 +20,7 @@
  */
 import { homedir } from 'node:os';
 import { readFileSync, writeFileSync, existsSync, appendFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -33,13 +35,24 @@ const { chromium } = (await import(pathToFileURL(PW).href)).default;
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(HERE, '../../..');
-const PAGE = pathToFileURL(join(REPO, 'courtyard.html')).href;
 const baseFile = join(HERE, 'census-baseline.json');
 const curFile = join(HERE, 'census-latest.json');
 const histFile = join(HERE, 'census-history.jsonl');
 
 const save = process.argv.includes('--save-baseline');
 const asJson = process.argv.includes('--json');
+/* A control fetched at HEAD expires the moment the change commits, so a claim about
+ * what this gate COULD see before a given build has to be pinned to a REF. `--ref`
+ * measures a past tree and writes NOTHING — no baseline, no latest, no history row —
+ * because a reading of somebody else's build is not this build's position. */
+const refI = process.argv.indexOf('--ref');
+const REF = refI !== -1 ? process.argv[refI + 1] : null;
+let pageFile = join(REPO, 'courtyard.html');
+if (REF) {
+  pageFile = `/tmp/census-ref-${REF.replace(/\W+/g, '_')}.html`;
+  writeFileSync(pageFile, execFileSync('git', ['show', `${REF}:courtyard.html`], { cwd: REPO, maxBuffer: 1 << 28 }));
+}
+const PAGE = pathToFileURL(pageFile).href;
 
 /* The matrix. Day length is 55 s: maturity() saturates around day 8, richness()
  * around day 16 — so these three ages are "young / filling in / fully grown".
@@ -60,6 +73,26 @@ const AGES = [{ name: 'day1', warp: 90 }, { name: 'day11', warp: 625 }, { name: 
 /* Two ladders are not comparable, so the ladder travels with the baseline. */
 const LADDER = `${SEEDS.join(',')} x ${AGES.map(a => a.warp).join(',')}`;
 
+/* THE WINTER ROW (#187). Everything above is one season by construction, which is
+ * why #181 could add ICE — the 19th tile kind — and this gate report NOTHING in any
+ * field: no cell in the matrix is ever cold. The fix is an ADDITION, never a re-cut:
+ * the nine cells above stay bit-identical and keep their baseline, and winter is
+ * summed into its own block with its own ladder string, so a baseline pinned before
+ * this iteration still diffs the summer nine exactly as it always did.
+ *
+ * WHY warp 1220, and not the cold. Midwinter is phase 0, i.e. simT 1072.5 — but the
+ * channel's skin is a CA integrating a growth rate, so it LAGS the cold by about nine
+ * sim days. Measured across the three seeds at warp 1000..1340 (step 20/30): frozen is
+ * 0/0/0 at 1040, still climbing at 1160, and flat across 1190..1250 at 318..333 /
+ * 326..338 / 340..340 before the thaw takes it back to 0 by 1340. 1220 sits on that
+ * plateau in ALL THREE seeds (333 / 337 / 340, snow 0.28 / 0.88 / 0.93), so the reading
+ * is the STATE the winter reaches and not a sample of the path it took — the shape a
+ * regression guard wants. The rate is probes/river-ice.mjs's job, not this one's.
+ *
+ * The seed axis is the same three, because the season is the only axis being added. */
+const WINTER = [{ name: 'winter', warp: 1220 }];
+const WLADDER = `${SEEDS.join(',')} x ${WINTER.map(a => a.warp).join(',')}`;
+
 /* Headline aggregates. `CORE` are structural: if one of these craters the town has
  * genuinely broken, and that is the only thing this gate hard-fails on. */
 const CORE = ['developed', 'green', 'people', 'planted'];
@@ -67,26 +100,31 @@ const TOL = 0.08;   // an 8% dip in a core aggregate is the collapse threshold
 
 async function run() {
   const b = await chromium.launch();
-  const cells = {};
+  const cells = {}, wcells = {};
   let pageerrors = 0;
   const errors = [];
-  for (const seed of SEEDS) {
-    for (const age of AGES) {
-      const p = await b.newPage();
-      p.on('pageerror', e => { pageerrors++; errors.push(`${seed}@${age.name}: ${String(e)}`); });
-      p.on('console', m => { if (m.type() === 'error') { pageerrors++; errors.push(`${seed}@${age.name}: console ${m.text()}`); } });
-      await p.goto(`${PAGE}?seed=${seed}&t=0&pause`);
-      await p.waitForTimeout(300);
-      cells[`${seed}@${age.name}`] = await p.evaluate(w => {
-        window.__reseed();
-        window.__warp(w);
-        return window.__census();
-      }, age.warp);
-      await p.close();
+  /* The winter row is loaded exactly as the summer nine are — same seeds, same
+   * paused-then-warped protocol — so the only thing that differs between the two
+   * blocks is where in the year the clock stopped. */
+  for (const [rows, into] of [[AGES, cells], [WINTER, wcells]]) {
+    for (const seed of SEEDS) {
+      for (const age of rows) {
+        const p = await b.newPage();
+        p.on('pageerror', e => { pageerrors++; errors.push(`${seed}@${age.name}: ${String(e)}`); });
+        p.on('console', m => { if (m.type() === 'error') { pageerrors++; errors.push(`${seed}@${age.name}: console ${m.text()}`); } });
+        await p.goto(`${PAGE}?seed=${seed}&t=0&pause`);
+        await p.waitForTimeout(300);
+        into[`${seed}@${age.name}`] = await p.evaluate(w => {
+          window.__reseed();
+          window.__warp(w);
+          return window.__census();
+        }, age.warp);
+        await p.close();
+      }
     }
   }
   await b.close();
-  return { when: new Date().toISOString(), pageerrors, errors, cells };
+  return { when: new Date().toISOString(), pageerrors, errors, cells, wcells };
 }
 
 /* `planting` carries both a per-species histogram and eight scalars of its own.
@@ -123,12 +161,12 @@ async function run() {
  * market cycle — hence the 200%. */
 const PLANTING_SKIP = new Set(['bySpecies', 'species']);
 
-/* Sum the matrix into scalars + summed histograms. Summing across the matrix is
+/* Sum a set of cells into scalars + summed histograms. Summing across the matrix is
  * deliberate: one cell is a sample, nine cells is a measurement. */
-function summarize(data) {
-  const scalars = {}, tiles = {}, life = {}, structure = {}, species = {}, planting = {};
-  for (const key in data.cells) {
-    const c = data.cells[key];
+function groups(cells) {
+  const scalars = {}, tiles = {}, life = {}, structure = {}, species = {}, planting = {}, ice = {};
+  for (const key in cells) {
+    const c = cells[key];
     for (const k in c.scalars) scalars[k] = (scalars[k] || 0) + c.scalars[k];
     for (const t in c.tiles) tiles[t] = (tiles[t] || 0) + c.tiles[t];
     for (const t in c.life) life[t] = (life[t] || 0) + c.life[t];
@@ -138,11 +176,26 @@ function summarize(data) {
       if (PLANTING_SKIP.has(t) || typeof c.planting[t] !== 'number') continue;
       planting[t] = (planting[t] || 0) + c.planting[t];
     }
+    /* The two states only a cold cell can hold. `__census().ice` has been in the page
+     * since #181 and was folded NOWHERE, so the gate could not have seen the freeze
+     * even if its ladder had one; `snowCover` rides here because it is the other thing
+     * a summer cell reads as a structural zero. Reported in BOTH blocks on purpose —
+     * the summer row's `frozen 0 / snowCover 0` beside a non-zero winter row is what
+     * makes the summer zeros evidence rather than an absence. */
+    for (const t in (c.ice || {})) ice[t] = (ice[t] || 0) + c.ice[t];
+    ice.snowCover = (ice.snowCover || 0) + (c.clock ? c.clock.snow : 0);
   }
   /* `produce` is the one non-integer here; summing nine of them prints float dust. */
   for (const t in planting) planting[t] = +planting[t].toFixed(1);
-  return { when: data.when, ladder: LADDER, pageerrors: data.pageerrors, errors: data.errors,
-    scalars, tiles, life, structure, species, planting, cells: data.cells };
+  for (const t of ['skin', 'snowCover']) if (t in ice) ice[t] = +ice[t].toFixed(3);
+  return { scalars, tiles, life, structure, species, planting, ice };
+}
+
+function summarize(data) {
+  return { when: data.when, ladder: LADDER, winterLadder: WLADDER,
+    pageerrors: data.pageerrors, errors: data.errors,
+    ...groups(data.cells), winter: groups(data.wcells),
+    cells: data.cells, wcells: data.wcells };
 }
 
 function diffBlock(label, now, was) {
@@ -158,15 +211,33 @@ function diffBlock(label, now, was) {
   return `${label}:\n${lines.join('\n')}`;
 }
 
+/* Print one block set — the summer nine, or the winter row — against `was` or as
+ * absolutes. The winter row is a LATER ADDITION with its own ladder, so a baseline
+ * pinned before #187 holds no `winter` key: say so and print absolutes, exactly as
+ * a pre-#115 baseline is handled for `planting`. That is what keeps every census row
+ * already in RUNLOG comparable — the summer nine never learn that winter exists. */
+function report(now, was, tag) {
+  console.log('\n' + diffBlock(tag + 'scalars', now.scalars, was && was.scalars));
+  console.log(diffBlock(tag + 'tiles', now.tiles, was && was.tiles));
+  console.log(diffBlock(tag + 'life', now.life, was && was.life));
+  console.log(diffBlock(tag + 'structure', now.structure, was && was.structure));
+  console.log(diffBlock(tag + 'species', now.species, was && was.species));
+  console.log(diffBlock(tag + 'ice', now.ice, was && was.ice));
+  if (was && !was.planting) console.log('planting: (baseline predates #115 and holds no planting group — absolutes, no deltas; re-pin to diff it)');
+  console.log(diffBlock(tag + 'planting', now.planting, was && was.planting));
+}
+
 const raw = await run();
 const cur = summarize(raw);
-writeFileSync(curFile, JSON.stringify(cur, null, 1));
+if (!REF) writeFileSync(curFile, JSON.stringify(cur, null, 1));
 
 if (save) {
+  if (REF) { console.error('census: --save-baseline with --ref would pin somebody else\'s build. Refused.'); process.exit(1); }
   writeFileSync(baseFile, JSON.stringify(cur, null, 1));
-  console.log(`census: baseline pinned — ${SEEDS.length}x${AGES.length} cells, ${cur.pageerrors} page errors.`);
+  console.log(`census: baseline pinned — ${SEEDS.length}x${AGES.length} + ${SEEDS.length}x${WINTER.length} winter cells, ${cur.pageerrors} page errors.`);
   console.log(diffBlock('scalars', cur.scalars, null));
   console.log(diffBlock('planting', cur.planting, null));
+  console.log(diffBlock('winter/ice', cur.winter.ice, null));
   process.exit(cur.pageerrors ? 1 : 0);
 }
 
@@ -183,22 +254,29 @@ if (base && base.ladder !== LADDER) {
   base = null;
 }
 
-console.log(`census: ${SEEDS.length} seeds x ${AGES.length} ages = ${Object.keys(cur.cells).length} cells  [${LADDER}]`);
+console.log(`census: ${SEEDS.length} seeds x ${AGES.length} ages = ${Object.keys(cur.cells).length} cells  [${LADDER}]` +
+            `  +  ${Object.keys(cur.wcells).length} winter  [${WLADDER}]` + (REF ? `   REF ${REF}` : ''));
 if (cur.pageerrors) { console.error(`\nPAGE ERRORS: ${cur.pageerrors}`); for (const e of cur.errors.slice(0, 10)) console.error('  ' + e); }
 if (!base) console.log('\n(no baseline pinned — showing absolute values)');
-console.log('\n' + diffBlock('scalars', cur.scalars, base && base.scalars));
-console.log(diffBlock('tiles', cur.tiles, base && base.tiles));
-console.log(diffBlock('life', cur.life, base && base.life));
-console.log(diffBlock('structure', cur.structure, base && base.structure));
-console.log(diffBlock('species', cur.species, base && base.species));
-if (base && !base.planting) console.log('planting: (baseline predates #115 and holds no planting group — absolutes, no deltas; re-pin to diff it)');
-console.log(diffBlock('planting', cur.planting, base && base.planting));
+if (REF && base) console.log(`\n(REF: the diff below is a PAST tree against TODAY's baseline — two builds, so a`
+                           + `\n collapse line here is a measurement of the distance between them, not a verdict.)`);
+report(cur, base, '');
+
+/* The winter row diffs only against a baseline pinned on the SAME winter ladder. */
+const wbase = base && base.winterLadder === WLADDER ? base.winter : null;
+if (base && !wbase) console.log(`\n(baseline holds no winter row on ladder "${WLADDER}" — absolutes, no deltas; re-pin to diff it)`);
+report(cur.winter, wbase, 'winter/');
 
 /* One line per run, appended forever. Survives baseline overwrites, and is what
- * build-stats.mjs plots as the town's growth curve. */
-appendFileSync(histFile, JSON.stringify({
+ * build-stats.mjs plots as the town's growth curve. The winter summary rides along
+ * as its own key so that stall.mjs's mapFlat can watch a tile kind that only exists
+ * in February; the summer `scalars` are untouched, so every row already written
+ * stays comparable with every row written after. */
+if (!REF) appendFileSync(histFile, JSON.stringify({
   when: cur.when, ladder: LADDER, pageerrors: cur.pageerrors, scalars: cur.scalars,
   tileKinds: Object.keys(cur.tiles).length, lifeKinds: Object.keys(cur.life).length,
+  winterLadder: WLADDER,
+  winter: { tileKinds: Object.keys(cur.winter.tiles).length, ...cur.winter.ice },
 }) + '\n');
 
 const collapsed = [];
@@ -207,7 +285,16 @@ if (base) for (const k of CORE) {
   if (a > 0 && (a - b) / a > TOL) collapsed.push(`${k} ${a} -> ${b} (-${(((a - b) / a) * 100).toFixed(1)}%)`);
 }
 
-if (asJson) console.log('\nJSON ' + JSON.stringify({ pageerrors: cur.pageerrors, collapsed, scalars: cur.scalars }));
+/* A ZERO is evidence only if the test could have been non-zero. The winter row exists
+ * to exercise the seasonal state, so a run where nothing froze is not a clean run —
+ * it is an unexercised one, and it says so rather than passing quietly. It is not a
+ * FAIL: this gate hard-fails on a page error or a core collapse, and a town that
+ * legitimately stops freezing is a build decision, not a broken page. */
+const winterWeak = !cur.winter.ice.frozen;
+if (winterWeak) console.log(`\nWEAK: the winter row froze 0 cells of ${cur.winter.ice.margin || 0} margin — the seasonal axis is not exercised; re-pin WINTER.`);
+
+if (asJson) console.log('\nJSON ' + JSON.stringify({ pageerrors: cur.pageerrors, collapsed, scalars: cur.scalars,
+  winter: { tileKinds: Object.keys(cur.winter.tiles).length, ...cur.winter.ice, weak: winterWeak } }));
 
 if (ladderChanged) {
   console.error('\nVERDICT: NO COMPARISON — the age ladder moved, so there is nothing to diff against.');
@@ -219,5 +306,5 @@ if (cur.pageerrors || collapsed.length) {
   if (cur.pageerrors) console.error(`  ${cur.pageerrors} page error(s)`);
   process.exit(1);
 }
-console.log('\nVERDICT: PASS  (no page errors, no core collapse)');
+console.log(`\nVERDICT: PASS  (no page errors, no core collapse${winterWeak ? '; winter row WEAK' : ''})`);
 console.log('Growth is judged from the histogram diff above + screenshots, not from this line.');

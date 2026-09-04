@@ -599,7 +599,8 @@
       "the camera FOLLOWS a person (#166): followQuarter, a quarter-shaped box on the feet (FOLLOW_S 2.6, ANCHOR 0.68); viewFor takes a box OR an index; viewEasing() holds the wide cache for its length",
       "the PAINTED sill: drawSill inside drawOurSide, baked into the ground cache; sillTop() the ONE definition; sillBoxes/sillOver/clipOffSill; nearShadow(g) ramps the near roof down to it",
       "the ticker knows where you are LOOKING: inView(x,y) the ONE reader of whereN, AMBIENT_PLACES/ambientHere, SOUNDS bypass it; THREE ranks \u2014 background(rank,txt,then,until), announce(), CLOCK, MURMUR",
-      "the ground cache is relit when the LIGHT moves, not the clock (#180): lightNow/lightMoved an L1 distance from lightPainted, LIGHT_MOVE/LIGHT_SLOW, markGroundPainted the one mark-setter; a landing DISSOLVES both caches - fadeCaches/fadeF, VIEW_FADE"
+      "the ground cache is relit when the LIGHT moves, not the clock (#180): lightNow/lightMoved an L1 distance from lightPainted, LIGHT_MOVE/LIGHT_SLOW, markGroundPainted the one mark-setter; a landing DISSOLVES both caches - fadeCaches/fadeF, VIEW_FADE",
+      "the census has a WINTER row (#187): WINTER warp 1220 + winterLadder, summed to its own `winter` block off groups(); ice+snowCover in BOTH blocks; --ref reads a past tree; runlog/stall carry winter tileKinds/margin"
     ],
     "roofs": [
       "the town is HOUSES not regions: buildVolumes() makes roofs EMERGENT \u2014 eaveFor(x,y), vZ four-corner average, vD a distance transform, SLOPE; houseAt/houseIx, EAVE_LO 4.62/EAVE_HI 7.15",
@@ -657,6 +658,12 @@
       "id": "c279",
       "note": "LAWN_CAP is the bound, so a sixth lawn kind is a SHARE: set-outs 495/491/488 at stroll 0.20/0.12/0.07 \u2014 the covered walk is paid out of the benches and blankets, not out of inflow.",
       "raisedBy": 186,
+      "seenBy": 0
+    },
+    {
+      "id": "c280",
+      "note": "census.mjs's CORE collapse check reads only the SUMMER scalars, so the winter block has no collapse guard: a build that broke the town only in February diffs loudly and exits 0. CORE cannot be reused as-is \u2014 winter planted is 788 v summer 6583.",
+      "raisedBy": 187,
       "seenBy": 0
     }
   ],

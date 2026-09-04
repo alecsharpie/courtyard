@@ -318,7 +318,11 @@ let row = {
   briefRejected: brief ? brief.briefRejected || null : null,
   secs: ELAPSED, costUsd: +costUsd.toFixed(4), turns, tokens, model,
   evidence: { srcChanged, srcLines, committed, logged, reverted: revertMark, rc: RC, sha, subject: subject.slice(0, 120), preBlob: preBlob.slice(0, 12), preFrom, preSha: preSha.slice(0, 12), postBlob: postBlob.slice(0, 12) },
-  census: census ? { when: census.when, pageerrors: census.pageerrors, scalars: census.scalars } : null,
+  /* #187: `winter` is the census's seasonal row — carried through because stall.mjs's
+   * mapFlat reads this object and nothing else, so a tile kind that only exists in
+   * February is invisible to the stall signals unless it travels here. */
+  census: census ? { when: census.when, pageerrors: census.pageerrors, scalars: census.scalars,
+                     winter: census.winter || null } : null,
   censusDelta,
   quota,
 };

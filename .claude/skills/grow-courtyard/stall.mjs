@@ -108,13 +108,22 @@ if (l5.length >= 5) {
  * town gains SPACE, not behaviour. Rung-4 work that only ever picks time (a year,
  * an evening, snow) leaves every one of them where the loop found it. */
 const STRUCT = ['developed', 'green', 'water', 'passages', 'structures', 'tileKinds', 'speciesKinds'];
+/* ...and the same question asked of the WINTER row (#187). Every scalar above is read
+ * at one season, so a tile kind that only exists in February moves none of them: #181
+ * added ICE, the 19th kind, and this signal went on reporting a flat map. `tileKinds`
+ * and `margin` are the winter row's two spatial numbers — the catalogue, and the size
+ * of the freezable margin — and `frozen` is deliberately NOT here: it is a CA quantity
+ * that moves with any reshuffle, which is weather, not shape. Rows written before #187
+ * carry no winter key and read '-', so the run of flat iterations resets ONCE here. */
+const WSTRUCT = ['tileKinds', 'margin'];
 const censused = rows.filter(r => r.census && r.census.scalars);
 if (censused.length >= 15) {
-  const key = r => STRUCT.map(k => r.census.scalars[k]).join('/');
+  const key = r => STRUCT.map(k => r.census.scalars[k]).join('/') + '/' +
+                   WSTRUCT.map(k => (r.census.winter ? r.census.winter[k] : '-')).join('/');
   const now = key(censused[censused.length - 1]);
   let flatMap = 0;
   for (let i = censused.length - 1; i >= 0 && key(censused[i]) === now; i--) flatMap++;
-  if (flatMap >= 15) add('mapFlat', `the map's shape (${STRUCT.join(', ')}) is unchanged for ${flatMap} iterations — nothing spatial has been built`, 4, false);
+  if (flatMap >= 15) add('mapFlat', `the map's shape (${STRUCT.join(', ')}, winter ${WSTRUCT.join('/')}) is unchanged for ${flatMap} iterations — nothing spatial has been built`, 4, false);
 }
 
 /* The manager has held the same low rung for three passes running. Success is
