@@ -16,7 +16,7 @@
   "avoid": "Do not shrink the ticker's type below the footer's other text, and do not solve it by hand-shortening the 37 sentences: the fix must hold for the next sentence somebody writes. The chrome is hidden under 640px, so the phone is not in scope here — it is b206's.",
   "budgetMin": 25,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 208,
   "issued": "2026-09-04T16:11:01.187Z",
