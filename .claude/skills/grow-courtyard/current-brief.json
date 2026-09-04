@@ -27,7 +27,7 @@
   "avoid": "drawSill is baked INTO the ground cache, from inside drawOurSide. Anything that must be true per frame is a live overlay drawn after, not a new reason to rebuild the cache — #180 cut the repaint rate 110.78 -> 75.14/day and this must not push it back; measure it, do not assume it. Nothing here may draw from R(): the sill is a CANVAS-EXTENT population and the draws a frame spends are a fact about the WINDOW, so use hash(). And do NOT crowd it — the sill is the frame, and the change through the year is the content, not the number of objects. If you end with more silhouettes than you started with and they do not each earn their place, you have made a shelf, not a sill.",
   "budgetMin": 80,
   "risk": "high",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 191,
   "issued": "2026-09-04T04:10:27.814Z",
