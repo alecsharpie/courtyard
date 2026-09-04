@@ -28,7 +28,7 @@
   "avoid": "The DOOR is not the bound — it refuses 0.0%, so capacity work here is wasted. The bound is demand, which makes this a source-and-schedule problem. A spawn BAND is a share of a budget, not a rate, so an event squeezed into an existing roll takes its crowd out of whatever sits above it in the same ladder (that is exactly what #172's allotment rung did to the plaza's own offers, 35 -> 20): if it needs its own source, give it one, and price the neighbour either way. Key the day on a salted hash(day, k) like isBandDay, never on R(). And do not make it a second market — the lane owns that.",
   "budgetMin": 50,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 194,
   "issued": "2026-09-04T07:01:54.030Z",
