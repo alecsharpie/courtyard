@@ -3693,6 +3693,7 @@ const MK_FIRST = MK_RAISE + MK_STAGGER * (MARKET_STALLS.length - 1);   // hours 
 const EMPTY = [];                                    // the shared no-goods board
 let mkDay = -1, mkTotal = 0, mkTop = 0, mkShelf = [], mkBoards = [EMPTY, EMPTY, EMPTY];
 let mkOver = 0, mkCrates = [];       // units the boards cannot carry, and the species standing in them
+let mkStock = 0, mkNewFrom = -1, mkNewH = 0;   // what stands at the pitch for the day to spend, and the cart's late crate
 const mkUnits = new Array(SPECIES.length).fill(0);
 function stockMarket(){
   if (!isMarketDay() || mkDay === day) return;
@@ -3750,6 +3751,11 @@ function stockMarket(){
     while (mkCrates.length > nc) mkCrates.pop();
     while (mkCrates.length < nc) mkCrates.push(mkTop || 1);
   }
+  /* What the day has to SPEND: the boards and the crates behind them, in units. The
+     crates are the reserve the boards are refilled from, so this is one number and the
+     picture is two. mkNewFrom is re-armed here — the cart has not been yet. */
+  mkStock = mkShelf.length + mkCrates.length * MK_CRATE;
+  mkNewFrom = -1;
   /* Each trading stall's board is cut from the shelf HERE, once, and not per frame:
      the draw runs three times a frame all day and a slice() apiece is garbage for
      nothing. Contiguous slices, so a stall tends to sell one or two things. */
@@ -3764,19 +3770,98 @@ function stockMarket(){
 function mkTrades(i){ return mkDay === day && mkTotal >= MK_NEED[i]; }
 function mkOpenCount(){ let n = 0; for (let i = 0; i < MARKET_STALLS.length; i++) if (mkTrades(i)) n++; return n; }
 function mkShelfFor(i){ return mkTrades(i) ? mkBoards[i] : EMPTY; }   // stall i's board
-function mkGoods(i){ return mkShelfFor(i).length; }
+function mkGoods(i){ return mkShelfFor(i).length; }   // what the board was STOCKED with, at the latch
+/* ---- the day the market spends (#207, c287) ----
+ * `shelved` is capped at the open boards' capacity, so the boards were a SWITCH: over 6
+ * seeds x 4 seasonal years, 140 of 144 markets shelved EXACTLY mkOpenCount()*MK_GOODS,
+ * and the four that did not were deep-winter days with one to three units in the whole
+ * store. It binds by CONSTRUCTION — MK_NEED's rungs, 0/12/36, each sit at or above the
+ * capacity they unlock, so two traders means at least twelve units for a twelve-unit
+ * cap — which is why a half-stocked pitch was unreachable at every hour of every market
+ * in the year. The cap is right. What was missing is the other bound.
+ *
+ * So the day SPENDS its stock now. What stands at the pitch is the boards plus the
+ * crates behind them (median 60 units, quartiles 18 and 84, probes/market-fill.mjs) and
+ * custom takes it away at a rate: MK_SELL units for every hour of trading, front-loaded
+ * — 1.5x the mean rate as the canvas rolls open, 0.5x by pack-away — so the morning is
+ * the busy half. The boards are refilled from the crates FIRST, and that is what makes
+ * the fill a gradient rather than a second switch: the stacks on the pavement go down
+ * while the boards stay full, and only once they are gone do the pitches start to.
+ *
+ * The two bounds are alive at different hours, which is the only way two of them can be
+ * (LAWS): the cap binds at the open — a glut cannot be shown, only crated — and the rate
+ * binds in the afternoon. The rate hangs on the market's own SPAN, which is the sun's,
+ * so a long midsummer market sells more than a short February one with no constant
+ * anywhere saying so. And because on-hand runs 6 to 114 units across the year while the
+ * span moves by half, the seasons come out DIFFERENT: February sells out by mid-morning
+ * and stands empty behind a bare board, the median day thins from about two thirds
+ * through, and a high-summer glut still has most of a board at pack-away and shows the
+ * rest of its year in the crates going down instead. That spread is the point, not a
+ * rate that wants flattening. Measured over 6 seeds x 4 years, 144 markets
+ * (probes/market-fill.mjs): mean fill 0.961 a tenth of the way through, 0.803 at the
+ * half, 0.281 at nine tenths, and every one of the 144 stands PART stocked at one of
+ * those hours where HEAD stood at 1.000 on all three. No market keeps a FULL board to
+ * pack-away — at nine tenths nothing is above 0.75 and 42 of 144 are under 0.15 — so
+ * the glut's tail is a board still worth walking to, not an untouched one. */
+const MK_SELL = 5.5;                        // units of custom an hour of open market draws
+const MK_STOCK_REF = 60, MK_DRAW = 0.8;     // the median day's stock, and how custom follows it
+const MK_LAST_OUT = 0.6;                    // the share of the market after which nothing more is brought out
+const MK_THIN = MARKET_STALLS.map(s => (hash(s.x, 77) - 0.5) * 0.7);   // pitches: so three boards never step together
+function mkU(){ return clamp((hour - marketOpen()) / (marketClose() - marketOpen()), 0, 1); }
+function mkF(u){ return u * (1.5 - 0.5 * u); }        // the day's custom, integrated: 1.5x at the open, 0.5x at pack-away
+/* Units the day's custom would buy. It follows the stock SUB-linearly (MK_DRAW < 1):
+   a laden pavement draws the lane in and a bare February board does not, but a glut is
+   never eaten in proportion — that would be the switch again, wearing a rate's clothes.
+   Capped at the reference, so past a median day the crowd is the crowd. */
+function mkDemand(){ return MK_SELL * (marketClose() - marketOpen()) * Math.pow(Math.min(1, mkStock / MK_STOCK_REF), MK_DRAW); }
+/* Units still ON the boards, and units still in the crates behind them. The split is the
+   whole feature: until MK_LAST_OUT of the market has run the boards are topped up from
+   the crates, so the stacks go down while the pitches stay full; after it nothing more is
+   brought out — nobody lays a fresh crate at half past three — and from there the board
+   is what it is and sells away. That is what decouples the afternoon board from the size
+   of the glut: without it a high-summer market keeps eighteen units showing to the last
+   minute, because 96 on hand can refill an 18-unit board all day. What is still crated at
+   MK_LAST_OUT stands there to the pack-away and goes home in the cart it came in. */
+function mkBoard(){
+  const cap = mkShelf.length, D = mkDemand(), u = mkU();
+  const at = Math.min(cap, mkStock - D * mkF(Math.min(u, MK_LAST_OUT)));
+  return Math.max(0, u <= MK_LAST_OUT ? at : at - D * (mkF(u) - mkF(MK_LAST_OUT)));
+}
+function mkReserve(){ return Math.max(0, mkStock - mkDemand() * mkF(Math.min(mkU(), MK_LAST_OUT)) - mkShelf.length); }
+function mkFill(){ return mkShelf.length ? clamp(mkBoard() / mkShelf.length, 0, 1) : 0; }
+/* pitches still on stall i's board, FRACTIONAL: the draw shrinks the top pitch away
+   rather than dropping one between two frames, which is how the raise grows them in. */
+function mkLeft(i){
+  const n = mkShelfFor(i).length;
+  return n ? clamp(n * mkFill() + MK_THIN[i], 0, n) : 0;
+}
+function mkCrateLeft(){ return clamp(mkReserve() / MK_CRATE, 0, mkCrates.length); }
+/* what the cart brought (#207). The carter has drawn up by the stalls since #82 and the
+   ticker has said the stalls take it, but the basket went nowhere: this is that line
+   made true. One crate, on the pavement with the rest, and MK_CRATE more units for the
+   afternoon to spend — so a cart day's boards hold out about an hour longer. It lands
+   with its own come-out (mkCrateP), since the raise it would otherwise ride finished
+   hours ago and a crate arriving at full size is a pop. */
+function mkDeliver(crop){
+  if (mkDay !== day || !marketActive()) return;
+  mkStock += MK_CRATE;
+  if (mkCrates.length < mkCrateMax()){ mkNewFrom = mkCrates.length; mkNewH = hour; mkCrates.push(crop || mkTop || 1); }
+}
 /* crate i: its spot, how high it stands in it, and how far out it is on its stall's
    raise. Round-robin over the spots, so a small surplus is two low stacks in the gaps
    and a big one fills the ends — and each level comes out after the one under it. */
 function mkCrateSpot(i){ return mkSpots[i % mkSpots.length]; }
 function mkCrateLvl(i){ return (i / mkSpots.length) | 0; }
+const MK_DROP = 0.25;                       // hours: a delivered crate coming off the bed
 function mkCrateP(i){
+  if (mkNewFrom >= 0 && i >= mkNewFrom) return clamp((hour - mkNewH) / MK_DROP, 0, 1);
   return clamp((marketRaise(mkCrateSpot(i).s) - 0.66 - mkCrateLvl(i) * 0.05) / 0.06, 0, 1);
 }
 function mkCrateAt(x, y){          // the pointer: the stacks are a row of the footway
   if (!mkCrates.length || y !== (MK_OVER_Y | 0)) return false;
+  const left = mkCrateLeft();               // a stack carried to the boards is not there to name
   for (let i = 0; i < mkCrates.length; i++)
-    if (mkCrateP(i) > 0 && Math.abs(x + 0.5 - mkCrateSpot(i).x) < 0.9) return true;
+    if (mkCrateP(i) * clamp(left - i, 0, 1) > 0.2 && Math.abs(x + 0.5 - mkCrateSpot(i).x) < 0.9) return true;
   return false;
 }
 function mkLine(){
@@ -6330,7 +6415,7 @@ function cartDue(){ const h0 = Math.max(sunUp + CART_IN, 6.3);
   return !cart && cartDay !== day && cartToday() && hour >= h0 && hour < h0 + CART_LAST - CART_IN; }
 function spawnCart(){
   cartDay = day;
-  cart = { x:CART_X, y:-4, hx:0, hy:1, i:0, state:'drive', timer:0, ph:0, load:0, loadCol:null, at:'', out:false,
+  cart = { x:CART_X, y:-4, hx:0, hy:1, i:0, state:'drive', timer:0, ph:0, load:0, loadCol:null, crop:0, at:'', out:false,
     sacks: wetF() > 0.35, loaded:false, loader:null,
     wp:[{x:CART_X, y:CART_GATE_Y, stop:'gate'}] };
   sayAt(CART_X, 1, cart.sacks ? 'A cart comes down the cross street, sacks from the mill on its bed.'
@@ -6372,13 +6457,15 @@ function stepCart(dt){
     c.timer -= dt;
     const L = c.loader;
     if (c.at === 'gate' && L && L.state === 'stand' && L.crop){   // over the side it goes
-      c.load++; c.loadCol = SPECIES[L.crop - 1].col2; L.crop = 0; c.loaded = true;
+      c.load++; c.loadCol = SPECIES[L.crop - 1].col2; c.crop = L.crop; L.crop = 0; c.loaded = true;
       c.timer = Math.max(c.timer, CART_LOAD_HOLD);   // the basket is over the side; the carter sits a moment before the reins
     }
     if (c.timer > 0 || (c.at === 'gate' && L && !c.loaded && !L.done)) return;
     c.state = 'drive'; c.i++;
     if (c.at === 'gate') cartRouteOn();
-    else if (c.at === 'market'){ c.out = true; sayAt(MARKET_STALLS[1].x, MARKET_STALLS[1].y, 'The stalls take what the cart brought; the carter gathers the reins.'); }
+    else if (c.at === 'market'){ c.out = true;
+      if (c.load) mkDeliver(c.crop);           // #207: and the boards have it to sell
+      sayAt(MARKET_STALLS[1].x, MARKET_STALLS[1].y, 'The stalls take what the cart brought; the carter gathers the reins.'); }
     c.at = '';
   }
   const tgt = c.wp[c.i];
@@ -13625,7 +13712,7 @@ function drawScene(t, dt){
   for (const h of HATCHES) items.push({y:h.y + HATCH_D, f:drawHatch, h});   // #170: live, because it opens
   for (let i = 0; i < MARKET_STALLS.length; i++){
     const p = marketRaise(i);                    // 0 well before opening and well after close
-    if (p > 0) items.push({y:MARKET_STALLS[i].y + 0.8, f:drawMarketStall, s:MARKET_STALLS[i], p, sh:mkShelfFor(i)});
+    if (p > 0) items.push({y:MARKET_STALLS[i].y + 0.8, f:drawMarketStall, s:MARKET_STALLS[i], p, sh:mkShelfFor(i), n:mkLeft(i)});
   }
   // the overflow is south of the trestles and south of the browsers standing at them,
   // so it sorts after both: one item, since every stack is on the same row (#184)
@@ -16335,14 +16422,25 @@ function drawMarketStall(it){
      board in February is the plots' answer and not a decision taken here. The
      board is laid out one pitch at a time on the same p, as before, so it still
      packs away in reverse. */
-  const sh = it.sh || [];
+  const sh = it.sh || [], nf = it.n === undefined ? sh.length : it.n;
   for (let k = 0; k < sh.length; k++){
-    const g = clamp((p - 0.80 - k * 0.03) / 0.05, 0, 1);
+    /* TWO ramps on the same pitch and the same radius: the raise brings it out, and
+       what the day has sold takes it back. The top of the board goes first, so the
+       back row empties before the front and a thin board still reads as a board. */
+    const g = clamp((p - 0.80 - k * 0.03) / 0.05, 0, 1) * clamp(nf - k, 0, 1);
     if (g <= 0) continue;
     const sp = SPECIES[sh[k] - 1];
     ctx.fillStyle = k % 2 ? sp.col2 : sp.col;
     ctx.beginPath();
-    ctx.arc(x - w/2 + 3 + (k % 3) * (w/3) + hash(k, s.x) * 4, y - cellH * 1.5 - (k > 2 ? 3 : 0),
+    /* Six pitches on a STAGGERED grid, not two rows in one file (#207). HEAD gave the
+       back row the same three x as the front, so it was drawn over the front row and
+       half the board's ink was redundant — a board emptying from the top lost pixels
+       that were never visible, and the day's gradient could not be seen at the
+       shipping size. Staggering the back row by half a column shows all six, and the
+       run stays centred on the trestle: the span is +-(1.25+0.5)*w/3.4 + jitter, inside
+       the tw = w the table draws at full raise. */
+    ctx.arc(x + ((k % 3) + (k > 2 ? 0.5 : 0) - 1.25) * (w / 3.4) + (hash(k, s.x) - 0.5) * 1.6,
+            y - cellH * 1.5 - (k > 2 ? 3 : 0),
             (MK_R[sh[k]] || 1.8) * g, 0, 7);
     ctx.fill();
   }
@@ -16384,9 +16482,9 @@ function drawMarketStall(it){
  * come-out is the crate's own height growing out of the pavement, so nothing arrives
  * finished and running the raise backwards takes the stacks in from the top down. */
 function drawMarketOver(){
-  const sc = cellW / 13;
+  const sc = cellW / 13, left = mkCrateLeft();
   for (let i = 0; i < mkCrates.length; i++){
-    const g = mkCrateP(i); if (g <= 0) continue;
+    const g = mkCrateP(i) * clamp(left - i, 0, 1); if (g <= 0) continue;
     const sp = SPECIES[mkCrates[i] - 1], st = mkCrateSpot(i), lvl = mkCrateLvl(i);
     // nobody stacks eight identical boxes: each SPOT keeps its own width and its own
     // stand-off from the kerb, so the run has a rhythm and a stack stays plumb

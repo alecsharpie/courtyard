@@ -40,56 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 198 — the rain stops shutting the gate (2026-09-04) [Courtyard & garden × Connect]
-
-**Brief:** b198 — c279: the garden's inflow should read the weather.
-**Neither named bound was the bound** (lawn-weather.mjs, 6x26, every sun-up tick classed
-fair/coming/RAIN): rain is **11.7%** of the sun's window, `lawnOpen()` true on **0.0%** of
-it, **0 of 1,221 set-outs**. Not the cap, not the rate — `!raining`, carried since #95,
-when nothing in the garden had a roof.
-**Did.** (1) `lawnAdmits(k)` = `lawnRoofed(k) || !raining`, asked at the CHOICE in
-spawnLawnAgent; `lawnOpen()` keeps only the sun, so in rain the kind list is the arcade
-alone. (2) `LAWN_WET 0.35` on `lawnRate()` — the SLACK bound: a wet tick is at LAWN_CAP
-**10.8%** v a fair one's **27.0%**. Swept on the AXIS, six settings, in the source.
-**Ref -> cand:** under the walk **0.404 -> 0.763 people per rain tick** (arcade.mjs); four
-there at once in rain, **day 139 -> day 13**. #186's stroll-weight control 0.20/0.12/0.07:
-**474/480/479 -> 514/490/501** (#186: 495/491/488) — new inflow, not off the benches. Fine
-days untouched *exactly* (lawn-dry.mjs): rain held off, **6/6 seeds byte-identical over 12
-days**, census too; rain left in, **0/3**.
-**Gates:** census PASS · motion PASS (HEAD-pinned) · filmstrip 0 POP · 4 framings + the
-arcade in rain · #168 lawn-dark flat per visit.
-**Verdict:** shipped
-**Surprise:** the gate was not it — the VISIT was. An arcade stay is released by the
-weather (`a.arc`), not a timer, so at an unchanged rate a wet courtyard came out **fuller
-than a fine one, 4.25 v 4.15.** A roof does not only admit people, it holds them.
-**Law:** a place whose stay ends on a CONDITION turns inflow into presence at a different
-rate from its timed neighbours — price presence as rate x visit before choosing the rate.
-
-## Iteration 199 — somebody in the room before dawn (2026-09-04) [Roofs & skyline × Deepen]
-
-**Brief:** b199 — c283: #190 fixed the EVENING burn; windowLit's sunrise branch was never
-offered a paneFigure, so first light was lit panes with nobody in them.
-**Premise** (`probes/pane-morning.mjs`, new, on HEAD): **4.55 lit panes** per pre-dawn sample,
-**0 visits a year** — a third of the evening's lit population, not the two I guessed.
-**Did.** (1) `lampBurn` gains `[rOn, rOff)` — the early-riser test lifted out, in the night's
-units: `t = span - D + s`, `D = dawnEdge() - sunUp`, which `rOff` cancels exactly.
-windowLit reads it: **0 disagreements over 2,595,892 pane-samples** (9.8% lit: not vacuous).
-(2) One visit is offered over that burn — no band to intersect, the burn IS the offer, so only
-the LENGTH is solved before the hour; `paneWalk()` factored out, told apart by `k = FIG_SLOTS`,
-so the evening's coin is untouched. (3) A 9.4 h midsummer night leaves the evening band open at
-that pane's `rOn`, so `mLo = max(rOn, hi)`: the morning starts no earlier than an evening visit
-must END by, disjoint by construction.
-**A year:** MORNING 0.006 -> **0.641** figures/sample of 4.55 lit, **0 -> 182** visits, nights
-with one **0 -> 87/104**. EVENING identical: 1.152 of 11.95, 886 visits.
-**Gates:** census PASS (render state) · motion PASS · filmstrip 0 POP · continuity 0 swaps both
-sides · look 199 px on 0 px
-**Verdict:** shipped
-**Surprise:** the continuity gate reported **754 swaps/yr on HEAD** before I priced its
-threshold. u moves 1.08 in 0.24*dur on the exit leg — 7.5 u/h — so 0.4 per 0.1 h flagged the
-walk's own fastest phase. The instrument, not the build.
-**Law:** a jump threshold is priced off the subject's FASTEST phase, not its mean; a swap only
-SHOWS if both ends are inside the aperture.
-
 ## Iteration 200 — the lap freezes with its channel (2026-09-04) [River & far bank × Fidelity]
 
 **Brief:** b200 — c286: `ICE_CELLS` is built from `onChannel()` at BUILD time, when the towpath's
@@ -243,3 +193,25 @@ re-pricing the whole wide view moved three of the four fits **0 px**; only Court
 1.0175.
 **Law:** a frame's share is a function of the ZOOM alone — padding decides where the slack goes, not how
 much there is.
+
+## Iteration 207 — the market spends its day (2026-09-05) [Lane & market × Deepen]
+
+**Brief:** b207 — c287: `shelved` is capped at the open boards' capacity, so a half-stocked pitch is unreachable.
+**Premise priced on HEAD** (probes/market-fill.mjs, new; 6 seeds x 4 yrs, 144 markets): `shelved == cap` on
+**140/144 = 97.2%**, the four exceptions deep winter. It binds by CONSTRUCTION — MK_NEED's rungs
+0/12/36 sit at or above the capacity they unlock. The cap is RIGHT; the rate was missing.
+**Did.** `mkStock` = boards + crates (med 60), spent at `mkDemand()` = MK_SELL x the market's own SPAN x
+(stock/MK_STOCK_REF)^MK_DRAW, front-loaded. Boards refill from the crates until `MK_LAST_OUT` 0.6, then sell
+away — decoupling the afternoon from the glut. `mkDeliver()` makes #82's line true. Mean fill
+**0.961 / 0.803 / 0.281** at a tenth, half, nine tenths of the span; **144/144 stand PART stocked** where
+HEAD was 1.000 on all 432 samples.
+**Gates:** census PASS · motion PASS (HEAD-pinned) · filmstrip day+market 0 POP · 4 framings.
+**Verdict:** shipped
+**Surprise:** the model landed and the PICTURE nearly did not. The board's back row was drawn at the same x
+as the front, so half its ink was redundant and emptying from the top removed pixels nobody could see: 46 of
+222 device px at 16:07 for a board 59% gone. Staggering the six pitches across the trestle
+(probes/market-hours.mjs, new) took visible ink 222 -> 297 px and the loss to 87 px / 29% — readable
+magnified, still slight at the shipping size.
+**Law:** a control making an input EXTREME is degenerate where the quantity it feeds SATURATES — control with
+the BRANCH replaced. `getImageData` ignores the ctx transform: a `project()` band is CSS px, not device.
+**Cue:** the overflow crates carry more readable ink (420 px) than the three trestles (297).

@@ -2,7 +2,7 @@
   "updated": "2026-09-04",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 205,
+  "lastIteration": 207,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -308,7 +308,8 @@
         25,
         52,
         147,
-        159
+        159,
+        207
       ],
       "scale": [
         172
@@ -613,7 +614,8 @@
       "a plot is MOSTLY one crop: plotCrop the MAJORITY tally, cellStands the per-cell winter, plotAct's five rungs, harvest paid per cell",
       "a CREW, not three slots: ALLOT_CAP 5, ALLOT_ROWS/MORE 4/0.70, ALLOT_FLOOR/RIPE named+sweepable (probes/allot-supply.mjs)",
       "TILES 20 (..GLASS, LEADS, ICE, ARCADE), SPECIES 13 via speciesFor; GLASSHOUSE x84-93 y34-39, the one surface you see THROUGH — bedCap, drawGlassBack cached + drawGlassFront live, snowAt indoors",
-      "weeds are a CA: rank[] over WEED_CELLS 102, founded on bAge's UP half; weedAge/creep/SHADE/WEED_WORK the harvest cycle and cold dieback; plotAct's hoe rung goes FIRST; drawWeed in the ground cache"
+      "weeds are a CA: rank[] over WEED_CELLS 102, founded on bAge's UP half; weedAge/creep/SHADE/WEED_WORK the harvest cycle and cold dieback; plotAct's hoe rung goes FIRST; drawWeed in the ground cache",
+      "The market spends its day: mkStock (boards + crates) drawn down by mkDemand() over the market own span, boards refilled from the crates till MK_LAST_OUT then sold away; mkDeliver() banks the cart basket; six pitches staggered on the trestle"
     ],
     "plaza": [
       "FOUNTAIN (105.5,30) reads year, wind and frost: fountainPlay/Ice/Jet. Roundel, PLAZA_PITS, PLAZA_BENCHES, QUAY_BENCHES, quay rail x112.9, crumbSpot, PIGEONS",
@@ -695,6 +697,12 @@
       "id": "c303",
       "note": "the wide lean reads sillTop() now, so a sill that borrows a line re-leans the camera ~2% as well as moving it; HEAD only moved topPad. Ground pad at 390: 303->493 px, drawGround 29.8->30.1 ms",
       "raisedBy": 205,
+      "seenBy": 0
+    },
+    {
+      "id": "c304",
+      "note": "The overflow crates carry more readable ink (420 device px) than all three trestles combined (297) — the market's day reads on the pavement, not on the boards.",
+      "raisedBy": 207,
       "seenBy": 0
     }
   ],
@@ -1023,7 +1031,7 @@
       "why": "closed at #205: measured and answered. All 7 fixed probes pass in 6.7-61.1 s at --jobs 4 and 6 of 7 hit the 75 s wall at --jobs 7 — the timeouts were the RUNNER, and that is now a law. What is left is a probe-smoke setting, not a finding."
     }
   ],
-  "cueSeq": 302,
+  "cueSeq": 303,
   "managerWatch": [
     "LABEL THE KIND BY THE FILE IT CHANGES. runlog.mjs takes the verdict from courtyard.html’s diff, so a brief touching only census.mjs or a probe logs srcChanged:false and lands as no-ship however well it went — #187 and #195, both of the no-ships in the last 20. HARNESS is the kind for instrument-only work and costs a domain nothing; FIDELITY promises a change in the page and must make one.",
     "A CONSERVATION SCALAR IS NOT A FROZEN MAP. developed last moved at #100, green at #116, passages NEVER in 193 — none of it a signal: developed/green deliberately CONSERVE (LEADS #170, ARCADE #186, REED #155 are cut OUT of the tile they replace so the total holds) and #119 declined to move passages on purpose. Read census.mjs’s comments before its flatness. mapFlat is tileKinds/structures, 31% constant (c284).",
