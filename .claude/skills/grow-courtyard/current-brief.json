@@ -23,7 +23,7 @@
   "avoid": "Do not add a new weather term — #178 already showed both faces of ONE scalar are enough, and this is a fidelity job, not a deepening. Do not touch the burn model (bon.spent as a fuel budget) unless the histogram says the burn is where the count moves.",
   "budgetMin": 30,
   "risk": "low",
-  "status": "active",
+  "status": "done",
   "attempts": 2,
   "nextIter": 185,
   "issued": "2026-09-04T00:29:02.886Z",
