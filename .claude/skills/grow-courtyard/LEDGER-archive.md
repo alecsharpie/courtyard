@@ -3,19 +3,6 @@
 Entries rotated out of `LEDGER.md`. Append-only. **Only the manager reads this** —
 a worker that opens it to "catch up" spends its whole context on history.
 
-## Iteration 137 — the lane's cap starts counting the lane (2026-09-03) [People & animals × Scale/World]
-
-**Brief:** b137 — presence per PLACE across whole days, sweep every cap, keep the knee.
-**Premise right, cause was a membership bug.** `laneCount` was a RESIDUAL — everyone eleven subtractions did not remove — so it annexed every population added after it: the LAWN's five kinds (#95), the allotments' pickers, the sweeper, the loader. Summer day: **17.00 against a cap of 6.77, binding 100%** of daylight samples, of which the lane's own were **0.08**. `spawnLaneAgent` — the source for the plaza, quay, far green, parapet and allotment detour as well as the lane — had been dead in daylight for a year of iterations, no line changed, no gate fired.
-**Did.** `lane:true` on its object literal (every branch and `makeCompanion` inherit it); `laneCount = agents.filter(a => a.lane).length`. Then swept each cap alone, 3 seeds x 26 days: **capacity 6->10**, **laneCap 6.4->10**, **eastCap min(7,*6)->min(9,*8)**, **FAR_CAP 3->5**; **FAM_CAP kept 3, EVE_CAP kept 6**, each with its reason written at the site.
-**Gates:** census PASS (`people +99`, baseline re-pinned) · motion PASS · filmstrip 0 POP · visual PASS 1600x950 + 390x844.
-**HEAD -> cand** (daylight dry): town **36.03 -> 50.19**, and every place up — the smallest gain is the courtyard's +13%, the largest the lane's +90%. Same pinned instant, same ticker line: **51 -> 60**. Crowded pairs 0.068 -> 0.078 *per person* — flat.
-**Verdict:** shipped
-**Surprise:** two caps refused to be raised, for opposite reasons. **FAM_CAP has three places and only two are reserved** — `famBench` locks a bench, the 1.6-cell fountain strip locks nothing — so 5 saturated the count at 2.41 while doubling plaza crowding 0.93 -> 1.66: past 3 the slack is not presence, it is two families drawing as one shape. **laneCap has no knee at all** up to 19 — it buys people linearly, but each destination is 5-6% of one roll, so past 10 every marginal arrival is a lane walker and the plaza stays flat (4.84 -> 4.68 -> 4.71). The branch share is the cap beneath the cap.
-**Budget:** `context-budget.mjs` **OVER**, 49.4 KB before this pass, 52.5 after. Distil.
-**Law:** a cap must count a membership it DEFINES; a residual annexes every later population and the original starves silently.
-**Law:** a rate and a stock move opposite ways under one change — census `harvested -303`/`produce -83.8` looked like the allotments starving, but `probes/allot-source.mjs` says the lane detour is 6 of 76 arrivals and `harvestPlot` calls went UP 76->79. Count the CALLS before believing a census field about a stock.
-
 ## Iteration 138 — the plots get their tools (2026-09-03) [Cross street & allotments × New element]
 
 **Brief:** b138 — give the seventeen plots their furniture on ROOF_FURN's model, placed per plot off hash(plot), read off the plot's own state.
@@ -721,4 +708,27 @@ onto the INFLOW, `MOTH_CAP` left a pure ceiling: **20.2 / 27.0 / 29.2 / 18.6**, 
 binding in midsummer, rate in winter and rain.
 **Law:** a cap and a rate are both alive only if they bind at DIFFERENT times — put the
 modulating scalar on whichever is SLACK, and prove it by sweeping the AXIS, not the constant.
+
+## Iteration 178 — the bonfire re-asks its weather (2026-09-04) [Sky, light & weather × Deepen]
+
+**Brief:** b178 — c244: `bonfireWeather()` is asked once, at the match, never again.
+**Premise CONFIRMED, NARROWER.** `stepBonfire` already re-asked the WET half
+(`raining || snowCover > 0`); the WIND clause had no re-ask at all, so every refused hour on HEAD
+is wind, none wet: **3 of 37 fires, 3.49 of 129.60 fed hours** (probe-bonfire-wind, 6 seeds x 4 y).
+**Did.** Both faces of one scalar, no new weather term. `isWindy()` ENDS the feeding at its edge
+in `stepBonfire`, latching `bon.blown` (`bonfireName()` reads it) and a sayAt; the holder needs no
+code — #93's `!bon.on && bon.fire < 0.15` walks them home. `windF()` HURRIES it: BON_BURN_H stops
+being a clock (`simT - bon.lit`, deleted) and becomes a fuel budget `bon.spent` spent at
+`1 + BON_WIND_HURRY * windF()` still-air hours, same rate on fall and embers.
+**HEAD -> cand.** Outliving their weather **3/37 -> 0/44**, refused hours **3.49 -> 0.00**; 3 raked apart,
+0.73 h mean vs 3.15 h; mean burn 3.50 -> 2.98 h, town fed hours flat.
+**Gates:** census PASS (reshuffle, no collapse) · motion PASS · shots · filmstrip seed 42 t 2114,
+0 POP: the plume climbs, thins as windF crosses 0.40, embers by #9.
+**Verdict:** shipped
+**Surprise:** the first HEAD/cand pair read **8/33 -> 0/33** and did not reproduce. A `?pause`
+page still runs rAF, so entering without `?t=` starts ~2.2 s of un-reseeded world in, and
+`__reseed()` rewinds neither `simT` nor the latches: same seed, same warp, windF **0.35 vs 0.94** at
+the same clock hour. Two towns; `filmstrip.mjs`/`shoot.mjs` pin `?t=0`, so an unpinned probe
+measures a world they cannot show.
+**Law:** pin `?t=` on every probe page — the default entry is a DIFFERENT WORLD from `?t=0`.
 

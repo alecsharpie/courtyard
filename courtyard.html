@@ -294,12 +294,22 @@ const WALL = 0, PATH = 1, GRASS = 2, BED = 3, CBED = 4, TRUNK = 5, SIDE = 6, ROA
                                // not one roof vertex moves, and its own fill in the ground cache. Unlike
                                // GLASS it is BUILT GROUND and it is stood on: `developed` counts it, and
                                // it is the only cell south of the lane a person has ever been on
-      ICE = 18;                // the channel's winter skin (#181), and the ONE tile that is not FABRIC:
+      ICE = 18,                // the channel's winter skin (#181), and the ONE tile that is not FABRIC:
                                // stepIce() flips a WATER cell of the river to it and back as rice[] crosses
                                // ICE_SET, so it is the only kind whose count moves with the calendar. It is
                                // WATER to `water` in the census and to the eyot's shingle rim; it is NOT
                                // water to a duck, a swan, the boat, a streak or the mirror, and it is not
                                // walkable either — margin ice bears rushes, not people
+      ARCADE = 19;             // the covered walk along the north range (#186): the two rows of that
+                               // range's thickness where its ground floor is opened up on piers, so the
+                               // garden has a roofed edge you can be under. It takes the shape GLASS and
+                               // LEADS already proved — WALL to buildVolumes(), which never sees the tile,
+                               // so not one roof vertex moves and the range's own roof is what covers it
+                               // (trap b: change a footprint, never a roof) — and its own fill in the
+                               // ground cache, so the floor reads as ground you see UNDER. Like LEADS it
+                               // is BUILT ground and it is stood on, so `developed` counts it; unlike
+                               // LEADS every route in the garden may take a walker onto it, and the
+                               // openings are drawn LIVE over the cached facade exactly as an arch is
 /* the eyot: ONE ellipse, evaluated once in buildGrid() — everything else (the swans' third
  * bank, the ducks' nest, the streaks that part round it) reads the tile back off the grid.
  * Sited in the river's east half, clear of the boat's channel (x 116.5–121.5, hull ±0.5) by
@@ -1262,6 +1272,39 @@ const BENCH_SPOTS = [
   {x:20, y:6}, {x:45, y:6},
   {x:6,  y:44}, {x:57, y:22},
 ];
+/* ============ the covered walk (#186) ============
+ * The courtyard's paved annulus is 1,896 cells, the largest single-tile ground surface
+ * in the town, and until now the only thing standing on it was four benches. What it had
+ * no answer for at all was the rain: the garden's ONE response to a shower was to send
+ * everybody out through a gate.
+ *
+ * So one range of the block opens its ground floor on piers. WHICH range is not an
+ * argument, it is a screenshot: drawFaceRow draws a face only where a solid cell's SOUTH
+ * neighbour is open, so of the four ranges around the garden exactly one shows the garden
+ * a facade — the north, whose inner face is the wall the north arch is cut through. The
+ * south (gatehouse) range shows the garden its ROOF and the lane its face; the east and
+ * west ranges are seen edge-on and have no drawn face at all. An arcade in any of the
+ * other three would be a hole in a surface nobody is looking at.
+ *
+ * Two rows deep, out of a range three rows thick, so the back wall stays. Cut in RUNS
+ * either side of the north gateway and never across it (nearEntrance), and entered from
+ * the gate mouth — which is what makes it a WALK: an arrival for the far end of the west
+ * run processes 25 cells under the vaults to get there. */
+const ARC_Y0 = 1, ARC_Y1 = 3;                     // the rows of the north range the walk is cut out of
+const ARC_RUNS = [{x0:6, x1:30}, {x0:35, x1:59}]; // west and east of the north gateway; each 24 cells = 8 bays
+const ARC_BAY = 3;                                // cells between piers
+const ARC_TOP = 3.0, ARC_HW = 0.98;               // the opening: springing to crown, and half its width
+const ARC_STAND = ARC_Y0 + 1.42;                  // the line a walker keeps under the vaults
+const ARC_MOUTH = [32.5, 3.55];                   // the gate mouth every approach comes through
+const ARC_DRY = 0.55;                             // how far the paving must have dried before they step back out
+function inArcade(x, y){
+  if (y < ARC_Y0 || y >= ARC_Y1) return false;
+  for (const r of ARC_RUNS) if (x >= r.x0 && x < r.x1) return true;
+  return false;
+}
+const ARCADE_BAYS = [];                           // one place per bay, west to east — the walk's own occupancy
+for (const r of ARC_RUNS) for (let x = r.x0; x + ARC_BAY <= r.x1; x += ARC_BAY)
+  ARCADE_BAYS.push({x: x + ARC_BAY / 2, y: ARC_STAND, run: r, i: ARCADE_BAYS.length});
 const LANE_BENCHES = [ {x:12, y:65.6}, {x:52, y:65.6} ];
 /* café tables on the south footway, under the green awning */
 const CAFE_TABLES = [                      // p: how far out on the pavement it is (#169)
@@ -1330,6 +1373,7 @@ function buildGrid(){
           // the east and west passages are open cuts, seen down into from up here
           if (Math.abs(x + .5 - 32.5) < 2.3 && !inY) grid[i] = TUNNEL;
           else if (Math.abs(y + .5 - 32.5) < 2.3 && !inX) grid[i] = SLOT;
+          else if (inArcade(x, y)) grid[i] = ARCADE;   // #186: the north range's ground floor, opened on piers
           else grid[i] = WALL;
           continue;
         }
@@ -1532,9 +1576,11 @@ function solidC(x, y){                             // clamped: used when drawing
 function buildVolumes(){
   for (let y = 0; y < WH; y++) for (let x = 0; x < GW; x++){
     const i = y * GW + x, t = grid[i];
-    // LEADS is WALL here and nowhere else (#170): the distance transform below never
-    // sees the tile, so a terrace cut into the near block moves not one roof vertex.
-    solidM[i] = (t === WALL || t === TUNNEL || t === LEADS) ? 1 : 0;
+    // LEADS is WALL here and nowhere else (#170), and so is ARCADE (#186): the distance
+    // transform below never sees either tile, so neither a terrace cut into the near
+    // block nor a walk cut into the north range moves one roof vertex. The range's own
+    // roof is what covers the arcade, because the arcade never left the range.
+    solidM[i] = (t === WALL || t === TUNNEL || t === LEADS || t === ARCADE) ? 1 : 0;
     eaveM[i] = solidM[i] ? eaveFor(x, y) : 0;
     houseM[i] = solidM[i] ? houseAt(x, y) : -1;
   }
@@ -2610,7 +2656,7 @@ let snowCover = 0, snowPainted = 0, snowAnnounced = false;
 function snowF(){ return clamp((greyF() - SNOW_G0) / SNOW_G1, 0, 1); }
 /* how much of the cover a cell of this kind takes — the trodden kinds take less, so the
  * paths and the road read dark through the white without touching the wear map */
-function snowTake(t){ return t === GRASS || t === BED || t === CBED || t === EYOT ? 1 : t === SIDE ? 0.7 : t === ICE ? 0.45 : t === GLASS ? 0.55 : t === PATH || t === SLOT ? 0.5 : t === ROAD ? 0.4 : 0; }
+function snowTake(t){ return t === GRASS || t === BED || t === CBED || t === EYOT ? 1 : t === SIDE ? 0.7 : t === ICE ? 0.45 : t === GLASS ? 0.55 : t === PATH || t === SLOT ? 0.5 : t === ROAD ? 0.4 : 0; }   // ARCADE is roofed, so it takes nothing — the tile falls through to 0 with WALL
 /* the cover also knows the wear VALUE, not just the kind: a line worn through the lawn
  * takes SNOW_WEAR less of it (full effect by wear SNOW_WEAR_AT, where a desire path is
  * unmistakably a path), so the paths people wear stay dark through a winter. trod[] is
@@ -3887,7 +3933,13 @@ function spawnAgent(room){
 const LAWN_CAP = 8, LAWN_RATE = 0.9, LAWN_SUN = 0.35, LAWN_MIN_DWELL = 1.5, LAWN_WALK_MARGIN = 1.1,
       LAWN_LIE_WARMTH = 0.45, LAWN_NAPS = GAP_ANGLES.length, LAWN_BLANKETS = 3, LAWN_RUNS = 2, LAWN_BLANKET_SEP = 0.7, LAWN_CHORD = 1.2;
 const LAWN_OFF = {north:5, south:40, west:5, east:35};   // the off-frame leg to each door, in cells (entryLeg's own routes)
-const LAWN_W = {gardener:0.15, kid:0.2, napper:0.2, picnic:0.25, sitter:0.2};
+/* stroll 0.12 and not 0.2 (#186). LAWN_CAP is the bound, not the rate — swept over 3
+ * seeds x 20 days the weight moves the SHARE and not the inflow (495/491/488 set-outs at
+ * 0.20/0.12/0.07) — so a sixth kind at a peer's weight is paid for out of the five
+ * already there: 0.20 put the walk ahead of the benches at 30%, taking 25 sitters and 8
+ * blankets a fortnight with it. At 0.12 it sits just behind the sitter, which is what a
+ * new place in a garden that already had places should be. */
+const LAWN_W = {gardener:0.15, kid:0.2, napper:0.2, picnic:0.25, sitter:0.2, stroll:0.12};
 function lawnSun(){ return daylight > LAWN_SUN; }
 function lawnClosed(){ return raining || !lawnSun(); }   // the ONE closing rule: rain or the failing light end every stay
 /* the light has GONE, as opposed to not being up YET (#108). `!lawnSun()` alone is
@@ -3937,6 +3989,54 @@ function lawnGate(px, py){
  * whole year (#168). What #179 changed is WHICH door: pricing the stay against one door
  * and walking out of another is two definitions of the same leg. */
 function lawnHome(px, py, sp){ return LAWN_WALK_MARGIN * pathHours(px, py, [lawnGate(px, py).door], sp); }
+/* ============ the covered walk, used (#186) ============
+ * The walk is entered at the GATE and never over the border. The north range's inner face
+ * has the edge beds standing against it and the one break in them is the arch's own
+ * approach (nearEntrance), so a route that stepped straight in off the paving would walk
+ * a person through the planting at the very place the eye is. That is not a workaround —
+ * it is what makes the thing a WALK: the far bay of the west run is 25 cells of colonnade
+ * from the mouth, and getting there IS the visit.
+ * ONE definition of the length, taken both ways: arcWay in, arcOut back, so the leg the
+ * set-out is priced on is the leg the walk home is charged at (LAW: a solve must hand its
+ * consumer the value it TESTED). */
+function arcWay(e, b){ return lawnWay(e, ARC_MOUTH[0], ARC_MOUTH[1]).concat([[ARC_MOUTH[0], ARC_STAND], [b.x, ARC_STAND]]); }
+function arcOut(b){ return [[b.x, ARC_STAND], [ARC_MOUTH[0], ARC_STAND], ARC_MOUTH.slice()]; }
+function arcFree(a){ return ARCADE_BAYS.filter(b => !agents.some(o => o !== a && o.place === b && lawnHolds(o))); }
+/* The two edges a courtyard stay is ended by the sky on, and there are exactly two:
+ * the stop branch, when the front thickens over somebody already at their place, and
+ * HERE, when somebody who walked through it to get here is refused the seat they came
+ * for (seatRefused — the front, or paving still wet from the last one). The second is
+ * the bigger of the two by 4x, and a walk offered only at the first was being offered
+ * to 13 people in 28 days. Both go through arcShelter, so the bay, the run and the
+ * one-shot are defined once. */
+function lawnSkyOut(a){ if (!a.arcTried && arcShelter(a)) return; routeToExit(a); }
+/* Rain over the garden. Until this iteration its one answer was the gate: lawnClosed() is
+ * true the moment the first drop lands, and every stay in the courtyard ended in a walk
+ * out through an arch. The garden has a roof now, so rain's FIRST answer is the walk and
+ * the gate is its second — and a BOUNDED first answer, because from the south of the lawn
+ * the nearest bay is a longer run than the south arch and nobody sprints the length of a
+ * garden to get out of the wet.
+ * Membership is positive and one-shot at the SOURCE: a.arcTried is set on entry, whether
+ * or not a bay was free, so the offer cannot re-fire on the next tick and no later
+ * population inherits it as a residual. */
+const ARC_RUN_TO = 30;                  // how far somebody will run for cover, in cells
+function arcShelter(a){
+  a.arcTried = true;
+  if (a.kind === 'gardener' || a.with || a.small) return false;   // the gardener holds a bed and came to WORK; a child is at somebody's side
+  const free = arcFree(a);
+  if (!free.length) return false;
+  const run = b => Math.hypot(a.x - ARC_MOUTH[0], a.y - ARC_MOUTH[1]) + Math.abs(b.x - ARC_MOUTH[0]);
+  const b = free.reduce((p, q) => run(q) < run(p) ? q : p);
+  if (run(b) > ARC_RUN_TO) return false;
+  a.place = b; a.arcAt = b; a.arcRain = true; a.preExit = arcOut(b);
+  a.onBench = false; a.blanket = false; a.napAt = null; a.picnicAt = null; a.benchAt = null;
+  a.wp = [ARC_MOUTH.slice(), [ARC_MOUTH[0], ARC_STAND], [b.x, ARC_STAND]]; a.i = 0;
+  a.state = 'walk'; a.timer = 0;
+  sayAt(a.x, a.y, pick(['The rain comes on; the garden empties into the covered walk.',
+                        'Somebody makes for the arcade as the first drops land.',
+                        'The shower drives the garden in under the north range.']));
+  return true;
+}
 /* the two legs of a gardener's day, priced in HOURS off ONE definition: the way in along
  * `pts`, and the walk home from where it ends. The set-out test calls it, and so the bed
  * filter and the door bag call it too — the window cannot drift from the walk it is
@@ -4071,6 +4171,11 @@ function spawnLawnAgent(want){
   if (day >= 3 && lie && held.filter(o => o.kind === 'picnic').length < LAWN_BLANKETS
       && ENTR.some(e => warmth > 0.65 && shadowF() > 0.5 ? GAP_ANGLES.some(g => lawnFits(e, gapWay(e, g).concat([[CX + Math.cos(g) * 3.3, CY + Math.sin(g) * 3.3]]), speed)) : lawnFits(e, lawnWay(e, CX + (RING[e.k][0] - CX) * 0.55, CY + (RING[e.k][1] - CY) * 0.55), speed))) kinds.push('picnic');
   if (freeBenches.some(b => ENTR.some(e => lawnFits(e, lawnWay(e, b.x + 0.5, b.y + 0.6), speed)))) kinds.push('sitter');
+  // #186: the covered walk is a place with places in it, so it is offered like the
+  // benches — a free bay AND a door whose walk to it fits the window. It is the one
+  // courtyard stay the weather cannot refuse, which is the whole point of a roof.
+  const freeBays = ARCADE_BAYS.filter(b => !has(o => o.place === b));
+  if (freeBays.some(b => ENTR.some(e => lawnFits(e, arcWay(e, b), speed)))) kinds.push('stroll');
   if (!kinds.length) return false;
   /* `want` is a scheduled source's forced kind (#129). It skips the LOTTERY and nothing
    * else: the kind is still only offered if the list above found it a free place and a
@@ -4148,6 +4253,13 @@ function spawnLawnAgent(want){
       a.gap = gIn;
       way = e => { const w = gapWay(e, gIn); a.preExit = [round[0].slice(), w[w.length - 1].slice()]; a.shaded = true; return w.concat(round.map(p => p.slice()), [a.picnicAt.slice()]); };
     } else way = e => lawnWay(e, a.picnicAt[0], a.picnicAt[1]);
+  } else if (kind === 'stroll'){
+    // the length of the colonnade is the visit: in at the gate mouth, along under the
+    // vaults to a bay, and back out the same way (preExit, so routeToExit does not send
+    // them on a chord through the border they came in to keep out of)
+    const fit = freeBays.filter(b => ENTR.some(e => lawnFits(e, arcWay(e, b), speed)));
+    const b = pick(fit); a.arcAt = b; a.place = b; a.preExit = arcOut(b);
+    way = e => arcWay(e, b);
   } else {
     // a sitter cuts straight from the door to the bench along the wall (the benches sit
     // between the ring and the wall: door → ring → back out to the bench is 37 cells ≈ 9 h,
@@ -4353,7 +4465,10 @@ function routeToExit(a){
   if (a.lawnEnd !== undefined && a.i >= a.lawnEnd){ if (a.lawn) lawnRelease(a); return; }
   if (a.lawn) lawnRelease(a);                 // the walk OUT begins here: the place goes back now, not at the door
   if (a.lawnCut){                             // a lawn visitor: the chord to the nearest door (via the gap if inside the beds)
-    const th = Math.atan2(a.y - CY, a.x - CX), inside = Math.hypot(a.x - CX, a.y - CY) < bedOut(th) + 1.2;
+    // …or under the covered walk (#186), whose way out is its own length back to the
+    // gate mouth and never a chord over the border it stands behind
+    const th = Math.atan2(a.y - CY, a.x - CX);
+    const inside = Math.hypot(a.x - CX, a.y - CY) < bedOut(th) + 1.2 || a.y < ARC_Y1;
     const from = inside && a.preExit ? a.preExit[a.preExit.length - 1] : [a.x, a.y];
     a.wp = (inside && a.preExit ? a.preExit.map(p => p.slice()) : []).concat(exitLeg(lawnGate(from[0], from[1]), true)); a.i = 0; a.state = 'walk'; return;
   }
@@ -4412,6 +4527,18 @@ function stepAgent(a, dt){
       else if (a.famKid && !raining){ a.rest -= dt; if (a.rest <= 0) startKidRun(a); }
       return; }
     if (a.tend && !bon.on && bon.fire < 0.15) a.timer = 0;   // the bonfire is out: the holder goes (#93)
+    /* #186: under the covered walk, where the WEATHER is the clock. Every other stop in
+     * this block can be cut short by the sky; this one the sky cannot reach, because it
+     * is the only place in the garden with a roof over it — so the test below is a
+     * release, not a countdown, and `raining` PROLONGS it where everywhere else it ends
+     * a stay. Bounded on the light at both ends by lawnGone(), so a shower that runs
+     * into dusk does not leave somebody standing in a dark colonnade all night; and on
+     * the paving, by the same wetF() bar the seats are refused on, so they do not step
+     * out onto stone still running with it. */
+    if (a.arc){
+      if (!lawnGone() && (raining || wetF() > ARC_DRY || a.timer > 0)) return;
+      a.arc = null; routeToExit(a); return;
+    }
     if (a.timer <= 0 || (raining && a.state !== 'lie')
         || skyLifts(a)
         || (a.east && !eastOpenFor(a))
@@ -4420,6 +4547,15 @@ function stepAgent(a, dt){
         || (a.lawn && lawnClosed())           // rain or the failing light ends a stay on the lawn (#95)
         || (a.tap && !tapOpen())
         || (a.band && (bandF() <= 0 || (a.heard && bandF() < a.leaveAt)))){
+      /* #186: the garden has a roof now, so the sky's first answer is the covered walk
+       * and the gate is only its second. The trigger is the town's OWN bar for a turning
+       * sky (SIT_REFUSE, the one every seat is already judged on) and not `raining`:
+       * skyLifts() empties the courtyard on the thickening front, ~11 s AHEAD of the
+       * first drop, so a guard that waited for rain was offered 7 people in 28 days and
+       * every one of them had already stood up for a shower that had not started. One
+       * shot per person, refused at the source (arcShelter sets a.arcTried on entry). */
+      if ((raining || weatherComing() > SIT_REFUSE) && a.lawn && !a.lawnOut && !a.arcTried
+          && arcShelter(a)) return;
       // a listener who would call in at the door on the way home: the walk is priced
       // and, from the green, it never fits — see tapCallers(). The branch is the proof.
       if (a.band && a.toTap && callIn(a, a.wp.slice(a.i).concat([[PARK_GATE, LANE_N_Y]]), 4, 6)) return;
@@ -4528,15 +4664,33 @@ function stepAgent(a, dt){
         // both: whoever reaches the grass first decides, and if your half is already
         // down you join them whatever the cloud is doing. (They share `a.wary` too — the
         // partner is a copy — so the release lifts them in the same frame.)
-        if (seatRefused(a) && !(a.mate && a.mate.state === 'sit')){ routeToExit(a); return; }
+        if (seatRefused(a) && !(a.mate && a.mate.state === 'sit')){ lawnSkyOut(a); return; }
         a.state='sit'; a.timer=lawnStay(a, dur); a.blanket=a.lead;
         if (a.lead) sayAt(a.x, a.y, a.shaded ? 'A blanket unfurls in the shade of the linden — picnic hour.' : 'A blanket unfurls on the grass — picnic hour.');
+        return;
+      }
+      /* #186: at a bay of the covered walk, with its whole length behind them. The
+       * duration is DRAWN either way and only then priced, like the seats above: a
+       * shelterer's clock is the weather (a.arcRain -> the release in the stop branch
+       * owns them), a stroller's is the light lawnStay() clips them to. */
+      if (a.arcAt){
+        const b = a.arcAt, dur = 10 + R() * 14;
+        a.arcAt = null; a.arc = b;
+        // a shelterer keeps NO clock: theirs is the weather, and the release below is the
+        // one that owns them. A stroller's is the light, clipped to the walk home.
+        a.state = 'stand'; a.timer = a.arcRain ? 0 : lawnStay(a, dur);
+        a.faceL = b.x > ARC_MOUTH[0];
+        if (!a.arcRain) sayAt(a.x, a.y, pick([
+          'Somebody walks the length of the arcade and stops where the light comes in.',
+          'Footsteps carry under the vaults of the covered walk.',
+          'Someone stands in the shade of the arcade, looking out over the garden.',
+          'A bay of the covered walk is taken; the garden is watched from under a roof.']));
         return;
       }
       if (a.kind === 'sitter' && a.benchAt){
         const dur = 12 + R() * 16;
         a.benchAt = null;
-        if (seatRefused(a)){ routeToExit(a); return; }
+        if (seatRefused(a)){ lawnSkyOut(a); return; }
         a.state='sit'; a.timer=lawnStay(a, dur); a.onBench=true; return;
       }
       if (a.tend && !a.lit){                       // at the heap (#93): light it, or find the weather turned and go home again
@@ -8903,6 +9057,17 @@ function drawFaceRow(g, y){
       continue;
     }
     if (churchAt(gx, y) || e < 2.4) continue;
+    /* #186: a cell of the covered walk keeps its upper storey and loses its ground one.
+     * The openings themselves are NOT cut here — the ground cache is rebuilt on the
+     * light and the arcade has people standing in it, so it is drawn live over this
+     * wall, exactly as the four archways are. What this branch owns is only the
+     * furniture that would end up BEHIND an opening: no front door onto a colonnade,
+     * and the sill of any window drops to clear the crown of the arch. */
+    if (grid[y * GW + gx] === ARCADE){
+      if (e > ARC_TOP + 1.6 && ((gx % 7) + 7) % 7 === 1 && hash(gx, y * 9) > 0.2)
+        drawWindow(g, x + 0.5, y + 1, e * 0.86, e * 0.26, gx, y + 40);
+      continue;
+    }
     const slot = ((gx % 7) + 7) % 7;
     if ((slot === 1 || slot === 4) && hash(gx, y * 7) > 0.12){
       drawWindow(g, x + 0.5, y + 1, e * 0.86, e * 0.30, gx, y);
@@ -9260,6 +9425,126 @@ function drawPassage(g, A){
   g.beginPath(); g.ellipse(kx, ky, cellW * 0.19, cellH * 0.5, 0, 0, 7); g.fill();
 }
 function drawArch(it){ drawPassage(ctx, it.A); }
+/* ============ the covered walk, drawn (#186) ============
+ * An arcade is an ARCHWAY repeated, so it is drawn the way the archways are: the ground
+ * cache lays the north range's facade flat over the whole run (drawFaceRow), and this
+ * pass — live, one item, sorted just south of the wall like the north arch at 3.06 —
+ * punches the openings back through it. It has to be live and not cached for the same
+ * reason drawPassage does: there are people standing in it, and the ground cache is
+ * rebuilt on the LIGHT, not on the frame.
+ *
+ * Everything is solved in world space and projected at both ends (trap e). Depth is two
+ * cells — the front plane is ARC_Y1, the back wall the south face of the range's one
+ * remaining solid row at ARC_Y0 — and project() lifts z northward, so the back wall's
+ * foot lands ABOVE the front plane's foot on screen and the floor between them is the
+ * band you see the walk's ground in. */
+function arcadeAgents(r){
+  const out = [];
+  for (const a of agents){
+    if (a.x < r.x0 - 0.2 || a.x > r.x1 + 0.2) continue;
+    if (a.y < ARC_Y0 - 0.7 || a.y > ARC_Y1 - 0.05) continue;
+    out.push(a);
+  }
+  return out;
+}
+function arcadeFolk(g, r, bays){
+  const folk = arcadeAgents(r);
+  if (!folk.length) return;
+  g.save();
+  g.beginPath();                                   // ONE clip, the union of the run's openings, so a
+  for (const b of bays){                           // walker is occluded BY a pier rather than vanishing
+    const sp = ARC_TOP * 0.5;                      // between bays
+    const bl = project(b.x - ARC_HW, ARC_Y1, 0), br = project(b.x + ARC_HW, ARC_Y1, 0);
+    const sl = project(b.x - ARC_HW, ARC_Y1, sp), sr = project(b.x + ARC_HW, ARC_Y1, sp);
+    const cr = project(b.x, ARC_Y1, ARC_TOP);
+    g.moveTo(bl[0], bl[1]); g.lineTo(sl[0], sl[1]);
+    g.quadraticCurveTo(sl[0], cr[1], cr[0], cr[1]);
+    g.quadraticCurveTo(sr[0], cr[1], sr[0], sr[1]);
+    g.lineTo(br[0], br[1]); g.closePath();
+  }
+  g.clip();
+  folk.sort((p, q) => p.y - q.y);
+  for (const a of folk){ drawPerson({a}); if (a.dog) drawDog({d:a.dog}); }
+  g.restore();
+}
+function drawArcadeBay(g, b){
+  const yF = ARC_Y1, yB = ARC_Y0, top = ARC_TOP, hw = ARC_HW;
+  // fixed darks, like drawPassage's DEEP: applyLight owns the night, this owns the DEPTH.
+  // A recess that scaled with daylight came out the same value as the wall around it and
+  // the whole run read as arcading PAINTED on a facade rather than a walk behind one.
+  const soffit = '#171106';                               // the underside of the vault, and the darkest thing here
+  const back   = '#4d4335';                               // the wall at the back of the walk, catching the garden
+  const floorN = '#8f8368';                               // the flags at the threshold, open to the garden…
+  const floorF = '#3a3227';                               // …and in shadow a cell back
+  // the three have to differ by more than a shade or the whole opening reads as one dark
+  // hole and the people standing in it look like they are floating in it
+  g.save();
+  archAtY(g, b.x, yF, top, hw); g.clip();
+  archAtY(g, b.x, yF, top + 0.5, hw + 0.5); g.fillStyle = soffit; g.fill();
+  // the back wall, standing behind the vault: its own arch shape, one step smaller
+  archAtY(g, b.x, yB, top * 0.97, hw * 0.97); g.fillStyle = back; g.fill();
+  // the flags, between the two planes — the whole point of the tile, which is that you
+  // see the ground UNDER a roof
+  const fa = project(b.x - hw, yB, 0), fb = project(b.x + hw, yB, 0);
+  const n1 = project(b.x - hw, yF, 0), n2 = project(b.x + hw, yF, 0);
+  const fl = g.createLinearGradient(0, fa[1], 0, n1[1]);
+  fl.addColorStop(0, floorF); fl.addColorStop(1, floorN);
+  g.fillStyle = fl; poly(g, [fa, fb, n2, n1]); g.fill();
+  // one joint across the flags, so the floor has a grain and not just a gradient
+  const j1 = project(b.x - hw, (yB + yF) / 2, 0), j2 = project(b.x + hw, (yB + yF) / 2, 0);
+  g.strokeStyle = 'rgba(20,15,9,.30)'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(j1[0], j1[1]); g.lineTo(j2[0], j2[1]); g.stroke();
+  // where the back wall meets the flags — the line that makes the floor a FLOOR
+  g.strokeStyle = 'rgba(14,10,6,.55)'; g.lineWidth = Math.max(1, cellH * 0.14);
+  g.beginPath(); g.moveTo(fa[0], fa[1]); g.lineTo(fb[0], fb[1]); g.stroke();
+  // daylight off the garden, spilling in over the threshold and dying a cell back
+  const gl = g.createLinearGradient(0, fa[1], 0, n1[1]);
+  gl.addColorStop(0, 'rgba(255,246,220,0)');
+  gl.addColorStop(1, 'rgba(255,246,220,' + (0.05 + 0.20 * daylight) + ')');
+  g.fillStyle = gl; poly(g, [fa, fb, n2, n1]); g.fill();
+  g.restore();
+  // the reveal: a dark ring inside the opening, which is what gives the walk its own
+  // shadow line where the range's wall is a cell thick above it
+  g.strokeStyle = 'rgba(14,10,6,.55)'; g.lineWidth = Math.max(1.4, cellW * 0.15);
+  g.save(); archAtY(g, b.x, yF, top, hw); g.clip();
+  archAtY(g, b.x, yF - 0.5, top, hw); g.stroke(); g.restore();
+  // the arch ring itself, and a keystone
+  g.strokeStyle = 'rgba(52,44,34,.45)'; g.lineWidth = Math.max(1.2, cellW * 0.12);
+  archAtY(g, b.x, yF, top + 0.09, hw + 0.09); g.stroke();
+  g.strokeStyle = 'rgba(228,219,196,.40)'; g.lineWidth = Math.max(1, cellW * 0.08);
+  archAtY(g, b.x, yF, top + 0.18, hw + 0.18); g.stroke();
+  const [kx, ky] = project(b.x, yF, top + 0.14);
+  g.fillStyle = 'rgba(232,223,200,.6)';
+  g.beginPath(); g.ellipse(kx, ky, cellW * 0.15, cellH * 0.42, 0, 0, 7); g.fill();
+  // the impost each arch springs from, carried across the pier beside it
+  const sp = top * 0.5;
+  const i1 = project(b.x - hw - 0.34, yF, sp), i2 = project(b.x + hw + 0.34, yF, sp);
+  const i3 = project(b.x + hw + 0.34, yF, sp - 0.14), i4 = project(b.x - hw - 0.34, yF, sp - 0.14);
+  g.fillStyle = 'rgba(216,206,182,.34)'; poly(g, [i1, i2, i3, i4]); g.fill();
+}
+function drawArcadeRun(g, r){
+  const bays = ARCADE_BAYS.filter(b => b.run === r);
+  const yF = ARC_Y1, zTop = ARC_TOP + 0.62;
+  const wt = clamp(0.22 + 0.6 * daylight, 0, 1);
+  // the run gets a face of ITS OWN below the string course, so the piers read as stone
+  // standing on the ground rather than as plaster with holes in it
+  const a = project(r.x0, yF, zTop), b2 = project(r.x1, yF, zTop);
+  const c = project(r.x1, yF, 0), d = project(r.x0, yF, 0);
+  const gr = g.createLinearGradient(0, a[1], 0, d[1]);
+  gr.addColorStop(0, mix('#3b352c', '#c3b79f', wt));
+  gr.addColorStop(1, mix('#2d2822', '#9c9078', wt));
+  g.fillStyle = gr; poly(g, [a, b2, c, d]); g.fill();
+  for (const bay of bays) drawArcadeBay(g, bay);
+  arcadeFolk(g, r, bays);
+  // string course along the top of the run, and the plinth the piers stand on
+  const s1 = project(r.x0, yF, zTop), s2 = project(r.x1, yF, zTop);
+  const s3 = project(r.x1, yF, zTop - 0.16), s4 = project(r.x0, yF, zTop - 0.16);
+  g.fillStyle = 'rgba(224,215,192,.42)'; poly(g, [s1, s2, s3, s4]); g.fill();
+  const p1 = project(r.x0, yF, 0.2), p2 = project(r.x1, yF, 0.2);
+  const p3 = project(r.x1, yF, 0), p4 = project(r.x0, yF, 0);
+  g.fillStyle = 'rgba(28,22,15,.22)'; poly(g, [p1, p2, p3, p4]); g.fill();
+}
+function drawArcade(){ for (const r of ARC_RUNS) drawArcadeRun(ctx, r); }
 /* The lit door on the lane. It is drawn EVERY frame, not only when it is open: a
  * doorway that appears in a wall at half six and vanishes at three is a pop, and the
  * whole point of splitting tapOpen() from tapF() is that the wall never changes shape.
@@ -10122,6 +10407,12 @@ function drawGround(){
       gtx.fillStyle = mix('#a2977f', '#b3a790', hv);     // the TUNNEL shape — its own fill, then out,
       quad(gtx, x, y, 0.03); gtx.fill(); continue;       // so no snow, litter, moss or joints reach it
     }
+    if (t === ARCADE){                                   // #186: flags under the covered walk. The same
+      gtx.fillStyle = mix('#8d8168', '#9c9077', hv);     // shape again — its own fill and out — so no
+      quad(gtx, x, y, 0.03); gtx.fill(); continue;       // snow, litter, moss or puddle reaches a roofed
+    }                                                    // floor. drawFaceRow paints the wall over this;
+                                                         // drawArcade cuts the openings back through it
+
     gtx.fillStyle = groundCol(gx, y, t, hv, m);
     quad(gtx, x, y, 0.03); gtx.fill();
     const sn = snowAt(gx, y, t);
@@ -11799,9 +12090,10 @@ function drawScene(t, dt){
   if (mkCrates.length && marketUp()) items.push({y:MK_OVER_Y + 0.5, f:drawMarketOver});
   const cellAt = (x, y) => grid[clamp(y|0, 0, WH-1) * GW + clamp(x|0, 0, GW-1)];
   for (const a of agents){
-    if (!a.aboard && cellAt(a.x, a.y) !== TUNNEL)   // inside an archway: hidden under the roof; aboard: the punt's crew item draws them
+    const ac = cellAt(a.x, a.y);
+    if (!a.aboard && ac !== TUNNEL && ac !== ARCADE)   // inside an archway or under the covered walk: behind the range's own wall, so drawArcade/drawPassage draw them clipped to the opening; aboard: the punt's crew item draws them
       items.push({y:a.y + (a.state==='lie'?0.01:0.5), f:drawPerson, a});
-    if (a.dog && cellAt(a.dog.x, a.dog.y) !== TUNNEL) items.push({y:a.dog.y+0.4, f:drawDog, d:a.dog});
+    if (a.dog && cellAt(a.dog.x, a.dog.y) !== TUNNEL && cellAt(a.dog.x, a.dog.y) !== ARCADE) items.push({y:a.dog.y+0.4, f:drawDog, d:a.dog});
   }
   for (const b of birds) items.push({y:b.y+0.4, f:drawBird, b});
   for (const d of ducks) items.push({y:d.y+0.3, f:drawDuck, d});
@@ -11812,6 +12104,9 @@ function drawScene(t, dt){
   // are under it and anyone standing on the footway is in front of it
   if (roundMarks.length) items.push({y:65.11, f:drawStepMarks});   // #98: on the step, over the fronts, under the footway
   items.push({y:65.12, f:drawTapDoor});
+  // #186: with the north arch, at the plane the north range's face stands on — under the
+  // edge beds' plants (items at y 3.5), which is what puts the border in front of it
+  items.push({y:3.04, f:drawArcade});
   for (const A of ARCHES) items.push({y: A.yF === 3 ? 3.06 : 65.3, f:drawArch, A});
   items.push({y:6.6, f:drawShed});
   items.push({y:CY+0.6, f:drawTree, sway, treeR, treeH, tname:'the linden'});
@@ -15447,6 +15742,10 @@ function nameAt(x, y){
   if (g === ICE) return rice[j] > 0.75 ? 'the river, frozen right in to the channel'
                 : snowCover > 0.3 ? 'the river\'s ice, snow lying on it' : 'the river, skinned over at the edge';
   if (g === GLASS) return 'the glasshouse, warm under the panes';
+  if (g === ARCADE) return raining ? 'the covered walk, the rain running off the eaves outside'
+                  : snowCover > 0.25 ? 'the covered walk, dry flags under the north range'
+                  : daylight < 0.2 ? 'the covered walk, dark between its piers'
+                  : 'the covered walk, under the north range';
   if (g === EYOT) return 'the eyot';
   if (g === DECK) return 'the footbridge';
   if (g === DIAL) return sundialName();
@@ -16491,7 +16790,7 @@ window.__entities = function(){
   return out;
 };
 window.__census = function(){
-  const tiles = {}, TN = ['WALL','PATH','GRASS','BED','CBED','TRUNK','SIDE','ROAD','VOID','WATER','TUNNEL','SLOT','DECK','DIAL','EYOT','GLASS','REED','LEADS','ICE'];
+  const tiles = {}, TN = ['WALL','PATH','GRASS','BED','CBED','TRUNK','SIDE','ROAD','VOID','WATER','TUNNEL','SLOT','DECK','DIAL','EYOT','GLASS','REED','LEADS','ICE','ARCADE'];
   for (let i = 0; i < GW * WH; i++){ const n = TN[grid[i]] || ('T' + grid[i]); tiles[n] = (tiles[n] || 0) + 1; }
 
   /* planting CA: how much of the beds is actually growing, and how far along */
@@ -16529,7 +16828,7 @@ window.__census = function(){
      * render state. */
     chimneys: CHIMNEYS.length, roofFurniture: ROOF_FURN.length, roofHatches: HATCHES.length,
     plotFurniture: ALLOT_FURN.length,
-    ringNodes: RING.length, edgeBeds: EDGE_BEDS.length,
+    ringNodes: RING.length, edgeBeds: EDGE_BEDS.length, arcadeBays: ARCADE_BAYS.length,
     benches: BENCH_SPOTS.length + LANE_BENCHES.length + QUAY_BENCHES.length + FAR_BENCHES.length,
     cafeTables: CAFE_TABLES.length, marketStalls: MARKET_STALLS.length,
     treePits: TREE_PITS.length, orchard: ORCHARD.length, plazaPits: PLAZA_PITS.length,
@@ -16562,7 +16861,9 @@ window.__census = function(){
       // #170: LEADS is cut OUT of WALL, so without it a terrace on the near block would
       // read as the town losing built ground. It is built ground — it is the only ground
       // south of the lane anyone stands on — so `developed` holds across the change.
-      developed: (tiles.WALL || 0) + (tiles.PATH || 0) + (tiles.ROAD || 0) + (tiles.SIDE || 0) + (tiles.LEADS || 0),
+      // #186: and ARCADE is cut out of WALL the same way — a roofed floor is still built
+      // ground, and it is the ground the garden's wet-weather people are standing on.
+      developed: (tiles.WALL || 0) + (tiles.PATH || 0) + (tiles.ROAD || 0) + (tiles.SIDE || 0) + (tiles.LEADS || 0) + (tiles.ARCADE || 0),
       green: (tiles.GRASS || 0) + (tiles.BED || 0) + (tiles.CBED || 0) + (tiles.TRUNK || 0),
       // #155: a REED cell is shallow water, not land — it is cut OUT of WATER, so
       // without this the whole reed bed would read as the river losing 400 cells.

@@ -4319,3 +4319,16 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 
 <!-- full text of #138, condensed in LEDGER.md to stay inside the read budget -->
+## Iteration 137 — the lane's cap starts counting the lane (2026-09-03) [People & animals × Scale/World]
+
+**Brief:** b137 — presence per PLACE across whole days, sweep every cap, keep the knee.
+**Premise right, cause was a membership bug.** `laneCount` was a RESIDUAL — everyone eleven subtractions did not remove — so it annexed every population added after it: the LAWN's five kinds (#95), the allotments' pickers, the sweeper, the loader. Summer day: **17.00 against a cap of 6.77, binding 100%** of daylight samples, of which the lane's own were **0.08**. `spawnLaneAgent` — the source for the plaza, quay, far green, parapet and allotment detour as well as the lane — had been dead in daylight for a year of iterations, no line changed, no gate fired.
+**Did.** `lane:true` on its object literal (every branch and `makeCompanion` inherit it); `laneCount = agents.filter(a => a.lane).length`. Then swept each cap alone, 3 seeds x 26 days: **capacity 6->10**, **laneCap 6.4->10**, **eastCap min(7,*6)->min(9,*8)**, **FAR_CAP 3->5**; **FAM_CAP kept 3, EVE_CAP kept 6**, each with its reason written at the site.
+**Gates:** census PASS (`people +99`, baseline re-pinned) · motion PASS · filmstrip 0 POP · visual PASS 1600x950 + 390x844.
+**HEAD -> cand** (daylight dry): town **36.03 -> 50.19**, and every place up — the smallest gain is the courtyard's +13%, the largest the lane's +90%. Same pinned instant, same ticker line: **51 -> 60**. Crowded pairs 0.068 -> 0.078 *per person* — flat.
+**Verdict:** shipped
+**Surprise:** two caps refused to be raised, for opposite reasons. **FAM_CAP has three places and only two are reserved** — `famBench` locks a bench, the 1.6-cell fountain strip locks nothing — so 5 saturated the count at 2.41 while doubling plaza crowding 0.93 -> 1.66: past 3 the slack is not presence, it is two families drawing as one shape. **laneCap has no knee at all** up to 19 — it buys people linearly, but each destination is 5-6% of one roll, so past 10 every marginal arrival is a lane walker and the plaza stays flat (4.84 -> 4.68 -> 4.71). The branch share is the cap beneath the cap.
+**Budget:** `context-budget.mjs` **OVER**, 49.4 KB before this pass, 52.5 after. Distil.
+**Law:** a cap must count a membership it DEFINES; a residual annexes every later population and the original starves silently.
+**Law:** a rate and a stock move opposite ways under one change — census `harvested -303`/`produce -83.8` looked like the allotments starving, but `probes/allot-source.mjs` says the lane detour is 6 of 76 arrivals and `harvestPlot` calls went UP 76->79. Count the CALLS before believing a census field about a stock.
+

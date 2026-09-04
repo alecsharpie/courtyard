@@ -540,7 +540,8 @@
       "bed planting CA over SPECIES: bSp/bSt, growF/dieF/bloomCap",
       "the lawn's OWN source: spawnLawnAgent/LAWN_RATE/LAWN_CAP, sub-caps (benches, naps, blankets, runs); lawnStart/End/Holds/Gone/Fits/Home/Stay \u2014 the STAY priced at the walk home (#168)",
       "the gardener on a SCHEDULE outside LAWN_CAP: gardenDue/GARD_K over growSeason(), gardenFits both ends (#157), gardWalk/gardWin/gardNearest/GARD_LAND, gardenerKneel/GARDEN_REACH",
-      "the way OUT is its own question (#179): lawnGate() picks the door by the WHOLE leg off-frame (LAWN_OFF), not nearDoor's chord; laneEdge(nearX)/entryLeg/exitLeg take the NEAR world edge, lawn only"
+      "the way OUT is its own question (#179): lawnGate() picks the door by the WHOLE leg off-frame (LAWN_OFF), not nearDoor's chord; laneEdge(nearX)/entryLeg/exitLeg take the NEAR world edge, lawn only",
+      "the COVERED WALK (#186): ARCADE tile 19, north range's inner rows \u2014 the ONE range with a drawn face; ARC_RUNS, 16 ARCADE_BAYS, WALL to buildVolumes, drawArcadeRun live over the cached facade, folk clipped per run; stroll + arcShelter, in by arcWay"
     ],
     "lane": [
       "kiosk, pavement cafe, awnings, washing lines, planters, LANE_LAMPS, LANE_BENCHES; morning ROUND mround/updateRound",
@@ -650,6 +651,12 @@
       "id": "c278",
       "note": "bonfire-year.mjs threw on every run for 7 iterations (bon.lit, deleted at #178) and nobody noticed, because nothing runs probes/. 264 tracked probe files, unknown how many are dead; a smoke-run would say.",
       "raisedBy": 181,
+      "seenBy": 0
+    },
+    {
+      "id": "c279",
+      "note": "LAWN_CAP is the bound, so a sixth lawn kind is a SHARE: set-outs 495/491/488 at stroll 0.20/0.12/0.07 \u2014 the covered walk is paid out of the benches and blankets, not out of inflow.",
+      "raisedBy": 186,
       "seenBy": 0
     }
   ],

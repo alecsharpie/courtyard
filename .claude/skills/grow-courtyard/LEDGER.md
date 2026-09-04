@@ -40,29 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 178 — the bonfire re-asks its weather (2026-09-04) [Sky, light & weather × Deepen]
-
-**Brief:** b178 — c244: `bonfireWeather()` is asked once, at the match, never again.
-**Premise CONFIRMED, NARROWER.** `stepBonfire` already re-asked the WET half
-(`raining || snowCover > 0`); the WIND clause had no re-ask at all, so every refused hour on HEAD
-is wind, none wet: **3 of 37 fires, 3.49 of 129.60 fed hours** (probe-bonfire-wind, 6 seeds x 4 y).
-**Did.** Both faces of one scalar, no new weather term. `isWindy()` ENDS the feeding at its edge
-in `stepBonfire`, latching `bon.blown` (`bonfireName()` reads it) and a sayAt; the holder needs no
-code — #93's `!bon.on && bon.fire < 0.15` walks them home. `windF()` HURRIES it: BON_BURN_H stops
-being a clock (`simT - bon.lit`, deleted) and becomes a fuel budget `bon.spent` spent at
-`1 + BON_WIND_HURRY * windF()` still-air hours, same rate on fall and embers.
-**HEAD -> cand.** Outliving their weather **3/37 -> 0/44**, refused hours **3.49 -> 0.00**; 3 raked apart,
-0.73 h mean vs 3.15 h; mean burn 3.50 -> 2.98 h, town fed hours flat.
-**Gates:** census PASS (reshuffle, no collapse) · motion PASS · shots · filmstrip seed 42 t 2114,
-0 POP: the plume climbs, thins as windF crosses 0.40, embers by #9.
-**Verdict:** shipped
-**Surprise:** the first HEAD/cand pair read **8/33 -> 0/33** and did not reproduce. A `?pause`
-page still runs rAF, so entering without `?t=` starts ~2.2 s of un-reseeded world in, and
-`__reseed()` rewinds neither `simT` nor the latches: same seed, same warp, windF **0.35 vs 0.94** at
-the same clock hour. Two towns; `filmstrip.mjs`/`shoot.mjs` pin `?t=0`, so an unpinned probe
-measures a world they cannot show.
-**Law:** pin `?t=` on every probe page — the default entry is a DIFFERENT WORLD from `?t=0`.
-
 ## Iteration 179 — the garden's walk is handed the leg it was priced for (2026-09-04) [Courtyard & garden × Deepen]
 
 **Brief:** b179 — c256: `exitLeg` runs to `laneEdge`: a dusk sitter walks the dark town all night.
@@ -209,3 +186,26 @@ time on the `bon.on` rising edge. Dead seven iterations; nothing runs probes/.
 reshuffle: on the identical 132-offer calendar the two builds disagree at the WINDOW on **36.4%**
 of days — a gate whose logic neither touched — and per seed the set-outs swing 16 -> 10 and 7 -> 12
 where the pooled six move 68 -> 66. Pool six seeds; read nothing into 1 sd of the binomial.
+
+## Iteration 186 — the garden is given a roof to stand under (2026-09-04) [Courtyard & garden × New element]
+
+**Brief:** b186 — a COVERED WALK on one range; it must be used, and in rain.
+**Did.** `ARCADE`, the 20th tile: the NORTH range's inner two rows, two runs either side of the
+gateway, 96 cells / 16 bays. GLASS/LEADS shape — WALL to `buildVolumes`, own cache fill,
+`developed` counts it. Openings drawn LIVE over the cached facade off `archAtY`; folk clipped
+to the UNION of a run's arches, so a walker is occluded by a pier, not deleted between them.
+Entered at the gate mouth, never over the border (`arcWay`/`arcOut`): the far bay is 25 cells
+of colonnade off and the walk IS the visit. `stroll` at LAWN_W 0.12; `arcShelter`.
+**The zero that mattered.** People STOPPED in the garden while it rains, 6 seeds x 26 d, one
+predicate on both files (probes/arcade.mjs): **HEAD 2 tick-people, cand 1212**. 80 took the
+walk, 102 refused it as too far (ARC_RUN_TO live), 55 gardeners worked on.
+**Gates:** census PASS, re-pinned (`tileKinds` 162 -> **171** in all 3 ages, `structures` +144,
+ARCADE 864 out of WALL, `developed`/`green`/`edgeBeds` flat) · motion · perf · 0 POP.
+**Verdict:** shipped
+**Surprise:** the first shelter guard was `raining` and it was offered **7 people in 28 days**.
+`skyLifts()` empties the courtyard on the thickening front ~11 s BEFORE the first drop; and the
+loud edge is not the stop branch but `seatRefused()` — somebody who walked here, turned from
+the seat they came for. Both, on `weatherComing() > SIT_REFUSE`: 7 -> 237.
+**Law:** a weather-ended stay has two edges, the loud one the arrival's REFUSAL; and a face is
+drawn only on a SOUTH neighbour, so a hole cut in any other side is unseen.
+**Cue:** LAWN_CAP is the bound, a sixth kind a SHARE — 495/491/488 set-outs at stroll .20/.12/.07.
