@@ -3494,22 +3494,37 @@ const MK_CAP = MARKET_STALLS.length * MK_GOODS;      // what the whole market ca
  * setting up. Stall 0 needs nothing: a market that fails to appear is a hole in the
  * lane rather than a thin market, and the browsers' spawn band would have nowhere to
  * stand — but it can stand behind an empty board, which is its own kind of February.
- * The two numbers are read off probes/market-year.mjs over 120 markets: the second
- * stall sits at the lower quartile of the year's stock (4.75) and the third a shade
- * under the median (21). Measured, that is one stall on 24% of markets, three on 58%,
- * and the middle state on the rest — the cold quarters and the growing ones. */
-const MK_NEED = [0, 4, 13];
+ *
+ * The rungs are in the market's OWN units, not quantiles of a distribution that keeps
+ * moving under them (#193). A second trader turns out for two board-loads standing, a
+ * third for two market-loads. The literals 4 and 13 they replace were read off the
+ * year's lower quartile and median as those stood at #30; the allotment crew (#172)
+ * has since roughly doubled the store, so by #193 the quartile was 20 and the median
+ * 51.5 and BOTH old rungs sat under the quartile — dead constants, and the thin
+ * February market they were written for was unreachable.
+ *
+ * Measured at the latch, 6 seeds x 4 seed-years = 156 markets (probes/market-need.mjs).
+ * The ladder is chosen on the SEASON, not on a target share: the four growing eighths
+ * must be unambiguously three pitches and the cold quarter must not be. Mean pitches
+ * open, midwinter -> late autumn, was 2.79 1.92 2.13 3 3 3 3 3 and is 1.9 1.3 1.5 3 3
+ * 3 3 2.7. Late autumn TAPERS rather than cutting, and no fixed ladder can do better:
+ * MK_KEEP deliberately carries the autumn glut into the winter, so late autumn's lower
+ * quartile (31.1) and midwinter's ninth decile (31.0) are the same stock. */
+const MK_NEED = [0, 2 * MK_GOODS, 2 * MK_CAP];   // 0, 12, 36
 const MK_KEEP = 0.5;          // share of the surplus the market could not carry that keeps
 /* ---- where the surplus actually is (#184) ----
- * The boards carry MK_CAP. The store hands them a median 53 units a market, so on most
- * market days two thirds of the year's picking never reaches a pitch at all: MK_KEEP of
+ * The boards carry mkCap — MK_CAP on a full rank, less when a rung bites (#193). The
+ * store hands them a median 51.5 units a market, so on most market days two thirds or
+ * more of the year's picking never reaches a pitch at all: MK_KEEP of
  * it keeps to the next market and the remainder was, until here, a number that fell out
  * of a `for` loop. All of it stands here for the length of the market, in crates on the
  * footway south of the trestles.
  * A crate is MK_GOODS units — one board's worth — so three full boards and six crates
  * beside them is a picture of the SAME number the store is working in, and the year is
- * legible in the count: none in spring, two in midwinter, the ends full in autumn.
- * MK_CRATE_MAX is standing space on the pavement, not a claim about the glut: past it
+ * legible in the count. Re-measured over #193's 156 markets, median crates by eighth
+ * from midwinter: 1 0 0 7 13 15 10 5 — the cold quarter has one crate or none, and the
+ * spots saturate on 11 markets, all of them high summer.
+ * mkCrateMax() is standing space on the pavement, not a claim about the glut: past it
  * the crates saturate and the ticker's line is what still grows.
  * The spots take the gaps between the pitches first and the two ends after, and each
  * comes out on the RAISE of the stall it belongs to, so the overflow is carried out with
@@ -3520,11 +3535,24 @@ const MK_STACK = 2;                                  // crates one spot will tak
  * Two high, never three — project() lifts z northward, so a third crate rises to the
  * trestles' own row and the overflow stops reading as something standing beside the
  * market and starts reading as more market. `s` is the stall whose raise it comes out on. */
-const MK_OVER_SPOTS = [{x:47.0, s:0}, {x:52.5, s:1}, {x:48.7, s:1}, {x:54.2, s:2},
-                       {x:42.6, s:0}, {x:58.2, s:2}, {x:41.2, s:0}, {x:59.8, s:2}];
+/* `j` is the spot's own key, not its index in the list actually in use: the width and
+   stand-off below are hashed off it, and a PAVEMENT POSITION must keep its rhythm
+   whether two pitches came out or three (#193). */
+const MK_OVER_SPOTS = [{x:47.0, s:0, j:0}, {x:52.5, s:1, j:1}, {x:48.7, s:1, j:2}, {x:54.2, s:2, j:3},
+                       {x:42.6, s:0, j:4}, {x:58.2, s:2, j:5}, {x:41.2, s:0, j:6}, {x:59.8, s:2, j:7}];
 const MK_OVER_Y = 78.2;                              // on the footway, south of the walking line
 const MK_CRATE = MK_GOODS;                           // a crate is a board's worth
-const MK_CRATE_MAX = MK_OVER_SPOTS.length * MK_STACK;
+/* Standing space is the spots belonging to pitches that CAME OUT (#193). Each crate
+   waits on the raise of its own stall, so once a rung can bite, a spot keyed to a stall
+   that never opened would be a crate counted, cut from mkUnits, and then drawn at no
+   hour of the day. A GUARD on that coupling, not a repair: measured over 156 markets
+   the footway shows the same 1343 cells with it and without, because a market thin
+   enough to close a pitch carries at most three crates and the first three spots belong
+   to the first two pitches. It is live the moment either of those moves. mkSpots is
+   re-cut at the latch, beside the boards, off the same mkTrades — never empty, since
+   stall 0 needs nothing. */
+let mkSpots = MK_OVER_SPOTS;
+function mkCrateMax(){ return mkSpots.length * MK_STACK; }
 const MK_CRATE_W = 0.42, MK_CRATE_D = 0.34, MK_CRATE_H = 0.62;   // world units: a box a person can lift
 const MK_R = {8:1.5, 9:2.2, 10:1.4, 11:2.4};         // carrots, cabbages, beans, pumpkins
 const MK_FIRST = MK_RAISE + MK_STAGGER * (MARKET_STALLS.length - 1);   // hours of raise before opening
@@ -3554,8 +3582,16 @@ function stockMarket(){
   // a pitch is a whole vegetable, so the shelf is whole even though the store is not.
   // This is what the boards can SHOW, not what leaves in anybody's basket: the market
   // has never had a buyer, and `shelved` is named for what it is.
-  const shelved = Math.min(Math.round(mkTotal), MK_CAP);
-  const keep = mkTotal > MK_CAP ? MK_KEEP * (1 - MK_CAP / mkTotal) : 0;
+  /* The market's capacity is the traders who TURNED OUT, not the three pitches that
+     exist (#193). MK_CAP was the whole rank, which was harmless while the ladder let
+     all three open on four fifths of markets and is not once a rung actually bites: a
+     one-stall market shelved eighteen units onto a board holding six, and the twelve
+     in between were neither shown, nor crated, nor kept — they left the world inside a
+     `for` loop. Read off mkOpenCount(), which mkTotal has already decided, so a thin
+     market carries less away and keeps more of it for the next one. */
+  const mkCap = mkOpenCount() * MK_GOODS;
+  const shelved = Math.min(Math.round(mkTotal), mkCap);
+  const keep = mkTotal > mkCap ? MK_KEEP * (1 - mkCap / mkTotal) : 0;
   for (let s = 0; s < produce.length; s++) produce[s] = mkUnits[s] * keep;
   if (shelved > 0){
     for (let s = 0; s < mkUnits.length; s++){
@@ -3568,9 +3604,10 @@ function stockMarket(){
   mkTop = mkUnits[mkTop] > 0 ? mkTop + 1 : 0;             // species id, or 0 for a bare day
   /* and the rest of it, in board-loads, cut from the same units in the same species
      order so a crate stack is the same vegetables the boards beside it are selling. */
-  mkOver = Math.max(0, mkTotal - MK_CAP);
+  mkOver = Math.max(0, mkTotal - mkCap);
   mkCrates = [];
-  const nc = Math.min(MK_CRATE_MAX, Math.floor(mkOver / MK_CRATE));
+  mkSpots = MK_OVER_SPOTS.filter(sp => mkTrades(sp.s));
+  const nc = Math.min(mkCrateMax(), Math.floor(mkOver / MK_CRATE));
   if (nc > 0){
     for (let s = 0; s < mkUnits.length; s++){
       const n = Math.round(mkUnits[s] * nc / mkTotal);
@@ -3597,8 +3634,8 @@ function mkGoods(i){ return mkShelfFor(i).length; }
 /* crate i: its spot, how high it stands in it, and how far out it is on its stall's
    raise. Round-robin over the spots, so a small surplus is two low stacks in the gaps
    and a big one fills the ends — and each level comes out after the one under it. */
-function mkCrateSpot(i){ return MK_OVER_SPOTS[i % MK_OVER_SPOTS.length]; }
-function mkCrateLvl(i){ return (i / MK_OVER_SPOTS.length) | 0; }
+function mkCrateSpot(i){ return mkSpots[i % mkSpots.length]; }
+function mkCrateLvl(i){ return (i / mkSpots.length) | 0; }
 function mkCrateP(i){
   return clamp((marketRaise(mkCrateSpot(i).s) - 0.66 - mkCrateLvl(i) * 0.05) / 0.06, 0, 1);
 }
@@ -3611,8 +3648,11 @@ function mkCrateAt(x, y){          // the pointer: the stacks are a row of the f
 function mkLine(){
   if (!mkTotal) return 'Market morning — trestles out, though the plots have sent almost nothing to put on them.';
   const nm = SPECIES[mkTop - 1].name;
-  if (mkOpenCount() < MARKET_STALLS.length)
-    return 'Market morning — one canvas rolls open, and it is ' + nm + ' on nearly every board.';
+  const n = mkOpenCount();
+  if (n < MARKET_STALLS.length)     // #193: two is now as common as one, so say which
+    return n === 1
+      ? 'Market morning — one canvas rolls open, and it is ' + nm + ' on nearly every board.'
+      : 'Market morning — two canvases roll open, the third pitch left empty, and it is ' + nm + ' on both boards.';
   if (mkCrates.length)
     return 'Market morning — the boards fill up with ' + nm + ', and what will not fit stands in crates along the pavement.';
   return 'Market morning — trestles out, the canvas rolls open, and the boards fill up with ' + nm + '.';
@@ -6245,9 +6285,15 @@ function spawnHomeAgent(){
 let traderDay = -1, eveSweeper = null, eveSweeperDay = -1;
 function tapCallers(){
   if (!isMarketDay()) return;
-  const last = MARKET_STALLS.length - 1;
-  const packed = marketClose() + MK_STAGGER * last + MK_RAISE;   // the last stall away
-  if (traderDay !== day && hour >= packed && mkTrades(last)){
+  /* the last pitch AWAY, which since #193 is not always the last pitch that exists:
+     a rung that bites leaves the east end of the rank empty on a fifth of markets, and
+     `mkTrades(last)` there stood the trader down along with the stall. Whoever had the
+     easternmost open pitch goes for a pint. -1 only on a market with no trader at all,
+     which mkTrades(0) makes unreachable — guarded anyway, since the ladder is data. */
+  let last = -1;
+  for (let i = MARKET_STALLS.length - 1; i >= 0; i--) if (mkTrades(i)){ last = i; break; }
+  const packed = marketClose() + MK_STAGGER * Math.max(last, 0) + MK_RAISE;
+  if (traderDay !== day && hour >= packed && last >= 0){
     traderDay = day;
     const st = MARKET_STALLS[last];
     const a = {
@@ -15274,7 +15320,7 @@ function drawMarketOver(){
     const sp = SPECIES[mkCrates[i] - 1], st = mkCrateSpot(i), lvl = mkCrateLvl(i);
     // nobody stacks eight identical boxes: each SPOT keeps its own width and its own
     // stand-off from the kerb, so the run has a rhythm and a stack stays plumb
-    const j = i % MK_OVER_SPOTS.length;
+    const j = st.j;
     const wj = MK_CRATE_W * (0.84 + hash(j, 311) * 0.30), yj = MK_OVER_Y + (hash(j, 907) - 0.5) * 0.30;
     const yF = yj + MK_CRATE_D, yB = yj - MK_CRATE_D;
     const zb = lvl * MK_CRATE_H, zt = zb + MK_CRATE_H * g;
@@ -15297,7 +15343,7 @@ function drawMarketOver(){
       ctx.beginPath(); ctx.moveTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]); ctx.stroke();
     }
     // what is in it, standing proud of the rim — only the crate nothing is stacked on
-    if (g > 0.9 && i + MK_OVER_SPOTS.length >= mkCrates.length){
+    if (g > 0.9 && i + mkSpots.length >= mkCrates.length){
       const [tx, ty] = project(st.x, yj, zt);
       const r = (MK_R[mkCrates[i]] || 1.8) * sc;
       for (let k = 0; k < 3; k++){

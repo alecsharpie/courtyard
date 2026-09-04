@@ -251,7 +251,7 @@ the blit is an input too. Price a "reads nothing" premise on PIXELS, not the fun
 
 **Brief:** b192 — give the channel a LEVEL. Attempt 1 left 174 lines uncommitted; that design is
 its own. I audited it and fixed two defects.
-**Did.** `riverLev()` = greyF()'s cosine run `RIVER_LAG` 0.075 of a year late, cashed by `stepBank()`
+**Did.** `riverLev()` = greyF()'s cosine run `RIVER_LAG` 0.075 of a yr late, cashed by `stepBank()`
 against `bankBed[]`, a hashed bank height per cell — negative in the channel, positive on the bank.
 `BANK_CELLS` is #181's margin re-read as HEIGHT. New tile `SHOAL`, in neither `water` nor `green`;
 `onChannel` widened so a lap is river to the cache.
@@ -270,3 +270,25 @@ floor · repaints +3.7%
 words. It can: the three ages sit at two phases symmetric about midsummer, but riverLev is LAGGED,
 so those two are no longer one number and the strand reads on one cell of three.
 **Law:** #189's, backwards — a symmetric ladder CAN see a term whose extreme is off midsummer.
+
+## Iteration 193 — the market's size tracks the year (2026-09-04) [Lane & market × Deepen]
+
+**Brief:** b193 — re-measure the supply MK_NEED is set against; set the rungs on it.
+**Measured** (`probes/market-need.mjs`, new; 6 seeds x 4 yrs = 156 markets, AT THE LATCH). Supply **0**, p25 20.0, MED **51.5**, p90 100 — #184's are stale both ways: 3 stalls on 82% not 86%,
+and mkTotal **0 IS reachable** (8 of 156 under 2 units).
+**Did.** `MK_NEED = [0, 2*MK_GOODS, 2*MK_CAP]` — two board-loads for a second trader, two market-loads
+for a third. 4 and 13 were #30's quartile and median, and #172's crew has since doubled the store, so
+both sat under today's p25. Mean pitches open, midwinter -> late autumn: 2.79 1.92 2.13 3 3 3 3 3
+-> **1.88 1.25 1.58 2.92 3 3 3 2.75**; three-stall markets 82% -> 62%. Then the couplings a live rung
+woke: capacity was the three pitches that EXIST and is off mkOpenCount() now (a control differing in
+only that strands **5.2 units a 2-stall market**, candidate 0.02); and `tapCallers`, which stood the
+evening trader down with stall 2, takes the last that traded.
+**Gates:** census PASS (reshuffled — that trader walks every market now) · motion · 0 POP day and
+night · lane, day 22, one seed: HEAD's three thin boards [5,5,5] -> two full [6,6,0], pavement bare.
+**Verdict:** shipped
+**Surprise:** the crate-spot guard for the same coupling measures **exactly 0** — 1343 footway cells
+with and without: a market thin enough to close a pitch carries 3 crates at most, and the first 3
+spots belong to the first 2 pitches.
+**Law:** making a DEAD constant live wakes every coupling keyed to what it gated — capacity, a spawn
+and a draw site all assumed the full set. Re-price them all, and spell a rung in the system's OWN
+units, never as a quantile of a distribution that moves out from under it.
