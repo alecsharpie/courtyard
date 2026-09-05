@@ -5669,7 +5669,7 @@ function stepAgent(a, dt){
         || (a.lawn && lawnClosed())           // rain or the failing light ends a stay on the lawn (#95)
         || (a.tap && !tapOpen())
         || (a.band && (bandF() <= 0 || (a.heard && bandF() < a.leaveAt)))
-        || (a.fair && (fairF() <= 0 || (a.came && fairF() < a.leaveAt)))){
+        || (a.fair && (fairShut() || (a.came && fairF() < a.leaveAt)))){
       /* #186: the garden has a roof now, so the sky's first answer is the covered walk
        * and the gate is only its second. The trigger is the town's OWN bar for a turning
        * sky (SIT_REFUSE, the one every seat is already judged on) and not `raining`:
@@ -5867,6 +5867,9 @@ function stepAgent(a, dt){
         return;                                    // walk on past the empty chair
       }
       a.state = a.stop.act; a.timer = a.stop.dur; a.resume = true;
+      // #217: the walk TO the fair is priced (fairFits) and so carries #169's flag; the
+      // walk home is on nobody's clock, and gets its conversations back at the slot.
+      if (a.fair) a.priced = false;
       // an hour on the post at least, then away in time to be off the frame by EVE_GONE (#101)
       if (a.dusk && a.eveOut !== undefined) a.eveLeave = Math.max(hourEve() + EVE_STAND, EVE_GONE - a.eveOut);
       if (a.stop.cup){ a.cup = true; a.tableRef = a.table; a.table = null; }
@@ -7991,6 +7994,7 @@ const FAIR_SLOTS = FAIR_TH.map(d => ({
 const FAIR_SPANS = [[PLAZA_PITS[0][0], PLAZA_PITS[0][1] + 0.4, PLAZA_PITS[1][0], PLAZA_PITS[1][1] + 0.4],
                     [PLAZA_PITS[2][0], PLAZA_PITS[2][1] + 0.4, PLAZA_PITS[3][0], PLAZA_PITS[3][1] + 0.4]];
 const FAIR_TICK = 0.4, FAIR_RATE = 0.7, FAIR_GATHER = 1.0;
+const FAIR_STEP = 1.4, FAIR_STEP_R = 0.6;    // the fair-goer's pace and its spread — named so the crossing below can be priced at the middle of it
 let fairAcc = 0, fairSetDay = -1, fairOnDay = -1;
 /* #204: the gathering is a BUDGET of DRY hours, not a window on the clock. It was
  * `!raining` inside a fixed 2.6 h at the raise, so a shower over that one window cost
@@ -8003,10 +8007,33 @@ let fairAcc = 0, fairSetDay = -1, fairOnDay = -1;
  * the offer ends: a re-offer guarded only by the state it consumes is re-entrant. */
 const FAIR_GATH_H = FAIR_UP + FAIR_GATHER;
 let fairGathDay = -1, fairGathSpent = 0;
+/* #217: and the budget is a SET-OUT bound, while the crowd it is spent on is a PRESENCE
+ * one — the two differ by a whole walk, and here that walk is most of the fair. Measured
+ * on HEAD (probes/fair-presence.mjs, 6 seeds x 26 d, 34 fair days): the median lead is
+ * 4.31 h of a 6.5 h hold, the median arrival lands 65% of the way through it, 30 of 297
+ * arrive after the close, and the square holds a mean of 3.15 of its ten — because the
+ * crowd never plateaus, it RAMPS, and reaches its peak of 8-10 as the bunting comes down.
+ * So the door opens a whole crossing before the raise. FAIR_CROSS is the corridor's own
+ * price and not a taste constant: the gate, the alley cut and the middle of the square,
+ * at the middle of spawnFairAgent's own pace, through the town's own pathHours() — 2.40 h.
+ * It is FLOORED, because a midwinter day cannot pay for it: `hour` rolls at DAY_ROLL and
+ * everything before that belongs to the day before, where isFairDay() is false. So the
+ * offset moves with the sun and the WIDTH of the budget never does; the floor binds in
+ * the short half of the year and the crossing is live in the long half. */
+const FAIR_CROSS = pathHours(EAST_GATE_A[0], EAST_GATE_A[1],
+  [[99.8, ALLEY_Y + 0.4], [FOUNTAIN.x, FOUNTAIN.y]], FAIR_STEP + FAIR_STEP_R / 2);
+const FAIR_OPEN_MIN = DAY_ROLL + 0.4;
+function fairOpen(){ return Math.max(fairStart() - FAIR_UP - FAIR_CROSS, FAIR_OPEN_MIN); }
 function fairGathering(){
   return isFairDay() && !raining && fairGathSpent < FAIR_GATH_H
-      && hour >= fairStart() - FAIR_UP && hour < fairEnd();
+      && hour >= fairOpen() && hour < fairEnd();
 }
+/* The fair is SHUT, which is not the same thing as `fairF() <= 0`: fairF() is zero on
+ * BOTH sides of the raise, and the door now opens a crossing before it — so a walker who
+ * gets there early would have read the ramp's own foot as the strike and turned round on
+ * the spot. Bound it on the side it means: the close, or the day rolling out from under
+ * them. (The dawn-as-well-as-dusk fault, on the fair's clock instead of the sun's.) */
+function fairShut(){ return !isFairDay() || hour >= fairEnd() + FAIR_DOWN; }
 /* Charge the WALK where it can be PAID. There is no clock left to keep a late set-out
  * honest, so a slot is a PLACE for this walker only if this walker can still reach it
  * with FAIR_STAND_MIN of the fair left — priced on the route they will actually walk,
@@ -8030,13 +8057,18 @@ function spawnFairAgent(){
   /* the speed and the lane are drawn BEFORE the place, because the place is priced on
      them: plazaLane()'s sequence is read here without being spent, and committed below
      only if somebody actually sets out. */
-  const speed = 1.4 + R() * 0.6, plane = (plazaSeq * PLAZA_LANE_A) % 1;
+  const speed = FAIR_STEP + R() * FAIR_STEP_R, plane = (plazaSeq * PLAZA_LANE_A) % 1;
   const free = FAIR_SLOTS.filter(s => !s.taken && fairFits(s, plane, speed));
   if (!free.length) return;
   const s = pick(free);
   s.taken = 1;
   const a = {
-    kind:'fair', street:true, fair:true, slot:s,
+    /* `priced` is #169's flag, and this walk has always deserved it: fairFits() solves
+       the whole trip backwards from fairEnd(), and a 2.2-5.0 s greet on the way in was
+       spending 1.4 h of a walk priced at 3.1 (probes/fair-lead.mjs: actual/priced 1.45
+       median, 3.04 at its worst — ONE conversation IS the whole markup). Released at the
+       slot, so the way home is chatty again. */
+    kind:'fair', street:true, fair:true, slot:s, priced:true,
     x:0, y:0, wp:[], i:0, speed, state:'walk', timer:0,
     shirt:pick(SHIRT), pants:pick(PANTS), skin:pick(SKIN), phase:R() * 9, wary:R(),
     /* when this one has had enough of it, as a level of the SAME progress the square

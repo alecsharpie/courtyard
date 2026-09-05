@@ -40,50 +40,6 @@ motion PASS/FAIL/skipped · perf PASS/skipped
 
 ---
 
-## Iteration 208 — the ticker's slot stops moving, and stops cutting words (2026-09-05) [The sill x Polish]
-
-**Brief:** b208 — c295: the ticker clips mid-word. Fix the SLOT, not the sentences.
-**Premise, HEAD** (`probes/ticker-fit.mjs`, new; 240 sentences lifted statically out of the file and
-rendered in its type; `--head` its control): at day 4 the box is 394.9 px at 1600 and
-150 at 1024, the corpus median 346 and its max 756 — **64/240 and 208/240 cut MID-WORD**. 756 is
-unreachable: the five fixed items and their gaps ARE the 1228 px sill.
-**Did.** (1) `fitLine()` composes to the box — the last CLAUSE that fits, falling back to the last
-whole WORD only when the tidy cut costs over `TICK_CLAUSE` 0.55 of the room. The rule is the SLOT's, so
-it composes the next sentence written too. (2) The room is made CONSTANT, since a slot moving
-under a standing line re-truncates it as it is read: `statsSlack()` holds back what the counts can still
-grow into, and `#daytime`/`#season` got min-widths holding their longest labels. (3) The counts yield
-at 1185 px, not 860; `#sill.lent` lends them to the invitation.
-**Gates:** census + motion PASS · canvas **pixel-identical to HEAD** at three framings, sill height 53
-· `ticker-queue` unchanged · mid-word at 1600/1280/1024 **64/62/208 -> 0/0/0**, room **374.7 fresh vs 374.4
-at day 4**, 1024 150 -> 350.
-**Verdict:** shipped
-**Surprise:** the box was never the width I first measured. `#stats` breathes 83 px as the town fills
-and the clock and season another 33 — `13ch` never held `Day 26 - Afternoon` — so it loses 99 px
-between dawn and day 4, under whatever line stands there.
-**Law:** `getComputedStyle().font` is the EMPTY STRING when a longhand cannot go in the shorthand
-(`font-variant-numeric` did it): it assigns nothing and silently measures the previous face.
-
-## Iteration 209 — the allotments answer their own weeds (2026-09-05) [Cross street & allotments × Connect]
-
-**Brief:** b209 — c291: `rank` steers nobody, so #197's hoe fires only where a picker lands.
-**Premise, HEAD** (`probes/allot-steer.mjs`, new; 12 seed-years, instrumented at the kneel): the brief's
-half holds, at chance. The half not in it is bigger — of 234 landings that DID hit a gone-over plot,
-**195 were taken by the LIFT above the hoe**. #197 put the hoe first in `plotAct`, itself the lower rung.
-**Did.** (1) `weedPlots()`/`weedTarget()`: a `WEED_PULL` 0.6 share of BOTH target choices goes to the
-plots over `WEED_HOE`, weighted by how far over. (2) `WEED_CHOKE` 4.2 — a row too rank to pick THROUGH
-is cleared by the hand that lifts it: one kneel, both acts. The first cut had the lift REFUSE and come
-back, which cost 20% of the harvest. (3) No R() spent — `weedRoll()` is hashed, `pickPlot()` still called.
-**Gates:** census PASS (`rankBeds` 253→188, `rankPlots` 42→31, `harvested` +67) · motion PASS ·
-`weed-spread` both-ends **78.0%→76.2%**, so #197's bimodal block lives. Clearings/yr **3.3→10.7**,
-rank@land vs block mean **1.18×→1.80×**, harvested 212→197/yr — in the seed noise, 199 steer-only.
-**Verdict:** shipped
-**Surprise:** the control the laws ask for paid twice. Three switches backed out, the build censuses
-**byte-identically to HEAD, 0 of 12 cells** — which first caught that `ALLOT_RANK`, a second arrival
-source I had added as a MAX, was moving the world's weather for nothing, and then proved it **dead**:
-10.7 clearings and 197 cells a year at 0.16, the same at 0 — the beds go over in the warm half the
-crop ripens in, so `ALLOT_RIPE` is always above it. Cut.
-**Law:** a second source taken as a MAX is dead unless its tail falls in a season the first is out of.
-
 ## Iteration 210 — the ice dirties its own ground (2026-09-05) [River & far bank × Fidelity]
 
 **Brief:** b210 — c294: `stepIce` sets no `groundDirty`. Price the lag, then give the ice a trigger.
@@ -246,3 +202,26 @@ everything past row 54 behind the tiles. No census field sees that; the first sc
 **Law:** the good difference-image probe is in the stray root tree nobody reads.
 `probes/frame-diff.mjs` renders BOTH builds in one session, reading the canvas in the same evaluate,
 so it has no animation-clock floor — a screenshot PAIR has one of ~1,700 px.
+
+## Iteration 217 — the fair's door opens a crossing early (2026-09-05) [Plaza & quay × Deepen]
+
+**Brief:** b217 — the fair's people are in the corridor, not the plaza; find a nearer door.
+**Premise, corrected:** none exists. `probes/fair-doors.mjs` (new) prices all ten slots from the three
+doors: the alley wins **10/10** by 2-5x, and only **0.90 h of its 1.6-4.3 h walk is outside
+the square**. The corridor IS the square. HEAD (`probes/fair-presence.mjs`, new; 6 seeds
+x 26 d, 34 fair days): a mean **3.15** of ten through the hold — the crowd never plateaus, it
+RAMPS, peaking at 8-10 as the bunting comes down.
+**Did.** (1) The budget was a SET-OUT bound spent on a PRESENCE one: `fairOpen()` = `fairStart() -
+FAIR_UP - FAIR_CROSS`, floored at `DAY_ROLL + 0.4`. FAIR_CROSS 2.40 h is the gate->cut->fountain
+walk at the fair-goer's mean pace through `pathHours()`: the floor binds in winter, the crossing
+lives in summer, and the budget's WIDTH never moves. (2) `fairShut()` — `fairF() <= 0` is zero BOTH sides
+of the raise, so an early arrival read the ramp's foot as the strike. (3) `priced:true` on the fair spawn
+literal, released at the slot.
+**Gates:** census PASS (reshuffled); the **control** — crossing 0, no flag — censuses **every
+field unchanged from HEAD** · motion · shots. Crowd through the hold **3.15 -> 6.27**; median arrival **65% -> 17%**; late arrivals 30 -> 4; median lead 4.31 -> 3.49 h, now pure
+geometry. 313 offers, 98.1% admitted, **0 full**.
+**Verdict:** shipped
+**Surprise:** ONE conversation was the whole markup. actual/priced ran **1.45x med, 3.04x worst**
+(`probes/fair-lead.mjs`), and a greet is 2.2-5.0 s = 1.0-2.2 sim HOURS — one `chatty()` pairing spent
+1.4 h of a walk priced at 3.1.
+**Law:** a walk priced backwards from a close must carry #169's `priced` flag; one greet eats ~45%.

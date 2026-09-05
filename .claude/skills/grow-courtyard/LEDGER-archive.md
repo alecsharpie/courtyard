@@ -3,28 +3,6 @@
 Entries rotated out of `LEDGER.md`. Append-only. **Only the manager reads this** —
 a worker that opens it to "catch up" spends its whole context on history.
 
-## Iteration 148 — the plaza's families are priced at both ends of a window the sun cuts (2026-09-03) [Plaza & quay × Scale/World]
-
-**Brief:** b148 — price presence as rate × visit, then sweep and keep the knee. Full entry in LEDGER-archive.md.
-**Priced first.** Five places at **7.7–12.6 h** apiece against a **7.5 h** window: no whole visit fit, "too late" ate **61.3%** of calls (cap 9.8%, places 2.6%), and half a family's day is walking.
-**Did.** `famWalk()` — one definition of the two legs, called by the roll's bounds and the set-out test alike. `famWin()` — `FAM_H0`/`FAM_H1` are the hours the plaza HOLDS families, first ARRIVED to last GONE, cut to the sun. The fit is a FILTER on free places, not a veto after the draw; the dwell clips to the room left against `FAM_DWELL_MIN`. `freeBench()`/`a.pbench` beside `freeStand()`/`a.fstand`, both nulled in `makeCompanion`.
-**Gates:** census FAIL `people −10%` and motion FAIL `cart 0→1` both **replayed and dismissed** — 9 seeds put the census gap entirely in 4 raining cells (DRY 1084→1089, re-pinned), and HEAD carries the identical `cart85 moved 2.60` at seed 7. Filmstrip 0 POP, shots clean.
-**Shipped** (6 seeds × 14 days): **held 1.83 → 2.70 of 5**; bench1 26.1→60.5%, stand2 22.4→55.6%. Arrivals/day 2.46→4.05, cap binds 11.3→47.7%, plaza 5.88→8.59.
-**Verdict:** shipped — the crowding bar is MISSED and that is the finding.
-**Surprise:** the crowding is not the families'. Pairs per person went 0.153→0.167, outside the band — but PER FAMILY they fell, 0.204→0.192, and with the family source off the plaza reads 0.114 on HEAD and 0.097 here. By kind, the plaza's commonest crowded pair is **`parent+plaza`, 27%, on BOTH builds**: #144 put its stands on the roundel's SOUTH arc and everything approaches from the south. The 90° stand is at (105.5, 33.5), the lane's plaza corridor `ex2` is 104–106 running due north through it, and a family's route to the far bench passes **0.4 cells** from it. Occupancy did not create the fault; it made the town walk through it more often.
-
-
-## Iteration 156 — the wind gets a strength, and its consumers finally have a middle (2026-09-03) [Sky, light & weather × Deepen]
-
-**Brief:** b156 — windF was a coin (88% of samples at the two ends); give the day a real strength, then re-price the consumers.
-**Did.** Two hash-only draws replace the coin's magnitude, so no `R()` and the seeded calendar keeps its column. `windDayF()` — HOW MUCH: `windyDay()` still picks which distribution (its 0.28 share untouched), the draw picks the strength — BLOW_LO 0.45..1 against STILL_LO 0.04..STILL_HI 0.30, non-overlapping, both skewed low by `h**1.6`. `windHourF()` — WHEN: one cosine on the SUN's hour, peak at `sunUp + 0.65*dayHours`, trough pre-dawn, continuous across the hour-6 roll. `isWindy`'s bar moved 0.5 -> WIND_BEHAVE **0.40**, which now sits BETWEEN the two ranges, so it is a statement about the day and not a coin on its hour. `windSign`'s latch was `wind <= 0.1` — the wind at rest, which no longer happens, so it would have latched once per world; it now asks about the SPELL, which is what it always meant.
-**Consumers, each measured AT ITS OWN CALL** (`probe-wind-consumers`, 6 seeds x 26 d). Three sites — `bonfireWeather`, `EVE_WIND`, the washing's name — spelled `windF() < 0.5` by hand, which over a 0/1 input *was* `isWindy()`. All three routed back through it; the washing, which is a thing you SEE and not a behaviour, got a third rung on the town's own bands instead (fires on 3.4% of washing-hours — thin, and counted). `murmWx`'s 0.12-wide ramp was a step wearing a ramp's clothes: widened to WIND_STILL_HI..0.70, and a partial wx now takes BIRDS and loosens the cloud instead of making a starling translucent.
-**Gates:** census PASS, tiles unchanged · shots clean · filmstrip day **0 POP**, dusk **0 POP** · motion FAIL `day/cart 0->1` **replayed and dismissed** — HEAD carries the identical `cart… moved 2.60 (median 0.000)` at t=340 (both seeds) and t=610.
-**HEAD -> cand.** windF at the two end bins **86.9% -> 41.0%** (4 seeds x 26 d, target <=60%). The four intensity ramps go **15.9% -> 90.6% partial**. Murmuration at a pinned in-season dusk: at windF 0.10 **130 birds, identical to HEAD**; at 0.45/0.55/0.65 HEAD paints all 130 at fading alpha, cand paints **98/77/56**; at 0.80 both empty. Wind DELETED the flock on 47.4% of its dusks, now 29.8%. `probe-wind-diff` at a pinned instant, same-code control **0 px**: windF 0.40 -> 0.90 moves **12,555 px** — reeds, streaks, washing, vanes.
-**Verdict:** shipped
-**Surprise:** the four intensity ramps were **not** mis-tuned, and the brief predicted they would be. Their means moved by under 0.003 (boatRate 0.827 -> 0.829, puntWindOK 0.225 -> 0.223) while the share strictly inside (0,1) went 15.9% -> 90.6%. They were always tuned right — they had simply never once been asked a question with an answer in the middle. What actually drifted was the opposite: the bonfire, whose hand-spelled bar is read at a calm hour, is now offered a match on **58.4% of its hours against 40.2%**, because the wind has a pre-dawn trough and a coin does not.
-**Law:** a bar spelled with a MAGIC NUMBER over a bimodal input is a silent COPY of the predicate that names it — the moment the input grows a middle, every copy becomes a coin on whatever hour its own consumer happens to ask at, and they drift apart. Grep the constant, not the predicate.
-**Cue:** `bonfireWeather()` is asked only in the two-hour window the heap is offered a match; nothing re-asks it, so a fire lit in a calm dawn burns on through an afternoon gale that `isWindy()` would refuse.
 ## Iteration 149 — two gates that lied, and one of them now binds the worker (2026-09-03) [The sill & the observer × Harness]
 
 **Brief:** b149 — bound what ONE iteration ADDS; fix or retire `probes/punt.mjs`. Full entry in LEDGER-archive.md.
@@ -1067,4 +1045,48 @@ magnified, still slight at the shipping size.
 **Law:** a control making an input EXTREME is degenerate where the quantity it feeds SATURATES — control with
 the BRANCH replaced. `getImageData` ignores the ctx transform: a `project()` band is CSS px, not device.
 **Cue:** the overflow crates carry more readable ink (420 px) than the three trestles (297).
+
+## Iteration 208 — the ticker's slot stops moving, and stops cutting words (2026-09-05) [The sill x Polish]
+
+**Brief:** b208 — c295: the ticker clips mid-word. Fix the SLOT, not the sentences.
+**Premise, HEAD** (`probes/ticker-fit.mjs`, new; 240 sentences lifted statically out of the file and
+rendered in its type; `--head` its control): at day 4 the box is 394.9 px at 1600 and
+150 at 1024, the corpus median 346 and its max 756 — **64/240 and 208/240 cut MID-WORD**. 756 is
+unreachable: the five fixed items and their gaps ARE the 1228 px sill.
+**Did.** (1) `fitLine()` composes to the box — the last CLAUSE that fits, falling back to the last
+whole WORD only when the tidy cut costs over `TICK_CLAUSE` 0.55 of the room. The rule is the SLOT's, so
+it composes the next sentence written too. (2) The room is made CONSTANT, since a slot moving
+under a standing line re-truncates it as it is read: `statsSlack()` holds back what the counts can still
+grow into, and `#daytime`/`#season` got min-widths holding their longest labels. (3) The counts yield
+at 1185 px, not 860; `#sill.lent` lends them to the invitation.
+**Gates:** census + motion PASS · canvas **pixel-identical to HEAD** at three framings, sill height 53
+· `ticker-queue` unchanged · mid-word at 1600/1280/1024 **64/62/208 -> 0/0/0**, room **374.7 fresh vs 374.4
+at day 4**, 1024 150 -> 350.
+**Verdict:** shipped
+**Surprise:** the box was never the width I first measured. `#stats` breathes 83 px as the town fills
+and the clock and season another 33 — `13ch` never held `Day 26 - Afternoon` — so it loses 99 px
+between dawn and day 4, under whatever line stands there.
+**Law:** `getComputedStyle().font` is the EMPTY STRING when a longhand cannot go in the shorthand
+(`font-variant-numeric` did it): it assigns nothing and silently measures the previous face.
+
+## Iteration 209 — the allotments answer their own weeds (2026-09-05) [Cross street & allotments × Connect]
+
+**Brief:** b209 — c291: `rank` steers nobody, so #197's hoe fires only where a picker lands.
+**Premise, HEAD** (`probes/allot-steer.mjs`, new; 12 seed-years, instrumented at the kneel): the brief's
+half holds, at chance. The half not in it is bigger — of 234 landings that DID hit a gone-over plot,
+**195 were taken by the LIFT above the hoe**. #197 put the hoe first in `plotAct`, itself the lower rung.
+**Did.** (1) `weedPlots()`/`weedTarget()`: a `WEED_PULL` 0.6 share of BOTH target choices goes to the
+plots over `WEED_HOE`, weighted by how far over. (2) `WEED_CHOKE` 4.2 — a row too rank to pick THROUGH
+is cleared by the hand that lifts it: one kneel, both acts. The first cut had the lift REFUSE and come
+back, which cost 20% of the harvest. (3) No R() spent — `weedRoll()` is hashed, `pickPlot()` still called.
+**Gates:** census PASS (`rankBeds` 253→188, `rankPlots` 42→31, `harvested` +67) · motion PASS ·
+`weed-spread` both-ends **78.0%→76.2%**, so #197's bimodal block lives. Clearings/yr **3.3→10.7**,
+rank@land vs block mean **1.18×→1.80×**, harvested 212→197/yr — in the seed noise, 199 steer-only.
+**Verdict:** shipped
+**Surprise:** the control the laws ask for paid twice. Three switches backed out, the build censuses
+**byte-identically to HEAD, 0 of 12 cells** — which first caught that `ALLOT_RANK`, a second arrival
+source I had added as a MAX, was moving the world's weather for nothing, and then proved it **dead**:
+10.7 clearings and 197 cells a year at 0.16, the same at 0 — the beds go over in the warm half the
+crop ripens in, so `ALLOT_RIPE` is always above it. Cut.
+**Law:** a second source taken as a MAX is dead unless its tail falls in a season the first is out of.
 
