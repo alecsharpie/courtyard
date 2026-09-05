@@ -24,7 +24,7 @@
   "avoid": "Do not raise FAIR_CAP or the spawn rate: the cue says the people already exist and are in transit. Measure the share at the CHOICE, and count ADMISSIONS apart from choices — with a fixed number of FAIR_SLOTS, widening the door turns into overflow into the neighbour and the refused fraction is the one bound a sweep of the ceiling cannot see.",
   "budgetMin": 45,
   "risk": "medium",
-  "status": "active",
+  "status": "done",
   "attempts": 1,
   "nextIter": 217,
   "issued": "2026-09-05T00:46:26.690Z",
