@@ -223,3 +223,26 @@ the strand runs to 0.72, so an earlier river is worth more than a later one cost
 noise, but keys 577/587/599 all landed above HEAD: 78.0, 81.4, 80.3.
 **Law:** a symmetric salt on a CALENDAR is not mean-neutral where what it feeds is a threshold
 read through a WINDOW — price the aggregate under two re-keyings and quote the SIGN.
+
+## Iteration 216 — the garden's dead corner becomes a frame yard (2026-09-05) [Courtyard & garden × New element]
+
+**Brief:** b216 — the namesake is 3,364 cells and ONE room; give it a second.
+**Premise, HEAD:** the garden's floor is **1,896 PATH**, 56% of it and the town's largest surface,
+deepest in the corners (SE deadest: 456 cells, 0.74% of presence, no bench).
+`probes/corner-presence.mjs` (new; 4 seeds x 8 days, 577,948 entity-samples): the envelope taken
+inside it holds **nothing but moths in any seed**, the corner box round it 1,046 walker samples.
+**Did.** A room 9 x 7: `FRAME` (tile 21) cut out of PATH, hoed earth, in `developed`; round it a
+clipped **yew** screen with an arched way through, dwarf box edging on the two faces backing onto
+the walls. All DRAWN, none in the grid — that zero is why the law lets a hedge which need only be
+SEEN stay out — off hash() and the year, no R().
+**Gates:** census PASS, **two lines only**: PATH -567 -> FRAME +567, tileKinds **174 -> 183** (first
+move since #192); life/species/ice/planting identical, so the seeded world did not shuffle ·
+`probes/frame-diff.mjs` 5,796 px of 1,054,852 in **ONE 110x70 block** · motion · perf +0.0% ·
+`probes/name-sweep.mjs` (new): all eight parts answer the pointer.
+**Verdict:** shipped
+**Surprise:** the room's DEPTH was the gatehouse's, not the corner's. project() lifts z northward,
+so the south range's roof stands over the rows in FRONT of it, and a yard run to the wall lost
+everything past row 54 behind the tiles. No census field sees that; the first screenshot did.
+**Law:** the good difference-image probe is in the stray root tree nobody reads.
+`probes/frame-diff.mjs` renders BOTH builds in one session, reading the canvas in the same evaluate,
+so it has no animation-clock floor — a screenshot PAIR has one of ~1,700 px.

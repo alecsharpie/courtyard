@@ -1,8 +1,8 @@
 {
-  "updated": "2026-09-04",
+  "updated": "2026-09-05",
   "note": "The manager owns this file. Structured on purpose: the previous loop kept its state as a prose header that degenerated into a run-on paragraph. Every dimension has a byte AND a count cap, enforced by rotate-ledger.mjs.",
   "phase": "expanding",
-  "lastIteration": 215,
+  "lastIteration": 216,
   "menu": {
     "note": "The menu is DATA, not prose in a skill file, so the manager can extend it (ladder rung 3). Adding a domain or a kind here is a legitimate strategic move.",
     "domains": [
@@ -233,7 +233,8 @@
       ],
       "new-element": [
         84,
-        186
+        186,
+        216
       ],
       "scale": [
         121
@@ -611,7 +612,8 @@
       "bed planting CA: bSp/bSt/bAge, growF/dieF/bloomCap, speciesFor",
       "the lawn's OWN source: spawnLawnAgent/LAWN_RATE/LAWN_CAP, sub-caps benches/naps/blankets/runs; lawnStart/End/Holds/Gone/Fits/Home/Stay; the way OUT lawnGate/LAWN_OFF",
       "the gardener on a SCHEDULE outside LAWN_CAP: gardenDue/GARD_K over growSeason(), gardenFits both ends, gardWalk/gardWin/gardNearest, gardenerKneel/GARDEN_REACH",
-      "the COVERED WALK: ARCADE tile, north range inner rows, ARCADE_BAYS; drawArcadeRun live; stroll/arcShelter/arcWay. The garden's WET branch — lawnAdmits/lawnRoofed at the choice, lawnOpen the sun only, LAWN_WET"
+      "the COVERED WALK: ARCADE tile, north range inner rows, ARCADE_BAYS; drawArcadeRun live; stroll/arcShelter/arcWay. The garden's WET branch — lawnAdmits/lawnRoofed at the choice, lawnOpen the sun only, LAWN_WET",
+      "the FRAME YARD in the dead SE corner (#216): FRAME tile cut from PATH, inFrameYard/nurseryAt/YARD_FURN; yew screen + box edging DRAWN in the item pass (drawYardRun/YARD_ARCH), floor marks cached (drawYardCell); yardHedgeAt/yardFurnAt name it. No R()"
     ],
     "lane": [
       "kiosk, pavement cafe, awnings, washing lines, planters, LANE_LAMPS, LANE_BENCHES; morning ROUND mround/updateRound; laneOpeners() — CAFE_TABLES out via cafeSetUp, CASKS at TAP_DOOR",
@@ -695,6 +697,12 @@
       "id": "c311",
       "note": "The near block's lead gutter (drawParapet) and the town's new goods share no predicate: the parapet's hopper heads are still a hand-placed x%9 loop while every front across the lane is a register.",
       "raisedBy": 212,
+      "seenBy": 0
+    },
+    {
+      "id": "c314",
+      "note": "the frame yard's drills are DRAWN, not sown: real BED cells there put 18 more draws through the planting CA a tick and reshuffle the world. Price that before making the yard GROW — and nothing enters it, so its arch leads nowhere yet.",
+      "raisedBy": 215,
       "seenBy": 0
     }
   ],

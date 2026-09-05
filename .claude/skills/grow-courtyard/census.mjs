@@ -174,7 +174,8 @@ const WCORE = {
  *   martinNests rankBeds rankPlots */
 const STRUCT_CONST = new Set(['chimneys', 'roofFurniture', 'roofHatches', 'terraceFabric',
   'plotFurniture', 'ringNodes', 'edgeBeds', 'arcadeBays', 'eaveLine', 'allotBeds', 'benches',
-  'cafeTables', 'marketStalls', 'treePits', 'orchard', 'plazaPits', 'moorings']);
+  'cafeTables', 'marketStalls', 'treePits', 'orchard', 'plazaPits', 'moorings',
+  'yardFurniture']);
 const STRUCT_LIVE = new Set(['martinNests', 'rankBeds', 'rankPlots']);
 
 /* total, and the share of it that cannot move. `unclassified` is the important

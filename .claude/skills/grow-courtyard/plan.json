@@ -4,28 +4,36 @@
   "rung": "4b",
   "diagnosis": {
     "health": "Landing cleanly and getting dearer. 20/20 shipped over the last 20, zero reverts, attempts=1 throughout, selfVerdict == verdict on every one. But cost is up a THIRD pass running — 28 min / $7.39 at #205, 28 / $7.78 at #210, now 31 min / $8.83 over the last ten — and the two most recent iterations are the two smallest diffs of the ten (20 and 34 lines) and are the SAME MOVE twice. The rent is the part I own: the worker was reading 46.3 KB against a 46 KB cap when I arrived, which is exactly the mechanism that took the last loop from $5.45 to $13.72 an iteration. Fixed this pass, downward only: 9 cues closed, 3 new laws MERGED into laws that already existed (net -143 B, count still 26/60), inventory distilled 10.4 -> 9.9 KB by merging two nearblock lines and two life lines and stripping reasoning back to nouns. Worker read is now 44.2/46 KB. NO CAP RAISED in either direction.",
-    "signals": ["none hard", "none advisory: smallDiff clear (10-iter diff mean 110), mapFlat clear (structures moved on 8 of the last 15), rungHeld clear (#210 was the first low pass since #185)"],
+    "signals": [
+      "none hard",
+      "none advisory: smallDiff clear (10-iter diff mean 110), mapFlat clear (structures moved on 8 of the last 15), rungHeld clear (#210 was the first low pass since #185)"
+    ],
     "balance": "coverage had not recorded #213, #214 or #215 — done, and nearblock now has a second cell. True last-touched: Sky & weather #203 (12 back), Plaza & quay #204 (11), The sill #208, Cross street #209, River #210. sky x polish and sill x harness are both marked saturated, so both of those domains are taken here on a kind their saturation note allows. The bet goes to Courtyard & garden AGAINST rotation (#212, 4 back), deliberately: a bet goes to the frontier, not to the rota."
   },
   "rationale": "IS THE LOOP LEARNING OR REPEATING? Learning, but the last two entries are a groove. #214 and #215 are the fifth and sixth SALT in this town (WIND_SALT, the cart, the fair, freeBay, RIVER_SALT), the law for the move was already written before either ran, and both shipped under 35 lines. Finding an unsalted per-world draw is cheap to find, cheap to prove and invisible in the picture. That is a MENU problem, not a town problem, and the answer is to climb rather than to run it a seventh time.\n\nWHAT I KILLED BEFORE WRITING IT. The pass from #210 named Interaction as the next climb — 15 of 210 iterations, 8 of them sill chrome, four domains at zero. I priced that on HEAD and it is wrong. courtyard.html's click handler already answers BED/CBED (you scatter seed), GRASS (a daisy), REED, ICE, SHOAL, WATER (the ducks come), and SIDE/ROAD/PATH (crumbs, and three birds land); lookAt names every drawn thing under the pointer; a tap on a person follows them; OFFERS is a five-deep invitation queue that spends each offer whether it is spoken or not. The 'four domains at zero' figure is a COVERAGE-GRID ARTIFACT: interaction in this town is written by TILE, not by domain, so it never lands in a domain's row. The grid was measuring its own bookkeeping.\n\nWHERE THE FRONTIER ACTUALLY IS. The town's VOCABULARY has stopped growing. The runlog's scalars are ladder SUMS over census.mjs's nine runs, so speciesKinds 117 is 9 x SPECIES.length — and SPECIES has stood at 13 since #155, SIXTY iterations. tileKinds 174 has not moved since #192, when SHOAL made it 21 kinds. Meanwhile structures moved on 8 of the last 15 (7462 -> 7830 -> 7625 -> 7643). The town is getting more of what it already has. mapFlat does not fire because its definition ORs tileKinds with structures and structures is alive — so I am naming the flat half before the signal will, exactly as the #210 pass named the diff flattening before smallDiff did.\n\nRUNG 4b, AND THE LADDER DID NOT FORCE IT. The rule allows a second consecutive pass at rung <= 2 and I am declining it; the census is the reason, not the counter. Last 4b was the pass from #185 — since then 5, 4a, 3, 5, 2. b216 is a SPATIAL change to the largest region in the world and is the only brief here that can move tileKinds.\n\nLAWS: 26 -> 26 at 11.8/12 KB, promoted by MERGING, not stacking. #214's and #215's salt findings went into the sentence about hash(day,k) that already existed (a per-subject ZERO over N seeds is the CALENDAR's; a symmetric salt is not mean-neutral into a THRESHOLD read through a WINDOW — re-key twice and quote the SIGN). #214's second half replaced a narrower note about diluted aggregates. #213's sub-pixel-highlight law went into 'Judging a look'. To pay for them I CUT four clauses and name them: the aggregate-dilution note (superseded), 'a second source taken as a MAX is DEAD unless its tail falls in a season the first is out of' (a corollary of the sentence above it), 'spell the rung in the system's OWN units' (subsumed by one-predicate-one-definition), and 'a control that makes an input EXTREME is degenerate wherever the quantity it feeds SATURATES' — the weakest law in the file, the narrowest special case of a control differing in exactly ONE way, and the one I would least miss.\n\nRISK SHAPE: one high bet at 90 min with 150-300 lines invited, three medium, none low. There is no polish job in this queue on purpose — the last two iterations were the polish.",
   "queue": [
     {
-      "id": "b216",
-      "domain": "Courtyard & garden",
-      "kind": "New element",
-      "brief": "THE BET — take the swing; a 150-300 line diff is expected and welcome. The namesake is the biggest region in the world and it is ONE room. Priced on HEAD in buildGrid's x<64 branch: the walled garden is x 3..61 by y 3..61 — 3,364 cells, 28% of the world — and its floor is a linden at r<1.15, a round lawn out to gR(th) (17.2 +- ~4), one ring bed between bedIn/bedOut, and a perimeter BED band 1.6-3.0 cells deep against the wall. Everything else, on the order of 1,800 cells, is undifferentiated PATH: the largest single continuous surface in the town. Because the lawn is a CIRCLE inside a SQUARE that paving is deepest in the four CORNERS — roughly 9-10 cells of bare flag on each diagonal between the lawn's edge and the wall bed. c308 measured what that costs: seed 42, autumn day 65, 12.98 h, cloud 0.03, 73 people in town and about SIX in the walled garden. #186 answered that with a roof and #198 with rain; both were events, and the loop's own note says FABRIC BEATS EVENTS for a thirty-second visitor. So: give the garden a SECOND ROOM. Take ONE corner — the deadest ground in the world — enclose it with a clipped hedge that has an arched way through, and give the ground inside it a different job from the ground outside, the way a walled garden this size actually works (frames, a dipping tank, a nursery bed, standing pots). Count the PATH cells first and quote the number.",
-      "seams": ["buildGrid", "gR", "bedIn", "bedOut", "bedGap", "nearEntrance", "inArcade", "TN + scalars in __census", "pavedAt", "PUDDLES", "buildMossRegion", "courtShade", "lawnGate", "lawnAdmits", "spawnLawnAgent", "gardWalk", "gardNearest", "GARDEN_REACH", "BENCH_SPOTS", "drawFieldEdge"],
-      "successLooksLike": "From the wide shot the garden reads as TWO places rather than one — a line of clipped hedge with a way through it, and behind it ground that is visibly doing a different job. census tileKinds moves off 174 for the first time since #192, and any ground the new tile is cut OUT of is declared in __census's comments the way LEADS (#170), ARCADE (#186) and REED (#155) are, so developed/green stay honest.",
-      "avoid": "Do NOT make the divider a WALL cell: buildVolumes puts a roof on every footprint, and #119 put the field hedge on the ground cache for exactly that reason (drawFieldEdge, FIELD_X/FIELD_H/FIELD_GAP — read it, it is the precedent and most of the drawing). A hedge that must divide ROUTING has to be in the grid; a hedge that only has to be SEEN does not. Pick one and say which. If it goes in the grid, remember the law: a non-walkable cell holds only where a route's ENDPOINTS are chosen — grep the READERS of every predicate you widen, not its callers, and check lawnGate, gardNearest, BENCH_SPOTS and the arch entrances. Do NOT re-texture the existing paving: #212 already gave the court's flags moss and paveWear and more of that is rung 2. One corner done properly beats four done thinly.",
-      "budgetMin": 90,
-      "risk": "high"
-    },
-    {
       "id": "b217",
       "domain": "Plaza & quay",
       "kind": "Deepen",
       "brief": "The fair happens about five days a year and on those days most of its people are not at it. Measured at #204: fairLead() is 1.2-8.6 h, median 4.4, of a 6.5 h fair — so roughly 7 of its 10 are walking the corridor rather than standing in the plaza. #204 made the gathering a DRY-HOUR budget (FAIR_GATH_H/fairGathSpent) and fairFits/FAIR_STAND_MIN price the stand, but the CORRIDOR is priced at neither end. The law names the two ways to pay: charge the walk at the DOOR when the place is near, or at the STAY when the crossing costs a day's light. The plaza's own day probably wants a nearer door.",
-      "seams": ["isFairDay", "fairF", "fairLead", "spawnFairAgent", "FAIR_SLOTS", "FAIR_GATH_H", "fairGathSpent", "fairFits", "FAIR_STAND_MIN", "PLAZA_PLACES", "plazaWay", "plazaMouth", "alleyRow", "alleyGate", "RING_NODES"],
+      "seams": [
+        "isFairDay",
+        "fairF",
+        "fairLead",
+        "spawnFairAgent",
+        "FAIR_SLOTS",
+        "FAIR_GATH_H",
+        "fairGathSpent",
+        "fairFits",
+        "FAIR_STAND_MIN",
+        "PLAZA_PLACES",
+        "plazaWay",
+        "plazaMouth",
+        "alleyRow",
+        "alleyGate",
+        "RING_NODES"
+      ],
       "successLooksLike": "On a fair day the plaza visibly holds a crowd through the fair's middle hours, and the median lead falls to well under half the fair's length — measured as PRESENCE at the fair over the fair's own span, pooled over six seeds, not as an arrival count and not as a per-instant crop.",
       "avoid": "Do not raise FAIR_CAP or the spawn rate: the cue says the people already exist and are in transit. Measure the share at the CHOICE, and count ADMISSIONS apart from choices — with a fixed number of FAIR_SLOTS, widening the door turns into overflow into the neighbour and the refused fraction is the one bound a sweep of the ceiling cannot see.",
       "budgetMin": 45,
@@ -36,7 +44,18 @@
       "domain": "Sky, light & weather",
       "kind": "Connect",
       "brief": "Three quantized triggers dirty the same ground cache and they disagree about the rule. weedBucket() repaints on ANY change over 102 cells; snow holds a deadband of 3% (SNOW_REPAINT); ice, added at #210, holds 8 of 2860 (ICE_REPAINT). One of the three is priced wrong and nobody has ever compared them. The law is already written for this: before adding a trigger, price what ALREADY dirties that cache — the incumbent's rate caps the new one's mean win — so buy the WORST CASE and set the deadband where the PICTURE stops, not where the count does. Make it one rule, in the weather each trigger actually owns: a thaw, a snowfall, a rank August.",
-      "seams": ["weedBucket", "SNOW_REPAINT", "ICE_REPAINT", "groundDirty", "markGroundPainted", "lightMoved", "LIGHT_MOVE", "LIGHT_SLOW", "drawGround", "fadeCaches"],
+      "seams": [
+        "weedBucket",
+        "SNOW_REPAINT",
+        "ICE_REPAINT",
+        "groundDirty",
+        "markGroundPainted",
+        "lightMoved",
+        "LIGHT_MOVE",
+        "LIGHT_SLOW",
+        "drawGround",
+        "fadeCaches"
+      ],
       "successLooksLike": "One stated rule covers all three, with the repaint RATE and drawGround's cost quoted before and after in each trigger's own weather, and a shown threshold at which the difference image stops changing.",
       "avoid": "The incumbent caps the win: if lightMoved/LIGHT_MOVE already dirties the cache more often than all three put together, say so with the number — 'no change is warranted' is a finding and this brief accepts it, provided the number is there. Read the REPORTER, not the producer: perf.mjs is vsync-locked, so time drawGround as a function, in its weather, at every camera. And a threshold is priced off the subject's FASTEST phase, never its mean.",
       "budgetMin": 35,
@@ -47,7 +66,27 @@
       "domain": "Cross street & allotments",
       "kind": "Connect",
       "brief": "#211 put traffic on the lane's carriageway — TRAFFIC[] with trap, rider, wagon and barrow, keeping left on TRAF_Y_E/TRAF_Y_W — and every rig runs straight through: t.x from -TRAF_OFF to GW+TRAF_OFF, t.y pinned to the lane for its whole life. The cross street is laid to the same standard (roadway XS_R0 68..XS_R1 74 in setts via settGrid/settRun, two footways, kerbs, lamps, TREE_PITS) and in 215 iterations nothing has ever driven it. The two roads meet at the lane's north kerb, in the middle of the wide frame, and the junction is not a junction — it is two stripes that cross. Make them one network.",
-      "seams": ["TRAFFIC", "spawnTraffic", "TRAF_Y_E", "TRAF_Y_W", "TRAF_GAP", "TRAF_CAP", "trafRate", "TRAF_HURRY", "drawRig", "trafName", "XS_R0", "XS_R1", "XS_W0", "XS_E1", "XS_WALK_W", "XS_WALK_E", "LN_WALK_N", "settGrid", "the y=64 kerb row in buildGrid"],
+      "seams": [
+        "TRAFFIC",
+        "spawnTraffic",
+        "TRAF_Y_E",
+        "TRAF_Y_W",
+        "TRAF_GAP",
+        "TRAF_CAP",
+        "trafRate",
+        "TRAF_HURRY",
+        "drawRig",
+        "trafName",
+        "XS_R0",
+        "XS_R1",
+        "XS_W0",
+        "XS_E1",
+        "XS_WALK_W",
+        "XS_WALK_E",
+        "LN_WALK_N",
+        "settGrid",
+        "the y=64 kerb row in buildGrid"
+      ],
       "successLooksLike": "Watch the junction for a minute of a busy hour and something turns out of the lane into the cross street, or down out of it — and the turn is legible: the rig slows, something behind it holds, the heading swings. Quoted as turns per market morning against a control, not as a single screenshot.",
       "avoid": "Do not add a fifth vehicle kind — there are four and the census says they are not under-used. drawRig already draws from t.hx/t.hy, so the heading is a vector: TURN the heading rather than special-casing a sprite. A turning rig crosses a footway, so price it against the walking lines (LANE_N_Y/LANE_S_Y, XS_WALK_W/E) and against the keep-left convention it is leaving. Traffic runs off hash(simT), never R() — keep it that way or the whole seeded world reshuffles.",
       "budgetMin": 45,
@@ -58,12 +97,27 @@
       "domain": "The sill & the observer",
       "kind": "Harness",
       "brief": "The census is issuing FAILs that are its own sampling, and the saturation note on this cell asks for exactly that: a gate that FAILED. #214 shipped over census FAIL winter/frozen 1063 -> 1030, -3.1% against a 3% floor, on a change that was a pure redistribution — and FOUR HEAD-only, behaviour-free re-keyings of freeBay put frozen at 1059/1054/1032/1041. The floor is inside the noise of a reshuffle that means nothing. c309 adds the mechanism: WCORE's winter cell (warp 1220) is sampled MID-FREEZE, on the ramp, so a 1.7% move in an unrelated constant took it to 956 (probes/winter-drift.mjs). c313 is the same disease in another field: census martinNests read +46 (130 -> 176) on a change probes/mart-clock.mjs put at +2.1 on +-7.9 over 24 seed-years — nine pinned instants cannot weigh a threshold CA.",
-      "seams": ["census.mjs WCORE", "WLADDER", "the winter row", "LADDER", "the histFile row", "probes/winter-drift.mjs", "probes/mart-clock.mjs", "martinNests"],
+      "seams": [
+        "census.mjs WCORE",
+        "WLADDER",
+        "the winter row",
+        "LADDER",
+        "the histFile row",
+        "probes/winter-drift.mjs",
+        "probes/mart-clock.mjs",
+        "martinNests"
+      ],
       "successLooksLike": "The winter cell is sampled somewhere its own value is not sprinting — a plateau, not the ramp — or its floor is set off the MEASURED noise of a behaviour-free re-keying, with the number quoted and the choice argued; and every field the nine-instant ladder cannot resolve (martinNests first) either gets a wider sample or is marked as unresolvable so a worker does not chase it. Re-run every gate that reads the subject you redefine, and pin the before to a REF.",
       "avoid": "Do not loosen the floor until the FAILs stop — a gate that cannot fail is not a gate. Measure the noise by re-keying the CANDIDATE, not HEAD, and set the bound off that measurement. Harness costs a domain nothing and is expected to log srcChanged:false; it must still change a NUMBER somebody reads.",
       "budgetMin": 40,
       "risk": "medium"
     }
   ],
-  "recommendStop": null
+  "recommendStop": null,
+  "consumed": [
+    {
+      "id": "b216",
+      "at": "2026-09-04T23:56:08.712Z"
+    }
+  ]
 }

@@ -329,7 +329,7 @@ const WALL = 0, PATH = 1, GRASS = 2, BED = 3, CBED = 4, TRUNK = 5, SIDE = 6, ROA
                                // is BUILT ground and it is stood on, so `developed` counts it; unlike
                                // LEADS every route in the garden may take a walker onto it, and the
                                // openings are drawn LIVE over the cached facade exactly as an arch is
-      SHOAL = 20;              // the river bed where the water is not (#192): the second tile that is
+      SHOAL = 20,              // the river bed where the water is not (#192): the second tile that is
                                // not FABRIC. stepBank() flips a WATER or REED cell of the margin to it
                                // as the year's LEVEL falls under that cell's own bed height, and back
                                // when it rises — so with ICE it is one of the two kinds whose count
@@ -341,6 +341,17 @@ const WALL = 0, PATH = 1, GRASS = 2, BED = 3, CBED = 4, TRUNK = 5, SIDE = 6, ROA
                                // snow (it only exists in high summer); the rushes that stood in it go
                                // on standing, which is what makes it read as roots and not as a hole.
 
+      FRAME = 21;              // the frame yard's floor (#216): the south-east corner of the walled
+                               // garden, hoed earth and ash instead of laid flag. Cut OUT of PATH, and
+                               // it is BUILT ground that is worked, so `developed` counts it exactly as
+                               // it counts LEADS and ARCADE — what changed is the corner's JOB, not
+                               // whether the town has ground there. Like GLASS and ARCADE it takes its
+                               // own fill in the ground cache; unlike them it is open to the sky, so it
+                               // takes snow (snowTake) — a frame yard under a February is white. It is
+                               // not `green`: nothing grows in a path you have hoed, and what does grow
+                               // is drawn on it (the drills) rather than cut out of it, so the yard adds
+                               // no cell to the planting CA and spends no R() — see the block at
+                               // inFrameYard() for why that mattered
 /* the eyot: ONE ellipse, evaluated once in buildGrid() — everything else (the swans' third
  * bank, the ducks' nest, the streaks that part round it) reads the tile back off the grid.
  * Sited in the river's east half, clear of the boat's channel (x 116.5–121.5, hull ±0.5) by
@@ -1391,6 +1402,88 @@ function inArcade(x, y){
 const ARCADE_BAYS = [];                           // one place per bay, west to east — the walk's own occupancy
 for (const r of ARC_RUNS) for (let x = r.x0; x + ARC_BAY <= r.x1; x += ARC_BAY)
   ARCADE_BAYS.push({x: x + ARC_BAY / 2, y: ARC_STAND, run: r, i: ARCADE_BAYS.length});
+/* ============ the frame yard (#216) ============
+ * The walled garden is 3,364 cells — the biggest region in the world — and since the town
+ * was built it has been ONE room: a linden at r < 1.15, a round lawn out to gR(th), one
+ * ring bed, and a band of border against the wall. Everything else is 1,896 cells of
+ * undifferentiated PATH, the largest single ground surface in the town. Because the lawn
+ * is a CIRCLE inside a SQUARE that paving is deepest in the four CORNERS. #186 answered
+ * the emptiness with a roof and #198 with a rule about rain; both were EVENTS, and a
+ * thirty-second visitor sees fabric. So the corner stops being paving.
+ *
+ * WHICH corner is a measurement (probes/corner-traffic.mjs — every entity sampled by
+ * identity every 0.25 s, 4 seeds x 8 days, 577,948 entity-samples). The south-east is the
+ * deadest of the four: 456 PATH cells, 0.74% of presence, and the only corner with no
+ * bench in it. Inside it the envelope taken here holds NOTHING but moths, in any seed —
+ * no walker, no dogwalker, no gardener — while the corner box AROUND it holds 1,046
+ * walker samples, so that zero is a live test and not an empty one.
+ *
+ * Its DEPTH is the gatehouse range's, not the corner's. project() lifts z northward, so
+ * the south range's roof stands over the rows in FRONT of it: a floor run out to the wall
+ * border loses everything past about row 54 behind the tiles, which a screenshot at the
+ * shipping size shows and no census field can. The yard stops at 54 for that reason and
+ * the room is 9 x 7. Its WEST face is the nav ring's: RING sits at r = gR(th) + 2, which
+ * brings it to (47.0, 45.1) on this diagonal, so 47.5 is as far west as a hedge can stand
+ * without the garden's own traffic brushing it.
+ *
+ * That measurement is what decides the hedge's KIND. The law is that a hedge which must
+ * divide ROUTING has to be in the grid and one that only has to be SEEN does not, and
+ * nothing routes through here. So this is #119's field hedge again: DRAWN, no footprint,
+ * no tile. WALL was never available (buildVolumes roofs every footprint) and a
+ * non-walkable tile would have bought nothing — routes are waypoints and nobody reads the
+ * grid between them.
+ *
+ * What IS in the grid is the ground, because that is the whole point of the vector: FRAME,
+ * cut out of PATH. One cell of the old paving is deliberately left on the yard's east and
+ * south faces, between it and the wall borders, so every border cell behind the yard keeps
+ * the PATH neighbour EDGE_BEDS is cut off — take that away and the gardener silently loses
+ * the beds in this corner (a list cut once off a predicate is that predicate's hostage).
+ *
+ * Everything standing in the yard — the two cold frames, the dipping tank, the standing
+ * pots, the seed drills — is drawn off hash() and the year's own terms, never R(), exactly
+ * as the field edge is. That is not tidiness: 18 nursery cells of real BED would have put
+ * 18 more draws through the planting CA on every tick and reshuffled the whole seeded
+ * world, and on a change this size the control worth having is the one that censuses
+ * IDENTICALLY to HEAD but for the tiles it moved. */
+const YARD_X0 = 48, YARD_X1 = 57, YARD_Y0 = 47, YARD_Y1 = 54;   // the yard's FLOOR, in cells: 9 x 7
+function inFrameYard(x, y){ return x >= YARD_X0 && x < YARD_X1 && y >= YARD_Y0 && y < YARD_Y1; }
+/* The two faces the GARDEN looks from get the tall clipped screen with the way through;
+ * the two that back onto the walls get a dwarf box edging you see over. Which is not a
+ * compromise for the camera, it is what the camera IS: project() lifts z northward, so a
+ * tall run screens what is BEHIND it and never what is in front, and a low run on the
+ * south face leaves the whole floor of the yard open to the eye. */
+const YARD_HEDGE = 1.35, YARD_EDGE_H = 0.34, YARD_THICK = 0.5;
+const YARD_ARCH = 51.95, YARD_ARCH_HW = 1.0, YARD_ARCH_Z = 1.12, YARD_ARCH_H = 2.20;
+const YARD_W = YARD_X0 - 0.5, YARD_N = YARD_Y0 - 0.5;    // the outer face of each run
+const YARD_E = YARD_X1 + 0.5, YARD_S = YARD_Y1 + 0.5;
+const YARD_SEG = 0.5;                                    // half-cell lengths, as the field hedge is clipped in
+/* the three seed drills, in cells of the floor — read by the ground cache's detailing and
+ * by the pointer, one definition of where they are */
+function nurseryAt(x, y){ return x >= YARD_X0 + 1 && x < YARD_X1 - 2 && (y === 50 || y === 51); }
+/* what STANDS on the yard, and the one list the draw pass and the pointer both read.
+ * w/d are half-extents, h the height the naming box is raised to. */
+const YARD_FURN = [
+  {kind:'frame', x:49.9, y:48.2, w:1.30, d:0.68, h:0.60},
+  {kind:'frame', x:54.1, y:48.2, w:1.30, d:0.68, h:0.60},
+  {kind:'tank',  x:55.85, y:50.5, w:0.90, d:1.15, h:0.52},
+  {kind:'pots',  x:51.9, y:53.35, w:3.20, d:0.40, h:0.64},
+];
+/* The cells the drawn runs land in — which are NOT the cells they stand on. project()
+ * lifts z northward, so a run 1.35 high on row 46 puts its mass over rows 45 and 46 and
+ * the pointer never reaches the row it is footed in; the field edge carries the same note
+ * about its own column, and this is that note applied to a run in the other axis. The
+ * arch's shoulders reach YARD_ARCH_H, a row further, so the way through claims that row
+ * too — and only across its own span, because everywhere else row 44 is open paving and
+ * calling it hedge would be a lie the eye can check. */
+const YARD_LIFT = Math.ceil(YARD_HEDGE * 1.15), YARD_ARCH_LIFT = Math.ceil(YARD_ARCH_H * 1.15);
+function yardHedgeAt(x, y){
+  const inX = x >= YARD_X0 - 1 && x <= YARD_X1;
+  if (inX && y === YARD_Y1) return true;                                    // the box edging, 0.34 high: its own row
+  if (x === YARD_X1 && y >= YARD_Y0 - 1 && y <= YARD_Y1) return true;       // …and the east one, seen down its length
+  if (inX && y > YARD_Y0 - 1 - YARD_LIFT && y <= YARD_Y0 - 1) return true;  // the north screen's mass
+  if (inX && y === YARD_Y0 - 1 - YARD_ARCH_LIFT && Math.abs(x + 0.5 - YARD_ARCH) < YARD_ARCH_HW + 0.6) return true;
+  return x === YARD_X0 - 1 && y > YARD_Y0 - 1 - YARD_LIFT && y <= YARD_Y1;  // the west screen's
+}
 const LANE_BENCHES = [ {x:12, y:65.6}, {x:52, y:65.6} ];
 /* café tables on the south footway, under the green awning */
 const CAFE_TABLES = [                      // p: how far out on the pavement it is (#169)
@@ -1475,7 +1568,8 @@ function buildGrid(){
         const dWall = Math.min(x - 3, 60 - x, y - 3, 60 - y);
         const depth = 1.6 + 1.4 * hash(x >> 2, y >> 2);
         if (dWall < depth && !nearEntrance(x, y)) grid[i] = BED;
-        else grid[i] = PATH;
+        else if (inFrameYard(x, y)) grid[i] = FRAME;   // #216: the dead corner, hoed. Asked AFTER the
+        else grid[i] = PATH;                           // border so the wall band is never cut into
       } else if (x < XS_W0){
         // building sliver between courtyard wall and cross street; the east passage cuts through
         grid[i] = Math.abs(y + .5 - 32.5) < 2.3 ? SLOT : WALL;
@@ -2858,7 +2952,7 @@ function snowF(){ return clamp((greyF() - SNOW_G0) / SNOW_G1, 0, 1); }
 function snowing(){ return raining && snowF() > 0.5; }
 /* how much of the cover a cell of this kind takes — the trodden kinds take less, so the
  * paths and the road read dark through the white without touching the wear map */
-function snowTake(t){ return t === GRASS || t === BED || t === CBED || t === EYOT ? 1 : t === SIDE ? 0.7 : t === ICE ? 0.45 : t === GLASS ? 0.55 : t === PATH || t === SLOT ? 0.5 : t === ROAD ? 0.4 : 0; }   // ARCADE is roofed, so it takes nothing — the tile falls through to 0 with WALL
+function snowTake(t){ return t === GRASS || t === BED || t === CBED || t === EYOT ? 1 : t === FRAME ? 0.9 : t === SIDE ? 0.7 : t === ICE ? 0.45 : t === GLASS ? 0.55 : t === PATH || t === SLOT ? 0.5 : t === ROAD ? 0.4 : 0; }   // ARCADE is roofed, so it takes nothing — the tile falls through to 0 with WALL; #216: the frame yard is open to the sky and it is broken earth, so it holds a fall the way a bed does
 /* the cover also knows the wear VALUE, not just the kind: a line worn through the lawn
  * takes SNOW_WEAR less of it (full effect by wear SNOW_WEAR_AT, where a desire path is
  * unmistakably a path), so the paths people wear stay dark through a winter. trod[] is
@@ -11676,6 +11770,12 @@ function groundBase(x, y, t, hv, m){
     return mo > 0 ? mix(p, '#74804e', 0.38 * mo) : p;
   }
   if (t === SLOT) return mix('#9d8f73', '#ab9d80', hv);
+  /* #216: the frame yard's floor. Hoed earth and ash — warmer and darker than the flags
+   * it was cut out of, so the corner reads as a different SURFACE from across the garden
+   * and not as paving with things on it. It wets like stone (bare earth goes dark in a
+   * shower) and it does NOT take trodStone or moss: nobody walks here and a hoed floor
+   * has no joints for the green to get into. */
+  if (t === FRAME) return wetCol(mix('#82724f', '#928260', hv), hv);
   if (t === GRASS){
     // the lawn reads the SAME warmth the beds do rather than deriving its own idea of
     // the season — so it cannot green up while the beds are turning over
@@ -12177,6 +12277,7 @@ function drawGround(){
         gtx.strokeStyle = col; gtx.beginPath(); gtx.moveTo(p1[0], p1[1]); gtx.lineTo(p2[0], p2[1]); gtx.stroke();
       }
     }
+    if (t === FRAME) drawYardCell(gtx, x, y, hv);        // #216: the hoe's own marks, and the drills
     if ((t === PATH || t === SLOT) && hv > 0.4){
       gtx.strokeStyle = 'rgba(90,75,50,.25)'; gtx.lineWidth = 0.7;
       quad(gtx, x, y, -0.06); gtx.stroke();
@@ -12391,6 +12492,227 @@ function fieldEdgeName(x, y){
        : blossomF() > 0.15 ? 'the field hedge, in blossom'
        : leafTurn() > 0.3 ? 'the field hedge, turning'
        : 'the field hedge, and the fields beyond it';
+}
+/* ============ the frame yard, drawn (#216) ============
+ * Two halves, and they are split on the CACHE and not on taste. The floor's own marks —
+ * the hoe, the drills, the seedlings standing in them — are ground and go into the ground
+ * cache with the paving, per cell, like drawWeed. Everything that STANDS UP sorts in the
+ * item pass by row, like a bench: the field hedge could live in the cache because it has
+ * the world's edge behind it and nothing between it and the frame, and this one has the
+ * courtyard's own paving in front of it and walkers crossing that paving north of it.
+ * Every draw here is off hash() and the year's own terms — leafOut/leafCol/snowAt/warmth,
+ * the ones the cache already bakes — and never R(), so the yard adds no draw to the seeded
+ * stream and cannot reshuffle the world. */
+const YARD_DRILL = ['#54703c', '#5f7a41'];              // two drills, two different things sown
+function drawYardCell(g, x, y, hv){
+  const sn = snowAt(x, y, FRAME);
+  if (sn > 0.5) return;                                 // under a fall there is nothing to see but the fall
+  // the hoe: two shallow east-west scratches per cell, faint, and not on every cell
+  if (hv > 0.34){
+    g.strokeStyle = 'rgba(74,60,40,.20)'; g.lineWidth = 0.7;
+    for (const fy of [0.34, 0.72]){
+      const p1 = project(x + 0.08, y + fy, 0), p2 = project(x + 0.92, y + fy + 0.04, 0);
+      g.beginPath(); g.moveTo(p1[0], p1[1]); g.lineTo(p2[0], p2[1]); g.stroke();
+    }
+  }
+  if (!nurseryAt(x, y)) return;
+  // a drill: the soil turned darker along the row, then what is standing in it. The
+  // STAGE is the year's, not a CA's — up in the spring, full by midsummer, cut back to
+  // bare worked soil once the season turns, which is what a nursery row actually does.
+  const out = leafOut(), k = y - 50;
+  g.fillStyle = mix('#4a3a28', '#584534', hv);
+  quad(g, x, y, -0.04); g.fill();
+  const st = clamp(out * 1.15 - 0.12, 0, 1) * (0.7 + 0.3 * hv);
+  if (st < 0.06) return;
+  const col = leafCol(cparse(YARD_DRILL[k]), k * 2 + 1);
+  g.strokeStyle = col; g.lineWidth = Math.max(0.8, cellW / 11);
+  for (let n = 0; n < 3; n++){
+    const sx = x + 0.22 + n * 0.28, sy = y + 0.34 + hash(x + n, y + 7) * 0.34;
+    const a = project(sx, sy, 0), b = project(sx + (hash(x, y + n) - 0.5) * 0.12, sy, 0.10 + 0.36 * st);
+    g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke();
+  }
+}
+/* One run of clipped hedge, in half-cell lengths. `axis` is the world axis the run travels
+ * along; `near` is the plane of the face we are shown and `far` the back of the mass, so
+ * the crown is the quad between them. The face we are shown is the one turned toward the
+ * frame, which is why the north run's is its SOUTH plane and the west run's its WEST one:
+ * project() lifts z northward and pinches x on screen depth, so those are the two planes
+ * that are not edge-on. `arch` is only ever passed for the north run — the way through is
+ * cut in the face the garden approaches from, and an arch in a run seen edge-on would be
+ * invisible. */
+function drawYardRun(it){
+  const { axis, near, far, from, to, tall, arch } = it;
+  const out = leafOut(), g = ctx;
+  for (let s = from; s < to - 1e-6; s += YARD_SEG){
+    const s1 = Math.min(s + YARD_SEG, to), c = (s + s1) / 2;
+    const k = Math.round(c * 2) + (axis === 'x' ? 0 : 501), hv = hash(k, tall ? 71 : 73);
+    // CLIPPED and EVERGREEN: the run is level to a line, so the hash is a nap on it and
+    // not a skyline, and its height does not read the year at all. A yew screen is the one
+    // thing in a walled garden that is the same in February as in July, which is what a
+    // garden this size stands one FOR — and it is why the corner still reads as a second
+    // room in the winter frame, when the linden is bare and the borders are earth.
+    let hi = (tall ? YARD_HEDGE : YARD_EDGE_H) * (0.95 + 0.10 * hv);
+    let lo = 0;
+    if (arch){
+      const dx = Math.abs(c - YARD_ARCH);
+      // the shoulders: the clipped mass swells either side of the opening and carries over
+      // it, so the way through reads as an ARCHWAY and not as a hole somebody cut
+      hi += (YARD_ARCH_H - YARD_HEDGE) * clamp((YARD_ARCH_HW + 1.1 - dx) / 1.1, 0, 1);
+      if (dx < YARD_ARCH_HW) lo = YARD_ARCH_Z * Math.sqrt(Math.max(0, 1 - (dx / YARD_ARCH_HW) ** 2));
+      if (lo >= hi - 0.05) continue;
+    }
+    const snx = axis === 'x' ? c | 0 : near | 0, sny = axis === 'x' ? near | 0 : c | 0;
+    // …so it does not go through leafCol either: yew does not flush, turn or drop. The
+    // year reaches it as a freshening of the same dark green, and the weather as snow.
+    let col = mix(tall ? '#2f4a2c' : '#3a5733', tall ? '#42663a' : '#4d7043', 0.30 + 0.34 * clamp(out, 0, 1) + 0.26 * hv);
+    col = mix(col, '#e9eef2', 0.72 * snowAt(clamp(snx, 0, GW - 1), clamp(sny, 0, WH - 1), GRASS));
+    const P = axis === 'x' ? (u, v, z) => project(u, v, z) : (u, v, z) => project(v, u, z);
+    g.fillStyle = mix(col, '#2c3722', 0.24);                                   // the face, in its own shade
+    poly(g, [P(s, near, hi), P(s1, near, hi), P(s1, near, lo), P(s, near, lo)]); g.fill();
+    g.fillStyle = col;                                                          // the crown, seen from above
+    poly(g, [P(s, near, hi), P(s1, near, hi), P(s1, far, hi), P(s, far, hi)]); g.fill();
+  }
+}
+/* A cold frame: a brick kerb with a glazed light laid over it, falling south to the sun.
+ * The light is the one surface in the yard you see THROUGH, and it is drawn the way the
+ * glasshouse's near slope is — the soil and what is in it first, then the glass over it,
+ * so the panes read as glass and not as a pale lid. */
+function drawYardFrame(f, lit){
+  const g = ctx, y0 = f.y - f.d, y1 = f.y + f.d, x0 = f.x - f.w, x1 = f.x + f.w;
+  const zb = f.h, zf = f.h * 0.42, kerb = 0.14;
+  g.fillStyle = '#6d5744';                                                      // the kerb, south face
+  poly(g, [project(x0, y1, kerb), project(x1, y1, kerb), project(x1, y1, 0), project(x0, y1, 0)]); g.fill();
+  g.fillStyle = mix('#3d3022', '#4a3a29', 0.5);                                 // the bed inside it
+  poly(g, [project(x0, y0, zb * 0.5), project(x1, y0, zb * 0.5),
+           project(x1, y1, kerb), project(x0, y1, kerb)]); g.fill();
+  const st = clamp(leafOut() * 1.2 - 0.05, 0, 1);                               // seedlings under the light
+  if (st > 0.08){
+    g.strokeStyle = leafCol([78, 108, 56], 3); g.lineWidth = Math.max(0.8, cellW / 12);
+    for (let n = 0; n < 6; n++){
+      const sx = lerp(x0 + 0.2, x1 - 0.2, n / 5), sy = lerp(y1 - 0.12, y0 + 0.2, hash(n, f.x | 0));
+      const a = project(sx, sy, kerb * 0.6), b = project(sx, sy, kerb * 0.6 + 0.28 * st);
+      g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke();
+    }
+  }
+  const sn = snowAt(clamp(f.x | 0, 0, GW - 1), clamp(f.y | 0, 0, WH - 1), GLASS);
+  const pane = mix(lit ? 'rgb(214,226,224)' : 'rgb(150,168,172)', '#f2f5f6', 0.55 * sn);
+  g.fillStyle = pane; g.globalAlpha = sn > 0.2 ? 0.95 : 0.62;                   // the light itself
+  poly(g, [project(x0, y0, zb), project(x1, y0, zb), project(x1, y1, zf), project(x0, y1, zf)]); g.fill();
+  g.globalAlpha = 1;
+  g.strokeStyle = 'rgba(70,62,50,.72)'; g.lineWidth = Math.max(1, cellW * 0.055);
+  poly(g, [project(x0, y0, zb), project(x1, y0, zb), project(x1, y1, zf), project(x0, y1, zf)]); g.stroke();
+  for (const u of [0.34, 0.67]){                                                // two glazing bars down the slope
+    const a = project(lerp(x0, x1, u), y0, zb), b = project(lerp(x0, x1, u), y1, zf);
+    g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke();
+  }
+}
+/* The dipping tank: the one standing water in the walled garden, and it answers the year
+ * the way every other water in the town does — riverCol for the month, a skin of ice when
+ * the fountain has one. Not a WATER cell: it is a lead cistern standing on the yard's
+ * floor, half a cell across, and the census counts the ground it stands on. */
+function drawYardTank(f, lit){
+  const g = ctx, y0 = f.y - f.d, y1 = f.y + f.d, x0 = f.x - f.w, x1 = f.x + f.w, z = f.h;
+  g.fillStyle = '#7d7466';                                                      // the south and west faces
+  poly(g, [project(x0, y1, z), project(x1, y1, z), project(x1, y1, 0), project(x0, y1, 0)]); g.fill();
+  g.fillStyle = '#6d6558';
+  poly(g, [project(x0, y0, z), project(x0, y1, z), project(x0, y1, 0), project(x0, y0, 0)]); g.fill();
+  g.fillStyle = '#8d8477';                                                      // the coping
+  poly(g, [project(x0, y0, z), project(x1, y0, z), project(x1, y1, z), project(x0, y1, z)]); g.fill();
+  const ice = fountainSkin();
+  const wc = ice > 0.35 ? mix('#b6c3c6', '#d3dcdd', 0.4 * ice)
+           : riverCol(mix('#46626e', '#3d5763', 0.4));
+  g.fillStyle = lit ? mix(wc, skyCols()[1], 0.30) : wc;                         // the water, holding the sky
+  poly(g, [project(x0 + 0.13, y0 + 0.16, z * 0.86), project(x1 - 0.13, y0 + 0.16, z * 0.86),
+           project(x1 - 0.13, y1 - 0.16, z * 0.86), project(x0 + 0.13, y1 - 0.16, z * 0.86)]); g.fill();
+  // the can, stood against the tank where it was last filled
+  const cx = x0 - 0.42, cy = y1 - 0.24;
+  g.fillStyle = '#5f6a63';
+  poly(g, [project(cx - 0.17, cy, 0.34), project(cx + 0.17, cy, 0.34),
+           project(cx + 0.17, cy, 0), project(cx - 0.17, cy, 0)]); g.fill();
+  g.strokeStyle = '#5f6a63'; g.lineWidth = Math.max(1, cellW * 0.05);
+  const s0 = project(cx + 0.17, cy, 0.30), s1 = project(cx + 0.52, cy, 0.12);
+  g.beginPath(); g.moveTo(s0[0], s0[1]); g.lineTo(s1[0], s1[1]); g.stroke();    // the spout
+}
+/* Standing pots along the low edging: terracotta, and what is in them is CLIPPED, so they
+ * keep their shape through a winter the drills do not. The one thing in the yard that is
+ * green in February, which is exactly why a garden this size stands them out. */
+function drawYardPots(f){
+  const g = ctx, n = 5, out = leafOut(), sn = snowCover;
+  for (let i = 0; i < n; i++){
+    const px = lerp(f.x - f.w, f.x + f.w, i / (n - 1)), py = f.y + (hash(i, 217) - 0.5) * 0.16;
+    const r = 0.24 + 0.05 * hash(i, 331), h = 0.30 + 0.07 * hash(i, 337);
+    const [sx, sy] = project(px, py, 0);
+    g.fillStyle = 'rgba(0,0,0,.16)';
+    g.beginPath(); g.ellipse(sx, sy, r * cellW * 1.15, cellH * 0.28, 0, 0, 7); g.fill();
+    g.fillStyle = mix('#a5643f', '#b8734b', hash(i, 419));                      // the pot
+    poly(g, [project(px - r, py, h), project(px + r, py, h),
+             project(px + r * 0.66, py, 0), project(px - r * 0.66, py, 0)]); g.fill();
+    g.fillStyle = mix('#8e5334', '#a06544', hash(i, 421));                      // its rim
+    poly(g, [project(px - r * 1.08, py, h + 0.06), project(px + r * 1.08, py, h + 0.06),
+             project(px + r, py, h), project(px - r, py, h)]); g.fill();
+    // a clipped ball: evergreen, so it only DEEPENS with the year rather than going bare
+    const ball = mix('#3f5c33', leafCol([70, 100, 52], i), 0.45 * clamp(out, 0, 1));
+    const [bx, by] = project(px, py, h + 0.30);
+    g.fillStyle = mix(ball, '#eef2f4', 0.6 * sn);
+    g.beginPath(); g.ellipse(bx, by, r * cellW * 1.02, r * cellW * 0.94, 0, 0, 7); g.fill();
+  }
+}
+function drawYardFurn(it){ const f = it.f2, lit = daylight > 0.12;
+  if (f.kind === 'frame') drawYardFrame(f, lit);
+  else if (f.kind === 'tank') drawYardTank(f, lit);
+  else drawYardPots(f); }
+/* the runs, as the item pass wants them: the two that travel east-west are one item apiece
+ * (every segment sits on the same row, so they sort together); the two that travel
+ * north-south are one item PER SEGMENT, because a walker at row 52 belongs between the
+ * segment at 51 and the segment at 53. */
+function pushYard(items){
+  items.push({ y: YARD_Y0, f: drawYardRun, axis:'x', near: YARD_Y0, far: YARD_N,
+               from: YARD_W, to: YARD_E, tall: 1, arch: 1 });
+  items.push({ y: YARD_S, f: drawYardRun, axis:'x', near: YARD_S, far: YARD_Y1,
+               from: YARD_W, to: YARD_E, tall: 0, arch: 0 });
+  for (let s = YARD_N; s < YARD_S - 1e-6; s += YARD_SEG){
+    const s1 = Math.min(s + YARD_SEG, YARD_S);
+    items.push({ y: (s + s1) / 2, f: drawYardRun, axis:'y', near: YARD_W, far: YARD_X0,
+                 from: s, to: s1, tall: 1, arch: 0 });
+    items.push({ y: (s + s1) / 2, f: drawYardRun, axis:'y', near: YARD_X1, far: YARD_E,
+                 from: s, to: s1, tall: 0, arch: 0 });
+  }
+  for (const f of YARD_FURN) items.push({ y: f.y + f.d, f: drawYardFurn, f2: f });
+}
+/* the pointer, over the same boxes the draw pass used — one definition of where a thing
+ * is, read forwards by the draw and backwards by the name (allotFurnAt's pattern) */
+const YARD_PAD = 3;
+function yardFurnAt(p){
+  for (let i = YARD_FURN.length - 1; i >= 0; i--){
+    const f = YARD_FURN[i];
+    const lo = project(f.x - f.w, f.y + f.d, 0), hi = project(f.x + f.w, f.y + f.d, 0);
+    const top = project(f.x - f.w, f.y - f.d, f.h);
+    if (p[0] < lo[0] - YARD_PAD || p[0] > hi[0] + YARD_PAD) continue;
+    if (p[1] < top[1] - YARD_PAD || p[1] > lo[1] + YARD_PAD) continue;
+    return f;
+  }
+  return null;
+}
+function yardFurnName(f){
+  if (f.kind === 'frame') return snowCover > 0.25 ? 'a cold frame, the light under snow'
+                               : leafOut() < 0.3 ? 'a cold frame, seedlings kept off the frost'
+                               : 'a cold frame, its light propped open';
+  if (f.kind === 'tank') return fountainSkin() > 0.35 ? 'the dipping tank, skinned over'
+                              : 'the dipping tank, and the can stood beside it';
+  return snowCover > 0.25 ? 'clipped bays in pots, snow on them' : 'clipped bays in pots, stood out along the edging';
+}
+function yardHedgeName(x, y){
+  if (y <= YARD_Y0 - 1 && Math.abs(x + 0.5 - YARD_ARCH) < YARD_ARCH_HW + 0.6) return 'the way through into the frame yard';
+  if (y === YARD_Y1 || x === YARD_X1) return 'the box edging round the frame yard';
+  return snowCover > 0.25 ? 'the yew screen, snow along its top'
+       : leafOut() < 0.25 ? 'the yew screen, dark against a bare garden'
+       : 'the yew screen round the frame yard';
+}
+function frameYardName(x, y){
+  if (nurseryAt(x, y)) return leafOut() < 0.2 ? 'a seed drill, bare till the spring'
+                            : leafOut() > 0.75 ? 'a seed drill, well up' : 'a seed drill, just showing';
+  return snowCover > 0.25 ? 'the frame yard, snow lying on the hoed ground'
+       : 'the frame yard, hoed and raked';
 }
 function drawQuayWalls(g){
   // stone embankments: a real face dropping to the water on both banks
@@ -14335,6 +14657,7 @@ function drawScene(t, dt){
     else if (reedHere(i)) items.push({y:y+0.5, f:drawReeds, x, gy:y, i});   // #155: the shallows sort with the beds; #192: a stand a low river left dry is still a stand
   }
   for (const b of BENCH_SPOTS) items.push({y:b.y+0.2, f:drawBench, b});
+  pushYard(items);                       // #216: the frame yard's hedge, edging and furniture, by row
   for (const b of LANE_BENCHES) items.push({y:b.y+0.2, f:drawBench, b});
   for (const L of LAMPS) items.push({y:L[1], f:drawLamp, L});
   for (const L of LANE_LAMPS) items.push({y:L[1], f:drawLamp, L});
@@ -18387,6 +18710,10 @@ function nameAt(x, y){
   // the boundary stands on the east face of the last column, and project() lifts its
   // mass a row NORTH of the cell it stands on, so the pointer lands in x = GW-1
   if (x === GW - 1 && y >= FIELD_Y0 && y < FIELD_Y1) return fieldEdgeName(x, y);
+  // #216: the same trick again — the yard's runs are drawn, not built, so they are named
+  // off the PATH cells they stand on, and the floor they enclose names itself
+  if (g === FRAME) return frameYardName(x, y);
+  if (yardHedgeAt(x, y)) return yardHedgeName(x, y);
   if (g === GRASS) return daisy[j] ? 'the lawn, daisies in it'
                  : wear[j] > 0.45 ? 'the lawn, worn to a path' : 'the lawn';
   if (g === REED) return REED_NAMES[bSt[j] - 1] || REED_NAMES[0];
@@ -18924,6 +19251,9 @@ function lookAt(p){
   { const rf = roofFurnAt(p); if (rf) return roofFurnName(rf); }
   // the plots' furniture is cached under the crops, so it is asked after the living and before the ground
   { const af = allotFurnAt(p); if (af) return allotFurnName(af); }
+  // #216: the yard's furniture is drawn in the item pass over its own floor, so it is
+  // asked in the same place the plots' furniture is — after the living, before the ground
+  { const yf = yardFurnAt(p); if (yf) return yardFurnName(yf); }
   const f = faceAt(p), c = treeAt(p);        // crowns paint over the cached facades; the live band over the crowns
   if (f && (f.live || !c)) return f.door ? doorName(f) : windowName(f.sa, f.sb);
   if (c) return c.name + ', ' + treeState(c.fruit);
@@ -19613,7 +19943,7 @@ window.__entities = function(){
   return out;
 };
 window.__census = function(){
-  const tiles = {}, TN = ['WALL','PATH','GRASS','BED','CBED','TRUNK','SIDE','ROAD','VOID','WATER','TUNNEL','SLOT','DECK','DIAL','EYOT','GLASS','REED','LEADS','ICE','ARCADE','SHOAL'];
+  const tiles = {}, TN = ['WALL','PATH','GRASS','BED','CBED','TRUNK','SIDE','ROAD','VOID','WATER','TUNNEL','SLOT','DECK','DIAL','EYOT','GLASS','REED','LEADS','ICE','ARCADE','SHOAL','FRAME'];
   for (let i = 0; i < GW * WH; i++){ const n = TN[grid[i]] || ('T' + grid[i]); tiles[n] = (tiles[n] || 0) + 1; }
 
   /* planting CA: how much of the beds is actually growing, and how far along */
@@ -19675,6 +20005,10 @@ window.__census = function(){
     benches: BENCH_SPOTS.length + LANE_BENCHES.length + QUAY_BENCHES.length + FAR_BENCHES.length,
     cafeTables: CAFE_TABLES.length, marketStalls: MARKET_STALLS.length,
     treePits: TREE_PITS.length, orchard: ORCHARD.length, plazaPits: PLAZA_PITS.length,
+    /* #216: what stands in the frame yard, beside `cafeTables` and `plotFurniture` for the
+       same reason — a fixed count of built things, town state, and what makes an empty
+       corner of a screenshot evidence of a bug rather than of a system that is not there. */
+    yardFurniture: YARD_FURN.length,
     moorings: BARGE_BOLLARDS.length,
   };
   return {
@@ -19715,7 +20049,11 @@ window.__census = function(){
       // south of the lane anyone stands on — so `developed` holds across the change.
       // #186: and ARCADE is cut out of WALL the same way — a roofed floor is still built
       // ground, and it is the ground the garden's wet-weather people are standing on.
-      developed: (tiles.WALL || 0) + (tiles.PATH || 0) + (tiles.ROAD || 0) + (tiles.SIDE || 0) + (tiles.LEADS || 0) + (tiles.ARCADE || 0),
+      // #216: and FRAME is cut out of PATH, by buildGrid rather than by the calendar. A
+      // corner of the garden's paving that has been hoed is still ground the town has —
+      // what changed is its JOB — so `developed` holds across the change and the whole of
+      // the movement is `tileKinds`, which is where a new kind of ground BELONGS.
+      developed: (tiles.WALL || 0) + (tiles.PATH || 0) + (tiles.ROAD || 0) + (tiles.SIDE || 0) + (tiles.LEADS || 0) + (tiles.ARCADE || 0) + (tiles.FRAME || 0),
       green: (tiles.GRASS || 0) + (tiles.BED || 0) + (tiles.CBED || 0) + (tiles.TRUNK || 0),
       // #155: a REED cell is shallow water, not land — it is cut OUT of WATER, so
       // without this the whole reed bed would read as the river losing 400 cells.
